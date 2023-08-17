@@ -22,11 +22,7 @@ repositories {
 
 docker {
     registryCredentials {
-        url = 'https://dockerhub.esas.by/'
-        username = 'n.tselikava'//('$System.env.DOCKER_HUB_USERNAME')
-        password = 'A9v2UJ48Lw!V'//('$System.env.DOCKER_HUB_PASSWORD')
     }
-
 }
 
 task createDockerfile(type: Dockerfile) {
@@ -78,6 +74,8 @@ dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.24'
     implementation("org.springframework:spring-web:6.0.11")
+    implementation group: 'org.apache.commons', name: 'commons-lang3', version: '3.13.0'
+    implementation group: 'org.apache.commons', name: 'commons-collections4', version: '4.4'
     implementation("org.springframework.boot:spring-boot-starter-web:3.1.0") {
         exclude module: "spring-boot-starter-tomcat"
         exclude module: "spring-boot-starter-jetty"
