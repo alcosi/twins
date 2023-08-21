@@ -100,6 +100,9 @@ dependencies {
     runtimeOnly("org.postgresql:postgresql:42.6.0")
     implementation('org.hibernate:hibernate-core:6.2.7.Final')
     implementation('io.hypersistence:hypersistence-utils-hibernate-62:3.5.1')
+    implementation('io.hypersistence:hypersistence-utils-hibernate-62:3.5.1')
+    implementation('io.springfox:springfox-boot-starter2:3.0.0')
+    implementation('io.springfox:springfox-swagger2:3.0.0')
 }
 
 configurations {

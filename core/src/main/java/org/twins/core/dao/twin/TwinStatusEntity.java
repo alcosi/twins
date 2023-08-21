@@ -20,10 +20,13 @@ public class TwinStatusEntity {
     private UUID twinsClassId;
 
     @Column(name = "name_i18n_id")
-    private UUID nameI18NId;
+    private UUID nameI18nId;
 
     @Column(name = "description_i18n_id")
-    private UUID descriptionI18NId;
+    private UUID descriptionI18nId;
+
+    @Column(name = "logo")
+    private String logo;
 
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
@@ -31,9 +34,9 @@ public class TwinStatusEntity {
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
+    private I18nEntity nameI18n;
 
     @ManyToOne
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByDescriptionI18NId;
+    private I18nEntity descriptionI18n;
 }

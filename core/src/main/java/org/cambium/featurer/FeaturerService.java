@@ -1,12 +1,14 @@
 package org.cambium.featurer;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
-import org.cambium.featurer.exception.IncorrectFeaturerConfigurationException;
+import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -20,6 +22,7 @@ import java.util.*;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class FeaturerService {
     final FeaturerRepository featurerRepository;
     final FeaturerTypeRepository featurerTypeRepository;
@@ -29,14 +32,6 @@ public class FeaturerService {
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
     Hashtable<Integer, Set<String>> featurerParamsMap = new Hashtable<>();
-
-    public FeaturerService(FeaturerRepository featurerRepository, FeaturerTypeRepository featurerTypeRepository, FeaturerParamRepository featurerParamRepository, FeaturerParamTypeRepository featurerParamTypeRepository, FeaturerInjectionRepository injectionRepository) {
-        this.featurerRepository = featurerRepository;
-        this.featurerTypeRepository = featurerTypeRepository;
-        this.featurerParamRepository = featurerParamRepository;
-        this.featurerParamTypeRepository = featurerParamTypeRepository;
-        this.injectionRepository = injectionRepository;
-    }
 
     @Autowired //lazy loading because of circular dependency
     public void setFeaturerList(List<Featurer> featurerList) {
@@ -136,16 +131,16 @@ public class FeaturerService {
         }
     }
 
-    public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws IncorrectFeaturerConfigurationException {
+    public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         Featurer featurer = featurerMap.get(featurerEntity.getId());
         if (featurer == null)
-            throw new IncorrectFeaturerConfigurationException("Can not load feature with id " + featurerEntity.getId());
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
         if (!featurerType.isInstance(featurer)) {
-            throw new IncorrectFeaturerConfigurationException( String.format("feature %s can not be loaded as %s", featurerEntity.getId(), featurerType.getSimpleName()));
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerEntity.getId(), featurerType.getSimpleName()));
         }
         org.cambium.featurer.annotations.Featurer annotation = ClassUtils.getUserClass(featurer.getClass()).getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         if (annotation.id() != featurerEntity.getId())
-            throw new IncorrectFeaturerConfigurationException( "incorrect featurer component id " + featurerEntity.getId());
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Incorrect featurer component id " + featurerEntity.getId());
         return (T) featurer;
     }
 
@@ -178,27 +173,27 @@ public class FeaturerService {
         }
     }
 
-    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, HashMap<String, Object> context) throws IncorrectFeaturerConfigurationException {
+    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         return extractProperties(featurerEntity.getId(), params, context);
     }
 
-    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, HashMap<String, Object> context) throws IncorrectFeaturerConfigurationException {
+    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         org.cambium.featurer.annotations.Featurer annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         return extractProperties(annotation.id(), params, context);
     }
 
-    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, HashMap<String, Object> context) throws IncorrectFeaturerConfigurationException {
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
         Set<String> keySet = featurerParamsMap.get(featurerId);
         int paramsCount = params != null ? params.size() : 0;
         if (paramsCount != keySet.size())
-            throw new IncorrectFeaturerConfigurationException(
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
                     String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, keySet.size(), paramsCount));
         if (paramsCount == 0)
             return ret;//no params
         for (Map.Entry<String, String> entry : params.entrySet()) {
             if (!featurerParamsMap.get(featurerId).contains(entry.getKey()))
-                throw new IncorrectFeaturerConfigurationException(
+                throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
                         String.format("Unknown params key[%s] for featurer[%s]", entry.getKey(), featurerId));
             if (entry.getValue().contains("injection@")) {
                 try {
@@ -226,7 +221,7 @@ public class FeaturerService {
         return getInjector(injection.getInjectorFeaturer()).doInject(injection, context);
     }
 
-    public Injector getInjector(FeaturerEntity featurerEntity) throws IncorrectFeaturerConfigurationException {
+    public Injector getInjector(FeaturerEntity featurerEntity) throws ServiceException {
         return getFeaturer(featurerEntity, Injector.class);
     }
 }
