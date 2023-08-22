@@ -15,6 +15,7 @@ import java.util.UUID;
 @Table(name = "space")
 public class SpaceEntity {
     @Id
+    @Column(name = "twin_id")
     private UUID twinId;
 
     @Column(name = "key")

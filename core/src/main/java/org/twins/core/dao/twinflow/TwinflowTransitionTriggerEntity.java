@@ -24,7 +24,7 @@ public class TwinflowTransitionTriggerEntity {
     private UUID twinflowTransitionId;
 
     @Column(name = "order")
-    private UUID order;
+    private Integer order;
 
     @Column(name = "transition_trigger_featurer_id")
     private Integer transitionTriggerFeaturerId;

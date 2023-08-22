@@ -3,9 +3,8 @@ package org.twins.core.dao.view;
 import lombok.Data;
 
 import jakarta.persistence.*;
-import org.twins.core.dao.ChannelEntity;
+import org.twins.core.dao.Channel;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity
@@ -17,12 +16,9 @@ public class ViewTabLayoutEntity {
     private UUID id;
 
     @Column(name = "channel_id")
-    private String channelId;
+    @Enumerated(EnumType.STRING)
+    private Channel channel;
 
     @Column(name = "key")
     private String key;
-
-    @ManyToOne
-    @JoinColumn(name = "channel_id", insertable = false, updatable = false, nullable = false)
-    private ChannelEntity channel;
 }

@@ -11,6 +11,9 @@ import java.util.UUID;
 public class TwinlinkTreeNodeEntity {
     @Id
     @GeneratedValue(generator = "uuid")
+    private UUID id;
+
+    @Column(name = "twinlink_tree_id")
     private UUID twinlinkTreeId;
 
     @Column(name = "depth")

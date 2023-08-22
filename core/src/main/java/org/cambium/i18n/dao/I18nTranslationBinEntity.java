@@ -11,6 +11,7 @@ import java.util.*;
 @Entity
 @Data
 @Table(name = "i18n_translation_bin")
+@IdClass(I18nTranslationBinEntity.PK.class)
 public class I18nTranslationBinEntity {
     @Id
     @Column(name = "i18n_id")

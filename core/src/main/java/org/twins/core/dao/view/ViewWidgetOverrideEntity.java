@@ -21,6 +21,7 @@ public class ViewWidgetOverrideEntity {
     @Column(name = "override_view_widget_id")
     private UUID overrideViewWidgetId;
 
+    @Column(name = "override_for_channel_id")
     @Enumerated(EnumType.STRING)
     private Channel overrideForChannel;
 

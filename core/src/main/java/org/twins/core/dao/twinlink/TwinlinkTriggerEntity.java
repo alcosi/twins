@@ -24,7 +24,7 @@ public class TwinlinkTriggerEntity {
     private UUID twinlinkId;
 
     @Column(name = "order")
-    private UUID order;
+    private Integer order;
 
     @Column(name = "twinlink_trigger_featurer_id")
     private Integer twinlinkTriggerFeaturerId;

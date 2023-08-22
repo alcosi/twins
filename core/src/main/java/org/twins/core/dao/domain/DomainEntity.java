@@ -34,6 +34,6 @@ public class DomainEntity {
     private FeaturerEntity businessAccountInitiatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "business_account_initiator_featurer_params", columnDefinition = "hstore")
+    @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> businessAccountInitiatorParams;
 }

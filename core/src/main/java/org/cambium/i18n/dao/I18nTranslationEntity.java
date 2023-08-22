@@ -4,7 +4,8 @@ import lombok.Data;
 
 import jakarta.persistence.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
@@ -14,6 +15,7 @@ import java.util.*;
 @Entity
 @Data
 @Table(name = "i18n_translation")
+@IdClass(I18nTranslationEntity.PK.class)
 public class I18nTranslationEntity {
     @Id
     @Column(name = "i18n_id")
@@ -52,7 +54,7 @@ public class I18nTranslationEntity {
     @Transient
     public String fillContent(Map<String, String> context) {
         if (MapUtils.isNotEmpty(context))
-            return com.esas.api.util.StringUtils.replaceVariables(translation, context);
+            return StringUtils.replaceVariables(translation, context);
         else
             return translation;
     }

@@ -40,7 +40,7 @@ public class TwinListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             List<TwinEntity> twinList = twinService.findTwins(apiUser, null);
-            rs.setTwinList(twinListRestDTOMapper.convert(twinList));
+            rs.twinList(twinListRestDTOMapper.convert(twinList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

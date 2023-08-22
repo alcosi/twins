@@ -24,7 +24,7 @@ public class TwinflowTransitionValidatorEntity {
     private UUID twinflowTransitionId;
 
     @Column(name = "order")
-    private UUID order;
+    private Integer order;
 
     @Column(name = "transition_validator_featurer_id")
     private Integer transitionValidatorFeaturerId;

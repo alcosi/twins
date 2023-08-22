@@ -38,7 +38,7 @@ public class TwinClassFieldEntity {
     private int fieldTyperFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "business_account_initiator_featurer_params", columnDefinition = "hstore")
+    @Column(name = "field_typer_params", columnDefinition = "hstore")
     private HashMap<String, String> fieldTyperParams;
 
     @Column(name = "view_permission_id")
