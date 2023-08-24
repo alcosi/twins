@@ -1,7 +1,7 @@
 package org.cambium.featurer.params;
 
-import org.cambium.featurer.annotations.FeaturerParamType;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.featurer.annotations.FeaturerParamType;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;

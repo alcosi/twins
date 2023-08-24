@@ -1,8 +1,7 @@
 package org.twins.core.dao.twinclass;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.UUID;
 

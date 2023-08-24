@@ -1,9 +1,9 @@
 package org.cambium.featurer.dao;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
 
-import jakarta.persistence.*;
 import java.util.List;
 
 @Entity

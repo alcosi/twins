@@ -1,8 +1,7 @@
 package org.twins.core.dao.widget;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.AccessRule;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 

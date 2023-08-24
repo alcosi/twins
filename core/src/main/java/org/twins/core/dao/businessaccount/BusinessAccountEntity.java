@@ -1,9 +1,8 @@
 package org.twins.core.dao.businessaccount;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.DynamicUpdate;
-
-import jakarta.persistence.*;
 import org.twins.core.dao.user.UserGroupEntity;
 
 import java.util.UUID;

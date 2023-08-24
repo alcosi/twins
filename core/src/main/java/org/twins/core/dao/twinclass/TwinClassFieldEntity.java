@@ -1,13 +1,12 @@
 package org.twins.core.dao.twinclass;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import lombok.Data;
-import org.hibernate.annotations.Type;
-import org.cambium.featurer.annotations.FeaturerList;
-
 import jakarta.persistence.*;
+import lombok.Data;
+import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 
@@ -53,11 +52,11 @@ public class TwinClassFieldEntity {
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
+    private I18nEntity nameI18n;
 
     @ManyToOne
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByDescriptionI18NId;
+    private I18nEntity descriptionI18n;
 
     @FeaturerList(type = FieldTyper.class)
     @ManyToOne(fetch = FetchType.EAGER)

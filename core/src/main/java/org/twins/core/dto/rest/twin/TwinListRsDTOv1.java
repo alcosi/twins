@@ -1,7 +1,6 @@
 package org.twins.core.dto.rest.twin;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -13,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "TwinListRsV4")
+@Schema(name =  "TwinListRsV4")
 public class TwinListRsDTOv1 extends Response {
-    @ApiModelProperty(notes = "pagination data")
+    @Schema(description = "pagination data")
     public PaginationBean pagination;
 
-    @ApiModelProperty(notes = "results - transfers list")
+    @Schema(description = "results - transfers list")
     public List<TwinDTOv1> twinList;
 }

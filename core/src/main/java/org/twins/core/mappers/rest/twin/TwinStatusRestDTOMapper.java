@@ -24,7 +24,7 @@ public class TwinStatusRestDTOMapper implements RestDTOMapper<TwinStatusEntity, 
         dst
                 .id(src.getId())
                 .name(i18nService.translateToLocale(src.getNameI18n()))
-                .description(i18nService.translateToLocale(src.getDescriptionI18n()))
+                .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
                 .logo(src.getLogo())
         ;
     }

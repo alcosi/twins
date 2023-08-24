@@ -1,8 +1,8 @@
 package org.twins.core.dao.twinlink;
 
+import jakarta.persistence.*;
 import lombok.Data;
 
-import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity

@@ -4,14 +4,14 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter
-public class I18nTypeConverter implements AttributeConverter<I18nType, Integer> {
+public class I18nTypeConverter implements AttributeConverter<I18nType, String> {
     @Override
-    public Integer convertToDatabaseColumn(I18nType i18nType) {
+    public String convertToDatabaseColumn(I18nType i18nType) {
         return i18nType.getId();
     }
 
     @Override
-    public I18nType convertToEntityAttribute(Integer integer) {
-        return I18nType.valueOd(integer);
+    public I18nType convertToEntityAttribute(String id) {
+        return I18nType.valueOd(id);
     }
 }

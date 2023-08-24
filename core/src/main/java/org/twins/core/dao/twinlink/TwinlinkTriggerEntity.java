@@ -1,12 +1,11 @@
 package org.twins.core.dao.twinlink;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import lombok.Data;
-import org.hibernate.annotations.Type;
-import org.cambium.featurer.annotations.FeaturerList;
-
 import jakarta.persistence.*;
+import lombok.Data;
+import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Type;
 import org.twins.core.featurer.twinlink.trigger.TwinlinkTrigger;
 
 import java.util.HashMap;

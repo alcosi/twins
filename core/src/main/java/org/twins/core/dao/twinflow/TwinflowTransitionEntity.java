@@ -1,12 +1,11 @@
 package org.twins.core.dao.twinflow;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.permission.PermissionEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;

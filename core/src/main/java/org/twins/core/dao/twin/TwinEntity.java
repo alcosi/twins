@@ -1,8 +1,7 @@
 package org.twins.core.dao.twin;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -45,8 +44,8 @@ public class TwinEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
     @ManyToOne

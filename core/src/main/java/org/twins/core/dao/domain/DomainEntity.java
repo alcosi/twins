@@ -1,13 +1,12 @@
 package org.twins.core.dao.domain;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import jakarta.persistence.*;
 import lombok.Data;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
-import org.cambium.featurer.annotations.FeaturerList;
-
-import jakarta.persistence.*;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 
 import java.util.HashMap;

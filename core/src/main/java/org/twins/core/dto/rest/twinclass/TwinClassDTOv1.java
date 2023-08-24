@@ -1,30 +1,35 @@
 package org.twins.core.dto.rest.twinclass;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@ApiModel(value = "TwinClassV1")
+@Schema(name =  "TwinClassV1")
 public class TwinClassDTOv1 {
-    @ApiModelProperty(notes = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
+    @Schema(description = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
     public UUID id;
 
-    @ApiModelProperty(notes = "key", example = "PROJECT")
+    @Schema(description = "key", example = "PROJECT")
     public String key;
 
-    @ApiModelProperty(notes = "name", example = "Oak")
+    @Schema(description = "name", example = "Oak")
     public String name;
 
-    @ApiModelProperty(notes = "description", example = "The biggest tree")
+    @Schema(description = "description", example = "The biggest tree")
     public String description;
 
-    @ApiModelProperty(notes = "created at", example = "1549632759")
+    @Schema(description = "created at", example = "1549632759")
     public Instant createdAt;
+
+    @Schema(description = "logo", example = "PLN")
+    public String logo;
+
+    @Schema(description = "results - twin class fields list")
+    public List<TwinClassFieldDTOv1> twinClassFieldList;
 }

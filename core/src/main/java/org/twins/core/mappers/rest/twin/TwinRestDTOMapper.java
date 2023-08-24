@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.mappers.rest.RestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 
 
@@ -13,6 +14,7 @@ import org.twins.core.mappers.rest.user.UserDTOMapper;
 public class TwinRestDTOMapper implements RestDTOMapper<TwinEntity, TwinDTOv1> {
     final UserDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     public TwinDTOv1 convert(TwinEntity twinEntity) {
         TwinDTOv1 twinDTOv1 = new TwinDTOv1();
@@ -29,6 +31,7 @@ public class TwinRestDTOMapper implements RestDTOMapper<TwinEntity, TwinDTOv1> {
                 .assignerUser(userDTOMapper.convert(src.getAssignerUser()))
                 .authorUser(userDTOMapper.convert(src.getCreatedByUser()))
                 .status(twinStatusRestDTOMapper.convert(src.getTwinStatus()))
+                .twinClass(twinClassRestDTOMapper.convert(src.getTwinClass()))
                 .createdAt(src.getCreatedAt().toInstant())
         ;
     }

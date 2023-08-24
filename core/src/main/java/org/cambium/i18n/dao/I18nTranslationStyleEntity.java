@@ -1,8 +1,7 @@
 package org.cambium.i18n.dao;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 
 import java.util.Locale;
 import java.util.UUID;

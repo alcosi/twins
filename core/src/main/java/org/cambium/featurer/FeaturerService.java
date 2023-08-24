@@ -1,5 +1,6 @@
 package org.cambium.featurer;
 
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -15,7 +16,6 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 
-import jakarta.annotation.PostConstruct;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;

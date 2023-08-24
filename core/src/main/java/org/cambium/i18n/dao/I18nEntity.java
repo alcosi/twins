@@ -1,9 +1,11 @@
 package org.cambium.i18n.dao;
 
+import jakarta.persistence.*;
 import lombok.Data;
 
-import jakarta.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -21,10 +23,6 @@ public class I18nEntity {
     @Column(name = "i18n_type_id")
     @Convert(converter = I18nTypeConverter.class)
     private I18nType type;
-
-    @Basic
-    @Column(name = "default_bin")
-    private byte[] defaultBin;
 
     @Basic
     @Column(name = "key")

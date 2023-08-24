@@ -1,7 +1,5 @@
 package org.cambium.common.exception;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class SimpleLogException extends Exception  {
     public SimpleLogException() {
         super();

@@ -1,9 +1,8 @@
 package org.cambium.featurer.dao;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.hibernate.annotations.Type;
 
 import java.util.HashMap;

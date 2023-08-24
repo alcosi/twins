@@ -2,8 +2,8 @@ package org.cambium.featurer.params;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.cambium.featurer.annotations.FeaturerParamType;
 import lombok.SneakyThrows;
+import org.cambium.featurer.annotations.FeaturerParamType;
 
 import java.util.HashMap;
 import java.util.Map;

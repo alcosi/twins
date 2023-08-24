@@ -1,14 +1,15 @@
 package org.twins.core.dao.businessaccount;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
+import lombok.experimental.Accessors;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "business_account_user")
 public class BusinessAccountUserEntity {
     @Id

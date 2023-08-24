@@ -1,8 +1,7 @@
 package org.cambium.featurer.dao;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 
 @Entity
 @Data

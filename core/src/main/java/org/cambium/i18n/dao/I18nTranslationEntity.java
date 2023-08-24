@@ -1,8 +1,7 @@
 package org.cambium.i18n.dao;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.util.StringUtils;

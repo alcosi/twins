@@ -1,10 +1,9 @@
 package org.twins.core.dao.view;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Type;
-
-import jakarta.persistence.*;
 import org.twins.core.dao.Channel;
 
 import java.util.HashMap;

@@ -1,36 +1,30 @@
 package org.cambium.i18n.dao;
 
+import lombok.Getter;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
 public enum I18nType  {
-    UNKNOWN(0, "Unknown", Category.TEXT);
+    UNKNOWN("unknown", "Unknown", Category.TEXT),
+    TWIN_STATUS_NAME("twinStatusName", "Twin status name", Category.TEXT),
+    TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status name", Category.TEXT)
+        ;
 
-    private final int id;
+    private final String id;
     private final String description;
     private final Category category;
 
-    I18nType(int id, String description, Category category) {
+    I18nType(String id, String description, Category category) {
         this.id = id;
         this.description = description;
         this.category = category;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public static I18nType valueOd(int type) {
-        return Arrays.stream(I18nType.values()).filter(t -> t.id == type).findAny().orElse(UNKNOWN);
+    public static I18nType valueOd(String type) {
+        return Arrays.stream(I18nType.values()).filter(t -> t.id.equals(type)).findAny().orElse(UNKNOWN);
     }
 
     public boolean isText() {
@@ -57,21 +51,21 @@ public enum I18nType  {
         return Arrays.stream(I18nType.values()).filter(e -> e.description.contains(description)).findAny().orElseThrow(NullPointerException::new);
     }
 
-    public static List<Integer> getTextTypesIds() {
+    public static List<String> getTextTypesIds() {
         return Arrays.stream(I18nType.values())
                 .filter(type -> type.category.equals(Category.TEXT) || type.category.equals(Category.STYLED_TEXT))
                 .map(type -> type.id)
                 .collect(Collectors.toList());
     }
 
-    public static List<Integer> getImageTypesIds() {
+    public static List<String> getImageTypesIds() {
         return Arrays.stream(I18nType.values())
                 .filter(type -> type.category.equals(Category.IMAGE))
                 .map(type -> type.id)
                 .collect(Collectors.toList());
     }
 
-    public static List<Integer> getExternalIdTypesIds() {
+    public static List<String> getExternalIdTypesIds() {
         return Arrays.stream(I18nType.values())
                 .filter(type -> type.category.equals(Category.EXTERNAL_ID))
                 .map(type -> type.id)

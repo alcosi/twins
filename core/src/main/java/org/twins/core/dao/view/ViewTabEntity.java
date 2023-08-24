@@ -1,8 +1,7 @@
 package org.twins.core.dao.view;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.UUID;

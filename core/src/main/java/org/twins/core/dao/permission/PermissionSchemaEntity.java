@@ -1,8 +1,7 @@
 package org.twins.core.dao.permission;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;

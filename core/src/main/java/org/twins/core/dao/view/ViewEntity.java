@@ -1,11 +1,9 @@
 package org.twins.core.dao.view;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.AccessOrder;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Entity

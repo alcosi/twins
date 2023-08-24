@@ -1,8 +1,8 @@
 package org.twins.core.controller.rest;
 
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ErrorCode;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;

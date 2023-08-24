@@ -1,7 +1,6 @@
 package org.twins.core.config;
 
 import lombok.Data;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.PropertySource;
 

@@ -1,17 +1,16 @@
 package org.twins.core.dto.rest;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.EqualsAndHashCode;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ErrorCodeCommon;
 
-@ApiModel
+@Schema
 @EqualsAndHashCode
 public class Response {
-    @ApiModelProperty(notes = "request processing status (see ErrorCode enum)", example = "0")
+    @Schema(description = "request processing status (see ErrorCode enum)", example = "0")
     private int status;
-    @ApiModelProperty(notes = "request processing status description", example = "success")
+    @Schema(description = "request processing status description", example = "success")
     private String msg;
 
     public Response() {

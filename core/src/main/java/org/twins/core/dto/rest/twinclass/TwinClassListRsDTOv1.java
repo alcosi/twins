@@ -1,7 +1,6 @@
 package org.twins.core.dto.rest.twinclass;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
@@ -12,8 +11,8 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "TwinClassListRsV1")
+@Schema(name = "TwinClassListRsV1")
 public class TwinClassListRsDTOv1 extends Response {
-    @ApiModelProperty(notes = "results - transfers list")
+    @Schema(description = "results - twin class list")
     public List<TwinClassDTOv1> twinClassList;
 }

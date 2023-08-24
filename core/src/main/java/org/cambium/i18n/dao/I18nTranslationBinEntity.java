@@ -1,12 +1,13 @@
 package org.cambium.i18n.dao;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.Base64;
+import java.util.Locale;
+import java.util.UUID;
 
 @Entity
 @Data

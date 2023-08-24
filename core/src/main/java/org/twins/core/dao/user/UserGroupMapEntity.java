@@ -1,8 +1,8 @@
 package org.twins.core.dao.user;
 
+import jakarta.persistence.*;
 import lombok.Data;
 
-import jakarta.persistence.*;
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;

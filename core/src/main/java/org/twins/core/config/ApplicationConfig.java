@@ -9,20 +9,19 @@ package org.twins.core.config;
 
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.MessageSource;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.client.RestTemplate;
-import javax.sql.DataSource;
 
-import static org.springframework.context.annotation.ComponentScan.Filter;
+import javax.sql.DataSource;
 
 @Slf4j
 @Configuration

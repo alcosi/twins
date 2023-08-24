@@ -6,8 +6,8 @@ import org.cambium.featurer.annotations.FeaturerType;
 
 
 @FeaturerType(id = 13,
-        name = "TransitionTrigger",
-        description = "")
+        name = "FieldTyper",
+        description = "Customize format of twin class field")
 @Slf4j
 public abstract class FieldTyper extends Featurer {
 

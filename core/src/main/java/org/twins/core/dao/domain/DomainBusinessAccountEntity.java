@@ -1,11 +1,10 @@
 package org.twins.core.dao.domain;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
 import java.sql.Timestamp;

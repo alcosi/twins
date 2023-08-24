@@ -1,8 +1,7 @@
 package org.twins.core.dao.twinclass;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -39,17 +38,20 @@ public class TwinClassEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "logo")
+    private String logo;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
+    private I18nEntity nameI18n;
 
     @ManyToOne
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByDescriptionI18NId;
+    private I18nEntity descriptionI18n;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

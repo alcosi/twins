@@ -9,7 +9,7 @@ import java.util.Properties;
 
 @FeaturerType(id = 10,
         name = "injectors",
-        description = "Выполняет подстановку параметров для Featurer")
+        description = "Customize inject of featurer params")
 public abstract class Injector extends Featurer {
     public String doInject(FeaturerInjectionEntity injection, HashMap<String, Object> context) throws Exception {
         Properties injectorProperties = featurerService.extractProperties(injection.getInjectorFeaturer(), injection.getInjectorParams(), context);

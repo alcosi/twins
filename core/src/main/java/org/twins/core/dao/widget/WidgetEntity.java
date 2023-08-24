@@ -1,9 +1,8 @@
 package org.twins.core.dao.widget;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.featurer.annotations.FeaturerList;
-
-import jakarta.persistence.*;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.AccessOrder;
 import org.twins.core.featurer.widget.datagrabber.DataGrabber;

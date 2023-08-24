@@ -1,8 +1,7 @@
 package org.twins.core.dao.space;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
+import lombok.Data;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;

@@ -1,15 +1,14 @@
 package org.twins.core.dto.rest;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
+import io.swagger.v3.oas.annotations.media.Schema;
 
-@ApiModel
+@Schema
 public class PaginationBean {
-    @ApiModelProperty(notes = "page number", example = "1")
+    @Schema(description = "page number", example = "1")
     private int page;
-    @ApiModelProperty(notes = "rows count per page", example = "10")
+    @Schema(description = "rows count per page", example = "10")
     private int count;
-    @ApiModelProperty(notes = "total results count", example = "300")
+    @Schema(description = "total results count", example = "300")
     private int total;
 
     public PaginationBean() {

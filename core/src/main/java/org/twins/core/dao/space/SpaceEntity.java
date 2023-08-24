@@ -1,11 +1,10 @@
 package org.twins.core.dao.space;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.dao.twin.TwinEntity;
+import lombok.Data;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
 import java.util.UUID;

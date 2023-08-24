@@ -1,9 +1,9 @@
 package org.twins.core.dao.error;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.i18n.dao.I18nEntity;
 
-import jakarta.persistence.*;
 import java.util.UUID;
 
 @Entity

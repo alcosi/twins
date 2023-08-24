@@ -1,9 +1,7 @@
 package org.twins.core.dao.twin;
 
-import lombok.Data;
-
 import jakarta.persistence.*;
-import org.twins.core.dao.twin.TwinEntity;
+import lombok.Data;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
