@@ -14,7 +14,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinClassListRqV1")
 public class TwinClassListRqDTOv1 extends Request {
-    @Schema(description = "twin class id list", example = "['e2b4b9c0-4cdd-42a0-a52a-a8e439b1c17b']")
+    @Schema(description = "twin class id list", example = "")
     public List<UUID> twinClassIdList;
 
     @Schema(description = "show fields", example = "true")

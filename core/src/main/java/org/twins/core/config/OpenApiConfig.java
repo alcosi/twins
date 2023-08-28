@@ -15,9 +15,9 @@ public class OpenApiConfig {
         return new OpenAPI()
                 .info(
                         new Info()
-                                .title("App Title")
-                                .description("App description")
-                                .version("App version"))
+                                .title("Twins API")
+                                .description("Core api for twins framework")
+                                .version("v1.0"))
             .externalDocs(
                 new ExternalDocumentation()
                         .description("Documentation name")

@@ -28,4 +28,5 @@ public class BusinessAccountService {
                 .userId(userId);
         businessAccountUserRepository.save(businessAccountEntity);
     }
+
 }

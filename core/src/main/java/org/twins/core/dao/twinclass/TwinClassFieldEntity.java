@@ -46,22 +46,25 @@ public class TwinClassFieldEntity {
     @Column(name = "edit_permission_id")
     private UUID editPermissionId;
 
+    @Column(name = "required")
+    private boolean required;
+
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     private I18nEntity nameI18n;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
 
     @FeaturerList(type = FieldTyper.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity featurerByFieldTyperFeaturerId;
+    private FeaturerEntity fieldTyperFeaturer;
 
     @ManyToOne
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)

@@ -18,18 +18,18 @@ public class TwinClassDTOv1 {
     @Schema(description = "key", example = "PROJECT")
     public String key;
 
-    @Schema(description = "name", example = "Oak")
+    @Schema(description = "name", example = "Project")
     public String name;
 
-    @Schema(description = "description", example = "The biggest tree")
+    @Schema(description = "description", example = "Projects business objects")
     public String description;
 
     @Schema(description = "created at", example = "1549632759")
     public Instant createdAt;
 
-    @Schema(description = "logo", example = "PLN")
+    @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
     public String logo;
 
-    @Schema(description = "results - twin class fields list")
+    @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> twinClassFieldList;
 }

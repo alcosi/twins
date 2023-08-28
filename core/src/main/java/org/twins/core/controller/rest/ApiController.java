@@ -49,7 +49,7 @@ public abstract class ApiController {
     }
 
     public ResponseEntity<Response> createErrorRs(ServiceException ex, Response rs) {
-        return createErrorRs(ex, ex.getErrorCode(), ex.getErrorMsg(), ex.getHttpStatus(), rs, ex.getContext());
+        return createErrorRs(ex, ex.getErrorCode(), ex.getMessage(), ex.getHttpStatus(), rs, ex.getContext());
     }
 
     public ResponseEntity<Response> createErrorRs(Exception ex, Response rs) {

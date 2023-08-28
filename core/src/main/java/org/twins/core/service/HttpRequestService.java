@@ -30,20 +30,20 @@ public class HttpRequestService extends SessionLocaleResolver {
 
     private final HttpServletRequest request;
 
-    public UUID getUserIdFromRequest() {
-        return UUID.fromString(request.getHeader(HEADER_USER_ID));
+    public String getUserIdFromRequest() {
+        return request.getHeader(HEADER_USER_ID);
     }
 
-    public UUID getDomainIdFromRequest() {
-        return UUID.fromString(request.getHeader(HEADER_DOMAIN_ID));
+    public String getDomainIdFromRequest() {
+        return request.getHeader(HEADER_DOMAIN_ID);
     }
 
-    public UUID getBusinessAccountIdFromRequest() {
-        return UUID.fromString(request.getHeader(HEADER_BUSINESS_ACCOUNT_ID));
+    public String getBusinessAccountIdFromRequest() {
+        return request.getHeader(HEADER_BUSINESS_ACCOUNT_ID);
     }
 
-    public Channel getChannelIdFromRequest() {
-        return Channel.resolve(request.getHeader(HEADER_CHANNEL));
+    public String getChannelIdFromRequest() {
+        return request.getHeader(HEADER_CHANNEL);
     }
 
     @Override

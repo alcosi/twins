@@ -5,6 +5,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.time.Instant;
+import java.util.Hashtable;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -17,9 +19,18 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "key", example = "PROJECT")
     public String key;
 
-    @Schema(description = "name", example = "Oak")
+    @Schema(description = "name", example = "Serial number")
     public String name;
 
-    @Schema(description = "description", example = "The biggest tree")
+    @Schema(description = "type", example = "email")
+    public String type;
+
+    @Schema(description = "required", example = "true")
+    public boolean required;
+
+    @Schema(description = "type params", example = "")
+    public Hashtable<String, String> typeParams;
+
+    @Schema(description = "description", example = "")
     public String description;
 }

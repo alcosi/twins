@@ -1,6 +1,8 @@
 package org.twins.core.controller.rest.priv.user;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -13,7 +15,9 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.twin.TwinListRsDTOv1;
 import org.twins.core.mappers.rest.twin.TwinListRestDTOMapper;
+import org.twins.core.service.UUIDCheckService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.BusinessAccountService;
 import org.twins.core.service.user.UserService;
@@ -21,17 +25,20 @@ import org.twins.core.service.user.UserService;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(description = "Use CRUD", name = "user")
+@Tag(description = "", name = "user")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class UserCRUDController extends ApiController {
+public class UserCreateController extends ApiController {
+    private final AuthService authService;
     private final UserService userService;
     private final BusinessAccountService businessAccountService;
 
-    @Operation(operationId = "userCreateV", summary = "")
+    @Operation(operationId = "userCreateV1", summary = "New userId registration. If BusinessAccountId header is not empty, this api will also map given userId to businessAccount")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "User was added"),
+            @ApiResponse(responseCode = "200", description = "User was added", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/v1", method = RequestMethod.POST)
     public ResponseEntity<?> userCreate(
@@ -41,9 +48,13 @@ public class UserCRUDController extends ApiController {
             @RequestHeader("Channel") String channel) {
         Response rs = new Response();
         try {
-            userService.addUser(userId);
+            ApiUser apiUser = authService.getApiUser(
+                    UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_MISSING,
+                    UUIDCheckService.CheckMode.EMPTY_OR_DB_EXISTS,
+                    UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
+            userService.addUser(apiUser.userId());
             if (businessAccountId != null)
-                businessAccountService.addUser(userId, businessAccountId);
+                businessAccountService.addUser(apiUser.userId(), apiUser.businessAccountId());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -4,7 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 
 public class ExternalServiceException extends SimpleLogException implements IExternalServiceException, IErrorCodeException {
     private int errorCode;
-    private String errorMsg;
 
     private String errorCodeExternal;
     private String errorMsgExternal;
@@ -21,16 +20,6 @@ public class ExternalServiceException extends SimpleLogException implements IExt
     @Override
     public ExternalServiceException setErrorCode(int errorCode) {
         this.errorCode = errorCode;
-        return this;
-    }
-
-    public String getErrorMsg() {
-        return errorMsg;
-    }
-
-    @Override
-    public ExternalServiceException setErrorMsg(String errorMsg) {
-        this.errorMsg = errorMsg;
         return this;
     }
 
@@ -62,6 +51,6 @@ public class ExternalServiceException extends SimpleLogException implements IExt
 
     @Override
     public String toString() {
-        return "Exception[" + errorCode + (StringUtils.isNotBlank(errorCodeExternal) ? "|" + errorCodeExternal : "") + "]" + (StringUtils.isNotBlank(errorMsg) ? ": " + errorMsg : "");
+        return "Exception[" + errorCode + (StringUtils.isNotBlank(errorCodeExternal) ? "|" + errorCodeExternal : "") + "]" + getMessage();
     }
 }

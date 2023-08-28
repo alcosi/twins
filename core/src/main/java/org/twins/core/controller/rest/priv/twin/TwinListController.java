@@ -23,7 +23,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
 
-@Tag(description = "Get twins by tql", name = "twins")
+@Tag(description = "", name = "twin")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

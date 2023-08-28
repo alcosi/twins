@@ -45,11 +45,11 @@ public class TwinClassEntity {
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     private I18nEntity nameI18n;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     private I18nEntity descriptionI18n;
 
