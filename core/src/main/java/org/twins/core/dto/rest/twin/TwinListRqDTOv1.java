@@ -13,5 +13,14 @@ import org.twins.core.dto.rest.tql.TqlDTOv1;
 @Schema(name =  "TwinListRqV1")
 public class TwinListRqDTOv1 extends Request {
     @Schema(description = "TQL")
-    private TqlDTOv1 tql;
+    public TqlDTOv1 tql;
+
+    @Schema(description = "show status details", defaultValue = "true", example = "true")
+    public boolean showStatusDetails;
+
+    @Schema(description = "show class details", defaultValue = "true", example = "true")
+    public boolean showClassDetails;
+
+    @Schema(description = "show user details", defaultValue = "true", example = "true")
+    public boolean showUserDetails;
 }

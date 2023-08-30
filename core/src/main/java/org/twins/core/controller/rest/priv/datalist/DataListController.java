@@ -17,6 +17,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
+import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -50,15 +51,12 @@ public class DataListController extends ApiController {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<DataListEntity> dataLists = dataListService.findDataLists(apiUser, request.dataListIdList());
-            rs.dataListList(dataListRestDTOMapper.convertList(dataLists));
-            if (request.showOptions()) {
-                for (DataListDTOv1 dataListDTOv1 : rs.dataListList()) {
-                    dataListDTOv1.options(
-                            dataListOptionRestDTOMapper.convertList(
-                                    dataListService.findDataListOptions(apiUser, dataListDTOv1.id())));
-                }
-            }
+            MapperProperties mapperProperties = MapperProperties.create();
+            if (request.showOptions())
+                mapperProperties.setMode(DataListRestDTOMapper.Mode.SHOW_OPTIONS);
+            rs.dataListList(
+                    dataListRestDTOMapper.convertList(
+                            dataListService.findDataLists(apiUser, request.dataListIdList()), mapperProperties));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -16,7 +16,11 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.TwinListRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinListRsDTOv1;
+import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -35,7 +39,7 @@ public class TwinListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinListRsDTOv1.class)) }),
+                    @Schema(implementation = TwinListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinListV1(
@@ -48,7 +52,15 @@ public class TwinListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             List<TwinEntity> twinList = twinService.findTwins(apiUser, null);
-            rs.twinList(twinRestDTOMapper.convertList(twinList));
+            MapperProperties mapperProperties = MapperProperties.create();
+            if (!request.showUserDetails())
+                mapperProperties.setMode(UserDTOMapper.Mode.ID_ONLY);
+            if (!request.showStatusDetails())
+                mapperProperties.setMode(TwinStatusRestDTOMapper.Mode.ID_ONLY);
+            if (!request.showClassDetails())
+                mapperProperties.setMode(TwinClassRestDTOMapper.Mode.ID_ONLY);
+            rs.twinList(twinRestDTOMapper.convertList(
+                    twinList, mapperProperties));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

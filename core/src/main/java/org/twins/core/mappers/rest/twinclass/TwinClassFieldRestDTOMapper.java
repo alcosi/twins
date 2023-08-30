@@ -9,6 +9,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.FieldTypeUIDescriptor;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestListDTOMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
@@ -20,7 +21,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     final FeaturerService featurerService;
 
     @Override
-    public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst) throws ServiceException {
+    public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperProperties mapperProperties) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
         FieldTypeUIDescriptor fieldTypeUIDescriptor = fieldTyper.getUiDescriptor(src.getFieldTyperParams());
         dst

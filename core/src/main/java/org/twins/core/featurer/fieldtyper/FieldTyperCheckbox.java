@@ -28,7 +28,7 @@ public class FieldTyperCheckbox extends FieldTyperChecks {
         UUID listId = listUUID.extract(properties);
         List<String> options = new ArrayList<>();
         for (DataListOptionEntity optionEntity : dataListOptionRepository.findByDataListId(listId))
-            options.add(optionEntity.getOption());
+            options.add(optionEntity.option());
         return new FieldTypeUIDescriptor()
                 .type("checkbox")
                 .addParam("options", options)

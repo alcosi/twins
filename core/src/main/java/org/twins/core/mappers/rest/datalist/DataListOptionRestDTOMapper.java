@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -12,11 +13,11 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
 
     @Override
-    public void map(DataListOptionEntity entity, DataListOptionDTOv1 dto) {
+    public void map(DataListOptionEntity entity, DataListOptionDTOv1 dto, MapperProperties mapperProperties) {
         dto
-                .id(entity.getId())
-                .name(entity.getOption())
-                .disabled(entity.isDisabled());
+                .id(entity.id())
+                .name(entity.option())
+                .disabled(entity.disabled());
         ;
     }
 }

@@ -2,11 +2,13 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "data_list_option")
 public class DataListOptionEntity {
     @Id

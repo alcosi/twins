@@ -5,8 +5,11 @@ import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestListDTOMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.user.UserDTOMapper;
 
 
 @Component
@@ -15,13 +18,30 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final I18nService i18nService;
 
     @Override
-    public void map(TwinClassEntity src, TwinClassDTOv1 dst) {
-        dst
-                .id(src.getId())
-                .key(src.getKey())
-                .name(i18nService.translateToLocale(src.getNameI18n()))
-                .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
-                .logo(src.getLogo())
-        ;
+    public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperProperties mapperProperties) {
+        switch (mapperProperties.getModeOrUse(TwinClassRestDTOMapper.Mode.DETAILED)) {
+            case ID_ONLY:
+                dst
+                        .id(src.id());
+                break;
+            case DETAILED:
+                dst
+                        .id(src.id())
+                        .key(src.key())
+                        .name(i18nService.translateToLocale(src.nameI18n()))
+                        .description(src.descriptionI18n() != null ? i18nService.translateToLocale(src.descriptionI18n()) : "")
+                        .logo(src.logo())
+                ;
+                break;
+            default:
+                dst
+                        .id(src.id())
+                        .key(src.key())
+                        .name(i18nService.translateToLocale(src.nameI18n()));
+        }
+    }
+
+    public enum Mode implements MapperMode {
+        ID_ONLY, DETAILED;
     }
 }

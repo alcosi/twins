@@ -2,6 +2,7 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "twin_status")
 public class TwinStatusEntity {
     @Id

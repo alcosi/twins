@@ -50,7 +50,7 @@ public class FieldTyperSelect extends FieldTyper {
         else {
             List<String> options = new ArrayList<>();
             for (DataListOptionEntity optionEntity : dataListOptionRepository.findByDataListId(listId))
-                options.add(optionEntity.getOption());
+                options.add(optionEntity.option());
             return fieldTypeUIDescriptor
                     .type("select")
                     .addParam("options", options);
