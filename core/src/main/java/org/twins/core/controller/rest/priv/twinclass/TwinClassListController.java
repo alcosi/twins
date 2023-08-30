@@ -13,13 +13,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassListRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassListRsDTOv1;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldListRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassListRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -34,8 +33,8 @@ public class TwinClassListController extends ApiController {
     private final AuthService authService;
     private final TwinClassService twinClassService;
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassListRestDTOMapper twinClassListRestDTOMapper;
-    private final TwinClassFieldListRestDTOMapper twinClassFieldListRestDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @Operation(operationId = "twinClassListV1", summary = "Returns twin class list")
     @ApiResponses(value = {
@@ -54,11 +53,11 @@ public class TwinClassListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             List<TwinClassEntity> twinClassList = twinClassService.findTwinClasses(apiUser, request.twinClassIdList());
-            rs.twinClassList(twinClassListRestDTOMapper.convert(twinClassList));
+            rs.twinClassList(twinClassRestDTOMapper.convertList(twinClassList));
             if (request.showFields()) {
                 for (TwinClassDTOv1 twinClass : rs.twinClassList()) {
-                    twinClass.twinClassFieldList(
-                            twinClassFieldListRestDTOMapper.convert(
+                    twinClass.fields(
+                            twinClassFieldRestDTOMapper.convertList(
                                     twinClassFieldService.findTwinClassFields(apiUser, twinClass.id())));
                 }
             }

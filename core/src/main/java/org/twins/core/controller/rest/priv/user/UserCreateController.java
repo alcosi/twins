@@ -12,17 +12,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twin.TwinListRsDTOv1;
-import org.twins.core.mappers.rest.twin.TwinListRestDTOMapper;
 import org.twins.core.service.UUIDCheckService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.BusinessAccountService;
 import org.twins.core.service.user.UserService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(description = "", name = "user")

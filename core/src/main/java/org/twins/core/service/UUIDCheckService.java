@@ -23,7 +23,7 @@ public class UUIDCheckService {
                 if (StringUtils.isEmpty(uuidStr))
                     break;
                 uuid = uuidFromString(uuidStr, fieldName);
-                if (repository.findById(uuid).isEmpty())
+                if (!repository.existsById(uuid))
                     throw new ServiceException(ErrorCodeUser.INCORRECT_UUID, "Database missing " + fieldName + "[" + uuidStr + "]");
                 break;
             case NOT_EMPTY:
@@ -35,14 +35,14 @@ public class UUIDCheckService {
                 if (StringUtils.isEmpty(uuidStr))
                     throw new ServiceException(ErrorCodeUser.INCORRECT_UUID, "Empty " + fieldName );
                 uuid = uuidFromString(uuidStr, fieldName);
-                if (repository.findById(uuid).isEmpty())
+                if (!repository.existsById(uuid))
                     throw new ServiceException(ErrorCodeUser.INCORRECT_UUID, "Database missing " + fieldName + "[" + uuidStr + "]");
                 break;
             case NOT_EMPTY_AND_DB_MISSING:
                 if (StringUtils.isEmpty(uuidStr))
                     throw new ServiceException(ErrorCodeUser.INCORRECT_UUID, "Empty " + fieldName );
                 uuid = uuidFromString(uuidStr, fieldName);
-                if (repository.findById(uuid).isPresent())
+                if (repository.existsById(uuid))
                     throw new ServiceException(ErrorCodeUser.INCORRECT_UUID, fieldName + "[" + uuidStr + "] is already present in database");
                 break;
         }

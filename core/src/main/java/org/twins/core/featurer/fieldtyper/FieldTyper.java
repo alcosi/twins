@@ -6,7 +6,6 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Properties;
 
 
@@ -15,12 +14,10 @@ import java.util.Properties;
         description = "Customize format of twin class field")
 @Slf4j
 public abstract class FieldTyper extends Featurer {
-    public abstract String getType();
-
-    public Hashtable<String, String> getUiParamList(HashMap<String, String> fieldTyperParams) throws ServiceException {
+    public FieldTypeUIDescriptor getUiDescriptor(HashMap<String, String> fieldTyperParams) throws ServiceException {
         Properties listerProperties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<String, Object>());
-        return getUiParamList(listerProperties);
+        return getUiDescriptor(listerProperties);
     }
 
-    protected abstract Hashtable<String, String> getUiParamList(Properties propertiess);
+    protected abstract FieldTypeUIDescriptor getUiDescriptor(Properties propertiess);
 }

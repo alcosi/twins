@@ -3,7 +3,6 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 
-import java.util.Hashtable;
 import java.util.Properties;
 
 @Component
@@ -12,12 +11,8 @@ import java.util.Properties;
         description = "")
 public class FieldTyperColorPicker extends FieldTyper {
     @Override
-    public String getType() {
-        return "colorPicker";
-    }
-
-    @Override
-    public Hashtable<String, String> getUiParamList(Properties properties) {
-        return null;
+    public FieldTypeUIDescriptor getUiDescriptor(Properties properties) {
+        return new FieldTypeUIDescriptor()
+                .type("colorPicker");
     }
 }

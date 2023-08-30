@@ -16,9 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassListRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassListRsDTOv1;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldListRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -31,7 +29,7 @@ import java.util.List;
 public class TwinClassFieldListController extends ApiController {
     private final AuthService authService;
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassFieldListRestDTOMapper twinClassFieldListRestDTOMapper;
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @Operation(operationId = "twinClassFieldListV1", summary = "Returns twin class field list")
     @ApiResponses(value = {
@@ -50,7 +48,7 @@ public class TwinClassFieldListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(apiUser, request.twinClassId);
-            rs.twinClassFieldList(twinClassFieldListRestDTOMapper.convert(twinClassFieldsList));
+            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertList(twinClassFieldsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

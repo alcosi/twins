@@ -29,7 +29,7 @@ public class TwinClassFieldDTOv1 {
     public boolean required;
 
     @Schema(description = "type params", example = "")
-    public Hashtable<String, String> typeParams;
+    public Hashtable<String, Object> typeParams;
 
     @Schema(description = "description", example = "")
     public String description;

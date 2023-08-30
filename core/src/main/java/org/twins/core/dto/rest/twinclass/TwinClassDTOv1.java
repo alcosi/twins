@@ -31,5 +31,5 @@ public class TwinClassDTOv1 {
     public String logo;
 
     @Schema(description = "Class fields list")
-    public List<TwinClassFieldDTOv1> twinClassFieldList;
+    public List<TwinClassFieldDTOv1> fields;
 }

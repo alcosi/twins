@@ -6,18 +6,13 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.mappers.rest.RestDTOMapper;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
-public class TwinStatusRestDTOMapper implements RestDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
+public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
     final I18nService i18nService;
-
-    public TwinStatusDTOv1 convert(TwinStatusEntity twinStatusEntity) {
-        TwinStatusDTOv1 twinStatusDTOv1 = new TwinStatusDTOv1();
-        map(twinStatusEntity, twinStatusDTOv1);
-        return twinStatusDTOv1;
-    }
 
     @Override
     public void map(TwinStatusEntity src, TwinStatusDTOv1 dst) {

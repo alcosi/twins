@@ -16,8 +16,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.TwinListRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinListRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
-import org.twins.core.mappers.rest.twin.TwinListRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -30,7 +29,7 @@ import java.util.List;
 public class TwinListController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;
-    private final TwinListRestDTOMapper twinListRestDTOMapper;
+    private final TwinRestDTOMapper twinRestDTOMapper;
 
     @Operation(operationId = "twinListV1", summary = "Returns twin list by tql")
     @ApiResponses(value = {
@@ -49,7 +48,7 @@ public class TwinListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             List<TwinEntity> twinList = twinService.findTwins(apiUser, null);
-            rs.twinList(twinListRestDTOMapper.convert(twinList));
+            rs.twinList(twinRestDTOMapper.convertList(twinList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

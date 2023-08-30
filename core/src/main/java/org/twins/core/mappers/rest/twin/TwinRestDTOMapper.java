@@ -4,26 +4,21 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
-import org.twins.core.mappers.rest.RestDTOMapper;
+import org.twins.core.mappers.rest.RestListDTOMapper;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
-public class TwinRestDTOMapper implements RestDTOMapper<TwinEntity, TwinDTOv1> {
+public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
     final UserDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
-    public TwinDTOv1 convert(TwinEntity twinEntity) {
-        TwinDTOv1 twinDTOv1 = new TwinDTOv1();
-        map(twinEntity, twinDTOv1);
-        return twinDTOv1;
-    }
-
     @Override
-    public void map(TwinEntity src, TwinDTOv1 dst) {
+    public void map(TwinEntity src, TwinDTOv1 dst) throws Exception {
         dst
                 .id(src.getId())
                 .name(src.getName())
