@@ -2,6 +2,7 @@ package org.twins.core.dao.widget;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.AccessOrder;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "widget")
 public class WidgetEntity {
     @Id

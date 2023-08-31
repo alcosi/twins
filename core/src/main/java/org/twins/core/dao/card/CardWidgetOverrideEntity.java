@@ -1,4 +1,4 @@
-package org.twins.core.dao.view;
+package org.twins.core.dao.card;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
@@ -11,14 +11,14 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "view_widget_override")
-public class ViewWidgetOverrideEntity {
+@Table(name = "card_widget_override")
+public class CardWidgetOverrideEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "override_view_widget_id")
-    private UUID overrideViewWidgetId;
+    @Column(name = "override_card_widget_id")
+    private UUID overrideCardWidgetId;
 
     @Column(name = "override_for_channel_id")
     @Enumerated(EnumType.STRING)
@@ -27,8 +27,8 @@ public class ViewWidgetOverrideEntity {
     @Column(name = "override_eclipse")
     private Boolean overrideEclipse;
 
-    @Column(name = "view_layout_position_id")
-    private UUID viewLayoutPositionId;
+    @Column(name = "card_layout_position_id")
+    private UUID cardLayoutPositionId;
 
     @Column(name = "in_position_order")
     private Integer inPositionOrder;
@@ -44,10 +44,10 @@ public class ViewWidgetOverrideEntity {
     private HashMap<String, String> widgetDataGrabberParams;
 
     @ManyToOne
-    @JoinColumn(name = "override_view_widget_id", insertable = false, updatable = false, nullable = false)
-    private ViewWidgetEntity overrideViewWidget;
+    @JoinColumn(name = "override_card_widget_id", insertable = false, updatable = false, nullable = false)
+    private CardWidgetEntity overrideCardWidget;
 
     @ManyToOne
-    @JoinColumn(name = "view_layout_position_id", insertable = false, updatable = false, nullable = false)
-    private ViewLayoutPositionEntity viewLayoutPosition;
+    @JoinColumn(name = "card_layout_position_id", insertable = false, updatable = false, nullable = false)
+    private CardLayoutPositionEntity cardLayoutPosition;
 }

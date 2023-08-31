@@ -1,8 +1,9 @@
-package org.twins.core.dao.view;
+package org.twins.core.dao.card;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.widget.WidgetEntity;
 
@@ -11,17 +12,18 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "view_widget")
-public class ViewWidgetEntity {
+@Accessors(fluent = true)
+@Table(name = "card_widget")
+public class CardWidgetEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "view_tab_id")
-    private UUID viewTabId;
+    @Column(name = "card_id")
+    private UUID cardId;
 
-    @Column(name = "view_layout_position_id")
-    private UUID viewLayoutPositionId;
+    @Column(name = "card_layout_position_id")
+    private UUID cardLayoutPositionId;
 
     @Column(name = "in_position_order")
     private Integer inPositionOrder;
@@ -40,12 +42,12 @@ public class ViewWidgetEntity {
     private HashMap<String, String> widgetDataGrabberParams;
 
     @ManyToOne
-    @JoinColumn(name = "view_tab_id", insertable = false, updatable = false, nullable = false)
-    private ViewTabEntity viewTab;
+    @JoinColumn(name = "card_id", insertable = false, updatable = false, nullable = false)
+    private CardEntity card;
 
     @ManyToOne
-    @JoinColumn(name = "view_layout_position_id", insertable = false, updatable = false, nullable = false)
-    private ViewLayoutPositionEntity viewLayoutPosition;
+    @JoinColumn(name = "card_layout_position_id", insertable = false, updatable = false, nullable = false)
+    private CardLayoutPositionEntity cardLayoutPosition;
 
     @ManyToOne
     @JoinColumn(name = "widget_id", insertable = false, updatable = false, nullable = false)

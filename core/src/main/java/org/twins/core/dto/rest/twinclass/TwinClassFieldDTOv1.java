@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.Instant;
 import java.util.Hashtable;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldV1")
 public class TwinClassFieldDTOv1 {
-    @Schema(description = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
+    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
     public UUID id;
 
     @Schema(description = "key", example = "PROJECT")

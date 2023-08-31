@@ -1,4 +1,4 @@
-package org.twins.core.dao.view;
+package org.twins.core.dao.card;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -9,14 +9,14 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "view_tab_override")
-public class ViewTabOverrideEntity {
+@Table(name = "card_override")
+public class CardOverrideEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "override_view_tab_id")
-    private UUID overrideViewTabId;
+    @Column(name = "override_card_id")
+    private UUID overrideCardId;
 
     @Column(name = "override_for_channel_id")
     @Enumerated(EnumType.STRING)
@@ -31,21 +31,18 @@ public class ViewTabOverrideEntity {
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
 
-    @Column(name = "order")
-    private Integer order;
-
-    @Column(name = "view_tab_layout_id")
-    private UUID viewTabLayoutId;
+    @Column(name = "card_layout_id")
+    private UUID cardLayoutId;
 
     @ManyToOne
-    @JoinColumn(name = "override_view_tab_id", insertable = false, updatable = false, nullable = false)
-    private ViewTabEntity overrideViewTab;
+    @JoinColumn(name = "override_card_id", insertable = false, updatable = false, nullable = false)
+    private CardEntity overrideCard;
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
+    private I18nEntity nameI18n;
 
     @ManyToOne
-    @JoinColumn(name = "view_tab_layout_id", insertable = false, updatable = false)
-    private ViewTabLayoutEntity viewTabLayout;
+    @JoinColumn(name = "card_layout_id", insertable = false, updatable = false)
+    private CardLayoutEntity cardLayout;
 }

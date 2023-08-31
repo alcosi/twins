@@ -1,4 +1,4 @@
-package org.twins.core.dao.view;
+package org.twins.core.dao.card;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface ViewWidgetOverrideRepository extends CrudRepository<ViewWidgetOverrideEntity, UUID>, JpaSpecificationExecutor<ViewWidgetOverrideEntity> {
+public interface CardWidgetOverrideRepository extends CrudRepository<CardWidgetOverrideEntity, UUID>, JpaSpecificationExecutor<CardWidgetOverrideEntity> {
 }

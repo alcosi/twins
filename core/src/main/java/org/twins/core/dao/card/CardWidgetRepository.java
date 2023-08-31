@@ -1,4 +1,4 @@
-package org.twins.core.dao.widget;
+package org.twins.core.dao.card;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface WidgetRepository extends CrudRepository<WidgetEntity, UUID>, JpaSpecificationExecutor<WidgetAccessEntity> {
-    @Override
-    List<WidgetEntity> findAll();
+public interface CardWidgetRepository extends CrudRepository<CardWidgetEntity, UUID>, JpaSpecificationExecutor<CardWidgetEntity> {
+    List<CardWidgetEntity> findByCardId(UUID cardId);
 }

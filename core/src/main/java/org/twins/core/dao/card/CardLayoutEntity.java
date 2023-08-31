@@ -1,4 +1,4 @@
-package org.twins.core.dao.view;
+package org.twins.core.dao.card;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,8 +8,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "view_tab_layout")
-public class ViewTabLayoutEntity {
+@Table(name = "card_layout")
+public class CardLayoutEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

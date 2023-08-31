@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 
 import java.time.Instant;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "DataListV1")
 public class DataListDTOv1 {
-    @Schema(description = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
+    @Schema(description = "id", example = DTOExamples.DATA_LIST_ID)
     public UUID id;
 
     @Schema(description = "name", example = "Country list")

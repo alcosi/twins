@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinclass;
+package org.twins.core.controller.rest.priv.widget;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -14,44 +14,42 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldListRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.dto.rest.widget.WidgetListRqDTOv1;
+import org.twins.core.dto.rest.widget.WidgetListRsDTOv1;
+import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.widget.WidgetService;
 
-import java.util.List;
-
-@Tag(description = "Get twin class field list", name = "twinClassField")
+@Tag(description = "Get widget list", name = "widget")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class TwinClassFieldListController extends ApiController {
+public class WidgetListController extends ApiController {
     private final AuthService authService;
-    private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final WidgetService widgetService;
+    private final WidgetRestDTOMapper widgetRestDTOMapper;
 
-    @Operation(operationId = "twinClassFieldListV1", summary = "Returns twin class field list")
+    @Operation(operationId = "cardListV1", summary = "Returns widget list")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin class field list prepared" , content = {
+            @ApiResponse(responseCode = "200", description = "Widget list prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassFieldListRsDTOv1.class)) }),
+                    @Schema(implementation = WidgetListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class_field/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> twinClassFieldListV1(
+    @RequestMapping(value = "/private/widget/v1", method = RequestMethod.POST)
+    public ResponseEntity<?> twinClassListV1(
             @Parameter(name = "UserId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.USER_ID) String userId,
             @Parameter(name = "DomainId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.DOMAIN_ID) String domainId,
             @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
             @Parameter(name = "Channel", in = ParameterIn.HEADER,  required = true, example = DTOExamples.CHANNEL) String channel,
-            @RequestBody TwinClassFieldListRqDTOv1 request) {
-        TwinClassFieldListRsDTOv1 rs = new TwinClassFieldListRsDTOv1();
+            @RequestBody WidgetListRqDTOv1 request) {
+        WidgetListRsDTOv1 rs = new WidgetListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(apiUser, request.twinClassId);
-            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertList(twinClassFieldsList));
+            rs.widgetList(
+                    widgetRestDTOMapper.convertList(
+                            widgetService.findWidgets(request.twinClassId())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

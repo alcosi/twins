@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "TwinV1")
 public class TwinDTOv1 {
-    @Schema(description = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
+    @Schema(description = "id", example = DTOExamples.TWIN_ID)
     public UUID id;
 
     @Schema(description = "externalId", example = "934599502DFFAE")

@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinclass;
+package org.twins.core.dto.rest.widget;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinClassFieldListRqV1")
-public class TwinClassFieldListRqDTOv1 extends Request {
-    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_ID)
+@Schema(name =  "WidgetListRqV1")
+public class WidgetListRqDTOv1 extends Request {
+    @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
     public UUID twinClassId;
 }

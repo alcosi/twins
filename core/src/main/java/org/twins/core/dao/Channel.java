@@ -1,7 +1,7 @@
 package org.twins.core.dao;
 
 public enum Channel {
-    Web,
+    WEB,
     Android,
     IOS;
 }

@@ -1,6 +1,8 @@
 package org.twins.core.controller.rest.priv.datalist;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
@@ -43,10 +46,10 @@ public class DataListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/v1", method = RequestMethod.POST)
     public ResponseEntity<?> dataListV1(
-            @RequestHeader("UserId") String userId,
-            @RequestHeader("DomainId") String domainId,
-            @RequestHeader("BusinessAccountId") String businessAccountId,
-            @RequestHeader("Channel") String channel,
+            @Parameter(name = "UserId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.USER_ID) String userId,
+            @Parameter(name = "DomainId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.DOMAIN_ID) String domainId,
+            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
+            @Parameter(name = "Channel", in = ParameterIn.HEADER,  required = true, example = DTOExamples.CHANNEL) String channel,
             @RequestBody DataListRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {

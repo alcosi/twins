@@ -23,5 +23,9 @@ public class TwinClassService {
         else
             return twinClassRepository.findByDomainId(apiUser.domainId());
     }
+
+    public void checkTwinClassPermission(ApiUser apiUser, UUID twinclassId) {
+
+    }
 }
 
