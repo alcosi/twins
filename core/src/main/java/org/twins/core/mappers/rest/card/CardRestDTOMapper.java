@@ -29,6 +29,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 dst
                         .key(src.key())
                         .name(i18nService.translateToLocale(src.nameI18n()))
+                        .layoutKey(src.cardLayout().getKey())
                         .logo(src.logo());
             case ID_ONLY:
                 dst

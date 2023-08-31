@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface WidgetRepository extends CrudRepository<WidgetEntity, UUID>, JpaSpecificationExecutor<WidgetAccessEntity> {
+public interface WidgetRepository extends CrudRepository<WidgetEntity, UUID>, JpaSpecificationExecutor<WidgetEntity> {
     @Override
     List<WidgetEntity> findAll();
 }

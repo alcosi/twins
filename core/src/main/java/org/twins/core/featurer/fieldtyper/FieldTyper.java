@@ -19,5 +19,5 @@ public abstract class FieldTyper extends Featurer {
         return getUiDescriptor(listerProperties);
     }
 
-    protected abstract FieldTypeUIDescriptor getUiDescriptor(Properties propertiess);
+    protected abstract FieldTypeUIDescriptor getUiDescriptor(Properties properties);
 }
