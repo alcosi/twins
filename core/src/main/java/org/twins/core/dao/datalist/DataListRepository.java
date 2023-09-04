@@ -10,5 +10,8 @@ import java.util.UUID;
 @Repository
 public interface DataListRepository extends CrudRepository<DataListEntity, UUID>, JpaSpecificationExecutor<DataListEntity> {
     List<DataListEntity> findByDomainId(UUID domainId);
+
+    DataListEntity findByDomainIdAndId(UUID domainId, UUID id);
+
     List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
 }

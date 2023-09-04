@@ -1,6 +1,8 @@
-package org.twins.core.controller.rest.priv.user;
+package org.twins.core.controller.rest.priv.businessaccount;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,45 +14,36 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
-import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.UUIDCheckService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.BusinessAccountService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "user")
+@Tag(description = "", name = "domain")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class UserCreateController extends ApiController {
-    private final AuthService authService;
-    private final UserService userService;
+public class BusinessAccountUserDeleteController extends ApiController {
     private final BusinessAccountService businessAccountService;
 
-    @Operation(operationId = "userCreateV1", summary = "New userId registration. If BusinessAccountId header is not empty, this api will also map given userId to businessAccount")
+    @Operation(operationId = "businessAccountUserDeleteV1", summary = "Delete user from businessAccount")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class)) }),
+                    @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> userCreate(
-            @RequestHeader("UserId") UUID userId,
-            @RequestHeader("DomainId") UUID domainId,
-            @RequestHeader(value = "BusinessAccountId", required = false) UUID businessAccountId,
-            @RequestHeader("Channel") String channel) {
+    @RequestMapping(value = "/private/businessAccount/{businessAccountId}/user/{userId}/v1", method = RequestMethod.DELETE)
+    public ResponseEntity<?> businessAccountUserDeleteV1(
+            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
+            @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID businessAccountId,
+            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
-            ApiUser apiUser = authService.getApiUser(
-                    UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_MISSING,
-                    UUIDCheckService.CheckMode.EMPTY_OR_DB_EXISTS,
-                    UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-            userService.addUser(apiUser.userId());
-            if (businessAccountId != null)
-                businessAccountService.addUser(apiUser.userId(), apiUser.businessAccountId());
+            businessAccountService.deleteUser(
+                    businessAccountService.checkBusinessAccountId(businessAccountId, UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -58,5 +51,4 @@ public class UserCreateController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
 }

@@ -14,19 +14,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
-import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.dto.rest.datalist.DataListRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
-import java.util.List;
+import java.util.UUID;
 
 @Tag(description = "Get data lists", name = "dataList")
 @RestController
@@ -36,26 +35,53 @@ public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
     private final DataListRestDTOMapper dataListRestDTOMapper;
-    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-    @Operation(operationId = "dataListV1", summary = "Returns list details")
+    @Operation(operationId = "dataListV1", summary = "Returns list deta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListRsDTOv1.class)) }),
+                    @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/data_list/v1", method = RequestMethod.POST)
+    @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListV1(
-            @Parameter(name = "UserId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.USER_ID) String userId,
-            @Parameter(name = "DomainId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.DOMAIN_ID) String domainId,
-            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
-            @Parameter(name = "Channel", in = ParameterIn.HEADER,  required = true, example = DTOExamples.CHANNEL) String channel,
-            @RequestBody DataListRqDTOv1 request) {
+            @Parameter(name = "UserId", in = ParameterIn.HEADER, required = true, example = DTOExamples.USER_ID) String userId,
+            @Parameter(name = "DomainId", in = ParameterIn.HEADER, required = true, example = DTOExamples.DOMAIN_ID) String domainId,
+            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER, required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
+            @Parameter(name = "Channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
+            @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
+            @Parameter(name = "showOptions", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showOptions) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             MapperProperties mapperProperties = MapperProperties.create();
-            if (request.showOptions())
+            if (showOptions)
+                mapperProperties.setMode(DataListRestDTOMapper.Mode.SHOW_OPTIONS);
+            rs.dataList = dataListRestDTOMapper.convert(
+                    dataListService.findDataList(apiUser, dataListId), mapperProperties);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "dataListSearchV1", summary = "Returns lists details")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List details prepared", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DataListSearchRsDTOv1.class)) }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/data_list/search/v1", method = RequestMethod.POST)
+    public ResponseEntity<?> dataListV1(
+            @Parameter(name = "showOptions", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showOptions,
+            @RequestBody DataListSearchRqDTOv1 request) {
+        DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            MapperProperties mapperProperties = MapperProperties.create();
+            if (showOptions)
                 mapperProperties.setMode(DataListRestDTOMapper.Mode.SHOW_OPTIONS);
             rs.dataListList(
                     dataListRestDTOMapper.convertList(

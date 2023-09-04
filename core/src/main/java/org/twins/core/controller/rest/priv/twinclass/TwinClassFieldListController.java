@@ -14,18 +14,19 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldListRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
+import java.util.UUID;
 
-@Tag(description = "Get twin class field list", name = "twinClassField")
+@Tag(description = "Get twin class field list", name = "twinClass")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -34,23 +35,20 @@ public class TwinClassFieldListController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
+    @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldListV1", summary = "Returns twin class field list")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class field list prepared" , content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class_field/v1", method = RequestMethod.POST)
+    @RequestMapping(value = "/private/twin_class/{twinClassId}/field/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassFieldListV1(
-            @Parameter(name = "UserId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.USER_ID) String userId,
-            @Parameter(name = "DomainId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.DOMAIN_ID) String domainId,
-            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
-            @Parameter(name = "Channel", in = ParameterIn.HEADER,  required = true, example = DTOExamples.CHANNEL) String channel,
-            @RequestBody TwinClassFieldListRqDTOv1 request) {
+            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinClassFieldListRsDTOv1 rs = new TwinClassFieldListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(apiUser, request.twinClassId);
+            List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(apiUser, twinClassId);
             rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertList(twinClassFieldsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

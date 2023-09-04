@@ -9,3 +9,4 @@
 
 rootProject.name = 'Twins'
 include('core')
+project(':core').name = 'twins-core'

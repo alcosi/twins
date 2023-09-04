@@ -14,11 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinListRqDTOv1;
-import org.twins.core.dto.rest.twin.TwinListRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
@@ -28,6 +30,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
+import java.util.UUID;
 
 @Tag(description = "", name = "twin")
 @RestController
@@ -38,38 +41,68 @@ public class TwinListController extends ApiController {
     private final TwinService twinService;
     private final TwinRestDTOMapper twinRestDTOMapper;
 
-    @Operation(operationId = "twinListV1", summary = "Returns twin list by tql")
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinListV1", summary = "Returns twin data")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin list prepared", content = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinListRsDTOv1.class))}),
+                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/v1", method = RequestMethod.POST)
+    @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinListV1(
-            @Parameter(name = "UserId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.USER_ID) String userId,
-            @Parameter(name = "DomainId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.DOMAIN_ID) String domainId,
-            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER,  required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
-            @Parameter(name = "Channel", in = ParameterIn.HEADER,  required = true, example = DTOExamples.CHANNEL) String channel,
-            @RequestBody TwinListRqDTOv1 request) {
-        TwinListRsDTOv1 rs = new TwinListRsDTOv1();
+            @Parameter(name = "twinId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(name = "showUserDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showUserDetails,
+            @Parameter(name = "showStatusDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showStatusDetails,
+            @Parameter(name = "showClassDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showClassDetails) {
+        TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<TwinEntity> twinList = twinService.findTwins(apiUser, null);
-            MapperProperties mapperProperties = MapperProperties.create();
-            if (!request.showUserDetails())
-                mapperProperties.setMode(UserDTOMapper.Mode.ID_ONLY);
-            if (!request.showStatusDetails())
-                mapperProperties.setMode(TwinStatusRestDTOMapper.Mode.ID_ONLY);
-            if (!request.showClassDetails())
-                mapperProperties.setMode(TwinClassRestDTOMapper.Mode.ID_ONLY);
-            rs.twinList(twinRestDTOMapper.convertList(
-                    twinList, mapperProperties));
+            rs.twin(twinRestDTOMapper.convert(
+                    twinService.findTwin(apiUser, twinId), buildMapperProperties(showUserDetails, showStatusDetails, showClassDetails)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinListV1", summary = "Returns twin list by tql")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin list", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/twin/search/v1", method = RequestMethod.POST)
+    public ResponseEntity<?> twinListV1(
+            @Parameter(name = "showUserDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showUserDetails,
+            @Parameter(name = "showStatusDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showStatusDetails,
+            @Parameter(name = "showClassDetails", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showClassDetails,
+            @RequestBody TwinSearchRqDTOv1 request) {
+        TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            List<TwinEntity> twinList = twinService.findTwins(apiUser, null);
+            rs.twinList(twinRestDTOMapper.convertList(
+                    twinList, buildMapperProperties(showUserDetails, showStatusDetails, showClassDetails)));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    private MapperProperties buildMapperProperties(boolean showUserDetails, boolean showStatusDetails, boolean showClassDetails) {
+        MapperProperties mapperProperties = MapperProperties.create();
+        if (!showUserDetails)
+            mapperProperties.setMode(UserDTOMapper.Mode.ID_ONLY);
+        if (!showStatusDetails)
+            mapperProperties.setMode(TwinStatusRestDTOMapper.Mode.ID_ONLY);
+        if (!showClassDetails)
+            mapperProperties.setMode(TwinClassRestDTOMapper.Mode.ID_ONLY);
+        return mapperProperties;
     }
 
 }

@@ -27,6 +27,10 @@ public class DataListService {
             return dataListRepository.findByDomainId(apiUser.domainId());
     }
 
+    public DataListEntity findDataList(ApiUser apiUser, UUID dataListId) {
+        return dataListRepository.findByDomainIdAndId(apiUser.domainId(), dataListId);
+    }
+
     public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {
         return dataListOptionRepository.findByDataListId(dataListId);
     }

@@ -13,10 +13,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "DataListRqV1")
-public class DataListRqDTOv1 extends Request {
+public class DataListSearchRqDTOv1 extends Request {
     @Schema(description = "data list id list", example = "")
     public List<UUID> dataListIdList;
-
-    @Schema(description = "show list options", example = "true")
-    public boolean showOptions;
 }

@@ -1,0 +1,19 @@
+version: "3.9"
+networks:
+  services_elpmee-net:
+    external: true
+services:
+  gateway:
+    image: dockerhub.esas.by/twins:0.1.0-SNAPSHOT
+    container_name: twins-core
+    environment:
+      - JAVA_OPTS="-Djdk.internal.httpclient.debug=true"
+      - JAVA_TOOL_OPTIONS="-Xrunjdwp:transport=dt_socket,address=*:5006,server=y,suspend=n"
+    volumes:
+      - ./logs:/opt/twins/logs
+    ports:
+      - "8443:8443"
+      - "5006:5006"
+    restart: always
+    networks:
+      - services_elpmee-net

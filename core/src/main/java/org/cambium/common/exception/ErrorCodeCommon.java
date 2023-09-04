@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCodeCommon implements ErrorCode {
     OK(0, "success", HttpStatus.OK),
-    UNEXPECTED_SERVER_EXCEPTION(500, "something is not well configured in database");
+    UNEXPECTED_SERVER_EXCEPTION(500, "something is not well configured in database"),
+    NOT_IMPLEMENTED(501, "this operation is not supported yet");
 
     private final int code;
     private final String message;

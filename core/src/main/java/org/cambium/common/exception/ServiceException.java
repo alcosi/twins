@@ -19,6 +19,11 @@ public class ServiceException extends ExternalServiceException implements IServi
         this(serviceError.getServiceCode(), serviceError.getCode(), message != null ? message : serviceError.getMessage(), serviceError.getHttpStatus());
     }
 
+    public ServiceException(ErrorCode serviceError) {
+        this(serviceError.getServiceCode(), serviceError.getCode(), serviceError.getMessage(), serviceError.getHttpStatus());
+    }
+
+
     public Hashtable<String, String> getContext() {
         return context;
     }

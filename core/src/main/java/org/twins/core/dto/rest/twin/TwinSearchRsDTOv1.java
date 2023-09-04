@@ -12,8 +12,8 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinListRsV4")
-public class TwinListRsDTOv1 extends Response {
+@Schema(name =  "TwinSearchRsV4")
+public class TwinSearchRsDTOv1 extends Response {
     @Schema(description = "pagination data")
     public PaginationBean pagination;
 

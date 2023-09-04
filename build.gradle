@@ -9,9 +9,8 @@ wrapper {
 
 
 allprojects {
-
     group = 'org.twins'
-    version = '1.0.0-SNAPSHOT'
+    version = '0.1.0-SNAPSHOT'
 }
 
 subprojects {

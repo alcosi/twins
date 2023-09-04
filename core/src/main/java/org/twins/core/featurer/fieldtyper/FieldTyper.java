@@ -15,7 +15,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class FieldTyper extends Featurer {
     public FieldTypeUIDescriptor getUiDescriptor(HashMap<String, String> fieldTyperParams) throws ServiceException {
-        Properties listerProperties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<String, Object>());
+        Properties listerProperties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return getUiDescriptor(listerProperties);
     }
 

@@ -15,9 +15,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "CardListRqV1")
 public class CardListRqDTOv1 extends Request {
-    @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
-    public UUID twinClassId;
-
     @Schema(description = "show widgets", example = "true")
     public boolean showWidgets;
 

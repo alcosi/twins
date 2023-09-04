@@ -2,6 +2,7 @@ package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "domain_business_account")
 public class DomainBusinessAccountEntity {
     @Id

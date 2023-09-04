@@ -9,6 +9,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TQL;
 
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -18,5 +19,9 @@ public class TwinService {
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
+    }
+
+    public TwinEntity findTwin(ApiUser apiUser, UUID twinId) {
+        return twinRepository.findById(twinId).get();
     }
 }
