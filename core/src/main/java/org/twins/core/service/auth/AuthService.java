@@ -9,8 +9,9 @@ import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.Channel;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.HttpRequestService;
-import org.twins.core.service.UUIDCheckService;
+
 
 @Slf4j
 @Service
@@ -20,16 +21,16 @@ public class AuthService {
     private final UserRepository userRepository;
     private final BusinessAccountRepository businessAccountRepository;
     private final DomainRepository domainRepository;
-    private final UUIDCheckService uuidCheckService;
+    private final EntitySmartService entitySmartService;
 
     public ApiUser getApiUser() throws ServiceException {
         return getApiUser(
-                UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS,
-                UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS                ,
-                UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
+                EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS,
+                EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS                ,
+                EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
     }
 
-    public ApiUser getApiUser(UUIDCheckService.CheckMode userCheck, UUIDCheckService.CheckMode businessAccountCheck, UUIDCheckService.CheckMode domainCheck) throws ServiceException {
+    public ApiUser getApiUser(EntitySmartService.CheckMode userCheck, EntitySmartService.CheckMode businessAccountCheck, EntitySmartService.CheckMode domainCheck) throws ServiceException {
         String userId = httpRequestService.getUserIdFromRequest();
         String businessAccountId = httpRequestService.getBusinessAccountIdFromRequest();
         String domainId = httpRequestService.getDomainIdFromRequest();
@@ -41,9 +42,9 @@ public class AuthService {
 //        String channel = "WEB";
 
         return new ApiUser()
-                .userId(uuidCheckService.check(userId, "userId", userRepository, userCheck))
-                .businessAccountId(uuidCheckService.check(businessAccountId, "businessAccountId", businessAccountRepository, businessAccountCheck))
-                .domainId(uuidCheckService.check(domainId, "domainId", domainRepository, domainCheck))
+                .userId(entitySmartService.check(userId, "userId", userRepository, userCheck))
+                .businessAccountId(entitySmartService.check(businessAccountId, "businessAccountId", businessAccountRepository, businessAccountCheck))
+                .domainId(entitySmartService.check(domainId, "domainId", domainRepository, domainCheck))
                 .channel(Channel.resolve(channel));
     }
 

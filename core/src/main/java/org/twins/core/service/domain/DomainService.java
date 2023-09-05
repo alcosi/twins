@@ -5,16 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
-import org.twins.core.service.UUIDCheckService;
+import org.twins.core.service.EntitySmartService;
+
+import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
-import org.twins.core.service.user.BusinessAccountService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -32,21 +31,21 @@ public class DomainService {
     final DomainRepository domainRepository;
     final DomainUserRepository domainUserRepository;
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
-    final UUIDCheckService uuidCheckService;
+    final EntitySmartService entitySmartService;
     final PermissionService permissionService;
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
 
-    public UUID checkDomainId(String domainId, UUIDCheckService.CheckMode checkMode) throws ServiceException {
-        return uuidCheckService.check(domainId, "domainId", domainRepository, checkMode);
+    public UUID checkDomainId(String domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(domainId, "domainId", domainRepository, checkMode);
     }
 
-    public UUID checkDomainId(UUID domainId, UUIDCheckService.CheckMode checkMode) throws ServiceException {
-        return uuidCheckService.check(domainId, "domainId", domainRepository, checkMode);
+    public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(domainId, "domainId", domainRepository, checkMode);
     }
 
-    public void addUser(UUID domainId, UUID userId) throws ServiceException {
-        userService.addUser(userId);
+    public void addUser(UUID domainId, UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
+        userService.addUser(userId, userCreateMode);
         if (domainUserRepository.findByDomainIdAndUserId(domainId, userId) != null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
         DomainUserEntity domainUserEntity = new DomainUserEntity()
@@ -64,11 +63,15 @@ public class DomainService {
     }
 
     public void addBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
+        addBusinessAccount(domainId, businessAccountId, false, EntitySmartService.CreateMode.ifNotPresentCreate);
+    }
+
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, boolean ignoreAlreadyExists, EntitySmartService.CreateMode businessAccountCreateMode) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
-        businessAccountService.addBusinessAccount(businessAccountId);
-        if (domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId) != null)
+        businessAccountService.addBusinessAccount(businessAccountId, businessAccountCreateMode);
+        if (!ignoreAlreadyExists && domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId) != null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, "businessAccount[" + businessAccountId + "] is already registered in domain[" + domainId + "]");
         DomainBusinessAccountEntity domainBusinessAccountEntity = new DomainBusinessAccountEntity()
                 .domainId(domainId)

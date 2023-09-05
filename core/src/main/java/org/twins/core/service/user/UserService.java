@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntitySmartService;
+
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,12 +21,22 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     final UserRepository userRepository;
+    final EntitySmartService entitySmartService;
 
-    public void addUser(UUID userId) throws ServiceException {
+    public UUID checkUserId(UUID userId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(userId, "userId", userRepository, checkMode);
+    }
+
+    public void addUser(UserEntity userEntity, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
+        userEntity.createdAt(Timestamp.from(Instant.now()));
+        entitySmartService.create(userEntity.id(), userEntity, userRepository, userCreateMode);
+    }
+
+    public void addUser(UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
         UserEntity userEntity = new UserEntity()
                 .id(userId)
                 .createdAt(Timestamp.from(Instant.now()));
-        userRepository.save(userEntity);
+        addUser(userEntity, userCreateMode);
     }
 
     public void updateUser(UserEntity updateEntity) throws ServiceException {

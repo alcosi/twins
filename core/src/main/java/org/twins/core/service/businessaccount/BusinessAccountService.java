@@ -1,4 +1,4 @@
-package org.twins.core.service.user;
+package org.twins.core.service.businessaccount;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,10 +8,9 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
-import org.twins.core.dao.domain.DomainUserEntity;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.UUIDCheckService;
+import org.twins.core.service.EntitySmartService;
+
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -23,29 +22,33 @@ import java.util.UUID;
 public class BusinessAccountService {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final BusinessAccountRepository businessAccountRepository;
-    final UUIDCheckService uuidCheckService;
+    final EntitySmartService entitySmartService;
 
-    public UUID checkBusinessAccountId(String businessAccountId, UUIDCheckService.CheckMode checkMode) throws ServiceException {
-        return uuidCheckService.check(businessAccountId, "businessAccountId", businessAccountRepository, checkMode);
+    public UUID checkBusinessAccountId(String businessAccountId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(businessAccountId, "businessAccountId", businessAccountRepository, checkMode);
     }
 
-    public UUID checkBusinessAccountId(UUID businessAccountId, UUIDCheckService.CheckMode checkMode) throws ServiceException {
-        return uuidCheckService.check(businessAccountId, "businessAccountId", businessAccountRepository, checkMode);
+    public UUID checkBusinessAccountId(UUID businessAccountId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(businessAccountId, "businessAccountId", businessAccountRepository, checkMode);
     }
 
-    public void addUser(UUID businessAccountId, UUID userId) throws ServiceException {
+    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.CreateMode businessAccountEntityMode) throws ServiceException {
+        addBusinessAccount(businessAccountId);
         BusinessAccountUserEntity businessAccountEntity = new BusinessAccountUserEntity()
                 .businessAccountId(businessAccountId)
                 .userId(userId);
         businessAccountUserRepository.save(businessAccountEntity);
     }
 
-
     public void addBusinessAccount(UUID businessAccountId) throws ServiceException {
+        addBusinessAccount(businessAccountId, EntitySmartService.CreateMode.createIgnoreExists);
+    }
+
+    public void addBusinessAccount(UUID businessAccountId, EntitySmartService.CreateMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .id(businessAccountId)
                 .createdAt(Timestamp.from(Instant.now()));
-        businessAccountRepository.save(businessAccountEntity);
+        entitySmartService.create(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
     }
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {

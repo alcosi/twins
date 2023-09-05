@@ -16,11 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.user.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "domain")
+@Tag(description = "", name = "businessAccount")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -33,7 +33,7 @@ public class BusinessAccountDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/businessAccount/{businessAccountId}/v1", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/private/business_account/{businessAccountId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> businessAccountDeleteV1(
             @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
             @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID businessAccountId) {

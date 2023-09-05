@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.UUIDCheckService;
+
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
@@ -42,7 +43,7 @@ public class DomainBusinessAccountDeleteController extends ApiController {
         Response rs = new Response();
         try {
             domainService.deleteBusinessAccount(
-                    domainService.checkDomainId(domainId, UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     businessAccountId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

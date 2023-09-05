@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountAddRqDTOv1;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
@@ -42,7 +43,7 @@ public class DomainBusinessAccountAddController extends ApiController {
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {
         Response rs = new Response();
         try {
-            domainService.addBusinessAccount(domainId, request.businessAccountId);
+            domainService.addBusinessAccount(domainId, request.businessAccountId, false, EntitySmartService.CreateMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

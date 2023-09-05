@@ -18,12 +18,13 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUpdateRqDTOv1;
-import org.twins.core.service.UUIDCheckService;
-import org.twins.core.service.user.BusinessAccountService;
+
+import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "domain")
+@Tag(description = "", name = "businessAccount")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class BusinessAccountUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/businessAccount/{businessAccountId}/v1", method = RequestMethod.PUT)
+    @RequestMapping(value = "/private/business_account/{businessAccountId}/v1", method = RequestMethod.PUT)
     public ResponseEntity<?> businessAccountUpdateV1(
             @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
             @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID businessAccountId,
@@ -44,7 +45,7 @@ public class BusinessAccountUpdateController extends ApiController {
         Response rs = new Response();
         try {
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
-                    .id(businessAccountService.checkBusinessAccountId(businessAccountId, UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .id(businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .name(request.name());
             businessAccountService.updateBusinessAccount(businessAccountEntity);
         } catch (ServiceException se) {

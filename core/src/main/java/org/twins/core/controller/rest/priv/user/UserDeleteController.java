@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.user.BusinessAccountService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 

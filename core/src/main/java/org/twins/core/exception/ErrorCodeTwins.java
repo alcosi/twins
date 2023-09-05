@@ -8,7 +8,8 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 public enum ErrorCodeTwins implements ErrorCode {
-    INCORRECT_UUID(10000, "unknown user"),
+    UUID_UNKNOWN(10000, "uuid is unknown"),
+    UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     USER_UNKNOWN(10001, "unknown user"),
     BUSINESS_ACCOUNT_UNKNOWN(10101, "unknown business_account"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),

@@ -17,12 +17,12 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
-import org.twins.core.service.UUIDCheckService;
-import org.twins.core.service.user.BusinessAccountService;
+import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "domain")
+@Tag(description = "", name = "businessAccount")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -43,8 +43,9 @@ public class BusinessAccountUserAddController extends ApiController {
         Response rs = new Response();
         try {
             businessAccountService.addUser(
-                    businessAccountService.checkBusinessAccountId(businessAccountId, UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
-                    request.userId);
+                    businessAccountId,
+                    request.userId,
+                    EntitySmartService.CreateMode.ifNotPresentThrows);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

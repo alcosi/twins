@@ -16,12 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.UUIDCheckService;
-import org.twins.core.service.user.BusinessAccountService;
+
+import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "domain")
+@Tag(description = "", name = "businessAccount")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -34,7 +35,7 @@ public class BusinessAccountUserDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/businessAccount/{businessAccountId}/user/{userId}/v1", method = RequestMethod.DELETE)
+    @RequestMapping(value = "/private/business_account/{businessAccountId}/user/{userId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> businessAccountUserDeleteV1(
             @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
             @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID businessAccountId,
@@ -42,7 +43,7 @@ public class BusinessAccountUserDeleteController extends ApiController {
         Response rs = new Response();
         try {
             businessAccountService.deleteUser(
-                    businessAccountService.checkBusinessAccountId(businessAccountId, UUIDCheckService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
