@@ -21,6 +21,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.card.CardRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -49,12 +50,9 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            MapperProperties mapperProperties = MapperProperties.create();
-            if (request.showFields())
-                mapperProperties.setMode(TwinClassRestDTOMapper.Mode.SHOW_FIELDS);
             rs.twinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), mapperProperties));
+                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperProperties().setMode(request.showTwinClassMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -73,16 +71,13 @@ public class TwinClassListController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassV1(
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showFields", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showFields) {
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._SHOW_FIELDS) TwinClassRestDTOMapper.Mode showTwinClassMode) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            MapperProperties mapperProperties = MapperProperties.create();
-            if (showFields)
-                mapperProperties.setMode(TwinClassRestDTOMapper.Mode.SHOW_FIELDS);
             rs.twinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.findTwinClass(apiUser, twinClassId), mapperProperties));
+                            twinClassService.findTwinClass(apiUser, twinClassId), new MapperProperties().setMode(showTwinClassMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

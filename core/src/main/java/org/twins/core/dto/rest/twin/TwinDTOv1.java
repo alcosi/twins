@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -41,5 +42,6 @@ public class TwinDTOv1 {
     @Schema(description = "author")
     public UserDTOv1 authorUser;
 
-
+    @Schema(description = "fields")
+    public List<TwinFieldValueDTOv1> fields;
 }

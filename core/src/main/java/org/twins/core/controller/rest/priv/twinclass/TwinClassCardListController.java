@@ -20,6 +20,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.card.CardListRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
 
@@ -44,16 +45,13 @@ public class TwinClassCardListController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/card/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassCardListV1(
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showWidgets", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean showWidgets) {
+            @Parameter(name = "showCardMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = CardRestDTOMapper.Mode._SHOW_WIDGETS) CardRestDTOMapper.Mode showCardMode) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            MapperProperties mapperProperties = MapperProperties.create();
-            if (showWidgets)
-                mapperProperties.setMode(CardRestDTOMapper.Mode.SHOW_WIDGETS);
             rs.cardList(
                     cardRestDTOMapper.convertList(
-                            cardService.findCards(apiUser, twinClassId), mapperProperties));
+                            cardService.findCards(apiUser, twinClassId), new MapperProperties().setMode(showCardMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

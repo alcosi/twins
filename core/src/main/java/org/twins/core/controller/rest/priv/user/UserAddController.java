@@ -50,6 +50,7 @@ public class UserAddController extends ApiController {
             userService.addUser(new UserEntity()
                     .id(request.user.id)
                     .name(request.user.name)
+                    .email(request.user.email)
                     .avatar(request.user.avatar),
                     EntitySmartService.CreateMode.ifPresentThrowsElseCreate
             );

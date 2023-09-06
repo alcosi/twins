@@ -17,5 +17,4 @@ import java.util.UUID;
 public class CardListRqDTOv1 extends Request {
     @Schema(description = "show widgets", example = "true")
     public boolean showWidgets;
-
 }

@@ -42,5 +42,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED, SHOW_FIELDS;
+
+        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _DETAILED = "DETAILED";
+        public static final String _SHOW_FIELDS = "SHOW_FIELDS";
     }
 }

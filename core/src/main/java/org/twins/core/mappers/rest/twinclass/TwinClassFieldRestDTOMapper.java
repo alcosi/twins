@@ -22,14 +22,13 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperProperties mapperProperties) throws ServiceException {
-        FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
-        FieldTypeUIDescriptor fieldTypeUIDescriptor = fieldTyper.getUiDescriptor(src.getFieldTyperParams());
+        FieldTyper fieldTyper = featurerService.getFeaturer(src.fieldTyperFeaturer(), FieldTyper.class);
+        FieldTypeUIDescriptor fieldTypeUIDescriptor = fieldTyper.getUiDescriptor(src.fieldTyperParams());
         dst
-                .id(src.getId())
-                .key(src.getKey())
-                .name(i18nService.translateToLocale(src.getNameI18n()))
-                .required(src.isRequired())
-                .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
+                .key(src.key())
+                .name(i18nService.translateToLocale(src.nameI18n()))
+                .required(src.required())
+                .description(src.descriptionI18n() != null ? i18nService.translateToLocale(src.descriptionI18n()) : "")
                 .type(fieldTypeUIDescriptor.type())
                 .typeParams(fieldTypeUIDescriptor.params())
         ;

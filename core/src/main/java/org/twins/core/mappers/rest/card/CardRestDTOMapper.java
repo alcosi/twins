@@ -40,5 +40,9 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
 
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED, SHOW_WIDGETS;
+
+        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _DETAILED = "DETAILED";
+        public static final String _SHOW_WIDGETS = "SHOW_WIDGETS";
     }
 }

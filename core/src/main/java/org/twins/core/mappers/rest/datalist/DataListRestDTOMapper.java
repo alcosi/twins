@@ -45,5 +45,9 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
 
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED, SHOW_OPTIONS;
+
+        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _DETAILED = "DETAILED";
+        public static final String _SHOW_OPTIONS = "SHOW_OPTIONS";
     }
 }

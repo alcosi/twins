@@ -34,5 +34,8 @@ public class UserDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
 
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED;
+
+        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _DETAILED = "DETAILED";
     }
 }

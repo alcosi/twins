@@ -3,6 +3,7 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
@@ -15,6 +16,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "twin_class_field")
 public class TwinClassFieldEntity {
     @Id

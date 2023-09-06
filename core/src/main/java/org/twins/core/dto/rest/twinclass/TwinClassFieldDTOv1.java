@@ -14,9 +14,6 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldV1")
 public class TwinClassFieldDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
-    public UUID id;
-
     @Schema(description = "key", example = "PROJECT")
     public String key;
 
