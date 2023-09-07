@@ -37,6 +37,7 @@ public class DataListController extends ApiController {
     private final DataListService dataListService;
     private final DataListRestDTOMapper dataListRestDTOMapper;
 
+    @ParametersApiUserHeaders
     @Operation(operationId = "dataListViewV1", summary = "Returns list deta")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
@@ -45,10 +46,6 @@ public class DataListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListV1(
-            @Parameter(name = "UserId", in = ParameterIn.HEADER, required = true, example = DTOExamples.USER_ID) String userId,
-            @Parameter(name = "DomainId", in = ParameterIn.HEADER, required = true, example = DTOExamples.DOMAIN_ID) String domainId,
-            @Parameter(name = "BusinessAccountId", in = ParameterIn.HEADER, required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) String businessAccountId,
-            @Parameter(name = "Channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
             @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();

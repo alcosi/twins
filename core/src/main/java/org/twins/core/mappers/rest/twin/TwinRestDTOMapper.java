@@ -41,7 +41,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
             case NO_FIELDS_VALUES:
                 return;
             case FIELDS_VALUES:
-                twinFieldEntityList = twinService.findTwinFieldsAll(src);
+                twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
                 dst.fields(twinFieldValueRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 return;
             case FIELDS_VALUES_HIDE_EMPTY:

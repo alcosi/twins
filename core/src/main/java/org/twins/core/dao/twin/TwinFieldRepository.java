@@ -12,4 +12,6 @@ import java.util.UUID;
 @Repository
 public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUID>, JpaSpecificationExecutor<TwinFieldEntity> {
     List<TwinFieldEntity> findByTwinId(UUID twinId);
+
+    TwinFieldEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
 }

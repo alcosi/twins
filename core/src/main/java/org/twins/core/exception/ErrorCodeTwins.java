@@ -19,6 +19,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS(10205, "domain business_account is not registered"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
+
+    TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed");
 
     private final int code;

@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.datalist;
+package org.twins.core.dto.rest.twin;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,11 +12,11 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DataListOptionRsV1")
-public class DataListOptionRsDTOv1 extends Response {
-    @Schema(description = "id", example = DTOExamples.DATA_LIST_ID)
-    public UUID dataListId;
+@Schema(name =  "TwinFieldRsV1")
+public class TwinFieldRsDTOv1 extends Response {
+    @Schema(description = "twinId", example = DTOExamples.TWIN_ID)
+    public UUID twinId;
 
-    @Schema(description = "data lists option")
-    public DataListOptionDTOv1 option;
+    @Schema(description = "field data")
+    public TwinFieldValueDTOv1 field;
 }

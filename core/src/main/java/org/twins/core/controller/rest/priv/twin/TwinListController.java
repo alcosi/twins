@@ -84,7 +84,7 @@ public class TwinListController extends ApiController {
                     @Schema(implementation = TwinSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/search/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> twinListV1(
+    public ResponseEntity<?> twinSearchV1(
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserDTOMapper.Mode._ID_ONLY) UserDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showClassMode,

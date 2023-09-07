@@ -3,14 +3,18 @@ package org.twins.core.service.twin;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinFieldRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TQL;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
@@ -23,8 +27,10 @@ import java.util.stream.Collectors;
 public class TwinService {
     final TwinRepository twinRepository;
     final TwinFieldRepository twinFieldRepository;
+    final TwinClassFieldRepository twinClassFieldRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntityManager entityManager;
+    final EntitySmartService entitySmartService;
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
@@ -38,7 +44,29 @@ public class TwinService {
         return twinFieldRepository.findByTwinId(twinId);
     }
 
-    public List<TwinFieldEntity> findTwinFieldsAll(TwinEntity twinEntity) {
+    public TwinFieldEntity findTwinField(UUID twinFieldId) throws ServiceException {
+        return entitySmartService.findById(twinFieldId, "twinField", twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
+    }
+
+    public TwinFieldEntity findTwinFieldIncludeMissing(UUID twinId, String fieldKey) throws ServiceException {
+        TwinFieldEntity twinFieldEntity = twinFieldRepository.findByTwinIdAndTwinClassField_Key(twinId, fieldKey);
+        if (twinFieldEntity != null)
+            return twinFieldEntity;
+        TwinEntity twinEntity = entitySmartService.findById(twinId, "twin", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        TwinClassFieldEntity twinClassField = twinClassFieldRepository.findByTwinClassIdAndKey(twinEntity.twinClassId(), fieldKey);
+        if (twinClassField == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, "unknown fieldKey[" + fieldKey + "] for twin["
+                    + twinId + "] of class[" + twinEntity.twinClass().key() + " : " + twinEntity.twinClassId() + "]");
+        twinFieldEntity = new TwinFieldEntity()
+                .twinClassField(twinClassField)
+                .twinClassFieldId(twinClassField.id())
+                .twin(twinEntity)
+                .twinId(twinEntity.id())
+                .value("");
+        return twinFieldEntity;
+    }
+
+    public List<TwinFieldEntity> findTwinFieldsIncludeMissing(TwinEntity twinEntity) {
         Map<UUID, TwinFieldEntity> twinFieldEntityMap = twinFieldRepository.findByTwinId(twinEntity.id()).stream().collect(Collectors.toMap(TwinFieldEntity::twinClassFieldId, Function.identity()));
         List<TwinClassFieldEntity> twinFieldClassEntityList = twinClassFieldService.findTwinClassFields(twinEntity.twinClassId());
         List<TwinFieldEntity> ret = new ArrayList<>();
