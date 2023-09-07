@@ -6,10 +6,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 
 
 @FeaturerType(id = 13,
@@ -33,12 +30,12 @@ public abstract class FieldTyper extends Featurer {
         return value;
     }
 
-    public List<Object> deserializeValue(HashMap<String, String> fieldTyperParams, Object value) throws ServiceException {
+    public FieldValue deserializeValue(HashMap<String, String> fieldTyperParams, Object value) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return deserializeValue(properties, value);
     }
 
-    protected List<Object> deserializeValue(Properties properties, Object value) {
-        return List.of(value);
+    protected FieldValue deserializeValue(Properties properties, Object value) {
+        return new FieldValueText().value(value != null ? value.toString() : "");
     }
 }

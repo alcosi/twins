@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -59,6 +60,24 @@ public class EntitySmartService {
         ifPresentThrowsElseCreate,
         createIgnoreExists,
         createAndThrowsIfPresent
+    }
+
+    public <T> T findById(UUID uuid, String fieldName, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
+        Optional<T> optional = repository.findById(uuid);
+        switch (mode) {
+            case ifEmptyNull:
+                return optional.isEmpty() ? null : optional.get();
+            case ifEmptyThrows:
+                if (optional.isEmpty())
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + fieldName + "[" + uuid + "]");
+                return optional.get();
+        }
+        return null;
+    }
+
+    public enum FindMode {
+        ifEmptyNull,
+        ifEmptyThrows,
     }
 
     public UUID check(String uuidStr, String fieldName, CrudRepository<?,UUID> repository, EntitySmartService.CheckMode checkMode) throws ServiceException {

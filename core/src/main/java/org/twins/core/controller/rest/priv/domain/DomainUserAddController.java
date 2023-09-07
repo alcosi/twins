@@ -30,7 +30,6 @@ import java.util.UUID;
 public class DomainUserAddController extends ApiController {
     private final DomainService domainService;
 
-
     @Operation(operationId = "domainUserAddV1", summary = "Add new user to domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {

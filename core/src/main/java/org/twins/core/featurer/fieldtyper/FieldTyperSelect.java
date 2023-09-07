@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -10,16 +11,14 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 @Component
 @Featurer(id = 1305,
         name = "FieldTyperSelect",
         description = "")
 @RequiredArgsConstructor
+@Slf4j
 public class FieldTyperSelect extends FieldTyper {
     final DataListOptionRepository dataListOptionRepository;
 
@@ -41,8 +40,7 @@ public class FieldTyperSelect extends FieldTyper {
         int listSize = dataListOptionRepository.countByDataListId(listId);
         FieldTypeUIDescriptor fieldTypeUIDescriptor = new FieldTypeUIDescriptor()
                 .addParam("supportCustom", supportCustom.extract(properties).toString())
-                .addParam("multiple", multiple.extract(properties).toString())
-                ;
+                .addParam("multiple", multiple.extract(properties).toString());
         if (listSize > longListThreshold.extract(properties))
             return fieldTypeUIDescriptor
                     .type("selectLongList")
@@ -56,5 +54,22 @@ public class FieldTyperSelect extends FieldTyper {
                     .addParam("options", options);
         }
 
+    }
+
+    public static final String LIST_SPLITTER = "<@2@>";
+
+    @Override
+    protected FieldValue deserializeValue(Properties properties, Object value) {
+        FieldValueSelect ret = new FieldValueSelect();
+        if (value != null)
+            for (String dataListOptionUUID : value.toString().split(LIST_SPLITTER)) {
+                try {
+                    Optional<DataListOptionEntity> dataListOption = dataListOptionRepository.findById(UUID.fromString(dataListOptionUUID));
+                    dataListOption.ifPresent(ret::add);
+                } catch (Exception e) {
+                    log.error("Can not parse dataListOption uuid[" + dataListOptionUUID + "]");
+                }
+            }
+        return ret;
     }
 }

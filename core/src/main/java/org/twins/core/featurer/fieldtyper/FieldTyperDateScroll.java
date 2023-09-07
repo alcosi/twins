@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import org.apache.commons.validator.GenericValidator;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
@@ -20,5 +21,16 @@ public class FieldTyperDateScroll extends FieldTyper {
         return new FieldTypeUIDescriptor()
                 .type("dateScroll")
                 .addParam("pattern", pattern.extract(properties));
+    }
+
+    @Override
+    protected FieldValue deserializeValue(Properties properties, Object value) {
+        return new FieldValueDate().date(value != null ? validDateOrEmpty(value.toString(), properties) : "");
+    }
+
+    public String validDateOrEmpty(String dateStr, Properties properties) {
+        if (GenericValidator.isDate(dateStr, pattern.extract(properties), true))
+            return dateStr;
+        return "";
     }
 }

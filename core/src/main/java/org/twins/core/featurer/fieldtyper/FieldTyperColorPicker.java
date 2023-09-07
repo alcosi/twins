@@ -15,4 +15,9 @@ public class FieldTyperColorPicker extends FieldTyper {
         return new FieldTypeUIDescriptor()
                 .type("colorPicker");
     }
+
+    @Override
+    protected FieldValue deserializeValue(Properties properties, Object value) {
+        return new FieldValueColorHEX().hex(value != null ? value.toString() : "");
+    }
 }

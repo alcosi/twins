@@ -43,11 +43,11 @@ public class TwinListController extends ApiController {
     private final TwinRestDTOMapper twinRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinListV1", summary = "Returns twin data")
+    @Operation(operationId = "twinViewV1", summary = "Returns twin data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
+                    @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinListV1(
@@ -77,7 +77,7 @@ public class TwinListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinListV1", summary = "Returns twin list by tql")
+    @Operation(operationId = "twinSearchV1", summary = "Returns twin list by tql")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =

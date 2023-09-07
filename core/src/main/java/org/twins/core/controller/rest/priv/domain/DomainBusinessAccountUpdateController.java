@@ -28,8 +28,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainBusinessAccountUpdateController extends ApiController {
     private final DomainService domainService;
-
-
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {

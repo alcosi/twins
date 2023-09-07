@@ -33,6 +33,5 @@ public class FieldTyperCheckbox extends FieldTyperChecks {
                 .type("checkbox")
                 .addParam("options", options)
                 .addParam("inline", inline.extract(properties));
-
     }
 }

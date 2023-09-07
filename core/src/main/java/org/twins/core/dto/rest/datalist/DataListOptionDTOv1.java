@@ -20,5 +20,5 @@ public class DataListOptionDTOv1 {
     public String name;
 
     @Schema(description = "description", defaultValue = "false", example = "Option is currently in active")
-    public boolean disabled;
+    public Boolean disabled;
 }

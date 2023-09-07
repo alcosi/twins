@@ -28,7 +28,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainUserDeleteController extends ApiController {
     private final DomainService domainService;
-
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {

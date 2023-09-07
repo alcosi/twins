@@ -29,7 +29,7 @@ import java.util.UUID;
 public class BusinessAccountUserAddController extends ApiController {
     private final BusinessAccountService businessAccountService;
 
-    @Operation(operationId = "domainUserAddV1", summary = "Add new user to businessAccount")
+    @Operation(operationId = "businessAccountUserAddV1", summary = "Add new user to businessAccount")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
                     @Content(mediaType = "application/json", schema =

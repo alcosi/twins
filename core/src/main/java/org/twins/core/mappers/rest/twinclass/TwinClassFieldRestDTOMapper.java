@@ -25,6 +25,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         FieldTyper fieldTyper = featurerService.getFeaturer(src.fieldTyperFeaturer(), FieldTyper.class);
         FieldTypeUIDescriptor fieldTypeUIDescriptor = fieldTyper.getUiDescriptor(src.fieldTyperParams());
         dst
+                .id(src.id())
                 .key(src.key())
                 .name(i18nService.translateToLocale(src.nameI18n()))
                 .required(src.required())
