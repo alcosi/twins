@@ -19,9 +19,13 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS(10205, "domain business_account is not registered"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
-
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
-    TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed");
+    TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),
+    TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED(10404, "twin class field value multiply options are not allowed"),
+    TWIN_CLASS_FIELD_VALUE_REQUIRED(10405, "twin class field value required"),
+    TWIN_CLASS_FIELD_VALUE_INCORRECT(10406, "twin class field value incorrect"),
+    TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed"),
+    DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list");
 
     private final int code;
     private final String message;

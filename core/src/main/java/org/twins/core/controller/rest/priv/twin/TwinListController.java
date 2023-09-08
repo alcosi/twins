@@ -25,6 +25,7 @@ import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -56,7 +57,7 @@ public class TwinListController extends ApiController {
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showClassMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.Mode._FIELDS_VALUES) TwinRestDTOMapper.Mode showTwinMode,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode) {
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -66,7 +67,7 @@ public class TwinListController extends ApiController {
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
                             .setMode(showTwinMode)
-                            .setMode(showTwinValuesMode)
+                            .setMode(showTwinClassFieldMode)
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -89,7 +90,7 @@ public class TwinListController extends ApiController {
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showClassMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.Mode._FIELDS_VALUES) TwinRestDTOMapper.Mode showTwinMode,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode,
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
@@ -101,7 +102,7 @@ public class TwinListController extends ApiController {
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
                             .setMode(showTwinMode)
-                            .setMode(showTwinValuesMode)
+                            .setMode(showTwinClassFieldMode)
             ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

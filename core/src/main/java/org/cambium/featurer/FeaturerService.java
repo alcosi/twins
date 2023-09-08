@@ -89,7 +89,7 @@ public class FeaturerService {
     private void syncFeaturersParams(Class<Featurer> featurerClass) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Set<String> featurerParamsKeySet = new HashSet<>();
-        for (Field field : featurerClass.getDeclaredFields()) {
+        for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
                 if (featurerParamAnnotation != null) {

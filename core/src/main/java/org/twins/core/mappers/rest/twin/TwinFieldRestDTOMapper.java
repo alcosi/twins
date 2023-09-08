@@ -25,21 +25,10 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinFieldEntity,
 
     @Override
     public void map(TwinFieldEntity src, TwinFieldDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(Mode.FIELDS_KEY_VALUE_ONLY)) {
-            case FIELDS_TYPE_DETAILED:
-                twinClassFieldRestDTOMapper.map(src.twinClassField(), dst, mapperProperties);
-            case FIELDS_KEY_VALUE_ONLY:
-                dst.key(src.twinClassField().key());
-                FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
-                dst.value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src.twinClassField().fieldTyperParams(), src.value())));
-        }
-    }
-
-    public enum Mode implements MapperMode {
-        FIELDS_KEY_VALUE_ONLY, FIELDS_TYPE_DETAILED;
-
-        public static final String _FIELDS_KEY_VALUE_ONLY = "FIELDS_KEY_VALUE_ONLY";
-        public static final String _FIELDS_TYPE_DETAILED = "FIELDS_TYPE_DETAILED";
-
+        FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
+        dst
+                .id(src.id())
+                .twinClassField(twinClassFieldRestDTOMapper.convert(src.twinClassField(), mapperProperties))
+                .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src.twinClassField().fieldTyperParams(), src.value())));
     }
 }

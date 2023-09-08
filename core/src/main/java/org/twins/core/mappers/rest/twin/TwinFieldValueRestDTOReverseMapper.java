@@ -36,10 +36,12 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                     .date(date.date());
         if (fieldValueDTO instanceof TwinFieldValueDataListOptionsDTOv1 select) {
             FieldValueSelect fieldValueSelect = new FieldValueSelect();
-            for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions())
+            for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
                 fieldValueSelect.add(new DataListOptionEntity()
                         .id(dataListOptionDTO.id())
                         .option(dataListOptionDTO.name));
+            }
+            return fieldValueSelect;
         }
         return null;
     }

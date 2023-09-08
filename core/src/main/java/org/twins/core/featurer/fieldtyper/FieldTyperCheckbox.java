@@ -2,13 +2,10 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
-import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.twin.TwinFieldEntity;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +33,7 @@ public class FieldTyperCheckbox extends FieldTyperChecks<FieldValueSelect> {
     }
 
     @Override
-    protected String serializeValue(Properties properties, FieldValueSelect value) {
+    protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value) {
         return null;
     }
 

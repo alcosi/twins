@@ -92,7 +92,7 @@ public class TwinService {
     public void updateField(UUID twinFieldId, FieldValue fieldValue) throws ServiceException {
         TwinFieldEntity twinFieldEntity = entitySmartService.findById(twinFieldId, "twinField", twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
         FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
-        twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity.twinClassField().fieldTyperParams(), fieldValue));
+        twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue));
         twinFieldRepository.save(twinFieldEntity);
     }
 }
