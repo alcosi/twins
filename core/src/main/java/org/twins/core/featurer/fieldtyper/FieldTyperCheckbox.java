@@ -20,7 +20,7 @@ import java.util.UUID;
         name = "FieldTyperCheckbox",
         description = "")
 @RequiredArgsConstructor
-public class FieldTyperCheckbox extends FieldTyperChecks {
+public class FieldTyperCheckbox extends FieldTyperChecks<FieldValueSelect> {
     final DataListOptionRepository dataListOptionRepository;
 
     @Override
@@ -33,5 +33,15 @@ public class FieldTyperCheckbox extends FieldTyperChecks {
                 .type("checkbox")
                 .addParam("options", options)
                 .addParam("inline", inline.extract(properties));
+    }
+
+    @Override
+    protected String serializeValue(Properties properties, FieldValueSelect value) {
+        return null;
+    }
+
+    @Override
+    protected FieldValueSelect deserializeValue(Properties properties, Object value) {
+        return null;
     }
 }

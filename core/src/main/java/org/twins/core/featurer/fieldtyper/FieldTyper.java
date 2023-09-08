@@ -13,7 +13,7 @@ import java.util.*;
         name = "FieldTyper",
         description = "Customize format of twin class field")
 @Slf4j
-public abstract class FieldTyper extends Featurer {
+public abstract class FieldTyper<T extends FieldValue> extends Featurer {
     public FieldTypeUIDescriptor getUiDescriptor(HashMap<String, String> fieldTyperParams) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return getUiDescriptor(properties);
@@ -21,21 +21,17 @@ public abstract class FieldTyper extends Featurer {
 
     protected abstract FieldTypeUIDescriptor getUiDescriptor(Properties properties);
 
-    public Object serializeValue(HashMap<String, String> fieldTyperParams, Object value) throws ServiceException {
+    public String serializeValue(HashMap<String, String> fieldTyperParams, T value) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return serializeValue(properties, value);
     }
 
-    protected Object serializeValue(Properties properties, Object value) {
-        return value;
-    }
+    protected abstract String serializeValue(Properties properties, T value);
 
-    public FieldValue deserializeValue(HashMap<String, String> fieldTyperParams, Object value) throws ServiceException {
+    public T deserializeValue(HashMap<String, String> fieldTyperParams, Object value) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
         return deserializeValue(properties, value);
     }
 
-    protected FieldValue deserializeValue(Properties properties, Object value) {
-        return new FieldValueText().value(value != null ? value.toString() : "");
-    }
+    protected abstract T deserializeValue(Properties properties, Object value);
 }

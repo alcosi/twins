@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
@@ -14,6 +15,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TQL;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
+import org.twins.core.featurer.fieldtyper.FieldValue;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -31,6 +34,8 @@ public class TwinService {
     final TwinClassFieldService twinClassFieldService;
     final EntityManager entityManager;
     final EntitySmartService entitySmartService;
+
+    final FeaturerService featurerService;
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
@@ -82,5 +87,12 @@ public class TwinService {
                         .value(""));
         }
         return ret;
+    }
+
+    public void updateField(UUID twinFieldId, FieldValue fieldValue) throws ServiceException {
+        TwinFieldEntity twinFieldEntity = entitySmartService.findById(twinFieldId, "twinField", twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
+        twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity.twinClassField().fieldTyperParams(), fieldValue));
+        twinFieldRepository.save(twinFieldEntity);
     }
 }

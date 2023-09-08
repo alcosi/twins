@@ -14,9 +14,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     }
 
     public S convert(T src) throws Exception {
-        S dst = type.getDeclaredConstructor().newInstance();
-        map(src, dst, new MapperProperties());
-        return dst;
+        return convert(src, new MapperProperties());
     }
 
     public S convert(T src, MapperProperties mapperProperties) throws Exception {

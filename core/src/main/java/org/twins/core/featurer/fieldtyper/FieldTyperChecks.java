@@ -4,7 +4,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 
-public abstract class FieldTyperChecks extends FieldTyper {
+public abstract class FieldTyperChecks<T extends FieldValue> extends FieldTyper<T> {
     @FeaturerParam(name = "listUUID", description = "")
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUID("listUUID");
 

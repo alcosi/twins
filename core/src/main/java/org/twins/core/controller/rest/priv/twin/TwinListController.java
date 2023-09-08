@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.twin.TwinRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -56,7 +56,7 @@ public class TwinListController extends ApiController {
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showClassMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.Mode._FIELDS_VALUES) TwinRestDTOMapper.Mode showTwinMode,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldValueRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldValueRestDTOMapper.Mode showTwinValuesMode) {
+            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -89,7 +89,7 @@ public class TwinListController extends ApiController {
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showClassMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.Mode._FIELDS_VALUES) TwinRestDTOMapper.Mode showTwinMode,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldValueRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldValueRestDTOMapper.Mode showTwinValuesMode,
+            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {

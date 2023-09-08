@@ -12,7 +12,7 @@ import java.util.Properties;
 @Featurer(id = 1302,
         name = "FieldTyperDateScroll",
         description = "")
-public class FieldTyperDateScroll extends FieldTyper {
+public class FieldTyperDateScroll extends FieldTyper<FieldValueDate> {
     @FeaturerParam(name = "pattern", description = "")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
@@ -24,7 +24,12 @@ public class FieldTyperDateScroll extends FieldTyper {
     }
 
     @Override
-    protected FieldValue deserializeValue(Properties properties, Object value) {
+    protected String serializeValue(Properties properties, FieldValueDate value) {
+        return value.date();
+    }
+
+    @Override
+    protected FieldValueDate deserializeValue(Properties properties, Object value) {
         return new FieldValueDate().date(value != null ? validDateOrEmpty(value.toString(), properties) : "");
     }
 

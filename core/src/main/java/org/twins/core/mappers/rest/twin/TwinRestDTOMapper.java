@@ -21,7 +21,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     final UserDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
+    final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
     final TwinService twinService;
 
     @Override
@@ -42,11 +42,11 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
                 return;
             case FIELDS_VALUES:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
-                dst.fields(twinFieldValueRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 return;
             case FIELDS_VALUES_HIDE_EMPTY:
                 twinFieldEntityList = twinService.findTwinFields(src.id());
-                dst.fields(twinFieldValueRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 return;
         }
     }

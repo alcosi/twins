@@ -43,5 +43,5 @@ public class TwinDTOv1 {
     public UserDTOv1 authorUser;
 
     @Schema(description = "fields")
-    public List<TwinFieldValueDTOv1> fields;
+    public List<TwinFieldDTOv1> fields;
 }

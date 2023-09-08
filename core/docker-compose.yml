@@ -3,7 +3,7 @@ networks:
   services_elpmee-net:
     external: true
 services:
-  gateway:
+  twins:
     image: dockerhub.esas.by/twins:0.1.0-SNAPSHOT
     container_name: twins-core
     environment:

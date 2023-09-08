@@ -20,7 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -33,7 +33,7 @@ import java.util.UUID;
 public class TwinFieldViewController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;
-    private final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
+    private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinFieldViewV1", summary = "Returns twin field data by id")
@@ -45,7 +45,7 @@ public class TwinFieldViewController extends ApiController {
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinFieldViewV1(
             @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldValueRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldValueRestDTOMapper.Mode showTwinValuesMode) {
+            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -70,7 +70,7 @@ public class TwinFieldViewController extends ApiController {
     public ResponseEntity<?> twinFieldByKeyViewV1(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
-            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldValueRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldValueRestDTOMapper.Mode showTwinValuesMode) {
+            @Parameter(name = "showTwinValuesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinFieldRestDTOMapper.Mode._FIELDS_KEY_VALUE_ONLY) TwinFieldRestDTOMapper.Mode showTwinValuesMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -84,10 +84,10 @@ public class TwinFieldViewController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private void fillResponse(TwinFieldEntity twinFieldEntity, TwinFieldValueRestDTOMapper.Mode showTwinValuesMode, TwinFieldRsDTOv1 rs) throws Exception {
+    private void fillResponse(TwinFieldEntity twinFieldEntity, TwinFieldRestDTOMapper.Mode showTwinValuesMode, TwinFieldRsDTOv1 rs) throws Exception {
         rs
                 .twinId(twinFieldEntity.twinId())
-                .field(twinFieldValueRestDTOMapper.convert(
+                .field(twinFieldRestDTOMapper.convert(
                         twinFieldEntity, new MapperProperties()
                                 .setMode(showTwinValuesMode)
                 ));

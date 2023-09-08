@@ -19,7 +19,7 @@ import java.util.*;
         description = "")
 @RequiredArgsConstructor
 @Slf4j
-public class FieldTyperSelect extends FieldTyper {
+public class FieldTyperSelect extends FieldTyper<FieldValueSelect> {
     final DataListOptionRepository dataListOptionRepository;
 
     @FeaturerParam(name = "listUUID", description = "")
@@ -56,10 +56,15 @@ public class FieldTyperSelect extends FieldTyper {
 
     }
 
+    @Override
+    protected String serializeValue(Properties properties, FieldValueSelect value) {
+        return null;
+    }
+
     public static final String LIST_SPLITTER = "<@2@>";
 
     @Override
-    protected FieldValue deserializeValue(Properties properties, Object value) {
+    protected FieldValueSelect deserializeValue(Properties properties, Object value) {
         FieldValueSelect ret = new FieldValueSelect();
         if (value != null)
             for (String dataListOptionUUID : value.toString().split(LIST_SPLITTER)) {

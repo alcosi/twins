@@ -18,5 +18,5 @@ public class TwinFieldRsDTOv1 extends Response {
     public UUID twinId;
 
     @Schema(description = "field data")
-    public TwinFieldValueDTOv1 field;
+    public TwinFieldDTOv1 field;
 }
