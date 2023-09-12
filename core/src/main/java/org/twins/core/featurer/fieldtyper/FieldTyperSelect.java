@@ -1,19 +1,15 @@
 package org.twins.core.featurer.fieldtyper;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.service.EntitySmartService;
 
 import java.util.*;
@@ -40,25 +36,18 @@ public class FieldTyperSelect extends FieldTyperList {
     }
 
     @Override
-    public FieldTypeUIDescriptor getUiDescriptor(Properties properties) {
+    public FieldDescriptor getFieldDescriptor(Properties properties) {
         UUID listId = listUUID.extract(properties);
         int listSize = dataListOptionRepository.countByDataListId(listId);
-        FieldTypeUIDescriptor fieldTypeUIDescriptor = new FieldTypeUIDescriptor()
-                .addParam("supportCustom", supportCustom.extract(properties).toString())
-                .addParam("multiple", multiple.extract(properties).toString());
+        FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
+                .supportCustom(supportCustom.extract(properties))
+                .multiple(multiple.extract(properties));
         if (listSize > longListThreshold.extract(properties))
-            return fieldTypeUIDescriptor
-                    .type("selectLongList")
-                    .addParam("listId", listId.toString());
+            fieldDescriptorList.dataListId(listId);
         else {
-            List<String> options = new ArrayList<>();
-            for (DataListOptionEntity optionEntity : dataListOptionRepository.findByDataListId(listId))
-                options.add(optionEntity.option());
-            return fieldTypeUIDescriptor
-                    .type("select")
-                    .addParam("options", options);
+            fieldDescriptorList.options(dataListOptionRepository.findByDataListId(listId));
         }
-
+        return fieldDescriptorList;
     }
 
     @Override

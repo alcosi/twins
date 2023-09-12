@@ -1,4 +1,4 @@
-package org.twins.core.featurer.fieldtyper;
+package org.twins.core.featurer.fieldtyper.value;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

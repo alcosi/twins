@@ -3,12 +3,11 @@ package org.twins.core.featurer.fieldtyper;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorChecks;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -17,19 +16,15 @@ import java.util.UUID;
         name = "FieldTyperCheckbox",
         description = "")
 @RequiredArgsConstructor
-public class FieldTyperCheckbox extends FieldTyperChecks<FieldValueSelect> {
+public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, FieldValueSelect> {
     final DataListOptionRepository dataListOptionRepository;
 
     @Override
-    public FieldTypeUIDescriptor getUiDescriptor(Properties properties) {
+    public FieldDescriptorChecks getFieldDescriptor(Properties properties) {
         UUID listId = listUUID.extract(properties);
-        List<String> options = new ArrayList<>();
-        for (DataListOptionEntity optionEntity : dataListOptionRepository.findByDataListId(listId))
-            options.add(optionEntity.option());
-        return new FieldTypeUIDescriptor()
-                .type("checkbox")
-                .addParam("options", options)
-                .addParam("inline", inline.extract(properties));
+        return new FieldDescriptorChecks()
+                .inline(inline.extract(properties))
+                .options(dataListOptionRepository.findByDataListId(listId));
     }
 
     @Override
@@ -38,7 +33,7 @@ public class FieldTyperCheckbox extends FieldTyperChecks<FieldValueSelect> {
     }
 
     @Override
-    protected FieldValueSelect deserializeValue(Properties properties, Object value) {
+    protected FieldValueSelect deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value) {
         return null;
     }
 }

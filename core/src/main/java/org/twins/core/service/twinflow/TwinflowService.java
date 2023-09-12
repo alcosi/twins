@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
@@ -31,5 +32,8 @@ public class TwinflowService {
         return twinFlowsSchemaId;
     }
 
+    public TwinflowEntity getByTwinClass(UUID uuid) {
+        return twinflowRepository.findById(UUID.fromString("e8af4ad8-2a0d-4a3e-b781-a004225aa2bc")).get();
+    }
 }
 

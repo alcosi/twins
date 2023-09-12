@@ -75,4 +75,8 @@ public class TwinClassFieldEntity {
     @ManyToOne
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
     private PermissionEntity permissionByEditPermissionId;
+
+    public String logShort() {
+        return "TwinClassField[id:" + id + ", key:" + key + "]";
+    }
 }

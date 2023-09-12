@@ -3,18 +3,12 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.featurer.fieldtyper.*;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
 
 
 @Component
@@ -39,7 +33,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
             return new TwinFieldValueDateDTOv1()
                     .date(date.date());
         if (fieldValue instanceof FieldValueSelect select)
-            return new TwinFieldValueDataListOptionsDTOv1()
+            return new TwinFieldValueListDTOv1()
                     .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperProperties().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
         return null;
     }

@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -38,7 +39,7 @@ public class TwinClassListController extends ApiController {
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class list")
+    @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class search result")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class list prepared", content = {
                     @Content(mediaType = "application/json", schema =
@@ -46,13 +47,14 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/search/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinClassSearchV1(
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showTwinClassMode,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperProperties().setMode(request.showTwinClassMode)));
+                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperProperties().setMode(showTwinClassMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -62,22 +64,21 @@ public class TwinClassListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassV1", summary = "Returns twin class list")
+    @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class list")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class list prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassRsDTOv1.class)) }),
+                    @Schema(implementation = TwinClassSearchRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/v1", method = RequestMethod.GET)
-    public ResponseEntity<?> twinClassV1(
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._SHOW_FIELDS) TwinClassRestDTOMapper.Mode showTwinClassMode) {
-        TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
+    @RequestMapping(value = "/private/twin_class/list/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> twinClassListV1(
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showTwinClassMode) {
+        TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.twinClass(
-                    twinClassRestDTOMapper.convert(
-                            twinClassService.findTwinClass(apiUser, twinClassId), new MapperProperties().setMode(showTwinClassMode)));
+            rs.twinClassList(
+                    twinClassRestDTOMapper.convertList(
+                            twinClassService.findTwinClasses(apiUser, null), new MapperProperties().setMode(showTwinClassMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

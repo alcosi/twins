@@ -17,7 +17,4 @@ import java.util.UUID;
 public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id list", example = "")
     public List<UUID> twinClassIdList;
-
-    @Schema(description = "twin class show mode", example = TwinClassRestDTOMapper.Mode._SHOW_FIELDS)
-    public TwinClassRestDTOMapper.Mode showTwinClassMode = TwinClassRestDTOMapper.Mode.SHOW_FIELDS;
 }

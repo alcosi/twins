@@ -29,6 +29,6 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinFieldEntity,
         dst
                 .id(src.id())
                 .twinClassField(twinClassFieldRestDTOMapper.convert(src.twinClassField(), mapperProperties))
-                .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src.twinClassField().fieldTyperParams(), src.value())));
+                .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src, src.value())));
     }
 }

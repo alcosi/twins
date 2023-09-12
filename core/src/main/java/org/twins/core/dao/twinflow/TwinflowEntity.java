@@ -2,6 +2,8 @@ package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -10,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(fluent = true)
 @Table(name = "twinflow")
 public class TwinflowEntity {
     @Id
@@ -28,6 +31,9 @@ public class TwinflowEntity {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @Column(name = "initial_twin_status_id")
+    private UUID initialTwinStatusId;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -38,4 +44,8 @@ public class TwinflowEntity {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @ManyToOne
+    @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity initialStatus;
 }

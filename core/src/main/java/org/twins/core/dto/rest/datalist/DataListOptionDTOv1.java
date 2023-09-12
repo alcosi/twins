@@ -14,7 +14,7 @@ import java.util.UUID;
 @Schema(name =  "DataListOptionV1")
 public class DataListOptionDTOv1 {
     @Schema(description = "id", example = "c2a7f81f-d7da-43e8-a1d3-18d6f632878b")
-    public UUID id;
+        public UUID id;
 
     @Schema(description = "name", example = "Country list")
     public String name;

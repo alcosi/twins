@@ -1,22 +1,25 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.featurer.fieldtyper.*;
+import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<TwinFieldValueDTO, FieldValue> {
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void map(TwinFieldValueDTO src, FieldValue dst, MapperProperties mapperProperties) throws Exception {
@@ -24,25 +27,27 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
     }
 
     @Override
-    public FieldValue convert(TwinFieldValueDTO fieldValueDTO) throws Exception {
+    public FieldValue convert(TwinFieldValueDTO fieldValueDTO, MapperProperties mapperProperties) throws Exception {
+        FieldValue fieldValue = null;
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
-            return new FieldValueText()
+            fieldValue =  new FieldValueText()
                     .value(text.text());
         if (fieldValueDTO instanceof TwinFieldValueColorHexDTOv1 color)
-            return new FieldValueColorHEX()
+            fieldValue =  new FieldValueColorHEX()
                     .hex(color.hex());
         if (fieldValueDTO instanceof TwinFieldValueDateDTOv1 date)
-            return new FieldValueDate()
+            fieldValue = new FieldValueDate()
                     .date(date.date());
-        if (fieldValueDTO instanceof TwinFieldValueDataListOptionsDTOv1 select) {
-            FieldValueSelect fieldValueSelect = new FieldValueSelect();
+        if (fieldValueDTO instanceof TwinFieldValueListDTOv1 select) {
+            fieldValue = new FieldValueSelect();
             for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
-                fieldValueSelect.add(new DataListOptionEntity()
+                ((FieldValueSelect)fieldValue).add(new DataListOptionEntity()
                         .id(dataListOptionDTO.id())
                         .option(dataListOptionDTO.name));
             }
-            return fieldValueSelect;
         }
-        return null;
+        if (fieldValue != null && fieldValueDTO.twinClassId != null && StringUtils.isNoneBlank(fieldValueDTO.fieldKey))
+            fieldValue.setTwinClassField(twinClassFieldService.findByTwinClassIdAndKey(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey));
+        return fieldValue;
     }
 }

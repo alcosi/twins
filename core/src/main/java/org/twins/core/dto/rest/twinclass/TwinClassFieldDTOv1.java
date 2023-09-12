@@ -21,15 +21,12 @@ public class TwinClassFieldDTOv1 {
     @Schema(description = "name", example = "Serial number")
     public String name;
 
-    @Schema(description = "type", example = "email")
-    public String type;
-
     @Schema(description = "required", example = "true")
     public boolean required;
 
-    @Schema(description = "type params", example = "")
-    public Hashtable<String, Object> typeParams;
-
     @Schema(description = "description", example = "")
     public String description;
+
+    @Schema(description = "field descriptor", example = "")
+    public TwinClassFieldDescriptorDTO descriptor;
 }

@@ -26,4 +26,8 @@ public class TwinClassFieldService {
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
         return twinClassFieldRepository.findByTwinClassId(twinClassId);
     }
+
+    public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
+        return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
+    }
 }
