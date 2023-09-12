@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.twin.TwinDTOv1;
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +31,12 @@ public class TwinClassDTOv1 {
 
     @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
     public String logo;
+
+    @Schema(description = "space class id or empty if class is not linked to any space", example = DTOExamples.TWIN_CLASS_SPACE_CLASS_ID)
+    public UUID spaceClassId;
+
+    @Schema(description = "list of available spaces")
+    public List<TwinDTOv1> validSpaces;
 
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;

@@ -12,4 +12,6 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
     List<TwinEntity> findByTwinClassDomainId(UUID domainId);
 
     List<TwinEntity> findByBusinessAccountId(UUID businessAccount);
+
+    List<TwinEntity> findByTwinClassId(UUID twinClassId);
 }

@@ -21,6 +21,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
@@ -40,11 +41,16 @@ public class TwinService {
     final EntityManager entityManager;
     final EntitySmartService entitySmartService;
     final TwinflowService twinflowService;
+    final TwinClassService twinClassService;
 
     final FeaturerService featurerService;
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
+    }
+
+    public List<TwinEntity> findTwinsByClass(UUID twinClassId) {
+        return twinRepository.findByTwinClassId(twinClassId);
     }
 
     public TwinEntity findTwin(ApiUser apiUser, UUID twinId) {
@@ -104,6 +110,7 @@ public class TwinService {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.twinClassId());
         twinEntity
                 .createdAt(Timestamp.from(Instant.now()))
+                .spaceTwinId(twinClassService.checkSpaceTwinAllowedForClass(twinEntity.spaceTwinId(), twinEntity.twinClassId()))
                 .twinStatusId(twinflowEntity.initialTwinStatusId());
         twinEntity = twinRepository.save(twinEntity);
         Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().id(), Function.identity()));

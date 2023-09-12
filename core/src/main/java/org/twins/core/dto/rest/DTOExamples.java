@@ -2,8 +2,10 @@ package org.twins.core.dto.rest;
 
 public interface DTOExamples {
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
+    String TWIN_CLASS_SPACE_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
     String TWIN_CLASS_FIELD_KEY = "serialNumber";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";
+    String SPACE_TWIN_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String TWIN_CLASS_FIELD_ID = "2fe95272-afcb-40ee-a6a8-87c5da4d5b8d";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";

@@ -26,36 +26,51 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
 
     @Override
     public void map(TwinEntity src, TwinDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        dst
-                .id(src.id())
-                .name(src.name())
-                .description(src.description())
-                .assignerUser(userDTOMapper.convert(src.assignerUser(), mapperProperties))
-                .authorUser(userDTOMapper.convert(src.createdByUser(), mapperProperties))
-                .status(twinStatusRestDTOMapper.convert(src.twinStatus(), mapperProperties))
-                .twinClass(twinClassRestDTOMapper.convert(src.twinClass(), mapperProperties))
-                .createdAt(src.createdAt().toInstant())
-        ;
-        List<TwinFieldEntity> twinFieldEntityList;
-        switch (mapperProperties.getModeOrUse(Mode.FIELDS_VALUES)) {
-            case NO_FIELDS_VALUES:
+        switch (mapperProperties.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
+            case NONE:
                 return;
-            case FIELDS_VALUES:
+            case DETAILED:
+                dst
+                        .description(src.description())
+                        .assignerUser(userDTOMapper.convert(src.assignerUser(), mapperProperties))
+                        .authorUser(userDTOMapper.convert(src.createdByUser(), mapperProperties))
+                        .status(twinStatusRestDTOMapper.convert(src.twinStatus(), mapperProperties))
+                        .twinClass(twinClassRestDTOMapper.convert(src.twinClass(), mapperProperties))
+                        .createdAt(src.createdAt().toInstant());
+            case ID_NAME_ONLY:
+                dst
+                        .id(src.id())
+                        .name(src.name());
+        }
+
+        List<TwinFieldEntity> twinFieldEntityList;
+        switch (mapperProperties.getModeOrUse(FieldsMode.ALL_FIELDS)) {
+            case NO_FIELDS:
+                return;
+            case ALL_FIELDS:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 return;
-            case FIELDS_VALUES_HIDE_EMPTY:
+            case NOT_EMPTY_FIELDS:
                 twinFieldEntityList = twinService.findTwinFields(src.id());
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 return;
         }
     }
 
-    public enum Mode implements MapperMode {
-        NO_FIELDS_VALUES, FIELDS_VALUES, FIELDS_VALUES_HIDE_EMPTY;
+    public enum TwinMode implements MapperMode {
+        NONE, ID_NAME_ONLY, DETAILED;
 
-        public static final String _NO_FIELDS_VALUES = "NO_FIELDS_VALUES";
-        public static final String _FIELDS_VALUES = "FIELDS_VALUES";
-        public static final String _FIELDS_VALUES_HIDE_EMPTY = "FIELDS_VALUES_HIDE_EMPTY";
+        public static final String _NONE = "NONE";
+        public static final String _ID_NAME_ONLY = "ID_NAME_ONLY";
+        public static final String _DETAILED = "DETAILED";
+    }
+
+    public enum FieldsMode implements MapperMode {
+        NO_FIELDS, ALL_FIELDS, NOT_EMPTY_FIELDS;
+
+        public static final String _NO_FIELDS = "NO_FIELDS";
+        public static final String _ALL_FIELDS = "ALL_FIELDS";
+        public static final String _NOT_EMPTY_FIELDS = "NOT_EMPTY_FIELDS";
     }
 }

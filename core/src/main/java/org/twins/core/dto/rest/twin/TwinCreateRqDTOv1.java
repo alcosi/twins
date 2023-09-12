@@ -19,6 +19,9 @@ public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
 
+    @Schema(description = "Space twin id, if selected class had to be linked to some space", example = DTOExamples.SPACE_TWIN_ID)
+    public UUID spaceTwinId;
+
     @Schema(description = "name", example = "Oak")
     public String name;
 

@@ -22,6 +22,9 @@ public class TwinEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "space_twin_id")
+    private UUID spaceTwinId;
+
     @Column(name = "external_id")
     private String externalId;
 
@@ -50,6 +53,10 @@ public class TwinEntity {
     @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "space_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
+    private TwinEntity spaceTwin;
+
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
@@ -65,4 +72,8 @@ public class TwinEntity {
     @ManyToOne
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assignerUser;
+
+    public String logShort() {
+        return "twin[" + id + "]";
+    }
 }

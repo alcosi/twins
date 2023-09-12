@@ -60,13 +60,15 @@ public class TwinCreateController extends ApiController {
                     .name(request.name())
                     .businessAccountId(apiUser.businessAccountId())
                     .createdByUserId(apiUser.userId())
+                    .spaceTwinId(request.spaceTwinId)
                     .assignerUserId(userService.checkUserId(request.assignerUserId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .description(request.description());
             List<TwinFieldValueDTO> fields = new ArrayList<>();
-            for (Map.Entry<String, TwinFieldValueDTO> entry : request.fields().entrySet())
-                fields.add(entry.getValue()
-                        .fieldKey(entry.getKey())
-                        .twinClassId(request.classId));
+            if (request.fields() != null)
+                for (Map.Entry<String, TwinFieldValueDTO> entry : request.fields().entrySet())
+                    fields.add(entry.getValue()
+                            .fieldKey(entry.getKey())
+                            .twinClassId(request.classId));
             twinService.createTwin(twinEntity, twinFieldValueRestDTOReverseMapper.convertList(fields));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
