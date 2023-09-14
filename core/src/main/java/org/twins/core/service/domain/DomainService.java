@@ -9,7 +9,6 @@ import org.twins.core.dao.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
-
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twinclass.TwinClassService;

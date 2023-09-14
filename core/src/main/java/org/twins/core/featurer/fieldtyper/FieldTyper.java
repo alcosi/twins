@@ -11,7 +11,8 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Properties;
 
 
 @FeaturerType(id = 13,

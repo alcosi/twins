@@ -3,10 +3,8 @@ package org.twins.core.dto.rest.card;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.widget.WidgetDTOv1;
 
-import java.util.List;
 import java.util.UUID;
 
 @Data

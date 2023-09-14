@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.card.CardDTOv1;
 
 import java.util.List;
 

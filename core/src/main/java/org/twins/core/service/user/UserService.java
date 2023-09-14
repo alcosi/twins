@@ -10,7 +10,6 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Optional;

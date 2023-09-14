@@ -9,8 +9,6 @@ import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.EntitySmartService;
-
 
 import java.util.Optional;
 import java.util.UUID;

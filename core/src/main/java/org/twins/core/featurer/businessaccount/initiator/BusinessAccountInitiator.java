@@ -4,9 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 
 import java.util.HashMap;
 import java.util.Properties;

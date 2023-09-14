@@ -9,8 +9,6 @@ import io.swagger.v3.oas.models.parameters.PathParameter;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.MethodParameter;
-import org.twins.core.controller.rest.annotation.ParameterPathDomainId;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 

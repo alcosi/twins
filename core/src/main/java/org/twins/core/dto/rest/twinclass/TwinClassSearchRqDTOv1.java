@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 
 import java.util.List;
 import java.util.UUID;

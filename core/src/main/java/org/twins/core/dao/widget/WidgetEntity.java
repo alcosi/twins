@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.AccessOrder;
 import org.twins.core.featurer.widget.accessor.WidgetAccessor;
 import org.twins.core.featurer.widget.datagrabber.DataGrabber;
 

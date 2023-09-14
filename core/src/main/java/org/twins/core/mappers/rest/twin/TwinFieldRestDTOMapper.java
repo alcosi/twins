@@ -4,14 +4,11 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
-import org.twins.core.dto.rest.twin.*;
-import org.twins.core.featurer.fieldtyper.*;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.dto.rest.twin.TwinFieldDTOv1;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 
 

@@ -25,7 +25,10 @@ import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -45,6 +48,10 @@ public class TwinService {
 
     final FeaturerService featurerService;
 
+    public UUID checkTwinId(UUID twinId, EntitySmartService.CheckMode checkMode) throws ServiceException {
+        return entitySmartService.check(twinId, "twinId", twinRepository, checkMode);
+    }
+
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
     }
@@ -53,8 +60,12 @@ public class TwinService {
         return twinRepository.findByTwinClassId(twinClassId);
     }
 
-    public TwinEntity findTwin(ApiUser apiUser, UUID twinId) {
-        return twinRepository.findById(twinId).get();
+    public TwinEntity findTwin(ApiUser apiUser, UUID twinId) throws ServiceException {
+        return findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
+    }
+
+    public TwinEntity findTwin(ApiUser apiUser, UUID twinId, EntitySmartService.FindMode findMode) throws ServiceException {
+        return entitySmartService.findById(twinId, "twinId", twinRepository, findMode);
     }
 
     public List<TwinFieldEntity> findTwinFields(UUID twinId) {

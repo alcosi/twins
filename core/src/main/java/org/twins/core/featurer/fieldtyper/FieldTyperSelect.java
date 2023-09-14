@@ -12,7 +12,8 @@ import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.service.EntitySmartService;
 
-import java.util.*;
+import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = 1305,

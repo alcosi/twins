@@ -6,8 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 
-import java.util.List;
-
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)

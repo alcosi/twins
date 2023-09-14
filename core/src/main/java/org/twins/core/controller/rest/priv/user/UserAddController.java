@@ -19,9 +19,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserAddRqDTOv1;
 import org.twins.core.service.EntitySmartService;
-
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserService;
 
 @Tag(description = "", name = "user")

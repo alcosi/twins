@@ -6,9 +6,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.RestListDTOMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 
 

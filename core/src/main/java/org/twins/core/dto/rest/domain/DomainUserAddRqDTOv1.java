@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.UUID;
 

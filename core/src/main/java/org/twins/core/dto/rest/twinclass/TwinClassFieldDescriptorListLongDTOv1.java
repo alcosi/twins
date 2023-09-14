@@ -3,11 +3,7 @@ package org.twins.core.dto.rest.twinclass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.dto.rest.twin.TwinFieldValueDTO;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Data

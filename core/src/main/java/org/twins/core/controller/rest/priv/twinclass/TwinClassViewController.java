@@ -48,6 +48,7 @@ public class TwinClassViewController extends ApiController {
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
+            @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
             @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
@@ -57,6 +58,7 @@ public class TwinClassViewController extends ApiController {
                             twinClassService.findTwinClass(apiUser, twinClassId), new MapperProperties()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
+                                    .setMode(showTwinClassFieldDescriptorMode)
                                     .setMode(showTwinClassFieldMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -18,7 +18,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUpdateRqDTOv1;
-
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 

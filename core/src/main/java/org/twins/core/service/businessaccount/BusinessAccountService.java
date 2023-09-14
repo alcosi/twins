@@ -11,7 +11,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
-
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.UUID;

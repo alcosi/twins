@@ -5,9 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
-
-import java.util.List;
 
 @Data
 @Accessors(fluent = true)

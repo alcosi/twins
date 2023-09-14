@@ -2,7 +2,6 @@ package org.twins.core.featurer.widget.accessor;
 
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamWordList;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;

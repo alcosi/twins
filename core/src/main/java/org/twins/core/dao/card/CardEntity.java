@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
-import org.twins.core.dao.AccessOrder;
 
 import java.util.UUID;
 

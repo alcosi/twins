@@ -5,7 +5,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.featurer.fieldtyper.FieldTypeUIDescriptor;
 
 import java.util.HashMap;
 import java.util.Properties;

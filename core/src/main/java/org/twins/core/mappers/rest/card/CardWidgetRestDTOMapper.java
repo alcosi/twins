@@ -1,16 +1,9 @@
 package org.twins.core.mappers.rest.card;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.card.CardWidgetEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.card.CardWidgetDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
-import org.twins.core.featurer.fieldtyper.FieldTypeUIDescriptor;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;

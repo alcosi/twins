@@ -18,7 +18,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainUserAddRqDTOv1;
 import org.twins.core.service.EntitySmartService;
-
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
