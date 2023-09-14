@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
@@ -20,15 +21,14 @@ import java.util.List;
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
     final UserDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    @Autowired
+    TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
     final TwinService twinService;
 
     @Override
     public void map(TwinEntity src, TwinDTOv1 dst, MapperProperties mapperProperties) throws Exception {
         switch (mapperProperties.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
-            case NONE:
-                return;
             case DETAILED:
                 dst
                         .description(src.description())
@@ -59,9 +59,8 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     }
 
     public enum TwinMode implements MapperMode {
-        NONE, ID_NAME_ONLY, DETAILED;
+        ID_NAME_ONLY, DETAILED;
 
-        public static final String _NONE = "NONE";
         public static final String _ID_NAME_ONLY = "ID_NAME_ONLY";
         public static final String _DETAILED = "DETAILED";
     }

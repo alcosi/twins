@@ -2,6 +2,7 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.sql.Timestamp;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "twin_alias")
 public class TwinAliasEntity {
     @Id

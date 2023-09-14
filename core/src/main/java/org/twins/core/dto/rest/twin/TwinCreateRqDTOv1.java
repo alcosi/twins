@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -19,8 +18,8 @@ public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "Class Id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID classId;
 
-    @Schema(description = "Space twin id, if selected class had to be linked to some space", example = DTOExamples.SPACE_TWIN_ID)
-    public UUID spaceTwinId;
+    @Schema(description = "Head twin id, if selected class had to be linked to some head twin", example = DTOExamples.HEAD_TWIN_ID)
+    public UUID headTwinId;
 
     @Schema(description = "name", example = "Oak")
     public String name;

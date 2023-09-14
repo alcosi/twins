@@ -18,8 +18,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -48,8 +46,9 @@ public class TwinClassViewController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassV1(
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._DETAILED) TwinClassRestDTOMapper.Mode showTwinClassMode,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._NONE) TwinClassRestDTOMapper.Mode showTwinClassFieldMode) {
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
+            @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -57,6 +56,7 @@ public class TwinClassViewController extends ApiController {
                     twinClassRestDTOMapper.convert(
                             twinClassService.findTwinClass(apiUser, twinClassId), new MapperProperties()
                                     .setMode(showTwinClassMode)
+                                    .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

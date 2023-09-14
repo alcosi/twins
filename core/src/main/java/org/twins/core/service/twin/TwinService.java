@@ -1,16 +1,15 @@
 package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
-import org.twins.core.dao.twin.TwinFieldRepository;
-import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -37,6 +36,7 @@ public class TwinService {
     final TwinRepository twinRepository;
     final TwinFieldRepository twinFieldRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
+    final TwinAliasRepository twinAliasRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntityManager entityManager;
     final EntitySmartService entitySmartService;
@@ -106,11 +106,11 @@ public class TwinService {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public void createTwin(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
+    public TwinCreateResult createTwin(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.twinClassId());
         twinEntity
                 .createdAt(Timestamp.from(Instant.now()))
-                .spaceTwinId(twinClassService.checkSpaceTwinAllowedForClass(twinEntity.spaceTwinId(), twinEntity.twinClassId()))
+                .headTwinId(twinClassService.checkHeadTwinAllowedForClass(twinEntity.headTwinId(), twinEntity.twinClassId()))
                 .twinStatusId(twinflowEntity.initialTwinStatusId());
         twinEntity = twinRepository.save(twinEntity);
         Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().id(), Function.identity()));
@@ -135,11 +135,48 @@ public class TwinService {
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
         twinFieldRepository.saveAll(twinFieldEntityList);
+
+        return new TwinCreateResult()
+                .setCreatedTwin(twinEntity)
+                .setAliasEntityList(createTwinAliases(twinEntity));
+    }
+
+    public List<TwinAliasEntity> createTwinAliases(TwinEntity twinEntity) {
+        twinAliasRepository.createAliasByClass(twinEntity.id());
+        TwinEntity spaceTwin = findSpaceForTwin(twinEntity);
+        if (spaceTwin != null)
+            twinAliasRepository.createAliasBySpace(twinEntity.id(), spaceTwin.id());
+        return twinAliasRepository.findAllByTwinId(twinEntity.id());
+    }
+
+    public TwinEntity findSpaceForTwin(TwinEntity twinEntity) {
+        if (twinEntity.headTwin() == null && twinEntity.headTwinId() != null)
+            twinEntity.headTwin(twinRepository.findById(twinEntity.headTwinId()).get()); //todo fix
+        return findSpaceForTwin(twinEntity, twinEntity.headTwin(), 10);
+    }
+
+    protected TwinEntity findSpaceForTwin(TwinEntity twinEntity, TwinEntity headTwin, int recursionDepth) {
+        if (headTwin == null)
+            return null;
+        else if (headTwin.twinClass().space())
+            return headTwin;
+        else if (recursionDepth == 0) {
+            log.warn("Can not detect space for " + twinEntity);
+            return null;
+        } else
+            return findSpaceForTwin(twinEntity, headTwin.headTwin(), recursionDepth - 1);
     }
 
     public void updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
         twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue));
         twinFieldRepository.save(twinFieldEntity);
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class TwinCreateResult {
+        private TwinEntity createdTwin;
+        private List<TwinAliasEntity> aliasEntityList;
     }
 }

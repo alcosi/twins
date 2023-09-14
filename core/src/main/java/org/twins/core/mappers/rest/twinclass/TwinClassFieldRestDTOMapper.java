@@ -42,9 +42,8 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     }
 
     public enum Mode implements MapperMode {
-        NONE, ID_KEY_ONLY, DETAILED;
+        ID_KEY_ONLY, DETAILED;
 
-        public static final String _NONE = "NONE";
         public static final String _ID_KEY_ONLY = "ID_KEY_ONLY";
         public static final String _DETAILED = "DETAILED";
         ;

@@ -28,6 +28,9 @@ public class TwinClassEntity {
     @Column(name = "space")
     private Boolean space;
 
+    @Column(name = "abstract")
+    private Boolean abstractt;
+
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
 
@@ -43,8 +46,8 @@ public class TwinClassEntity {
     @Column(name = "logo")
     private String logo;
 
-    @Column(name = "space_twin_class_id")
-    private UUID spaceTwinClassId;
+    @Column(name = "head_twin_class_id")
+    private UUID headTwinClassId;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)

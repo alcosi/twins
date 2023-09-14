@@ -32,11 +32,14 @@ public class TwinClassDTOv1 {
     @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
     public String logo;
 
-    @Schema(description = "space class id or empty if class is not linked to any space", example = DTOExamples.TWIN_CLASS_SPACE_CLASS_ID)
-    public UUID spaceClassId;
+    @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
+    public boolean abstractClass;
 
-    @Schema(description = "list of available spaces")
-    public List<TwinDTOv1> validSpaces;
+    @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
+    public UUID headClassId;
+
+    @Schema(description = "list of available heads")
+    public List<TwinDTOv1> validHeads;
 
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;

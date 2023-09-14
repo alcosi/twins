@@ -27,8 +27,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
-    SPACE_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
-    SPACE_TWIN_NOT_SPECIFIED(10703, "space twin must be specified");
+    HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
+    HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified");
 
     private final int code;
     private final String message;

@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.SelectBeforeUpdate;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -22,8 +23,8 @@ public class TwinEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "space_twin_id")
-    private UUID spaceTwinId;
+    @Column(name = "head_twin_id")
+    private UUID headTwinId;
 
     @Column(name = "external_id")
     private String externalId;
@@ -54,8 +55,8 @@ public class TwinEntity {
     private TwinClassEntity twinClass;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "space_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
-    private TwinEntity spaceTwin;
+    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
+    private TwinEntity headTwin;
 
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)

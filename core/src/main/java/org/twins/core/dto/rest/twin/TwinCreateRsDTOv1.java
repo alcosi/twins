@@ -8,15 +8,16 @@ import org.twins.core.dto.rest.PaginationBean;
 import org.twins.core.dto.rest.Response;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinSearchRsV1")
-public class TwinSearchRsDTOv1 extends Response {
-    @Schema(description = "pagination data")
-    public PaginationBean pagination;
+@Schema(name =  "TwinCreateRsV1")
+public class TwinCreateRsDTOv1 extends Response {
+    @Schema(description = "new twin id")
+    public UUID twinId;
 
-    @Schema(description = "results - transfers list")
-    public List<TwinDTOv1> twinList;
+    @Schema(description = "twin alias list. Alias is unique in business account scope")
+    public List<String> aliasList;
 }

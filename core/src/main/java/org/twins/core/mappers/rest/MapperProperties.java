@@ -19,6 +19,13 @@ public class MapperProperties {
         return this;
     }
 
+    public MapperProperties setModeIfNotPresent(MapperMode mapperMode) {
+        MapperMode configuredMode = modes.get(mapperMode.getClass());
+        if (configuredMode == null)
+            setMode(mapperMode);
+        return this;
+    }
+
     public <T extends MapperMode> T getModeOrUse(T mode) {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode != null)

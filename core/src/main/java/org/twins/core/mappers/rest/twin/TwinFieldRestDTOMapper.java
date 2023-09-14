@@ -28,7 +28,7 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinFieldEntity,
         FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
         dst
                 .id(src.id())
-                .twinClassField(twinClassFieldRestDTOMapper.convert(src.twinClassField(), mapperProperties))
+                .twinClassField(twinClassFieldRestDTOMapper.convert(src.twinClassField(), mapperProperties.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY)))
                 .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src, src.value())));
     }
 }

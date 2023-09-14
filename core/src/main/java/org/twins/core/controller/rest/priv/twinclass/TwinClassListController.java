@@ -43,8 +43,9 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/search/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinClassSearchV1(
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showTwinClassMode,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._NONE) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
+            @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
@@ -53,6 +54,7 @@ public class TwinClassListController extends ApiController {
                     twinClassRestDTOMapper.convertList(
                             twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperProperties()
                                     .setMode(showTwinClassMode)
+                                    .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -71,9 +73,9 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassListV1(
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.Mode._ID_ONLY) TwinClassRestDTOMapper.Mode showTwinClassMode,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._NONE) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
-            @Parameter(name = "showSpacesMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._ID_NAME_ONLY) TwinRestDTOMapper.TwinMode showSpacesMode) {
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
+            @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -81,8 +83,8 @@ public class TwinClassListController extends ApiController {
                     twinClassRestDTOMapper.convertList(
                             twinClassService.findTwinClasses(apiUser, null), new MapperProperties()
                                     .setMode(showTwinClassMode)
-                                    .setMode(showSpacesMode)
-                                            .setMode(showTwinClassFieldMode)
+                                    .setMode(showTwinClassHeadsMode)
+                                    .setMode(showTwinClassFieldMode)
                                     .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

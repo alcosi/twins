@@ -40,7 +40,7 @@ public class TwinClassService {
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
-            Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
+        Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
         if (twinClassSchemaEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown twinClassSchemaId[" + twinClassSchemaId + "]");
         if (twinClassSchemaEntity.get().domainId() != domainId)
@@ -48,20 +48,20 @@ public class TwinClassService {
         return twinClassSchemaId;
     }
 
-    public UUID checkSpaceTwinAllowedForClass(UUID spaceTwinId, UUID inSpaceTwinClassId) throws ServiceException {
-        if (spaceTwinId != null) {
-            TwinEntity spaceTwinEntity = entitySmartService.findById(spaceTwinId, "spaceTwinId", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (!spaceTwinEntity.twinClass().space())
-                throw new ServiceException(ErrorCodeTwins.SPACE_TWIN_ID_INCORRECT, spaceTwinEntity.logShort() + " is not a space");
-            if (!spaceTwinEntity.twinClassId().equals(inSpaceTwinClassId))
-                throw new ServiceException(ErrorCodeTwins.SPACE_TWIN_ID_NOT_ALLOWED, spaceTwinEntity.logShort() + " is not allowed for twinClass[" + inSpaceTwinClassId + "]");
-            return spaceTwinId;
-        } else {
-            TwinClassEntity twinClassEntity = entitySmartService.findById(inSpaceTwinClassId, "twinClassId", twinClassRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (twinClassEntity.spaceTwinClassId() != null)
-                throw new ServiceException(ErrorCodeTwins.SPACE_TWIN_NOT_SPECIFIED, twinClassEntity.logShort() + " should be linked to space");
-        }
-        return spaceTwinId;
+    public UUID checkHeadTwinAllowedForClass(UUID headTwinId, UUID subClassId) throws ServiceException {
+        TwinClassEntity twinClassEntity = entitySmartService.findById(subClassId, "twinClassId", twinClassRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        if (twinClassEntity.headTwinClassId() != null)
+            if (headTwinId != null) {
+                TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, "headTwinId", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
+//            if (!headTwinEntity.twinClass().space())
+//                throw new ServiceException(ErrorCodeTwins.SPACE_TWIN_ID_INCORRECT, headTwinEntity.logShort() + " is not a space");
+                if (!headTwinEntity.twinClassId().equals(twinClassEntity.headTwinClassId()))
+                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.logShort() + " is not allowed for twinClass[" + subClassId + "]");
+                return headTwinId;
+            } else {
+                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, twinClassEntity.logShort() + " should be linked to head");
+            }
+        return headTwinId;
     }
 
     public void checkTwinClassPermission(ApiUser apiUser, UUID twinclassId) {

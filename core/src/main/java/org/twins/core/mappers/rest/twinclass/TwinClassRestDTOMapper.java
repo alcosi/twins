@@ -8,10 +8,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.RestListDTOMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -21,7 +19,6 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
     final I18nService i18nService;
     final TwinClassFieldService twinClassFieldService;
-
     final TwinService twinService;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     @Autowired
@@ -29,11 +26,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(TwinClassRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperProperties.getModeOrUse(ClassMode.DETAILED)) {
             case DETAILED:
                 dst
                         .key(src.key())
-                        .spaceClassId(src.spaceTwinClassId())
+                        .headClassId(src.headTwinClassId())
                         .name(i18nService.translateToLocale(src.nameI18n()))
                         .description(src.descriptionI18n() != null ? i18nService.translateToLocale(src.descriptionI18n()) : "")
                         .logo(src.logo());
@@ -42,20 +39,35 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                         .id(src.id());
                 break;
         }
-        if (mapperProperties.getModeOrUse(TwinClassFieldRestDTOMapper.Mode.NONE) != TwinClassFieldRestDTOMapper.Mode.NONE)
+        if (mapperProperties.getModeOrUse(FieldsMode.NO_FIELDS) != FieldsMode.NO_FIELDS)
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
-                            twinClassFieldService.findTwinClassFields(src.id())));
-        if (mapperProperties.getModeOrUse(TwinRestDTOMapper.TwinMode.NONE) != TwinRestDTOMapper.TwinMode.NONE && src.spaceTwinClassId() != null)
-            dst.validSpaces(
+                            twinClassFieldService.findTwinClassFields(src.id()), mapperProperties.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY))); //todo only required
+        if (mapperProperties.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.headTwinClassId() != null)
+            dst.validHeads(
                     twinRestDTOMapper.convertList(
-                            twinService.findTwinsByClass(src.spaceTwinClassId()), mapperProperties));
+                            twinService.findTwinsByClass(src.headTwinClassId()), mapperProperties.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
     }
 
-    public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED;
+    public enum ClassMode implements MapperMode {
+        ID_ONLY, DETAILED,;
 
         public static final String _ID_ONLY = "ID_ONLY";
         public static final String _DETAILED = "DETAILED";
+    }
+
+    public enum FieldsMode implements MapperMode {
+        NO_FIELDS, ALL_FIELDS, ONLY_REQUIRED;
+
+        public static final String _NO_FIELDS = "NO_FIELDS";
+        public static final String _ALL_FIELDS = "ALL_FIELDS";
+        public static final String _ONLY_REQUIRED = "ONLY_REQUIRED";
+    }
+
+    public enum HeadTwinMode implements MapperMode {
+        SHOW, HIDE;
+
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
     }
 }
