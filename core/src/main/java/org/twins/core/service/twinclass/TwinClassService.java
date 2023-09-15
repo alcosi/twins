@@ -39,6 +39,10 @@ public class TwinClassService {
         return twinClassRepository.findByDomainIdAndId(apiUser.domainId(), twinClassIs);
     }
 
+    public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) {
+        return twinClassRepository.findByDomainIdAndKey(apiUser.domainId(), twinClassKey);
+    }
+
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
         Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
         if (twinClassSchemaEntity.isEmpty())

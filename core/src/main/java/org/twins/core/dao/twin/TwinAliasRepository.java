@@ -15,6 +15,8 @@ import java.util.UUID;
 public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUID>, JpaSpecificationExecutor<TwinAliasEntity> {
     List<TwinAliasEntity> findAllByTwinId(UUID twinId);
 
+    TwinAliasEntity findByBusinessAccountIdAndAlias(UUID businessAccountId, String alias);
+
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +

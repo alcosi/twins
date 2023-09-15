@@ -64,6 +64,13 @@ public class TwinService {
         return findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
     }
 
+    public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
+        TwinAliasEntity twinAliasEntity = twinAliasRepository.findByBusinessAccountIdAndAlias(apiUser.businessAccountId(), twinAlias);
+        if (twinAliasEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
+        return twinAliasEntity.getTwin();
+    }
+
     public TwinEntity findTwin(ApiUser apiUser, UUID twinId, EntitySmartService.FindMode findMode) throws ServiceException {
         return entitySmartService.findById(twinId, "twinId", twinRepository, findMode);
     }

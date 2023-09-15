@@ -9,8 +9,10 @@ import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
+import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
@@ -24,6 +26,8 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
+    final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    final AttachmentService attachmentService;
     final TwinService twinService;
 
     @Override
@@ -46,15 +50,22 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         List<TwinFieldEntity> twinFieldEntityList;
         switch (mapperProperties.getModeOrUse(FieldsMode.ALL_FIELDS)) {
             case NO_FIELDS:
-                return;
+                break;
             case ALL_FIELDS:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
-                return;
+                break;
             case NOT_EMPTY_FIELDS:
                 twinFieldEntityList = twinService.findTwinFields(src.id());
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
-                return;
+                break;
+        }
+        switch (mapperProperties.getModeOrUse(AttachmentsMode.HIDE)) {
+            case HIDE:
+                break;
+            case SHOW:
+                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.id()), mapperProperties));
+                break;
         }
     }
 
@@ -71,5 +82,12 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         public static final String _NO_FIELDS = "NO_FIELDS";
         public static final String _ALL_FIELDS = "ALL_FIELDS";
         public static final String _NOT_EMPTY_FIELDS = "NOT_EMPTY_FIELDS";
+    }
+
+    public enum AttachmentsMode implements MapperMode {
+        SHOW, HIDE;
+
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
     }
 }
