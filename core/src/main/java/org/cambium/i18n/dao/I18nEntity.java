@@ -2,6 +2,7 @@ package org.cambium.i18n.dao;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "i18n")
 public class I18nEntity {
     @Id

@@ -29,7 +29,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().required() && CollectionUtils.isEmpty(value.options()))
+        if (twinFieldEntity.twinClassField().isRequired() && CollectionUtils.isEmpty(value.options()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
         if (value.options() != null && value.options().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.twinClassField().logShort() + " multiply options are not allowed");

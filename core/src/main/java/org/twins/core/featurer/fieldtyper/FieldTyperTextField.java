@@ -29,7 +29,7 @@ public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldVa
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().required() && StringUtils.isEmpty(value.value()))
+        if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.value()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
         String pattern = regexp.extract(properties);
         if (!value.value().matches(pattern))

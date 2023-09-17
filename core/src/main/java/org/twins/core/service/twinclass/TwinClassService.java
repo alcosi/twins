@@ -1,10 +1,14 @@
 package org.twins.core.service.twinclass;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -15,6 +19,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,7 +32,10 @@ public class TwinClassService {
     final TwinRepository twinRepository;
     final TwinClassRepository twinClassRepository;
     final TwinClassSchemaRepository twinClassSchemaRepository;
+    final TwinClassFieldService twinClassFieldService;
     final EntitySmartService entitySmartService;
+    final I18nService i18nService;
+    final EntityManager entityManager;
 
     public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) {
         if (CollectionUtils.isNotEmpty(uuidLists))
@@ -70,6 +79,36 @@ public class TwinClassService {
 
     public void checkTwinClassPermission(ApiUser apiUser, UUID twinclassId) {
 
+    }
+
+    @Transactional
+    public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) {
+        TwinClassEntity srcTwinClassEntity = findTwinClass(apiUser, twinClassId);
+        TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
+                .key(newKey)
+                .createdByUserId(apiUser.userId())
+                .space(srcTwinClassEntity.space())
+                .abstractt(srcTwinClassEntity.abstractt())
+                .logo(srcTwinClassEntity.logo())
+                .createdAt(Timestamp.from(Instant.now()))
+                .domainId(srcTwinClassEntity.domainId())
+                .domain(srcTwinClassEntity.domain());
+        I18nEntity i18nDuplicate;
+        if (srcTwinClassEntity.nameI18n() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.nameI18n());
+            duplicateTwinClassEntity
+                    .nameI18n(i18nDuplicate)
+                    .nameI18NId(i18nDuplicate.getId());
+        }
+        if (srcTwinClassEntity.descriptionI18n() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.descriptionI18n());
+            duplicateTwinClassEntity
+                    .descriptionI18n(i18nDuplicate)
+                    .descriptionI18NId(i18nDuplicate.getId());
+        }
+        duplicateTwinClassEntity = twinClassRepository.save(duplicateTwinClassEntity);
+        twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.id());
+        return duplicateTwinClassEntity;
     }
 }
 

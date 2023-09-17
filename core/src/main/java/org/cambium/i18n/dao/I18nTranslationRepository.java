@@ -19,6 +19,7 @@ public interface I18nTranslationRepository extends CrudRepository<I18nTranslatio
 
     List<I18nTranslationEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locales);
 
+    List<I18nTranslationEntity> findByI18nId(UUID i18nId);
     Optional<I18nTranslationEntity> findByLocaleAndI18n_Key(Locale locale, String messageKey);
 
     List<I18nTranslationEntity> findAll();

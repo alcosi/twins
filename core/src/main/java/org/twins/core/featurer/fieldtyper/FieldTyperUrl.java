@@ -24,7 +24,7 @@ public class FieldTyperUrl extends FieldTyper<FieldDescriptorUrl, FieldValueText
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().required() && StringUtils.isEmpty(value.value()))
+        if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.value()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
         if (new UrlValidator().isValid(value.value()) )
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.twinClassField().logShort() + " incorrect url[" + value.value() + "]");

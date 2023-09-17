@@ -94,7 +94,7 @@ public class TwinService {
                     + twinId + "] of class[" + twinEntity.twinClass().key() + " : " + twinEntity.twinClassId() + "]");
         twinFieldEntity = new TwinFieldEntity()
                 .twinClassField(twinClassField)
-                .twinClassFieldId(twinClassField.id())
+                .twinClassFieldId(twinClassField.getId())
                 .twin(twinEntity)
                 .twinId(twinEntity.id())
                 .value("");
@@ -106,12 +106,12 @@ public class TwinService {
         List<TwinClassFieldEntity> twinFieldClassEntityList = twinClassFieldService.findTwinClassFields(twinEntity.twinClassId());
         List<TwinFieldEntity> ret = new ArrayList<>();
         for (TwinClassFieldEntity twinClassField : twinFieldClassEntityList) {
-            if (twinFieldEntityMap.containsKey(twinClassField.id()))
-                ret.add(twinFieldEntityMap.get(twinClassField.id()));
+            if (twinFieldEntityMap.containsKey(twinClassField.getId()))
+                ret.add(twinFieldEntityMap.get(twinClassField.getId()));
             else
                 ret.add(new TwinFieldEntity()
                         .twinClassField(twinClassField)
-                        .twinClassFieldId(twinClassField.id())
+                        .twinClassFieldId(twinClassField.getId())
                         .twin(twinEntity)
                         .twinId(twinEntity.id())
                         .value(""));
@@ -131,24 +131,24 @@ public class TwinService {
                 .headTwinId(twinClassService.checkHeadTwinAllowedForClass(twinEntity.headTwinId(), twinEntity.twinClassId()))
                 .twinStatusId(twinflowEntity.initialTwinStatusId());
         twinEntity = twinRepository.save(twinEntity);
-        Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().id(), Function.identity()));
+        Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().getId(), Function.identity()));
         List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFields(twinEntity.twinClassId());
         TwinFieldEntity twinFieldEntity;
         FieldValue fieldValue;
         List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
         for (TwinClassFieldEntity twinClassFieldEntity : twinClassFieldEntityList) {
-            fieldValue = twinClassFieldValuesMap.get(twinClassFieldEntity.id());
+            fieldValue = twinClassFieldValuesMap.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
-                if (twinClassFieldEntity.required())
+                if (twinClassFieldEntity.isRequired())
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.logShort() + " is required");
                 else
                     continue;
             twinFieldEntity = new TwinFieldEntity()
                     .twinClassField(twinClassFieldEntity)
-                    .twinClassFieldId(twinClassFieldEntity.id())
+                    .twinClassFieldId(twinClassFieldEntity.getId())
                     .twin(twinEntity)
                     .twinId(twinEntity.id());
-            var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.fieldTyperFeaturer(), FieldTyper.class);
+            var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
             twinFieldEntityList.add(
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
@@ -186,7 +186,7 @@ public class TwinService {
     }
 
     public void updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().fieldTyperFeaturer(), FieldTyper.class);
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue));
         twinFieldRepository.save(twinFieldEntity);
     }

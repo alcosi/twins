@@ -1,8 +1,10 @@
 package org.cambium.i18n.service;
 
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
@@ -10,6 +12,7 @@ import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.service.HttpRequestService;
 
 import java.util.*;
@@ -25,7 +28,7 @@ public class I18nService {
     final I18nLocaleRepository i18nLocaleRepository;
     final I18nProperties i18nProperties;
     final HttpRequestService httpRequestService;
-    ;
+    final EntityManager entityManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -135,5 +138,33 @@ public class I18nService {
 
     public String translateToLocale(I18nEntity i18NEntity) {
         return translateToLocale(i18NEntity, httpRequestService.getLocale(), null);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public I18nEntity duplicateI18n(I18nEntity srcI18nEntity) {
+        I18nEntity duplicateI18nEntity = new I18nEntity()
+                .setKey(addCopyPostfix(srcI18nEntity.getKey()))
+                .setName(addCopyPostfix(srcI18nEntity.getName()))
+                .setType(srcI18nEntity.getType());
+        duplicateI18nEntity = i18nRepository.save(duplicateI18nEntity);
+        List<I18nTranslationEntity> translationEntityList = i18nTranslationRepository.findByI18nId(srcI18nEntity.getId());
+        if (CollectionUtils.isNotEmpty(translationEntityList)) {
+            List<I18nTranslationEntity> duplicateI18nTranslationEntityList = new ArrayList<>();
+            for (I18nTranslationEntity srcI18nTranslationEntity : translationEntityList) {
+                duplicateI18nTranslationEntityList.add(
+                        new I18nTranslationEntity()
+                                .setI18nId(duplicateI18nEntity.getId())
+                                .setLocale(srcI18nTranslationEntity.getLocale())
+                                .setTranslation(srcI18nTranslationEntity.getTranslation()));
+            }
+            i18nTranslationRepository.saveAll(duplicateI18nTranslationEntityList);
+        }
+        return entityManager.merge(duplicateI18nEntity);
+    }
+
+    private String addCopyPostfix(String originalStr) {
+        if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
+            return originalStr;
+        return originalStr + " [copy]";
     }
 }

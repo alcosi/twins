@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "twin_class_field")
 public class TwinClassFieldEntity {
     @Id
@@ -70,11 +70,11 @@ public class TwinClassFieldEntity {
 
     @ManyToOne
     @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
-    private PermissionEntity permissionByViewPermissionId;
+    private PermissionEntity viewPermission;
 
     @ManyToOne
     @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-    private PermissionEntity permissionByEditPermissionId;
+    private PermissionEntity editPermission;
 
     public String logShort() {
         return "TwinClassField[id:" + id + ", key:" + key + "]";

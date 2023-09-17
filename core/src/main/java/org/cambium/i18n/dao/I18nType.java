@@ -10,7 +10,11 @@ import java.util.stream.Collectors;
 public enum I18nType  {
     UNKNOWN("unknown", "Unknown", Category.TEXT),
     TWIN_STATUS_NAME("twinStatusName", "Twin status name", Category.TEXT),
-    TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status name", Category.TEXT)
+    TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status description", Category.TEXT),
+    TWIN_CLASS_NAME("twinClassName", "Twin class name", Category.TEXT),
+    TWIN_CLASS_DESCRIPTION("twinClassDescription", "Twin class description", Category.TEXT),
+    TWIN_CLASS_FIELD_NAME("twinClassFieldName", "Twin class field name", Category.TEXT),
+    TWIN_CLASS_FIELD_DESCRIPTION("twinClassFieldDescription", "Twin class field description", Category.TEXT)
         ;
 
     private final String id;

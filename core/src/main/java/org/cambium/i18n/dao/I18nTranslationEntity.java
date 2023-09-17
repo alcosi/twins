@@ -2,6 +2,7 @@ package org.cambium.i18n.dao;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.util.StringUtils;
@@ -13,6 +14,7 @@ import java.util.*;
 @Slf4j
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "i18n_translation")
 @IdClass(I18nTranslationEntity.PK.class)
 public class I18nTranslationEntity {
