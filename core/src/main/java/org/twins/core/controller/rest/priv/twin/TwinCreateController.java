@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
@@ -98,13 +99,11 @@ public class TwinCreateController extends ApiController {
                     .headTwinId(request.headTwinId)
                     .assignerUserId(userService.checkUserId(request.assignerUserId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .description(request.description());
-            List<TwinFieldValueDTOv2> fields = new ArrayList<>();
+            List<FieldValueText> fields = new ArrayList<>();
             if (request.fields() != null)
                 for (Map.Entry<String, String> entry : request.fields().entrySet())
-                    fields.add(new TwinFieldValueDTOv2()
-                            .setKey(entry.getKey())
-                            .setValue(entry.getValue())
-                            .setTwinClassId(request.classId));
+                    fields.add(twinFieldValueRestDTOReverseMapperV2
+                            .createValueByClassIdAndFieldKey(request.classId, entry.getKey(), entry.getValue()));
             rs = twinCreateRsRestDTOMapper.convert(
                     twinService.createTwin(twinEntity, twinFieldValueRestDTOReverseMapperV2.convertList(fields)));
         } catch (ServiceException se) {

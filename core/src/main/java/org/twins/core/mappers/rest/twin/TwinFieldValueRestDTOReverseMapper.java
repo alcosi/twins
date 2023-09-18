@@ -31,7 +31,7 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
         FieldValue fieldValue = null;
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
             fieldValue =  new FieldValueText()
-                    .value(text.text());
+                    .setValue(text.text());
         if (fieldValueDTO instanceof TwinFieldValueColorHexDTOv1 color)
             fieldValue =  new FieldValueColorHEX()
                     .hex(color.hex());

@@ -29,16 +29,16 @@ public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldVa
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.value()))
+        if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
         String pattern = regexp.extract(properties);
-        if (!value.value().matches(pattern))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.twinClassField().logShort() + " value[" + value.value() + "] does not match pattern[" + pattern + "]");
-        return value.value();
+        if (!value.getValue().matches(pattern))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.twinClassField().logShort() + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
+        return value.getValue();
     }
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value) {
-        return new FieldValueText().value(value != null ? value.toString() : "");
+        return new FieldValueText().setValue(value != null ? value.toString() : "");
     }
 }

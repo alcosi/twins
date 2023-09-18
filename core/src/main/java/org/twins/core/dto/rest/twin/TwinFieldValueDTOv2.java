@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 
@@ -13,13 +14,9 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TwinFieldValueV2")
 public class TwinFieldValueDTOv2 {
-
-    @Schema(description = "field key", example = DTOExamples.TWIN_FIELD_KEY)
-    public String key;
+    @JsonIgnore
+    public TwinClassFieldEntity twinClassFieldEntity;
 
     @Schema(description = "field value", example = "")
     public String value;
-
-    @JsonIgnore
-    public UUID twinClassId;
 }

@@ -25,7 +25,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
     public TwinFieldValueDTO convert(FieldValue fieldValue, MapperProperties mapperProperties) throws Exception {
         if (fieldValue instanceof FieldValueText text)
             return new TwinFieldValueTextDTOv1()
-                    .text(text.value());
+                    .text(text.getValue());
         if (fieldValue instanceof FieldValueColorHEX color)
             return new TwinFieldValueColorHexDTOv1()
                     .hex(color.hex());

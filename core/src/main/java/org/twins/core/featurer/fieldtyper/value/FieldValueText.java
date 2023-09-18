@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class FieldValueText extends FieldValue {
     private String value;
 }
