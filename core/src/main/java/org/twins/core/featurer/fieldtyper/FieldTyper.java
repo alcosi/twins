@@ -29,6 +29,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         valuetype = (Class) pt.getActualTypeArguments()[1];
     }
 
+    public Class<T> getValueType() {
+        return valuetype;
+    }
+
     private static ParameterizedType getParameterizedType(Class<?> _class) {
         Type t = _class.getGenericSuperclass();
         if (!(t instanceof ParameterizedType))
