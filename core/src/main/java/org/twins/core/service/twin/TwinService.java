@@ -53,7 +53,7 @@ public class TwinService {
     }
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
-        return twinRepository.findByBusinessAccountId(apiUser.businessAccountId());
+        return twinRepository.findByBusinessAccountId(apiUser.getBusinessAccount().getId());
     }
 
     public List<TwinEntity> findTwinsByClass(UUID twinClassId) {
@@ -65,7 +65,7 @@ public class TwinService {
     }
 
     public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
-        TwinAliasEntity twinAliasEntity = twinAliasRepository.findByBusinessAccountIdAndAlias(apiUser.businessAccountId(), twinAlias);
+        TwinAliasEntity twinAliasEntity = twinAliasRepository.findByBusinessAccountIdAndAlias(apiUser.getBusinessAccount().getId(), twinAlias);
         if (twinAliasEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
         return twinAliasEntity.getTwin();

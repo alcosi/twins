@@ -23,8 +23,8 @@ public class BusinessAccountService {
     final BusinessAccountRepository businessAccountRepository;
     final EntitySmartService entitySmartService;
 
-    public UUID checkBusinessAccountId(String businessAccountId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(businessAccountId, "businessAccountId", businessAccountRepository, checkMode);
+    public BusinessAccountEntity findById(UUID businessAccountId, EntitySmartService.FindMode findMode) throws ServiceException {
+        return entitySmartService.findById(businessAccountId, "businessAccountId", businessAccountRepository, findMode);
     }
 
     public UUID checkBusinessAccountId(UUID businessAccountId, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -45,8 +45,8 @@ public class BusinessAccountService {
 
     public void addBusinessAccount(UUID businessAccountId, EntitySmartService.CreateMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
-                .id(businessAccountId)
-                .createdAt(Timestamp.from(Instant.now()));
+                .setId(businessAccountId)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.create(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
     }
 

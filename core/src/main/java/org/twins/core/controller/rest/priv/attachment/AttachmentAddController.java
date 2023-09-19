@@ -51,10 +51,11 @@ public class AttachmentAddController extends ApiController {
         AttachmentAddRsDTOv1 rs = new AttachmentAddRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            TwinAttachmentEntity attachmentEntity = attachmentService.addAttachment(new TwinAttachmentEntity()
-                    .setTwinId(twinService.checkTwinId(twinId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
-                    .setCreatedByUserId(apiUser.userId())
-                    .setStorageLink(request.storageLink));
+            TwinAttachmentEntity attachmentEntity = attachmentService.addAttachment(
+                    new TwinAttachmentEntity()
+                            .setTwinId(twinService.checkTwinId(twinId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                            .setCreatedByUserId(apiUser.getUser().getId())
+                            .setStorageLink(request.storageLink));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -3,11 +3,13 @@ package org.twins.core.dao.domain;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.featurer.tokenhandler.TokenHandler;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -16,6 +18,7 @@ import java.util.UUID;
 @Table(name = "domain")
 @DynamicUpdate
 @Data
+@Accessors(chain = true)
 public class DomainEntity {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -35,4 +38,13 @@ public class DomainEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> businessAccountInitiatorParams;
+
+    @FeaturerList(type = TokenHandler.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "token_handler_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity tokenHandlerFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "token_handler_params", columnDefinition = "hstore")
+    private HashMap<String, String> tokenHandlerParams;
 }

@@ -153,7 +153,6 @@ public class EntitySmartService {
         try {
             return UUID.fromString(uuid);
         } catch (Exception exception) {
-
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuid + "]");
         }
     }

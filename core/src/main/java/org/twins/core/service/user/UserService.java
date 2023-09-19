@@ -26,28 +26,32 @@ public class UserService {
         return entitySmartService.check(userId, "userId", userRepository, checkMode);
     }
 
+    public UserEntity findByUserId(UUID userId, EntitySmartService.FindMode findMode) throws ServiceException {
+        return entitySmartService.findById(userId, "userId", userRepository, findMode);
+    }
+
     public void addUser(UserEntity userEntity, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
-        userEntity.createdAt(Timestamp.from(Instant.now()));
-        entitySmartService.create(userEntity.id(), userEntity, userRepository, userCreateMode);
+        userEntity.setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.create(userEntity.getId(), userEntity, userRepository, userCreateMode);
     }
 
     public void addUser(UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
         UserEntity userEntity = new UserEntity()
-                .id(userId)
-                .createdAt(Timestamp.from(Instant.now()));
+                .setId(userId)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         addUser(userEntity, userCreateMode);
     }
 
     public void updateUser(UserEntity updateEntity) throws ServiceException {
-        Optional<UserEntity> dbEntity = userRepository.findById(updateEntity.id());
+        Optional<UserEntity> dbEntity = userRepository.findById(updateEntity.getId());
         if (dbEntity.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "unknown user[" + updateEntity.id() + "]");
-        if (StringUtils.isNoneEmpty(updateEntity.name()))
-            dbEntity.get().name(updateEntity.name());
-        if (StringUtils.isNoneEmpty(updateEntity.email()))
-            dbEntity.get().email(updateEntity.email());
-        if (StringUtils.isNoneEmpty(updateEntity.avatar()))
-            dbEntity.get().avatar(updateEntity.avatar());
+            throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "unknown user[" + updateEntity.getId() + "]");
+        if (StringUtils.isNoneEmpty(updateEntity.getName()))
+            dbEntity.get().setName(updateEntity.getName());
+        if (StringUtils.isNoneEmpty(updateEntity.getEmail()))
+            dbEntity.get().setEmail(updateEntity.getEmail());
+        if (StringUtils.isNoneEmpty(updateEntity.getAvatar()))
+            dbEntity.get().setAvatar(updateEntity.getAvatar());
         userRepository.save(dbEntity.get());
     }
 }

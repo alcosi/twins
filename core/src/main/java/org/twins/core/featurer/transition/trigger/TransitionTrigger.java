@@ -5,7 +5,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 
 
-@FeaturerType(id = 13,
+@FeaturerType(id = 15,
         name = "TransitionTrigger",
         description = "")
 @Slf4j

@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.service.HttpRequestService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,9 +41,10 @@ public class OpenApiConfig {
                 {
                     if (handlerMethod.hasMethodAnnotation(ParametersApiUserHeaders.class)) {
                         List<Parameter> parameters = new ArrayList<>();
-                        parameters.add(headerParameterUserId());
                         parameters.add(headerParameterDomainId());
-                        parameters.add(headerParameterBusinessAccountId());
+                        parameters.add(headerParameterAuthToken());
+//                        parameters.add(headerParameterUserId());
+//                        parameters.add(headerParameterBusinessAccountId());
                         parameters.add(headerParameterChannel());
                         if (operation.getParameters() != null)
                             parameters.addAll(operation.getParameters());
@@ -63,39 +65,38 @@ public class OpenApiConfig {
 
     private Parameter headerParameterUserId() {
         return new HeaderParameter()
-                .name("UserId")
+                .name(HttpRequestService.HEADER_USER_ID)
                 .required(true)
                 .example(DTOExamples.USER_ID);
     }
 
     private Parameter headerParameterDomainId() {
         return new HeaderParameter()
-                .name("DomainId")
+                .name(HttpRequestService.HEADER_DOMAIN_ID)
                 .required(true)
                 .example(DTOExamples.DOMAIN_ID);
     }
 
     private Parameter headerParameterBusinessAccountId() {
         return new HeaderParameter()
-                .name("BusinessAccountId")
+                .name(HttpRequestService.HEADER_BUSINESS_ACCOUNT_ID)
                 .required(true)
                 .example(DTOExamples.BUSINESS_ACCOUNT_ID);
     }
 
+    private Parameter headerParameterAuthToken() {
+        return new HeaderParameter()
+                .name(HttpRequestService.HEADER_AUTH_TOKEN)
+                .required(true)
+                .example(DTOExamples.AUTH_TOKEN);
+    }
+
     private Parameter headerParameterChannel() {
         return new HeaderParameter()
-                .name("Channel")
+                .name(HttpRequestService.HEADER_CHANNEL)
                 .required(true)
                 .example(DTOExamples.CHANNEL);
     }
-
-    private Parameter pathParameterDomainId() {
-        return new PathParameter()
-                .name("DomainId")
-                .required(true)
-                .example(DTOExamples.DOMAIN_ID);
-    }
-
 
 //    @Bean
 //    public GroupedOpenApi expenseApi() {

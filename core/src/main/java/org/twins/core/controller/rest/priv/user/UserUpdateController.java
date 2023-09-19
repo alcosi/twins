@@ -43,10 +43,10 @@ public class UserUpdateController extends ApiController {
         Response rs = new Response();
         try {
             UserEntity userEntity = new UserEntity()
-                    .id(userId)
-                    .name(request.name())
-                    .email(request.email())
-                    .avatar(request.avatar());
+                    .setId(userId)
+                    .setName(request.name())
+                    .setEmail(request.email())
+                    .setAvatar(request.avatar());
             userService.updateUser(userEntity);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

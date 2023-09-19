@@ -39,17 +39,17 @@ public class TwinClassService {
 
     public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) {
         if (CollectionUtils.isNotEmpty(uuidLists))
-            return twinClassRepository.findByDomainIdAndIdIn(apiUser.domainId(), uuidLists);
+            return twinClassRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
         else
-            return twinClassRepository.findByDomainId(apiUser.domainId());
+            return twinClassRepository.findByDomainId(apiUser.getDomain().getId());
     }
 
     public TwinClassEntity findTwinClass(ApiUser apiUser, UUID twinClassIs) {
-        return twinClassRepository.findByDomainIdAndId(apiUser.domainId(), twinClassIs);
+        return twinClassRepository.findByDomainIdAndId(apiUser.getDomain().getId(), twinClassIs);
     }
 
     public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) {
-        return twinClassRepository.findByDomainIdAndKey(apiUser.domainId(), twinClassKey);
+        return twinClassRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), twinClassKey);
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
@@ -86,7 +86,7 @@ public class TwinClassService {
         TwinClassEntity srcTwinClassEntity = findTwinClass(apiUser, twinClassId);
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
                 .key(newKey)
-                .createdByUserId(apiUser.userId())
+                .createdByUserId(apiUser.getUser().getId())
                 .space(srcTwinClassEntity.space())
                 .abstractt(srcTwinClassEntity.abstractt())
                 .logo(srcTwinClassEntity.logo())

@@ -14,19 +14,19 @@ public class UserDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case ID_ONLY:
                 dst
-                        .id(src.id());
+                        .id(src.getId());
                 break;
             case DETAILED:
                 dst
-                        .id(src.id())
-                        .name(src.name())
-                        .email(src.email())
-                        .avatar(src.avatar());
+                        .id(src.getId())
+                        .name(src.getName())
+                        .email(src.getEmail())
+                        .avatar(src.getAvatar());
                 break;
             default:
                 dst
-                        .id(src.id())
-                        .name(src.name());
+                        .id(src.getId())
+                        .name(src.getName());
         }
     }
 

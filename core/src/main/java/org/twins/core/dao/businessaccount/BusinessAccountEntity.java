@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "business_account")
 @DynamicUpdate
 public class BusinessAccountEntity {

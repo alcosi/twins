@@ -44,8 +44,8 @@ public class BusinessAccountUpdateController extends ApiController {
         Response rs = new Response();
         try {
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
-                    .id(businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
-                    .name(request.name());
+                    .setId(businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setName(request.name());
             businessAccountService.updateBusinessAccount(businessAccountEntity);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -35,13 +35,14 @@ public class DomainService {
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
 
-    public UUID checkDomainId(String domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(domainId, "domainId", domainRepository, checkMode);
-    }
-
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, "domainId", domainRepository, checkMode);
     }
+
+    public DomainEntity findDomain(UUID domainId, EntitySmartService.FindMode checkMode) throws ServiceException {
+        return entitySmartService.findById(domainId, "domainId", domainRepository, checkMode);
+    }
+
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
         userService.addUser(userId, userCreateMode);

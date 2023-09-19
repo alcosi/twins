@@ -26,13 +26,13 @@ public class DataListService {
 
     public List<DataListEntity> findDataLists(ApiUser apiUser, List<UUID> uuidLists) {
         if (CollectionUtils.isNotEmpty(uuidLists))
-            return dataListRepository.findByDomainIdAndIdIn(apiUser.domainId(), uuidLists);
+            return dataListRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
         else
-            return dataListRepository.findByDomainId(apiUser.domainId());
+            return dataListRepository.findByDomainId(apiUser.getDomain().getId());
     }
 
     public DataListEntity findDataList(ApiUser apiUser, UUID dataListId) {
-        return dataListRepository.findByDomainIdAndId(apiUser.domainId(), dataListId);
+        return dataListRepository.findByDomainIdAndId(apiUser.getDomain().getId(), dataListId);
     }
 
     public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {

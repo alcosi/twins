@@ -57,8 +57,8 @@ public class TwinCreateController extends ApiController {
             TwinEntity twinEntity = new TwinEntity()
                     .twinClassId(request.classId())
                     .name(request.name())
-                    .businessAccountId(apiUser.businessAccountId())
-                    .createdByUserId(apiUser.userId())
+                    .businessAccountId(apiUser.getBusinessAccount().getId())
+                    .createdByUserId(apiUser.getUser().getId())
                     .headTwinId(request.headTwinId)
                     .assignerUserId(userService.checkUserId(request.assignerUserId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .description(request.description());
@@ -94,8 +94,8 @@ public class TwinCreateController extends ApiController {
             TwinEntity twinEntity = new TwinEntity()
                     .twinClassId(request.classId())
                     .name(request.name())
-                    .businessAccountId(apiUser.businessAccountId())
-                    .createdByUserId(apiUser.userId())
+                    .businessAccountId(apiUser.getBusinessAccount().getId())
+                    .createdByUserId(apiUser.getUser().getId())
                     .headTwinId(request.headTwinId)
                     .assignerUserId(userService.checkUserId(request.assignerUserId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .description(request.description());

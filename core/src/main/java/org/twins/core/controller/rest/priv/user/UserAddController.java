@@ -47,10 +47,10 @@ public class UserAddController extends ApiController {
         try {
             domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
             userService.addUser(new UserEntity()
-                    .id(request.user.id)
-                    .name(request.user.name)
-                    .email(request.user.email)
-                    .avatar(request.user.avatar),
+                    .setId(request.user.id)
+                    .setName(request.user.name)
+                    .setEmail(request.user.email)
+                    .setAvatar(request.user.avatar),
                     EntitySmartService.CreateMode.ifPresentThrowsElseCreate
             );
             if (request.businessAccountId != null) {

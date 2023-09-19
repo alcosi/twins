@@ -5,7 +5,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 
 
-@FeaturerType(id = 13,
+@FeaturerType(id = 18,
         name = "TwinlinkValidator",
         description = "")
 @Slf4j
