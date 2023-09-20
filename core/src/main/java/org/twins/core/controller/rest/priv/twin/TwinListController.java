@@ -47,7 +47,7 @@ public class TwinListController extends ApiController {
     final TwinSearchRqDTOMapper twinSearchRqDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinSearchV1", summary = "Returns twin list by tql")
+    @Operation(operationId = "twinSearchV1", summary = "Twins basic search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =
@@ -82,7 +82,7 @@ public class TwinListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinSearchV2", summary = "Returns twin list by tql")
+    @Operation(operationId = "twinSearchV2", summary = "Twins basic search")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =

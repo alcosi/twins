@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinSearchRsV1")
+@Schema(name =  "TwinSearchRsV2")
 public class TwinSearchRsDTOv2 extends Response {
     @Schema(description = "pagination data")
     public PaginationBean pagination;
