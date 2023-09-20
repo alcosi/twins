@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentAddRqV1")
 public class AttachmentAddRqDTOv1 extends Request {

@@ -11,6 +11,7 @@ import org.twins.core.service.EntitySmartService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,6 +30,21 @@ public class AttachmentService {
         return entitySmartService.findById(attachmentId, "attachmentId", twinAttachmentRepository, findMode);
     }
 
+    public TwinAttachmentEntity addAttachment(UUID twinId, UUID userId, String storageLink) {
+        return addAttachment(new TwinAttachmentEntity()
+                .setTwinId(twinId)
+                .setCreatedByUserId(userId)
+                .setStorageLink(storageLink));
+    }
+
+    public List<TwinAttachmentEntity> addAttachments(UUID twinId, UUID userId, List<String> attachmentsLinks) {
+        List<TwinAttachmentEntity> ret = new ArrayList<>();
+        for (String storageLink : attachmentsLinks) {
+            ret.add(addAttachment(twinId, userId, storageLink));
+        }
+        return ret;
+    }
+
     public TwinAttachmentEntity addAttachment(TwinAttachmentEntity twinAttachmentEntity) {
         return twinAttachmentRepository.save(
                 twinAttachmentEntity
@@ -42,4 +58,6 @@ public class AttachmentService {
     public void deleteById(ApiUser apiUser, UUID attachmentId) {
         twinAttachmentRepository.deleteById(attachmentId);
     }
+
+
 }

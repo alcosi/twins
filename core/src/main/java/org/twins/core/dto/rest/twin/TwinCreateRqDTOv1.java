@@ -7,11 +7,12 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinCreateRqV1")
 public class TwinCreateRqDTOv1 extends Request {
@@ -32,4 +33,7 @@ public class TwinCreateRqDTOv1 extends Request {
 
     @Schema(description = "fields")
     public Map<String, TwinFieldValueDTO> fields;
+
+    @Schema(description = "Attachments external storage links")
+    public List<String> attachmentsStorageLinks;
 }

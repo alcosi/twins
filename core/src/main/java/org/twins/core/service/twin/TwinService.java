@@ -26,6 +26,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -52,8 +53,8 @@ public class TwinService {
     final EntitySmartService entitySmartService;
     final TwinflowService twinflowService;
     final TwinClassService twinClassService;
-
     final FeaturerService featurerService;
+    final AttachmentService attachmentService;
 
     public UUID checkTwinId(UUID twinId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(twinId, "twinId", twinRepository, checkMode);
@@ -150,7 +151,7 @@ public class TwinService {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCreateResult createTwin(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
+    public TwinCreateResult createTwin(TwinEntity twinEntity, List<FieldValue> values, List<String> attachmentsLinks) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.twinClassId());
         twinEntity
                 .createdAt(Timestamp.from(Instant.now()))
@@ -179,7 +180,9 @@ public class TwinService {
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
         twinFieldRepository.saveAll(twinFieldEntityList);
-
+        if (CollectionUtils.isNotEmpty(attachmentsLinks)) {
+            attachmentService.addAttachments(twinEntity.id(), twinEntity.createdByUserId(), attachmentsLinks);
+        }
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
                 .setAliasEntityList(createTwinAliases(twinEntity));

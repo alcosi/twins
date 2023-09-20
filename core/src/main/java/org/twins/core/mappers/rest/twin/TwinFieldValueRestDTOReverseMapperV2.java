@@ -51,7 +51,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         .id(UUID.fromString(dataListOptionId)));
             }
         }
-        return fieldValue;
+        return fieldValue.setTwinClassField(fieldValueText.getTwinClassField());
     }
 
     public FieldValueText createValueByClassIdAndFieldKey(UUID twinClassId, String fieldKey, String fieldValue) {
