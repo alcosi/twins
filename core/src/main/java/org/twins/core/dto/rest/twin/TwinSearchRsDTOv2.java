@@ -13,10 +13,10 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinSearchRsV1")
-public class TwinSearchRsDTOv1 extends Response {
+public class TwinSearchRsDTOv2 extends Response {
     @Schema(description = "pagination data")
     public PaginationBean pagination;
 
     @Schema(description = "results - transfers list")
-    public List<TwinDTOv1> twinList;
+    public List<TwinDTOv2> twinList;
 }

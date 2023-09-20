@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Data
 @Table(name = "twin")
+@FieldNameConstants
 public class TwinEntity {
     @Id
     @GeneratedValue(generator = "uuid")

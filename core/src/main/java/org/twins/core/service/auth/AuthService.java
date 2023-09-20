@@ -2,6 +2,7 @@ package org.twins.core.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
@@ -41,6 +42,8 @@ public class AuthService {
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect domain uuid");
         }
         String authToken = httpRequestService.getAuthTokenFromRequest();
+        if (StringUtils.isEmpty(authToken)) //todo delete on production
+            authToken = httpRequestService.getBusinessAccountIdFromRequest() + "," + httpRequestService.getUserIdFromRequest();
         DomainEntity domainEntity = domainService.findDomain(domainId, EntitySmartService.FindMode.ifEmptyThrows);
         String channel = httpRequestService.getChannelIdFromRequest();
         TokenHandler tokenHandler = featurerService.getFeaturer(domainEntity.getTokenHandlerFeaturer(), TokenHandler.class);

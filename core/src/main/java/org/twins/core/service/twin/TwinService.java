@@ -1,10 +1,16 @@
 package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Service;
@@ -14,6 +20,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.BasicSearch;
 import org.twins.core.domain.TQL;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -54,6 +61,25 @@ public class TwinService {
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByBusinessAccountId(apiUser.getBusinessAccount().getId());
+    }
+
+    public List<TwinEntity> findTwins(ApiUser apiUser, BasicSearch basicSearch) {
+        CriteriaQuery<TwinEntity> criteriaQuery = entityManager.getCriteriaBuilder().createQuery(TwinEntity.class);
+        Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
+        List<Predicate> predicate = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.twinClassId).in(basicSearch.getTwinClassIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getCreatedByUserIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.createdByUserId).in(basicSearch.getCreatedByUserIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getStatusIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getSpaceTwinIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.headTwinId).in(basicSearch.getSpaceTwinIdList()));
+        criteriaQuery.where(predicate.stream().toArray(Predicate[]::new));
+        Query query = entityManager.createQuery(criteriaQuery);
+        return query.getResultList();
     }
 
     public List<TwinEntity> findTwinsByClass(UUID twinClassId) {
