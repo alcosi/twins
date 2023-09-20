@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,6 @@ public class TwinCreateRqDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, TwinFieldValueDTO> fields;
 
-    @Schema(description = "Attachments external storage links")
-    public List<String> attachmentsStorageLinks;
+    @Schema(description = "Attachments")
+    public List<AttachmentAddDTOv1> attachments;
 }

@@ -28,6 +28,15 @@ public class TwinAttachmentEntity {
     @Column(name = "storage_link")
     private String storageLink;
 
+    @Column(name = "external_id")
+    private String externalId;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 

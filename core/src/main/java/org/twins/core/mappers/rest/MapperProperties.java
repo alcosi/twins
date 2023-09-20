@@ -8,6 +8,7 @@ import java.util.Hashtable;
 @Data
 @Accessors(fluent = true)
 public class MapperProperties {
+    private Hashtable<String, Object> properties = new Hashtable<>();
     private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
 
     public static MapperProperties create() {
@@ -17,6 +18,15 @@ public class MapperProperties {
     public MapperProperties setMode(MapperMode mapperMode) {
         modes.put((Class<MapperMode>) mapperMode.getClass(), mapperMode);
         return this;
+    }
+
+    public MapperProperties addProperty(String key, Object value) {
+        properties.put(key, value);
+        return this;
+    }
+
+    public <T> T getProperty(String key, Class<T> type) {
+        return (T) properties.get(key);
     }
 
     public MapperProperties setModeIfNotPresent(MapperMode mapperMode) {

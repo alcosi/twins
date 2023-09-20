@@ -151,7 +151,7 @@ public class TwinService {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCreateResult createTwin(TwinEntity twinEntity, List<FieldValue> values, List<String> attachmentsLinks) throws ServiceException {
+    public TwinCreateResult createTwin(TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.twinClassId());
         twinEntity
                 .createdAt(Timestamp.from(Instant.now()))
@@ -180,8 +180,8 @@ public class TwinService {
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
         twinFieldRepository.saveAll(twinFieldEntityList);
-        if (CollectionUtils.isNotEmpty(attachmentsLinks)) {
-            attachmentService.addAttachments(twinEntity.id(), twinEntity.createdByUserId(), attachmentsLinks);
+        if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
+            attachmentService.addAttachments(twinEntity.id(), twinEntity.createdByUserId(), attachmentEntityList);
         }
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)

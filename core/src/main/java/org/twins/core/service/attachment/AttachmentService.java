@@ -2,6 +2,7 @@ package org.twins.core.service.attachment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
@@ -30,19 +31,14 @@ public class AttachmentService {
         return entitySmartService.findById(attachmentId, "attachmentId", twinAttachmentRepository, findMode);
     }
 
-    public TwinAttachmentEntity addAttachment(UUID twinId, UUID userId, String storageLink) {
-        return addAttachment(new TwinAttachmentEntity()
-                .setTwinId(twinId)
-                .setCreatedByUserId(userId)
-                .setStorageLink(storageLink));
-    }
-
-    public List<TwinAttachmentEntity> addAttachments(UUID twinId, UUID userId, List<String> attachmentsLinks) {
-        List<TwinAttachmentEntity> ret = new ArrayList<>();
-        for (String storageLink : attachmentsLinks) {
-            ret.add(addAttachment(twinId, userId, storageLink));
+    public List<TwinAttachmentEntity> addAttachments(UUID twinId, UUID userId, List<TwinAttachmentEntity> attachments) {
+        for (TwinAttachmentEntity attachmentEntity : attachments) {
+            attachmentEntity
+                    .setTwinId(twinId)
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setCreatedByUserId(userId);
         }
-        return ret;
+        return IterableUtils.toList(twinAttachmentRepository.saveAll(attachments));
     }
 
     public TwinAttachmentEntity addAttachment(TwinAttachmentEntity twinAttachmentEntity) {

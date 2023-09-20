@@ -7,11 +7,13 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
+import java.util.List;
+
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentAddRqV1")
 public class AttachmentAddRqDTOv1 extends Request {
-    @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
-    public String storageLink;
+    @Schema(description = "Attachments list")
+    public List<AttachmentAddDTOv1> attachments;
 }

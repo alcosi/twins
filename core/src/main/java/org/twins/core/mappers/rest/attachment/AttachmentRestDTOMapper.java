@@ -32,7 +32,10 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
                 dst
                         .setAuthorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserDTOMapper.Mode.ID_ONLY)))
                         .setTwinId(src.getTwinId())
-                        .setCreatedAt(src.getCreatedAt().toInstant());
+                        .setCreatedAt(src.getCreatedAt().toInstant())
+                        .setDescription(src.getDescription())
+                        .setTitle(src.getTitle())
+                        .setExternalId(src.getExternalId());
             case ID_LINK_ONLY:
                 dst
                         .setId(src.getId())

@@ -24,5 +24,8 @@ public interface DTOExamples {
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
     String CHANNEL = "WEB";
     String ATTACHMENT_STORAGE_LINK = "https://test.filestorage.by/JFUjEFWksfqwf";
+    String ATTACHMENT_EXTERNAL_ID = "JD999weqw9f";
+    String ATTACHMENT_TITLE = "cert.pdf";
+    String ATTACHMENT_DESCRIPTION = "fresh certificate";
     String ATTACHMENT_ID = "553ef9bc-3b48-430d-90d3-bdee516c3d87";
 }

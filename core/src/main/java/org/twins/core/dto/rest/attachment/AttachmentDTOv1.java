@@ -14,15 +14,12 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name =  "AttachmentV1")
-public class AttachmentDTOv1 {
+public class AttachmentDTOv1 extends AttachmentAddDTOv1{
     @Schema(description = "id")
     public UUID id;
 
     @Schema(description = "id", example = DTOExamples.TWIN_ID)
     public UUID twinId;
-
-    @Schema(description = "external file link")
-    public String storageLink;
 
     @Schema(description = "created at", example = "1549632759")
     public Instant createdAt;

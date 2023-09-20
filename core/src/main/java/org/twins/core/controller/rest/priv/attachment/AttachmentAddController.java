@@ -21,6 +21,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentAddRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
+import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOReverseMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -33,9 +35,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AttachmentAddController extends ApiController {
-    private final AuthService authService;
-    private final AttachmentService attachmentService;
-    private final TwinService twinService;
+    final AuthService authService;
+    final AttachmentService attachmentService;
+    final TwinService twinService;
+    final AttachmentRestDTOReverseMapper attachmentRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentAddV1", summary = "Add attachment to twin")
@@ -51,10 +54,10 @@ public class AttachmentAddController extends ApiController {
         AttachmentAddRsDTOv1 rs = new AttachmentAddRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            TwinAttachmentEntity attachmentEntity = attachmentService.addAttachment(
-                    apiUser.getUser().getId(),
+            attachmentService.addAttachments(
                     twinService.checkTwinId(twinId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
-                    request.getStorageLink());
+                    apiUser.getUser().getId(),
+                    attachmentRestDTOReverseMapper.convertList(request.getAttachments()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

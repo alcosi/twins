@@ -86,7 +86,7 @@ public class TwinListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin list", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinSearchRsDTOv1.class))}),
+                    @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/search/v2", method = RequestMethod.POST)
     public ResponseEntity<?> twinSearchV2(
