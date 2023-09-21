@@ -18,7 +18,7 @@ public interface DTOExamples {
     String USER_ID = "608c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
-    String AUTH_TOKEN = BUSINESS_ACCOUNT_ID + "," + USER_ID;
+    String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";

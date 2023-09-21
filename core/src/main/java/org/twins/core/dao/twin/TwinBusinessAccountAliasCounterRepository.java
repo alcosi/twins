@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface TwinAliasCounterRepository extends CrudRepository<TwinAliasCounterEntity, UUID>, JpaSpecificationExecutor<TwinAliasCounterEntity> {
+public interface TwinBusinessAccountAliasCounterRepository extends CrudRepository<TwinBusinessAccountAliasCounterEntity, UUID>, JpaSpecificationExecutor<TwinBusinessAccountAliasCounterEntity> {
 }

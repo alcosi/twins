@@ -12,7 +12,7 @@ import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Data
 @Table(name = "twin")
 @FieldNameConstants
@@ -30,8 +30,11 @@ public class TwinEntity {
     @Column(name = "external_id")
     private String externalId;
 
-    @Column(name = "business_account_id")
-    private UUID businessAccountId;
+    @Column(name = "owner_business_account_id")
+    private UUID ownerBusinessAccountId;
+
+    @Column(name = "owner_user_id")
+    private UUID ownerUserId;
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
@@ -60,8 +63,12 @@ public class TwinEntity {
     private TwinEntity headTwin;
 
     @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity businessAccount;
+    @JoinColumn(name = "owner_business_account_id", insertable = false, updatable = false)
+    private BusinessAccountEntity ownerBusinessAccount;
+
+    @ManyToOne
+    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
+    private UserEntity ownerUser;
 
     @ManyToOne
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
@@ -74,6 +81,9 @@ public class TwinEntity {
     @ManyToOne
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assignerUser;
+
+    @Transient
+    private TwinEntity spaceTwin;
 
     public String logShort() {
         return "twin[" + id + "]";

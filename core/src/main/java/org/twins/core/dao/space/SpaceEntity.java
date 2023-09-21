@@ -29,8 +29,11 @@ public class SpaceEntity {
     @Column(name = "twin_class_schema_id")
     private UUID twinClassSchemaId;
 
-    @Column(name = "alias_counter")
+    @Column(name = "domain_alias_counter")
     private Integer aliasCounter;
+
+    @Column(name = "business_account_alias_counter")
+    private Integer businessAccountAliasCounter;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)

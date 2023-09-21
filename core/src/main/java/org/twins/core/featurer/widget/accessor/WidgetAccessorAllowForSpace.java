@@ -13,6 +13,6 @@ import java.util.Properties;
 public class WidgetAccessorAllowForSpace extends WidgetAccessor {
     @Override
     protected boolean isAvailableForClass(Properties properties, TwinClassEntity twinClassEntity) {
-        return twinClassEntity.space();
+        return twinClassEntity.isSpace();
     }
 }

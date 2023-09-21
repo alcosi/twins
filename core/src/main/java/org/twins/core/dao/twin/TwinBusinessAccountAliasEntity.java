@@ -11,8 +11,8 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twin_alias")
-public class TwinAliasEntity {
+@Table(name = "twin_business_account_alias")
+public class TwinBusinessAccountAliasEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -34,6 +34,6 @@ public class TwinAliasEntity {
     private TwinEntity twin;
 
     @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false, nullable = true)
     private BusinessAccountEntity businessAccount;
 }

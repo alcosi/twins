@@ -24,7 +24,7 @@ public class TokenHandlerStub extends TokenHandler {
     protected ApiUser resolveApiUser(Properties properties, String token) throws ServiceException {
         String[] tokenData = token.split(",");
         return new ApiUser()
-                .setBusinessAccount(businessAccountService.findById(UUID.fromString(tokenData[0].trim()), EntitySmartService.FindMode.ifEmptyThrows))
-                .setUser(userService.findByUserId(UUID.fromString(tokenData[1].trim()), EntitySmartService.FindMode.ifEmptyThrows));
+                .setBusinessAccount(businessAccountService.findById(UUID.fromString(tokenData[1].trim()), EntitySmartService.FindMode.ifEmptyThrows))
+                .setUser(userService.findByUserId(UUID.fromString(tokenData[0].trim()), EntitySmartService.FindMode.ifEmptyThrows));
     }
 }

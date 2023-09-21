@@ -9,17 +9,17 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twin_alias_counter")
-public class TwinAliasCounterEntity {
+@Table(name = "twin_business_account_alias_counter")
+public class TwinBusinessAccountAliasCounterEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "business_account_id")
-    private UUID businessAccountId;
-
     @Column(name = "twin_class_id")
     private UUID twinClassId;
+
+    @Column(name = "business_account_id")
+    private UUID businessAccountId;
 
     @Column(name = "alias_counter")
     private int aliasCounter;

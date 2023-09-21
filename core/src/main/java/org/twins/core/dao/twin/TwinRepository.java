@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpecificationExecutor<TwinEntity> {
     List<TwinEntity> findByTwinClassDomainId(UUID domainId);
 
-    List<TwinEntity> findByBusinessAccountId(UUID businessAccount);
+    List<TwinEntity> findByOwnerBusinessAccountId(UUID businessAccount);
 
     List<TwinEntity> findByTwinClassId(UUID twinClassId);
 }

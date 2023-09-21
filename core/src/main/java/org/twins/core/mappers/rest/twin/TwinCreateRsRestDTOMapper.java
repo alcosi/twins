@@ -2,7 +2,8 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinAliasEntity;
+import org.twins.core.dao.twin.TwinBusinessAccountAliasEntity;
+import org.twins.core.dao.twin.TwinDomainAliasEntity;
 import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -10,6 +11,7 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -18,11 +20,9 @@ public class TwinCreateRsRestDTOMapper extends RestSimpleDTOMapper<TwinService.T
 
     @Override
     public void map(TwinService.TwinCreateResult src, TwinCreateRsDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        List<String> aliasList = new ArrayList<>();
-        for (TwinAliasEntity twinAliasEntity : src.getAliasEntityList())
-            aliasList.add(twinAliasEntity.getAlias());
         dst
-                .setTwinId(src.getCreatedTwin().id())
-                .setAliasList(aliasList);
+                .setTwinId(src.getCreatedTwin().getId())
+                .setBusinessAccountAliasList(src.getBusinessAccountAliasEntityList().stream().map(TwinBusinessAccountAliasEntity::getAlias).collect(Collectors.toList()))
+                .setDomainAliasList(src.getDomainAliasEntityList().stream().map(TwinDomainAliasEntity::getAlias).collect(Collectors.toList()));
     }
 }

@@ -18,6 +18,6 @@ public class WidgetAccessorDenyForKeys extends WidgetAccessor {
 
     @Override
     protected boolean isAvailableForClass(Properties properties, TwinClassEntity twinClassEntity) {
-        return !twinKeyList.extract(properties).contains(twinClassEntity.key());
+        return !twinKeyList.extract(properties).contains(twinClassEntity.getKey());
     }
 }

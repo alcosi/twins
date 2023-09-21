@@ -57,13 +57,12 @@ public class TwinCreateController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             TwinEntity twinEntity = new TwinEntity()
-                    .twinClassId(request.getClassId())
-                    .name(request.getName())
-                    .businessAccountId(apiUser.getBusinessAccount().getId())
-                    .createdByUserId(apiUser.getUser().getId())
-                    .headTwinId(request.getHeadTwinId())
-                    .assignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
-                    .description(request.getDescription());
+                    .setTwinClassId(request.getClassId())
+                    .setName(request.getName())
+                    .setCreatedByUserId(apiUser.getUser().getId())
+                    .setHeadTwinId(request.getHeadTwinId())
+                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setDescription(request.getDescription());
             List<TwinFieldValueDTO> fields = new ArrayList<>();
             if (request.getFields() != null)
                 for (Map.Entry<String, TwinFieldValueDTO> entry : request.getFields().entrySet())
@@ -72,7 +71,7 @@ public class TwinCreateController extends ApiController {
                             .twinClassId(request.getClassId()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(twinEntity, twinFieldValueRestDTOReverseMapper
+                            .createTwin(apiUser, twinEntity, twinFieldValueRestDTOReverseMapper
                                     .convertList(fields), attachmentRestDTOReverseMapper
                                     .convertList(request.getAttachments())));
         } catch (ServiceException se) {
@@ -97,13 +96,12 @@ public class TwinCreateController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             TwinEntity twinEntity = new TwinEntity()
-                    .twinClassId(request.getClassId())
-                    .name(request.getName())
-                    .businessAccountId(apiUser.getBusinessAccount().getId())
-                    .createdByUserId(apiUser.getUser().getId())
-                    .headTwinId(request.getHeadTwinId())
-                    .assignerUserId(userService.checkUserId(request.assignerUserId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
-                    .description(request.getDescription());
+                    .setTwinClassId(request.getClassId())
+                    .setName(request.getName())
+                    .setCreatedByUserId(apiUser.getUser().getId())
+                    .setHeadTwinId(request.getHeadTwinId())
+                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setDescription(request.getDescription());
             List<FieldValueText> fields = new ArrayList<>();
             if (request.getFields() != null)
                 for (Map.Entry<String, String> entry : request.getFields().entrySet())
@@ -111,7 +109,7 @@ public class TwinCreateController extends ApiController {
                             .createValueByClassIdAndFieldKey(request.getClassId(), entry.getKey(), entry.getValue()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(twinEntity, twinFieldValueRestDTOReverseMapperV2
+                            .createTwin(apiUser, twinEntity, twinFieldValueRestDTOReverseMapperV2
                                     .convertList(fields), attachmentRestDTOReverseMapper
                                     .convertList(request.getAttachments())));
         } catch (ServiceException se) {

@@ -10,7 +10,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class BasicSearch {
     List<UUID> twinClassIdList;
-    List<UUID> spaceTwinIdList;
+    List<UUID> headerTwinIdList;
     List<UUID> statusIdList;
     List<UUID> assignerUserIdList;
     List<UUID> createdByUserIdList;

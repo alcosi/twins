@@ -35,16 +35,16 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         switch (mapperProperties.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
             case DETAILED:
                 dst
-                        .description(src.description())
-                        .assignerUser(userDTOMapper.convert(src.assignerUser(), mapperProperties))
-                        .authorUser(userDTOMapper.convert(src.createdByUser(), mapperProperties))
-                        .status(twinStatusRestDTOMapper.convert(src.twinStatus(), mapperProperties))
-                        .twinClass(twinClassRestDTOMapper.convert(src.twinClass(), mapperProperties))
-                        .createdAt(src.createdAt().toInstant());
+                        .description(src.getDescription())
+                        .assignerUser(userDTOMapper.convert(src.getAssignerUser(), mapperProperties))
+                        .authorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties))
+                        .status(twinStatusRestDTOMapper.convert(src.getTwinStatus(), mapperProperties))
+                        .twinClass(twinClassRestDTOMapper.convert(src.getTwinClass(), mapperProperties))
+                        .createdAt(src.getCreatedAt().toInstant());
             case ID_NAME_ONLY:
                 dst
-                        .id(src.id())
-                        .name(src.name());
+                        .id(src.getId())
+                        .name(src.getName());
         }
 
         List<TwinFieldEntity> twinFieldEntityList;
@@ -56,7 +56,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 break;
             case NOT_EMPTY_FIELDS:
-                twinFieldEntityList = twinService.findTwinFields(src.id());
+                twinFieldEntityList = twinService.findTwinFields(src.getId());
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
                 break;
         }
@@ -64,7 +64,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
             case HIDE:
                 break;
             case SHOW:
-                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.id()), mapperProperties));
+                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperProperties));
                 break;
         }
     }

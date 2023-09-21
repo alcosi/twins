@@ -84,7 +84,7 @@ public class TwinViewController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinRsDTOv1.class))}),
+                    @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/v2", method = RequestMethod.GET)
     public ResponseEntity<?> twinViewV2(

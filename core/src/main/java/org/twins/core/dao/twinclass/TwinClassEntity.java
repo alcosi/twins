@@ -2,17 +2,21 @@ package org.twins.core.dao.twinclass;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.dao.I18nTypeConverter;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "twin_class")
 public class TwinClassEntity {
     @Id
@@ -26,10 +30,10 @@ public class TwinClassEntity {
     private String key;
 
     @Column(name = "space")
-    private Boolean space;
+    private boolean space;
 
     @Column(name = "abstract")
-    private Boolean abstractt;
+    private boolean abstractt;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
@@ -49,6 +53,13 @@ public class TwinClassEntity {
     @Column(name = "head_twin_class_id")
     private UUID headTwinClassId;
 
+    @Column(name = "domain_alias_counter")
+    private int domainAliasCounter;
+
+    @Column(name = "owner_type")
+    @Convert(converter = TwinClassOwnerTypeConverter.class)
+    private OwnerType ownerType;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
@@ -67,5 +78,23 @@ public class TwinClassEntity {
 
     public String logShort() {
         return "twinClass[id:" + id + ", key:" + key + "]";
+    }
+
+    @Getter
+    public enum OwnerType {
+        DOMAIN("domain"),
+        DOMAIN_BUSINESS_ACCOUNT("domainBusinessAccount"),
+        DOMAIN_USER("domainUser"),
+        DOMAIN_BUSINESS_ACCOUNT_USER("domainBusinessAccountUser");
+
+        private final String id;
+
+        OwnerType(String id) {
+            this.id = id;
+        }
+
+        public static OwnerType valueOd(String type) {
+            return Arrays.stream(OwnerType.values()).filter(t -> t.id.equals(type)).findAny().orElse(DOMAIN_BUSINESS_ACCOUNT);
+        }
     }
 }

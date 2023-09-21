@@ -61,18 +61,17 @@ public class TwinClassService {
         return twinClassSchemaId;
     }
 
-    public UUID checkHeadTwinAllowedForClass(UUID headTwinId, UUID subClassId) throws ServiceException {
-        TwinClassEntity twinClassEntity = entitySmartService.findById(subClassId, "twinClassId", twinClassRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        if (twinClassEntity.headTwinClassId() != null)
+    public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
+        if (subClass.getHeadTwinClassId() != null)
             if (headTwinId != null) {
                 TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, "headTwinId", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
 //            if (!headTwinEntity.twinClass().space())
 //                throw new ServiceException(ErrorCodeTwins.SPACE_TWIN_ID_INCORRECT, headTwinEntity.logShort() + " is not a space");
-                if (!headTwinEntity.twinClassId().equals(twinClassEntity.headTwinClassId()))
-                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.logShort() + " is not allowed for twinClass[" + subClassId + "]");
+                if (!headTwinEntity.getTwinClassId().equals(subClass.getHeadTwinClassId()))
+                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.logShort() + " is not allowed for twinClass[" + subClass.getId() + "]");
                 return headTwinId;
             } else {
-                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, twinClassEntity.logShort() + " should be linked to head");
+                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.logShort() + " should be linked to head");
             }
         return headTwinId;
     }
@@ -85,29 +84,29 @@ public class TwinClassService {
     public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) {
         TwinClassEntity srcTwinClassEntity = findTwinClass(apiUser, twinClassId);
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
-                .key(newKey)
-                .createdByUserId(apiUser.getUser().getId())
-                .space(srcTwinClassEntity.space())
-                .abstractt(srcTwinClassEntity.abstractt())
-                .logo(srcTwinClassEntity.logo())
-                .createdAt(Timestamp.from(Instant.now()))
-                .domainId(srcTwinClassEntity.domainId())
-                .domain(srcTwinClassEntity.domain());
+                .setKey(newKey)
+                .setCreatedByUserId(apiUser.getUser().getId())
+                .setSpace(srcTwinClassEntity.isSpace())
+                .setAbstractt(srcTwinClassEntity.isAbstractt())
+                .setLogo(srcTwinClassEntity.getLogo())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setDomainId(srcTwinClassEntity.getDomainId())
+                .setDomain(srcTwinClassEntity.getDomain());
         I18nEntity i18nDuplicate;
-        if (srcTwinClassEntity.nameI18n() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.nameI18n());
+        if (srcTwinClassEntity.getNameI18n() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18n());
             duplicateTwinClassEntity
-                    .nameI18n(i18nDuplicate)
-                    .nameI18NId(i18nDuplicate.getId());
+                    .setNameI18n(i18nDuplicate)
+                    .setNameI18NId(i18nDuplicate.getId());
         }
-        if (srcTwinClassEntity.descriptionI18n() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.descriptionI18n());
+        if (srcTwinClassEntity.getDescriptionI18n() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getDescriptionI18n());
             duplicateTwinClassEntity
-                    .descriptionI18n(i18nDuplicate)
-                    .descriptionI18NId(i18nDuplicate.getId());
+                    .setDescriptionI18n(i18nDuplicate)
+                    .setDescriptionI18NId(i18nDuplicate.getId());
         }
         duplicateTwinClassEntity = twinClassRepository.save(duplicateTwinClassEntity);
-        twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.id());
+        twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.getId());
         return duplicateTwinClassEntity;
     }
 }
