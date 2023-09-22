@@ -259,6 +259,10 @@ public class TwinService {
         twinFieldRepository.save(twinFieldEntity);
     }
 
+    public void deleteTwin(ApiUser apiUser, UUID twinId) {
+        twinRepository.deleteById(twinId); // all linked data will be deleted by fk cascading
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {

@@ -1,5 +1,4 @@
-
-package org.twins.core.controller.rest.priv.attachment;
+package org.twins.core.controller.rest.priv.twin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,39 +18,45 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
+import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
-import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "attachment")
+@Tag(description = "", name = "twin")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class AttachmentDeleteController extends ApiController {
+public class TwinDeleteController extends ApiController {
     private final AuthService authService;
-    private final AttachmentService attachmentService;
-    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    private final TwinService twinService;
+    private final TwinRestDTOMapper twinRestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "attachmentDeleteV1", summary = "Delete attachment by id")
+    @Operation(operationId = "twinDeleteV1", summary = "Delete twin by id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Deletion result", content = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.DELETE)
-    public ResponseEntity<?> attachmentDeleteV1(
-            @Parameter(name = "attachmentId", in = ParameterIn.PATH, required = true, example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
+    @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.DELETE)
+    public ResponseEntity<?> twinDeleteV1(
+            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();
-            attachmentService.deleteById(apiUser, attachmentId);
+            twinService.deleteTwin(apiUser, twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
