@@ -48,5 +48,7 @@ public class AuthService {
         String channel = httpRequestService.getChannelIdFromRequest();
         TokenHandler tokenHandler = featurerService.getFeaturer(domainEntity.getTokenHandlerFeaturer(), TokenHandler.class);
         return tokenHandler.resolveApiUser(domainEntity.getTokenHandlerParams(), authToken, domainEntity, Channel.resolve(channel));
+        //todo store ApiUser in session context
     }
+
 }

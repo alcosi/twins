@@ -5,6 +5,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorChecks;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
@@ -20,7 +21,7 @@ public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, 
     final DataListOptionRepository dataListOptionRepository;
 
     @Override
-    public FieldDescriptorChecks getFieldDescriptor(Properties properties) {
+    public FieldDescriptorChecks getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         UUID listId = listUUID.extract(properties);
         return new FieldDescriptorChecks()
                 .inline(inline.extract(properties))

@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -41,12 +42,12 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
             return (ParameterizedType) t;
     }
 
-    public D getFieldDescriptor(HashMap<String, String> fieldTyperParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, fieldTyperParams, new HashMap<>());
-        return getFieldDescriptor(properties);
+    public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
+        return getFieldDescriptor(twinClassFieldEntity, properties);
     }
 
-    protected abstract D getFieldDescriptor(Properties properties);
+    protected abstract D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException;
 
     public String serializeValue(TwinFieldEntity twinFieldEntity, T value) throws ServiceException {
         if (!valuetype.isInstance(value)) {

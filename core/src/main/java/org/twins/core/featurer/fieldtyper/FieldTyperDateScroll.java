@@ -8,6 +8,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
@@ -23,7 +24,7 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
     @Override
-    public FieldDescriptorDate getFieldDescriptor(Properties properties) {
+    public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorDate()
                 .pattern(pattern.extract(properties));
     }

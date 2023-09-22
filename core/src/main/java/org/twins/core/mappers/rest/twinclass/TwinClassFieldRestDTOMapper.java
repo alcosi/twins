@@ -23,7 +23,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperProperties mapperProperties) throws Exception {
         FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
-        FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src.getFieldTyperParams());
+        FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src);
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst

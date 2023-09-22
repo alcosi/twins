@@ -8,6 +8,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.service.EntitySmartService;
@@ -37,7 +38,7 @@ public class FieldTyperSelect extends FieldTyperList {
     }
 
     @Override
-    public FieldDescriptor getFieldDescriptor(Properties properties) {
+    public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         UUID listId = listUUID.extract(properties);
         int listSize = dataListOptionRepository.countByDataListId(listId);
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()

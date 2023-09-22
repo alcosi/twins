@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -22,7 +23,7 @@ public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldVa
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
     @Override
-    public FieldDescriptorText getFieldDescriptor(Properties properties) {
+    public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorText()
                 .regExp(regexp.extract(properties));
     }

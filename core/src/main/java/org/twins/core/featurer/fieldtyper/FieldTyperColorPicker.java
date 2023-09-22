@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorColorPicker;
 import org.twins.core.featurer.fieldtyper.value.FieldValueColorHEX;
@@ -19,7 +20,7 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     private static final String HEX_PATTERN
             = "^#([a-fA-F0-9]{6})$";
     @Override
-    public FieldDescriptorColorPicker getFieldDescriptor(Properties properties) {
+    public FieldDescriptorColorPicker getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorColorPicker();
     }
 

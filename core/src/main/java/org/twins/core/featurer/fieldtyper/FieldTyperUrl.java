@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUrl;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -18,7 +19,7 @@ import java.util.Properties;
         description = "")
 public class FieldTyperUrl extends FieldTyper<FieldDescriptorUrl, FieldValueText> {
        @Override
-    public FieldDescriptorUrl getFieldDescriptor(Properties properties) {
+    public FieldDescriptorUrl getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorUrl();
     }
 
