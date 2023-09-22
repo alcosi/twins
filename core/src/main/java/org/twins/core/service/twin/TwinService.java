@@ -181,6 +181,18 @@ public class TwinService {
                         .setOwnerBusinessAccountId(null);
         }
         twinEntity = twinRepository.save(twinEntity);
+        saveTwinFields(twinEntity, values);
+        if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
+            attachmentService.addAttachments(twinEntity.getId(), twinEntity.getCreatedByUserId(), attachmentEntityList);
+        }
+        return new TwinCreateResult()
+                .setCreatedTwin(twinEntity)
+                .setBusinessAccountAliasEntityList(createTwinBusinessAccountAliases(twinEntity))
+                .setDomainAliasEntityList(createTwinDomainAliases(twinEntity));
+    }
+
+    @Transactional
+    public void saveTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().getId(), Function.identity()));
         List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFields(twinEntity.getTwinClassId());
         TwinFieldEntity twinFieldEntity;
@@ -203,13 +215,19 @@ public class TwinService {
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
         twinFieldRepository.saveAll(twinFieldEntityList);
-        if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
-            attachmentService.addAttachments(twinEntity.getId(), twinEntity.getCreatedByUserId(), attachmentEntityList);
+    }
+
+    @Transactional
+    public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
+        List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
+        TwinFieldEntity twinFieldEntity;
+        for (FieldValue fieldValue : values) {
+            twinFieldEntity = findTwinFieldIncludeMissing(twinEntity.getId(), fieldValue.getTwinClassField().getKey());
+            FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.twinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+            twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue));
+            twinFieldEntityList.add(twinFieldEntity);
         }
-        return new TwinCreateResult()
-                .setCreatedTwin(twinEntity)
-                .setBusinessAccountAliasEntityList(createTwinBusinessAccountAliases(twinEntity))
-                .setDomainAliasEntityList(createTwinDomainAliases(twinEntity));
+        twinFieldRepository.saveAll(twinFieldEntityList);
     }
 
     public List<TwinBusinessAccountAliasEntity> createTwinBusinessAccountAliases(TwinEntity twinEntity) {
