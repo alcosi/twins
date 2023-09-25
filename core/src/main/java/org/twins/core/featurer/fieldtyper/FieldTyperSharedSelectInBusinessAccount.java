@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -23,12 +24,12 @@ import java.util.UUID;
         name = "FieldTyperBusinessAccountSharedSelect",
         description = "")
 @Slf4j
-public class FieldTyperBusinessAccountSharedSelect extends FieldTyperList {
+public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
     final AuthService authService;
 
     @Autowired
-    public FieldTyperBusinessAccountSharedSelect(DataListOptionRepository dataListOptionRepository, EntitySmartService entitySmartService, @Lazy AuthService authService) {
-        super(dataListOptionRepository, entitySmartService);
+    public FieldTyperSharedSelectInBusinessAccount(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService,  @Lazy AuthService authService) {
+        super(dataListOptionRepository, dataListRepository, entitySmartService);
         this.authService = authService;
     }
 

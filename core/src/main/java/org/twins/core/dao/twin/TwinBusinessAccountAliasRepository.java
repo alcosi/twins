@@ -20,12 +20,12 @@ public interface TwinBusinessAccountAliasRepository extends CrudRepository<TwinB
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
-            "insert into twin_business_account_alias_counter (id, business_account_id, twin_class_id, alias_counter) select gen_random_uuid(), twin.business_account_id, twin.twin_class_id, 1 " +
+            "insert into twin_business_account_alias_counter (id, business_account_id, twin_class_id, alias_counter) select gen_random_uuid(), twin.owner_business_account_id, twin.twin_class_id, 1 " +
             "from twin where twin.id = :twinId " +
             "on conflict ON CONSTRAINT twin_business_account_alias_counter_uniq do update set alias_counter = twin_business_account_alias_counter.alias_counter + 1; " +
-            "insert into twin_business_account_alias(id, twin_id, business_account_id, alias) select gen_random_uuid (), :twinId , twin.business_account_id, twin_class.key || '-' || alias_counter " +
+            "insert into twin_business_account_alias(id, twin_id, business_account_id, alias) select gen_random_uuid (), :twinId , twin.owner_business_account_id, twin_class.key || '-' || alias_counter " +
             "from twin_business_account_alias_counter, twin_class, twin " +
-            "where twin_business_account_alias_counter.business_account_id = twin.business_account_id and twin_business_account_alias_counter.twin_class_id = twin.twin_class_id and twin_class.id = twin_business_account_alias_counter.twin_class_id and twin.id = :twinId ; " +
+            "where twin_business_account_alias_counter.business_account_id = twin.owner_business_account_id and twin_business_account_alias_counter.twin_class_id = twin.twin_class_id and twin_class.id = twin_business_account_alias_counter.twin_class_id and twin.id = :twinId ; " +
             "COMMIT;")
     void createAliasByClass(@Param("twinId") UUID twinId);
 
@@ -33,7 +33,7 @@ public interface TwinBusinessAccountAliasRepository extends CrudRepository<TwinB
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set business_account_alias_counter = business_account_alias_counter + 1 where twin_id = :spaceTwinId ;" +
-            "insert into twin_business_account_alias(id, twin_id, business_account_id, alias) select gen_random_uuid (), :twinId , twin.business_account_id, space.key || '-' || space.business_account_alias_counter " +
+            "insert into twin_business_account_alias(id, twin_id, business_account_id, alias) select gen_random_uuid (), :twinId , twin.owner_business_account_id, space.key || '-' || space.business_account_alias_counter " +
             "from space, twin " +
             "where space.twin_id = :spaceTwinId and twin.id = :twinId ; " +
             "COMMIT;")

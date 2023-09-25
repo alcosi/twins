@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
@@ -7,6 +8,7 @@ import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.dao.I18nTypeConverter;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -56,7 +58,7 @@ public class TwinClassEntity {
     @Column(name = "domain_alias_counter")
     private int domainAliasCounter;
 
-    @Column(name = "owner_type")
+    @Column(name = "twin_class_owner_type_id")
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
 

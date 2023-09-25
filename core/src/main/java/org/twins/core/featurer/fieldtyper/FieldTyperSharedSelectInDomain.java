@@ -4,26 +4,24 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.service.EntitySmartService;
 
-import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
 @Component
 @Featurer(id = 1307,
-        name = "FieldTyperDomainSharedSelect",
+        name = "FieldTyperSharedSelectInDomain",
         description = "")
 @Slf4j
-public class FieldTyperDomainSharedSelect extends FieldTyperList {
-    @Autowired
-    public FieldTyperDomainSharedSelect(DataListOptionRepository dataListOptionRepository, EntitySmartService entitySmartService) {
-        super(dataListOptionRepository, entitySmartService);
+public class FieldTyperSharedSelectInDomain extends FieldTyperList {
+    public FieldTyperSharedSelectInDomain(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService) {
+        super(dataListOptionRepository, dataListRepository, entitySmartService);
     }
 
     @Override

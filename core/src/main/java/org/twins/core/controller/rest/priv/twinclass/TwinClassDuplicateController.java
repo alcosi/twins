@@ -28,7 +28,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 
-@Tag(description = "Get twin class list", name = "twinClass")
+@Tag(name = "twinClass")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -39,7 +39,7 @@ public class TwinClassDuplicateController extends ApiController {
 
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinClassDuplicateV1", summary = "Returns twin class by id")
+    @Operation(operationId = "twinClassDuplicateV1", summary = "Duplicates twin class by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class copy result", content = {
                     @Content(mediaType = "application/json", schema =

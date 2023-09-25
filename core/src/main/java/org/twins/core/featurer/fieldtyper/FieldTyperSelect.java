@@ -8,6 +8,7 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
@@ -32,9 +33,8 @@ public class FieldTyperSelect extends FieldTyperList {
     @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
-    @Autowired
-    public FieldTyperSelect(DataListOptionRepository dataListOptionRepository, EntitySmartService entitySmartService) {
-        super(dataListOptionRepository, entitySmartService);
+    public FieldTyperSelect(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService) {
+        super(dataListOptionRepository, dataListRepository, entitySmartService);
     }
 
     @Override

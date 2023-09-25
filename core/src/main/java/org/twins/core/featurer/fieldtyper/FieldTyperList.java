@@ -9,6 +9,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
@@ -21,6 +22,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect> {
     final DataListOptionRepository dataListOptionRepository;
+    final DataListRepository dataListRepository;
     final EntitySmartService entitySmartService;
 
     @FeaturerParam(name = "listUUID", description = "")

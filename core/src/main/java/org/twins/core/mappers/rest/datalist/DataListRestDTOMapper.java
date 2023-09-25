@@ -20,23 +20,25 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
     public void map(DataListEntity src, DataListDTOv1 dst, MapperProperties mapperProperties) throws Exception {
         switch (mapperProperties.getModeOrUse(DataListRestDTOMapper.Mode.DETAILED)) {
             case SHOW_OPTIONS:
+                if (src.getOptions() == null)
+                    src.setOptions(dataListService.findDataListOptions(src.getId()));
                 dst.options(
                         dataListOptionRestDTOMapper.convertList(
-                                dataListService.findDataListOptions(src.id()), mapperProperties));
+                                src.getOptions(), mapperProperties));
             case DETAILED:
                 dst
-                        .id(src.id())
-                        .name(src.name())
-                        .updatedAt(src.updatedAt().toInstant())
-                        .description(src.description());
+                        .id(src.getId())
+                        .name(src.getName())
+                        .updatedAt(src.getUpdatedAt().toInstant())
+                        .description(src.getDescription());
             case ID_ONLY:
                 dst
-                        .id(src.id());
+                        .id(src.getId());
                 break;
             default:
                 dst
-                        .id(src.id())
-                        .name(src.name());
+                        .id(src.getId())
+                        .name(src.getName());
         }
 
     }

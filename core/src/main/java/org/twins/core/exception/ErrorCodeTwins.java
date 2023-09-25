@@ -24,6 +24,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED(10404, "twin class field value multiply options are not allowed"),
     TWIN_CLASS_FIELD_VALUE_REQUIRED(10405, "twin class field value required"),
     TWIN_CLASS_FIELD_VALUE_INCORRECT(10406, "twin class field value incorrect"),
+    TWIN_CLASS_FIELD_INCORRECT_TYPE(10407, "twin class field type incorrect"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),

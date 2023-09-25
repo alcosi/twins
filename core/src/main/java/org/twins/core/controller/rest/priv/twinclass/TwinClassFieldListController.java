@@ -19,6 +19,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -26,7 +27,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(description = "Get twin class field list", name = "twinClass")
+@Tag(name = "twinClass")
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -50,6 +51,29 @@ public class TwinClassFieldListController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(apiUser, twinClassId);
             rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertList(twinClassFieldsList));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinClassFieldViewV1", summary = "Returns twin class field list")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin class field information" , content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinClassFieldRsDTOv1.class)) }),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> twinClassFieldViewV1(
+            @Parameter(name = "twinClassFieldId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId) {
+        TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
+        try {
+            ApiUser apiUser = authService.getApiUser();
+            TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findTwinClassField(twinClassFieldId);
+            rs.field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

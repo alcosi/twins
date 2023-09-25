@@ -43,6 +43,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(list.multiple())
                         .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperProperties().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
             }
+        if (fieldDescriptor instanceof FieldDescriptorListShared listShared)
+            return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
+                    .multiple(listShared.isMultiple());
         if (fieldDescriptor instanceof FieldDescriptorUrl url)
             return new TwinClassFieldDescriptorUrlDTOv1();
         return null;

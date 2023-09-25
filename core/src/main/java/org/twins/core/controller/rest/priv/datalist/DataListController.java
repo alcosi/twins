@@ -37,14 +37,14 @@ public class DataListController extends ApiController {
     private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListViewV1", summary = "Returns list deta")
+    @Operation(operationId = "dataListViewV1", summary = "Returns list data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
-    public ResponseEntity<?> dataListV1(
+    public ResponseEntity<?> dataListViewV1(
             @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
@@ -68,7 +68,7 @@ public class DataListController extends ApiController {
                     @Schema(implementation = DataListSearchRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/search/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> dataListV1(
+    public ResponseEntity<?> dataListSearchV1(
             @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();

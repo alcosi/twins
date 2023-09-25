@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.List;
@@ -22,10 +24,17 @@ public class TwinClassFieldService {
     final TwinClassFieldRepository twinClassFieldRepository;
     final PermissionService permissionService;
     final I18nService i18nService;
+    final EntitySmartService entitySmartService;
 
     public List<TwinClassFieldEntity> findTwinClassFields(ApiUser apiUser, UUID twinClassId) {
         permissionService.checkTwinClassPermission(apiUser, twinClassId);
         return findTwinClassFields(twinClassId);
+    }
+
+    public TwinClassFieldEntity findTwinClassField(UUID twinClassFieldId) throws ServiceException {
+        TwinClassFieldEntity twinClassFieldEntity = entitySmartService.findById(twinClassFieldId, "twinClassField", twinClassFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        permissionService.checkTwinClassFieldPermission(twinClassFieldEntity);
+        return twinClassFieldEntity;
     }
 
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
@@ -75,4 +84,5 @@ public class TwinClassFieldService {
         }
         twinClassFieldRepository.save(duplicateFieldEntity);
     }
+
 }

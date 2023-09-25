@@ -34,7 +34,7 @@ public class DataListOptionController extends ApiController {
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListOptionViewV1", summary = "Returns list deta")
+    @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =

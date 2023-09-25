@@ -5,11 +5,12 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "data_list")
 public class DataListEntity {
     @Id
@@ -27,4 +28,7 @@ public class DataListEntity {
 
     @Column(name = "updated_at")
     private Timestamp updatedAt;
+
+    @Transient
+    List<DataListOptionEntity> options;
 }

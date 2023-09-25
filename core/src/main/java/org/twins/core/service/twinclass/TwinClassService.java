@@ -91,6 +91,7 @@ public class TwinClassService {
                 .setLogo(srcTwinClassEntity.getLogo())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
+                .setOwnerType(srcTwinClassEntity.getOwnerType())
                 .setDomain(srcTwinClassEntity.getDomain());
         I18nEntity i18nDuplicate;
         if (srcTwinClassEntity.getNameI18n() != null) {

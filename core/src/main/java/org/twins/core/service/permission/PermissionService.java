@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -32,6 +33,10 @@ public class PermissionService {
     }
 
     public void checkTwinClassPermission(ApiUser apiUser, UUID twinClassId) {
+
+    }
+
+    public void checkTwinClassFieldPermission(TwinClassFieldEntity twinClassFieldEntity) {
 
     }
 }

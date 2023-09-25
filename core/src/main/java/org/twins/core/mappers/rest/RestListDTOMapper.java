@@ -14,6 +14,8 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     }
 
     public List<S> convertList(List<T> srcList) throws Exception {
+        if (srcList == null)
+            return null;
         return convertList(srcList, new MapperProperties());
     }
 }
