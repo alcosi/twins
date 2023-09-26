@@ -47,7 +47,7 @@ public class DataListOptionController extends ApiController {
         try {
             DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
             rs
-                    .dataListId(dataListOptionEntity.dataListId())
+                    .dataListId(dataListOptionEntity.getDataListId())
                     .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

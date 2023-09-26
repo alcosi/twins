@@ -6,8 +6,10 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -36,13 +38,25 @@ public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
-        ApiUser apiUser = authService.getApiUser();
-        if (apiUser.getBusinessAccount() == null)
-            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassFieldEntity.logShort() + " can not be displayed without of businessAccount");
         return new FieldDescriptorList()
                 .supportCustom(false)
                 .multiple(false)
-                .options(dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldEntity.getId(), apiUser.getBusinessAccount().getId()));
+                .options(dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity)));
+    }
+
+    @Override
+    public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
+        if (dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(dataListOptionEntity.getDataListId(), twinFieldEntity.twinClassFieldId(), getBusinessAccountId(twinFieldEntity.twinClassField()))
+                .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.twinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in businessAccount");
+        return super.checkOptionAllowed(twinFieldEntity, dataListOptionEntity);
+    }
+
+    public UUID getBusinessAccountId(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.getBusinessAccount() == null)
+            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassFieldEntity.logShort() + " can not be processed without businessAccount");
+        return apiUser.getBusinessAccount().getId();
     }
 
     @Override

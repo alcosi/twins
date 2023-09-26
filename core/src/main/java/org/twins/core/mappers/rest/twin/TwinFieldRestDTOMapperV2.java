@@ -29,6 +29,6 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
         if (fieldValue instanceof FieldValueDate date)
             dst.setValue(date.date());
         if (fieldValue instanceof FieldValueSelect select)
-            dst.setValue(String.join(",", select.options().stream().map(o -> o.id().toString()).toList()));
+            dst.setValue(String.join(",", select.options().stream().map(o -> o.getId().toString()).toList()));
     }
 }

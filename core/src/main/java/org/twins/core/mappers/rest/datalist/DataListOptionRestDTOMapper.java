@@ -17,11 +17,11 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     public void map(DataListOptionEntity entity, DataListOptionDTOv1 dto, MapperProperties mapperProperties) {
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
-                dto.disabled(entity.disabled());
+                dto.disabled(entity.isDisabled());
             case ID_NAME_ONLY:
                 dto
-                        .id(entity.id())
-                        .name(entity.option());
+                        .id(entity.getId())
+                        .name(entity.getOption());
         }
     }
 

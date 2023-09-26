@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "data_list_option")
 public class DataListOptionEntity {
     @Id

@@ -38,12 +38,16 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         List<String> ret = new ArrayList<>();
         UUID fieldListId = listUUID.extract(properties);
         for (DataListOptionEntity dataListOptionEntity : value.options()) {
-            DataListOptionEntity dbEntity = entitySmartService.findById(dataListOptionEntity.id(), "dataListOptionId", dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (!dbEntity.dataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.twinClassField().logShort() + " optionId[" + dataListOptionEntity.id() + "] is not valid for list[" + fieldListId + "]");
-            ret.add(dataListOptionEntity.id().toString());
+            DataListOptionEntity dbEntity = entitySmartService.findById(dataListOptionEntity.getId(), "dataListOptionId", dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            if (!dbEntity.getDataListId().equals(fieldListId))
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.twinClassField().logShort() + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
+            ret.add(checkOptionAllowed(twinFieldEntity, dataListOptionEntity).toString());
         }
         return StringUtils.join(ret, LIST_SPLITTER);
+    }
+
+    public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
+        return dataListOptionEntity.getId();
     }
 
     protected boolean allowMultiply(Properties properties) {
