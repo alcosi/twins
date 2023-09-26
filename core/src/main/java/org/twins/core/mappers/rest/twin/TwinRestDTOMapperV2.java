@@ -7,10 +7,9 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
@@ -28,7 +27,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
-    final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final AttachmentService attachmentService;
     final TwinService twinService;
 

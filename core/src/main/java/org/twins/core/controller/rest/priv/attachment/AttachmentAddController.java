@@ -15,14 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentAddRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -38,7 +36,7 @@ public class AttachmentAddController extends ApiController {
     final AuthService authService;
     final AttachmentService attachmentService;
     final TwinService twinService;
-    final AttachmentRestDTOReverseMapper attachmentRestDTOReverseMapper;
+    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentAddV1", summary = "Add attachment to twin")
@@ -56,8 +54,8 @@ public class AttachmentAddController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             attachmentService.addAttachments(
                     twinService.checkTwinId(twinId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
-                    apiUser.getUser().getId(),
-                    attachmentRestDTOReverseMapper.convertList(request.getAttachments()));
+                    apiUser.getUser(),
+                    attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

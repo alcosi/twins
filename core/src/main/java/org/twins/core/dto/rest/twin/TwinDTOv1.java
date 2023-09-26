@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
@@ -47,5 +47,5 @@ public class TwinDTOv1 {
     public List<TwinFieldDTOv1> fields;
 
     @Schema(description = "attachments")
-    public List<AttachmentDTOv1> attachments;
+    public List<AttachmentViewDTOv1> attachments;
 }

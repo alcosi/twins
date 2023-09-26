@@ -183,7 +183,7 @@ public class TwinService {
         twinEntity = twinRepository.save(twinEntity);
         saveTwinFields(twinEntity, values);
         if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
-            attachmentService.addAttachments(twinEntity.getId(), twinEntity.getCreatedByUserId(), attachmentEntityList);
+            attachmentService.addAttachments(twinEntity.getId(), apiUser.getUser(), attachmentEntityList);
         }
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -215,6 +215,39 @@ public class TwinService {
                     twinFieldEntity.value(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
         }
         twinFieldRepository.saveAll(twinFieldEntityList);
+    }
+
+    @Transactional
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentAddEntityList, List<UUID> attachmentDeleteUUIDList, List<TwinAttachmentEntity> attachmentUpdateEntityList) throws ServiceException {
+        boolean updateTwin = false;
+        if (updateTwinEntity.getHeadTwinId() != null && !updateTwinEntity.getHeadTwinId().equals(dbTwinEntity.getHeadTwinId())) {
+            dbTwinEntity.setHeadTwinId(twinClassService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
+            updateTwin = true;
+        }
+        if (updateTwinEntity.getName() != null && !updateTwinEntity.getName().equals(dbTwinEntity.getName())) {
+            dbTwinEntity.setName(updateTwinEntity.getName());
+            updateTwin = true;
+        }
+        if (updateTwinEntity.getDescription() != null && !updateTwinEntity.getDescription().equals(dbTwinEntity.getDescription())) {
+            dbTwinEntity.setDescription(updateTwinEntity.getDescription());
+            updateTwin = true;
+        }
+        if (updateTwinEntity.getAssignerUserId() != null && !updateTwinEntity.getAssignerUserId().equals(dbTwinEntity.getAssignerUserId())) {
+            dbTwinEntity.setAssignerUserId(updateTwinEntity.getAssignerUserId());
+            updateTwin = true;
+        }
+        if (updateTwin)
+            twinRepository.save(dbTwinEntity);
+        updateTwinFields(dbTwinEntity, values);
+        if (CollectionUtils.isNotEmpty(attachmentAddEntityList)) {
+            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentAddEntityList);
+        }
+        if (CollectionUtils.isNotEmpty(attachmentUpdateEntityList)) {
+            attachmentService.updateAttachments(attachmentAddEntityList);
+        }
+        if (CollectionUtils.isNotEmpty(attachmentDeleteUUIDList)) {
+            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentDeleteUUIDList);
+        }
     }
 
     @Transactional

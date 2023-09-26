@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
@@ -26,7 +26,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
-    final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final AttachmentService attachmentService;
     final TwinService twinService;
 

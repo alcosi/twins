@@ -20,6 +20,7 @@ import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twin.*;
@@ -173,13 +174,12 @@ public class TwinFieldSaveController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             TwinEntity twinEntity = twinService.findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
-            List<FieldValueText> fields = new ArrayList<>();
+            List<FieldValue> fields = new ArrayList<>();
             if (request.getFields() != null)
                 for (Map.Entry<String, String> entry : request.getFields().entrySet())
-                    fields.add(twinFieldValueRestDTOReverseMapperV2
-                            .createValueByClassIdAndFieldKey(twinEntity.getTwinClassId(), entry.getKey(), entry.getValue()));
-            twinService.updateTwinFields(twinEntity, twinFieldValueRestDTOReverseMapperV2
-                    .convertList(fields));
+                    fields.add(twinFieldValueRestDTOReverseMapperV2.convert(
+                            twinFieldValueRestDTOReverseMapperV2.createValueByClassIdAndFieldKey(twinEntity.getTwinClassId(), entry.getKey(), entry.getValue())));
+            twinService.updateTwinFields(twinEntity, fields);
             rs.twin(twinRestDTOMapperV2.convert(
                     twinService.findTwin(apiUser, twinId), new MapperProperties()
                             .setMode(showUserMode)

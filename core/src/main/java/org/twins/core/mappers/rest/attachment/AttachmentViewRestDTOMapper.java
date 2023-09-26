@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
-import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -17,7 +17,7 @@ import org.twins.core.service.twin.TwinService;
 
 @Component
 @RequiredArgsConstructor
-public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentDTOv1> {
+public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
     final UserDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     @Autowired
@@ -26,12 +26,11 @@ public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentE
     final TwinService twinService;
 
     @Override
-    public void map(TwinAttachmentEntity src, AttachmentDTOv1 dst, MapperProperties mapperProperties) throws Exception {
+    public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperProperties mapperProperties) throws Exception {
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .setAuthorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserDTOMapper.Mode.ID_ONLY)))
-                        .setTwinId(src.getTwinId())
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())

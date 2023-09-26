@@ -19,11 +19,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
@@ -36,7 +31,6 @@ import java.util.UUID;
 public class AttachmentDeleteController extends ApiController {
     private final AuthService authService;
     private final AttachmentService attachmentService;
-    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentDeleteV1", summary = "Delete attachment by id")

@@ -17,7 +17,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOReverseMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
@@ -41,7 +41,7 @@ public class TwinCreateController extends ApiController {
     final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final UserService userService;
     final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
-    final AttachmentRestDTOReverseMapper attachmentRestDTOReverseMapper;
+    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
@@ -72,7 +72,7 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(apiUser, twinEntity, twinFieldValueRestDTOReverseMapper
-                                    .convertList(fields), attachmentRestDTOReverseMapper
+                                    .convertList(fields), attachmentAddRestDTOReverseMapper
                                     .convertList(request.getAttachments())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -110,7 +110,7 @@ public class TwinCreateController extends ApiController {
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(apiUser, twinEntity, twinFieldValueRestDTOReverseMapperV2
-                                    .convertList(fields), attachmentRestDTOReverseMapper
+                                    .convertList(fields), attachmentAddRestDTOReverseMapper
                                     .convertList(request.getAttachments())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

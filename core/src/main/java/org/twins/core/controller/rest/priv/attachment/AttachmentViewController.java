@@ -19,7 +19,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
@@ -34,7 +35,7 @@ import java.util.UUID;
 public class AttachmentViewController extends ApiController {
     private final AuthService authService;
     private final AttachmentService attachmentService;
-    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
+    private final AttachmentViewRestDTOMapperV2 attachmentRestDTOMapperV2;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentViewV1", summary = "View attachment by id")
@@ -46,13 +47,13 @@ public class AttachmentViewController extends ApiController {
     @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> attachmentViewV1(
             @Parameter(name = "attachmentId", in = ParameterIn.PATH, required = true, example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
-            @Parameter(name = "showAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = AttachmentRestDTOMapper.Mode._DETAILED) AttachmentRestDTOMapper.Mode showAttachmentMode,
+            @Parameter(name = "showAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = AttachmentViewRestDTOMapper.Mode._DETAILED) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserDTOMapper.Mode._ID_ONLY) UserDTOMapper.Mode showUserMode) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.setAttachment(
-                    attachmentRestDTOMapper.convert(
+                    attachmentRestDTOMapperV2.convert(
                             attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperProperties()
                                     .setMode(showUserMode)
                                     .setMode(showAttachmentMode)
