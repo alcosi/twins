@@ -3,6 +3,7 @@ package org.twins.core.dao.datalist;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.UUID;
 
@@ -23,4 +24,12 @@ public class DataListOptionEntity {
 
     @Column(name = "disabled")
     private boolean disabled;
+
+    @Column(name = "option_i18n_id")
+    private UUID optionI18NId;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
+    private I18nEntity optionI18n;
+
 }
