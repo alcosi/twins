@@ -11,14 +11,14 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
 
 @Component
 @RequiredArgsConstructor
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
-    final UserDTOMapper userDTOMapper;
+    final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
@@ -30,7 +30,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .setAuthorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserDTOMapper.Mode.ID_ONLY)))
+                        .setAuthorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserRestDTOMapper.Mode.ID_ONLY)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())

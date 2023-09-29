@@ -8,7 +8,7 @@ import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
-public class UserDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
+public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
     @Override
     public void map(UserEntity src, UserDTOv1 dst, MapperProperties mapperProperties) {
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {

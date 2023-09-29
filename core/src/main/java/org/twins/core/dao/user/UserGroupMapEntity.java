@@ -2,6 +2,8 @@ package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -9,14 +11,19 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "user_group_map")
-@IdClass(UserGroupMapEntity.PK.class)
 public class UserGroupMapEntity {
     @Id
+    @GeneratedValue(generator = "uuid")
+    private UUID id;
+
     @Column(name = "user_group_id")
     private UUID userGroupId;
 
-    @Id
+    @Column(name = "business_account_id")
+    private UUID businessAccountId;
+
     @Column(name = "user_id")
     private UUID userId;
 
@@ -38,12 +45,11 @@ public class UserGroupMapEntity {
     @JoinColumn(name = "added_by_user_id", insertable = false, updatable = false)
     private UserEntity addedByUser;
 
-    @Data
-    public static class PK implements Serializable {
-        @Column(name = "user_group_id")
-        private UUID userGroupId;
+    @ManyToOne
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    private BusinessAccountEntity businessAccount;
 
-        @Column(name = "user_id")
-        private UUID userId;
+    public String logShort()  {
+        return "userGroupMap[id:" + id + "]";
     }
 }

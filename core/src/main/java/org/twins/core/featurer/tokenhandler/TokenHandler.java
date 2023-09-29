@@ -10,7 +10,6 @@ import org.twins.core.domain.Channel;
 
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.UUID;
 
 
 @FeaturerType(id = 19,

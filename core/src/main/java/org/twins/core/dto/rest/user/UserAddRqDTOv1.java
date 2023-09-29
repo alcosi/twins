@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "UserAddRqМ1")
+@Schema(name = "UserAddRqV1")
 public class UserAddRqDTOv1 extends Request {
     @Schema(description = "businessAccountId", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     public UUID businessAccountId;

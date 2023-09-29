@@ -3,8 +3,6 @@ package org.twins.core.featurer.fieldtyper;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -12,15 +10,14 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorListShared;
 import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = 1309,

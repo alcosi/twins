@@ -12,10 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.dto.rest.twin.*;
+import org.twins.core.dto.rest.twin.TwinCreateRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
+import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinFieldValueDTO;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
@@ -30,7 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-@Tag(description = "", name = "twin")
+@Tag(description = "", name = ApiTag.TWIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

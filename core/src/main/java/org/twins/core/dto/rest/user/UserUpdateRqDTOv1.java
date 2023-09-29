@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "UserUpdateRqv1")
+@Schema(name = "UserUpdateRqV1")
 public class UserUpdateRqDTOv1 extends Request {
     @Schema(description = "name", example = "John Doe")
     public String name;

@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
@@ -21,14 +22,14 @@ import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "attachment")
+@Tag(description = "", name = ApiTag.ATTACHMENT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -48,7 +49,7 @@ public class AttachmentViewController extends ApiController {
     public ResponseEntity<?> attachmentViewV1(
             @Parameter(name = "attachmentId", in = ParameterIn.PATH, required = true, example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
             @Parameter(name = "showAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = AttachmentViewRestDTOMapper.Mode._DETAILED) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserDTOMapper.Mode._ID_ONLY) UserDTOMapper.Mode showUserMode) {
+            @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

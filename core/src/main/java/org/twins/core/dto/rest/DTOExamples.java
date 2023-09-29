@@ -17,6 +17,7 @@ public interface DTOExamples {
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
     String DATA_LIST_OPTION_ID = "7ef5fe9d-7ea2-4c64-8364-30438fa2267f";
     String USER_ID = "608c6d7d-99c8-4d87-89c6-2f72d0f5d673";
+    String USER_GROUP_ID = "e155e05b-f353-49ff-9869-da1e62aab1793";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;

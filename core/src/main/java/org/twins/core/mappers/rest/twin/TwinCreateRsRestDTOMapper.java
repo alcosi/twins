@@ -9,8 +9,6 @@ import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.stream.Collectors;
 
 

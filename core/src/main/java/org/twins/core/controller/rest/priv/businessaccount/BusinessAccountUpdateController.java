@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -23,7 +24,7 @@ import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = "businessAccount")
+@Tag(description = "", name = ApiTag.BUSINESS_ACCOUNT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

@@ -6,8 +6,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
-import java.util.UUID;
-
 @Data
 @Accessors(chain = true)
 public class ApiUser {

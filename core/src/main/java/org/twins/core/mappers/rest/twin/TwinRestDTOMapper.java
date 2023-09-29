@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.twin.TwinService;
 
@@ -21,7 +21,7 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
-    final UserDTOMapper userDTOMapper;
+    final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;

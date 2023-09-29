@@ -9,13 +9,13 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinFieldEntity, TwinFieldDTOv1> {
-    final UserDTOMapper userDTOMapper;
+    final UserRestDTOMapper userDTOMapper;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     final FeaturerService featurerService;
     final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
