@@ -88,6 +88,7 @@ public class TwinClassService {
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setSpace(srcTwinClassEntity.isSpace())
                 .setAbstractt(srcTwinClassEntity.isAbstractt())
+                .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setLogo(srcTwinClassEntity.getLogo())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())

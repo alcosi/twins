@@ -50,6 +50,6 @@ public class UserGroupMapEntity {
     private BusinessAccountEntity businessAccount;
 
     public String logShort()  {
-        return "userGroupMap[id:" + id + "]";
+        return "userGroupMap[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
     }
 }

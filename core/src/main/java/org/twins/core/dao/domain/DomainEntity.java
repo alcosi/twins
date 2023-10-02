@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.tokenhandler.TokenHandler;
+import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -47,4 +48,13 @@ public class DomainEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "token_handler_params", columnDefinition = "hstore")
     private HashMap<String, String> tokenHandlerParams;
+
+    @FeaturerList(type = UserGroupManager.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity userGroupManagerFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "user_group_manager_params", columnDefinition = "hstore")
+    private HashMap<String, String> userGroupManagerParams;
 }

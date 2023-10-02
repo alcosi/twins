@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.domain.DomainEntity;
@@ -31,6 +32,7 @@ public class AuthService {
     final DomainRepository domainRepository;
     final DomainService domainService;
     final EntitySmartService entitySmartService;
+    @Lazy
     final FeaturerService featurerService;
 
     public ApiUser getApiUser() throws ServiceException {
