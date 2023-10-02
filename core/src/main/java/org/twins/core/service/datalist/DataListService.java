@@ -43,6 +43,13 @@ public class DataListService {
         return dataListRepository.findByDomainIdAndId(apiUser.getDomain().getId(), dataListId);
     }
 
+    public DataListEntity findDataListByKey(ApiUser apiUser, String dataListKey) throws ServiceException {
+        DataListEntity dataListEntity = dataListRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), dataListKey);
+        if (dataListEntity == null)
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown data_list_key[" + dataListKey + "]");
+        return dataListEntity;
+    }
+
     public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {
         return dataListOptionRepository.findByDataListId(dataListId);
     }

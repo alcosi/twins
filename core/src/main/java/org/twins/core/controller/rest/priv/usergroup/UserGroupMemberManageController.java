@@ -40,14 +40,14 @@ public class UserGroupMemberManageController extends ApiController {
     final AuthService authService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "userGroupAssignV1", summary = "Assign or discharge some group to user")
+    @Operation(operationId = "userGroupMemberManageV1", summary = "Assign or discharge some group to user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/user_group/manage/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> userGroupAssignV1(
+    public ResponseEntity<?> userGroupMemberManageV1(
             @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @Parameter(name = "showUserGroupMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode,
             @RequestBody UserGroupMemberManageRqDTOv1 request) {

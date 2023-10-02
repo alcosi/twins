@@ -15,6 +15,7 @@ public interface DTOExamples {
     String TWIN_FIELD_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
     String TWIN_FIELD_KEY = "brand";
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
+    String DATA_LIST_KEY = "countryList";
     String DATA_LIST_OPTION_ID = "7ef5fe9d-7ea2-4c64-8364-30438fa2267f";
     String USER_ID = "608c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String USER_GROUP_ID = "e155e05b-f353-49ff-9869-da1e62aab1793";

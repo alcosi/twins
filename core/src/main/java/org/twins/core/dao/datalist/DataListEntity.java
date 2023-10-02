@@ -23,6 +23,9 @@ public class DataListEntity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "key")
+    private String key;
+
     @Column(name = "domain_id")
     private UUID domainId;
 

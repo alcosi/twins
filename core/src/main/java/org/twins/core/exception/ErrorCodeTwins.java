@@ -31,6 +31,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE(10408, "twin class field value is already in use"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twin class schema is not allowed"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
+    DATALIST_LIST_UNKNOWN(10602, "data list is unknown"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),

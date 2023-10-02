@@ -13,5 +13,7 @@ public interface DataListRepository extends CrudRepository<DataListEntity, UUID>
 
     DataListEntity findByDomainIdAndId(UUID domainId, UUID id);
 
+    DataListEntity findByDomainIdAndKey(UUID domainId, String key);
+
     List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
 }
