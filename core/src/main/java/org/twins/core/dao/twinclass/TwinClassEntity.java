@@ -51,6 +51,9 @@ public class TwinClassEntity {
     @Column(name = "head_twin_class_id")
     private UUID headTwinClassId;
 
+    @Column(name = "extends_twin_class_id")
+    private UUID extendsTwinClassId;
+
     @Column(name = "domain_alias_counter")
     private int domainAliasCounter;
 

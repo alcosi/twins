@@ -116,7 +116,7 @@ public class TwinService {
         if (twinFieldEntity != null)
             return twinFieldEntity;
         TwinEntity twinEntity = entitySmartService.findById(twinId, "twin", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        TwinClassFieldEntity twinClassField = twinClassFieldService.findByTwinClassIdAndKey(twinEntity.getTwinClassId(), fieldKey);
+        TwinClassFieldEntity twinClassField = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinEntity.getTwinClassId(), fieldKey);
         if (twinClassField == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN, "unknown fieldKey[" + fieldKey + "] for twin["
                     + twinId + "] of class[" + twinEntity.getTwinClass().getKey() + " : " + twinEntity.getTwinClassId() + "]");
@@ -131,7 +131,7 @@ public class TwinService {
 
     public List<TwinFieldEntity> findTwinFieldsIncludeMissing(TwinEntity twinEntity) {
         Map<UUID, TwinFieldEntity> twinFieldEntityMap = twinFieldRepository.findByTwinId(twinEntity.getId()).stream().collect(Collectors.toMap(TwinFieldEntity::twinClassFieldId, Function.identity()));
-        List<TwinClassFieldEntity> twinFieldClassEntityList = twinClassFieldService.findTwinClassFields(twinEntity.getTwinClassId());
+        List<TwinClassFieldEntity> twinFieldClassEntityList = twinClassFieldService.findTwinClassFieldsIncludeParent(twinEntity.getTwinClass());
         List<TwinFieldEntity> ret = new ArrayList<>();
         for (TwinClassFieldEntity twinClassField : twinFieldClassEntityList) {
             if (twinFieldEntityMap.containsKey(twinClassField.getId()))
@@ -194,7 +194,7 @@ public class TwinService {
     @Transactional
     public void saveTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().getId(), Function.identity()));
-        List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFields(twinEntity.getTwinClassId());
+        List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFieldsIncludeParent(twinEntity.getTwinClass());
         TwinFieldEntity twinFieldEntity;
         FieldValue fieldValue;
         List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();

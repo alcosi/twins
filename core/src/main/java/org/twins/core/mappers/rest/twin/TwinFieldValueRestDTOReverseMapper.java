@@ -47,7 +47,7 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
             }
         }
         if (fieldValue != null && fieldValueDTO.twinClassId != null && StringUtils.isNoneBlank(fieldValueDTO.fieldKey))
-            fieldValue.setTwinClassField(twinClassFieldService.findByTwinClassIdAndKey(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey));
+            fieldValue.setTwinClassField(twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey));
         return fieldValue;
     }
 }

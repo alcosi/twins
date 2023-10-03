@@ -43,7 +43,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperProperties.getModeOrUse(FieldsMode.NO_FIELDS) != FieldsMode.NO_FIELDS)
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
-                            twinClassFieldService.findTwinClassFields(src.getId()), mapperProperties.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY))); //todo only required
+                            twinClassFieldService.findTwinClassFieldsIncludeParent(src), mapperProperties.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY))); //todo only required
         if (mapperProperties.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.getHeadTwinClassId() != null)
             dst.validHeads(
                     twinRestDTOMapper.convertList(

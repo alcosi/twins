@@ -8,6 +8,7 @@ import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
@@ -26,11 +27,6 @@ public class TwinClassFieldService {
     final I18nService i18nService;
     final EntitySmartService entitySmartService;
 
-    public List<TwinClassFieldEntity> findTwinClassFields(ApiUser apiUser, UUID twinClassId) {
-        permissionService.checkTwinClassPermission(apiUser, twinClassId);
-        return findTwinClassFields(twinClassId);
-    }
-
     public TwinClassFieldEntity findTwinClassField(UUID twinClassFieldId) throws ServiceException {
         TwinClassFieldEntity twinClassFieldEntity = entitySmartService.findById(twinClassFieldId, "twinClassField", twinClassFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
         permissionService.checkTwinClassFieldPermission(twinClassFieldEntity);
@@ -41,8 +37,22 @@ public class TwinClassFieldService {
         return twinClassFieldRepository.findByTwinClassId(twinClassId);
     }
 
+    public List<TwinClassFieldEntity> findTwinClassFieldsIncludeParent(TwinClassEntity twinClassEntity) {
+        if (twinClassEntity.getExtendsTwinClassId() != null)
+            return twinClassFieldRepository.findByTwinClassIdOrTwinClassId(twinClassEntity.getId(), twinClassEntity.getExtendsTwinClassId());
+        else
+            return twinClassFieldRepository.findByTwinClassId(twinClassEntity.getId());
+    }
+
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
         return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
+    }
+
+    public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParent(UUID twinClassId, String key) {
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
+        if (twinClassFieldEntity == null)
+            twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndParentKey(twinClassId, key);
+        return twinClassFieldEntity;
     }
 
     @Transactional
