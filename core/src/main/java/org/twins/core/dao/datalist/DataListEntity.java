@@ -32,6 +32,18 @@ public class DataListEntity {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
+    @Column(name = "attribute_1_key")
+    private String attribute1key;
+
+    @Column(name = "attribute_2_key")
+    private String attribute2key;
+
+    @Column(name = "attribute_3_key")
+    private String attribute3key;
+
+    @Column(name = "attribute_4_key")
+    private String attribute4key;
+    
     @Transient
     List<DataListOptionEntity> options;
 }
