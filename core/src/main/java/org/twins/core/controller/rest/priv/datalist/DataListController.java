@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -47,12 +48,15 @@ public class DataListController extends ApiController {
     @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListViewV1(
             @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
-            @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
+            @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
+            @Parameter(name = "showDataListOptionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataList(apiUser, dataListId), new MapperProperties().setMode(showDatalistMode));
+                    dataListService.findDataList(apiUser, dataListId), new MapperProperties()
+                            .setMode(showDataListMode)
+                            .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -71,12 +75,15 @@ public class DataListController extends ApiController {
     @RequestMapping(value = "/private/data_list_by_key/{dataListKey}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListByKeyViewV1(
             @Parameter(name = "dataListKey", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
-            @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
+            @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
+            @Parameter(name = "showDataListOptionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperProperties().setMode(showDatalistMode));
+                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperProperties()
+                            .setMode(showDataListMode)
+                            .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -94,14 +101,17 @@ public class DataListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/search/v1", method = RequestMethod.POST)
     public ResponseEntity<?> dataListSearchV1(
-            @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode,
+            @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
+            @Parameter(name = "showDataListOptionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.dataListList(
                     dataListRestDTOMapper.convertList(
-                            dataListService.findDataLists(apiUser, request.dataListIdList()), new MapperProperties().setMode(showDatalistMode)));
+                            dataListService.findDataLists(apiUser, request.dataListIdList()), new MapperProperties()
+                                    .setMode(showDataListMode)
+                                    .setMode(showDataListOptionMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
