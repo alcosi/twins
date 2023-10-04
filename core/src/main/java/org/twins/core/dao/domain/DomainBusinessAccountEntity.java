@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "domain_business_account")
 public class DomainBusinessAccountEntity {
     @Id

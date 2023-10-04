@@ -2,6 +2,7 @@ package org.twins.core.controller.rest;
 
 public class ApiTag {
     public static final String USER_GROUP = "userGroup";
+    public static final String PERMISSION = "permission";
     public static final String USER = "user";
     public static final String TWIN = "twin";
     public static final String TWIN_CLASS = "twinClass";

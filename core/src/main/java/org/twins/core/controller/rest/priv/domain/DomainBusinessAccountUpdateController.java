@@ -44,11 +44,11 @@ public class DomainBusinessAccountUpdateController extends ApiController {
         Response rs = new Response();
         try {
             domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
-                    .domainId(domainId)
-                    .businessAccountId(businessAccountId)
-                    .permissionSchemaId(request.permissionSchemaId)
-                    .twinClassSchemaId(request.twinClassSchemaId)
-                    .twinflowSchemaId(request.twinFlowSchemaId));
+                    .setDomainId(domainId)
+                    .setBusinessAccountId(businessAccountId)
+                    .setPermissionSchemaId(request.permissionSchemaId)
+                    .setTwinClassSchemaId(request.twinClassSchemaId)
+                    .setTwinflowSchemaId(request.twinFlowSchemaId));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

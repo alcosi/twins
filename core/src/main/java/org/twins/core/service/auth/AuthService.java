@@ -24,12 +24,14 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@Lazy
 @RequiredArgsConstructor
 public class AuthService {
     final HttpRequestService httpRequestService;
     final UserRepository userRepository;
     final BusinessAccountRepository businessAccountRepository;
     final DomainRepository domainRepository;
+    @Lazy
     final DomainService domainService;
     final EntitySmartService entitySmartService;
     @Lazy

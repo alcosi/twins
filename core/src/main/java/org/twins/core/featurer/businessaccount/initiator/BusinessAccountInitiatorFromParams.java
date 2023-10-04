@@ -27,8 +27,8 @@ public class BusinessAccountInitiatorFromParams extends BusinessAccountInitiator
     @Override
     protected void init(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) {
         domainBusinessAccountEntity
-                .permissionSchemaId(permissionSchemaId.extract(properties))
-                .twinClassSchemaId(twinClassSchemaId.extract(properties))
-                .twinflowSchemaId(twinflowSchemaId.extract(properties));
+                .setPermissionSchemaId(permissionSchemaId.extract(properties))
+                .setTwinClassSchemaId(twinClassSchemaId.extract(properties))
+                .setTwinflowSchemaId(twinflowSchemaId.extract(properties));
     }
 }

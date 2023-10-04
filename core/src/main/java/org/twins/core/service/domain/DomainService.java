@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -22,6 +23,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@Lazy
 @RequiredArgsConstructor
 public class DomainService {
     final FeaturerService featurerService;
@@ -31,6 +33,7 @@ public class DomainService {
     final DomainUserRepository domainUserRepository;
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
     final EntitySmartService entitySmartService;
+    @Lazy
     final PermissionService permissionService;
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
@@ -71,37 +74,44 @@ public class DomainService {
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
         businessAccountService.addBusinessAccount(businessAccountId, businessAccountCreateMode);
-        if (!ignoreAlreadyExists && domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId) != null)
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, "businessAccount[" + businessAccountId + "] is already registered in domain[" + domainId + "]");
-        DomainBusinessAccountEntity domainBusinessAccountEntity = new DomainBusinessAccountEntity()
-                .domainId(domainId)
-                .businessAccountId(businessAccountId)
-                .createdAt(Timestamp.from(Instant.now()));
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
+        if (domainBusinessAccountEntity != null)
+            if (ignoreAlreadyExists)
+                return;
+            else
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, "businessAccount[" + businessAccountId + "] is already registered in domain[" + domainId + "]");
+        domainBusinessAccountEntity = new DomainBusinessAccountEntity()
+                .setDomainId(domainId)
+                .setBusinessAccountId(businessAccountId)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domainEntity.get().getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domainEntity.get().getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
         domainBusinessAccountRepository.save(domainBusinessAccountEntity);
     }
 
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity) throws ServiceException {
-        DomainBusinessAccountEntity dbEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(updateEntity.domainId(), updateEntity.businessAccountId());
-        if (dbEntity == null)
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS, "businessAccount[" + updateEntity.businessAccountId() + "] is not registered in domain[" + updateEntity.domainId() + "]");
-        if (updateEntity.permissionSchemaId() != null) {
-            dbEntity.permissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.domainId(), updateEntity.businessAccountId(), updateEntity.permissionSchemaId()));
+        DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
+        if (updateEntity.getPermissionSchemaId() != null) {
+            dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
-        if (updateEntity.twinClassSchemaId() != null) {
-            dbEntity.twinClassSchemaId(twinClassService.checkTwinClassSchemaAllowed(updateEntity.domainId(), updateEntity.twinClassSchemaId()));
+        if (updateEntity.getTwinClassSchemaId() != null) {
+            dbEntity.setTwinClassSchemaId(twinClassService.checkTwinClassSchemaAllowed(updateEntity.getDomainId(), updateEntity.getTwinClassSchemaId()));
         }
-        if (updateEntity.twinflowSchemaId() != null) {
-            dbEntity.twinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.domainId(), updateEntity.businessAccountId(), updateEntity.twinflowSchemaId()));
+        if (updateEntity.getTwinflowSchemaId() != null) {
+            dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
         domainBusinessAccountRepository.save(dbEntity);
     }
 
-    public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
+    public DomainBusinessAccountEntity getDomainBusinessAccountEntitySafe(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS, "businessAccount[" + businessAccountId + "] is not registered in domain[" + domainId + "]");
-        domainBusinessAccountRepository.deleteById(domainBusinessAccountEntity.id());
+        return domainBusinessAccountEntity;
+    }
+
+    public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
+        DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
+        domainBusinessAccountRepository.deleteById(domainBusinessAccountEntity.getId());
     }
 }

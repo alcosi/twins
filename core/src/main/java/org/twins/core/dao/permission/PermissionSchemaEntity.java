@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "permission_schema")
 public class PermissionSchemaEntity {
     @Id
@@ -43,9 +43,13 @@ public class PermissionSchemaEntity {
 
     @ManyToOne
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity businessAccountByBusinessAccountId;
+    private BusinessAccountEntity businessAccount;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    public String logShort() {
+        return "permissionSchema[id:" + id + ", name:" + name + "]";
+    }
 }

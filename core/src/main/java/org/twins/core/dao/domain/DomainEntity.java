@@ -57,4 +57,8 @@ public class DomainEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")
     private HashMap<String, String> userGroupManagerParams;
+
+    public String logShort() {
+        return "domain[id:" + id + ", key:" + key + "]";
+    }
 }

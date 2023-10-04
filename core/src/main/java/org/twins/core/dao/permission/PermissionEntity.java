@@ -27,5 +27,5 @@ public class PermissionEntity {
 
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
-    private PermissionGroupEntity permissionGroupByPermissionGroupId;
+    private PermissionGroupEntity permissionGroup;
 }

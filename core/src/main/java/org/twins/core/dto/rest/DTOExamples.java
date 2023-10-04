@@ -31,4 +31,6 @@ public interface DTOExamples {
     String ATTACHMENT_TITLE = "cert.pdf";
     String ATTACHMENT_DESCRIPTION = "fresh certificate";
     String ATTACHMENT_ID = "553ef9bc-3b48-430d-90d3-bdee516c3d87";
+    String PERMISSION_ID = "abdeef68-7d6d-4385-9906-e3b701d2c503";
+    String PERMISSION_GROUP_ID = "7efd9df0-cae7-455f-a721-eaec455105a4";
 }
