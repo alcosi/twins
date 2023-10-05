@@ -83,11 +83,7 @@ public class TwinUpdateController extends ApiController {
                     .setHeadTwinId(request.getHeadTwinId())
                     .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                     .setDescription(request.getDescription());
-            List<FieldValue> fields = new ArrayList<>();
-            if (request.getFields() != null)
-                for (Map.Entry<String, String> entry : request.getFields().entrySet())
-                    fields.add(twinFieldValueRestDTOReverseMapperV2.convert(
-                            twinFieldValueRestDTOReverseMapperV2.createValueByClassIdAndFieldKey(dbTwinEntity.getTwinClassId(), entry.getKey(), entry.getValue())));
+            List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(dbTwinEntity.getTwinClassId(), request.getFields());
             List<TwinAttachmentEntity> attachmentAddEntityList = attachmentAddRestDTOReverseMapper
                     .convertList(request.getAttachmentsAdd());
             List<TwinAttachmentEntity> attachmentUpdateEntityList = attachmentUpdateRestDTOReverseMapper

@@ -88,7 +88,7 @@ public class TwinFieldSaveController extends ApiController {
             TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
             twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2
                     .convert(
-                            twinFieldValueRestDTOReverseMapperV2.createValueByTwinFieldId(twinFieldId, fieldValue)
+                            twinFieldValueRestDTOReverseMapperV2.createValueByTwinField(twinFieldEntity, fieldValue)
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -174,11 +174,7 @@ public class TwinFieldSaveController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             TwinEntity twinEntity = twinService.findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
-            List<FieldValue> fields = new ArrayList<>();
-            if (request.getFields() != null)
-                for (Map.Entry<String, String> entry : request.getFields().entrySet())
-                    fields.add(twinFieldValueRestDTOReverseMapperV2.convert(
-                            twinFieldValueRestDTOReverseMapperV2.createValueByClassIdAndFieldKey(twinEntity.getTwinClassId(), entry.getKey(), entry.getValue())));
+            List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(twinEntity.getTwinClassId(), request.getFields());
             twinService.updateTwinFields(twinEntity, fields);
             rs.twin(twinRestDTOMapperV2.convert(
                     twinService.findTwin(apiUser, twinId), new MapperProperties()
