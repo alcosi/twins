@@ -28,4 +28,8 @@ public class PermissionEntity {
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;
+
+    public String logShort() {
+        return "permission[id:" + id + ", key:" + key + "]";
+    }
 }

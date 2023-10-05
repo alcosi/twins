@@ -10,4 +10,6 @@ import java.util.UUID;
 @Repository
 public interface PermissionSchemaUserRepository extends CrudRepository<PermissionSchemaUserEntity, UUID>, JpaSpecificationExecutor<PermissionSchemaUserEntity> {
     List<PermissionSchemaUserEntity> findByPermissionSchemaIdAndUserId(UUID permissionSchemaId, UUID userId);
+
+    List<PermissionSchemaUserEntity> findByPermissionSchemaIdAndUserIdAndPermission_PermissionGroup_DomainId(UUID permissionSchemaId, UUID userId, UUID domainId);
 }

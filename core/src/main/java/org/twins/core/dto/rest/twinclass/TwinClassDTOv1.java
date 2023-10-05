@@ -26,7 +26,7 @@ public class TwinClassDTOv1 {
     @Schema(description = "description", example = "Projects business objects")
     public String description;
 
-    @Schema(description = "created at", example = "1549632759")
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
     public Instant createdAt;
 
     @Schema(description = "logo", example = "http://twins.org/t/class/project.png")

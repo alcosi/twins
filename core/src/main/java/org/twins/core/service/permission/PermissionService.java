@@ -4,8 +4,10 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.StreamUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
@@ -18,10 +20,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserGroupService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -69,14 +68,18 @@ public class PermissionService {
 
     public FindUserPermissionsResult findPermissionsForUser(UUID userId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId());
+        UUID domainId = apiUser.getDomain().getId();
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(domainId, apiUser.getBusinessAccount().getId());
         checkPermissionSchemaAllowed(domainBusinessAccountEntity);
         PermissionSchemaEntity permissionSchemaEntity = domainBusinessAccountEntity.getPermissionSchema();
         return new FindUserPermissionsResult()
-                .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(permissionSchemaEntity.getId(), userId))
+                .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(
+                        permissionSchemaEntity.getId(), userId)
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() +  " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
                 .setPermissionByUserGroup(permissionSchemaUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
                         permissionSchemaEntity.getId(),
-                        userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList())));
+                        userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() +  " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
     }
 
     @Data
@@ -86,12 +89,22 @@ public class PermissionService {
         private List<PermissionSchemaUserEntity> permissionsByUser;
         private List<PermissionSchemaUserGroupEntity> permissionByUserGroup;
 
-        public List<PermissionEntity> collect() {
+        public List<PermissionEntity> collectPermissions() {
             List<PermissionEntity> ret = new ArrayList<>();
             if (permissionsByUser != null)
                 ret.addAll(permissionsByUser.stream().map(PermissionSchemaUserEntity::getPermission).toList());
             if (permissionByUserGroup != null)
                 ret.addAll(permissionByUserGroup.stream().map(PermissionSchemaUserGroupEntity::getPermission).toList());
+            return ret.stream().filter(StreamUtils.distinctByKey(PermissionEntity::getId)).toList();
+        }
+
+        public List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>> collectPermissionGroups() {
+            List<PermissionEntity> distinctPermissions = collectPermissions();
+            List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>>  ret = new ArrayList<>();
+            Map<UUID, List<PermissionEntity>> mapGrouped = distinctPermissions.stream().collect(Collectors.groupingBy(PermissionEntity::getPermissionGroupId));
+            for (Map.Entry<UUID, List<PermissionEntity>> entry : mapGrouped.entrySet()) {
+                ret.add(new ImmutablePair<>(entry.getValue().get(0).getPermissionGroup(), entry.getValue()));
+            }
             return ret;
         }
     }

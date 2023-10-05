@@ -2,9 +2,7 @@ package org.twins.core.mappers.rest.permission;
 
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.permission.PermissionEntity;
-import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -26,9 +24,9 @@ public class PermissionRestDTOMapper extends RestSimpleDTOMapper<PermissionEntit
     }
 
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED;
+        ID_KEY_ONLY, DETAILED;
 
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _ID_KEY_ONLY = "ID_KEY_ONLY";
         public static final String _DETAILED = "DETAILED";
     }
 }

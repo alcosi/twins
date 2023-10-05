@@ -14,18 +14,20 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .twinClassId(src.getTwinClassId());
+                        .twinClassId(src.getTwinClassId())
+                        .name(src.getName())
+                        .description(src.getDescription());
             default:
                 dst
                         .id(src.getId())
-                        .name(src.getName());
+                        .key(src.getKey());
         }
     }
 
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED;
+        ID_KEY_ONLY, DETAILED;
 
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _ID_KEY_ONLY = "ID_KEY_ONLY";
         public static final String _DETAILED = "DETAILED";
     }
 }

@@ -22,7 +22,7 @@ public class DataListDTOv1 {
     @Schema(description = "description", example = "Supported country list")
     public String description;
 
-    @Schema(description = "updated at", example = "1549632759")
+    @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public Instant updatedAt;
 
     @Schema(description = "List options")

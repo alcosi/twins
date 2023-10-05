@@ -16,7 +16,7 @@ public class PermissionWithGroupRestDTOMapper extends RestSimpleDTOMapper<Permis
     @Override
     public void map(PermissionEntity src, PermissionWithGroupDTOv1 dst, MapperProperties mapperProperties) throws Exception {
         permissionRestDTOMapper.map(src, dst, mapperProperties);
-        if (mapperProperties.getModeOrUse(PermissionRestDTOMapper.Mode.ID_ONLY) == PermissionRestDTOMapper.Mode.DETAILED )
+        if (mapperProperties.getModeOrUse(PermissionRestDTOMapper.Mode.ID_KEY_ONLY) == PermissionRestDTOMapper.Mode.DETAILED )
             dst.group(permissionGroupRestDTOMapper.convert(src.getPermissionGroup(), mapperProperties));
     }
 }

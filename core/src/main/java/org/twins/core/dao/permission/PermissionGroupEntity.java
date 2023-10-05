@@ -21,8 +21,14 @@ public class PermissionGroupEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
+    @Column(name = "key")
+    private String key;
+
     @Column(name = "name")
     private String name;
+
+    @Column(name = "description")
+    private String description;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)

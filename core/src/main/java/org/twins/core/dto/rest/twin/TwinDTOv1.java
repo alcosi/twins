@@ -22,7 +22,7 @@ public class TwinDTOv1 {
     @Schema(description = "externalId", example = "934599502DFFAE")
     public String externalId;
 
-    @Schema(description = "created at", example = "1549632759")
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
     public Instant createdAt;
 
     @Schema(description = "name", example = "Oak")

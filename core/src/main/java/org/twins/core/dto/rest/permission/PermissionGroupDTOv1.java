@@ -15,7 +15,13 @@ public class PermissionGroupDTOv1 {
     public UUID id;
 
     @Schema(description = "key")
+    public String key;
+
+    @Schema(description = "name")
     public String name;
+
+    @Schema(description = "description")
+    public String description;
 
     @Schema()
     public UUID twinClassId;

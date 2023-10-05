@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Data

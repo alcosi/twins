@@ -17,12 +17,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionListRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
+import org.twins.core.mappers.rest.permission.PermissionGroupWithGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionWithGroupRestDTOMapper;
-import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserService;
@@ -36,6 +37,7 @@ import java.util.UUID;
 public class UserPermissionListController extends ApiController {
     final PermissionWithGroupRestDTOMapper permissionWithGroupRestDTOMapper;
     final PermissionRestDTOMapper permissionRestDTOMapper;
+    final PermissionGroupWithGroupRestDTOMapper permissionGroupWithGroupRestDTOMapper;
     final PermissionService permissionService;
     final UserService userService;
 
@@ -54,7 +56,34 @@ public class UserPermissionListController extends ApiController {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
             rs.permissionList = permissionWithGroupRestDTOMapper.convertList(
-                    permissionService.findPermissionsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collect(),
+                    permissionService.findPermissionsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissions(),
+                    new MapperProperties()
+                            .setMode(showPermissionMode)
+                            .setMode(showPermissionGroupMode));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "userPermissionGroupedListV1", summary = "Returns grouped permission list for selected user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionGroupedListRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> userPermissionGroupedListV1(
+            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
+            @Parameter(name = "showPermissionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
+            @Parameter(name = "showPermissionGroupMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+        PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
+        try {
+            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertList(
+                    permissionService.findPermissionsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissionGroups(),
                     new MapperProperties()
                             .setMode(showPermissionMode)
                             .setMode(showPermissionGroupMode));
