@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinclass;
+package org.twins.core.controller.rest.priv.card;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -26,7 +26,7 @@ import org.twins.core.service.card.CardService;
 
 import java.util.UUID;
 
-@Tag(description = "Get card list", name = ApiTag.TWIN_CLASS)
+@Tag(description = "Get card list", name = ApiTag.CARD)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

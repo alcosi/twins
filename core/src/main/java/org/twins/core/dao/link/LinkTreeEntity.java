@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinlink;
+package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twinlink_tree")
-public class TwinlinkTreeEntity {
+@Table(name = "link_tree")
+public class LinkTreeEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

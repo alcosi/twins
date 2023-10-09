@@ -25,14 +25,10 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInHead extends FieldTyperList {
-
-    public FieldTyperSharedSelectInHead(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService) {
-        super(dataListOptionRepository, dataListRepository, entitySmartService);
-    }
-
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
+        dataListService.findEntitySafe(listId);
         return new FieldDescriptorListShared()
                 .setMultiple(false); //todo get from properties
     }
@@ -53,7 +49,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
     public DataListEntity getDataListWithValidOption(TwinClassFieldEntity twinClassFieldEntity, UUID headTwinId) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
         UUID listId = listUUID.extract(properties);
-        DataListEntity dataListEntity = entitySmartService.findById(listId, "dataListId", dataListRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        DataListEntity dataListEntity = dataListService.findEntitySafe(listId);
         return dataListEntity.setOptions(
                 dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId));
     }

@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinclass;
+package org.twins.core.controller.rest.priv.widget;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -25,7 +25,7 @@ import org.twins.core.service.widget.WidgetService;
 
 import java.util.UUID;
 
-@Tag(name = ApiTag.TWIN_CLASS)
+@Tag(name = ApiTag.WIDGET)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor

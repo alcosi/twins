@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
@@ -15,19 +17,24 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.datalist.DataListService;
 
 import java.util.*;
 
 @Slf4j
-@RequiredArgsConstructor
 public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect> {
-    final DataListOptionRepository dataListOptionRepository;
-    final DataListRepository dataListRepository;
-    final EntitySmartService entitySmartService;
+    @Autowired
+    DataListOptionRepository dataListOptionRepository;
+    @Autowired
+    DataListRepository dataListRepository;
+    @Autowired
+    EntitySmartService entitySmartService;
+    @Lazy
+    @Autowired
+    DataListService dataListService;
 
     @FeaturerParam(name = "listUUID", description = "")
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUID("listUUID");
-
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value) throws ServiceException {

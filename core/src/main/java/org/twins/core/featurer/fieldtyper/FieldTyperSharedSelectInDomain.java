@@ -23,13 +23,10 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInDomain extends FieldTyperList {
-    public FieldTyperSharedSelectInDomain(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService) {
-        super(dataListOptionRepository, dataListRepository, entitySmartService);
-    }
-
     @Override
-    public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
+        dataListService.findEntitySafe(listId);
         return new FieldDescriptorList()
                 .supportCustom(false)
                 .multiple(false)

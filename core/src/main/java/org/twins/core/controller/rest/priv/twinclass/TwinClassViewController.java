@@ -20,8 +20,10 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -47,7 +49,7 @@ public class TwinClassViewController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassViewV1(
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
             @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode) {
@@ -56,7 +58,7 @@ public class TwinClassViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.findTwinClass(apiUser, twinClassId), new MapperProperties()
+                            twinClassService.findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows), new MapperProperties()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)
@@ -79,7 +81,7 @@ public class TwinClassViewController extends ApiController {
     @RequestMapping(value = "/private/twin_class_by_key/{twinClassKey}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassViewByKeyV1(
             @Parameter(name = "twinClassKey", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable String twinClassKey,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showTwinClassMode,
+            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
             @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode) {

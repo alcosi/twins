@@ -6,13 +6,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.service.I18nService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.List;
@@ -20,28 +24,47 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@Lazy
 @RequiredArgsConstructor
-public class TwinClassFieldService {
+public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
     final TwinClassFieldRepository twinClassFieldRepository;
     final PermissionService permissionService;
+    @Lazy
+    final TwinClassService twinClassService;
     final I18nService i18nService;
     final EntitySmartService entitySmartService;
+    @Lazy
+    final AuthService authService;
 
-    public TwinClassFieldEntity findTwinClassField(UUID twinClassFieldId) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = entitySmartService.findById(twinClassFieldId, "twinClassField", twinClassFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        permissionService.checkTwinClassFieldPermission(twinClassFieldEntity);
-        return twinClassFieldEntity;
+    @Override
+    public String entityName() {
+        return "twinClassField";
+    }
+
+    @Override
+    public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
+        return twinClassFieldRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinClassFieldEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            return true;
+        }
+        //todo check permission schema
+        return false;
     }
 
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
-        return twinClassFieldRepository.findByTwinClassId(twinClassId);
+        return twinClassFieldRepository.findByTwinClassId(twinClassId).stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }
 
     public List<TwinClassFieldEntity> findTwinClassFieldsIncludeParent(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getExtendsTwinClassId() != null)
-            return twinClassFieldRepository.findByTwinClassIdOrTwinClassId(twinClassEntity.getId(), twinClassEntity.getExtendsTwinClassId());
-        else
-            return twinClassFieldRepository.findByTwinClassId(twinClassEntity.getId());
+        List<UUID> twinClassList = twinClassService.findExtendedClasses(twinClassEntity, true);
+        List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(twinClassList);
+        return ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
@@ -94,5 +117,6 @@ public class TwinClassFieldService {
         }
         twinClassFieldRepository.save(duplicateFieldEntity);
     }
+
 
 }

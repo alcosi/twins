@@ -26,6 +26,7 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchRqDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -56,14 +57,14 @@ public class TwinListController extends ApiController {
     public ResponseEntity<?> twinSearchV1(
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showClassMode,
+            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
             @Parameter(name = "showTwinFieldsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<TwinEntity> twinList = twinService.findTwins(apiUser, twinSearchRqDTOMapper.convert(request));
+            List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
             rs
                     .setTwinList(twinRestDTOMapper.convertList(
                             twinList, new MapperProperties()
@@ -91,7 +92,7 @@ public class TwinListController extends ApiController {
     public ResponseEntity<?> twinSearchV2(
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showClassMode,
+            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @Parameter(name = "showClassFieldListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._NO_FIELDS) TwinClassRestDTOMapper.FieldsMode showClassFieldListMode,
             @Parameter(name = "showClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
@@ -101,7 +102,7 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             ApiUser apiUser = authService.getApiUser();
-            List<TwinEntity> twinList = twinService.findTwins(apiUser, twinSearchRqDTOMapper.convert(request));
+            List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(
                             twinList, new MapperProperties()

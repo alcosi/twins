@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.twin.*;
+import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -31,9 +32,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.TWIN)
@@ -163,7 +162,7 @@ public class TwinFieldSaveController extends ApiController {
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.ClassMode._ID_ONLY) TwinClassRestDTOMapper.ClassMode showClassMode,
+            @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @Parameter(name = "showClassFieldListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._NO_FIELDS) TwinClassRestDTOMapper.FieldsMode showClassFieldListMode,
             @Parameter(name = "showClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
@@ -172,12 +171,11 @@ public class TwinFieldSaveController extends ApiController {
             @RequestBody TwinFieldListUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            TwinEntity twinEntity = twinService.findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
+            TwinEntity twinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(twinEntity.getTwinClassId(), request.getFields());
             twinService.updateTwinFields(twinEntity, fields);
             rs.twin(twinRestDTOMapperV2.convert(
-                    twinService.findTwin(apiUser, twinId), new MapperProperties()
+                    twinService.findEntitySafe(twinId), new MapperProperties()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)

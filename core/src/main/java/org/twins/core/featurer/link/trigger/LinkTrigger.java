@@ -1,4 +1,4 @@
-package org.twins.core.featurer.twinlink.trigger;
+package org.twins.core.featurer.link.trigger;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.featurer.Featurer;
@@ -9,6 +9,6 @@ import org.cambium.featurer.annotations.FeaturerType;
         name = "TwinlinkTrigger",
         description = "")
 @Slf4j
-public abstract class TwinlinkTrigger extends Featurer {
+public abstract class LinkTrigger extends Featurer {
 
 }

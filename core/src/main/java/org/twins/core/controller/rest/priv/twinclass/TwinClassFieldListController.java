@@ -71,8 +71,7 @@ public class TwinClassFieldListController extends ApiController {
             @Parameter(name = "twinClassFieldId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findTwinClassField(twinClassFieldId);
+            TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findEntitySafe(twinClassFieldId);
             rs.field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

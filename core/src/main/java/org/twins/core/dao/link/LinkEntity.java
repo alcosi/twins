@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinlink;
+package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twinlink")
-public class TwinlinkEntity {
+@Table(name = "link")
+public class LinkEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -32,7 +32,7 @@ public class TwinlinkEntity {
     @Column(name = "backward_name_i18n_id")
     private UUID backwardNameI18NId;
 
-    @Column(name = "twinlink_type_id")
+    @Column(name = "link_type_id")
     @Enumerated(EnumType.STRING)
     private TwinlinkType type;
 
@@ -62,11 +62,13 @@ public class TwinlinkEntity {
     @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false, nullable = false)
     private I18nEntity backwardNameI18n;
 
+    public String logShort() {
+        return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+    }
+
     public enum TwinlinkType {
-        OneToOne,
-        OneToMany,
-        OneToManyMandatory,
-        OneToManySpace,
-        ManyToMany;
+        ManyToOne,
+        ManyToMany,
+        ManyToOneMandatory,
     }
 }

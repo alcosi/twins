@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -32,13 +33,10 @@ public class FieldTyperSelect extends FieldTyperList {
     @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
-    public FieldTyperSelect(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService) {
-        super(dataListOptionRepository, dataListRepository, entitySmartService);
-    }
-
     @Override
-    public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+    public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
+        dataListService.findEntitySafe(listId);
         int listSize = dataListOptionRepository.countByDataListId(listId);
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
                 .supportCustom(supportCustom.extract(properties))

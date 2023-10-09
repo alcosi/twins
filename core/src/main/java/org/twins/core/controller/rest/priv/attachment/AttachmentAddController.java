@@ -54,7 +54,7 @@ public class AttachmentAddController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             attachmentService.addAttachments(
-                    twinService.checkTwinId(twinId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows).getId(),
                     apiUser.getUser(),
                     attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()));
         } catch (ServiceException se) {

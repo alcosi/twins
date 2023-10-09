@@ -1,7 +1,8 @@
-package org.twins.core.dao.twinlink;
+package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -10,8 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twinlink_map")
-public class TwinlinkMapEntity {
+@Table(name = "twin_link")
+public class TwinLinkEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -22,8 +23,8 @@ public class TwinlinkMapEntity {
     @Column(name = "dst_twin_id")
     private UUID dstTwinId;
 
-    @Column(name = "twinlink_id")
-    private UUID twinlinkId;
+    @Column(name = "link_id")
+    private UUID linkId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
@@ -40,8 +41,8 @@ public class TwinlinkMapEntity {
     private TwinEntity dstTwin;
 
     @ManyToOne
-    @JoinColumn(name = "twinlink_id", insertable = false, updatable = false, nullable = false)
-    private TwinlinkEntity twinlink;
+    @JoinColumn(name = "link_id", insertable = false, updatable = false, nullable = false)
+    private LinkEntity link;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

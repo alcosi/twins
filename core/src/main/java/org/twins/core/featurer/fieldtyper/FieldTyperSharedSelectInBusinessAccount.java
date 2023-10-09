@@ -27,17 +27,13 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
-    final AuthService authService;
-
     @Autowired
-    public FieldTyperSharedSelectInBusinessAccount(DataListOptionRepository dataListOptionRepository, DataListRepository dataListRepository, EntitySmartService entitySmartService,  @Lazy AuthService authService) {
-        super(dataListOptionRepository, dataListRepository, entitySmartService);
-        this.authService = authService;
-    }
+    AuthService authService;
 
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
+        dataListService.findEntitySafe(listId);
         return new FieldDescriptorList()
                 .supportCustom(false)
                 .multiple(false)

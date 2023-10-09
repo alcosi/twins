@@ -52,6 +52,18 @@ public class EntitySmartService {
         return entity.getClass().getSimpleName().replaceAll("Entity", "");
     }
 
+    public static void entityReadDenied(ReadPermissionCheckMode readPermissionCheckMode, String logMessage) throws ServiceException {
+        switch (readPermissionCheckMode) {
+            case none:
+                return;
+            case ifDeniedLog:
+                log.error(logMessage);
+                return;
+            case ifDeniedThrows:
+                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, logMessage);
+        }
+    }
+
     public enum CreateMode {
         ifNotPresentCreate,
         ifNotPresentThrows,
@@ -164,6 +176,12 @@ public class EntitySmartService {
         ANY,
         EMPTY,
         EMPTY_OR_DB_EXISTS
+    }
+
+    public enum ReadPermissionCheckMode {
+        none,
+        ifDeniedLog,
+        ifDeniedThrows,
     }
 
 }

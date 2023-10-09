@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -15,7 +17,9 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
@@ -24,23 +28,43 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListService {
+public class DataListService extends EntitySecureFindServiceImpl<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
-
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
+    @Lazy
+    final AuthService authService;
 
-    public List<DataListEntity> findDataLists(ApiUser apiUser, List<UUID> uuidLists) {
-        if (CollectionUtils.isNotEmpty(uuidLists))
-            return dataListRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
-        else
-            return dataListRepository.findByDomainId(apiUser.getDomain().getId());
+    @Override
+    public String entityName() {
+        return "dataList";
     }
 
-    public DataListEntity findDataList(ApiUser apiUser, UUID dataListId) {
-        return dataListRepository.findByDomainIdAndId(apiUser.getDomain().getId(), dataListId);
+    @Override
+    public CrudRepository<DataListEntity, UUID> entityRepository() {
+        return dataListRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(DataListEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            return true;
+        }
+        return false;
+    }
+
+    public List<DataListEntity> findDataLists(List<UUID> uuidLists) throws ServiceException {
+        List<DataListEntity> dataListEntityList = null;
+        ApiUser apiUser = authService.getApiUser();
+        if (CollectionUtils.isNotEmpty(uuidLists)) {
+            dataListEntityList = dataListRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
+        } else
+            dataListEntityList = dataListRepository.findByDomainId(apiUser.getDomain().getId());
+        return dataListEntityList;
     }
 
     public DataListEntity findDataListByKey(ApiUser apiUser, String dataListKey) throws ServiceException {
@@ -55,11 +79,11 @@ public class DataListService {
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
-        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findTwinClassField(twinClassFieldId);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
         if (!(fieldTyper instanceof FieldTyperSharedSelectInHead))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.logShort() + " is not shared in head");
-        return ((FieldTyperSharedSelectInHead)fieldTyper).getDataListWithValidOption(twinClassFieldEntity, headTwinId);
+        return ((FieldTyperSharedSelectInHead) fieldTyper).getDataListWithValidOption(twinClassFieldEntity, headTwinId);
     }
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {

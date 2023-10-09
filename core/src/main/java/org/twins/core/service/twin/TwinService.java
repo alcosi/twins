@@ -12,6 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.*;
@@ -25,8 +27,10 @@ import org.twins.core.domain.TQL;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -43,7 +47,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinService {
+public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final TwinRepository twinRepository;
     final TwinFieldRepository twinFieldRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
@@ -56,16 +60,35 @@ public class TwinService {
     final TwinClassService twinClassService;
     final FeaturerService featurerService;
     final AttachmentService attachmentService;
+    @Lazy
+    final AuthService authService;
 
-    public UUID checkTwinId(UUID twinId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(twinId, "twinId", twinRepository, checkMode);
+    @Override
+    public String entityName() {
+        return "twin";
+    }
+
+    @Override
+    public CrudRepository<TwinEntity, UUID> entityRepository() {
+        return twinRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            return true;
+        }
+        //todo check permission schema
+        return false;
     }
 
     public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
         return twinRepository.findByOwnerBusinessAccountId(apiUser.getBusinessAccount().getId());
     }
 
-    public List<TwinEntity> findTwins(ApiUser apiUser, BasicSearch basicSearch) {
+    public List<TwinEntity> findTwins(BasicSearch basicSearch) {
         CriteriaQuery<TwinEntity> criteriaQuery = entityManager.getCriteriaBuilder().createQuery(TwinEntity.class);
         Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
         List<Predicate> predicate = new ArrayList<>();
@@ -81,15 +104,14 @@ public class TwinService {
             predicate.add(twin.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
         criteriaQuery.where(predicate.stream().toArray(Predicate[]::new));
         Query query = entityManager.createQuery(criteriaQuery);
-        return query.getResultList();
+        List<TwinEntity> ret = query.getResultList();
+        if (ret != null)
+            return ret.stream().filter(t -> !isEntityReadDenied(t)).toList();
+        return ret;
     }
 
-    public List<TwinEntity> findTwinsByClass(UUID twinClassId) {
-        return twinRepository.findByTwinClassId(twinClassId);
-    }
-
-    public TwinEntity findTwin(ApiUser apiUser, UUID twinId) throws ServiceException {
-        return findTwin(apiUser, twinId, EntitySmartService.FindMode.ifEmptyThrows);
+    public List<TwinEntity> findTwinsByClassId(UUID twinClassId) {
+        return findTwins(new BasicSearch().addTwinClassId(twinClassId));
     }
 
     public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
@@ -97,10 +119,6 @@ public class TwinService {
         if (twinAliasEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
         return twinAliasEntity.getTwin();
-    }
-
-    public TwinEntity findTwin(ApiUser apiUser, UUID twinId, EntitySmartService.FindMode findMode) throws ServiceException {
-        return entitySmartService.findById(twinId, "twinId", twinRepository, findMode);
     }
 
     public List<TwinFieldEntity> findTwinFields(UUID twinId) {
@@ -154,7 +172,7 @@ public class TwinService {
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.getTwinClassId());
-        TwinClassEntity twinClassEntity = twinClassService.findTwinClass(apiUser, twinEntity.getTwinClassId());
+        TwinClassEntity twinClassEntity = twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         twinEntity
                 .setTwinClass(twinClassEntity)
                 .setCreatedAt(Timestamp.from(Instant.now()))
@@ -313,6 +331,8 @@ public class TwinService {
     public void deleteTwin(ApiUser apiUser, UUID twinId) {
         twinRepository.deleteById(twinId); // all linked data will be deleted by fk cascading
     }
+
+
 
     @Data
     @Accessors(chain = true)

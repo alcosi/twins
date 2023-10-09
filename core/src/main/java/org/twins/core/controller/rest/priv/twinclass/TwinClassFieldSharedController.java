@@ -51,7 +51,6 @@ public class TwinClassFieldSharedController extends ApiController {
             @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.dataList = dataListRestDTOMapper.convert(
                     dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperProperties().setMode(showDatalistMode));
         } catch (ServiceException se) {

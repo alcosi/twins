@@ -21,25 +21,13 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final TwinClassFieldService twinClassFieldService;
     final TwinService twinService;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
     @Autowired
     TwinRestDTOMapper twinRestDTOMapper;
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(ClassMode.DETAILED)) {
-            case DETAILED:
-                dst
-                        .key(src.getKey())
-                        .headClassId(src.getHeadTwinClassId())
-                        .abstractClass(src.isAbstractt())
-                        .name(i18nService.translateToLocale(src.getNameI18n()))
-                        .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
-                        .logo(src.getLogo());
-            case ID_ONLY:
-                dst
-                        .id(src.getId());
-                break;
-        }
+        twinClassBaseRestDTOMapper.map(src, dst, mapperProperties);
         if (mapperProperties.getModeOrUse(FieldsMode.NO_FIELDS) != FieldsMode.NO_FIELDS)
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
@@ -47,14 +35,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperProperties.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.getHeadTwinClassId() != null)
             dst.validHeads(
                     twinRestDTOMapper.convertList(
-                            twinService.findTwinsByClass(src.getHeadTwinClassId()), mapperProperties.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
-    }
-
-    public enum ClassMode implements MapperMode {
-        ID_ONLY, DETAILED,;
-
-        public static final String _ID_ONLY = "ID_ONLY";
-        public static final String _DETAILED = "DETAILED";
+                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperProperties.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
     }
 
     public enum FieldsMode implements MapperMode {

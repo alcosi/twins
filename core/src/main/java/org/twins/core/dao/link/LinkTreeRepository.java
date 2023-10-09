@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinlink;
+package org.twins.core.dao.link;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface TwinlinkTriggerRepository extends CrudRepository<TwinlinkTriggerEntity, UUID>, JpaSpecificationExecutor<TwinlinkTriggerEntity> {
+public interface LinkTreeRepository extends CrudRepository<LinkTreeEntity, UUID>, JpaSpecificationExecutor<LinkTreeEntity> {
 }

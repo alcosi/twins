@@ -43,6 +43,10 @@ public class DataListEntity {
 
     @Column(name = "attribute_4_key")
     private String attribute4key;
+
+    public String logShort() {
+        return "dataList[id:" + id + ", key:" + key + "]";
+    }
     
     @Transient
     List<DataListOptionEntity> options;

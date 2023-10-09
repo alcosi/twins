@@ -52,9 +52,8 @@ public class DataListController extends ApiController {
             @Parameter(name = "showDataListOptionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataList(apiUser, dataListId), new MapperProperties()
+                    dataListService.findEntitySafe(dataListId), new MapperProperties()
                             .setMode(showDataListMode)
                             .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
@@ -106,10 +105,9 @@ public class DataListController extends ApiController {
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.dataListList(
                     dataListRestDTOMapper.convertList(
-                            dataListService.findDataLists(apiUser, request.dataListIdList()), new MapperProperties()
+                            dataListService.findDataLists(request.dataListIdList()), new MapperProperties()
                                     .setMode(showDataListMode)
                                     .setMode(showDataListOptionMode)));
         } catch (ServiceException se) {
