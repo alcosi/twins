@@ -45,7 +45,7 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
-        if (GenericValidator.isDate(dateStr, pattern.extract(properties), true))
+        if (GenericValidator.isDate(dateStr, pattern.extract(properties), false))
             return dateStr;
         return "";
     }
