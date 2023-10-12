@@ -20,11 +20,13 @@ import java.util.UUID;
 public class TokenHandlerStub extends TokenHandler {
     final UserService userService;
     final BusinessAccountService businessAccountService;
+
     @Override
     protected ApiUser resolveApiUser(Properties properties, String token) throws ServiceException {
         String[] tokenData = token.split(",");
-        return new ApiUser()
-                .setBusinessAccount(businessAccountService.findById(UUID.fromString(tokenData[1].trim()), EntitySmartService.FindMode.ifEmptyThrows))
-                .setUser(userService.findByUserId(UUID.fromString(tokenData[0].trim()), EntitySmartService.FindMode.ifEmptyThrows));
+        ApiUser apiUser = new ApiUser().setUser(userService.findByUserId(UUID.fromString(tokenData[0].trim()), EntitySmartService.FindMode.ifEmptyThrows));
+        if (tokenData.length > 1)
+            apiUser.setBusinessAccount(businessAccountService.findById(UUID.fromString(tokenData[1].trim()), EntitySmartService.FindMode.ifEmptyThrows));
+        return apiUser;
     }
 }

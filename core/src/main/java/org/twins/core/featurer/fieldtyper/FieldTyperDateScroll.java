@@ -34,7 +34,7 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
         if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.date()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
         String datePatter = pattern.extract(properties);
-        if (!GenericValidator.isDate(value.date(), datePatter, true))
+        if (!GenericValidator.isDate(value.date(), datePatter, false))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.twinClassField().logShort() + " date[" + value.date() + "] does not match pattern[" + datePatter + "]");
         return value.date();
     }

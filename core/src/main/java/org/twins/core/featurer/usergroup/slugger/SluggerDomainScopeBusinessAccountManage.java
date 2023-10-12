@@ -27,11 +27,15 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
             log.warn(userGroupMapEntity.logShort() + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group_map");
             return null;
         } else
-            return  userGroupMapEntity.getUserGroup();
+            return userGroupMapEntity.getUserGroup();
     }
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) {
+        if (apiUser.getBusinessAccount() == null) {
+            log.warn(userGroup.logShort() + " can not be entered by userId[" + userId + "]. Business account is unknown");
+            return null;
+        }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)

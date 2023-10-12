@@ -31,6 +31,15 @@ public class DomainEntity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "permission_schema_id")
+    private UUID permissionSchemaId;
+
+    @Column(name = "twinflow_schema_id")
+    private UUID twinflowSchemaId;
+
+    @Column(name = "twin_class_schema_id")
+    private UUID twinClassSchemaId;
+
     @FeaturerList(type = BusinessAccountInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)

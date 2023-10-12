@@ -69,17 +69,22 @@ public class PermissionService {
     public FindUserPermissionsResult findPermissionsForUser(UUID userId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomain().getId();
-        DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(domainId, apiUser.getBusinessAccount().getId());
-        checkPermissionSchemaAllowed(domainBusinessAccountEntity);
-        PermissionSchemaEntity permissionSchemaEntity = domainBusinessAccountEntity.getPermissionSchema();
+        UUID permissionSchemaId;
+        if (apiUser.getBusinessAccount() != null) {
+            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(domainId, apiUser.getBusinessAccount().getId());
+            checkPermissionSchemaAllowed(domainBusinessAccountEntity);
+            permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
+        } else {
+            permissionSchemaId = apiUser.getDomain().getPermissionSchemaId();
+        }
         return new FindUserPermissionsResult()
                 .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(
-                        permissionSchemaEntity.getId(), userId)
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() +  " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
+                                permissionSchemaId, userId)
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() + " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
                 .setPermissionByUserGroup(permissionSchemaUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
-                        permissionSchemaEntity.getId(),
-                        userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() +  " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
+                                permissionSchemaId,
+                                userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() + " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
     }
 
     @Data
@@ -100,7 +105,7 @@ public class PermissionService {
 
         public List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>> collectPermissionGroups() {
             List<PermissionEntity> distinctPermissions = collectPermissions();
-            List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>>  ret = new ArrayList<>();
+            List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>> ret = new ArrayList<>();
             Map<UUID, List<PermissionEntity>> mapGrouped = distinctPermissions.stream().collect(Collectors.groupingBy(PermissionEntity::getPermissionGroupId));
             for (Map.Entry<UUID, List<PermissionEntity>> entry : mapGrouped.entrySet()) {
                 ret.add(new ImmutablePair<>(entry.getValue().get(0).getPermissionGroup(), entry.getValue()));

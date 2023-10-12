@@ -84,10 +84,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return false;
     }
 
-    public List<TwinEntity> findTwins(ApiUser apiUser, TQL tql) {
-        return twinRepository.findByOwnerBusinessAccountId(apiUser.getBusinessAccount().getId());
-    }
-
     public List<TwinEntity> findTwins(BasicSearch basicSearch) {
         CriteriaQuery<TwinEntity> criteriaQuery = entityManager.getCriteriaBuilder().createQuery(TwinEntity.class);
         Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
@@ -115,10 +111,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
-        TwinBusinessAccountAliasEntity twinAliasEntity = twinBusinessAccountAliasRepository.findByBusinessAccountIdAndAlias(apiUser.getBusinessAccount().getId(), twinAlias);
-        if (twinAliasEntity == null)
+        if (apiUser.getBusinessAccount() != null) {
+            TwinBusinessAccountAliasEntity twinBusinessAccountAliasEntity = twinBusinessAccountAliasRepository.findByBusinessAccountIdAndAlias(apiUser.getBusinessAccount().getId(), twinAlias);
+            if (twinBusinessAccountAliasEntity != null)
+                return twinBusinessAccountAliasEntity.getTwin();
+        }
+        TwinDomainAliasEntity twinDomainAliasEntity = twinDomainAliasRepository.findByDomainIdAndAlias(apiUser.getDomain().getId(), twinAlias);
+        if (twinDomainAliasEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
-        return twinAliasEntity.getTwin();
+        return twinDomainAliasEntity.getTwin();
     }
 
     public List<TwinFieldEntity> findTwinFields(UUID twinId) {

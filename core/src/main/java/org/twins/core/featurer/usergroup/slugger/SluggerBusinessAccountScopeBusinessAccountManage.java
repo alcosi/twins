@@ -33,8 +33,10 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) {
-        if (userGroup.getBusinessAccountId() != apiUser.getBusinessAccount().getId())
+        if (apiUser.getBusinessAccount() == null || userGroup.getBusinessAccountId() != apiUser.getBusinessAccount().getId()) {
+            log.warn(userGroup.logShort() + " can not be entered by userId[" + userId + "]");
             return null;
+        }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)

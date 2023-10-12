@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
 
 import java.time.Instant;
@@ -21,4 +22,10 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;
+
+    @Schema()
+    public List<LinkDTOv1> forwardLinkList;
+
+    @Schema()
+    public List<LinkDTOv1> backwardLinkList;
 }

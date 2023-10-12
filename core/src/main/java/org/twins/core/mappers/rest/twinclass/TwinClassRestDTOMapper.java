@@ -9,7 +9,10 @@ import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -22,6 +25,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final TwinService twinService;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+    final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
+    final LinkService linkService;
     @Autowired
     TwinRestDTOMapper twinRestDTOMapper;
 
@@ -36,11 +42,16 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.validHeads(
                     twinRestDTOMapper.convertList(
                             twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperProperties.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
+        if (mapperProperties.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
+            LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
+            dst
+                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperProperties))
+                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperProperties));
+        }
     }
 
     public enum FieldsMode implements MapperMode {
         NO_FIELDS, ALL_FIELDS, ONLY_REQUIRED;
-
         public static final String _NO_FIELDS = "NO_FIELDS";
         public static final String _ALL_FIELDS = "ALL_FIELDS";
         public static final String _ONLY_REQUIRED = "ONLY_REQUIRED";
@@ -48,7 +59,12 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     public enum HeadTwinMode implements MapperMode {
         SHOW, HIDE;
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
+    }
 
+    public enum LinksMode implements MapperMode {
+        SHOW, HIDE;
         public static final String _SHOW = "SHOW";
         public static final String _HIDE = "HIDE";
     }

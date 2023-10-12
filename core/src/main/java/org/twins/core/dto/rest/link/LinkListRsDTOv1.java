@@ -13,7 +13,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassLinkListRsV1")
 public class LinkListRsDTOv1 extends Response {
-    @Schema(description = "results - twin class links list")
+    @Schema()
     public List<LinkDTOv1> forwardLinkList;
+
+    @Schema()
     public List<LinkDTOv1> backwardLinkList;
 }
