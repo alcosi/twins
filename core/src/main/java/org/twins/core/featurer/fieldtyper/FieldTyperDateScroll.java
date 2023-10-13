@@ -1,5 +1,6 @@
 package org.twins.core.featurer.fieldtyper;
 
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
 import org.cambium.common.exception.ServiceException;
@@ -16,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 import java.util.Properties;
 
 @Component
+@Slf4j
 @Featurer(id = 1302,
         name = "FieldTyperDateScroll",
         description = "")
@@ -47,6 +49,8 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
     public String validDateOrEmpty(String dateStr, Properties properties) {
         if (GenericValidator.isDate(dateStr, pattern.extract(properties), false))
             return dateStr;
+        else
+            log.warn("Value[ " + dateStr + "] does not match expected format[" + pattern.extract(properties) + "]");
         return "";
     }
 }
