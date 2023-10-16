@@ -20,20 +20,26 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
         switch (mapperProperties.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .name(i18nService.translateToLocale(src.nameI18n()))
-                        .description(src.descriptionI18n() != null ? i18nService.translateToLocale(src.descriptionI18n()) : "")
-                        .logo(src.logo());
+                        .name(i18nService.translateToLocale(src.getNameI18n()))
+                        .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
+                        .logo(src.getLogo());
             case ID_ONLY:
                 dst
-                        .id(src.id());
+                        .id(src.getId());
                 break;
         }
     }
 
+    @Override
+    public boolean hideMode(MapperProperties mapperProperties) {
+        return mapperProperties.hasMode(Mode.HIDE);
+    }
+
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED;
+        ID_ONLY, DETAILED, HIDE;
 
         public static final String _ID_ONLY = "ID_ONLY";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
     }
 }

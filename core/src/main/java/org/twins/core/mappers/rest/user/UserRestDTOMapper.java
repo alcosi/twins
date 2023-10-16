@@ -30,9 +30,15 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
         }
     }
 
-    public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED;
+    @Override
+    public boolean hideMode(MapperProperties mapperProperties) {
+        return mapperProperties.hasMode(Mode.HIDE);
+    }
 
+    public enum Mode implements MapperMode {
+        ID_ONLY, DETAILED, HIDE;
+
+        public static final String _HIDE = "HIDE";
         public static final String _ID_ONLY = "ID_ONLY";
         public static final String _DETAILED = "DETAILED";
     }

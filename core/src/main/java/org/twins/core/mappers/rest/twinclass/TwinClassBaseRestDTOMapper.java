@@ -2,17 +2,12 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperProperties;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
 
 @Component
@@ -27,6 +22,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                 dst
                         .key(src.getKey())
                         .headClassId(src.getHeadTwinClassId())
+//                        .headClass(convertOrPostpone(src))
                         .abstractClass(src.isAbstractt())
                         .name(i18nService.translateToLocale(src.getNameI18n()))
                         .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
@@ -38,10 +34,16 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
         }
     }
 
+    @Override
+    public boolean hideMode(MapperProperties mapperProperties) {
+        return mapperProperties.hasMode(ClassMode.HIDE);
+    }
+
     public enum ClassMode implements MapperMode {
-        ID_ONLY, DETAILED,;
+        ID_ONLY, DETAILED, HIDE;
 
         public static final String _ID_ONLY = "ID_ONLY";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
     }
 }

@@ -35,11 +35,11 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         switch (mapperProperties.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
             case DETAILED:
                 dst
-                        .description(src.getDescription())
                         .assignerUser(userDTOMapper.convert(src.getAssignerUser(), mapperProperties))
                         .authorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties))
                         .status(twinStatusRestDTOMapper.convert(src.getTwinStatus(), mapperProperties))
                         .twinClass(twinClassRestDTOMapper.convert(src.getTwinClass(), mapperProperties))
+                        .description(src.getDescription())
                         .createdAt(src.getCreatedAt().toInstant());
             case ID_NAME_ONLY:
                 dst

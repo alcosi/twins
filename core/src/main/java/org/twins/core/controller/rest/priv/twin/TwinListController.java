@@ -22,10 +22,8 @@ import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.MapperProperties;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinSearchRqDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -42,6 +40,10 @@ import java.util.List;
 public class TwinListController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
+    final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    final UserRestDTOMapper userRestDTOMapper;
+    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     final TwinRestDTOMapper twinRestDTOMapper;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinSearchRqDTOMapper twinSearchRqDTOMapper;
@@ -72,7 +74,7 @@ public class TwinListController extends ApiController {
                                     .setMode(showStatusMode)
                                     .setMode(showClassMode)
                                     .setMode(showTwinMode)
-                                    .setMode(showTwinFieldMode)                    ));
+                                    .setMode(showTwinFieldMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -90,6 +92,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/search/v2", method = RequestMethod.POST)
     public ResponseEntity<?> twinSearchV2(
+            @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -101,11 +104,11 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            ApiUser apiUser = authService.getApiUser();
             List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
+            MapperProperties mapperProperties = new MapperProperties().setLazyRelations(lazyRelation);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(
-                            twinList, new MapperProperties()
+                            twinList, mapperProperties
                                     .setMode(showUserMode)
                                     .setMode(showStatusMode)
                                     .setMode(showClassMode)
@@ -114,6 +117,7 @@ public class TwinListController extends ApiController {
                                     .setMode(showTwinMode)
                                     .setMode(showTwinFieldMode)
                                     .setMode(showTwinAttachmentMode)));
+            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperProperties));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -121,4 +125,6 @@ public class TwinListController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
+
 }

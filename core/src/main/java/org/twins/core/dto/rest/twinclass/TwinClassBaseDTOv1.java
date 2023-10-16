@@ -35,6 +35,9 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "if class is abstract no twin of it can be created. Some child class must be used")
     public boolean abstractClass;
 
+    @Schema(description = "head class")
+    public TwinClassBaseDTOv1 headClass;
+
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
     public UUID headClassId;
 }

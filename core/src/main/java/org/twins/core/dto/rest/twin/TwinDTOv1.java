@@ -15,21 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "TwinV1")
-public class TwinDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TWIN_ID)
-    public UUID id;
-
-    @Schema(description = "externalId", example = "934599502DFFAE")
-    public String externalId;
-
-    @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public Instant createdAt;
-
-    @Schema(description = "name", example = "Oak")
-    public String name;
-
-    @Schema(description = "description", example = "The biggest tree")
-    public String description;
+public class TwinDTOv1 extends TwinBaseDTOv1 {
 
     @Schema(description = "status")
     public TwinStatusDTOv1 status;

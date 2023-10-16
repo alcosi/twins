@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "twin_status")
 public class TwinStatusEntity {
     @Id

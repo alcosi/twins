@@ -50,6 +50,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
     }
 
+    @Override
+    public boolean hideMode(MapperProperties mapperProperties) {
+        return mapperProperties.hasMode(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
+    }
+
     public enum FieldsMode implements MapperMode {
         NO_FIELDS, ALL_FIELDS, ONLY_REQUIRED;
         public static final String _NO_FIELDS = "NO_FIELDS";

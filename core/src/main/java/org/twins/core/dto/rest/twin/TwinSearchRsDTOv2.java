@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.PaginationBean;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 
 import java.util.List;
 
@@ -19,4 +20,7 @@ public class TwinSearchRsDTOv2 extends Response {
 
     @Schema(description = "results - transfers list")
     public List<TwinDTOv2> twinList;
+
+    @Schema(description = "results - related objects, if lazeRelation is false")
+    public RelatedObjectsDTOv1 relatedObjects;
 }

@@ -20,6 +20,9 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "list of available heads")
     public List<TwinDTOv1> validHeads;
 
+    @Schema(description = "list of available heads")
+    public List<UUID> validHeadsId;
+
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;
 

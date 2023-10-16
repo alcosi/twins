@@ -30,7 +30,8 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .setAuthorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserRestDTOMapper.Mode.ID_ONLY)))
+                        .setAuthorUserId(src.getCreatedByUserId())
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserRestDTOMapper.Mode.ID_ONLY)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())

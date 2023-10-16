@@ -21,5 +21,8 @@ public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
     public Instant createdAt;
 
     @Schema(description = "author")
+    public UUID authorUserId;
+
+    @Schema(description = "author")
     public UserDTOv1 authorUser;
 }
