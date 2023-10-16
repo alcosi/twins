@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -59,7 +59,7 @@ public class TwinClassViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows), new MapperProperties()
+                            twinClassService.findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows), new MapperContext()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)
@@ -93,7 +93,7 @@ public class TwinClassViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.findTwinClassByKey(apiUser, twinClassKey), new MapperProperties()
+                            twinClassService.findTwinClassByKey(apiUser, twinClassKey), new MapperContext()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)

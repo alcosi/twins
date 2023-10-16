@@ -16,13 +16,11 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -51,7 +49,7 @@ public class UserGroupListController extends ApiController {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             rs.userGroupList = userGroupDTOMapper.convertList(
-                    userGroupService.findGroupsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperProperties().setMode(showUserGroupMode));
+                    userGroupService.findGroupsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperContext().setMode(showUserGroupMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

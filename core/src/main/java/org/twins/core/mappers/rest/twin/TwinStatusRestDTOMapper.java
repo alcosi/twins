@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -16,8 +16,8 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
     final I18nService i18nService;
 
     @Override
-    public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperProperties mapperProperties) {
-        switch (mapperProperties.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
+    public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperContext mapperContext) {
+        switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .name(i18nService.translateToLocale(src.getNameI18n()))
@@ -31,8 +31,8 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
     }
 
     @Override
-    public boolean hideMode(MapperProperties mapperProperties) {
-        return mapperProperties.hasMode(Mode.HIDE);
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasMode(Mode.HIDE);
     }
 
     public enum Mode implements MapperMode {

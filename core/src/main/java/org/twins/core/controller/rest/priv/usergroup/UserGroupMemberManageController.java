@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupMemberManageRqDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -55,7 +54,7 @@ public class UserGroupMemberManageController extends ApiController {
         try {
             userGroupService.manageForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS), request.getUserGroupEnterList(), request.getUserGroupExitList());
             rs.userGroupList = userGroupDTOMapper.convertList(
-                    userGroupService.findGroupsForUser(userId), new MapperProperties().setMode(showUserGroupMode));
+                    userGroupService.findGroupsForUser(userId), new MapperContext().setMode(showUserGroupMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

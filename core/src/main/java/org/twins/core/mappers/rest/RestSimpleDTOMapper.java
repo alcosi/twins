@@ -14,27 +14,27 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     }
 
     public S convert(T src) throws Exception {
-        return convert(src, new MapperProperties());
+        return convert(src, new MapperContext());
     }
 
-    public S convert(T src, MapperProperties mapperProperties) throws Exception {
-        if (hideMode(mapperProperties))
+    public S convert(T src, MapperContext mapperContext) throws Exception {
+        if (hideMode(mapperContext))
             return null;
         S dst = type.getDeclaredConstructor().newInstance();
-        map(src, dst, mapperProperties);
+        map(src, dst, mapperContext);
         return dst;
     }
 
-    public S convertOrPostpone(T src, MapperProperties mapperProperties) throws Exception {
-        if (mapperProperties.isLazyRelations())
-            return convert(src, mapperProperties);
+    public S convertOrPostpone(T src, MapperContext mapperContext) throws Exception {
+        if (mapperContext.isLazyRelations())
+            return convert(src, mapperContext);
         else {
-            mapperProperties.addRelatedObject(src);
+            mapperContext.addRelatedObject(src);
             return null;
         }
     }
 
-    public boolean hideMode(MapperProperties mapperProperties) {
+    public boolean hideMode(MapperContext mapperContext) {
         return false;
     }
 }

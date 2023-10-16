@@ -4,14 +4,14 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<PermissionGroupEntity, PermissionGroupDTOv1> {
     @Override
-    public void map(PermissionGroupEntity src, PermissionGroupDTOv1 dst, MapperProperties mapperProperties) {
-        switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
+    public void map(PermissionGroupEntity src, PermissionGroupDTOv1 dst, MapperContext mapperContext) {
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .twinClassId(src.getTwinClassId())

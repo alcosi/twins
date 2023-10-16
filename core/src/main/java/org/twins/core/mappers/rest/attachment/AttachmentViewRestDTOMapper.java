@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
@@ -26,12 +26,12 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     final TwinService twinService;
 
     @Override
-    public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
+    public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperProperties.setModeIfNotPresent(UserRestDTOMapper.Mode.ID_ONLY)))
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.setModeIfNotPresent(UserRestDTOMapper.Mode.ID_ONLY)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.card.CardWidgetEntity;
 import org.twins.core.dto.rest.card.CardWidgetDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;
 
@@ -14,13 +14,13 @@ public class CardWidgetRestDTOMapper extends RestSimpleDTOMapper<CardWidgetEntit
     final WidgetRestDTOMapper widgetRestDTOMapper;
 
     @Override
-    public void map(CardWidgetEntity src, CardWidgetDTOv1 dst, MapperProperties mapperProperties) throws Exception {
+    public void map(CardWidgetEntity src, CardWidgetDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .id(src.id())
                 .layoutPositionKey(src.cardLayoutPosition().getKey())
                 .inPositionOrder(src.inPositionOrder())
                 .name(src.name())
                 .color(src.color())
-                .widget(widgetRestDTOMapper.convert(src.widget(), mapperProperties));
+                .widget(widgetRestDTOMapper.convert(src.widget(), mapperContext));
     }
 }

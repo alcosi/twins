@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
@@ -32,27 +32,27 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     TwinRestDTOMapper twinRestDTOMapper;
 
     @Override
-    public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        twinClassBaseRestDTOMapper.map(src, dst, mapperProperties);
-        if (mapperProperties.getModeOrUse(FieldsMode.NO_FIELDS) != FieldsMode.NO_FIELDS)
+    public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
+        twinClassBaseRestDTOMapper.map(src, dst, mapperContext);
+        if (mapperContext.getModeOrUse(FieldsMode.NO_FIELDS) != FieldsMode.NO_FIELDS)
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
-                            twinClassFieldService.findTwinClassFieldsIncludeParent(src), mapperProperties.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY))); //todo only required
-        if (mapperProperties.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.getHeadTwinClassId() != null)
+                            twinClassFieldService.findTwinClassFieldsIncludeParent(src), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY))); //todo only required
+        if (mapperContext.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.getHeadTwinClassId() != null)
             dst.validHeads(
                     twinRestDTOMapper.convertList(
-                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperProperties.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
-        if (mapperProperties.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
+                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperContext.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
+        if (mapperContext.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
-                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperProperties))
-                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperProperties));
+                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperContext))
+                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
     }
 
     @Override
-    public boolean hideMode(MapperProperties mapperProperties) {
-        return mapperProperties.hasMode(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasMode(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
     }
 
     public enum FieldsMode implements MapperMode {

@@ -7,7 +7,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -31,14 +31,14 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     final TwinService twinService;
 
     @Override
-    public void map(TwinEntity src, TwinDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
+    public void map(TwinEntity src, TwinDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(TwinMode.ID_NAME_ONLY)) {
             case DETAILED:
                 dst
-                        .assignerUser(userDTOMapper.convert(src.getAssignerUser(), mapperProperties))
-                        .authorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperProperties))
-                        .status(twinStatusRestDTOMapper.convert(src.getTwinStatus(), mapperProperties))
-                        .twinClass(twinClassRestDTOMapper.convert(src.getTwinClass(), mapperProperties))
+                        .assignerUser(userDTOMapper.convert(src.getAssignerUser(), mapperContext))
+                        .authorUser(userDTOMapper.convert(src.getCreatedByUser(), mapperContext))
+                        .status(twinStatusRestDTOMapper.convert(src.getTwinStatus(), mapperContext))
+                        .twinClass(twinClassRestDTOMapper.convert(src.getTwinClass(), mapperContext))
                         .description(src.getDescription())
                         .createdAt(src.getCreatedAt().toInstant());
             case ID_NAME_ONLY:
@@ -48,23 +48,23 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         }
 
         List<TwinFieldEntity> twinFieldEntityList;
-        switch (mapperProperties.getModeOrUse(FieldsMode.ALL_FIELDS)) {
+        switch (mapperContext.getModeOrUse(FieldsMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
                 break;
             case NOT_EMPTY_FIELDS:
                 twinFieldEntityList = twinService.findTwinFields(src.getId());
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperProperties));
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
                 break;
         }
-        switch (mapperProperties.getModeOrUse(AttachmentsMode.HIDE)) {
+        switch (mapperContext.getModeOrUse(AttachmentsMode.HIDE)) {
             case HIDE:
                 break;
             case SHOW:
-                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperProperties));
+                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
                 break;
         }
     }

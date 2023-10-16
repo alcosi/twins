@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 
@@ -17,14 +17,14 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
-    public void map(DataListEntity src, DataListDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(DataListRestDTOMapper.Mode.DETAILED)) {
+    public void map(DataListEntity src, DataListDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(DataListRestDTOMapper.Mode.DETAILED)) {
             case SHOW_OPTIONS:
                 if (src.getOptions() == null)
                     src.setOptions(dataListService.findDataListOptions(src.getId()));
                 dst.options(
                         dataListOptionRestDTOMapper.convertList(
-                                src.getOptions(), mapperProperties));
+                                src.getOptions(), mapperContext));
             case DETAILED:
                 dst
                         .id(src.getId())

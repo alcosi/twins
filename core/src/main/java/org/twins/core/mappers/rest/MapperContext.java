@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-public class MapperProperties {
+public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
     private Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
@@ -23,11 +23,11 @@ public class MapperProperties {
     private Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
     private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
 
-    public static MapperProperties create() {
-        return new MapperProperties();
+    public static MapperContext create() {
+        return new MapperContext();
     }
 
-    public MapperProperties setMode(MapperMode mapperMode) {
+    public MapperContext setMode(MapperMode mapperMode) {
         modes.put((Class<MapperMode>) mapperMode.getClass(), mapperMode);
         return this;
     }
@@ -36,17 +36,17 @@ public class MapperProperties {
         return lazyRelations;
     }
 
-    public MapperProperties setLazyRelations(boolean lazyRelations) {
+    public MapperContext setLazyRelations(boolean lazyRelations) {
         this.lazyRelations = lazyRelations;
         return this;
     }
 
-    public MapperProperties addProperty(String key, Object value) {
+    public MapperContext addProperty(String key, Object value) {
         properties.put(key, value);
         return this;
     }
 
-    public MapperProperties addRelatedObject(Object relatedObject) {
+    public MapperContext addRelatedObject(Object relatedObject) {
         if (relatedObject == null)
             return this;
         if (relatedObject instanceof UserEntity user)
@@ -65,7 +65,7 @@ public class MapperProperties {
         return (T) properties.get(key);
     }
 
-    public MapperProperties setModeIfNotPresent(MapperMode mapperMode) {
+    public MapperContext setModeIfNotPresent(MapperMode mapperMode) {
         MapperMode configuredMode = modes.get(mapperMode.getClass());
         if (configuredMode == null)
             setMode(mapperMode);

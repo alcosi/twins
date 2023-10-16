@@ -9,7 +9,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -22,12 +22,12 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
     final TwinClassFieldService twinClassFieldService;
 
     @Override
-    public void map(TwinFieldValueDTO src, FieldValue dst, MapperProperties mapperProperties) throws Exception {
+    public void map(TwinFieldValueDTO src, FieldValue dst, MapperContext mapperContext) throws Exception {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 
     @Override
-    public FieldValue convert(TwinFieldValueDTO fieldValueDTO, MapperProperties mapperProperties) throws Exception {
+    public FieldValue convert(TwinFieldValueDTO fieldValueDTO, MapperContext mapperContext) throws Exception {
         FieldValue fieldValue = null;
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
             fieldValue =  new FieldValueText()

@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.card.CardListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
@@ -51,7 +51,7 @@ public class TwinClassCardListController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.cardList(
                     cardRestDTOMapper.convertList(
-                            cardService.findCards(apiUser, twinClassId), new MapperProperties().setMode(showCardMode)));
+                            cardService.findCards(apiUser, twinClassId), new MapperContext().setMode(showCardMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

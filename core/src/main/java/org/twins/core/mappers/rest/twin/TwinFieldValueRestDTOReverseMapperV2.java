@@ -12,7 +12,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
@@ -33,12 +33,12 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
     final FeaturerService featurerService;
 
     @Override
-    public void map(FieldValueText src, FieldValue dst, MapperProperties mapperProperties) throws Exception {
+    public void map(FieldValueText src, FieldValue dst, MapperContext mapperContext) throws Exception {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 
     @Override
-    public FieldValue convert(FieldValueText fieldValueText, MapperProperties mapperProperties) throws Exception {
+    public FieldValue convert(FieldValueText fieldValueText, MapperContext mapperContext) throws Exception {
         FieldTyper fieldTyper = featurerService.getFeaturer(fieldValueText.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         FieldValue fieldValue = null;
         if (fieldTyper.getValueType() == FieldValueText.class)

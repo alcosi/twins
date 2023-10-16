@@ -22,7 +22,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -175,7 +175,7 @@ public class TwinFieldSaveController extends ApiController {
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(twinEntity.getTwinClassId(), request.getFields());
             twinService.updateTwinFields(twinEntity, fields);
             rs.twin(twinRestDTOMapperV2.convert(
-                    twinService.findEntitySafe(twinId), new MapperProperties()
+                    twinService.findEntitySafe(twinId), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)

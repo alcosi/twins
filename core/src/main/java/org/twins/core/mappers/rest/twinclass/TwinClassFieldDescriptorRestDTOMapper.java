@@ -6,7 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 
@@ -17,12 +17,12 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
-    public void map(FieldDescriptor src, TwinClassFieldDescriptorDTO dst, MapperProperties mapperProperties) throws Exception {
+    public void map(FieldDescriptor src, TwinClassFieldDescriptorDTO dst, MapperContext mapperContext) throws Exception {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 
     @Override
-    public TwinClassFieldDescriptorDTO convert(FieldDescriptor fieldDescriptor, MapperProperties mapperProperties) throws Exception {
+    public TwinClassFieldDescriptorDTO convert(FieldDescriptor fieldDescriptor, MapperContext mapperContext) throws Exception {
         if (fieldDescriptor instanceof FieldDescriptorText text)
             return new TwinClassFieldDescriptorTextDTOv1()
                     .regExp(text.regExp());
@@ -41,7 +41,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(list.supportCustom())
                         .multiple(list.multiple())
-                        .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperProperties().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
+                        .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
             }
         if (fieldDescriptor instanceof FieldDescriptorListShared listShared)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()

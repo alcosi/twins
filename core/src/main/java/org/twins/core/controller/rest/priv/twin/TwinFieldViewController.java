@@ -20,7 +20,7 @@ import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -90,7 +90,7 @@ public class TwinFieldViewController extends ApiController {
         rs
                 .twinId(twinFieldEntity.twinId())
                 .field(twinFieldRestDTOMapper.convert(
-                        twinFieldEntity, new MapperProperties()
+                        twinFieldEntity, new MapperContext()
                                 .setMode(showTwinValuesMode)
                 ));
     }

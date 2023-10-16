@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.Hashtable;
@@ -18,8 +18,8 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     final I18nService i18nService;
 
     @Override
-    public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperProperties mapperProperties) {
-        switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
+    public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .icon(src.getIcon())

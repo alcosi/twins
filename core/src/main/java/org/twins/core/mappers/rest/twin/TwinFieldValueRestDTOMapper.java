@@ -6,7 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 
@@ -17,12 +17,12 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
-    public void map(FieldValue src, TwinFieldValueDTO dst, MapperProperties mapperProperties) throws Exception {
+    public void map(FieldValue src, TwinFieldValueDTO dst, MapperContext mapperContext) throws Exception {
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 
     @Override
-    public TwinFieldValueDTO convert(FieldValue fieldValue, MapperProperties mapperProperties) throws Exception {
+    public TwinFieldValueDTO convert(FieldValue fieldValue, MapperContext mapperContext) throws Exception {
         if (fieldValue instanceof FieldValueText text)
             return new TwinFieldValueTextDTOv1()
                     .text(text.getValue());
@@ -34,7 +34,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .date(date.date());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperProperties().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
         return null;
     }
 }

@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -21,10 +21,10 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
 
     @Override
-    public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperProperties mapperProperties) throws Exception {
+    public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
         FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
         FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src);
-        switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .name(i18nService.translateToLocale(src.getNameI18n()))

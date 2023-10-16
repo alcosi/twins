@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -16,7 +16,7 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
     final FeaturerService featurerService;
 
     @Override
-    public void map(TwinFieldEntity src, FieldValueText dst, MapperProperties mapperProperties) throws Exception {
+    public void map(TwinFieldEntity src, FieldValueText dst, MapperContext mapperContext) throws Exception {
         FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         FieldValue fieldValue = fieldTyper.deserializeValue(src, src.value());
         dst.setTwinClassField(fieldValue.getTwinClassField());

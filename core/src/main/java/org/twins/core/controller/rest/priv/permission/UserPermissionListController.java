@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupWithGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
@@ -57,7 +57,7 @@ public class UserPermissionListController extends ApiController {
         try {
             rs.permissionList = permissionWithGroupRestDTOMapper.convertList(
                     permissionService.findPermissionsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissions(),
-                    new MapperProperties()
+                    new MapperContext()
                             .setMode(showPermissionMode)
                             .setMode(showPermissionGroupMode));
         } catch (ServiceException se) {
@@ -84,7 +84,7 @@ public class UserPermissionListController extends ApiController {
         try {
             rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertList(
                     permissionService.findPermissionsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissionGroups(),
-                    new MapperProperties()
+                    new MapperContext()
                             .setMode(showPermissionMode)
                             .setMode(showPermissionGroupMode));
         } catch (ServiceException se) {

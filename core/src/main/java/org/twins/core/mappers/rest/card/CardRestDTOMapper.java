@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.card.CardEntity;
 import org.twins.core.dto.rest.card.CardDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.card.CardService;
 
@@ -19,8 +19,8 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
     final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
 
     @Override
-    public void map(CardEntity src, CardDTOv1 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(CardRestDTOMapper.Mode.DETAILED)) {
+    public void map(CardEntity src, CardDTOv1 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(CardRestDTOMapper.Mode.DETAILED)) {
             case SHOW_WIDGETS:
                 dst.widgets(
                         cardWidgetRestDTOMapper.convertList(

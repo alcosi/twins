@@ -23,7 +23,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.*;
@@ -89,7 +89,7 @@ public class TwinUpdateController extends ApiController {
                     .convertList(request.getAttachmentsUpdate());
             twinService.updateTwin(twinEntity, dbTwinEntity, fields, attachmentAddEntityList, request.getAttachmentsDelete(), attachmentUpdateEntityList);
             rs.twin = twinRestDTOMapperV2
-                    .convert(twinService.findEntitySafe(twinId), new MapperProperties()
+                    .convert(twinService.findEntitySafe(twinId), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)

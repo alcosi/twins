@@ -7,7 +7,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -32,18 +32,18 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     final TwinService twinService;
 
     @Override
-    public void map(TwinEntity src, TwinDTOv2 dst, MapperProperties mapperProperties) throws Exception {
-        switch (mapperProperties.getModeOrUse(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)) {
+    public void map(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext) throws Exception {
+        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)) {
             case DETAILED:
                 dst
                         .assignerUserId(src.getAssignerUserId())
                         .authorUserId(src.getCreatedByUserId())
                         .statusId(src.getTwinStatusId())
                         .twinClassId(src.getTwinClassId())
-                        .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperProperties))
-                        .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperProperties))
-                        .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperProperties))
-                        .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperProperties))
+                        .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext))
+                        .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
+                        .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext))
+                        .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext))
                         .description(src.getDescription())
                         .createdAt(src.getCreatedAt().toInstant());
             case ID_NAME_ONLY:
@@ -53,29 +53,29 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         }
 
         List<TwinFieldEntity> twinFieldEntityList;
-        switch (mapperProperties.getModeOrUse(TwinRestDTOMapper.FieldsMode.ALL_FIELDS)) {
+        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.FieldsMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
-                dst.fields(twinFieldRestDTOMapperV2.convertList(twinFieldEntityList, mapperProperties).stream().collect(Collectors
+                dst.fields(twinFieldRestDTOMapperV2.convertList(twinFieldEntityList, mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),
                                 FieldValueText::getValue)));
                 break;
             case NOT_EMPTY_FIELDS:
                 twinFieldEntityList = twinService.findTwinFields(src.getId());
-                dst.fields(twinFieldRestDTOMapperV2.convertList(twinFieldEntityList, mapperProperties).stream().collect(Collectors
+                dst.fields(twinFieldRestDTOMapperV2.convertList(twinFieldEntityList, mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),
                                 FieldValueText::getValue)));
                 break;
         }
-        switch (mapperProperties.getModeOrUse(TwinRestDTOMapper.AttachmentsMode.HIDE)) {
+        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.AttachmentsMode.HIDE)) {
             case HIDE:
                 break;
             case SHOW:
-                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperProperties));
+                dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
                 break;
         }
     }

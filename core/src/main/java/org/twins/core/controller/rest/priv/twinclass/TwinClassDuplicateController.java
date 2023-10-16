@@ -21,7 +21,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDuplicateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -61,7 +61,7 @@ public class TwinClassDuplicateController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), new MapperProperties()
+                            twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), new MapperContext()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)

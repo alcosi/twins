@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentBaseDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 public class AttachmentBaseRestDTOReverseMapper extends RestSimpleDTOMapper<AttachmentBaseDTOv1, TwinAttachmentEntity> {
 
     @Override
-    public void map(AttachmentBaseDTOv1 src, TwinAttachmentEntity dst, MapperProperties mapperProperties) throws Exception {
+    public void map(AttachmentBaseDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setStorageLink(src.getStorageLink())
                 .setTitle(src.getTitle())

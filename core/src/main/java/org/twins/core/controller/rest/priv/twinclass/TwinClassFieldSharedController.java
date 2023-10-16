@@ -16,10 +16,9 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -52,7 +51,7 @@ public class TwinClassFieldSharedController extends ApiController {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperProperties().setMode(showDatalistMode));
+                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperContext().setMode(showDatalistMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

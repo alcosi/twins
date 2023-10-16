@@ -20,7 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
@@ -64,7 +64,7 @@ public class TwinViewController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.twin(twinRestDTOMapper.convert(
-                    twinService.findEntitySafe(twinId), new MapperProperties()
+                    twinService.findEntitySafe(twinId), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
@@ -103,7 +103,7 @@ public class TwinViewController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.twin(twinRestDTOMapperV2.convert(
-                    twinService.findEntitySafe(twinId), new MapperProperties()
+                    twinService.findEntitySafe(twinId), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
@@ -142,7 +142,7 @@ public class TwinViewController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.twin(twinRestDTOMapper.convert(
-                    twinService.findTwinByAlias(apiUser, twinAlias), new MapperProperties()
+                    twinService.findTwinByAlias(apiUser, twinAlias), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
@@ -181,7 +181,7 @@ public class TwinViewController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.twin(twinRestDTOMapper.convert(
-                    twinService.findTwinByAlias(apiUser, twinAlias), new MapperProperties()
+                    twinService.findTwinByAlias(apiUser, twinAlias), new MapperContext()
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)

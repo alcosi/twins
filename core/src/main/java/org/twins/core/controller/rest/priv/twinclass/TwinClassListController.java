@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -56,7 +56,7 @@ public class TwinClassListController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperProperties()
+                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperContext()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)
@@ -89,7 +89,7 @@ public class TwinClassListController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.twinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, null), new MapperProperties()
+                            twinClassService.findTwinClasses(apiUser, null), new MapperContext()
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)

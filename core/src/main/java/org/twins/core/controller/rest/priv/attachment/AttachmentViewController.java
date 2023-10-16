@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -55,7 +55,7 @@ public class AttachmentViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.setAttachment(
                     attachmentRestDTOMapperV2.convert(
-                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperProperties()
+                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperContext()
                                     .setMode(showUserMode)
                                     .setMode(showAttachmentMode)
                     ));

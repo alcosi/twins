@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv2;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -14,8 +14,8 @@ public class AttachmentViewRestDTOMapperV2 extends RestSimpleDTOMapper<TwinAttac
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
 
     @Override
-    public void map(TwinAttachmentEntity src, AttachmentViewDTOv2 dst, MapperProperties mapperProperties) throws Exception {
-        attachmentRestDTOMapper.map(src, dst, mapperProperties);
+    public void map(TwinAttachmentEntity src, AttachmentViewDTOv2 dst, MapperContext mapperContext) throws Exception {
+        attachmentRestDTOMapper.map(src, dst, mapperContext);
         dst.setTwinId(src.getTwinId());
     }
 }

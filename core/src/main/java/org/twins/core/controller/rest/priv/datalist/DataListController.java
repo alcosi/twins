@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -53,7 +53,7 @@ public class DataListController extends ApiController {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListId), new MapperProperties()
+                    dataListService.findEntitySafe(dataListId), new MapperContext()
                             .setMode(showDataListMode)
                             .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
@@ -80,7 +80,7 @@ public class DataListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperProperties()
+                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperContext()
                             .setMode(showDataListMode)
                             .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
@@ -107,7 +107,7 @@ public class DataListController extends ApiController {
         try {
             rs.dataListList(
                     dataListRestDTOMapper.convertList(
-                            dataListService.findDataLists(request.dataListIdList()), new MapperProperties()
+                            dataListService.findDataLists(request.dataListIdList()), new MapperContext()
                                     .setMode(showDataListMode)
                                     .setMode(showDataListOptionMode)));
         } catch (ServiceException se) {

@@ -18,7 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.LinkListRsDTOv1;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -53,11 +53,11 @@ public class TwinClassLinkListController extends ApiController {
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {
-            MapperProperties mapperProperties = new MapperProperties().setMode(showClassMode);
+            MapperContext mapperContext = new MapperContext().setMode(showClassMode);
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(twinClassId);
             rs
-                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperProperties))
-                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperProperties));
+                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperContext))
+                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

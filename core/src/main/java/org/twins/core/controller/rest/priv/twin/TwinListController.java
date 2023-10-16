@@ -21,7 +21,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -69,7 +69,7 @@ public class TwinListController extends ApiController {
             List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
             rs
                     .setTwinList(twinRestDTOMapper.convertList(
-                            twinList, new MapperProperties()
+                            twinList, new MapperContext()
                                     .setMode(showUserMode)
                                     .setMode(showStatusMode)
                                     .setMode(showClassMode)
@@ -105,10 +105,10 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
-            MapperProperties mapperProperties = new MapperProperties().setLazyRelations(lazyRelation);
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(
-                            twinList, mapperProperties
+                            twinList, mapperContext
                                     .setMode(showUserMode)
                                     .setMode(showStatusMode)
                                     .setMode(showClassMode)
@@ -117,7 +117,7 @@ public class TwinListController extends ApiController {
                                     .setMode(showTwinMode)
                                     .setMode(showTwinFieldMode)
                                     .setMode(showTwinAttachmentMode)));
-            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperProperties));
+            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

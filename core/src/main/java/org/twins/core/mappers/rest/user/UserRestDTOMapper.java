@@ -4,14 +4,14 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperProperties;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
     @Override
-    public void map(UserEntity src, UserDTOv1 dst, MapperProperties mapperProperties) {
-        switch (mapperProperties.getModeOrUse(Mode.DETAILED)) {
+    public void map(UserEntity src, UserDTOv1 dst, MapperContext mapperContext) {
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case ID_ONLY:
                 dst
                         .id(src.getId());
@@ -31,8 +31,8 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
     }
 
     @Override
-    public boolean hideMode(MapperProperties mapperProperties) {
-        return mapperProperties.hasMode(Mode.HIDE);
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasMode(Mode.HIDE);
     }
 
     public enum Mode implements MapperMode {
