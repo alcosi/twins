@@ -28,4 +28,10 @@ public class TwinSearchRqDTOv1 extends Request {
 
     @Schema(description = "Reporter id list")
     public List<UUID> createdByUserIdList;
+
+    @Schema(description = "Owner user id list")
+    public List<UUID> ownerUserIdList;
+
+    @Schema(description = "Owner businessAccount id list")
+    public List<UUID> ownerBusinessAccountIdList;
 }

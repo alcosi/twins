@@ -19,7 +19,9 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
                 .setStatusIdList(src.getStatusIdList())
                 .setAssignerUserIdList(src.getAssignerUserIdList())
                 .setHeaderTwinIdList(src.getHeadTwinIdList())
-                .setCreatedByUserIdList(src.getCreatedByUserIdList());
+                .setCreatedByUserIdList(src.getCreatedByUserIdList())
+                .setOwnerUserIdList(src.getOwnerUserIdList())
+                .setOwnerBusinessAccountIdList(src.getOwnerBusinessAccountIdList());
     }
 
 }

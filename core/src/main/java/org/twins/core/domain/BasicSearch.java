@@ -15,6 +15,8 @@ public class BasicSearch {
     List<UUID> statusIdList;
     List<UUID> assignerUserIdList;
     List<UUID> createdByUserIdList;
+    List<UUID> ownerUserIdList;
+    List<UUID> ownerBusinessAccountIdList;
 
     public BasicSearch addTwinClassId(UUID twinClassId) {
         if (twinClassIdList == null)

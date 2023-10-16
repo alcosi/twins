@@ -98,6 +98,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             predicate.add(twin.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getHeaderTwinIdList()))
             predicate.add(twin.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getOwnerUserIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.ownerUserId).in(basicSearch.getOwnerUserIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getOwnerBusinessAccountIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.ownerBusinessAccountId).in(basicSearch.getOwnerBusinessAccountIdList()));
         criteriaQuery.where(predicate.stream().toArray(Predicate[]::new));
         Query query = entityManager.createQuery(criteriaQuery);
         List<TwinEntity> ret = query.getResultList();
