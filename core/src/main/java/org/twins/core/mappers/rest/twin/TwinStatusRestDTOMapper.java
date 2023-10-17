@@ -35,6 +35,11 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
         return mapperContext.hasMode(Mode.HIDE);
     }
 
+    @Override
+    public String getObjectCacheId(TwinStatusEntity src) {
+        return src.getId().toString();
+    }
+
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED, HIDE;
 

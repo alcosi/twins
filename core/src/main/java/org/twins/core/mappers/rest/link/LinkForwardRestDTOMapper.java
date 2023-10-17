@@ -22,4 +22,9 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                 .name(i18nService.translateToLocale(src.getForwardNameI18n()))
                 .type(src.getType());
     }
+
+    @Override
+    public String getObjectCacheId(LinkEntity src) {
+        return src.getId().toString();
+    }
 }

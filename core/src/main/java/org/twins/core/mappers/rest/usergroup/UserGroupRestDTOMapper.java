@@ -30,6 +30,11 @@ public class UserGroupRestDTOMapper extends RestSimpleDTOMapper<UserGroupEntity,
         }
     }
 
+    @Override
+    public String getObjectCacheId(UserGroupEntity src) {
+        return src.getId().toString();
+    }
+
     public enum Mode implements MapperMode {
         ID_ONLY, DETAILED;
 

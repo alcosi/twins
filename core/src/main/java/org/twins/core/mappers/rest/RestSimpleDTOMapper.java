@@ -20,8 +20,13 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     public S convert(T src, MapperContext mapperContext) throws Exception {
         if (hideMode(mapperContext))
             return null;
-        S dst = type.getDeclaredConstructor().newInstance();
+        String objectCacheId = getObjectCacheId(src);
+        S dst = mapperContext.getFromCache(type, objectCacheId);
+        if (dst != null)
+            return dst;
+        dst = type.getDeclaredConstructor().newInstance();
         map(src, dst, mapperContext);
+        mapperContext.putToCache(type, objectCacheId, dst);
         return dst;
     }
 
@@ -36,5 +41,9 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
 
     public boolean hideMode(MapperContext mapperContext) {
         return false;
+    }
+
+    public String getObjectCacheId(T src) {
+        return null;
     }
 }

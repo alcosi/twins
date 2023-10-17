@@ -43,6 +43,11 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         }
     }
 
+    @Override
+    public String getObjectCacheId(TwinAttachmentEntity src) {
+        return src.getId().toString();
+    }
+
     public enum Mode implements MapperMode {
         ID_LINK_ONLY, DETAILED;
 

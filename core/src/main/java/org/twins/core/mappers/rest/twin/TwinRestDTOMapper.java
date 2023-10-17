@@ -69,6 +69,11 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         }
     }
 
+    @Override
+    public String getObjectCacheId(TwinEntity src) {
+        return src.getId().toString();
+    }
+
     public enum TwinMode implements MapperMode {
         ID_NAME_ONLY, DETAILED;
 

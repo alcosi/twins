@@ -46,4 +46,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         public static final String _DETAILED = "DETAILED";
         ;
     }
+
+    @Override
+    public String getObjectCacheId(TwinClassFieldEntity src) {
+        return src.getId().toString();
+    }
 }

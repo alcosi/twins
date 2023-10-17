@@ -79,4 +79,9 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 break;
         }
     }
+
+    @Override
+    public String getObjectCacheId(TwinEntity src) {
+        return src.getId().toString();
+    }
 }

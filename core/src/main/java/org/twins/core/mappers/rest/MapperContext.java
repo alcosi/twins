@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -13,6 +14,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
+@Slf4j
 @Accessors(fluent = true)
 public class MapperContext {
     private boolean lazyRelations = true;
@@ -22,6 +24,7 @@ public class MapperContext {
     private Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
     private Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
     private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
+    private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     public static MapperContext create() {
         return new MapperContext();
@@ -102,5 +105,37 @@ public class MapperContext {
 
     public Map<UUID, TwinStatusEntity> getRelatedTwinStatusMap() {
         return relatedTwinStatusMap;
+    }
+
+    public <S> S getFromCache(Class<S> clazz, String cacheId) {
+        if (cacheId == null)
+            return null;
+        Hashtable<String, Object> cache =  cachedObjects.get(clazz);
+        if (cache == null)
+            return null;
+        Object obj = cache.get(cacheId);
+        if (obj == null)
+            return null;
+        else if (clazz.isInstance(obj)) {
+            return (S) obj;
+        }
+        else
+            log.error("Incorrect cached object type");
+        return null;
+    }
+
+    public void putToCache(Class clazz, String cacheId, Object obj) {
+        if (cacheId == null)
+            return;
+        Hashtable<String, Object> cache =  cachedObjects.get(clazz);
+        if (cache == null) {
+            cache = new Hashtable<>();
+            cachedObjects.put(clazz, cache);
+        }
+        if (!clazz.isInstance(obj)) {
+            log.error("Incorrect cached object type");
+            return;
+        }
+        cache.put(cacheId, obj);
     }
 }

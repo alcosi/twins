@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.user;
 
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
@@ -33,6 +34,11 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
     @Override
     public boolean hideMode(MapperContext mapperContext) {
         return mapperContext.hasMode(Mode.HIDE);
+    }
+
+    @Override
+    public String getObjectCacheId(UserEntity src) {
+        return src.getId().toString();
     }
 
     public enum Mode implements MapperMode {

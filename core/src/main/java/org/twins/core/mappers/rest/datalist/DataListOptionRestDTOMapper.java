@@ -51,4 +51,9 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
         public static final String _ID_NAME_ONLY = "ID_NAME_ONLY";
         public static final String _DETAILED = "DETAILED";
     }
+
+    @Override
+    public String getObjectCacheId(DataListOptionEntity src) {
+        return src.getId().toString();
+    }
 }

@@ -50,4 +50,9 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
         public static final String _DETAILED = "DETAILED";
         public static final String _SHOW_OPTIONS = "SHOW_OPTIONS";
     }
+
+    @Override
+    public String getObjectCacheId(DataListEntity src) {
+        return src.getId().toString();
+    }
 }

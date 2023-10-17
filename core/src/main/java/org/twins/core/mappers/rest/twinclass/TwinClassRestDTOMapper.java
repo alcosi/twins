@@ -55,6 +55,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         return mapperContext.hasMode(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
     }
 
+    @Override
+    public String getObjectCacheId(TwinClassEntity src) {
+        return src.getId().toString();
+    }
+
     public enum FieldsMode implements MapperMode {
         NO_FIELDS, ALL_FIELDS, ONLY_REQUIRED;
         public static final String _NO_FIELDS = "NO_FIELDS";
