@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+    <property name="LOGS_DIR" value="./logs" />
+
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${catalina.base}/logs/twins-core.log</file>
+        <file>${LOGS_DIR}/twins-core.log</file>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
         </filter>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${catalina.base}/logs/twins-core-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <fileNamePattern>${LOGS_DIR}/twins-core-%d{yyyy-MM-dd}.zip</fileNamePattern>
             <maxHistory>360</maxHistory>
         </rollingPolicy>
         <encoder>
