@@ -16,10 +16,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.web.client.RestTemplate;
+import org.twins.core.config.filter.LoggingFilter;
 
 import javax.sql.DataSource;
 
@@ -53,4 +55,14 @@ public class ApplicationConfig {
         return messageSource;
     }
 
+    @Bean
+    public LoggingFilter.LogInternalService logInternalService() {
+        return new LoggingFilter.LogInternalService();
+    }
+
+    @Order(1)
+    @Bean(name = "loggingFilterBean", value = "loggingFilterBean")
+    public LoggingFilter loggingFilter() {
+        return new LoggingFilter();
+    }
 }
