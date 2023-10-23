@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
@@ -46,6 +47,7 @@ public class DataListController extends ApiController {
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
+    @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
             @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
@@ -72,6 +74,7 @@ public class DataListController extends ApiController {
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_by_key/{dataListKey}/v1", method = RequestMethod.GET)
+    @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
             @Parameter(name = "dataListKey", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
             @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
@@ -99,6 +102,7 @@ public class DataListController extends ApiController {
                     @Schema(implementation = DataListSearchRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list/search/v1", method = RequestMethod.POST)
+    @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListSearchV1(
             @Parameter(name = "showDataListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDataListMode,
             @Parameter(name = "showDataListOptionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode,

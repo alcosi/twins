@@ -16,4 +16,8 @@ import java.lang.annotation.Target;
 @Retention(value = RetentionPolicy.RUNTIME)
 public @interface Loggable {
     boolean value() default true;
+
+    int rqBodyThreshold() default  0;
+
+    int rsBodyThreshold() default  0;
 }

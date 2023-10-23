@@ -56,7 +56,8 @@ public class LoggingFilter extends OncePerRequestFilter {
 
         private void logRequest(ContentCachingRequestWrapper request, String rqId) {
             logHeaders(request, List.of(HEADER_DOMAIN_ID, HEADER_CHANNEL, HEADER_BUSINESS_ACCOUNT_ID, HEADER_LOCALE));
-            logContent(request.getContentAsByteArray(), request.getContentType(), request.getCharacterEncoding(), "RQ", rqId);
+            Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
+            logContent(request.getContentAsByteArray(), request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
         }
 
         private void logHeaders(ContentCachingRequestWrapper request, List<String> headerNameList) {
@@ -67,31 +68,48 @@ public class LoggingFilter extends OncePerRequestFilter {
                     logHeaders.add(headerName +  ":[" + headerValue + "]");
             }
             if (logHeaders.size() > 0)
-                log.info("RQ_HEADERS: {}", String.join(", ", logHeaders));
+                logInfoBoth("RQ_HEADERS: {}", String.join(", ", logHeaders));
         }
 
 
-        private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId) {
+        private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId, int logShortThreshold) {
             try {
-                log.info("{}_BODY: {}", prfx, new String(content, contentEncoding));
+                String message = new String(content, contentEncoding);
+                log.info("{}_BODY: {}", prfx, message);
+                if (logShortThreshold == 0 || logShortThreshold > message.length())
+                    logShort.info("{}_BODY: {}", prfx, message);
+                else
+                    logShort.info("{}_BODY: <content> is longer then {} symbols. Please see other log file", prfx, logShortThreshold);
             } catch (Throwable t) {
-                log.error("", t);
+                logErrorBoth("", t);
             }
         }
 
         private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, String rqId, Long time) {
             int status = response.getStatus();
             String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-            log.info("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), request.getRequestURI(), queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
+            logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), request.getRequestURI(), queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
             response.getHeaderNames().forEach(headerName ->
                     log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
             byte[] content = response.getContentAsByteArray();
-            logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId);
-
+            Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
+            logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId, loggable != null ? loggable.rsBodyThreshold() : 0);
         }
     }
 
-    static final Logger log = ((Logger) LoggerFactory.getLogger(LoggingFilter.class));
+    static final Logger log = ((Logger) LoggerFactory.getLogger("RqRsLogger"));
+    static final Logger logShort = ((Logger) LoggerFactory.getLogger("RqRsLoggerShort"));
+
+    private static void logInfoBoth(String format, Object... argArray) {
+        log.info(format, argArray);
+        logShort.info(format, argArray);
+    }
+
+    private static void logErrorBoth(String msg, Throwable t) {
+        log.error(msg, t);
+        logShort.error(msg, t);
+    }
+
 
     static {
         log.setLevel(Level.TRACE);
@@ -105,7 +123,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         try {
             return h.getHandler(request);
         } catch (Exception e) {
-            log.error("", e);
+            logErrorBoth("", e);
             return null;
         }
     }
@@ -114,25 +132,30 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         logController(request);
-        if (isHaveToLog(request)) {
+        if (isLoggable(request)) {
             logSessionId(request);
             doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain);
         } else {
             filterChain.doFilter(request,response);
             log.trace("Ignoring request logging {}", request.getRequestURI());
+            logShort.trace("Ignoring request logging {}", request.getRequestURI());
         }
     }
 
-    private Boolean isHaveToLog(HttpServletRequest request) {
-        Method method = (Method) request.getAttribute(CONTROLLER_METHOD);
-        if (method == null) {
-            return true;
-        }
-        Loggable loggingController = method.getDeclaredAnnotation(Loggable.class);
+    private Boolean isLoggable(HttpServletRequest request) {
+        Loggable loggingController = getLoggableMethodAnnotation(request);
         if (loggingController == null) {
             return true;
         }
         return loggingController.value();
+    }
+
+    protected static Loggable getLoggableMethodAnnotation(HttpServletRequest request) {
+        Method method = (Method) request.getAttribute(CONTROLLER_METHOD);
+        if (method == null) {
+            return null;
+        }
+        return method.getDeclaredAnnotation(Loggable.class);
     }
 
     private void logController(HttpServletRequest request) {
@@ -173,7 +196,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         try {
             String id = getIdString();
             String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-            log.info("RQ_URL {}:{}{}", request.getMethod(), request.getRequestURI(), queryString);
+            logInfoBoth("RQ_URL {}:{}{}", request.getMethod(), request.getRequestURI(), queryString);
             request.setAttribute(REQUEST_LOG_ID, id);
             filterChain.doFilter(request, response);
         } finally {

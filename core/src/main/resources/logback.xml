@@ -21,6 +21,25 @@
         </encoder>
     </appender>
 
+    <appender name="RQ-RS-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOGS_DIR}/twins-RqRs.log</file>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOGS_DIR}/twins-RqRs-%d{yyyy-MM-dd}.zip</fileNamePattern>
+            <maxHistory>360</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <charset>UTF-8</charset>
+            <immediateFlush>true</immediateFlush>
+            <pattern>
+                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}|%X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
+                '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
+            </pattern>
+        </encoder>
+    </appender>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>INFO</level>
@@ -41,6 +60,12 @@
         <appender-ref ref="FILE"/>
     </appender>
 
+    <appender name="ASYNC-RQ-RS-FILE" class="ch.qos.logback.classic.AsyncAppender">
+        <queueSize>1000</queueSize>
+        <discardingThreshold>0</discardingThreshold>
+        <appender-ref ref="RQ-RS-FILE"/>
+    </appender>
+
     <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
@@ -50,7 +75,10 @@
     <logger name="org.cambium" level="INFO" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
-    <logger name="org.twins.core.config.filter.LoggingFilter" level="INFO" additivity="false">
+    <logger name="RqRsLogger" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC-RQ-RS-FILE"/>
+    </logger>
+    <logger name="RqRsLoggerShort" level="INFO" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
 
