@@ -3,6 +3,7 @@ package org.twins.core.dao.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "domain_business_account")
-public class DomainBusinessAccountEntity {
+public class DomainBusinessAccountEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -57,4 +58,8 @@ public class DomainBusinessAccountEntity {
     @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
     private TwinClassSchemaEntity twinClassSchema;
+
+    public String logShort() {
+        return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId+ "]";
+    }
 }

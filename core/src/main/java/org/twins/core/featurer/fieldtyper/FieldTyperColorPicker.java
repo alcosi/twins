@@ -26,10 +26,10 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueColorHEX value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().isRequired() && StringUtils.isEmpty(value.hex()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.twinClassField().logShort() + " is required");
+        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.hex()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().logShort() + " is required");
         if (!value.hex().matches(HEX_PATTERN))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.twinClassField().logShort() +  " hex[" + value.hex() + "] does not match pattern[" + HEX_PATTERN + "]");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().logShort() +  " hex[" + value.hex() + "] does not match pattern[" + HEX_PATTERN + "]");
         return value.hex();
     }
 

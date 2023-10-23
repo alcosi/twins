@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class")
-public class TwinClassEntity {
+public class TwinClassEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

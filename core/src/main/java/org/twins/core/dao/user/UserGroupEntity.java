@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group")
-public class UserGroupEntity {
+public class UserGroupEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

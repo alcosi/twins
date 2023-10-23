@@ -88,7 +88,7 @@ public class TwinFieldViewController extends ApiController {
 
     private void fillResponse(TwinFieldEntity twinFieldEntity, TwinClassFieldRestDTOMapper.Mode showTwinValuesMode, TwinFieldRsDTOv1 rs) throws Exception {
         rs
-                .twinId(twinFieldEntity.twinId())
+                .twinId(twinFieldEntity.getTwinId())
                 .field(twinFieldRestDTOMapper.convert(
                         twinFieldEntity, new MapperContext()
                                 .setMode(showTwinValuesMode)

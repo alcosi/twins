@@ -19,7 +19,6 @@ import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.EntitySecureFindService;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -87,7 +86,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
         if (subClass.getHeadTwinClassId() != null)
             if (headTwinId != null) {
-                TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, "headTwinId", twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
+                TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
                 if (!headTwinEntity.getTwinClassId().equals(subClass.getHeadTwinClassId()))
                     throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.logShort() + " is not allowed for twinClass[" + subClass.getId() + "]");
                 return headTwinId;
@@ -100,6 +99,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Transactional
     public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) throws ServiceException {
         TwinClassEntity srcTwinClassEntity = findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        log.info(srcTwinClassEntity + " will be duplicated with ne key[" + newKey + "]");
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
                 .setKey(newKey)
                 .setCreatedByUserId(apiUser.getUser().getId())
@@ -125,7 +125,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                     .setDescriptionI18n(i18nDuplicate)
                     .setDescriptionI18NId(i18nDuplicate.getId());
         }
-        duplicateTwinClassEntity = twinClassRepository.save(duplicateTwinClassEntity);
+        duplicateTwinClassEntity = entitySmartService.save(duplicateTwinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         twinClassFieldService.duplicateFieldsForClass(apiUser, twinClassId, duplicateTwinClassEntity.getId());
         return duplicateTwinClassEntity;
     }

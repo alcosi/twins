@@ -44,7 +44,7 @@ public class DomainBusinessAccountAddController extends ApiController {
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {
         Response rs = new Response();
         try {
-            domainService.addBusinessAccount(domainId, request.businessAccountId, false, EntitySmartService.CreateMode.ifNotPresentCreate);
+            domainService.addBusinessAccount(domainId, request.businessAccountId, false, EntitySmartService.SaveMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

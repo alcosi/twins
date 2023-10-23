@@ -46,7 +46,7 @@ public class DomainUserAddController extends ApiController {
             domainService.addUser(
                     domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     request.userId,
-                    EntitySmartService.CreateMode.ifNotPresentCreate);
+                    EntitySmartService.SaveMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

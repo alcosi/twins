@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.attachment;
+package org.twins.core.dto.rest.link;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "AttachmentAddRsV1")
-public class AttachmentAddRsDTOv1 extends Response {
+@Schema(name =  "TwinLinkAddRsV1")
+public class TwinLinkAddRsDTOv1 extends Response {
     @Schema(description = "id")
-    public List<UUID> attachmentIdList;
+    public List<UUID> twinLinkIdList;
 }

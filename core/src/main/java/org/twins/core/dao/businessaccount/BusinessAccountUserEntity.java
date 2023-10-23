@@ -3,15 +3,16 @@ package org.twins.core.dao.businessaccount;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "business_account_user")
-public class BusinessAccountUserEntity {
+public class BusinessAccountUserEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -29,4 +30,8 @@ public class BusinessAccountUserEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
+
+    public String logShort() {
+        return "businessAccountUser[id:" + id + ", businessAccount:" + businessAccountId + ", user:" + userId;
+    }
 }

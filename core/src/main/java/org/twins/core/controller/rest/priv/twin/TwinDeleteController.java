@@ -50,7 +50,7 @@ public class TwinDeleteController extends ApiController {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();
-            twinService.deleteTwin(apiUser, twinId);
+            twinService.deleteTwin(twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

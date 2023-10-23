@@ -87,7 +87,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
-        return entitySmartService.findById(dataListOptionId, "dataListOption", dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        return entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
     }
 }
 

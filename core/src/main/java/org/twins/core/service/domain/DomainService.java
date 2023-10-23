@@ -3,6 +3,7 @@ package org.twins.core.service.domain;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -39,37 +40,37 @@ public class DomainService {
     final TwinflowService twinflowService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(domainId, "domainId", domainRepository, checkMode);
+        return entitySmartService.check(domainId, domainRepository, checkMode);
     }
 
     public DomainEntity findDomain(UUID domainId, EntitySmartService.FindMode checkMode) throws ServiceException {
-        return entitySmartService.findById(domainId, "domainId", domainRepository, checkMode);
+        return entitySmartService.findById(domainId, domainRepository, checkMode);
     }
 
 
-    public void addUser(UUID domainId, UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
+    public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode) throws ServiceException {
         userService.addUser(userId, userCreateMode);
         if (domainUserRepository.findByDomainIdAndUserId(domainId, userId) != null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
         DomainUserEntity domainUserEntity = new DomainUserEntity()
-                .domainId(domainId)
-                .userId(userId)
-                .createdAt(Timestamp.from(Instant.now()));
-        domainUserRepository.save(domainUserEntity);
+                .setDomainId(domainId)
+                .setUserId(userId)
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
         DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId);
         if (domainUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "domain[" + domainId + "] user[" + userId + "] is not registered");
-        domainUserRepository.deleteById(domainUserEntity.id());
+        entitySmartService.deleteAndLog(domainUserEntity.getId(), domainUserRepository);
     }
 
     public void addBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
-        addBusinessAccount(domainId, businessAccountId, false, EntitySmartService.CreateMode.ifNotPresentCreate);
+        addBusinessAccount(domainId, businessAccountId, false, EntitySmartService.SaveMode.ifNotPresentCreate);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, boolean ignoreAlreadyExists, EntitySmartService.CreateMode businessAccountCreateMode) throws ServiceException {
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, boolean ignoreAlreadyExists, EntitySmartService.SaveMode businessAccountCreateMode) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
@@ -86,21 +87,25 @@ public class DomainService {
                 .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domainEntity.get().getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domainEntity.get().getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
-        domainBusinessAccountRepository.save(domainBusinessAccountEntity);
+        entitySmartService.save(domainBusinessAccountEntity, domainBusinessAccountRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
-        if (updateEntity.getPermissionSchemaId() != null) {
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("permissionSchema", dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
             dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
-        if (updateEntity.getTwinClassSchemaId() != null) {
+        if (changesHelper.isChanged("twinClassSchema", dbEntity.getTwinClassSchemaId(), updateEntity.getTwinClassSchemaId())) {
             dbEntity.setTwinClassSchemaId(twinClassService.checkTwinClassSchemaAllowed(updateEntity.getDomainId(), updateEntity.getTwinClassSchemaId()));
         }
-        if (updateEntity.getTwinflowSchemaId() != null) {
+        if (changesHelper.isChanged("twinflowSchema", dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
-        domainBusinessAccountRepository.save(dbEntity);
+        if (changesHelper.hasChanges()) {
+            dbEntity = domainBusinessAccountRepository.save(dbEntity);
+            log.info(dbEntity.logShort() + " was updated: " + changesHelper.collectForLog());
+        }
     }
 
     public DomainBusinessAccountEntity getDomainBusinessAccountEntitySafe(UUID domainId, UUID businessAccountId) throws ServiceException {
@@ -112,6 +117,6 @@ public class DomainService {
 
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
-        domainBusinessAccountRepository.deleteById(domainBusinessAccountEntity.getId());
+        entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 }

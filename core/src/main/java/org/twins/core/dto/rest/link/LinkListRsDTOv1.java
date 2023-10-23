@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
@@ -14,8 +16,8 @@ import java.util.List;
 @Schema(name = "TwinClassLinkListRsV1")
 public class LinkListRsDTOv1 extends Response {
     @Schema()
-    public List<LinkDTOv1> forwardLinkList;
+    public Map<UUID, LinkDTOv1> forwardLinkMap;
 
     @Schema()
-    public List<LinkDTOv1> backwardLinkList;
+    public Map<UUID, LinkDTOv1> backwardLinkMap;
 }

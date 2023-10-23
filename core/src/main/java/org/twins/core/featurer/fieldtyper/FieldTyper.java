@@ -53,15 +53,15 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!valuetype.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT);
         }
-        Properties properties = featurerService.extractProperties(this, twinFieldEntity.twinClassField().getFieldTyperParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, twinFieldEntity.getTwinClassField().getFieldTyperParams(), new HashMap<>());
         return serializeValue(properties, twinFieldEntity, value);
     }
 
     protected abstract String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, T value) throws ServiceException;
 
     public T deserializeValue(TwinFieldEntity twinFieldEntity, Object value) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, twinFieldEntity.twinClassField().getFieldTyperParams(), new HashMap<>());
-        return (T) deserializeValue(properties, twinFieldEntity, value).setTwinClassField(twinFieldEntity.twinClassField());
+        Properties properties = featurerService.extractProperties(this, twinFieldEntity.getTwinClassField().getFieldTyperParams(), new HashMap<>());
+        return (T) deserializeValue(properties, twinFieldEntity, value).setTwinClassField(twinFieldEntity.getTwinClassField());
     }
 
     protected abstract T deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value);

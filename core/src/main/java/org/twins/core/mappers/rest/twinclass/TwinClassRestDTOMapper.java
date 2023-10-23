@@ -45,8 +45,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
-                    .forwardLinkList(linkForwardRestDTOMapper.convertList(findTwinClassLinksResult.getForwardLinks(), mapperContext))
-                    .backwardLinkList(linkBackwardRestDTOMapper.convertList(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
+                    .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))
+                    .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
     }
 

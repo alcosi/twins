@@ -35,9 +35,9 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
 
     @Override
     public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInHead(dataListOptionEntity.getDataListId(), twinFieldEntity.twinClassFieldId(), twinFieldEntity.twin().getHeadTwinId())
+        if (dataListOptionRepository.findByDataListIdAndNotUsedInHead(dataListOptionEntity.getDataListId(), twinFieldEntity.getTwinClassFieldId(), twinFieldEntity.getTwin().getHeadTwinId())
                 .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.twinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in headTwin");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.getTwinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in headTwin");
         return super.checkOptionAllowed(twinFieldEntity, dataListOptionEntity);
     }
 

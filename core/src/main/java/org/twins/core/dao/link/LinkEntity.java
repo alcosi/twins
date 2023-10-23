@@ -2,6 +2,7 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.cambium.common.PrettyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "link")
-public class LinkEntity {
+public class LinkEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -35,6 +36,9 @@ public class LinkEntity {
     @Column(name = "link_type_id")
     @Enumerated(EnumType.STRING)
     private TwinlinkType type;
+
+    @Column(name = "mandatory")
+    private boolean mandatory;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
@@ -69,6 +73,6 @@ public class LinkEntity {
     public enum TwinlinkType {
         ManyToOne,
         ManyToMany,
-        ManyToOneMandatory,
+        OneToOne,
     }
 }

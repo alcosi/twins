@@ -42,9 +42,9 @@ public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
 
     @Override
     public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(dataListOptionEntity.getDataListId(), twinFieldEntity.twinClassFieldId(), getBusinessAccountId(twinFieldEntity.twinClassField()))
+        if (dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(dataListOptionEntity.getDataListId(), twinFieldEntity.getTwinClassFieldId(), getBusinessAccountId(twinFieldEntity.getTwinClassField()))
                 .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.twinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in businessAccount");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.getTwinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in businessAccount");
         return super.checkOptionAllowed(twinFieldEntity, dataListOptionEntity);
     }
 

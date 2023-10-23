@@ -2,13 +2,14 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.cambium.common.PrettyLoggable;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "permission")
-public class PermissionEntity {
+public class PermissionEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

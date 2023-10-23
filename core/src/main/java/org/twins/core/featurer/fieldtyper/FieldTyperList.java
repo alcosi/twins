@@ -1,6 +1,5 @@
 package org.twins.core.featurer.fieldtyper;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -38,16 +37,16 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value) throws ServiceException {
-        if (twinFieldEntity.twinClassField().isRequired() && CollectionUtils.isEmpty(value.options()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.twinClassField().logShort() + " is required");
+        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.options()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().logShort() + " is required");
         if (value.options() != null && value.options().size() > 1 && !allowMultiply(properties))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.twinClassField().logShort() + " multiply options are not allowed");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.getTwinClassField().logShort() + " multiply options are not allowed");
         List<String> ret = new ArrayList<>();
         UUID fieldListId = listUUID.extract(properties);
         for (DataListOptionEntity dataListOptionEntity : value.options()) {
-            DataListOptionEntity dbEntity = entitySmartService.findById(dataListOptionEntity.getId(), "dataListOptionId", dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            DataListOptionEntity dbEntity = entitySmartService.findById(dataListOptionEntity.getId(), dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
             if (!dbEntity.getDataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.twinClassField().logShort() + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
+                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.getTwinClassField().logShort() + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
             ret.add(checkOptionAllowed(twinFieldEntity, dataListOptionEntity).toString());
         }
         return StringUtils.join(ret, LIST_SPLITTER);

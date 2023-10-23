@@ -3,16 +3,14 @@ package org.twins.core.service.user;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 @Slf4j
@@ -23,35 +21,35 @@ public class UserService {
     final EntitySmartService entitySmartService;
 
     public UUID checkUserId(UUID userId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(userId, "userId", userRepository, checkMode);
+        return entitySmartService.check(userId, userRepository, checkMode);
     }
 
     public UserEntity findByUserId(UUID userId, EntitySmartService.FindMode findMode) throws ServiceException {
-        return entitySmartService.findById(userId, "userId", userRepository, findMode);
+        return entitySmartService.findById(userId, userRepository, findMode);
     }
 
-    public void addUser(UserEntity userEntity, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
+    public void addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
-        entitySmartService.create(userEntity.getId(), userEntity, userRepository, userCreateMode);
+        entitySmartService.save(userEntity.getId(), userEntity, userRepository, userSaveMode);
     }
 
-    public void addUser(UUID userId, EntitySmartService.CreateMode userCreateMode) throws ServiceException {
+    public void addUser(UUID userId, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         UserEntity userEntity = new UserEntity()
                 .setId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        addUser(userEntity, userCreateMode);
+        addUser(userEntity, userSaveMode);
     }
 
     public void updateUser(UserEntity updateEntity) throws ServiceException {
-        Optional<UserEntity> dbEntity = userRepository.findById(updateEntity.getId());
-        if (dbEntity.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "unknown user[" + updateEntity.getId() + "]");
-        if (StringUtils.isNoneEmpty(updateEntity.getName()))
-            dbEntity.get().setName(updateEntity.getName());
-        if (StringUtils.isNoneEmpty(updateEntity.getEmail()))
-            dbEntity.get().setEmail(updateEntity.getEmail());
-        if (StringUtils.isNoneEmpty(updateEntity.getAvatar()))
-            dbEntity.get().setAvatar(updateEntity.getAvatar());
-        userRepository.save(dbEntity.get());
+        UserEntity dbEntity = entitySmartService.findById(updateEntity.getId(), userRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("name", dbEntity.getName(), updateEntity.getName()))
+            dbEntity.setName(updateEntity.getName());
+        if (changesHelper.isChanged("email", dbEntity.getEmail(), updateEntity.getEmail()))
+            dbEntity.setEmail(updateEntity.getEmail());
+        if (changesHelper.isChanged("avatar", dbEntity.getAvatar(), updateEntity.getAvatar()))
+            dbEntity.setAvatar(updateEntity.getAvatar());
+        if (changesHelper.hasChanges())
+            entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
     }
 }

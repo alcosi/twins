@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
@@ -28,11 +29,11 @@ public class AttachmentService {
     final UserService userService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(attachmentId, "attachmentId", twinAttachmentRepository, checkMode);
+        return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
     }
 
     public TwinAttachmentEntity findAttachment(UUID attachmentId, EntitySmartService.FindMode findMode) throws ServiceException {
-        return entitySmartService.findById(attachmentId, "attachmentId", twinAttachmentRepository, findMode);
+        return entitySmartService.findById(attachmentId, twinAttachmentRepository, findMode);
     }
 
     @Transactional
@@ -44,14 +45,16 @@ public class AttachmentService {
                     .setCreatedByUserId(userEntity.getId())
                     .setCreatedByUser(userEntity);
         }
-        return IterableUtils.toList(twinAttachmentRepository.saveAll(attachments));
+        return IterableUtils.toList(entitySmartService.saveAllAndLog(attachments, twinAttachmentRepository));
     }
 
     @Transactional
     public TwinAttachmentEntity addAttachment(TwinAttachmentEntity twinAttachmentEntity) {
-        return twinAttachmentRepository.save(
+        TwinAttachmentEntity ret = twinAttachmentRepository.save(
                 twinAttachmentEntity
                         .setCreatedAt(Timestamp.from(Instant.now())));
+        log.info(ret.logShort() + " was saved");
+        return ret;
     }
 
     public List<TwinAttachmentEntity> findAttachmentByTwinId(UUID twinId) {
@@ -59,45 +62,47 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteById(ApiUser apiUser, UUID attachmentId) {
-        twinAttachmentRepository.deleteById(attachmentId);
+    public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
+        entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
     }
 
     @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
-        boolean doUpdate;
+        ChangesHelper changesHelper = new ChangesHelper();
         TwinAttachmentEntity dbAttachmentEntity;
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
-            doUpdate = false;
-            dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), "twinAttachment", twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (attachmentEntity.getDescription() != null && !attachmentEntity.getDescription().equals(dbAttachmentEntity.getDescription())) {
+            changesHelper.flush();
+            dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            if (changesHelper.isChanged("description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
-                doUpdate = true;
             }
-            if (attachmentEntity.getTitle() != null && !attachmentEntity.getTitle().equals(dbAttachmentEntity.getTitle())) {
+            if (changesHelper.isChanged("title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
-                doUpdate = true;
             }
-            if (attachmentEntity.getStorageLink() != null && !attachmentEntity.getStorageLink().equals(dbAttachmentEntity.getStorageLink())) {
+            if (changesHelper.isChanged("storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
                 dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
-                doUpdate = true;
             }
-            if (attachmentEntity.getExternalId() != null && !attachmentEntity.getExternalId().equals(dbAttachmentEntity.getExternalId())) {
+            if (changesHelper.isChanged("externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
-                doUpdate = true;
             }
-            if (doUpdate)
+            if (changesHelper.hasChanges()) {
                 twinAttachmentRepository.save(dbAttachmentEntity);
+                log.info(dbAttachmentEntity.logShort() + " was updated: " + changesHelper.collectForLog());
+            }
         }
+    }
 
+    private String createChangesLogString(String field, String oldValue, String newValue) {
+        return field + " was changed from[" + oldValue + "] to[" + newValue + "]";
     }
 
     @Transactional
     public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
+        attachmentDeleteUUIDList.forEach(aId -> log.info("Attachment[" +  aId + "] will be deleted (if present)"));
         twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
     }
 }

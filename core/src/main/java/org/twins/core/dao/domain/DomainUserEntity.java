@@ -3,6 +3,7 @@ package org.twins.core.dao.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -10,9 +11,9 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "domain_user")
-public class DomainUserEntity {
+public class DomainUserEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -33,4 +34,8 @@ public class DomainUserEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
+
+    public String logShort() {
+        return "domainUser[id:" + id + ", domainId:" + domainId + ", userId:" + userId + "]";
+    }
 }

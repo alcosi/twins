@@ -17,8 +17,8 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
 
     @Override
     public void map(TwinFieldEntity src, FieldValueText dst, MapperContext mapperContext) throws Exception {
-        FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-        FieldValue fieldValue = fieldTyper.deserializeValue(src, src.value());
+        FieldTyper fieldTyper = featurerService.getFeaturer(src.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+        FieldValue fieldValue = fieldTyper.deserializeValue(src, src.getValue());
         dst.setTwinClassField(fieldValue.getTwinClassField());
         if (fieldValue instanceof FieldValueText text)
             dst.setValue(text.getValue());

@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user")
-public class UserEntity {
+public class UserEntity implements PrettyLoggable {
     @Id
     private UUID id;
 
@@ -29,5 +30,9 @@ public class UserEntity {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    public String logShort()  {
+        return "user[id:" + id + ", email:" + email + "]";
+    }
 }
 

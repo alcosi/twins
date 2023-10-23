@@ -52,16 +52,16 @@ public class UserAddController extends ApiController {
                     .setName(request.user.name)
                     .setEmail(request.user.email)
                     .setAvatar(request.user.avatar),
-                    EntitySmartService.CreateMode.ifPresentThrowsElseCreate
+                    EntitySmartService.SaveMode.ifPresentThrowsElseCreate
             );
             if (request.businessAccountId != null) {
-                businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.CreateMode.ifNotPresentCreate);
+                businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate);
             }
             if (request.domainId != null) {
-                domainService.addUser(request.domainId, request.user.id, EntitySmartService.CreateMode.none);
+                domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none);
             }
             if (request.domainId != null && request.businessAccountId != null) {
-                domainService.addBusinessAccount(request.domainId, request.businessAccountId, true, EntitySmartService.CreateMode.none);
+                domainService.addBusinessAccount(request.domainId, request.businessAccountId, true, EntitySmartService.SaveMode.none);
             }
 
         } catch (ServiceException se) {

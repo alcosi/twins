@@ -21,6 +21,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
                 .id(src.getId())
                 .dstTwinClass(twinClassBaseRestDTOMapper.convert(src.getSrcTwinClass(), mapperContext))
                 .name(i18nService.translateToLocale(src.getBackwardNameI18n()))
+                .mandatory(false)
                 .type(src.getType());
     }
 

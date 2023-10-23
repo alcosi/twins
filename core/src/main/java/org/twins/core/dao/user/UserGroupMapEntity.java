@@ -3,6 +3,7 @@ package org.twins.core.dao.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
 import java.io.Serializable;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group_map")
-public class UserGroupMapEntity {
+public class UserGroupMapEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

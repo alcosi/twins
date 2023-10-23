@@ -34,4 +34,5 @@ public interface DTOExamples {
     String PERMISSION_ID = "abdeef68-7d6d-4385-9906-e3b701d2c503";
     String PERMISSION_GROUP_ID = "7efd9df0-cae7-455f-a721-eaec455105a4";
     String INSTANT = "2023-09-13T09:32:08.263994Z";
+    String LINK_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
 }

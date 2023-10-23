@@ -23,6 +23,9 @@ public class LinkDTOv1 {
     @Schema(description = "name", example = "Serial number")
     public String name;
 
-    @Schema(description = "required", example = "true")
+    @Schema(description = "if link is mandatory, twin can not be created without it", example = "false")
+    public boolean mandatory;
+
+    @Schema(description = "link type", example = "ManyToOne")
     public LinkEntity.TwinlinkType type;
 }

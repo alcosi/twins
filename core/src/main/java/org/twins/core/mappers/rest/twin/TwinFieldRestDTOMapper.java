@@ -22,10 +22,10 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinFieldEntity,
 
     @Override
     public void map(TwinFieldEntity src, TwinFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
-        FieldTyper fieldTyper = featurerService.getFeaturer(src.twinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+        FieldTyper fieldTyper = featurerService.getFeaturer(src.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         dst
-                .id(src.id())
-                .twinClassField(twinClassFieldRestDTOMapper.convert(src.twinClassField(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY)))
-                .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src, src.value())));
+                .id(src.getId())
+                .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.ID_KEY_ONLY)))
+                .value(twinFieldValueRestDTOMapper.convert(fieldTyper.deserializeValue(src, src.getValue())));
     }
 }

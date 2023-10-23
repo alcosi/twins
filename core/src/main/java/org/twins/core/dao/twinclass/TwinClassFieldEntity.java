@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
-public class TwinClassFieldEntity {
+public class TwinClassFieldEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -77,6 +78,6 @@ public class TwinClassFieldEntity {
     private PermissionEntity editPermission;
 
     public String logShort() {
-        return "TwinClassField[id:" + id + ", key:" + key + "]";
+        return "twinClassField[id:" + id + ", key:" + key + "]";
     }
 }

@@ -2,54 +2,119 @@ package org.twins.core.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.PrettyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @Slf4j
 public class EntitySmartService {
-    public <T> void create(UUID uuid, T entity, CrudRepository<T, UUID> repository, CreateMode mode) throws ServiceException {
+    public static final String DAO_BASE_PACKAGE = "org.twins.core.dao";
+    public <T> T save(UUID uuid, T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
+        Optional<T> dbEntity;
         switch (mode) {
             case none:
-                return;
+                return entity;
             case ifNotPresentCreate:
-                if (repository.findById(uuid).isEmpty())
-                    repository.save(entity);
-                return;
-            case ifNotPresentThrows:
-                if (repository.findById(uuid).isEmpty())
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + shortName(entity) + "[" + uuid + "]");
-                return;
-            case ifPresentThrows:
-                if (repository.findById(uuid).isPresent())
-                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, shortName(entity) + "[" + uuid + "] is already exist");
-                return;
-            case ifPresentThrowsElseCreate:
-                if (repository.findById(uuid).isPresent())
-                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, shortName(entity) + "[" + uuid + "] is already exist");
-                else
-                    repository.save(entity);
-                return;
-            case createIgnoreExists:
-                try {
-                    repository.save(entity);
-                } catch (Exception exception) {
-                    log.warn(entity.getClass().getSimpleName() + "[" + uuid + "] is already exist");
+                dbEntity = repository.findById(throwIfEmptyId(uuid));
+                if (dbEntity.isEmpty()) {
+                    entity = repository.save(entity);
+                    logSaving(uuid, entity);
+                    return entity;
                 }
-                return;
-            case createAndThrowsIfPresent:
-                repository.save(entity);
-                return;
+                return dbEntity.get();
+            case ifNotPresentThrows:
+                dbEntity = repository.findById(throwIfEmptyId(uuid));
+                if (dbEntity.isEmpty())
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(entity) + "[" + uuid + "]");
+                return dbEntity.get();
+            case ifPresentThrows:
+                dbEntity = repository.findById(throwIfEmptyId(uuid));
+                if (dbEntity.isPresent())
+                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
+                return entity;
+            case ifPresentThrowsElseCreate:
+                dbEntity = repository.findById(throwIfEmptyId(uuid));
+                if (dbEntity.isPresent())
+                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
+                else {
+                    entity = repository.save(entity);
+                    logSaving(uuid, entity);
+                }
+                return entity;
+            case saveAndLogOnException:
+                try {
+                    entity = repository.save(entity);
+                    logSaving(uuid, entity);
+                } catch (Exception exception) {
+                    log.warn(entity.getClass().getSimpleName() + "[" + uuid + "] can not be saved: ", exception);
+                }
+                return entity;
+            case saveAndThrowOnException:
+                entity = repository.save(entity);
+                logSaving(uuid, entity);
+                return entity;
         }
+        return entity;
     }
 
-    private String shortName(Object entity) {
-        return entity.getClass().getSimpleName().replaceAll("Entity", "");
+    private UUID throwIfEmptyId(UUID uuid) throws ServiceException {
+        if (uuid == null)
+            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "UUID can not be null");
+        return uuid;
+    }
+
+    private <T> void logSaving(UUID uuid, T entity) {
+        if (entity instanceof PrettyLoggable prettyLoggable)
+            log.info(prettyLoggable.logShort() + " was saved");
+        else if (uuid != null)
+            log.info(entityShortName(entity) + " was saved. Perhaps with id[" + uuid + "]");
+        else
+            log.info(entityShortName(entity) + " was saved. Please implement PrettyLoggable interface for more detailed logging");
+    }
+
+    public <T> T save(T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
+        return save(null, entity, repository, mode);
+    }
+
+    private String entityShortName(Class entityClass) {
+        return entityClass != null ? entityClass.getSimpleName().replaceAll("Entity", "") : "<unknown>";
+    }
+
+    private String entityShortName(Object entity) {
+        return entityShortName(entity.getClass());
+    }
+
+    private <T> String entityShortName(CrudRepository<T, UUID> repository) {
+        return entityShortName(getRepositoryEntityClass(repository));
+    }
+
+    private <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
+//        Type t = repository.getClass().getGenericSuperclass();
+//        ParameterizedType pt = (ParameterizedType) t;
+//        return (Class<T>) pt.getActualTypeArguments()[0];
+
+        Type[] interfaces = repository.getClass().getInterfaces();
+
+        for (Type t : interfaces) {
+            if (t instanceof Class<?>) {
+                Class<?> clazz = (Class<?>) t;
+                if (clazz.getPackage().getName().startsWith(DAO_BASE_PACKAGE)) {
+                    // Repositories should implement only ONE interface from application packages
+                    Type genericInterface = clazz.getGenericInterfaces()[0];
+                    return (Class<T>) ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
+                }
+            }
+        }
+        return null;
     }
 
     public static void entityReadDenied(ReadPermissionCheckMode readPermissionCheckMode, String logMessage) throws ServiceException {
@@ -64,24 +129,24 @@ public class EntitySmartService {
         }
     }
 
-    public enum CreateMode {
+    public enum SaveMode {
         ifNotPresentCreate,
         ifNotPresentThrows,
         none,
         ifPresentThrows,
         ifPresentThrowsElseCreate,
-        createIgnoreExists,
-        createAndThrowsIfPresent
+        saveAndLogOnException,
+        saveAndThrowOnException
     }
 
-    public <T> T findById(UUID uuid, String fieldName, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
+    public <T> T findById(UUID uuid, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         Optional<T> optional = repository.findById(uuid);
         switch (mode) {
             case ifEmptyNull:
                 return optional.isEmpty() ? null : optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + fieldName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
                 return optional.get();
         }
         return null;
@@ -91,71 +156,34 @@ public class EntitySmartService {
         ifEmptyNull,
         ifEmptyThrows,
     }
-
-    public UUID check(String uuidStr, String fieldName, CrudRepository<?,UUID> repository, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        UUID uuid = null;
-        switch (checkMode) {
-            case EMPTY:
-                if (StringUtils.isNotEmpty(uuidStr))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuidStr + "]");
-                break;
-            case EMPTY_OR_DB_EXISTS:
-                if (StringUtils.isEmpty(uuidStr))
-                    break;
-                uuid = uuidFromString(uuidStr, fieldName);
-                if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + fieldName + "[" + uuidStr + "]");
-                break;
-            case NOT_EMPTY:
-                if (StringUtils.isEmpty(uuidStr))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
-                uuidFromString(uuidStr, fieldName);
-                break;
-            case NOT_EMPTY_AND_DB_EXISTS:
-                if (StringUtils.isEmpty(uuidStr))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
-                uuid = uuidFromString(uuidStr, fieldName);
-                if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + fieldName + "[" + uuidStr + "]");
-                break;
-            case NOT_EMPTY_AND_DB_MISSING:
-                if (StringUtils.isEmpty(uuidStr))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
-                uuid = uuidFromString(uuidStr, fieldName);
-                if (repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldName + "[" + uuidStr + "] is already present in database");
-                break;
-        }
-        return uuid;
-    }
-
-    public UUID check(UUID uuid, String fieldName, CrudRepository<?,UUID> repository, EntitySmartService.CheckMode checkMode) throws ServiceException {
+    public UUID check(UUID uuid, CrudRepository<?, UUID> repository, CheckMode checkMode) throws ServiceException {
+        String entityName = entityShortName(repository);
         switch (checkMode) {
             case EMPTY:
                 if (uuid != null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + entityName + "[" + uuid + "]");
                 break;
             case EMPTY_OR_DB_EXISTS:
                 if (uuid == null)
                     break;
                 if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + fieldName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
                 break;
             case NOT_EMPTY:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
                 break;
             case NOT_EMPTY_AND_DB_EXISTS:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
                 if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + fieldName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
                 break;
             case NOT_EMPTY_AND_DB_MISSING:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + fieldName );
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
                 if (repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldName + "[" + uuid + "] is already present in database");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, entityName + "[" + uuid + "] is already present in database");
                 break;
         }
         return uuid;
@@ -167,6 +195,34 @@ public class EntitySmartService {
         } catch (Exception exception) {
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuid + "]");
         }
+    }
+
+    public <T> void deleteAndLog(UUID uuid, CrudRepository<T, UUID> repository) throws ServiceException {
+        repository.deleteById(throwIfEmptyId(uuid));
+        log.info(entityShortName(repository) + " perhaps was deleted");
+    }
+
+    public <T> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
+        Iterable<T> result = repository.saveAll(entities);
+        result.forEach(e -> logSaving(null, e));
+        return result;
+    }
+
+    public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
+        Iterable<T> result = saveAllAndLog(entities, repository);
+        log.info("Changes: " + changesHelper.collectForLog());
+        return result;
+    }
+
+    public <T> T saveAndLogChanges(T entity, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
+        if (!changesHelper.hasChanges())
+            return entity;
+        entity = repository.save(entity);
+        if (entity instanceof PrettyLoggable prettyLoggable)
+            log.info(prettyLoggable.logShort() + " was updated: " + changesHelper.collectForLog());
+        else
+            log.info(entityShortName(entity) + " was updated: " + changesHelper.collectForLog());
+        return entity;
     }
 
     public enum CheckMode {

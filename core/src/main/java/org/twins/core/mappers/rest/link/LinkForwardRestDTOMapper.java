@@ -20,6 +20,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                 .id(src.getId())
                 .dstTwinClass(twinClassBaseRestDTOMapper.convert(src.getDstTwinClass(), mapperContext))
                 .name(i18nService.translateToLocale(src.getForwardNameI18n()))
+                .mandatory(src.isMandatory())
                 .type(src.getType());
     }
 

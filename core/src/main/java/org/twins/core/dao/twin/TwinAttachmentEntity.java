@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.PrettyLoggable;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity {
+public class TwinAttachmentEntity implements PrettyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -45,6 +46,10 @@ public class TwinAttachmentEntity {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    public String logShort() {
+        return "attachment[id:" + id + ", storageLink:" + storageLink + "]";
+    }
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)

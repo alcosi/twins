@@ -14,7 +14,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(id, entityName(), entityRepository(), checkMode);
+        return entitySmartService.check(id, entityRepository(), checkMode);
     }
 
     public abstract String entityName();
@@ -22,7 +22,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     @Override
     public T findEntity(UUID entityId, EntitySmartService.FindMode findMode, EntitySmartService.ReadPermissionCheckMode permissionCheckMode) throws ServiceException {
-        T entity = entitySmartService.findById(entityId, entityName(), entityRepository(), findMode);
+        T entity = entitySmartService.findById(entityId, entityRepository(), findMode);
         if (entity == null || permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none))
             return entity;
         if (isEntityReadDenied(entity, permissionCheckMode))

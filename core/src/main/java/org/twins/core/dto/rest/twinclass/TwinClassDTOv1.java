@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.twin.TwinDTOv1;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -30,8 +31,8 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     public List<UUID> fieldIds;
 
     @Schema()
-    public List<LinkDTOv1> forwardLinkList;
+    public Map<UUID, LinkDTOv1> forwardLinkMap;
 
     @Schema()
-    public List<LinkDTOv1> backwardLinkList;
+    public Map<UUID, LinkDTOv1> backwardLinkMap;
 }
