@@ -46,7 +46,7 @@ public class BusinessAccountUserAddController extends ApiController {
             businessAccountService.addUser(
                     businessAccountId,
                     request.userId,
-                    EntitySmartService.SaveMode.ifNotPresentThrows);
+                    EntitySmartService.SaveMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
