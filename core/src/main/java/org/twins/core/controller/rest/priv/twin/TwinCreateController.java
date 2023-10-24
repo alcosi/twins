@@ -66,7 +66,7 @@ public class TwinCreateController extends ApiController {
                     .setName(request.getName())
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setHeadTwinId(request.getHeadTwinId())
-                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                     .setDescription(request.getDescription());
             List<TwinFieldValueDTO> fields = new ArrayList<>();
             if (request.getFields() != null)
@@ -105,7 +105,7 @@ public class TwinCreateController extends ApiController {
                     .setName(request.getName())
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setHeadTwinId(request.getHeadTwinId())
-                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
+                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                     .setDescription(request.getDescription());
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(request.getClassId(), request.getFields());
             rs = twinCreateRsRestDTOMapper
