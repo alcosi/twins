@@ -17,7 +17,6 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entitySmartService.check(id, entityRepository(), checkMode);
     }
 
-    public abstract String entityName();
     public abstract CrudRepository<T, UUID> entityRepository();
 
     @Override

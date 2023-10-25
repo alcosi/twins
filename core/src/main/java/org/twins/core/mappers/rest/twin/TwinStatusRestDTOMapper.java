@@ -32,7 +32,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasMode(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     @Override

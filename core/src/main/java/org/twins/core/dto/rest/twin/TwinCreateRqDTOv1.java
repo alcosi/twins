@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -37,4 +38,7 @@ public class TwinCreateRqDTOv1 extends Request {
 
     @Schema(description = "Attachments")
     public List<AttachmentAddDTOv1> attachments;
+
+    @Schema(description = "Links list")
+    public List<TwinLinkAddDTOv1> links;
 }

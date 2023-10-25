@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinBaseDTOv1")
+@Schema(name =  "TwinBaseV1")
 public class TwinBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_ID)
     public UUID id;
@@ -26,4 +26,16 @@ public class TwinBaseDTOv1 {
 
     @Schema(description = "description", example = "The biggest tree")
     public String description;
+
+    @Schema(description = "statusId")
+    public UUID statusId;
+
+    @Schema(description = "class")
+    public UUID twinClassId;
+
+    @Schema(description = "current assigner")
+    public UUID assignerUserId;
+
+    @Schema(description = "author")
+    public UUID authorUserId;
 }

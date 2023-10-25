@@ -33,7 +33,7 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasMode(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     @Override

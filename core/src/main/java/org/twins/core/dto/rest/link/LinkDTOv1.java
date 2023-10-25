@@ -14,8 +14,11 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassLinkV1")
 public class LinkDTOv1 {
-    @Schema(description = "id", example = DTOExamples.TWIN_CLASS_ID)
+    @Schema(description = "id", example = DTOExamples.LINK_ID)
     public UUID id;
+
+    @Schema(example = DTOExamples.TWIN_CLASS_ID)
+    public UUID dstTwinClassId;
 
     @Schema(description = "key", example = DTOExamples.TWIN_CLASS_ID)
     public TwinClassBaseDTOv1 dstTwinClass;

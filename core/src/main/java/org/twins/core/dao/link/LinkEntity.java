@@ -2,7 +2,7 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "link")
-public class LinkEntity implements PrettyLoggable {
+public class LinkEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -66,7 +66,7 @@ public class LinkEntity implements PrettyLoggable {
     @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false, nullable = false)
     private I18nEntity backwardNameI18n;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
     }
 

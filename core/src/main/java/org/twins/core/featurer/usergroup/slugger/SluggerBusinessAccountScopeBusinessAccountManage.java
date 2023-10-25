@@ -2,6 +2,7 @@ package org.twins.core.featurer.usergroup.slugger;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
     protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
         checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
         if (userGroupMapEntity.getUserGroup().getBusinessAccountId() == null) {
-            log.warn(userGroupMapEntity.getUserGroup().logShort() + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
+            log.warn(userGroupMapEntity.getUserGroup().easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
             return null;
         } else
             return userGroupMapEntity.getUserGroup();
@@ -34,7 +35,7 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) {
         if (apiUser.getBusinessAccount() == null || userGroup.getBusinessAccountId() != apiUser.getBusinessAccount().getId()) {
-            log.warn(userGroup.logShort() + " can not be entered by userId[" + userId + "]");
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
         return new UserGroupMapEntity()

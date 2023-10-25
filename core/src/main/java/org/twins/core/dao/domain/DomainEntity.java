@@ -4,7 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.DynamicUpdate;
@@ -21,7 +21,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Data
 @Accessors(chain = true)
-public class DomainEntity implements PrettyLoggable {
+public class DomainEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -68,7 +68,7 @@ public class DomainEntity implements PrettyLoggable {
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")
     private HashMap<String, String> userGroupManagerParams;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";
     }
 }

@@ -2,6 +2,7 @@ package org.twins.core.service.domain;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
@@ -104,7 +105,7 @@ public class DomainService {
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
-            log.info(dbEntity.logShort() + " was updated: " + changesHelper.collectForLog());
+            log.info(dbEntity.easyLog(EasyLoggable.Level.NORMAL) + " was updated: " + changesHelper.collectForLog());
         }
     }
 

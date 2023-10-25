@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 
@@ -14,18 +15,31 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
     final I18nService i18nService;
     final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
-        dst
-                .id(src.getId())
-                .dstTwinClass(twinClassBaseRestDTOMapper.convert(src.getDstTwinClass(), mapperContext))
-                .name(i18nService.translateToLocale(src.getForwardNameI18n()))
-                .mandatory(src.isMandatory())
-                .type(src.getType());
+        switch (mapperContext.getModeOrUse(LinkRestDTOMapper.Mode.DETAILED)) {
+            case DETAILED:
+                dst
+                        .dstTwinClassId(src.getDstTwinClassId())
+                        .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext))
+                        .mandatory(src.isMandatory())
+                        .type(src.getType());
+            case SHORT:
+                dst
+                        .id(src.getId())
+                        .name(i18nService.translateToLocale(src.getForwardNameI18n()));
+        }
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(LinkRestDTOMapper.Mode.HIDE);
     }
 
     @Override
     public String getObjectCacheId(LinkEntity src) {
         return src.getId().toString();
     }
+
 }

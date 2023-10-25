@@ -2,14 +2,14 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
 @Entity
 @Data
 @Table(name = "permission")
-public class PermissionEntity implements PrettyLoggable {
+public class PermissionEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -30,7 +30,7 @@ public class PermissionEntity implements PrettyLoggable {
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "permission[id:" + id + ", key:" + key + "]";
     }
 }

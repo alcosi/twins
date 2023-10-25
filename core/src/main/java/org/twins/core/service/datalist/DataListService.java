@@ -3,6 +3,7 @@ package org.twins.core.service.datalist;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -38,11 +39,6 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     final AuthService authService;
 
     @Override
-    public String entityName() {
-        return "dataList";
-    }
-
-    @Override
     public CrudRepository<DataListEntity, UUID> entityRepository() {
         return dataListRepository;
     }
@@ -51,7 +47,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     public boolean isEntityReadDenied(DataListEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         return false;
@@ -82,7 +78,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
         FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
         if (!(fieldTyper instanceof FieldTyperSharedSelectInHead))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.logShort() + " is not shared in head");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not shared in head");
         return ((FieldTyperSharedSelectInHead) fieldTyper).getDataListWithValidOption(twinClassFieldEntity, headTwinId);
     }
 

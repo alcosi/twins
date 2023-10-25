@@ -1,7 +1,7 @@
 package org.twins.core.featurer.usergroup.slugger;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
@@ -57,12 +57,12 @@ public abstract class Slugger extends Featurer {
         Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams(), new HashMap<>());
         UserGroupMapEntity userGroupMapEntity = userGroupMapRepository.findByUserIdAndUserGroupId(userId, userGroup.getId());
         if (userGroupMapEntity != null) {
-            log.warn(userGroupMapEntity.logShort() + " is already exists");
+            log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists");
             return;
         }
         userGroupMapEntity = enterGroup(properties, userGroup, userId, authService.getApiUser());
         if (userGroupMapEntity == null) {
-            log.warn(userGroup.logShort() + " is not allowed for user[" + userId + "]");
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for user[" + userId + "]");
             return;
         }
         userGroupMapRepository.save(userGroupMapEntity);
@@ -78,7 +78,7 @@ public abstract class Slugger extends Featurer {
             return;
         }
         if (!exitGroup(properties, userGroupMapEntity, authService.getApiUser()))
-            log.warn(userGroup.logShort() + " can not be exited by user[" + userId + "]");
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be exited by user[" + userId + "]");
     }
 
     protected boolean exitGroup(Properties properties, UserGroupMapEntity userGroupMapEntity, ApiUser apiUser) {

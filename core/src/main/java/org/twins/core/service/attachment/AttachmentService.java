@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ public class AttachmentService {
         TwinAttachmentEntity ret = twinAttachmentRepository.save(
                 twinAttachmentEntity
                         .setCreatedAt(Timestamp.from(Instant.now())));
-        log.info(ret.logShort() + " was saved");
+        log.info(ret.easyLog(EasyLoggable.Level.NORMAL) + " was saved");
         return ret;
     }
 
@@ -89,7 +90,7 @@ public class AttachmentService {
             }
             if (changesHelper.hasChanges()) {
                 twinAttachmentRepository.save(dbAttachmentEntity);
-                log.info(dbAttachmentEntity.logShort() + " was updated: " + changesHelper.collectForLog());
+                log.info(dbAttachmentEntity.easyLog(EasyLoggable.Level.NORMAL) + " was updated: " + changesHelper.collectForLog());
             }
         }
     }

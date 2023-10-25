@@ -3,7 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_field")
-public class TwinFieldEntity implements PrettyLoggable {
+public class TwinFieldEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -35,7 +35,7 @@ public class TwinFieldEntity implements PrettyLoggable {
     private TwinClassFieldEntity twinClassField;
 
     @Override
-    public String logShort() {
+    public String easyLog(Level level) {
         return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
     }
 }

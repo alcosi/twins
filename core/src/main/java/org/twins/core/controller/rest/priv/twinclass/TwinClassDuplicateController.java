@@ -59,7 +59,7 @@ public class TwinClassDuplicateController extends ApiController {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.twinClass(
+            rs.setTwinClass(
                     twinClassRestDTOMapper.convert(
                             twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), new MapperContext()
                                     .setMode(showTwinClassMode)

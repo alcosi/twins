@@ -17,12 +17,23 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
 
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
-        dst
-                .id(src.getId())
-                .dstTwinClass(twinClassBaseRestDTOMapper.convert(src.getSrcTwinClass(), mapperContext))
-                .name(i18nService.translateToLocale(src.getBackwardNameI18n()))
-                .mandatory(false)
-                .type(src.getType());
+        switch (mapperContext.getModeOrUse(LinkRestDTOMapper.Mode.DETAILED)) {
+            case DETAILED:
+                dst
+                        .dstTwinClassId(src.getSrcTwinClassId())
+                        .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext))
+                        .mandatory(false)
+                        .type(src.getType());
+            case SHORT:
+                dst
+                        .id(src.getId())
+                        .name(i18nService.translateToLocale(src.getBackwardNameI18n()));
+        }
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(LinkRestDTOMapper.Mode.HIDE);
     }
 
     @Override

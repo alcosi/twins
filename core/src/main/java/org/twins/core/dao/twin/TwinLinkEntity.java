@@ -3,8 +3,8 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_link")
-public class TwinLinkEntity {
+public class TwinLinkEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -49,4 +49,15 @@ public class TwinLinkEntity {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "twinLink[id:" + id + "]";
+            case NORMAL:
+                return "twinLink[id:" + id + ", linkId:" + linkId +  "]";
+            default:
+                return "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId +  "]";
+        }
+    }
 }

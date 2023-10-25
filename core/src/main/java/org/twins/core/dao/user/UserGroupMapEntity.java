@@ -3,10 +3,9 @@ package org.twins.core.dao.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
-import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.UUID;
 
@@ -14,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group_map")
-public class UserGroupMapEntity implements PrettyLoggable {
+public class UserGroupMapEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -50,7 +49,7 @@ public class UserGroupMapEntity implements PrettyLoggable {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
-    public String logShort()  {
+    public String easyLog(Level level)  {
         return "userGroupMap[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
     }
 }

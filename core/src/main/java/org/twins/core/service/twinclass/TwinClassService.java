@@ -4,6 +4,7 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.service.I18nService;
@@ -43,11 +44,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final AuthService authService;
 
     @Override
-    public String entityName() {
-        return "twinClass";
-    }
-
-    @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
         return twinClassRepository;
     }
@@ -56,7 +52,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public boolean isEntityReadDenied(TwinClassEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         //todo check permission schema
@@ -88,10 +84,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             if (headTwinId != null) {
                 TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
                 if (!headTwinEntity.getTwinClassId().equals(subClass.getHeadTwinClassId()))
-                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.logShort() + " is not allowed for twinClass[" + subClass.getId() + "]");
+                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for twinClass[" + subClass.getId() + "]");
                 return headTwinId;
             } else {
-                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.logShort() + " should be linked to head");
+                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
             }
         return headTwinId;
     }
@@ -130,12 +126,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return duplicateTwinClassEntity;
     }
 
-    public List<UUID> findExtendedClasses(TwinClassEntity twinClassEntity, boolean includeSelf) {
+    public Set<UUID> findExtendedClasses(TwinClassEntity twinClassEntity, boolean includeSelf) {
         Set<UUID> ret = new HashSet<>();
         if (includeSelf)
             ret.add(twinClassEntity.getId());
         if (twinClassEntity.getExtendsTwinClassId() == null)
-            return ret.stream().toList();
+            return ret;
         UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
         ret.add(extendedTwinClassId);
         for (int i = 0; i<=10; i++) {
@@ -143,12 +139,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             if (extendedTwinClassId == null)
                 break;
             if (ret.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.logShort() + " inheritance recursion");
+                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
                 break;
             }
             ret.add(extendedTwinClassId);
         }
-        return ret.stream().toList();
+        return ret;
     }
 }
 

@@ -1,6 +1,7 @@
 package org.twins.core.featurer.fieldtyper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -27,9 +28,9 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     @Override
     protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueColorHEX value) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.hex()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().logShort() + " is required");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.hex().matches(HEX_PATTERN))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().logShort() +  " hex[" + value.hex() + "] does not match pattern[" + HEX_PATTERN + "]");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +  " hex[" + value.hex() + "] does not match pattern[" + HEX_PATTERN + "]");
         return value.hex();
     }
 

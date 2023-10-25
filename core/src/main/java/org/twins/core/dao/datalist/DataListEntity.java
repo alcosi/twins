@@ -3,7 +3,7 @@ package org.twins.core.dao.datalist;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "data_list")
-public class DataListEntity implements PrettyLoggable {
+public class DataListEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -45,7 +45,7 @@ public class DataListEntity implements PrettyLoggable {
     @Column(name = "attribute_4_key")
     private String attribute4key;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";
     }
     

@@ -11,6 +11,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;
@@ -41,7 +42,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.getModeOrUse(HeadTwinMode.HIDE) != HeadTwinMode.HIDE && src.getHeadTwinClassId() != null)
             dst.validHeads(
                     twinRestDTOMapper.convertList(
-                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperContext.setModeIfNotPresent(TwinRestDTOMapper.TwinMode.ID_NAME_ONLY)));
+                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.ID_NAME_ONLY)));
         if (mapperContext.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
@@ -52,7 +53,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasMode(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinClassBaseRestDTOMapper.ClassMode.HIDE);
     }
 
     @Override

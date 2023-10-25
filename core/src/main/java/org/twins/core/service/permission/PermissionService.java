@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StreamUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -48,9 +48,9 @@ public class PermissionService {
         if (permissionSchemaEntity == null)
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown permissionSchemaId");
         if (!permissionSchemaEntity.getDomainId().equals(domainId))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, permissionSchemaEntity.logShort() + " is not allowed in " + permissionSchemaEntity.getDomain() + "");
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, permissionSchemaEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in " + permissionSchemaEntity.getDomain() + "");
         if (permissionSchemaEntity.getBusinessAccountId() != null && !permissionSchemaEntity.getBusinessAccountId().equals(businessAccountId))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, permissionSchemaEntity.logShort() + " is not allowed in " + permissionSchemaEntity.getBusinessAccount() + "]");
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, permissionSchemaEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in " + permissionSchemaEntity.getBusinessAccount() + "]");
         return permissionSchemaEntity.getId();
     }
 
@@ -80,11 +80,11 @@ public class PermissionService {
         return new FindUserPermissionsResult()
                 .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(
                                 permissionSchemaId, userId)
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() + " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
                 .setPermissionByUserGroup(permissionSchemaUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
                                 permissionSchemaId,
                                 userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().logShort() + " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
+                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
     }
 
     @Data

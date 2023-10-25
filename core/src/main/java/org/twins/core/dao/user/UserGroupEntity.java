@@ -2,20 +2,18 @@ package org.twins.core.dao.user;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 
-import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group")
-public class UserGroupEntity implements PrettyLoggable {
+public class UserGroupEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -47,7 +45,7 @@ public class UserGroupEntity implements PrettyLoggable {
     @JoinColumn(name = "user_group_type_id", insertable = false, updatable = false)
     private UserGroupTypeEntity userGroupType;
 
-    public String logShort()  {
+    public String easyLog(Level level)  {
         return "userGroup[id:" + id + ", name:" + name + "]";
     }
 

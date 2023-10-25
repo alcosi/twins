@@ -91,6 +91,14 @@ public class MapperContext {
             return false;
     }
 
+    public <T extends MapperMode> boolean hasModeOrEmpty(T mode) {
+        MapperMode configuredMode = modes.get(mode.getClass());
+        if (configuredMode != null)
+            return configuredMode.equals(mode);
+        else
+            return true;
+    }
+
     public Map<UUID, UserEntity> getRelatedUserMap() {
         return relatedUserMap;
     }
@@ -137,5 +145,14 @@ public class MapperContext {
             return;
         }
         cache.put(cacheId, obj);
+    }
+
+    public MapperContext cloneIgnoreRelatedObjects() {
+        MapperContext mapperContext = new MapperContext();
+        mapperContext.modes = this.modes;
+        mapperContext.cachedObjects = this.cachedObjects;
+        mapperContext.lazyRelations = this.lazyRelations;
+        mapperContext.properties = this.properties;
+        return mapperContext;
     }
 }

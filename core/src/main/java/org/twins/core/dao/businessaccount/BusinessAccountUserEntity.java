@@ -3,7 +3,7 @@ package org.twins.core.dao.businessaccount;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.UUID;
@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "business_account_user")
-public class BusinessAccountUserEntity implements PrettyLoggable {
+public class BusinessAccountUserEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -31,7 +31,7 @@ public class BusinessAccountUserEntity implements PrettyLoggable {
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "businessAccountUser[id:" + id + ", businessAccount:" + businessAccountId + ", user:" + userId;
     }
 }

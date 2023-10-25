@@ -3,6 +3,7 @@ package org.twins.core.service.twinclass;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.service.I18nService;
@@ -20,6 +21,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -37,11 +39,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     final AuthService authService;
 
     @Override
-    public String entityName() {
-        return "twinClassField";
-    }
-
-    @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
         return twinClassFieldRepository;
     }
@@ -50,7 +47,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public boolean isEntityReadDenied(TwinClassFieldEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         //todo check permission schema
@@ -62,8 +59,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public List<TwinClassFieldEntity> findTwinClassFieldsIncludeParent(TwinClassEntity twinClassEntity) {
-        List<UUID> twinClassList = twinClassService.findExtendedClasses(twinClassEntity, true);
-        List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(twinClassList);
+        Set<UUID> extendedClasses = twinClassService.findExtendedClasses(twinClassEntity, true);
+        List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(extendedClasses);
         return ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }
 
@@ -90,7 +87,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional
     public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId) throws ServiceException {
-        log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + duplicateTwinClassId + "]");
+        log.info(srcFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " will be duplicated for class[" + duplicateTwinClassId + "]");
         TwinClassFieldEntity duplicateFieldEntity = new TwinClassFieldEntity()
                 .setKey(srcFieldEntity.getKey())
                 .setTwinClassId(duplicateTwinClassId)

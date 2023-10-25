@@ -20,6 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -32,9 +33,10 @@ import org.twins.core.service.twinclass.TwinClassService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassListController extends ApiController {
-    private final AuthService authService;
-    private final TwinClassService twinClassService;
-    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    final AuthService authService;
+    final TwinClassService twinClassService;
+    final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class search result")
@@ -45,6 +47,7 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/search/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinClassSearchV1(
+            @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
             @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
@@ -54,14 +57,16 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.twinClassList(
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
+            rs.setTwinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), new MapperContext()
+                            twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), mapperContext
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)
                                     .setMode(showTwinClassFieldMode)
                                     .setMode(showTwinClassLinksMode)));
+            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -79,6 +84,7 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassListV1(
+            @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
             @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
@@ -87,15 +93,17 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.twinClassList(
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
+            rs.setTwinClassList(
                     twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, null), new MapperContext()
+                            twinClassService.findTwinClasses(apiUser, null), mapperContext
                                     .setMode(showTwinClassMode)
                                     .setMode(showTwinClassHeadsMode)
                                     .setMode(showTwinClassFieldDescriptorMode)
                                     .setMode(showTwinClassFieldMode)
                                     .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
                                     .setMode(showTwinClassLinksMode)));
+            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

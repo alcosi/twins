@@ -1,8 +1,7 @@
 package org.twins.core.service;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.data.repository.CrudRepository;
@@ -73,8 +72,8 @@ public class EntitySmartService {
     }
 
     private <T> void logSaving(UUID uuid, T entity) {
-        if (entity instanceof PrettyLoggable prettyLoggable)
-            log.info(prettyLoggable.logShort() + " was saved");
+        if (entity instanceof EasyLoggable prettyLoggable)
+            log.info(prettyLoggable.easyLog(EasyLoggable.Level.DETAILED) + " was saved");
         else if (uuid != null)
             log.info(entityShortName(entity) + " was saved. Perhaps with id[" + uuid + "]");
         else
@@ -218,8 +217,8 @@ public class EntitySmartService {
         if (!changesHelper.hasChanges())
             return entity;
         entity = repository.save(entity);
-        if (entity instanceof PrettyLoggable prettyLoggable)
-            log.info(prettyLoggable.logShort() + " was updated: " + changesHelper.collectForLog());
+        if (entity instanceof EasyLoggable prettyLoggable)
+            log.info(prettyLoggable.easyLog(EasyLoggable.Level.DETAILED) + " was updated: " + changesHelper.collectForLog());
         else
             log.info(entityShortName(entity) + " was updated: " + changesHelper.collectForLog());
         return entity;

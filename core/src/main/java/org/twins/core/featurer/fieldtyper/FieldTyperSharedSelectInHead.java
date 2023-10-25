@@ -1,19 +1,17 @@
 package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorListShared;
-import org.twins.core.service.EntitySmartService;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -37,7 +35,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
     public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
         if (dataListOptionRepository.findByDataListIdAndNotUsedInHead(dataListOptionEntity.getDataListId(), twinFieldEntity.getTwinClassFieldId(), twinFieldEntity.getTwin().getHeadTwinId())
                 .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.getTwinClassField().logShort() + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in headTwin");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in headTwin");
         return super.checkOptionAllowed(twinFieldEntity, dataListOptionEntity);
     }
 

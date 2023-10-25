@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
@@ -31,6 +32,7 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -61,13 +63,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final FeaturerService featurerService;
     final AttachmentService attachmentService;
     @Lazy
+    final TwinLinkService twinLinkService;
+    @Lazy
     final AuthService authService;
-
-    @Override
-    public String entityName() {
-        return "twin";
-    }
-
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
         return twinRepository;
@@ -77,7 +75,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public boolean isEntityReadDenied(TwinEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in domain[" + apiUser.getDomain().logShort());
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         //todo check permission schema
@@ -179,7 +177,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
+    public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getByTwinClass(twinEntity.getTwinClassId());
         TwinClassEntity twinClassEntity = twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         twinEntity
@@ -193,7 +191,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
                 if (apiUser.getBusinessAccount() == null)
-                    throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassEntity.logShort() + " can not be created without businessAccount owner");
+                    throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without businessAccount owner");
                 twinEntity
                         .setOwnerBusinessAccountId(apiUser.getBusinessAccount().getId())
                         .setOwnerBusinessAccount(apiUser.getBusinessAccount())
@@ -201,7 +199,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 break;
             case DOMAIN_USER:
                 if (apiUser.getUser() == null)
-                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, twinClassEntity.logShort() + " can not be created without user owner");
+                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without user owner");
                 twinEntity
                         .setOwnerUserId(apiUser.getUser().getId())
                         .setOwnerUser(apiUser.getUser())
@@ -212,6 +210,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
             attachmentService.addAttachments(twinEntity.getId(), apiUser.getUser(), attachmentEntityList);
         }
+        if (CollectionUtils.isNotEmpty(linksEntityList))
+            twinLinkService.addLinks(twinEntity, linksEntityList);
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
                 .setBusinessAccountAliasEntityList(createTwinBusinessAccountAliases(twinEntity))
@@ -229,7 +229,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             fieldValue = twinClassFieldValuesMap.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
                 if (twinClassFieldEntity.isRequired())
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.logShort() + " is required");
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is required");
                 else
                     continue;
             twinFieldEntity = createTwinFieldEntity(twinEntity, twinClassFieldEntity, null);

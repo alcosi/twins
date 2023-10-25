@@ -21,9 +21,10 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -38,10 +39,11 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinViewController extends ApiController {
-    private final AuthService authService;
-    private final TwinService twinService;
-    private final TwinRestDTOMapper twinRestDTOMapper;
-    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    final AuthService authService;
+    final TwinService twinService;
+    final TwinRestDTOMapper twinRestDTOMapper;
+    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinViewV1", summary = "Returns twin data by id")
@@ -56,13 +58,13 @@ public class TwinViewController extends ApiController {
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
+            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @Parameter(name = "showTwinFieldsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
-            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.AttachmentsMode._HIDE) TwinRestDTOMapper.AttachmentsMode showTwinAttachmentMode) {
+            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.AttachmentsMode._HIDE) TwinBaseV3RestDTOMapper.AttachmentsMode showTwinAttachmentMode,
+            @Parameter(name = "showTwinLinkMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.LinkMode._HIDE) TwinBaseV3RestDTOMapper.LinkMode showTwinLinkMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.twin(twinRestDTOMapper.convert(
                     twinService.findEntitySafe(twinId), new MapperContext()
                             .setMode(showUserMode)
@@ -72,6 +74,7 @@ public class TwinViewController extends ApiController {
                             .setMode(showTwinFieldMode)
                             .setMode(showTwinClassFieldMode)
                             .setMode(showTwinAttachmentMode)
+                            .setMode(showTwinLinkMode)
             ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -91,19 +94,22 @@ public class TwinViewController extends ApiController {
     @RequestMapping(value = "/private/twin/{twinId}/v2", method = RequestMethod.GET)
     public ResponseEntity<?> twinViewV2(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @Parameter(name = "showClassFieldListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._NO_FIELDS) TwinClassRestDTOMapper.FieldsMode showClassFieldListMode,
             @Parameter(name = "showClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
+            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @Parameter(name = "showTwinFieldsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.AttachmentsMode._HIDE) TwinRestDTOMapper.AttachmentsMode showTwinAttachmentMode) {
+            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.AttachmentsMode._HIDE) TwinBaseV3RestDTOMapper.AttachmentsMode showTwinAttachmentMode,
+            @Parameter(name = "showTwinLinkMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
+            @Parameter(name = "showLinkMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
-            ApiUser apiUser = authService.getApiUser();
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
             rs.twin(twinRestDTOMapperV2.convert(
-                    twinService.findEntitySafe(twinId), new MapperContext()
+                    twinService.findEntitySafe(twinId), mapperContext
                             .setMode(showUserMode)
                             .setMode(showStatusMode)
                             .setMode(showClassMode)
@@ -112,7 +118,9 @@ public class TwinViewController extends ApiController {
                             .setMode(showTwinMode)
                             .setMode(showTwinFieldMode)
                             .setMode(showTwinAttachmentMode)
-            ));
+                            .setMode(showTwinLinkMode)
+                            .setMode(showLinkMode)));
+            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -134,10 +142,11 @@ public class TwinViewController extends ApiController {
             @Parameter(name = "showUserMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserRestDTOMapper.Mode._ID_ONLY) UserRestDTOMapper.Mode showUserMode,
             @Parameter(name = "showStatusMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinStatusRestDTOMapper.Mode._ID_ONLY) TwinStatusRestDTOMapper.Mode showStatusMode,
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
+            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @Parameter(name = "showTwinFieldsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
-            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.AttachmentsMode._HIDE) TwinRestDTOMapper.AttachmentsMode showTwinAttachmentMode) {
+            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.AttachmentsMode._HIDE) TwinBaseV3RestDTOMapper.AttachmentsMode showTwinAttachmentMode,
+            @Parameter(name = "showTwinLinkMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.LinkMode._HIDE) TwinBaseV3RestDTOMapper.LinkMode showTwinLinkMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -150,6 +159,7 @@ public class TwinViewController extends ApiController {
                             .setMode(showTwinFieldMode)
                             .setMode(showTwinClassFieldMode)
                             .setMode(showTwinAttachmentMode)
+                            .setMode(showTwinLinkMode)
             ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -174,9 +184,10 @@ public class TwinViewController extends ApiController {
             @Parameter(name = "showClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._ID_ONLY) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @Parameter(name = "showClassFieldListMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._NO_FIELDS) TwinClassRestDTOMapper.FieldsMode showClassFieldListMode,
             @Parameter(name = "showClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.TwinMode._DETAILED) TwinRestDTOMapper.TwinMode showTwinMode,
+            @Parameter(name = "showTwinMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @Parameter(name = "showTwinFieldsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinRestDTOMapper.AttachmentsMode._HIDE) TwinRestDTOMapper.AttachmentsMode showTwinAttachmentMode) {
+            @Parameter(name = "showTwinAttachmentMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.AttachmentsMode._HIDE) TwinBaseV3RestDTOMapper.AttachmentsMode showTwinAttachmentMode,
+            @Parameter(name = "showTwinLinkMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinBaseV3RestDTOMapper.LinkMode._HIDE) TwinBaseV3RestDTOMapper.LinkMode showTwinLinkMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -190,6 +201,7 @@ public class TwinViewController extends ApiController {
                             .setMode(showTwinMode)
                             .setMode(showTwinFieldMode)
                             .setMode(showTwinAttachmentMode)
+                            .setMode(showTwinLinkMode)
             ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

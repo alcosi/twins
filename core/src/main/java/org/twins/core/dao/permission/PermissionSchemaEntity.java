@@ -3,7 +3,7 @@ package org.twins.core.dao.permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "permission_schema")
-public class PermissionSchemaEntity implements PrettyLoggable {
+public class PermissionSchemaEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -50,7 +50,7 @@ public class PermissionSchemaEntity implements PrettyLoggable {
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
-    public String logShort() {
+    public String easyLog(Level level) {
         return "permissionSchema[id:" + id + ", name:" + name + "]";
     }
 }

@@ -18,17 +18,12 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.attachment.AttachmentAddRqDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRqDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.link.LinkService;
+import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.UUID;
@@ -39,7 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinLinkAddController extends ApiController {
     final AuthService authService;
-    final LinkService linkService;
+    final TwinLinkService twinLinkService;
     final TwinService twinService;
     final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
 
@@ -51,13 +46,13 @@ public class TwinLinkAddController extends ApiController {
                     @Schema(implementation = TwinLinkAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/link/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> attachmentAddV1(
+    public ResponseEntity<?> twinLinkAddV1(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinLinkAddRqDTOv1 request) {
         TwinLinkAddRsDTOv1 rs = new TwinLinkAddRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            linkService.addLinks(
+            twinLinkService.addLinks(
                     twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
                     twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
         } catch (ServiceException se) {

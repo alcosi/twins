@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.PrettyLoggable;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Data
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements PrettyLoggable {
+public class TwinEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -86,7 +86,7 @@ public class TwinEntity implements PrettyLoggable {
     @Transient
     private TwinEntity spaceTwin;
 
-    public String logShort() {
-        return "twin[" + id + "]";
+    public String easyLog(Level level) {
+        return "twin[id:" + id + "]";
     }
 }
