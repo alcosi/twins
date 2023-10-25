@@ -10,7 +10,10 @@ wrapper {
 
 allprojects {
     group = 'org.twins'
-    version = '0.1.0-SNAPSHOT'
+}
+
+ext {
+    profile = (project.hasProperty('profile') ? project.profile : 'stage').toLowerCase()
 }
 
 subprojects {
@@ -45,7 +48,7 @@ subprojects {
         /**
          * application.properties
          **/
-        def profile = (project.hasProperty('profile') ? project.profile : 'test').toLowerCase()
+        exclude "application.properties"
         println "Using profile [${profile}]"
         rename "application-${profile}.properties" , 'application.properties'
         doLast {
@@ -60,4 +63,11 @@ subprojects {
         }
     }
 
+    task cleanResources {
+        doLast {
+            delete fileTree(project.buildDir).matching {
+                include "**/application.properties"
+            }
+        }
+    }
 }
