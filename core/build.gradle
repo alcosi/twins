@@ -3,16 +3,25 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.1.0'
     id 'net.nemerosa.versioning' version '2.8.2'
-    id 'com.bmuschko.docker-remote-api' version '9.3.0'
-
+    id 'com.bmuschko.docker-remote-api' version '9.3.4'
 }
 
 import com.bmuschko.gradle.docker.tasks.image.*
 
-def imageVersion = '1.0.0'
+def profile = parent.ext.get('profile')
+def imageVersion = project.property('docker.image.version')
+def imageVersionWithProfile = "$imageVersion-$profile"
+def jarName = "$project.name-$imageVersion" + ".jar"
+def dockerHost = project.property('docker.host')
+def dockerRepo = project.property('docker.repo')
 def dockerBuildDir = 'build/docker/'
+def dockerWorkingDir = project.property('docker.work.dir') + "/twins"
 def appName = 'twins'
-def uniqueContainerName = "dockerhub.esas.by/$appName:$imageVersion"
+def uniqueContainerName = "$dockerHost/$dockerRepo$appName:$imageVersionWithProfile"
+
+
+println "Using profile [${profile}]"
+project.version = imageVersion
 
 repositories {
     mavenCentral()
@@ -22,6 +31,7 @@ repositories {
 
 docker {
     registryCredentials {
+        url = "https://${dockerHost}/"
     }
 }
 
@@ -30,13 +40,13 @@ task createDockerfile(type: Dockerfile) {
     destFile.set(project.file("$dockerBuildDir/Dockerfile"))
 
     from("bellsoft/liberica-openjdk-alpine:20-x86_64")
-    runCommand("mkdir -p /opt/elpmee/gateway")
-    runCommand("mkdir /opt/elpmee/gateway/logs")
-    workingDir("./opt/elpmee/gateway")
-    addFile("gateway-1.0.0-SNAPSHOT.jar", "/opt/elpmee/gateway/elpmee-gateway.jar")
+    runCommand("mkdir -p $dockerWorkingDir")
+    runCommand("mkdir $dockerWorkingDir/logs")
+    workingDir(".$dockerWorkingDir")
+    addFile("$jarName", "$dockerWorkingDir/twins.jar")
     entryPoint("java")
-    defaultCommand("-jar", "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED", "-Dapp.home=/opt/elpmee/gateway/", "/opt/elpmee/gateway/elpmee-gateway.jar")
-    exposePort(8080)
+    defaultCommand("-jar", "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED", "-Dapp.home=$dockerWorkingDir", "$dockerWorkingDir/twins.jar")
+    exposePort(8443)
 }
 
 task buildDockerImage(type: DockerBuildImage) {
@@ -94,6 +104,7 @@ dependencies {
     implementation('io.hypersistence:hypersistence-utils-hibernate-62:3.5.1')
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0')
     implementation('org.springframework.boot:spring-boot-starter-validation:3.1.2')
+    implementation group: 'commons-validator', name: 'commons-validator', version: '1.7'
 }
 
 configurations {
@@ -104,9 +115,8 @@ configurations {
 jar {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     manifest {
-        // attributes "Main-Class": "pro.atomicon.searcher.Application"
         attributes(
-                'Main-Class': "com.elpmee.gateway.Application",
+                'Main-Class': "org.twins.core.Application",
                 'Built-By': System.properties['user.name'],
                 'Build-Timestamp': new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").format(new Date()),
                 'Build-Revision': versioning.info.commit,
