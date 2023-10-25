@@ -20,6 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -52,7 +53,7 @@ public class TwinClassListController extends ApiController {
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
             @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode,
-            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.LinksMode._SHOW) TwinClassRestDTOMapper.LinksMode showTwinClassLinksMode,
+            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showTwinClassLinksMode,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
@@ -89,7 +90,7 @@ public class TwinClassListController extends ApiController {
             @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.FieldsMode._ALL_FIELDS) TwinClassRestDTOMapper.FieldsMode showTwinClassFieldMode,
             @Parameter(name = "showTwinClassFieldDescriptorMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._DETAILED) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldDescriptorMode,
             @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode,
-            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.LinksMode._SHOW) TwinClassRestDTOMapper.LinksMode showTwinClassLinksMode) {
+            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showTwinClassLinksMode) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

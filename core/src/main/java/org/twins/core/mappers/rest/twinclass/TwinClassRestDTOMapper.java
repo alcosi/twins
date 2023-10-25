@@ -11,6 +11,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.service.link.LinkService;
@@ -43,7 +44,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.validHeads(
                     twinRestDTOMapper.convertList(
                             twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.ID_NAME_ONLY)));
-        if (mapperContext.getModeOrUse(LinksMode.HIDE) != LinksMode.HIDE) {
+        if (mapperContext.getModeOrUse(LinkRestDTOMapper.Mode.HIDE) != LinkRestDTOMapper.Mode.HIDE) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))
@@ -69,12 +70,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     }
 
     public enum HeadTwinMode implements MapperMode {
-        SHOW, HIDE;
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-    }
-
-    public enum LinksMode implements MapperMode {
         SHOW, HIDE;
         public static final String _SHOW = "SHOW";
         public static final String _HIDE = "HIDE";

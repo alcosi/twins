@@ -61,11 +61,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         List<LinkEntity> linksEntityList = linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses);
         FindTwinClassLinksResult linksResult = new FindTwinClassLinksResult();
         for (LinkEntity linkEntity : linksEntityList) {
-            if (linkEntity.getSrcTwinClassId().equals(twinClassEntity.getId())) {
+            if (extendedTwinClasses.contains(linkEntity.getSrcTwinClassId())) {
                 if (twinClassService.isEntityReadDenied(linkEntity.getDstTwinClass(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 linksResult.forwardLinks.put(linkEntity.getId() ,linkEntity);
-            } else if (linkEntity.getDstTwinClassId().equals(twinClassEntity.getId())) {
+            } else if (extendedTwinClasses.contains(linkEntity.getDstTwinClassId())) {
                 if (twinClassService.isEntityReadDenied(linkEntity.getSrcTwinClass(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 linksResult.backwardLinks.put(linkEntity.getId() ,linkEntity);
