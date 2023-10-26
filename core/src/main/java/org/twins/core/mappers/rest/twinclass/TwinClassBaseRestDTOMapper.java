@@ -27,7 +27,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .name(i18nService.translateToLocale(src.getNameI18n()))
                         .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
                         .logo(src.getLogo());
-            case ID_ONLY:
+            case SHORT:
                 dst
                         .id(src.getId());
                 break;
@@ -45,9 +45,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     }
 
     public enum ClassMode implements MapperMode {
-        ID_ONLY, DETAILED, HIDE;
+        SHORT, DETAILED, HIDE;
 
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
         public static final String _HIDE = "HIDE";
     }

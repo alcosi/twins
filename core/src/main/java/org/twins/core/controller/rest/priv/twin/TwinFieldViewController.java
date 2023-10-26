@@ -47,7 +47,7 @@ public class TwinFieldViewController extends ApiController {
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinFieldViewV1(
             @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -72,7 +72,7 @@ public class TwinFieldViewController extends ApiController {
     public ResponseEntity<?> twinFieldByKeyViewV1(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._ID_KEY_ONLY) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
+            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

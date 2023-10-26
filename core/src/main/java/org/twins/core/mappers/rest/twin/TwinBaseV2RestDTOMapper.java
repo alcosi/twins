@@ -23,7 +23,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
-        switch (mapperContext.getModeOrUse(TwinBaseRestDTOMapper.TwinMode.ID_NAME_ONLY)) {
+        switch (mapperContext.getModeOrUse(TwinBaseRestDTOMapper.TwinMode.SHORT)) {
             case DETAILED:
                 dst
                         .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext))

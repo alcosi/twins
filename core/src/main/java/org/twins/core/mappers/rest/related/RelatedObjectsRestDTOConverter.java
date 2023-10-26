@@ -44,7 +44,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
             twinClassMap.putAll(twinClassRestDTOMapper.convertMap(mapperContext.getRelatedTwinClassMap(), isolatedMapperContext));
-        if (!mapperContext.getRelatedTwinClassMap().isEmpty())
+        if (!mapperContext.getRelatedTwinMap().isEmpty())
             twinMap.putAll(twinRestDTOMapperV2.convertMap(mapperContext.getRelatedTwinMap(), isolatedMapperContext));
         if (!mapperContext.getRelatedTwinStatusMap().isEmpty())
             statusMap.putAll(twinStatusRestDTOMapper.convertMap(mapperContext.getRelatedTwinStatusMap(), isolatedMapperContext));

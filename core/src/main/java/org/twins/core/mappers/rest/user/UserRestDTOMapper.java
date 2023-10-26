@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.user;
 
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.mappers.rest.MapperMode;
@@ -13,9 +12,10 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
     @Override
     public void map(UserEntity src, UserDTOv1 dst, MapperContext mapperContext) {
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
-            case ID_ONLY:
+            case SHORT:
                 dst
-                        .id(src.getId());
+                        .id(src.getId())
+                        .name(src.getName());
                 break;
             case DETAILED:
                 dst
@@ -24,10 +24,6 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
                         .email(src.getEmail())
                         .avatar(src.getAvatar());
                 break;
-            default:
-                dst
-                        .id(src.getId())
-                        .name(src.getName());
         }
     }
 
@@ -42,10 +38,10 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
     }
 
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED, HIDE;
+        SHORT, DETAILED, HIDE;
 
         public static final String _HIDE = "HIDE";
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
     }
 }

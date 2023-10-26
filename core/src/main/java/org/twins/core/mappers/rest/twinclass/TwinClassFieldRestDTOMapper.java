@@ -31,7 +31,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .required(src.isRequired())
                         .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
                         .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor));
-            case ID_KEY_ONLY:
+            case SHORT:
                 dst
                         .id(src.getId())
                         .key(src.getKey());
@@ -40,9 +40,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     }
 
     public enum Mode implements MapperMode {
-        ID_KEY_ONLY, DETAILED;
+        SHORT, DETAILED, HIDE;
 
-        public static final String _ID_KEY_ONLY = "ID_KEY_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
         ;
     }
