@@ -1,0 +1,20 @@
+package org.twins.core.controller.rest;
+
+public interface RestRequestParam {
+    String showAttachmentMode = "showAttachmentMode";
+    String showDataListMode = "showDataListMode";
+    String showDataListOptionMode = "showDataListOptionMode";
+    String showUserMode = "showUserMode";
+    String showUserGroupMode = "showUserGroupMode";
+    String showCardMode = "showCardMode";
+    String showClassMode = "showClassMode";
+    String showClassFieldMode = "showClassFieldMode";
+    String showClassHeadMode = "showClassHeadMode";
+    String showPermissionMode = "showPermissionMode";
+    String showPermissionGroupMode = "showPermissionGroupMode";
+    String showStatusMode = "showStatusMode";
+    String showTwinMode = "showTwinMode";
+    String showTwinFieldMode = "showTwinFieldMode";
+    String showTwinLinkMode = "showTwinLinkMode";
+    String showLinkMode = "showLinkMode";
+}

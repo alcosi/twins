@@ -46,7 +46,6 @@ public class TwinClassWidgetListController extends ApiController {
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         WidgetListRsDTOv1 rs = new WidgetListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.widgetList(
                     widgetRestDTOMapper.convertList(
                             widgetService.findWidgets(twinClassId)));

@@ -15,10 +15,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
+import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -30,9 +32,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DataListOptionController extends ApiController {
-    private final AuthService authService;
-    private final DataListService dataListService;
-    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    final DataListService dataListService;
+    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")
@@ -43,13 +44,14 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_option/{dataListOptionId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListV1(
-            @Parameter(name = "dataListOptionId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
+            @Parameter(name = "dataListOptionId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._HIDE) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {
             DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
             rs
                     .dataListId(dataListOptionEntity.getDataListId())
-                    .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity));
+                    .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity, new MapperContext().setMode(showDataListOptionMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

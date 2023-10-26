@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
@@ -45,7 +46,7 @@ public class UserGroupListController extends ApiController {
     @RequestMapping(value = "/private/user/{userId}/user_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userGroupForUserListV1(
             @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @Parameter(name = "showUserGroupMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode) {
+            @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             rs.userGroupList = userGroupDTOMapper.convertList(

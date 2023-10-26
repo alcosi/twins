@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
@@ -47,26 +48,26 @@ public class TwinClassViewController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassRsDTOv1.class)) }),
+                    @Schema(implementation = TwinClassRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/{twinClassId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassViewV1(
             @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
-            @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode,
-            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showTwinClassLinksMode) {
+            @Parameter(name = "twinClassId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
+            @RequestParam(name = RestRequestParam.showClassHeadMode, defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showClassHeadMode,
+            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
             rs.setTwinClass(
                     twinClassRestDTOMapper.convert(
                             twinClassService.findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows), mapperContext
-                                    .setMode(showTwinClassMode)
-                                    .setMode(showTwinClassHeadsMode)
-                                    .setMode(showTwinClassFieldMode)
-                                    .setMode(showTwinClassLinksMode)));
+                                    .setMode(showClassMode)
+                                    .setMode(showClassHeadMode)
+                                    .setMode(showClassFieldMode)
+                                    .setMode(showLinkMode)));
             rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -81,16 +82,16 @@ public class TwinClassViewController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassRsDTOv1.class)) }),
+                    @Schema(implementation = TwinClassRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class_by_key/{twinClassKey}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassViewByKeyV1(
             @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
-            @Parameter(name = "twinClassKey", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey,
-            @Parameter(name = "showTwinClassMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showTwinClassMode,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode,
-            @Parameter(name = "showTwinClassHeadsMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showTwinClassHeadsMode,
-            @Parameter(name = "showTwinClassLinksMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showTwinClassLinksMode) {
+            @Parameter(name = "twinClassKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey,
+            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
+            @RequestParam(name = RestRequestParam.showClassHeadMode, defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showClassHeadMode,
+            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -98,10 +99,10 @@ public class TwinClassViewController extends ApiController {
             rs.setTwinClass(
                     twinClassRestDTOMapper.convert(
                             twinClassService.findTwinClassByKey(apiUser, twinClassKey), mapperContext
-                                    .setMode(showTwinClassMode)
-                                    .setMode(showTwinClassHeadsMode)
-                                    .setMode(showTwinClassFieldMode)
-                                    .setMode(showTwinClassLinksMode)));
+                                    .setMode(showClassMode)
+                                    .setMode(showClassHeadMode)
+                                    .setMode(showClassFieldMode)
+                                    .setMode(showLinkMode)));
             rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

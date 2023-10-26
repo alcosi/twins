@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.ApiUser;
@@ -47,10 +48,9 @@ public class TwinFieldViewController extends ApiController {
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinFieldViewV1(
             @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
+            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
             fillResponse(twinFieldEntity, showTwinClassFieldMode, rs);
         } catch (ServiceException se) {
@@ -72,10 +72,9 @@ public class TwinFieldViewController extends ApiController {
     public ResponseEntity<?> twinFieldByKeyViewV1(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
-            @Parameter(name = "showTwinClassFieldMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
+            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
             fillResponse(twinFieldEntity, showTwinClassFieldMode, rs);
         } catch (ServiceException se) {

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
@@ -45,7 +46,7 @@ public class TwinClassCardListController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/card/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassCardListV1(
             @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @Parameter(name = "showCardMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = CardRestDTOMapper.Mode._SHOW_WIDGETS) CardRestDTOMapper.Mode showCardMode) {
+            @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._SHOW_WIDGETS) CardRestDTOMapper.Mode showCardMode) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

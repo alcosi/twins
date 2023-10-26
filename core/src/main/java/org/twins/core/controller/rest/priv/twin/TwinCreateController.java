@@ -49,7 +49,6 @@ public class TwinCreateController extends ApiController {
     final UserService userService;
     final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
-
     final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders

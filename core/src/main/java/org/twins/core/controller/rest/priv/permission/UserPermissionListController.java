@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
@@ -51,8 +52,8 @@ public class UserPermissionListController extends ApiController {
     @RequestMapping(value = "/private/user/{userId}/permission/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionListV1(
             @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @Parameter(name = "showPermissionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @Parameter(name = "showPermissionGroupMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
+            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
             rs.permissionList = permissionWithGroupRestDTOMapper.convertList(
@@ -78,8 +79,8 @@ public class UserPermissionListController extends ApiController {
     @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionGroupedListV1(
             @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @Parameter(name = "showPermissionMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @Parameter(name = "showPermissionGroupMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
+            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
             rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertList(
