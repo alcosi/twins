@@ -3,6 +3,8 @@ package org.twins.core.mappers.rest;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.util.StreamUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -57,10 +59,11 @@ public class MapperContext {
         else if (relatedObject instanceof TwinClassEntity twinClass)
             relatedTwinClassMap.put(twinClass.getId(), twinClass);
         else if (relatedObject instanceof TwinStatusEntity twinStatus) {
-            relatedTwinStatusMap().put(twinStatus.getId(), twinStatus);
+            relatedTwinStatusMap.put(twinStatus.getId(), twinStatus);
         } else if (relatedObject instanceof TwinEntity twin) {
-            relatedTwinMap().put(twin.getId(), twin);
-        }
+            relatedTwinMap.put(twin.getId(), twin);
+        } else
+            log.warn("Related object type is unknown");
         return this;
     }
 

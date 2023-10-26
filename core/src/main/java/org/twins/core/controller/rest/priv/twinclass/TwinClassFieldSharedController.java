@@ -47,7 +47,7 @@ public class TwinClassFieldSharedController extends ApiController {
     public ResponseEntity<?> twinClassFieldDataListSharedInHeadV1(
             @Parameter(name = "twinClassFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
             @Parameter(name = "headTwinId", in = ParameterIn.PATH, required = true, example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId,
-            @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._SHOW_OPTIONS) DataListRestDTOMapper.Mode showDatalistMode) {
+            @Parameter(name = "showDatalistMode", in = ParameterIn.QUERY) @RequestParam(defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDatalistMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
