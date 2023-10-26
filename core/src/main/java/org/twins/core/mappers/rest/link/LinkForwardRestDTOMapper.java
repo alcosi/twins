@@ -38,7 +38,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
 
     @Override
     public String getObjectCacheId(LinkEntity src) {
-        return src.getId().toString();
+        return src.getId().toString() + "-forward"; //postfix is important, forward and backward object are different, and should not have same objectCacheId
     }
 
 }

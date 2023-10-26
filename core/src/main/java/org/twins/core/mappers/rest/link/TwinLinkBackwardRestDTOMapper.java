@@ -25,6 +25,6 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
 
     @Override
     public String getObjectCacheId(TwinLinkEntity src) {
-        return src.getId().toString() + "-backward"; //postfix is important, forward and backward object are different, and shou not have same objectCacheId
+        return src.getId().toString() + "-backward"; //postfix is important, forward and backward object are different, and should not have same objectCacheId
     }
 }
