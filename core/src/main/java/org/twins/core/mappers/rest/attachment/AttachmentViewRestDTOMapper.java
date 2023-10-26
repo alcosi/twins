@@ -1,12 +1,13 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
@@ -36,7 +37,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
                         .setExternalId(src.getExternalId());
-            case ID_LINK_ONLY:
+            case SHORT:
                 dst
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
@@ -48,10 +49,17 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         return src.getId().toString();
     }
 
-    public enum Mode implements MapperMode {
-        ID_LINK_ONLY, DETAILED;
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+    }
 
-        public static final String _ID_LINK_ONLY = "ID_LINK_ONLY";
+    @FieldNameConstants
+    public enum Mode implements MapperMode {
+        SHORT, DETAILED, HIDE;
+
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
     }
 }

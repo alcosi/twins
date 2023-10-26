@@ -5,9 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.PaginationBean;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 
 import java.util.List;
 

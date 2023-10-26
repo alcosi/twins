@@ -41,7 +41,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(list.supportCustom())
                         .multiple(list.multiple())
-                        .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
+                        .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
             }
         if (fieldDescriptor instanceof FieldDescriptorListShared listShared)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()

@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
 
 import java.util.List;
 

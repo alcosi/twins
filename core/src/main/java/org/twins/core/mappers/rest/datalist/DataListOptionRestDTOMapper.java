@@ -5,8 +5,8 @@ import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.Hashtable;
@@ -22,13 +22,17 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
+                        .id(src.getId())
+                        .name(src.getOptionI18n() != null ? i18nService.translateToLocale(src.getOptionI18n()) : src.getOption())
                         .icon(src.getIcon())
                         .attributes(getAttributes(src))
                         .disabled(src.isDisabled());
-            case ID_NAME_ONLY:
+                break;
+            case SHORT:
                 dst
                         .id(src.getId())
                         .name(src.getOptionI18n() != null ? i18nService.translateToLocale(src.getOptionI18n()) : src.getOption());
+                break;
         }
     }
 
@@ -46,10 +50,16 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
     }
 
     public enum Mode implements MapperMode {
-        ID_NAME_ONLY, DETAILED;
+        SHORT, DETAILED, HIDE;
 
-        public static final String _ID_NAME_ONLY = "ID_NAME_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     @Override

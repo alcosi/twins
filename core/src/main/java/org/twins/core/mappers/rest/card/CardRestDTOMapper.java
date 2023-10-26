@@ -5,8 +5,8 @@ import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.card.CardEntity;
 import org.twins.core.dto.rest.card.CardDTOv1;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.card.CardService;
 
@@ -20,29 +20,32 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
 
     @Override
     public void map(CardEntity src, CardDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(CardRestDTOMapper.Mode.DETAILED)) {
-            case SHOW_WIDGETS:
-                dst.widgets(
-                        cardWidgetRestDTOMapper.convertList(
-                                cardService.findCardWidgets(src.id())));
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
+                        .id(src.id())
                         .key(src.key())
                         .name(i18nService.translateToLocale(src.nameI18n()))
                         .layoutKey(src.cardLayout().getKey())
                         .logo(src.logo());
-            case ID_ONLY:
+                break;
+            case SHORT:
                 dst
-                        .id(src.id());
+                        .id(src.id())
+                        .key(src.key())
+                        .name(i18nService.translateToLocale(src.nameI18n()));
                 break;
         }
+        if (!cardWidgetRestDTOMapper.hideMode(mapperContext))
+            dst.widgets(cardWidgetRestDTOMapper.convertList(cardService.findCardWidgets(src.id())));
     }
 
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED, SHOW_WIDGETS;
+        SHORT, DETAILED, HIDE, SHOW_WIDGETS;
 
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
         public static final String _SHOW_WIDGETS = "SHOW_WIDGETS";
     }
 }

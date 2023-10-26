@@ -34,7 +34,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .date(date.date());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.ID_NAME_ONLY)));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
         return null;
     }
 }

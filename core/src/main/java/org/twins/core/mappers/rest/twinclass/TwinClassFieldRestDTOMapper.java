@@ -8,8 +8,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -27,16 +27,24 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
+                        .id(src.getId())
+                        .key(src.getKey())
                         .name(i18nService.translateToLocale(src.getNameI18n()))
                         .required(src.isRequired())
                         .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
                         .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor));
+                break;
             case SHORT:
                 dst
                         .id(src.getId())
                         .key(src.getKey());
-
+                break;
         }
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     public enum Mode implements MapperMode {

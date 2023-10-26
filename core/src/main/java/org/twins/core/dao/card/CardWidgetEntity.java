@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "card_widget")
 public class CardWidgetEntity {
     @Id

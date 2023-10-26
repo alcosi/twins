@@ -1,19 +1,13 @@
 package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,7 +24,6 @@ public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkServi
     public boolean hideMode(MapperContext mapperContext) {
         return mapperContext.hasModeOrEmpty(TwinLinkRestDTOMapper.Mode.HIDE);
     }
-
 
     @Override
     public void map(TwinLinkService.FindTwinLinksResult src, TwinLinkListDTOv1 dst, MapperContext mapperContext) throws Exception {

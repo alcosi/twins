@@ -1,6 +1,5 @@
 package org.twins.core.mappers.rest.related;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
@@ -11,7 +10,6 @@ import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinBaseV3RestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -36,7 +34,7 @@ public class RelatedObjectsRestDTOConverter {
             return null;
         MapperContext isolatedMapperContext = mapperContext.cloneIgnoreRelatedObjects()
                 .setMode(TwinLinkRestDTOMapper.Mode.HIDE)
-                .setMode(TwinBaseV3RestDTOMapper.AttachmentsMode.HIDE);
+                .setMode(AttachmentViewRestDTOMapper.Mode.HIDE);
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();

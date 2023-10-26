@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 
@@ -19,36 +19,33 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
     @Override
     public void map(DataListEntity src, DataListDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DataListRestDTOMapper.Mode.DETAILED)) {
-            case SHOW_OPTIONS:
-                if (src.getOptions() == null)
-                    src.setOptions(dataListService.findDataListOptions(src.getId()));
-                dst.options(
-                        dataListOptionRestDTOMapper.convertList(
-                                src.getOptions(), mapperContext));
             case DETAILED:
                 dst
                         .id(src.getId())
                         .name(src.getName())
                         .updatedAt(src.getUpdatedAt().toInstant())
                         .description(src.getDescription());
-            case ID_ONLY:
-                dst
-                        .id(src.getId());
                 break;
-            default:
+            case SHORT:
                 dst
                         .id(src.getId())
                         .name(src.getName());
+                break;
+        }
+        if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
+            if (src.getOptions() == null)
+                src.setOptions(dataListService.findDataListOptions(src.getId()));
+            dst.options(dataListOptionRestDTOMapper.convertList(
+                    src.getOptions(), mapperContext));
         }
 
     }
 
     public enum Mode implements MapperMode {
-        ID_ONLY, DETAILED, SHOW_OPTIONS;
+        SHORT, DETAILED;
 
-        public static final String _ID_ONLY = "ID_ONLY";
+        public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _SHOW_OPTIONS = "SHOW_OPTIONS";
     }
 
     @Override

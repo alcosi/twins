@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.card;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.widget.WidgetDTOv1;
 
 import java.util.UUID;
@@ -25,6 +26,9 @@ public class CardWidgetDTOv1 {
 
     @Schema(description = "color", example = "red")
     public String color;
+
+    @Schema(description = "widgetId", example = DTOExamples.WIDGET_ID)
+    public UUID widgetId;
 
     @Schema(description = "widget", example = "")
     public WidgetDTOv1 widget;

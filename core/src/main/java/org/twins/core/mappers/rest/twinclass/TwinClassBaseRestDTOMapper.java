@@ -5,8 +5,8 @@ import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
@@ -20,6 +20,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
         switch (mapperContext.getModeOrUse(ClassMode.DETAILED)) {
             case DETAILED:
                 dst
+                        .id(src.getId())
                         .key(src.getKey())
                         .headClassId(src.getHeadTwinClassId())
 //                        .headClass(convertOrPostpone(src))
@@ -27,9 +28,11 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .name(i18nService.translateToLocale(src.getNameI18n()))
                         .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
                         .logo(src.getLogo());
+                break;
             case SHORT:
                 dst
-                        .id(src.getId());
+                        .id(src.getId())
+                        .key(src.getKey());
                 break;
         }
     }

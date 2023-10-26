@@ -35,14 +35,20 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
     }
 
     @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(TwinMode.HIDE);
+    }
+
+    @Override
     public String getObjectCacheId(TwinEntity src) {
         return src.getId().toString();
     }
 
     public enum TwinMode implements MapperMode {
-        SHORT, DETAILED;
+        SHORT, DETAILED, HIDE;
 
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
     }
 }

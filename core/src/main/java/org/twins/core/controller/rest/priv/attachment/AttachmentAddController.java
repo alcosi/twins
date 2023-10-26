@@ -21,7 +21,6 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentAddRqDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentAddRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;

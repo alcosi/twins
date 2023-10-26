@@ -18,13 +18,17 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
+                        .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.setModeIfNotPresent(UserRestDTOMapper.Mode.SHORT)))
-                        .setCreatedAt(src.getCreatedAt().toInstant());
+                        .setCreatedAt(src.getCreatedAt().toInstant())
+                        .setLinkId(src.getLinkId());
+                break;
             case SHORT:
                 dst
                         .setId(src.getId())
                         .setLinkId(src.getLinkId());
+                break;
         }
     }
 

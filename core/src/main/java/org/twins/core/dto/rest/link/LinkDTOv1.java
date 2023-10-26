@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
-import org.twins.core.dto.rest.twinclass.TwinClassFieldDescriptorDTO;
 
 import java.util.UUID;
 
