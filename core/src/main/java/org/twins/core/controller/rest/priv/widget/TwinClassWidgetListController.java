@@ -43,7 +43,7 @@ public class TwinClassWidgetListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/{twinClassId}/widget/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassWidgetListV1(
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         WidgetListRsDTOv1 rs = new WidgetListRsDTOv1();
         try {
             rs.widgetList(

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -33,6 +34,7 @@ public class UserAddController extends ApiController {
     private final DomainService domainService;
     private final UserService userService;
 
+    @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
             " add user to domain and businessAccount if specified. If given businessAccount is not registered in domain, it will register it")
     @ApiResponses(value = {
@@ -42,7 +44,6 @@ public class UserAddController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/v1", method = RequestMethod.POST)
     public ResponseEntity<?> userAddV1(
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();
         try {

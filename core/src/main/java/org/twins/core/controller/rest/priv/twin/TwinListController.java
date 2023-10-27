@@ -61,6 +61,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/search/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinSearchV1(
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -70,17 +71,18 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showUserMode)
+                    .setMode(showStatusMode)
+                    .setMode(showClassMode)
+                    .setMode(showClassFieldMode)
+                    .setMode(showTwinMode)
+                    .setMode(showTwinFieldMode);
             rs
-                    .setTwinList(twinRestDTOMapper.convertList(
-                            twinList, new MapperContext()
-                                    .setMode(showUserMode)
-                                    .setMode(showStatusMode)
-                                    .setMode(showClassMode)
-                                    .setMode(showClassFieldMode)
-                                    .setMode(showTwinMode)
-                                    .setMode(showTwinFieldMode)));
+                    .setTwinList(twinRestDTOMapper.convertList(twinList, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -98,7 +100,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/search/v2", method = RequestMethod.POST)
     public ResponseEntity<?> twinSearchV2(
-            @Parameter(name = "lazyRelation", in = ParameterIn.QUERY) @RequestParam(defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -112,20 +114,20 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
-            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation);
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showUserMode)
+                    .setMode(showStatusMode)
+                    .setMode(showClassMode)
+                    .setMode(showClassFieldMode)
+                    .setMode(showTwinMode)
+                    .setMode(showTwinFieldMode)
+                    .setMode(showAttachmentMode)
+                    .setMode(showTwinLinkMode)
+                    .setMode(showLinkMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(
-                            twinList, mapperContext
-                                    .setMode(showUserMode)
-                                    .setMode(showStatusMode)
-                                    .setMode(showClassMode)
-                                    .setMode(showClassFieldMode)
-                                    .setMode(showTwinMode)
-                                    .setMode(showTwinFieldMode)
-                                    .setMode(showAttachmentMode)
-                                    .setMode(showTwinLinkMode)
-                                    .setMode(showLinkMode)));
-            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+                    .setTwinList(twinRestDTOMapperV2.convertList(twinList, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

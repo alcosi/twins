@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.businessaccount.BusinessAccountService;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class UserDeleteController extends ApiController {
     private final BusinessAccountService businessAccountService;
 
+    @ParameterChannelHeader
     @Operation(operationId = "userDeleteV1", summary = "Delete user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
@@ -36,8 +38,7 @@ public class UserDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> userDeleteV1(
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId) {
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
             throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);

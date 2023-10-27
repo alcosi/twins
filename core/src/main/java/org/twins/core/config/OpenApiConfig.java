@@ -8,6 +8,7 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.service.HttpRequestService;
@@ -44,6 +45,13 @@ public class OpenApiConfig {
                         parameters.add(headerParameterAuthToken());
 //                        parameters.add(headerParameterUserId());
 //                        parameters.add(headerParameterBusinessAccountId());
+                        parameters.add(headerParameterChannel());
+                        if (operation.getParameters() != null)
+                            parameters.addAll(operation.getParameters());
+                        operation.setParameters(parameters);
+                    }
+                    if (handlerMethod.hasMethodAnnotation(ParameterChannelHeader.class)) {
+                        List<Parameter> parameters = new ArrayList<>();
                         parameters.add(headerParameterChannel());
                         if (operation.getParameters() != null)
                             parameters.addAll(operation.getParameters());

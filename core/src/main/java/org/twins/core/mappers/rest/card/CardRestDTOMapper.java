@@ -41,11 +41,10 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
     }
 
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE, SHOW_WIDGETS;
+        SHORT, DETAILED, HIDE;
 
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
         public static final String _HIDE = "HIDE";
-        public static final String _SHOW_WIDGETS = "SHOW_WIDGETS";
     }
 }

@@ -51,7 +51,8 @@ public class TwinClassDuplicateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/{twinClassId}/duplicate/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinClassDuplicateV1(
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassHeadMode, defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showClassHeadMode,
@@ -60,13 +61,15 @@ public class TwinClassDuplicateController extends ApiController {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showClassMode)
+                    .setMode(showClassHeadMode)
+                    .setMode(showClassFieldMode)
+                    .setMode(showLinkMode);
             rs.setTwinClass(
                     twinClassRestDTOMapper.convert(
-                            twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), new MapperContext()
-                                    .setMode(showClassMode)
-                                    .setMode(showClassHeadMode)
-                                    .setMode(showClassFieldMode)
-                                    .setMode(showLinkMode)));
+                            twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

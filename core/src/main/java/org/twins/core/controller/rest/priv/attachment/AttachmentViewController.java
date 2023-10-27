@@ -48,12 +48,11 @@ public class AttachmentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> attachmentViewV1(
-            @Parameter(name = "attachmentId", in = ParameterIn.PATH, required = true, example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
+            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._DETAILED) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             rs.setAttachment(
                     attachmentRestDTOMapperV2.convert(
                             attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperContext()

@@ -7,6 +7,7 @@ public interface RestRequestParam {
     String showUserMode = "showUserMode";
     String showUserGroupMode = "showUserGroupMode";
     String showCardMode = "showCardMode";
+    String showCardWidgetMode = "showCardWidgetMode";
     String showClassMode = "showClassMode";
     String showClassFieldMode = "showClassFieldMode";
     String showClassHeadMode = "showClassHeadMode";
@@ -17,4 +18,6 @@ public interface RestRequestParam {
     String showTwinFieldMode = "showTwinFieldMode";
     String showTwinLinkMode = "showTwinLinkMode";
     String showLinkMode = "showLinkMode";
+    String lazyRelation = "lazyRelation";
+    String fieldValue = "fieldValue";
 }

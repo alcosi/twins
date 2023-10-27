@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.PaginationBean;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
 
@@ -13,7 +14,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinSearchRsV1")
-public class TwinSearchRsDTOv1 extends Response {
+public class TwinSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationBean pagination;
 

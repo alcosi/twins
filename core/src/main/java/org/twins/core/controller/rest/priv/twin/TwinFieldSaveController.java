@@ -25,6 +25,7 @@ import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -46,6 +47,9 @@ public class TwinFieldSaveController extends ApiController {
     final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
+    final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
 
     @ParametersApiUserHeaders
@@ -57,12 +61,12 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.PUT)
     public ResponseEntity<?> twinFieldUpdateV1(
-            @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
             @RequestBody TwinFieldUpdateRqDTOv1 request) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            twinService.updateField(twinFieldId, twinFieldValueRestDTOReverseMapper.convert(request.value));
+            TwinFieldEntity twinFieldEntity = twinService.updateField(twinFieldId, twinFieldValueRestDTOReverseMapper.convert(request.value));
+            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -80,16 +84,15 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v2", method = RequestMethod.PUT)
     public ResponseEntity<?> twinFieldUpdateV2(
-            @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @Parameter(name = "fieldValue", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @RequestParam String fieldValue) {
+            @Parameter(example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_VALUE) @RequestParam(name = RestRequestParam.fieldValue) String fieldValue) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
-            twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2
+            twinFieldEntity = twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2
                     .convert(
-                            twinFieldValueRestDTOReverseMapperV2.createValueByTwinField(twinFieldEntity, fieldValue)
-                    ));
+                            twinFieldValueRestDTOReverseMapperV2.createValueByTwinField(twinFieldEntity, fieldValue)));
+            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -108,14 +111,14 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinFieldSaveV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
             @RequestBody TwinFieldUpdateRqDTOv1 request) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
             twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapper.convert(request.value));
+            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -133,16 +136,16 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v2", method = RequestMethod.POST)
     public ResponseEntity<?> twinFieldByKeySaveV2(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
-            @Parameter(name = "fieldValue", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @RequestParam String fieldValue) {
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
+            @Parameter(example = DTOExamples.TWIN_FIELD_VALUE) @RequestParam(name = RestRequestParam.fieldValue) String fieldValue) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
             twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2.convert(
                     twinFieldValueRestDTOReverseMapperV2.createByTwinIdAndFieldKey(twinId, fieldKey, fieldValue)
             ));
+            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -161,6 +164,7 @@ public class TwinFieldSaveController extends ApiController {
     @RequestMapping(value = "/private/twin/{twinId}/field_list/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinFieldListUpdateV1(
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -174,16 +178,18 @@ public class TwinFieldSaveController extends ApiController {
             TwinEntity twinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(twinEntity.getTwinClassId(), request.getFields());
             twinService.updateTwinFields(twinEntity, fields);
-            rs.twin(twinRestDTOMapperV2.convert(
-                    twinService.findEntitySafe(twinId), new MapperContext()
-                            .setMode(showUserMode)
-                            .setMode(showStatusMode)
-                            .setMode(showClassMode)
-                            .setMode(showClassFieldMode)
-                            .setMode(showTwinMode)
-                            .setMode(showTwinFieldMode)
-                            .setMode(showAttachmentMode)
-            ));
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showUserMode)
+                    .setMode(showStatusMode)
+                    .setMode(showClassMode)
+                    .setMode(showClassFieldMode)
+                    .setMode(showTwinMode)
+                    .setMode(showTwinFieldMode)
+                    .setMode(showAttachmentMode);
+            rs
+                    .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -50,7 +50,7 @@ public class DataListController extends ApiController {
     @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
-            @Parameter(name = "dataListId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
+            @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
@@ -77,7 +77,7 @@ public class DataListController extends ApiController {
     @RequestMapping(value = "/private/data_list_by_key/{dataListKey}/v1", method = RequestMethod.GET)
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
-            @Parameter(name = "dataListKey", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
+            @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();

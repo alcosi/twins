@@ -42,7 +42,7 @@ public class AttachmentDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> attachmentDeleteV1(
-            @Parameter(name = "attachmentId", in = ParameterIn.PATH, required = true, example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
+            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();

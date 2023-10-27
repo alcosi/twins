@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.EntitySmartService;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class DomainBusinessAccountDeleteController extends ApiController {
     private final DomainService domainService;
 
+    @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
@@ -37,9 +39,8 @@ public class DomainBusinessAccountDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/domain/{domainId}/business_account/{businessAccountId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> domainBusinessAccountDeleteV1(
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
-            @Parameter(name = "domainId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
-            @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
+            @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
         Response rs = new Response();
         try {
             domainService.deleteBusinessAccount(

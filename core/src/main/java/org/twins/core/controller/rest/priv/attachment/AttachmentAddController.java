@@ -48,7 +48,7 @@ public class AttachmentAddController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/attachment/v1", method = RequestMethod.POST)
     public ResponseEntity<?> attachmentAddV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody AttachmentAddRqDTOv1 request) {
         AttachmentAddRsDTOv1 rs = new AttachmentAddRsDTOv1();
         try {

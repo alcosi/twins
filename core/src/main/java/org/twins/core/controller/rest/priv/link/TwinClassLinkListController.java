@@ -22,6 +22,8 @@ import org.twins.core.dto.rest.link.LinkListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
+import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
@@ -39,6 +41,7 @@ public class TwinClassLinkListController extends ApiController {
     final TwinClassService twinClassService;
     final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
     final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
 
     @ParametersApiUserHeaders
@@ -50,15 +53,21 @@ public class TwinClassLinkListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/{twinClassId}/link/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassLinkListV1(
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode) {
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._SHORT) LinkRestDTOMapper.Mode showLinkMode) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext().setMode(showClassMode);
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showClassMode)
+                    .setMode(showLinkMode);
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(twinClassId);
             rs
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))
                     .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
+            rs.setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

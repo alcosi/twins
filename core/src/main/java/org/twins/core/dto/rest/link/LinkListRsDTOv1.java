@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -13,7 +14,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinClassLinkListRsV1")
-public class LinkListRsDTOv1 extends Response {
+public class LinkListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema()
     public Map<UUID, LinkDTOv1> forwardLinkMap;
 

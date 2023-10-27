@@ -172,8 +172,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
-    public void updateField(UUID twinFieldId, FieldValue fieldValue) throws ServiceException {
-        updateField(entitySmartService.findById(twinFieldId, twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows), fieldValue);
+    public TwinFieldEntity updateField(UUID twinFieldId, FieldValue fieldValue) throws ServiceException {
+        return updateField(entitySmartService.findById(twinFieldId, twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows), fieldValue);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -327,14 +327,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return findSpaceForTwin(twinEntity, headTwin.getHeadTwin(), recursionDepth - 1);
     }
 
-    public void updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
+    public TwinFieldEntity updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         String newValue = fieldTyper.serializeValue(twinFieldEntity, fieldValue);
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("field", twinFieldEntity.getValue(), newValue)) {
             twinFieldEntity.setValue(newValue);
-            entitySmartService.saveAndLogChanges(twinFieldEntity, twinFieldRepository, changesHelper);
+            return entitySmartService.saveAndLogChanges(twinFieldEntity, twinFieldRepository, changesHelper);
+        } else {
+            log.info(twinFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " was not changes");
         }
+        return twinFieldEntity;
     }
 
     public void deleteTwin(UUID twinId) throws ServiceException {

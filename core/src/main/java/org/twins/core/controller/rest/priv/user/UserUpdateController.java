@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class UserUpdateController extends ApiController {
     private final UserService userService;
 
+    @ParameterChannelHeader
     @Operation(operationId = "userUpdateV1", summary = "Update user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was updated", content = {
@@ -38,8 +40,7 @@ public class UserUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/v1", method = RequestMethod.PUT)
     public ResponseEntity<?> userCreate(
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestBody UserUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {

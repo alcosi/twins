@@ -20,6 +20,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -46,13 +47,16 @@ public class TwinClassFieldSharedController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class_field/{twinClassFieldId}/data_list_shared_in_head/{headTwinId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassFieldDataListSharedInHeadV1(
-            @Parameter(name = "twinClassFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
-            @Parameter(name = "headTwinId", in = ParameterIn.PATH, required = true, example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId,
-            @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDatalistMode) {
+            @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
+            @Parameter(example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId,
+            @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDatalistMode,
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperContext().setMode(showDatalistMode));
+                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperContext()
+                            .setMode(showDatalistMode)
+                            .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

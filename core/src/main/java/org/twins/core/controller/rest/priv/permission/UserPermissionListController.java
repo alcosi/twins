@@ -51,7 +51,7 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/permission/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionListV1(
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
             @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
@@ -78,7 +78,7 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionGroupedListV1(
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
             @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();

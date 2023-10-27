@@ -47,7 +47,7 @@ public class TwinFieldViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinFieldViewV1(
-            @Parameter(name = "twinFieldId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
@@ -70,8 +70,8 @@ public class TwinFieldViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinFieldByKeyViewV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @Parameter(name = "fieldKey", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showTwinClassFieldMode) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
@@ -85,12 +85,12 @@ public class TwinFieldViewController extends ApiController {
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
-    private void fillResponse(TwinFieldEntity twinFieldEntity, TwinClassFieldRestDTOMapper.Mode showTwinValuesMode, TwinFieldRsDTOv1 rs) throws Exception {
+    private void fillResponse(TwinFieldEntity twinFieldEntity, TwinClassFieldRestDTOMapper.Mode showClassFieldMode, TwinFieldRsDTOv1 rs) throws Exception {
         rs
                 .twinId(twinFieldEntity.getTwinId())
                 .field(twinFieldRestDTOMapper.convert(
                         twinFieldEntity, new MapperContext()
-                                .setMode(showTwinValuesMode)
+                                .setMode(showClassFieldMode)
                 ));
     }
 }

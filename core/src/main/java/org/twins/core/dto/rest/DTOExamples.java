@@ -14,6 +14,7 @@ public interface DTOExamples {
     String TWIN_ALIAS = "LESNAYA9-2";
     String TWIN_FIELD_ID = "cf8b1aec-c07c-4131-b834-8024462cfc93";
     String TWIN_FIELD_KEY = "brand";
+    String TWIN_FIELD_VALUE = "alcosi";
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
     String DATA_LIST_KEY = "country";
     String DATA_LIST_OPTION_ID = "7ef5fe9d-7ea2-4c64-8364-30438fa2267f";

@@ -47,11 +47,10 @@ public class TwinLinkAddController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/link/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinLinkAddV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinLinkAddRqDTOv1 request) {
         TwinLinkAddRsDTOv1 rs = new TwinLinkAddRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             twinLinkService.addLinks(
                     twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
                     twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));

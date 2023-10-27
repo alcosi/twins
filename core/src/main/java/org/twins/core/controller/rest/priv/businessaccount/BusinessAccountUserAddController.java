@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
@@ -30,6 +31,7 @@ import java.util.UUID;
 public class BusinessAccountUserAddController extends ApiController {
     private final BusinessAccountService businessAccountService;
 
+    @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserAddV1", summary = "Add new user to businessAccount")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
@@ -38,8 +40,7 @@ public class BusinessAccountUserAddController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/business_account/{businessAccountId}/user/v1", method = RequestMethod.POST)
     public ResponseEntity<?> businessAccountUserAddV1(
-            @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
             @RequestBody BusinessAccountUserAddRqDTOv1 request) {
         Response rs = new Response();
         try {

@@ -48,7 +48,7 @@ public class UserGroupMemberManageController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/user_group/manage/v1", method = RequestMethod.POST)
     public ResponseEntity<?> userGroupMemberManageV1(
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode,
             @RequestBody UserGroupMemberManageRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();

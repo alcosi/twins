@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -29,6 +30,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainBusinessAccountUpdateController extends ApiController {
     private final DomainService domainService;
+
+    @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
@@ -37,9 +40,8 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/domain/{domainId}/business_account/{businessAccountId}/v1", method = RequestMethod.POST)
     public ResponseEntity<?> domainBusinessAccountUpdateV1(
-            @Parameter(name = "domainId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
-            @Parameter(name = "businessAccountId", in = ParameterIn.PATH, required = true, example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
+            @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
             @RequestBody DomainBusinessAccountUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {

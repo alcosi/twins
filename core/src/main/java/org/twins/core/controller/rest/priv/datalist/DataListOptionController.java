@@ -44,7 +44,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_option/{dataListOptionId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListV1(
-            @Parameter(name = "dataListOptionId", in = ParameterIn.PATH, required = true, example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
+            @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._HIDE) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {

@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.EntitySmartService;
@@ -28,6 +29,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DomainUserDeleteController extends ApiController {
     private final DomainService domainService;
+    @ParameterChannelHeader
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
@@ -36,9 +38,8 @@ public class DomainUserDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/domain/{domainId}/user/{userId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> domainUserDeleteV1(
-            @Parameter(name = "channel", in = ParameterIn.HEADER, required = true, example = DTOExamples.CHANNEL) String channel,
-            @Parameter(name = "domainId", in = ParameterIn.PATH, required = true, example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
-            @Parameter(name = "userId", in = ParameterIn.PATH, required = true, example = DTOExamples.USER_ID) @PathVariable UUID userId) {
+            @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
             domainService.deleteUser(

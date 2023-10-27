@@ -30,6 +30,7 @@ import org.twins.core.mappers.rest.attachment.AttachmentUpdateRestDTOReverseMapp
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -55,6 +56,7 @@ public class TwinUpdateController extends ApiController {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinUpdateV1", summary = "Update twin")
@@ -65,7 +67,8 @@ public class TwinUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.PUT)
     public ResponseEntity<?> twinUpdateV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -78,7 +81,6 @@ public class TwinUpdateController extends ApiController {
             @RequestBody TwinUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinEntity twinEntity = new TwinEntity()
                     .setId(twinId)
@@ -92,17 +94,20 @@ public class TwinUpdateController extends ApiController {
             List<TwinAttachmentEntity> attachmentUpdateEntityList = attachmentUpdateRestDTOReverseMapper
                     .convertList(request.getAttachmentsUpdate());
             twinService.updateTwin(twinEntity, dbTwinEntity, fields, attachmentAddEntityList, request.getAttachmentsDelete(), attachmentUpdateEntityList);
-            rs.twin = twinRestDTOMapperV2
-                    .convert(twinService.findEntitySafe(twinId), new MapperContext()
-                            .setMode(showUserMode)
-                            .setMode(showStatusMode)
-                            .setMode(showClassMode)
-                            .setMode(showClassFieldMode)
-                            .setMode(showTwinMode)
-                            .setMode(showTwinFieldMode)
-                            .setMode(showAttachmentMode)
-                            .setMode(showTwinLinkMode)
-                            .setMode(showLinkMode));
+            MapperContext mapperContext = new MapperContext()
+                    .setLazyRelations(lazyRelation)
+                    .setMode(showUserMode)
+                    .setMode(showStatusMode)
+                    .setMode(showClassMode)
+                    .setMode(showClassFieldMode)
+                    .setMode(showTwinMode)
+                    .setMode(showTwinFieldMode)
+                    .setMode(showAttachmentMode)
+                    .setMode(showTwinLinkMode)
+                    .setMode(showLinkMode);
+            rs
+                    .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

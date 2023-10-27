@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.card.CardListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
+import org.twins.core.mappers.rest.card.CardWidgetRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
 
@@ -45,14 +46,17 @@ public class TwinClassCardListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin_class/{twinClassId}/card/list/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassCardListV1(
-            @Parameter(name = "twinClassId", in = ParameterIn.PATH,  required = true, example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._SHOW_WIDGETS) CardRestDTOMapper.Mode showCardMode) {
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardRestDTOMapper.Mode showCardMode,
+            @RequestParam(name = RestRequestParam.showCardWidgetMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardWidgetRestDTOMapper.Mode showCardWidgetMode) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.cardList(
                     cardRestDTOMapper.convertList(
-                            cardService.findCards(apiUser, twinClassId), new MapperContext().setMode(showCardMode)));
+                            cardService.findCards(apiUser, twinClassId), new MapperContext()
+                                    .setMode(showCardMode)
+                                    .setMode(showCardWidgetMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

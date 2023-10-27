@@ -46,7 +46,7 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.DELETE)
     public ResponseEntity<?> twinDeleteV1(
-            @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();
