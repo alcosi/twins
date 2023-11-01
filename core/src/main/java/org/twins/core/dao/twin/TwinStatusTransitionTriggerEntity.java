@@ -1,12 +1,14 @@
-package org.twins.core.dao.twinflow;
+package org.twins.core.dao.twin;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
 import java.util.HashMap;
@@ -15,14 +17,18 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twinflow_transition_trigger")
-public class TwinflowTransitionTriggerEntity {
+@Table(name = "twin_status_transition_trigger")
+public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "twinflow_transition_id")
-    private UUID twinflowTransitionId;
+    @Column(name = "twin_status_id")
+    private UUID twinStatusId;
+
+    @Column(name = "twin_status_transition_type_id")
+    @Enumerated(EnumType.STRING)
+    private TransitionType type;
 
     @Column(name = "order")
     private Integer order;
@@ -38,4 +44,19 @@ public class TwinflowTransitionTriggerEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
+
+    public enum TransitionType {
+        incoming, outgoing;
+    }
+
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "twinStatusTransitionTrigger[id:" + id + "]";
+            case NORMAL:
+                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type +  "]";
+            default:
+                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + "]";
+        }
+    }
 }

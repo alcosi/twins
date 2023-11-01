@@ -28,7 +28,7 @@ public class SluggerDomainScopeDomainManage extends Slugger {
     }
 
     @Override
-    protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) {
+    protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)

@@ -39,15 +39,15 @@ public class BusinessAccountService {
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public void addBusinessAccount(UUID businessAccountId) throws ServiceException {
-        addBusinessAccount(businessAccountId, EntitySmartService.SaveMode.saveAndLogOnException);
+    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId) throws ServiceException {
+        return addBusinessAccount(businessAccountId, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public void addBusinessAccount(UUID businessAccountId, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
+    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        entitySmartService.save(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
+        return entitySmartService.save(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
     }
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {

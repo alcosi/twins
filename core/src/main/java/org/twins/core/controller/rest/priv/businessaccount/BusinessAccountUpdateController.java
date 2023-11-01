@@ -17,10 +17,14 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.UserResolverSystem;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUpdateRqDTOv1;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
@@ -30,7 +34,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUpdateController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    final BusinessAccountService businessAccountService;
+    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUpdateV1", summary = "Update businessAccount")
@@ -45,6 +50,8 @@ public class BusinessAccountUpdateController extends ApiController {
             @RequestBody BusinessAccountUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            authService.getApiUser()
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));
             BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                     .setId(businessAccountService.checkBusinessAccountId(businessAccountId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS))
                     .setName(request.name());

@@ -59,14 +59,14 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return false;
     }
 
-    public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) {
+    public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) throws ServiceException {
         if (CollectionUtils.isNotEmpty(uuidLists))
             return twinClassRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
         else
             return twinClassRepository.findByDomainId(apiUser.getDomain().getId());
     }
 
-    public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) {
+    public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {
         return twinClassRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), twinClassKey);
     }
 
@@ -126,8 +126,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return duplicateTwinClassEntity;
     }
 
+    public Set<UUID> findExtendedClasses(UUID twinClassId, boolean includeSelf) throws ServiceException {
+        return findExtendedClasses(findEntitySafe(twinClassId), includeSelf);
+    }
+
     public Set<UUID> findExtendedClasses(TwinClassEntity twinClassEntity, boolean includeSelf) {
-        Set<UUID> ret = new HashSet<>();
+        Set<UUID> ret = new LinkedHashSet<>();
         if (includeSelf)
             ret.add(twinClassEntity.getId());
         if (twinClassEntity.getExtendsTwinClassId() == null)

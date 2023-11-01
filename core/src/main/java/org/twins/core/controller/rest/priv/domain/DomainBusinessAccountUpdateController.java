@@ -17,9 +17,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.UserResolverSystem;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountUpdateRqDTOv1;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
@@ -29,7 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountUpdateController extends ApiController {
-    private final DomainService domainService;
+    final DomainService domainService;
+    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")
@@ -45,6 +50,10 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             @RequestBody DomainBusinessAccountUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
+            authService.getApiUser()
+                    .setDomainResolver(new DomainResolverGivenId(domainId))
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
+                    .setUserResolver(UserResolverSystem.getInstance());
             domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
                     .setDomainId(domainId)
                     .setBusinessAccountId(businessAccountId)

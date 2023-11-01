@@ -1,15 +1,19 @@
 package org.twins.core.featurer.tokenhandler;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.springframework.data.util.Pair;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.Channel;
 
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 
 @FeaturerType(id = 19,
@@ -17,12 +21,17 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public abstract class TokenHandler extends Featurer {
-    public ApiUser resolveApiUser(HashMap<String, String> initiatorParams, String token, DomainEntity domain, Channel channel) throws ServiceException {
+    public Result resolveUserIdAndBusinessAccountId(HashMap<String, String> initiatorParams, String token, DomainEntity domain, Channel channel) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
-        return resolveApiUser(properties, token)
-                .setDomain(domain)
-                .setChannel(channel);
+        return resolveUserIdAndBusinessAccountId(properties, token);
     }
 
-    protected abstract ApiUser resolveApiUser(Properties properties, String token) throws ServiceException;
+    protected abstract Result resolveUserIdAndBusinessAccountId(Properties properties, String token) throws ServiceException;
+
+    @Data
+    @Accessors(chain = true)
+    public static class Result {
+        UUID userId;
+        UUID businessAccountId;
+    }
 }

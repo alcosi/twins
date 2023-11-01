@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
@@ -27,7 +28,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountDeleteController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    final BusinessAccountService businessAccountService;
+    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountDeleteV1", summary = "Delete businessAccount")

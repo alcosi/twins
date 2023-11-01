@@ -3,6 +3,7 @@ package org.twins.core.featurer.tokenhandler;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
@@ -22,11 +23,12 @@ public class TokenHandlerStub extends TokenHandler {
     final BusinessAccountService businessAccountService;
 
     @Override
-    protected ApiUser resolveApiUser(Properties properties, String token) throws ServiceException {
+    protected Result resolveUserIdAndBusinessAccountId(Properties properties, String token) throws ServiceException {
         String[] tokenData = token.split(",");
-        ApiUser apiUser = new ApiUser().setUser(userService.findByUserId(UUID.fromString(tokenData[0].trim()), EntitySmartService.FindMode.ifEmptyThrows));
+        Result ret = new Result()
+                .setUserId(UUID.fromString(tokenData[0].trim()));
         if (tokenData.length > 1)
-            apiUser.setBusinessAccount(businessAccountService.findById(UUID.fromString(tokenData[1].trim()), EntitySmartService.FindMode.ifEmptyThrows));
-        return apiUser;
+            ret.setBusinessAccountId(UUID.fromString(tokenData[1].trim()));
+        return ret;
     }
 }

@@ -67,7 +67,7 @@ public abstract class Slugger extends Featurer {
         }
         userGroupMapRepository.save(userGroupMapEntity);
     }
-    protected abstract UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser);
+    protected abstract UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException;
 
 
     public void exitGroup(UserGroupEntity userGroup, UUID userId) throws ServiceException {

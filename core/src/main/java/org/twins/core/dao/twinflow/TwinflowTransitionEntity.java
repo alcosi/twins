@@ -2,6 +2,7 @@ package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "twinflow_transition")
 public class TwinflowTransitionEntity {
     @Id

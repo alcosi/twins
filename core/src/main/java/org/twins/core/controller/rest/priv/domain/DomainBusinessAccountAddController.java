@@ -16,10 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.UserResolverSystem;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountAddRqDTOv1;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
@@ -29,7 +34,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountAddController extends ApiController {
-    private final DomainService domainService;
+    final DomainService domainService;
+    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add new businessAccount to domain")
@@ -44,6 +50,10 @@ public class DomainBusinessAccountAddController extends ApiController {
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {
         Response rs = new Response();
         try {
+            authService.getApiUser()
+                    .setDomainResolver(new DomainResolverGivenId(domainId))
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
+                    .setUserResolver(UserResolverSystem.getInstance());
             domainService.addBusinessAccount(domainId, request.businessAccountId, false, EntitySmartService.SaveMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

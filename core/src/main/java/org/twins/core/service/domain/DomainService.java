@@ -8,10 +8,12 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -37,6 +39,8 @@ public class DomainService {
     final EntitySmartService entitySmartService;
     @Lazy
     final PermissionService permissionService;
+    @Lazy
+    final AuthService authService;
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
 
@@ -75,7 +79,7 @@ public class DomainService {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
-        businessAccountService.addBusinessAccount(businessAccountId, businessAccountCreateMode);
+        BusinessAccountEntity businessAccountEntity = businessAccountService.addBusinessAccount(businessAccountId, businessAccountCreateMode);
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity != null)
             if (ignoreAlreadyExists)
@@ -84,11 +88,12 @@ public class DomainService {
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS, "businessAccount[" + businessAccountId + "] is already registered in domain[" + domainId + "]");
         domainBusinessAccountEntity = new DomainBusinessAccountEntity()
                 .setDomainId(domainId)
+                .setDomain(domainEntity.get())
                 .setBusinessAccountId(businessAccountId)
+                .setBusinessAccount(businessAccountEntity)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domainEntity.get().getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domainEntity.get().getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
-        entitySmartService.save(domainBusinessAccountEntity, domainBusinessAccountRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity) throws ServiceException {

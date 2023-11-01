@@ -4,9 +4,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 
 import java.sql.Timestamp;
@@ -16,9 +18,19 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     final UserRepository userRepository;
     final EntitySmartService entitySmartService;
+
+    @Override
+    public CrudRepository<UserEntity, UUID> entityRepository() {
+        return userRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(UserEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
 
     public UUID checkUserId(UUID userId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(userId, userRepository, checkMode);
@@ -52,4 +64,7 @@ public class UserService {
         if (changesHelper.hasChanges())
             entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
     }
+
+    public static final UUID SYSTEM_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000"); //todo move to properties
+
 }
