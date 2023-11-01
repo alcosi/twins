@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface TwinStatusTransitionTriggerRepository extends CrudRepository<TwinStatusTransitionTriggerEntity, UUID>, JpaSpecificationExecutor<TwinStatusTransitionTriggerEntity> {
-    List<TwinStatusTransitionTriggerEntity> findAllByTwinStatusIdAndTypeOrderByOrder(UUID twinStatusId, TwinStatusTransitionTriggerEntity.TransitionType type);
+    List<TwinStatusTransitionTriggerEntity> findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(UUID twinStatusId, TwinStatusTransitionTriggerEntity.TransitionType type, boolean active);
 }

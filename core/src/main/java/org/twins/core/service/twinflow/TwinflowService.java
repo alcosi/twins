@@ -13,7 +13,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -91,11 +90,11 @@ public class TwinflowService {
         UUID srcStatusId = srcStatusEntity != null ? srcStatusEntity.getId() : null;
         UUID dstStatusId = dstStatusEntity != null ? dstStatusEntity.getId() : null;
         if (srcStatusId != null && !srcStatusId.equals(dstStatusId)) { // outgoing triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing);
+            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(srcStatusId, TwinStatusTransitionTriggerEntity.TransitionType.outgoing, true);
             runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
         }
         if (dstStatusId != null && !dstStatusId.equals(srcStatusId)) { // incoming triggers
-            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming);
+            triggerEntityList = twinStatusTransitionTriggerRepository.findAllByTwinStatusIdAndTypeAndActiveOrderByOrder(dstStatusId, TwinStatusTransitionTriggerEntity.TransitionType.incoming, true);
             runTriggers(twinEntity, triggerEntityList, srcStatusEntity, dstStatusEntity);
         }
     }

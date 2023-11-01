@@ -36,6 +36,9 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "transition_trigger_featurer_id")
     private Integer transitionTriggerFeaturerId;
 
+    @Column(name = "active")
+    private boolean active;
+
     @FeaturerList(type = TransitionTrigger.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "transition_trigger_featurer_id", insertable = false, updatable = false)
