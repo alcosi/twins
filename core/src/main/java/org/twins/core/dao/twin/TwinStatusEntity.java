@@ -29,6 +29,9 @@ public class TwinStatusEntity {
     @Column(name = "logo")
     private String logo;
 
+    @Column(name = "color")
+    private String color;
+
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClassByTwinsClassId;
