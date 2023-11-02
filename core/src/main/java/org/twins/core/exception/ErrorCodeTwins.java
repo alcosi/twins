@@ -10,6 +10,8 @@ import java.util.Arrays;
 public enum ErrorCodeTwins implements ErrorCode {
     UUID_UNKNOWN(10000, "uuid is unknown"),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
+
+    ENTITY_INVALID(10002, "entity invalid"),
     USER_UNKNOWN(10001, "unknown user"),
     USER_GROUP_UNKNOWN(10901, "user group is unknown"),
     USER_GROUP_ENTER_ERROR(10902, "user group can not be entered"),

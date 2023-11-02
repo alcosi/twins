@@ -10,10 +10,5 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name =  "TwinLinkAddV1")
-public class TwinLinkAddDTOv1 {
-    @Schema(description = "Link id", example = DTOExamples.LINK_ID)
-    public UUID linkId;
-
-    @Schema(description = "Destination twin id", example = DTOExamples.TWIN_ID)
-    public UUID dstTwinId;
+public class TwinLinkAddDTOv1 extends TwinLinkBaseDTOv1 {
 }

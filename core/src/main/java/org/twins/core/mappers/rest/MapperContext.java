@@ -3,8 +3,7 @@ package org.twins.core.mappers.rest;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.cambium.common.util.StreamUtils;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -43,11 +42,13 @@ public class MapperContext {
 
     public MapperContext setLazyRelations(boolean lazyRelations) {
         this.lazyRelations = lazyRelations;
+        log.debug("lazyRelations = " + lazyRelations);
         return this;
     }
 
     public MapperContext addProperty(String key, Object value) {
         properties.put(key, value);
+        log.debug("property[" + key + "] was set to[" + value + "]");
         return this;
     }
 
@@ -58,12 +59,16 @@ public class MapperContext {
             relatedUserMap.put(user.getId(), user);
         else if (relatedObject instanceof TwinClassEntity twinClass)
             relatedTwinClassMap.put(twinClass.getId(), twinClass);
-        else if (relatedObject instanceof TwinStatusEntity twinStatus) {
+        else if (relatedObject instanceof TwinStatusEntity twinStatus)
             relatedTwinStatusMap.put(twinStatus.getId(), twinStatus);
-        } else if (relatedObject instanceof TwinEntity twin) {
+        else if (relatedObject instanceof TwinEntity twin)
             relatedTwinMap.put(twin.getId(), twin);
-        } else
-            log.warn("Related object type is unknown");
+        else {
+            debugLog(relatedObject, " can not be stored in mapperContext");
+            return this;
+        }
+        if (relatedObject instanceof EasyLoggable loggable)
+            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + " will be converted later");
         return this;
     }
 
@@ -119,29 +124,34 @@ public class MapperContext {
     }
 
     public <S> S getFromCache(Class<S> clazz, String cacheId) {
-        if (cacheId == null)
+        if (cacheId == null) {
+            log.debug("CacheId is null for class[" + clazz.getSimpleName() + "]");
             return null;
-        Hashtable<String, Object> cache =  cachedObjects.get(clazz);
+        }
+        Hashtable<String, Object> cache = cachedObjects.get(clazz);
         if (cache == null)
             return null;
         Object obj = cache.get(cacheId);
         if (obj == null)
             return null;
         else if (clazz.isInstance(obj)) {
+            debugLog(obj, " was found by cacheId[" + cacheId + "]");
             return (S) obj;
-        }
-        else
-            log.error("Incorrect cached object type");
+        } else
+            log.error("Incorrect cached object type loaded by cacheId[" + cacheId + "]. Expected[" + clazz.getSimpleName() + "] but got[" + obj.getClass().getSimpleName() + "]");
         return null;
     }
 
     public void putToCache(Class clazz, String cacheId, Object obj) {
-        if (cacheId == null)
+        if (cacheId == null) {
+            log.debug("CacheId is null for class[" + clazz.getSimpleName() + "]");
             return;
-        Hashtable<String, Object> cache =  cachedObjects.get(clazz);
+        }
+        Hashtable<String, Object> cache = cachedObjects.get(clazz);
         if (cache == null) {
             cache = new Hashtable<>();
             cachedObjects.put(clazz, cache);
+            debugLog(obj, " was added to cache with id[" + cacheId + "]");
         }
         if (!clazz.isInstance(obj)) {
             log.error("Incorrect cached object type");
@@ -157,5 +167,12 @@ public class MapperContext {
         mapperContext.lazyRelations = this.lazyRelations;
         mapperContext.properties = this.properties;
         return mapperContext;
+    }
+
+    private void debugLog(Object obj, String message) {
+        if (obj instanceof EasyLoggable loggable)
+            log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + message);
+        else
+            log.debug("Object of class[" + obj.getClass().getSimpleName() + "]" + message);
     }
 }

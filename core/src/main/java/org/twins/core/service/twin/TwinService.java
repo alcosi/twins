@@ -26,7 +26,9 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.AttachmentAUD;
 import org.twins.core.domain.BasicSearch;
+import org.twins.core.domain.TwinLinkAUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -41,10 +43,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -62,6 +61,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final EntitySmartService entitySmartService;
     final TwinflowService twinflowService;
     final TwinClassService twinClassService;
+    final TwinStatusService twinStatusService;
     final FeaturerService featurerService;
     final AttachmentService attachmentService;
     @Lazy
@@ -83,6 +83,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         //todo check permission schema
         return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
+        if (entity.getTwinStatusId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinStatusId");
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getTwinClass() == null)
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                if (entity.getTwinStatus() == null)
+                    entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
+            default:
+                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getTwinStatus().getTwinsClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
+        }
+        return true;
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) {
@@ -187,7 +206,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinClass(twinClassEntity)
                 .setHeadTwinId(twinClassService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinClassEntity))
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
-                .setTwinStatus(twinflowEntity.getInitialStatus());
+                .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
         twinEntity = saveTwin(twinEntity);
         saveTwinFields(twinEntity, values);
@@ -232,6 +251,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public TwinEntity saveTwin(TwinEntity twinEntity) throws ServiceException {
         twinEntity
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
@@ -258,7 +278,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentAddEntityList, List<UUID> attachmentDeleteUUIDList, List<TwinAttachmentEntity> attachmentUpdateEntityList) throws ServiceException {
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, AttachmentAUD attachmentManage, TwinLinkAUD twinLinkManage) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinClassService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
@@ -274,14 +294,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
         updateTwinFields(dbTwinEntity, values);
-        if (CollectionUtils.isNotEmpty(attachmentAddEntityList)) {
-            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentAddEntityList);
+        if (CollectionUtils.isNotEmpty(attachmentManage.getAddEntityList())) {
+            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentManage.getAddEntityList());
         }
-        if (CollectionUtils.isNotEmpty(attachmentUpdateEntityList)) {
-            attachmentService.updateAttachments(attachmentAddEntityList);
+        if (CollectionUtils.isNotEmpty(attachmentManage.getUpdateEntityList())) {
+            attachmentService.updateAttachments(attachmentManage.getUpdateEntityList());
         }
-        if (CollectionUtils.isNotEmpty(attachmentDeleteUUIDList)) {
-            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentDeleteUUIDList);
+        if (CollectionUtils.isNotEmpty(attachmentManage.getDeleteUUIDList())) {
+            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentManage.getDeleteUUIDList());
+        }
+        if (CollectionUtils.isNotEmpty(twinLinkManage.getAddEntityList())) {
+            twinLinkService.addLinks(dbTwinEntity, twinLinkManage.getAddEntityList());
+        }
+        if (CollectionUtils.isNotEmpty(twinLinkManage.getUpdateEntityList())) {
+            twinLinkService.updateTwinLinks(dbTwinEntity, twinLinkManage.getUpdateEntityList());
+        }
+        if (CollectionUtils.isNotEmpty(twinLinkManage.getDeleteUUIDList())) {
+            twinLinkService.deleteTwinLinks(dbTwinEntity.getId(), twinLinkManage.getDeleteUUIDList());
         }
     }
 
@@ -400,7 +429,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             TwinFieldEntity duplicateTwinFieldEntity = cloneTwinField(twinFieldEntity);
             duplicateTwinFieldEntity
                     .setTwin(dstTwinEntity)
-                    .setTwinId(dstTwinEntity.getId())             ;
+                    .setTwinId(dstTwinEntity.getId());
             cloneFieldEntityList.add(duplicateTwinFieldEntity);
         }
         return cloneFieldEntityList;

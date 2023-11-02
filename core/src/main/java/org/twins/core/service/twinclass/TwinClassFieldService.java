@@ -54,6 +54,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return false;
     }
 
+    @Override
+    public boolean validateEntity(TwinClassFieldEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
         return twinClassFieldRepository.findByTwinClassId(twinClassId).stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }

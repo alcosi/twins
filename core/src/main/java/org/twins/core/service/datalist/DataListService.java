@@ -53,6 +53,11 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return false;
     }
 
+    @Override
+    public boolean validateEntity(DataListEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
     public List<DataListEntity> findDataLists(List<UUID> uuidLists) throws ServiceException {
         List<DataListEntity> dataListEntityList = null;
         ApiUser apiUser = authService.getApiUser();

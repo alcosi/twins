@@ -7,6 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -17,8 +18,11 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.service.EntitySecureFindServiceImpl;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -28,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinflowService {
+public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity> {
     final TwinflowRepository twinflowRepository;
     final TwinflowSchemaRepository twinflowSchemaRepository;
     final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
@@ -36,10 +40,45 @@ public class TwinflowService {
     @Lazy
     final DomainService domainService;
     final TwinClassService twinClassService;
+    final TwinStatusService twinStatusService;
     @Lazy
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
+
+    @Override
+    public CrudRepository<TwinflowEntity, UUID> entityRepository() {
+        return twinflowRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinflowEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinflowEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getTwinClassId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinClassId");
+        if (entity.getInitialTwinStatusId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty initialTwinStatusId");
+
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getTwinClass() == null)
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                if (entity.getInitialTwinStatus() == null)
+                    entity.setInitialTwinStatus(twinStatusService.findEntitySafe(entity.getInitialTwinStatusId()));
+                if (entity.getTwinClassId() != entity.getTwinClass().getId())
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwin object");
+                if (entity.getInitialTwinStatusId() != entity.getInitialTwinStatus().getId())
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwin object");
+            default:
+                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getInitialTwinStatus().getTwinsClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect initialTwinStatusId[" + entity.getInitialTwinStatusId() + "]");
+        }
+        return true;
+    }
 
     public UUID checkTwinflowSchemaAllowed(UUID domainId, UUID businessAccountId, UUID twinFlowsSchemaId) throws ServiceException {
         Optional<TwinflowSchemaEntity> permissionSchemaEntity = twinflowSchemaRepository.findById(twinFlowsSchemaId);
@@ -108,5 +147,7 @@ public class TwinflowService {
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }
+
+
 }
 

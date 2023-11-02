@@ -4,12 +4,16 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ChangesHelper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
@@ -47,6 +51,37 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return true;
     }
 
+    @Override
+    public boolean validateEntity(TwinLinkEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getSrcTwinId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty srcTwinId");
+        if (entity.getDstTwinId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinId");
+        if (entity.getLinkId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty linkId");
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getLink() == null)
+                    entity.setLink(linkService.findEntitySafe(entity.getLinkId()));
+                if (entity.getDstTwin() == null)
+                    entity.setDstTwin(twinService.findEntitySafe(entity.getDstTwinId()));
+                if (entity.getSrcTwin() == null)
+                    entity.setSrcTwin(twinService.findEntitySafe(entity.getSrcTwinId()));
+                if (entity.getDstTwinId() != entity.getDstTwin().getId())
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwin object");
+                if (entity.getSrcTwinId() != entity.getSrcTwin().getId())
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwin object");
+                if (entity.getLinkId() != entity.getLink().getId())
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect link object");
+            default:
+                if (!twinClassService.isInstanceOf(entity.getSrcTwin().getTwinClassId(), entity.getLink().getSrcTwinClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwinId");
+                if (!twinClassService.isInstanceOf(entity.getDstTwin().getTwinClassId(), entity.getLink().getDstTwinClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwinId");
+        }
+        return true;
+    }
+
     public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
             LinkEntity linkEntity = linkService.findEntity(twinLinkEntity.getLinkId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
@@ -81,6 +116,33 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         entitySmartService.saveAllAndLog(linksEntityList, twinLinkRepository);
     }
 
+    @Transactional
+    public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkEntity> twinLinkEntityList) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinLinkEntityList))
+            return;
+        ChangesHelper changesHelper = new ChangesHelper();
+        TwinLinkEntity dbTwinLinkEntity;
+        List<TwinLinkEntity> updatedTwinLinkEntityList = new ArrayList<>();
+        for (TwinLinkEntity updateTwinLinkEntity : twinLinkEntityList) {
+            changesHelper.flush();
+            dbTwinLinkEntity = entitySmartService.findById(updateTwinLinkEntity.getId(), twinLinkRepository, EntitySmartService.FindMode.ifEmptyNull);
+            if (updateTwinLinkEntity.getSrcTwinId() != null && updateTwinLinkEntity.getDstTwinId() == null)
+                updateTwinLinkEntity
+                        .setDstTwinId(updateTwinLinkEntity.getSrcTwinId()) //shift
+                        .setSrcTwinId(null);
+            if (dbTwinLinkEntity.getSrcTwinId().equals(twinEntity.getId())) // forward link
+                dbTwinLinkEntity
+                        .setDstTwinId(updateTwinLinkEntity.getDstTwinId());
+            else if (dbTwinLinkEntity.getDstTwinId().equals(twinEntity.getId())) { //backward link
+                dbTwinLinkEntity
+                        .setSrcTwinId(updateTwinLinkEntity.getDstTwinId());
+            }
+            if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave))
+                updatedTwinLinkEntityList.add(dbTwinLinkEntity);
+        }
+        entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
+    }
+
     public FindTwinLinksResult findTwinLinks(UUID twinId) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdOrDstTwinId(twinId, twinId);
         FindTwinLinksResult linksResult = new FindTwinLinksResult();
@@ -92,11 +154,32 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             } else if (twinLinkEntity.getDstTwinId().equals(twinId)) {
                 if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
-                linksResult.backwardLinks.put(twinLinkEntity.getId(),twinLinkEntity);
+                linksResult.backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
             } else
                 log.warn(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
         }
         return linksResult;
+    }
+
+    @Transactional
+    public void deleteTwinLinks(UUID twinId, List<UUID> twinLinksDeleteUUIDList) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinLinksDeleteUUIDList))
+            return;
+        TwinLinkEntity twinLinkEntity;
+        for (UUID twinLinkId : twinLinksDeleteUUIDList) {
+            twinLinkEntity = findEntity(twinLinkId, EntitySmartService.FindMode.ifEmptyNull, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
+            if (twinLinkEntity == null)
+                continue;
+            if (!twinLinkEntity.getSrcTwinId().equals(twinId) && !twinLinkEntity.getDstTwinId().equals(twinId)) {
+                log.error(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be delete because it's from other twin");
+                continue;
+            }
+            if (twinLinkEntity.getLink().isMandatory()) {
+                log.error(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be deleted because link is mandatory");
+                continue;
+            }
+            entitySmartService.deleteAndLog(twinLinkId, twinLinkRepository);
+        }
     }
 
     @Data

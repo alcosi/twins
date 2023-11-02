@@ -2,7 +2,6 @@ package org.twins.core.controller.rest.priv.twin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,9 +16,9 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.AttachmentAUD;
+import org.twins.core.domain.TwinLinkAUD;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
@@ -29,7 +28,9 @@ import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
+import org.twins.core.mappers.rest.link.TwinLinkUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -56,6 +57,8 @@ public class TwinUpdateController extends ApiController {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    final TwinLinkUpdateRestDTOReverseMapper twinLinkUpdateRestDTOReverseMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
@@ -89,11 +92,15 @@ public class TwinUpdateController extends ApiController {
                     .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                     .setDescription(request.getDescription());
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(dbTwinEntity.getTwinClassId(), request.getFields());
-            List<TwinAttachmentEntity> attachmentAddEntityList = attachmentAddRestDTOReverseMapper
-                    .convertList(request.getAttachmentsAdd());
-            List<TwinAttachmentEntity> attachmentUpdateEntityList = attachmentUpdateRestDTOReverseMapper
-                    .convertList(request.getAttachmentsUpdate());
-            twinService.updateTwin(twinEntity, dbTwinEntity, fields, attachmentAddEntityList, request.getAttachmentsDelete(), attachmentUpdateEntityList);
+            AttachmentAUD attachmentManage = new AttachmentAUD()
+                    .setAddEntityList(attachmentAddRestDTOReverseMapper.convertList(request.getAttachmentsAdd()))
+                    .setUpdateEntityList(attachmentUpdateRestDTOReverseMapper.convertList(request.getAttachmentsUpdate()))
+                    .setDeleteUUIDList(request.getAttachmentsDelete());
+            TwinLinkAUD twinLinkManage = new TwinLinkAUD()
+                    .setAddEntityList(twinLinkAddRestDTOReverseMapper.convertList(request.getTwinLinksAdd()))
+                    .setUpdateEntityList(twinLinkUpdateRestDTOReverseMapper.convertList(request.getTwinLinksUpdate()))
+                    .setDeleteUUIDList(request.getTwinLinksDelete());
+            twinService.updateTwin(twinEntity, dbTwinEntity, fields, attachmentManage, twinLinkManage);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)

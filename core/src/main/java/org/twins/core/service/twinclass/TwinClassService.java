@@ -59,6 +59,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return false;
     }
 
+    @Override
+    public boolean validateEntity(TwinClassEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
     public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) throws ServiceException {
         if (CollectionUtils.isNotEmpty(uuidLists))
             return twinClassRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
@@ -149,6 +154,15 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             ret.add(extendedTwinClassId);
         }
         return ret;
+    }
+
+    public boolean isInstanceOf(UUID instanceClassId, UUID ofClass) throws ServiceException {
+        Set<UUID> parentClasses;
+        if (!instanceClassId.equals(ofClass)) {
+            parentClasses = findExtendedClasses(instanceClassId, false);
+            return parentClasses.contains(ofClass);
+        }
+        return true;
     }
 }
 

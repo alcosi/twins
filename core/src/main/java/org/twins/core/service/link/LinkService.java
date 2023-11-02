@@ -51,6 +51,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         return false;
     }
 
+    @Override
+    public boolean validateEntity(LinkEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
+
     public FindTwinClassLinksResult findLinks(UUID twinClassId) throws ServiceException {
         TwinClassEntity twinClassEntity = twinClassService.findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         return findLinks(twinClassEntity);

@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow")
-public class TwinflowEntity {
+public class TwinflowEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -47,5 +48,10 @@ public class TwinflowEntity {
 
     @ManyToOne
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
-    private TwinStatusEntity initialStatus;
+    private TwinStatusEntity initialTwinStatus;
+
+    @Override
+    public String easyLog(Level level) {
+        return "twinflow[id:" + id + "]";
+    }
 }

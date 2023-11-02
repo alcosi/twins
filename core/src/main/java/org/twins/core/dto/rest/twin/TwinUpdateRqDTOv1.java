@@ -8,6 +8,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentUpdateDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
+import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -41,4 +43,13 @@ public class TwinUpdateRqDTOv1 extends Request {
 
     @Schema(description = "Attachments for updating")
     public List<AttachmentUpdateDTOv1> attachmentsUpdate;
+
+    @Schema(description = "TwinLinks for adding")
+    public List<TwinLinkAddDTOv1> twinLinksAdd;
+
+    @Schema(description = "TwinLinks id list for deleting")
+    public List<UUID> twinLinksDelete;
+
+    @Schema(description = "TwinLinks for updating")
+    public List<TwinLinkUpdateDTOv1> twinLinksUpdate;
 }

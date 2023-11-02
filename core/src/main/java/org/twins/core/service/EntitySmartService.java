@@ -239,4 +239,10 @@ public class EntitySmartService {
         ifDeniedThrows,
     }
 
+    public enum EntityValidateMode {
+        none,
+        afterRead,
+        beforeSave
+    }
+
 }
