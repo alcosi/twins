@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
+import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -33,4 +34,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema()
     public Map<UUID, LinkDTOv1> backwardLinkMap;
+
+    @Schema()
+    public Map<UUID, TwinStatusDTOv1> statusMap;
 }

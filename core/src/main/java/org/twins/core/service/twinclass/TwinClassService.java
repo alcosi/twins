@@ -143,7 +143,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return ret;
         UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
         ret.add(extendedTwinClassId);
-        for (int i = 0; i<=10; i++) {
+        for (int i = 0; i <= 10; i++) {
             extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
             if (extendedTwinClassId == null)
                 break;
@@ -156,11 +156,43 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return ret;
     }
 
+    public Set<UUID> loadExtendedClasses(TwinClassEntity twinClassEntity) {
+        if (twinClassEntity.getExtendedClassIdSet() != null)
+            return twinClassEntity.getExtendedClassIdSet();
+        Set<UUID> extendedClassIdSet = new LinkedHashSet<>();
+        twinClassEntity.setExtendedClassIdSet(extendedClassIdSet);
+        extendedClassIdSet.add(twinClassEntity.getId());
+        if (twinClassEntity.getExtendsTwinClassId() == null)
+            return extendedClassIdSet;
+        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
+        extendedClassIdSet.add(extendedTwinClassId);
+        for (int i = 0; i <= 10; i++) {
+            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
+            if (extendedTwinClassId == null)
+                break;
+            if (extendedClassIdSet.contains(extendedTwinClassId)) {
+                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
+                break;
+            }
+            extendedClassIdSet.add(extendedTwinClassId);
+        }
+        return extendedClassIdSet;
+    }
+
     public boolean isInstanceOf(UUID instanceClassId, UUID ofClass) throws ServiceException {
         Set<UUID> parentClasses;
         if (!instanceClassId.equals(ofClass)) {
-            parentClasses = findExtendedClasses(instanceClassId, false);
+            parentClasses = findExtendedClasses(instanceClassId, true);
             return parentClasses.contains(ofClass);
+        }
+        return true;
+    }
+
+    public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
+        Set<UUID> parentClasses;
+        if (!instanceClass.getId().equals(ofClass)) {
+            loadExtendedClasses(instanceClass);
+            return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
         return true;
     }

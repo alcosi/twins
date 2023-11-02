@@ -11,6 +11,7 @@ public interface RestRequestParam {
     String showClassMode = "showClassMode";
     String showClassFieldMode = "showClassFieldMode";
     String showClassHeadMode = "showClassHeadMode";
+    String showClassStatusMode = "showClassStatusMode";
     String showPermissionMode = "showPermissionMode";
     String showPermissionGroupMode = "showPermissionGroupMode";
     String showStatusMode = "showStatusMode";

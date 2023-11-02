@@ -8,9 +8,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Lazy
@@ -19,6 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEntity> {
     final TwinStatusRepository twinStatusRepository;
+    final TwinClassService twinClassService;
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
         return twinStatusRepository;
@@ -32,5 +36,10 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     @Override
     public boolean validateEntity(TwinStatusEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public List<TwinStatusEntity> findByTwinClass(TwinClassEntity twinClassEntity) {
+        twinClassService.loadExtendedClasses(twinClassEntity);
+        return twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
     }
 }

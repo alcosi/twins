@@ -62,7 +62,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     }
 
     public FindTwinClassLinksResult findLinks(TwinClassEntity twinClassEntity) throws ServiceException {
-        Set<UUID> extendedTwinClasses = twinClassService.findExtendedClasses(twinClassEntity, true);
+        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClassEntity);
         List<LinkEntity> linksEntityList = linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses);
         FindTwinClassLinksResult linksResult = new FindTwinClassLinksResult();
         for (LinkEntity linkEntity : linksEntityList) {

@@ -34,7 +34,7 @@ public class TwinStatusEntity {
 
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassEntity twinClassByTwinsClassId;
+    private TwinClassEntity twinClass;
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)

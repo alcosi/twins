@@ -11,6 +11,7 @@ import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -77,6 +78,9 @@ public class TwinClassEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @Transient
+    private Set<UUID> extendedClassIdSet;
 
     public String easyLog(Level level) {
         return "twinClass[id:" + id + ", key:" + key + "]";
