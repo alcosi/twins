@@ -18,6 +18,9 @@ public class TwinBaseDTOv1 {
     @Schema(description = "externalId", example = "934599502DFFAE")
     public String externalId;
 
+    @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
+    public UUID headTwinId;
+
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public Instant createdAt;
 
