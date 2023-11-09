@@ -98,7 +98,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 if (entity.getTwinStatus() == null)
                     entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
             default:
-                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getTwinStatus().getTwinsClassId()))
+                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
         }
         return true;
@@ -236,6 +236,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setOwnerBusinessAccount(businessAccountEntity)
                         .setOwnerUserId(null);
                 break;
+            case USER:
             case DOMAIN_USER:
                 if (userEntity == null)
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without user owner");
@@ -435,17 +436,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return cloneFieldEntityList;
     }
 
-    public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity) throws ServiceException {
+    public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
         return duplicateTwin(
                 findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
                 businessAccountEntity,
-                userEntity);
+                userEntity,
+                newTwinId);
     }
 
-    public TwinEntity duplicateTwin(TwinEntity srcTwin, BusinessAccountEntity businessAccountEntity, UserEntity userEntity) throws ServiceException {
+    public TwinEntity duplicateTwin(TwinEntity srcTwin, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
         TwinEntity duplicateEntity = cloneTwin(srcTwin);
         fillOwner(duplicateEntity, businessAccountEntity, userEntity);
-        duplicateEntity.setCreatedByUserId(userEntity.getId());
+        duplicateEntity
+                .setId(newTwinId)
+                .setCreatedByUserId(userEntity.getId());
         duplicateEntity = saveTwin(duplicateEntity);
         List<TwinFieldEntity> fieldEntityList = findTwinFields(srcTwin.getId());
         if (!CollectionUtils.isEmpty(fieldEntityList)) {

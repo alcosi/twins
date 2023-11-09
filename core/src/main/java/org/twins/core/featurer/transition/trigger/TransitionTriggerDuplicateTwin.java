@@ -46,6 +46,6 @@ public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
         }
         ApiUser apiUser = authService.getApiUser();
         log.info(twinEntity.easyLog(EasyLoggable.Level.NORMAL) + " will be cloned");
-        twinService.duplicateTwin(srcTwin, apiUser.getBusinessAccount(), apiUser.getUser());
+        twinService.duplicateTwin(srcTwin, apiUser.getBusinessAccount(), apiUser.getUser(), null);
     }
 }

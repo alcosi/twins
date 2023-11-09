@@ -35,6 +35,7 @@ import java.util.UUID;
 public class DomainBusinessAccountUpdateController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
+    final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")
@@ -53,7 +54,7 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
-                    .setUserResolver(UserResolverSystem.getInstance());
+                    .setUserResolver(userResolverSystem);
             domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
                     .setDomainId(domainId)
                     .setBusinessAccountId(businessAccountId)

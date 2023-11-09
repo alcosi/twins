@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.SystemEntityService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -17,10 +20,14 @@ import java.util.UUID;
 
 @Slf4j
 @Service
+@Lazy
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     final UserRepository userRepository;
     final EntitySmartService entitySmartService;
+    @Lazy
+    final TwinService twinService;
+    final SystemEntityService systemEntityService;
 
     @Override
     public CrudRepository<UserEntity, UUID> entityRepository() {
@@ -41,20 +48,21 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return entitySmartService.check(userId, userRepository, checkMode);
     }
 
-    public UserEntity findByUserId(UUID userId, EntitySmartService.FindMode findMode) throws ServiceException {
-        return entitySmartService.findById(userId, userRepository, findMode);
-    }
 
-    public void addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
+    public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
-        entitySmartService.save(userEntity.getId(), userEntity, userRepository, userSaveMode);
+        userEntity = entitySmartService.save(userEntity.getId(), userEntity, userRepository, userSaveMode);
+        if (EntitySmartService.SaveMode.ifNotPresentCreate == userSaveMode
+                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == userSaveMode)
+            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForUser(), null, userEntity, userEntity.getId());
+        return userEntity;
     }
 
-    public void addUser(UUID userId, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
+    public UserEntity addUser(UUID userId, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         UserEntity userEntity = new UserEntity()
                 .setId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        addUser(userEntity, userSaveMode);
+        return addUser(userEntity, userSaveMode);
     }
 
     public void updateUser(UserEntity updateEntity) throws ServiceException {
@@ -70,6 +78,6 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
             entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
     }
 
-    public static final UUID SYSTEM_USER_ID = UUID.fromString("00000000-0000-0000-0000-000000000000"); //todo move to properties
+
 
 }

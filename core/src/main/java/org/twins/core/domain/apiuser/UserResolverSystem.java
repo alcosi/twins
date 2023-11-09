@@ -1,14 +1,25 @@
 package org.twins.core.domain.apiuser;
 
-import org.twins.core.service.user.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+import org.twins.core.service.SystemEntityService;
 
-public class UserResolverSystem extends UserResolverGivenId {
-    static UserResolverSystem instance = new UserResolverSystem();
+import java.util.UUID;
 
-    public static UserResolverSystem getInstance() {
-        return instance;
-    }
-    public UserResolverSystem() {
-        super(UserService.SYSTEM_USER_ID);
+@Component
+@Slf4j
+public class UserResolverSystem implements UserResolver {
+    @Autowired
+    SystemEntityService systemEntityService;
+
+    UserResolverGivenId userResolverGivenId;
+
+    @Override
+    public UUID resolveCurrentUserId() throws ServiceException {
+        if (userResolverGivenId == null)
+            userResolverGivenId = new UserResolverGivenId(systemEntityService.getUserIdSystem());
+        return userResolverGivenId.resolveCurrentUserId();
     }
 }

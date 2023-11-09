@@ -14,11 +14,17 @@ import java.util.UUID;
 @Table(name = "twin_status")
 public class TwinStatusEntity {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "twins_class_id")
-    private UUID twinsClassId;
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
+
+    @Column(name = "twins_class_id") //todo rename to twin_class_id
+    private UUID twinClassId;
 
     @Column(name = "name_i18n_id")
     private UUID nameI18nId;

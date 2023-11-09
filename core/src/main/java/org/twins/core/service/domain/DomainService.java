@@ -10,9 +10,12 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.permission.PermissionService;
@@ -43,15 +46,28 @@ public class DomainService {
     final AuthService authService;
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
+    final SystemEntityService systemEntityService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
     }
 
-    public DomainEntity findDomain(UUID domainId, EntitySmartService.FindMode checkMode) throws ServiceException {
-        return entitySmartService.findById(domainId, domainRepository, checkMode);
-    }
-
+//    public DomainEntity addDomain(DomainEntity domainEntity, EntitySmartService.SaveMode domainSaveMode) throws ServiceException {
+//        domainEntity
+//                .setCreatedAt(Timestamp.from(Instant.now()))
+//                .setTwinClassSchemaId()
+//                .setTwinflowSchemaId()
+//                .setPermissionSchemaId()
+//                .se;
+//        domainEntity = entitySmartService.save(domainEntity.getId(), domainEntity, domainRepository, domainSaveMode);
+//        if (EntitySmartService.SaveMode.ifNotPresentCreate == domainSaveMode
+//                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == domainSaveMode) {
+//            TwinEntity twinEntity = systemEntityService.createTwinTemplateDomainBusinessAccount(domainEntity.getId());
+//            domainEntity.setBusinessAccountTemplateTwinId(twinEntity.getId());
+//            entitySmartService.save(domainEntity, domainRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+//        }
+//        return domainEntity;
+//    }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode) throws ServiceException {
         userService.addUser(userId, userCreateMode);

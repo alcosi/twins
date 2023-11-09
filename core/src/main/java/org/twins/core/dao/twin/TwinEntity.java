@@ -19,8 +19,14 @@ import java.util.UUID;
 @FieldNameConstants
 public class TwinEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_class_id")
     private UUID twinClassId;

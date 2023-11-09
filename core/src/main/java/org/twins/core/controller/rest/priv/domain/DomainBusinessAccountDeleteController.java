@@ -34,6 +34,7 @@ import java.util.UUID;
 public class DomainBusinessAccountDeleteController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
+    final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")
@@ -51,7 +52,7 @@ public class DomainBusinessAccountDeleteController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
-                    .setUserResolver(UserResolverSystem.getInstance());
+                    .setUserResolver(userResolverSystem);
             domainService.deleteBusinessAccount(
                     domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     businessAccountId);

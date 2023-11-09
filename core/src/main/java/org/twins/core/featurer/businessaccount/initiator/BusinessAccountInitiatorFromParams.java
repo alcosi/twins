@@ -36,17 +36,4 @@ public class BusinessAccountInitiatorFromParams extends BusinessAccountInitiator
                 .setTwinClassSchemaId(twinClassSchemaId.extract(properties))
                 .setTwinflowSchemaId(twinflowSchemaId.extract(properties));
     }
-
-    //todo delete this code
-    @Lazy
-    @Autowired
-    TwinService twinService;
-    @Lazy
-    @Autowired
-    AuthService authService;
-    @Override
-    protected void postInit(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        twinService.duplicateTwin(UUID.fromString("00000000-0000-0000-8e32-a0af0869be6a"), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser()); //creating twin for business account
-    }
 }

@@ -2,9 +2,11 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.dao.I18nEntity;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +33,10 @@ public class DataListOptionEntity {
     @Column(name = "disabled")
     private boolean disabled;
 
+    @Column(name = "data_list_option_status_id")
+    @Convert(converter = DataListOptionStatusConverter.class)
+    private Status status;
+
     @Column(name = "attribute_1_value")
     private String attribute1value;
 
@@ -50,5 +56,22 @@ public class DataListOptionEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
     private I18nEntity optionI18n;
+
+    @Getter
+    public enum Status {
+        active("active"),
+        disabled("disabled"),
+        hidden("hidden");
+
+        private final String id;
+
+        Status(String id) {
+            this.id = id;
+        }
+
+        public static Status valueOd(String type) {
+            return Arrays.stream(Status.values()).filter(t -> t.id.equals(type)).findAny().orElse(active);
+        }
+    }
 
 }

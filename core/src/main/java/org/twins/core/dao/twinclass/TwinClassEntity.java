@@ -20,8 +20,15 @@ import java.util.UUID;
 @Table(name = "twin_class")
 public class TwinClassEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
+
 
     @Column(name = "domain_id")
     private UUID domainId;
@@ -88,6 +95,8 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Getter
     public enum OwnerType {
+        USER("user"),
+        BUSINESS_ACCOUNT("businessAccount"),
         DOMAIN("domain"),
         DOMAIN_BUSINESS_ACCOUNT("domainBusinessAccount"),
         DOMAIN_USER("domainUser"),

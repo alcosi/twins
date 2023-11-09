@@ -1,8 +1,6 @@
 package org.twins.core.controller.rest.priv.user;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -17,10 +15,13 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserAddRqDTOv1;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserService;
@@ -30,9 +31,10 @@ import org.twins.core.service.user.UserService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserAddController extends ApiController {
-    private final BusinessAccountService businessAccountService;
-    private final DomainService domainService;
-    private final UserService userService;
+    final BusinessAccountService businessAccountService;
+    final DomainService domainService;
+    final UserService userService;
+    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
@@ -48,6 +50,10 @@ public class UserAddController extends ApiController {
         Response rs = new Response();
         try {
             domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
+            authService.getApiUser()
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
+                    .setUserResolver(new UserResolverGivenId(request.user.id))
+                    .setDomainResolver(new DomainResolverGivenId(request.domainId));
             userService.addUser(new UserEntity()
                     .setId(request.user.id)
                     .setName(request.user.name)
@@ -64,7 +70,6 @@ public class UserAddController extends ApiController {
             if (request.domainId != null && request.businessAccountId != null) {
                 domainService.addBusinessAccount(request.domainId, request.businessAccountId, true, EntitySmartService.SaveMode.none);
             }
-
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

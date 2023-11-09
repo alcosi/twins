@@ -36,6 +36,7 @@ import java.util.UUID;
 public class DomainBusinessAccountAddController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
+    final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add new businessAccount to domain")
@@ -53,7 +54,7 @@ public class DomainBusinessAccountAddController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
-                    .setUserResolver(UserResolverSystem.getInstance());
+                    .setUserResolver(userResolverSystem);
             domainService.addBusinessAccount(domainId, request.businessAccountId, false, EntitySmartService.SaveMode.ifNotPresentCreate);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -9,10 +9,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 @Schema(name =  "TwinLinkListV1")
-public class TwinLinkListDTOv1 extends TwinLinkAddDTOv1 {
+public class TwinLinkListDTOv1  {
     @Schema(description = "links")
     public Map<UUID, TwinLinkViewDTOv1> forwardLinks;
 

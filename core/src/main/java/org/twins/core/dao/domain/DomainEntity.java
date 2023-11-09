@@ -13,6 +13,7 @@ import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiato
 import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -40,6 +41,12 @@ public class DomainEntity implements EasyLoggable {
 
     @Column(name = "twin_class_schema_id")
     private UUID twinClassSchemaId;
+
+    @Column(name = "business_account_template_twin_id")
+    private UUID businessAccountTemplateTwinId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @FeaturerList(type = BusinessAccountInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)

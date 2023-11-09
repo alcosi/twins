@@ -74,7 +74,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 if (entity.getInitialTwinStatusId() != entity.getInitialTwinStatus().getId())
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwin object");
             default:
-                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getInitialTwinStatus().getTwinsClassId()))
+                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getInitialTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect initialTwinStatusId[" + entity.getInitialTwinStatusId() + "]");
         }
         return true;
