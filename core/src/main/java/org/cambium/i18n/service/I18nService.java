@@ -44,6 +44,10 @@ public class I18nService {
         String ret = null;
         if (locale == null)
             locale = i18nProperties.defaultLocale();
+        if (i18NEntity == null) {
+            log.warn("I18n not configured");
+            return "";
+        }
         Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nAndLocale(i18NEntity, locale);
         if (i18nTranslationEntity.isPresent())
             ret = i18nTranslationEntity.get().getTranslation();
