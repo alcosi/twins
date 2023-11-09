@@ -3,13 +3,18 @@ package org.twins.core.service.businessaccount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -22,6 +27,11 @@ public class BusinessAccountService {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final BusinessAccountRepository businessAccountRepository;
     final EntitySmartService entitySmartService;
+    @Lazy
+    final TwinService twinService;
+    final SystemEntityService systemEntityService;
+    @Lazy
+    final AuthService authService;
 
     public BusinessAccountEntity findById(UUID businessAccountId, EntitySmartService.FindMode findMode) throws ServiceException {
         return entitySmartService.findById(businessAccountId, businessAccountRepository, findMode);
@@ -47,7 +57,13 @@ public class BusinessAccountService {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        return entitySmartService.save(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
+        businessAccountEntity = entitySmartService.save(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
+        if (EntitySmartService.SaveMode.ifNotPresentCreate == entityCreateMode
+                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == entityCreateMode) {
+            ApiUser apiUser = authService.getApiUser();
+            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity, apiUser.getUser(), businessAccountEntity.getId());
+        }
+        return businessAccountEntity;
     }
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {

@@ -101,6 +101,10 @@ public class SystemEntityService {
         return TWIN_TEMPLATE_USER;
     }
 
+    public UUID getTwinIdTemplateForBusinessAccount() {
+        return TWIN_TEMPLATE_BUSINESS_ACCOUNT;
+    }
+
     public TwinEntity createTwinTemplateDomainBusinessAccount(UUID domainId) throws ServiceException {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainId)

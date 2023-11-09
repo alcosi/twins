@@ -47,6 +47,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Lazy
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -228,6 +229,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             case DOMAIN:
                 //twin will not be owned neither businessAccount, neither user
                 break;
+            case BUSINESS_ACCOUNT:
             case DOMAIN_BUSINESS_ACCOUNT:
                 if (businessAccountEntity == null)
                     throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without businessAccount owner");
