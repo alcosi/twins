@@ -3,25 +3,64 @@ package org.twins.core.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
 public class BasicSearch {
-    List<UUID> twinClassIdList;
-    List<UUID> headerTwinIdList;
-    List<UUID> statusIdList;
-    List<UUID> assignerUserIdList;
-    List<UUID> createdByUserIdList;
-    List<UUID> ownerUserIdList;
-    List<UUID> ownerBusinessAccountIdList;
+    Set<UUID> twinIdList;
+    Set<UUID> twinClassIdList;
+    Set<UUID> headerTwinIdList;
+    Set<UUID> statusIdList;
+    Set<UUID> assignerUserIdList;
+    Set<UUID> createdByUserIdList;
+    Set<UUID> ownerUserIdList;
+    Set<UUID> ownerBusinessAccountIdList;
+
+    public BasicSearch addTwinId(UUID twinId) {
+        twinIdList = safeAdd(twinIdList, twinId);
+        return this;
+    }
 
     public BasicSearch addTwinClassId(UUID twinClassId) {
-        if (twinClassIdList == null)
-            twinClassIdList = new ArrayList<>();
-        twinClassIdList.add(twinClassId);
+        twinClassIdList = safeAdd(twinClassIdList, twinClassId);
         return this;
+    }
+
+    public BasicSearch addHeaderTwinId(UUID headerTwinId) {
+        headerTwinIdList = safeAdd(headerTwinIdList, headerTwinId);
+        return this;
+    }
+
+    public BasicSearch addStatusId(UUID statusId) {
+        statusIdList = safeAdd(statusIdList, statusId);
+        return this;
+    }
+
+    public BasicSearch addAssignerUserId(UUID assignerUserId) {
+        assignerUserIdList = safeAdd(assignerUserIdList, assignerUserId);
+        return this;
+    }
+
+    public BasicSearch addCreatedByUserId(UUID createdByUserId) {
+        createdByUserIdList = safeAdd(createdByUserIdList, createdByUserId);
+        return this;
+    }
+
+    public BasicSearch addOwnerUserId(UUID ownerUserId) {
+        ownerUserIdList = safeAdd(ownerUserIdList, ownerUserId);
+        return this;
+    }
+
+    public BasicSearch addOwnerBusinessAccountId(UUID ownerBusinessAccountId) {
+        ownerBusinessAccountIdList = safeAdd(ownerBusinessAccountIdList, ownerBusinessAccountId);
+        return this;
+    }
+
+    private Set<UUID> safeAdd(Set<UUID> set, UUID element) {
+        if (set == null)
+            set = new HashSet<>();
+        set.add(element);
+        return set;
     }
 }

@@ -32,6 +32,7 @@ import org.twins.core.domain.TwinLinkAUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.mappers.rest.twin.TwinHeadService;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
@@ -62,6 +63,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final EntitySmartService entitySmartService;
     final TwinflowService twinflowService;
     final TwinClassService twinClassService;
+    @Lazy
+    final TwinHeadService twinHeadService;
     final TwinStatusService twinStatusService;
     final FeaturerService featurerService;
     final AttachmentService attachmentService;
@@ -110,6 +113,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         CriteriaQuery<TwinEntity> criteriaQuery = entityManager.getCriteriaBuilder().createQuery(TwinEntity.class);
         Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
         List<Predicate> predicate = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(basicSearch.getTwinIdList()))
+            predicate.add(twin.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList()))
             predicate.add(twin.get(TwinEntity.Fields.twinClassId).in(basicSearch.getTwinClassIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
@@ -206,7 +211,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinClassEntity twinClassEntity = twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         twinEntity
                 .setTwinClass(twinClassEntity)
-                .setHeadTwinId(twinClassService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinClassEntity))
+                .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinClassEntity))
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
@@ -285,7 +290,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, AttachmentAUD attachmentManage, TwinLinkAUD twinLinkManage) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
-            dbTwinEntity.setHeadTwinId(twinClassService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
+            dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
         }
         if (changesHelper.isChanged("name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
             dbTwinEntity.setName(updateTwinEntity.getName());

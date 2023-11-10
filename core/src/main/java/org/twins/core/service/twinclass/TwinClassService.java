@@ -51,7 +51,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Override
     public boolean isEntityReadDenied(TwinClassEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
+        if (entity.getDomainId() != null //some system twinClasses can be out of any domain
+                && !entity.getDomainId().equals(apiUser.getDomain().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
@@ -82,19 +83,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (twinClassSchemaEntity.get().domainId() != domainId)
             throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, "twinClassSchemaId[" + twinClassSchemaId + "] is not allows in domain[" + domainId + "]");
         return twinClassSchemaId;
-    }
-
-    public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
-        if (subClass.getHeadTwinClassId() != null)
-            if (headTwinId != null) {
-                TwinEntity headTwinEntity = entitySmartService.findById(headTwinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
-                if (!headTwinEntity.getTwinClassId().equals(subClass.getHeadTwinClassId()))
-                    throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_ID_NOT_ALLOWED, headTwinEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for twinClass[" + subClass.getId() + "]");
-                return headTwinId;
-            } else {
-                throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
-            }
-        return headTwinId;
     }
 
     @Transactional

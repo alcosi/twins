@@ -7,15 +7,20 @@ import org.cambium.common.util.ChangesHelper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.SystemEntityService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -28,6 +33,8 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     @Lazy
     final TwinService twinService;
     final SystemEntityService systemEntityService;
+    @Lazy
+    final AuthService authService;
 
     @Override
     public CrudRepository<UserEntity, UUID> entityRepository() {
@@ -79,5 +86,24 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
 
-
+    public Set<UUID> getValidUserIdSetByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        List<UUID> userIdList = null;
+        switch (twinClassEntity.getOwnerType()) {
+            case DOMAIN_BUSINESS_ACCOUNT:
+            case DOMAIN_BUSINESS_ACCOUNT_USER:
+                userIdList = userRepository.findUserIdByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
+                break;
+            case BUSINESS_ACCOUNT:
+                userIdList = userRepository.findUserIdByBusinessAccountId(apiUser.getBusinessAccount().getId());
+                break;
+            case DOMAIN_USER:
+            case DOMAIN:
+                userIdList = userRepository.findUserIdByDomainId(apiUser.getDomain().getId());
+                break;
+            case USER:
+                //todo all users
+        }
+        return userIdList != null ? Set.copyOf(userIdList) : null;
+    }
 }

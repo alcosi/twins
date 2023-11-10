@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.twin.TwinDTOv1;
+import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Schema(name =  "TwinClassV1")
 public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "list of available heads")
-    public List<TwinDTOv1> validHeads;
+    public List<TwinBaseDTOv1> validHeads;
 
     @Schema(description = "list of available heads")
     public List<UUID> validHeadsIds;

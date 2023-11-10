@@ -9,6 +9,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
@@ -18,6 +19,9 @@ import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -75,5 +79,24 @@ public class BusinessAccountService {
         if (businessAccountUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "user[" + userId + "] is not registered in businessAccount[" + businessAccountId + "] ");
         entitySmartService.deleteAndLog(businessAccountUserEntity.getId(), businessAccountRepository);
+    }
+
+    public Set<UUID> getValidBusinessAccountIdSetByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        List<UUID> businessAccountIdList = null;
+        switch (twinClassEntity.getOwnerType()) {
+            case DOMAIN_BUSINESS_ACCOUNT:
+            case DOMAIN_BUSINESS_ACCOUNT_USER:
+                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+                break;
+            case USER:
+                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByUser(apiUser.getUser().getId());
+                break;
+            case DOMAIN_USER:
+            case DOMAIN:
+                businessAccountIdList = businessAccountRepository.findBusinessAccountIdByDomainId(apiUser.getDomain().getId());
+                break;
+        }
+        return businessAccountIdList != null ? Set.copyOf(businessAccountIdList) : null;
     }
 }

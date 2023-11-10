@@ -97,6 +97,14 @@ public class SystemEntityService {
         return USER_SYSTEM;
     }
 
+    public UUID getTwinClassIdForUser() {
+        return TWIN_CLASS_USER;
+    }
+
+    public UUID getTwinClassIdForBusinessAccount() {
+        return TWIN_CLASS_BUSINESS_ACCOUNT;
+    }
+
     public UUID getTwinIdTemplateForUser() {
         return TWIN_TEMPLATE_USER;
     }

@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinHeadService;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;
@@ -34,6 +34,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final I18nService i18nService;
     final TwinClassFieldService twinClassFieldService;
     final TwinService twinService;
+    final TwinHeadService twinHeadService;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
     final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
@@ -42,7 +43,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final TwinStatusService twinStatusService;
     final LinkService linkService;
     @Autowired
-    TwinRestDTOMapper twinRestDTOMapper;
+    TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -53,8 +54,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                             twinClassFieldService.findTwinClassFieldsIncludeParent(src), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
         if (!mapperContext.hasMode(HeadTwinMode.HIDE) && src.getHeadTwinClassId() != null)
             dst.validHeads(
-                    twinRestDTOMapper.convertList(
-                            twinService.findTwinsByClassId(src.getHeadTwinClassId()), mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+                    twinBaseRestDTOMapper.convertList(
+                            twinHeadService.findValidHeads(src), mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.SHORT)));
         if (!linkForwardRestDTOMapper.hideMode(mapperContext)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
