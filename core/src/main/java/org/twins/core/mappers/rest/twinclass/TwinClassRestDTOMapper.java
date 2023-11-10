@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinHeadService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.twin.TwinService;

@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twin;
+package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
