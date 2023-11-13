@@ -62,6 +62,20 @@ public class ApiUser {
         return domain;
     }
 
+    public boolean isDomainSpecified() {
+        if (domain != null)
+            return true;
+        if (domainResolver == null)
+            domainResolver = domainResolverHeaders;
+        UUID domainId = null;
+        try {
+            domainId = domainResolver.resolveCurrentDomainId();
+        } catch (ServiceException e) {
+            return false;
+        }
+        return domainId != null;
+    }
+
     public UserEntity getUser() throws ServiceException {
         if (user == null) {
             if (userResolver == null)
@@ -74,6 +88,20 @@ public class ApiUser {
         return user;
     }
 
+    public boolean isUserSpecified() {
+        if (user != null)
+            return true;
+        if (userResolver == null)
+            userResolver = userBusinessAccountResolverAuthToken;
+        UUID userId = null;
+        try {
+            userId = userResolver.resolveCurrentUserId();
+        } catch (ServiceException e) {
+            return false;
+        }
+        return userId != null;
+    }
+
     public BusinessAccountEntity getBusinessAccount() throws ServiceException {
         if (businessAccount == null) {
             if (businessAccountResolver == null)
@@ -84,6 +112,20 @@ public class ApiUser {
             businessAccount = entitySmartService.findById(businessAccountId, businessAccountRepository, EntitySmartService.FindMode.ifEmptyThrows);
         }
         return businessAccount;
+    }
+
+    public boolean isBusinessAccountSpecified() {
+        if (businessAccount != null)
+            return true;
+        if (businessAccountResolver == null)
+            businessAccountResolver = userBusinessAccountResolverAuthToken;
+        UUID businessAccountId = null;
+        try {
+            businessAccountId = businessAccountResolver.resolveCurrentBusinessAccountId();
+        } catch (ServiceException e) {
+            return false;
+        }
+        return businessAccountId != null;
     }
 
     public Channel getChannel() {

@@ -52,14 +52,14 @@ public class SystemEntityService {
         twinClassEntity = new TwinClassEntity()
                 .setId(TWIN_CLASS_USER)
                 .setKey("USER")
-                .setOwnerType(TwinClassEntity.OwnerType.USER)
+                .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
         twinClassEntity = new TwinClassEntity()
                 .setId(TWIN_CLASS_BUSINESS_ACCOUNT)
                 .setKey("BUSINESS_ACCOUNT")
-                .setOwnerType(TwinClassEntity.OwnerType.BUSINESS_ACCOUNT)
+                .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
@@ -97,12 +97,12 @@ public class SystemEntityService {
         return USER_SYSTEM;
     }
 
-    public UUID getTwinClassIdForUser() {
-        return TWIN_CLASS_USER;
+    public boolean isTwinClassForUser(UUID twinClassId) {
+        return TWIN_CLASS_USER.equals(twinClassId);
     }
 
-    public UUID getTwinClassIdForBusinessAccount() {
-        return TWIN_CLASS_BUSINESS_ACCOUNT;
+    public boolean isTwinClassForBusinessAccount(UUID twinClassId) {
+        return TWIN_CLASS_BUSINESS_ACCOUNT.equals(twinClassId);
     }
 
     public UUID getTwinIdTemplateForUser() {

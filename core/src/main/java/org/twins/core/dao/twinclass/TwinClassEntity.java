@@ -95,6 +95,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Getter
     public enum OwnerType {
+        SYSTEM("system", false, false, false),
         USER("user", false, false, true),
         BUSINESS_ACCOUNT("businessAccount", true, false, false),
         DOMAIN("domain", false, true, false),
@@ -116,6 +117,10 @@ public class TwinClassEntity implements EasyLoggable {
 
         public static OwnerType valueOd(String type) {
             return Arrays.stream(OwnerType.values()).filter(t -> t.id.equals(type)).findAny().orElse(DOMAIN_BUSINESS_ACCOUNT);
+        }
+
+        public boolean isSystemLevel() {
+            return this == SYSTEM;
         }
     }
 }

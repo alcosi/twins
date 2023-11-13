@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.persistence.criteria.Root;
@@ -34,6 +35,7 @@ import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
@@ -71,6 +73,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final TwinLinkService twinLinkService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final SystemEntityService systemEntityService;
 
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
@@ -80,10 +84,27 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Override
     public boolean isEntityReadDenied(TwinEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (entity.getTwinClass().getDomainId() != null //some system twinClasses can be out of any domain
+        if (entity.getTwinClass().getDomainId() != null //system twinClasses can be out of any domain
                 && !entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
+        }
+        if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
+                && !entity.getOwnerBusinessAccountId().equals(apiUser.getBusinessAccount().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for businessAccount[" + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
+        if (entity.getTwinClass().getOwnerType().isUserLevel()
+                && !entity.getOwnerUserId().equals(apiUser.getUser().getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for user[" + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
+        if (entity.getTwinClass().getOwnerType().isSystemLevel()) {
+            if (systemEntityService.isTwinClassForUser(entity.getTwinClassId()))
+                return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
+            if (systemEntityService.isTwinClassForBusinessAccount(entity.getTwinClassId()))
+                return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
+            return false;
         }
         //todo check permission schema
         return false;
@@ -108,14 +129,33 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return true;
     }
 
-    public List<TwinEntity> findTwins(BasicSearch basicSearch) {
-        CriteriaQuery<TwinEntity> criteriaQuery = entityManager.getCriteriaBuilder().createQuery(TwinEntity.class);
+    public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+        CriteriaQuery<TwinEntity> criteriaQuery = criteriaBuilder.createQuery(TwinEntity.class);
         Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
         List<Predicate> predicate = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinIdList()))
             predicate.add(twin.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.twinClassId).in(basicSearch.getTwinClassIdList()));
+        if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList())) {
+            List<Predicate> classPredicates = new ArrayList<>();
+            for (UUID twinClassId : basicSearch.getTwinClassIdList())
+                classPredicates.add(createClassPredicate(twinClassId, criteriaBuilder, twin, apiUser));
+            predicate.add(criteriaBuilder.or(classPredicates.toArray(Predicate[]::new)));
+        } else { // no class filter, so we have to add force filtering by owner
+            if (apiUser.isUserSpecified()) {
+                predicate.add(criteriaBuilder.or(
+                        criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerUserId), apiUser.getUser().getId()), //only user owned twins will be listed
+                        criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerUserId))));
+            } else
+                predicate.add(criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerUserId)));
+            if (apiUser.isBusinessAccountSpecified()) {
+                predicate.add(criteriaBuilder.or(
+                        criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), apiUser.getBusinessAccount().getId()), //only businessAccount owned twins will be listed
+                        criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId))));
+            } else
+                predicate.add(criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)));
+        }
         if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
             predicate.add(twin.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getCreatedByUserIdList()))
@@ -124,10 +164,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             predicate.add(twin.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getHeaderTwinIdList()))
             predicate.add(twin.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getOwnerUserIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.ownerUserId).in(basicSearch.getOwnerUserIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getOwnerBusinessAccountIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.ownerBusinessAccountId).in(basicSearch.getOwnerBusinessAccountIdList()));
         criteriaQuery.where(predicate.stream().toArray(Predicate[]::new));
         Query query = entityManager.createQuery(criteriaQuery);
         List<TwinEntity> ret = query.getResultList();
@@ -136,8 +172,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return ret;
     }
 
-    public List<TwinEntity> findTwinsByClassId(UUID twinClassId) {
-        return findTwins(new BasicSearch().addTwinClassId(twinClassId));
+    private Predicate createClassPredicate(UUID twinClassId, CriteriaBuilder criteriaBuilder, Root<TwinEntity> twin, ApiUser apiUser) throws ServiceException {
+        TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
+        List<Predicate> predicate = new ArrayList<>();
+        predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId));
+        if (twinClassEntity.getOwnerType().isUserLevel())
+            predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerUserId), apiUser.getUser().getId())); //only user owned twins will be listed
+        if (twinClassEntity.getOwnerType().isBusinessAccountLevel())
+            predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), apiUser.getBusinessAccount().getId())); //only businessAccount owned twins will be listed
+        if (twinClassEntity.getOwnerType().isSystemLevel()) {
+            //todo add Subquery to detect valid user and business account twins
+        }
+        return criteriaBuilder.and(predicate.toArray(Predicate[]::new));
     }
 
     public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {

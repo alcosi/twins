@@ -92,13 +92,16 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN_BUSINESS_ACCOUNT:
             case DOMAIN_BUSINESS_ACCOUNT_USER:
+                // only users linked to domain and businessAccount at once will be selected
                 userIdList = userRepository.findUserIdByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
                 break;
             case BUSINESS_ACCOUNT:
+                // only users linked to businessAccount will be selected
                 userIdList = userRepository.findUserIdByBusinessAccountId(apiUser.getBusinessAccount().getId());
                 break;
             case DOMAIN_USER:
             case DOMAIN:
+                // only users linked to domain will be selected
                 userIdList = userRepository.findUserIdByDomainId(apiUser.getDomain().getId());
                 break;
             case USER:

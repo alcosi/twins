@@ -2,12 +2,12 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -17,7 +17,6 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
@@ -33,6 +32,7 @@ import java.util.UUID;
 public class TwinHeadService {
     final EntitySmartService entitySmartService;
     final TwinRepository twinRepository;
+    final TwinHeadRepository twinHeadRepository;
     @Lazy
     final TwinService twinService;
     final TwinClassService twinClassService;
@@ -48,15 +48,13 @@ public class TwinHeadService {
                 .addTwinClassId(twinClassEntity.getHeadTwinClassId());
         if (twinClassEntity.getDomainId() != null) {
             TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
-            if (headTwinClassEntity.getDomainId() == null) {// out-of-domain head class. Valid twins list must be limited
-                Set<UUID> twinIdSet = null;
-                if (headTwinClassEntity.getId().equals(systemEntityService.getTwinClassIdForUser())) {// twin.id = user.id
-                    twinIdSet = userService.getValidUserIdSetByTwinClass(twinClassEntity);
-                } else if (headTwinClassEntity.getId().equals(systemEntityService.getTwinClassIdForBusinessAccount())) {// twin.id = business_account_id
-                    twinIdSet = businessAccountService.getValidBusinessAccountIdSetByTwinClass(twinClassEntity);
+            if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
+                if (systemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
+                    return getValidUserTwinListByTwinClass(twinClassEntity);
+                } else if (systemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
+                    return getValidBusinessAccountTwinListByTwinClass(twinClassEntity);
                 }
-                if (CollectionUtils.isNotEmpty(twinIdSet))
-                    basicSearch.setTwinIdList(twinIdSet);
+                log.warn(headTwinClassEntity + " unknown system twin class for head");
             }
         }
         // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)
@@ -74,5 +72,48 @@ public class TwinHeadService {
                 throw new ServiceException(ErrorCodeTwins.HEAD_TWIN_NOT_SPECIFIED, subClass.easyLog(EasyLoggable.Level.NORMAL) + " should be linked to head");
             }
         return headTwinId;
+    }
+
+    public List<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        List<TwinEntity> userTwinList = null;
+        switch (twinClassEntity.getOwnerType()) {
+            case DOMAIN_BUSINESS_ACCOUNT:
+            case DOMAIN_BUSINESS_ACCOUNT_USER:
+                // only users linked to domain and businessAccount at once will be selected
+                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
+                break;
+            case BUSINESS_ACCOUNT:
+                // only users linked to businessAccount will be selected
+                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountId(apiUser.getBusinessAccount().getId());
+                break;
+            case DOMAIN_USER:
+            case DOMAIN:
+                // only users linked to domain will be selected
+                userTwinList = twinHeadRepository.findUserTwinByDomainId(apiUser.getDomain().getId());
+                break;
+            case USER:
+                //todo all users
+        }
+        return userTwinList;
+    }
+
+    public List<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        List<TwinEntity> businessAccountList = null;
+        switch (twinClassEntity.getOwnerType()) {
+            case DOMAIN_BUSINESS_ACCOUNT:
+            case DOMAIN_BUSINESS_ACCOUNT_USER:
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+                break;
+            case USER:
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUser(apiUser.getUser().getId());
+                break;
+            case DOMAIN_USER:
+            case DOMAIN:
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByDomainId(apiUser.getDomain().getId());
+                break;
+        }
+        return businessAccountList;
     }
 }

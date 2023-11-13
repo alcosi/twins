@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition")
-public class TwinflowTransitionEntity {
+public class TwinflowTransitionEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -50,15 +51,15 @@ public class TwinflowTransitionEntity {
 
     @ManyToOne
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
+    private I18nEntity nameI18n;
 
     @ManyToOne
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false, nullable = false)
-    private TwinStatusEntity twinStatusBySrcTwinStatusId;
+    private TwinStatusEntity srcTwinStatus;
 
     @ManyToOne
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
-    private TwinStatusEntity twinStatusByDstTwinStatusId;
+    private TwinStatusEntity dstTwinStatus;
 
     @ManyToOne
     @JoinColumn(name = "permission_id", insertable = false, updatable = false)
@@ -67,4 +68,9 @@ public class TwinflowTransitionEntity {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @Override
+    public String easyLog(Level level) {
+        return "twinflowTransition[id:" + id + "]";
+    }
 }

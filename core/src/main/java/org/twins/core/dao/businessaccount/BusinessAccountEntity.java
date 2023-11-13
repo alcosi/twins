@@ -3,6 +3,7 @@ package org.twins.core.dao.businessaccount;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.user.UserGroupEntity;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "business_account")
 @DynamicUpdate
-public class BusinessAccountEntity {
+public class BusinessAccountEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -30,4 +31,8 @@ public class BusinessAccountEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "owner_user_group_id", insertable = false, updatable = false)
     private UserGroupEntity ownerUserGroup;
+
+    public String easyLog(Level level) {
+        return "businessAccount[id:" + id + "]";
+    }
 }
