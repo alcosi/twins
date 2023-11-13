@@ -1,5 +1,7 @@
 package org.twins.core.service;
 
+import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -18,28 +20,38 @@ import java.util.UUID;
 public class EntitySmartService {
     public static final String DAO_BASE_PACKAGE = "org.twins.core.dao";
     public <T> T save(UUID uuid, T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
+        SaveResult<T> saveResult = saveWithResult(uuid, entity, repository, mode);
+        return saveResult.getSavedEntity();
+    }
+
+    public <T> SaveResult<T> saveWithResult(UUID uuid, T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
         Optional<T> dbEntity;
+        SaveResult<T> saveResult = new SaveResult<>();
+        saveResult.setSavedEntity(entity);
         switch (mode) {
             case none:
-                return entity;
+                return saveResult;
             case ifNotPresentCreate:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isEmpty()) {
                     entity = repository.save(entity);
                     logSaving(uuid, entity);
-                    return entity;
+                    saveResult
+                            .setWasCreated(true)
+                            .setSavedEntity(entity);
+                    return saveResult;
                 }
-                return dbEntity.get();
+                return saveResult.setSavedEntity(dbEntity.get());
             case ifNotPresentThrows:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isEmpty())
                     throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(entity) + "[" + uuid + "]");
-                return dbEntity.get();
+                return saveResult.setSavedEntity(dbEntity.get());
             case ifPresentThrows:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isPresent())
                     throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
-                return entity;
+                return saveResult;
             case ifPresentThrowsElseCreate:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isPresent())
@@ -47,22 +59,39 @@ public class EntitySmartService {
                 else {
                     entity = repository.save(entity);
                     logSaving(uuid, entity);
+                    saveResult
+                            .setWasCreated(true)
+                            .setSavedEntity(entity);
+                    return saveResult;
                 }
-                return entity;
             case saveAndLogOnException:
                 try {
                     entity = repository.save(entity);
                     logSaving(uuid, entity);
+                    saveResult
+                            .setWasSaved(true)
+                            .setSavedEntity(entity);
                 } catch (Exception exception) {
                     log.warn(entity.getClass().getSimpleName() + "[" + uuid + "] can not be saved: ", exception);
                 }
-                return entity;
+                return saveResult;
             case saveAndThrowOnException:
                 entity = repository.save(entity);
                 logSaving(uuid, entity);
-                return entity;
+                saveResult
+                        .setWasSaved(true)
+                        .setSavedEntity(entity);
+                return saveResult;
         }
-        return entity;
+        return saveResult;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class SaveResult<E> {
+        private boolean wasCreated = false;
+        private boolean wasSaved = false;
+        private E savedEntity;
     }
 
     private UUID throwIfEmptyId(UUID uuid) throws ServiceException {

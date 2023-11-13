@@ -54,7 +54,6 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
-    @FieldNameConstants
     public enum Mode implements MapperMode {
         SHORT, DETAILED, HIDE;
 

@@ -10,8 +10,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
@@ -70,11 +68,15 @@ public class DomainService {
 //        return domainEntity;
 //    }
 
-    public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode) throws ServiceException {
+    public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
-        if (domainUserRepository.findByDomainIdAndUserId(domainId, userId) != null)
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
-        DomainUserEntity domainUserEntity = new DomainUserEntity()
+        DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId);
+        if (domainUserEntity != null)
+            if (ignoreAlreadyExists)
+                return;
+            else
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
+        domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
                 .setUserId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
@@ -89,10 +91,10 @@ public class DomainService {
     }
 
     public void addBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
-        addBusinessAccount(domainId, businessAccountId, false, EntitySmartService.SaveMode.ifNotPresentCreate);
+        addBusinessAccount(domainId, businessAccountId, EntitySmartService.SaveMode.ifNotPresentCreate, false);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, boolean ignoreAlreadyExists, EntitySmartService.SaveMode businessAccountCreateMode) throws ServiceException {
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");

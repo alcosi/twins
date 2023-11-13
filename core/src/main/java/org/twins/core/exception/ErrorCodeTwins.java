@@ -17,6 +17,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     USER_GROUP_ENTER_ERROR(10902, "user group can not be entered"),
     USER_GROUP_IS_MANDATORY(10903, "user group is mandatory"),
     BUSINESS_ACCOUNT_UNKNOWN(10101, "unknown business_account"),
+    BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(10102, "business_account user already exists"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
     DOMAIN_USER_ALREADY_EXISTS(10202, "domain user already exists"),
     DOMAIN_USER_NOT_EXISTS(10203, "domain user is not registered"),

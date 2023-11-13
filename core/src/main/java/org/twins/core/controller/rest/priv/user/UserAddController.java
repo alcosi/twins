@@ -62,13 +62,13 @@ public class UserAddController extends ApiController {
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate
             );
             if (request.businessAccountId != null) {
-                businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate);
+                businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, true);
             }
             if (request.domainId != null) {
-                domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none);
+                domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none, true);
             }
             if (request.domainId != null && request.businessAccountId != null) {
-                domainService.addBusinessAccount(request.domainId, request.businessAccountId, true, EntitySmartService.SaveMode.none);
+                domainService.addBusinessAccount(request.domainId, request.businessAccountId, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

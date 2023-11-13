@@ -58,11 +58,10 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
-        userEntity = entitySmartService.save(userEntity.getId(), userEntity, userRepository, userSaveMode);
-        if (EntitySmartService.SaveMode.ifNotPresentCreate == userSaveMode
-                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == userSaveMode)
+        EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
+        if (saveResult.isWasCreated())
             twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForUser(), null, userEntity, userEntity.getId());
-        return userEntity;
+        return saveResult.getSavedEntity();
     }
 
     public UserEntity addUser(UUID userId, EntitySmartService.SaveMode userSaveMode) throws ServiceException {

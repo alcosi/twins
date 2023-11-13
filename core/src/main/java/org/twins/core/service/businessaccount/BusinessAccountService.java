@@ -45,9 +45,15 @@ public class BusinessAccountService {
         return entitySmartService.check(businessAccountId, businessAccountRepository, checkMode);
     }
 
-    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode) throws ServiceException {
+    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         addBusinessAccount(businessAccountId, businessAccountEntityCreateMode);
-        BusinessAccountUserEntity businessAccountUserEntity = new BusinessAccountUserEntity()
+        BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId);
+        if (businessAccountUserEntity != null)
+            if (ignoreAlreadyExists)
+                return;
+            else
+                throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in businessAccount[" + businessAccountId + "]");
+         businessAccountUserEntity = new BusinessAccountUserEntity()
                 .setBusinessAccountId(businessAccountId)
                 .setUserId(userId);
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
@@ -61,13 +67,12 @@ public class BusinessAccountService {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        businessAccountEntity = entitySmartService.save(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
-        if (EntitySmartService.SaveMode.ifNotPresentCreate == entityCreateMode
-                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == entityCreateMode) {
+        EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
+        if (saveResult.isWasCreated()) {
             ApiUser apiUser = authService.getApiUser();
             twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity, apiUser.getUser(), businessAccountEntity.getId());
         }
-        return businessAccountEntity;
+        return saveResult.getSavedEntity();
     }
 
     public void updateBusinessAccount(BusinessAccountEntity businessAccountEntity) throws ServiceException {
