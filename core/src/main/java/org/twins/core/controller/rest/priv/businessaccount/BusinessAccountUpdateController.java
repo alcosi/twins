@@ -2,7 +2,6 @@ package org.twins.core.controller.rest.priv.businessaccount;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,8 +17,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
-import org.twins.core.domain.apiuser.DomainResolverGivenId;
-import org.twins.core.domain.apiuser.UserResolverSystem;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUpdateRqDTOv1;

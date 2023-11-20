@@ -2,6 +2,7 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
 import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
@@ -70,9 +71,18 @@ public class LinkEntity implements EasyLoggable {
         return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
     }
 
+    @Getter
     public enum TwinlinkType {
-        ManyToOne,
-        ManyToMany,
-        OneToOne,
+        ManyToOne(true, true),
+        ManyToMany(true, false),
+        OneToOne(false, true);
+
+        private final boolean many;
+        private final boolean uniqForSrcTwin;
+
+        TwinlinkType(boolean many, boolean uniqForSrcTwin) {
+            this.many = many;
+            this.uniqForSrcTwin = uniqForSrcTwin;
+        }
     }
 }

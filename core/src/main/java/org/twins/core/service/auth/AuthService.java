@@ -2,25 +2,10 @@ package org.twins.core.service.auth;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.businessaccount.BusinessAccountRepository;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.DomainRepository;
-import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.Channel;
-import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.tokenhandler.TokenHandler;
-import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.HttpRequestService;
-import org.twins.core.service.domain.DomainService;
-
-import java.util.UUID;
 
 
 @Slf4j

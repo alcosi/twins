@@ -11,12 +11,17 @@ import java.util.UUID;
 
 @Repository
 public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUID>, JpaSpecificationExecutor<TwinClassEntity> {
+    <T> List<T> findAllProjectedBy(Class<T> type); //not working
     List<TwinClassEntity> findByDomainId(UUID domainId);
     List<TwinClassEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
     TwinClassEntity findByDomainIdAndId(UUID domainId, UUID id);
 
-    @Query(value = "select extendsTwinClassId from TwinClassEntity where id=:twinClassId")
+    @Query(value = "select extendsTwinClassId from TwinClassEntity where id = :twinClassId")
     UUID findExtendedClassId(@Param("twinClassId") UUID twinClassId);
+
+    @Query(value = "select id from TwinClassEntity where extendsTwinClassId = :twinClassId")
+    List<UUID> findChildClassIdList(@Param("twinClassId") UUID twinClassId);
+
 
     TwinClassEntity findByDomainIdAndKey(UUID domainId, String key);
 }

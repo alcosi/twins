@@ -89,6 +89,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     private Set<UUID> extendedClassIdSet;
 
+    @Transient
+    private Set<UUID> childClassIdSet;
+
     public String easyLog(Level level) {
         return "twinClass[id:" + id + ", key:" + key + "]";
     }

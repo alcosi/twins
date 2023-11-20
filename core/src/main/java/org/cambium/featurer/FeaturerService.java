@@ -47,7 +47,9 @@ public class FeaturerService {
     }
 
     private void syncFeaturers() {
-
+        List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
+        List<FeaturerEntity> featurerEntityList = new ArrayList<>();
+        List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
         for (Featurer featurer : featurerList) {
             try {
                 // т.к объекты созданы spring, то класс может содержать не все аннотации
@@ -58,35 +60,38 @@ public class FeaturerService {
                     log.error("FeaturerType is not specified for class[{}]!", featurerClass.getSimpleName());
                     continue;
                 }
-                syncFeaturerType(featurerTypeAnnotation);
+                syncFeaturerType(featurerTypeAnnotation, featurerTypeEntityList);
                 FeaturerEntity featurerEntity = new FeaturerEntity();
                 featurerEntity.setId(featurerAnnotation.id());
                 featurerEntity.setName(StringUtils.isNotBlank(featurerAnnotation.name()) ? featurerAnnotation.name() : featurerClass.getSimpleName());
                 featurerEntity.setClazz(featurerClass.getName());
                 featurerEntity.setFeaturerTypeId(featurerTypeAnnotation.id());
                 featurerEntity.setDescription(featurerAnnotation.description());
-                featurerRepository.save(featurerEntity);
+                featurerEntityList.add(featurerEntity);
                 featurerMap.put(featurerAnnotation.id(), featurer);
-                syncFeaturersParams(featurerClass);
+                syncFeaturersParams(featurerClass, featurerParamEntityList);
             } catch (Exception e) {
                 log.error("Got exception: ", e);
             }
         }
+        featurerTypeRepository.saveAll(featurerTypeEntityList);
+        featurerRepository.saveAll(featurerEntityList);
+        featurerParamRepository.saveAll(featurerParamEntityList);
     }
 
     private static Set<FeaturerType> syncedFeaturerTypes = new HashSet<>();
 
-    private void syncFeaturerType(FeaturerType featurerTypeAnnotation) {
+    private void syncFeaturerType(FeaturerType featurerTypeAnnotation, List<FeaturerTypeEntity> featurerTypeEntityList) {
         if (syncedFeaturerTypes.add(featurerTypeAnnotation)) {
             FeaturerTypeEntity featurerTypeEntity = new FeaturerTypeEntity();
             featurerTypeEntity.setId(featurerTypeAnnotation.id());
             featurerTypeEntity.setName(featurerTypeAnnotation.name());
             featurerTypeEntity.setDescription(featurerTypeAnnotation.description());
-            featurerTypeRepository.save(featurerTypeEntity);
+            featurerTypeEntityList.add(featurerTypeEntity);
         }
     }
 
-    private void syncFeaturersParams(Class<Featurer> featurerClass) {
+    private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Set<String> featurerParamsKeySet = new HashSet<>();
         for (Field field : featurerClass.getFields()) {
@@ -108,7 +113,7 @@ public class FeaturerService {
                     featurerParamEntity.setDescription(featurerParamAnnotation.description());
                     featurerParamEntity.setOrder(featurerParamAnnotation.order());
                     featurerParamEntity.setFeaturerParamTypeId(featurerParamTypeAnnotation.id());
-                    featurerParamRepository.save(featurerParamEntity);
+                    featurerParamEntityList.add(featurerParamEntity);
                     featurerParamsKeySet.add(key);
                 }
             } catch (IllegalAccessException e) {

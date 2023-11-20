@@ -14,6 +14,7 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
     List<DataListOptionEntity> findByDataListId(UUID dataListId);
 
     int countByDataListId(UUID dataListId);
+    List<DataListOptionEntity> findByIdIn(List<UUID> dataListId);
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +

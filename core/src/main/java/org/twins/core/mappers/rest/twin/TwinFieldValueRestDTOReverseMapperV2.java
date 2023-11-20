@@ -2,13 +2,16 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
@@ -52,8 +55,16 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
             fieldValue = new FieldValueSelect();
             for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dataListOptionId))
+                    continue;
+                UUID dataListOptionUUID;
+                try {
+                    dataListOptionUUID = UUID.fromString(dataListOptionId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect UUID[" + dataListOptionId + "]");
+                }
                 ((FieldValueSelect) fieldValue).add(new DataListOptionEntity()
-                        .setId(UUID.fromString(dataListOptionId)));
+                        .setId(dataListOptionUUID));
             }
         }
         return fieldValue.setTwinClassField(fieldValueText.getTwinClassField());

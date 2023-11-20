@@ -13,6 +13,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 @JsonSubTypes.Type(value = TwinClassFieldDescriptorUrlDTOv1.class, name = TwinClassFieldDescriptorUrlDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinClassFieldDescriptorListDTOv1.class, name = TwinClassFieldDescriptorListDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinClassFieldDescriptorListLongDTOv1.class, name = TwinClassFieldDescriptorListLongDTOv1.KEY),
+                @JsonSubTypes.Type(value = TwinClassFieldDescriptorLinkDTOv1.class, name = TwinClassFieldDescriptorLinkDTOv1.KEY),
+                @JsonSubTypes.Type(value = TwinClassFieldDescriptorLinkLongDTOv1.class, name = TwinClassFieldDescriptorLinkLongDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinClassFieldDescriptorListSharedInHeadDTOv1.class, name = TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY),
 })
 @Schema(description = "On of values", example = "", oneOf = {
@@ -22,6 +24,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         TwinClassFieldDescriptorDateScrollDTOv1.class,
         TwinClassFieldDescriptorListLongDTOv1.class,
         TwinClassFieldDescriptorListSharedInHeadDTOv1.class,
+        TwinClassFieldDescriptorLinkDTOv1.class,
+        TwinClassFieldDescriptorLinkLongDTOv1.class,
         TwinClassFieldDescriptorListDTOv1.class}, discriminatorProperty = "fieldType" , discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
@@ -29,6 +33,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUrlDTOv1.KEY, schema = TwinClassFieldDescriptorUrlDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorListDTOv1.KEY, schema = TwinClassFieldDescriptorListDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorListLongDTOv1.KEY, schema = TwinClassFieldDescriptorListLongDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorLinkDTOv1.KEY, schema = TwinClassFieldDescriptorLinkDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorLinkLongDTOv1.KEY, schema = TwinClassFieldDescriptorLinkLongDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY, schema = TwinClassFieldDescriptorListSharedInHeadDTOv1.class),
 })
 public interface TwinClassFieldDescriptorDTO {
@@ -39,6 +45,8 @@ public interface TwinClassFieldDescriptorDTO {
             TwinClassFieldDescriptorDateScrollDTOv1.KEY,
             TwinClassFieldDescriptorListDTOv1.KEY,
             TwinClassFieldDescriptorListLongDTOv1.KEY,
+            TwinClassFieldDescriptorLinkDTOv1.KEY,
+            TwinClassFieldDescriptorLinkLongDTOv1.KEY,
             TwinClassFieldDescriptorListSharedInHeadDTOv1.KEY,
     })
     public String fieldType();

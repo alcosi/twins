@@ -12,12 +12,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -27,6 +23,7 @@ import org.twins.core.service.auth.AuthService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -35,6 +32,8 @@ import java.util.*;
 public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntity> {
     final TwinRepository twinRepository;
     final TwinClassRepository twinClassRepository;
+    final TwinClassExtendsMapRepository twinClassExtendsMapRepository;
+    final TwinClassChildMapRepository twinClassChildMapRepository;
     final TwinClassSchemaRepository twinClassSchemaRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntitySmartService entitySmartService;
@@ -147,24 +146,19 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public Set<UUID> loadExtendedClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getExtendedClassIdSet() != null)
             return twinClassEntity.getExtendedClassIdSet();
-        Set<UUID> extendedClassIdSet = new LinkedHashSet<>();
+        Set<UUID> extendedClassIdSet = twinClassExtendsMapRepository.findAllByTwinClassId(twinClassEntity.getId())
+                .stream().map(TwinClassExtendsMapEntity::getExtendsTwinClassId).collect(Collectors.toSet());
         twinClassEntity.setExtendedClassIdSet(extendedClassIdSet);
-        extendedClassIdSet.add(twinClassEntity.getId());
-        if (twinClassEntity.getExtendsTwinClassId() == null)
-            return extendedClassIdSet;
-        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
-        extendedClassIdSet.add(extendedTwinClassId);
-        for (int i = 0; i <= 10; i++) {
-            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
-            if (extendedTwinClassId == null)
-                break;
-            if (extendedClassIdSet.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
-                break;
-            }
-            extendedClassIdSet.add(extendedTwinClassId);
-        }
         return extendedClassIdSet;
+    }
+
+    public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
+        if (twinClassEntity.getChildClassIdSet() != null)
+            return twinClassEntity.getChildClassIdSet();
+        Set<UUID> childClassIdSet = twinClassChildMapRepository.findAllByTwinClassId(twinClassEntity.getId())
+                .stream().map(TwinClassChildMapEntity::getChildTwinClassId).collect(Collectors.toSet());
+        twinClassEntity.setChildClassIdSet(childClassIdSet);
+        return childClassIdSet;
     }
 
     public boolean isInstanceOf(UUID instanceClassId, UUID ofClass) throws ServiceException {

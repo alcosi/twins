@@ -18,4 +18,12 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = "from TwinLinkEntity twinLink " +
             "where twinLink.id in (:linkIdList) and (twinLink.srcTwinId = :twinId or twinLink.dstTwinId = :twinId)")
     void deleteNotMandatory(@Param("twinId") UUID twinId, @Param("linkIdList") List<UUID> twinLinksDeleteUUIDList);
+
+    <T> List<T> findBySrcTwinId(UUID srcTwinId, Class<T> type);
+
+    <T> T findBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId, Class<T> type);
+
+    <T> List<T> findByDstTwinIdAndLinkId(UUID srcTwinId, UUID linkId, Class<T> type);
+
+    <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
 }

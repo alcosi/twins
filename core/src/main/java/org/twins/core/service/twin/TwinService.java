@@ -1,11 +1,6 @@
 package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.Query;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -28,11 +23,12 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.AttachmentAUD;
-import org.twins.core.domain.BasicSearch;
+import org.twins.core.domain.EntitiesChangesCollector;
 import org.twins.core.domain.TwinLinkAUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.EntityChangesService;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
@@ -56,6 +52,7 @@ import java.util.stream.Collectors;
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final TwinRepository twinRepository;
     final TwinFieldRepository twinFieldRepository;
+    final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
     final TwinBusinessAccountAliasRepository twinBusinessAccountAliasRepository;
     final TwinDomainAliasRepository twinDomainAliasRepository;
@@ -75,6 +72,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final AuthService authService;
     @Lazy
     final SystemEntityService systemEntityService;
+    final EntityChangesService entityChangesService;
 
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
@@ -86,17 +84,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ApiUser apiUser = authService.getApiUser();
         if (entity.getTwinClass().getDomainId() != null //system twinClasses can be out of any domain
                 && !entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
                 && !entity.getOwnerBusinessAccountId().equals(apiUser.getBusinessAccount().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for businessAccount[" + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isUserLevel()
                 && !entity.getOwnerUserId().equals(apiUser.getUser().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for user[" + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isSystemLevel()) {
@@ -127,63 +125,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
         }
         return true;
-    }
-
-    public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<TwinEntity> criteriaQuery = criteriaBuilder.createQuery(TwinEntity.class);
-        Root<TwinEntity> twin = criteriaQuery.from(TwinEntity.class);
-        List<Predicate> predicate = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(basicSearch.getTwinIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList())) {
-            List<Predicate> classPredicates = new ArrayList<>();
-            for (UUID twinClassId : basicSearch.getTwinClassIdList())
-                classPredicates.add(createClassPredicate(twinClassId, criteriaBuilder, twin, apiUser));
-            predicate.add(criteriaBuilder.or(classPredicates.toArray(Predicate[]::new)));
-        } else { // no class filter, so we have to add force filtering by owner
-            if (apiUser.isUserSpecified()) {
-                predicate.add(criteriaBuilder.or(
-                        criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerUserId), apiUser.getUser().getId()), //only user owned twins will be listed
-                        criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerUserId))));
-            } else
-                predicate.add(criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerUserId)));
-            if (apiUser.isBusinessAccountSpecified()) {
-                predicate.add(criteriaBuilder.or(
-                        criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), apiUser.getBusinessAccount().getId()), //only businessAccount owned twins will be listed
-                        criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId))));
-            } else
-                predicate.add(criteriaBuilder.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)));
-        }
-        if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getCreatedByUserIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.createdByUserId).in(basicSearch.getCreatedByUserIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getStatusIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
-        if (CollectionUtils.isNotEmpty(basicSearch.getHeaderTwinIdList()))
-            predicate.add(twin.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
-        criteriaQuery.where(predicate.stream().toArray(Predicate[]::new));
-        Query query = entityManager.createQuery(criteriaQuery);
-        List<TwinEntity> ret = query.getResultList();
-        if (ret != null)
-            return ret.stream().filter(t -> !isEntityReadDenied(t)).toList();
-        return ret;
-    }
-
-    private Predicate createClassPredicate(UUID twinClassId, CriteriaBuilder criteriaBuilder, Root<TwinEntity> twin, ApiUser apiUser) throws ServiceException {
-        TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
-        List<Predicate> predicate = new ArrayList<>();
-        predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId));
-        if (twinClassEntity.getOwnerType().isUserLevel())
-            predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerUserId), apiUser.getUser().getId())); //only user owned twins will be listed
-        if (twinClassEntity.getOwnerType().isBusinessAccountLevel())
-            predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), apiUser.getBusinessAccount().getId())); //only businessAccount owned twins will be listed
-        if (twinClassEntity.getOwnerType().isSystemLevel()) {
-            //todo add Subquery to detect valid user and business account twins
-        }
-        return criteriaBuilder.and(predicate.toArray(Predicate[]::new));
     }
 
     public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
@@ -218,6 +159,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinFieldEntity = new TwinFieldEntity()
                 .setTwinClassField(twinClassField)
                 .setTwinClassFieldId(twinClassField.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue("");
+        return twinFieldEntity;
+    }
+
+    public TwinFieldEntity findTwinFieldIncludeMissing(UUID twinId, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        TwinFieldEntity twinFieldEntity = twinFieldRepository.findByTwinIdAndTwinClassFieldId(twinId, twinClassFieldEntity.getId());
+        if (twinFieldEntity != null)
+            return twinFieldEntity;
+        TwinEntity twinEntity = findEntitySafe(twinId);
+        twinFieldEntity = new TwinFieldEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
                 .setValue("");
@@ -315,7 +270,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFieldsIncludeParent(twinEntity.getTwinClass());
         TwinFieldEntity twinFieldEntity;
         FieldValue fieldValue;
-        List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
+        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector(); //all fields will be saved at once, in one transaction
         for (TwinClassFieldEntity twinClassFieldEntity : twinClassFieldEntityList) {
             fieldValue = twinClassFieldValuesMap.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
@@ -325,10 +280,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     continue;
             twinFieldEntity = createTwinFieldEntity(twinEntity, twinClassFieldEntity, null);
             var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
-            twinFieldEntityList.add(
-                    twinFieldEntity.setValue(fieldTyper.serializeValue(twinFieldEntity, fieldValue)));
+            fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
         }
-        saveTwinFields(twinFieldEntityList);
+        entityChangesService.saveEntities(entitiesChangesCollector);
     }
 
     @Transactional
@@ -368,22 +322,36 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+//    @Transactional
+//    public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
+//        List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
+//        TwinFieldEntity twinFieldEntity;
+//        ChangesHelper twinChangesHelper = new ChangesHelper();
+//        EntitiesChangesHelper entitiesChangesHelper = new EntitiesChangesHelper();
+//        for (FieldValue fieldValue : values) {
+//            ChangesHelper fieldChangesHelper = new ChangesHelper();
+//            twinFieldEntity = findTwinFieldIncludeMissing(twinEntity.getId(), fieldValue.getTwinClassField());
+//            var fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+//            fieldTyper.serializeValue(twinFieldEntity, fieldValue, fieldChangesHelper);
+//            if (fieldChangesHelper.hasChanges()) {
+//                twinFieldEntityList.add(twinFieldEntity);
+//                twinChangesHelper.addAll(fieldChangesHelper);
+//            }
+//        }
+//        saveTwinFields(twinFieldEntityList, twinChangesHelper);
+//    }
+
     @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
         TwinFieldEntity twinFieldEntity;
-        ChangesHelper changesHelper = new ChangesHelper();
+        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector();
         for (FieldValue fieldValue : values) {
-            twinFieldEntity = findTwinFieldIncludeMissing(twinEntity.getId(), fieldValue.getTwinClassField().getKey());
-            FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-            String newValue = fieldTyper.serializeValue(twinFieldEntity, fieldValue);
-            if (changesHelper.isChanged("field[" + twinFieldEntity.getTwinClassField().getKey() + "]", twinFieldEntity.getValue(), newValue)) {
-                twinFieldEntity.setValue(newValue);
-                twinFieldEntityList.add(twinFieldEntity);
-            }
+            twinFieldEntity = findTwinFieldIncludeMissing(twinEntity.getId(), fieldValue.getTwinClassField());
+            var fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+            fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
         }
-        if (changesHelper.hasChanges())
-            entitySmartService.saveAllAndLogChanges(twinFieldEntityList, twinFieldRepository, changesHelper);
+        entityChangesService.saveEntities(entitiesChangesCollector);
     }
 
     public List<TwinBusinessAccountAliasEntity> createTwinBusinessAccountAliases(TwinEntity twinEntity) {
@@ -429,14 +397,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldEntity updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-        String newValue = fieldTyper.serializeValue(twinFieldEntity, fieldValue);
-        ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("field", twinFieldEntity.getValue(), newValue)) {
-            twinFieldEntity.setValue(newValue);
-            return entitySmartService.saveAndLogChanges(twinFieldEntity, twinFieldRepository, changesHelper);
-        } else {
-            log.info(twinFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " was not changes");
-        }
+        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector();
+        fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
+        entityChangesService.saveEntities(entitiesChangesCollector);
         return twinFieldEntity;
     }
 
@@ -470,22 +433,51 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return new TwinFieldEntity()
                 .setTwinClassField(twinFieldEntity.getTwinClassField())
                 .setTwinClassFieldId(twinFieldEntity.getTwinClassFieldId())
-                .setValue(twinFieldEntity.getValue())
-                ;
+                .setValue(twinFieldEntity.getValue());
     }
 
-    public List<TwinFieldEntity> cloneTwinFieldList(UUID srcTwinId, TwinEntity dstTwinEntity) {
-        List<TwinFieldEntity> srcTwinFieldEntityList = findTwinFields(srcTwinId);
+    public List<TwinFieldDataListEntity> cloneTwinFieldDataList(List<TwinFieldDataListEntity> srcTwinFieldDataListEntityList, TwinFieldEntity toField) {
+        if (CollectionUtils.isEmpty(srcTwinFieldDataListEntityList))
+            return srcTwinFieldDataListEntityList;
+        List<TwinFieldDataListEntity> cloneList = new ArrayList<>();
+        for (TwinFieldDataListEntity srcFieldDataListEntity : srcTwinFieldDataListEntityList) {
+            cloneList.add(
+                    new TwinFieldDataListEntity()
+                            .setTwinFieldId(toField.getId()) // toField.getId() must be filled!
+                            .setDataListOptionId(srcFieldDataListEntity.getDataListOptionId())
+            );
+        }
+        return cloneList;
+    }
+
+    public List<TwinFieldEntity> cloneAndSaveTwinFieldList(TwinEntity srcTwin, TwinEntity dstTwinEntity) {
+        List<TwinFieldEntity> srcTwinFieldEntityList = findTwinFields(srcTwin.getId());
         if (CollectionUtils.isEmpty(srcTwinFieldEntityList))
             return srcTwinFieldEntityList;
+        List<TwinFieldDataListEntity> twinFieldDataListEntityList = twinFieldDataListRepository.findByTwinField_TwinId(srcTwin.getId()); // we also need to clone TwinFieldDataListEntities for twin
+        Map<UUID, List<TwinFieldDataListEntity>> twinFieldDataListEntityMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(twinFieldDataListEntityList)) { // converting from plain list to map, for easy access by key
+            for (TwinFieldDataListEntity twinFieldDataListEntity : twinFieldDataListEntityList) {
+                List<TwinFieldDataListEntity> list = twinFieldDataListEntityMap.computeIfAbsent(twinFieldDataListEntity.getTwinFieldId(), k -> new ArrayList<>());
+                list.add(twinFieldDataListEntity);
+            }
+        }
         List<TwinFieldEntity> cloneFieldEntityList = new ArrayList<>();
+        List<TwinFieldDataListEntity> cloneFieldDataListEntityList = new ArrayList<>();
         for (TwinFieldEntity twinFieldEntity : srcTwinFieldEntityList) {
             TwinFieldEntity duplicateTwinFieldEntity = cloneTwinField(twinFieldEntity);
             duplicateTwinFieldEntity
+                    .setId(UUID.randomUUID()) // we have to generate it here, for creating TwinFieldDataListEntity
                     .setTwin(dstTwinEntity)
                     .setTwinId(dstTwinEntity.getId());
             cloneFieldEntityList.add(duplicateTwinFieldEntity);
+            twinFieldDataListEntityList = twinFieldDataListEntityMap.get(twinFieldEntity.getId());
+            if (twinFieldDataListEntityList != null)
+                cloneFieldDataListEntityList.addAll(cloneTwinFieldDataList(twinFieldDataListEntityList, duplicateTwinFieldEntity));
         }
+        entitySmartService.saveAllAndLog(cloneFieldEntityList, twinFieldRepository);
+        entitySmartService.saveAllAndLog(cloneFieldDataListEntityList, twinFieldDataListRepository);
+        //todo do we need to clone links?
         return cloneFieldEntityList;
     }
 
@@ -504,17 +496,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setId(newTwinId)
                 .setCreatedByUserId(userEntity.getId());
         duplicateEntity = saveTwin(duplicateEntity);
-        List<TwinFieldEntity> fieldEntityList = findTwinFields(srcTwin.getId());
-        if (!CollectionUtils.isEmpty(fieldEntityList)) {
-            List<TwinFieldEntity> duplicateFieldEntityList = cloneTwinFieldList(srcTwin.getId(), duplicateEntity);
-            saveTwinFields(duplicateFieldEntityList);
-        }
+        cloneAndSaveTwinFieldList(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
         return duplicateEntity;
-    }
-
-    public void saveTwinFields(List<TwinFieldEntity> twinFieldEntityList) {
-        entitySmartService.saveAllAndLog(twinFieldEntityList, twinFieldRepository);
     }
 
     @Data

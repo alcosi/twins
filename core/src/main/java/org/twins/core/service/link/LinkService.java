@@ -17,7 +17,6 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -30,7 +29,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     final LinkRepository linkRepository;
     final TwinClassService twinClassService;
     final TwinLinkRepository twinLinkRepository;
-    final TwinService twinService;
     @Lazy
     final AuthService authService;
     final EntitySmartService entitySmartService;
@@ -78,6 +76,29 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
         }
         return linksResult;
+    }
+
+    public boolean isForwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
+        return twinClassService.isInstanceOf(twinClassEntity, linkEntity.getSrcTwinClassId());
+    }
+
+    public boolean isBackwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
+        return twinClassService.isInstanceOf(twinClassEntity, linkEntity.getDstTwinClassId());
+    }
+
+    public LinkDirection detectLinkDirection(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
+        if (isForwardLink(linkEntity, twinClassEntity))
+            return LinkDirection.forward;
+        else if (isBackwardLink(linkEntity, twinClassEntity))
+            return LinkDirection.backward;
+        else
+            return LinkDirection.invalid;
+    }
+
+    public enum LinkDirection {
+        forward,
+        backward,
+        invalid,
     }
 
     @Data

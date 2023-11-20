@@ -1,8 +1,6 @@
 package org.twins.core.controller.rest.priv.twin;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -18,7 +16,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
@@ -34,6 +31,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
@@ -45,6 +43,7 @@ import java.util.List;
 public class TwinListController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
+    final TwinSearchService twinSearchService;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
     final UserRestDTOMapper userRestDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
@@ -76,7 +75,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
-            List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
+            List<TwinEntity> twinList = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
@@ -123,7 +122,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            List<TwinEntity> twinList = twinService.findTwins(twinSearchRqDTOMapper.convert(request));
+            List<TwinEntity> twinList = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)

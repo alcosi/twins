@@ -11,6 +11,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.EntitiesChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
@@ -33,18 +34,18 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
     }
 
     @Override
-    protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueDate value) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueDate value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.date()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String datePatter = pattern.extract(properties);
         if (!GenericValidator.isDate(value.date(), datePatter, false))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.date() + "] does not match pattern[" + datePatter + "]");
-        return value.date();
+        detectLocalChange(twinFieldEntity, entitiesChangesCollector, value.date());
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value) {
-        return new FieldValueDate().date(value != null ? validDateOrEmpty(value.toString(), properties) : "");
+    protected FieldValueDate deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+        return new FieldValueDate().date(twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : "");
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {

@@ -6,7 +6,6 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 
 import java.util.HashMap;
 import java.util.Properties;

@@ -9,6 +9,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.EntitiesChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -30,17 +31,17 @@ public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldVa
     }
 
     @Override
-    protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String pattern = regexp.extract(properties);
         if (!value.getValue().matches(pattern))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
-        return value.getValue();
+        detectLocalChange(twinFieldEntity, entitiesChangesCollector, value.getValue());
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value) {
-        return new FieldValueText().setValue(value != null ? value.toString() : "");
+    protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+        return new FieldValueText().setValue(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
     }
 }

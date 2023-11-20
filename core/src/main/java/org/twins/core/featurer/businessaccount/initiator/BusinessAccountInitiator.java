@@ -10,9 +10,9 @@ import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.SystemEntityService;
 
 import java.util.HashMap;
 import java.util.Properties;

@@ -3,10 +3,7 @@ package org.twins.core.featurer.tokenhandler;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.user.UserService;
 

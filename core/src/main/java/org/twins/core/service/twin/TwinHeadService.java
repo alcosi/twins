@@ -22,7 +22,6 @@ import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -35,6 +34,7 @@ public class TwinHeadService {
     final TwinHeadRepository twinHeadRepository;
     @Lazy
     final TwinService twinService;
+    final TwinSearchService twinSearchService;
     final TwinClassService twinClassService;
     final SystemEntityService systemEntityService;
     final AuthService authService;
@@ -58,7 +58,7 @@ public class TwinHeadService {
             }
         }
         // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)
-        return twinService.findTwins(basicSearch);
+        return twinSearchService.findTwins(basicSearch);
     }
 
     public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {

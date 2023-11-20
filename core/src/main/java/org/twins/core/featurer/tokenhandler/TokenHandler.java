@@ -6,9 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.springframework.data.util.Pair;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.Channel;
 
 import java.util.HashMap;

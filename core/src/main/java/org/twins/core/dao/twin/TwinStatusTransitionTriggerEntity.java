@@ -8,7 +8,6 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 
 import java.util.HashMap;

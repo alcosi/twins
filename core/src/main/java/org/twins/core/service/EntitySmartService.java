@@ -12,6 +12,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -172,6 +173,12 @@ public class EntitySmartService {
         switch (mode) {
             case ifEmptyNull:
                 return optional.isEmpty() ? null : optional.get();
+            case ifEmptyLogAndNull:
+                if(optional.isEmpty()) {
+                    log.error(entityShortName(repository) + " can not find entity with id[" + uuid + "]");
+                    return null;
+                } else
+                    return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
                     throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
@@ -182,6 +189,7 @@ public class EntitySmartService {
 
     public enum FindMode {
         ifEmptyNull,
+        ifEmptyLogAndNull,
         ifEmptyThrows,
     }
     public UUID check(UUID uuid, CrudRepository<?, UUID> repository, CheckMode checkMode) throws ServiceException {
@@ -227,7 +235,12 @@ public class EntitySmartService {
 
     public <T> void deleteAndLog(UUID uuid, CrudRepository<T, UUID> repository) throws ServiceException {
         repository.deleteById(throwIfEmptyId(uuid));
-        log.info(entityShortName(repository) + " perhaps was deleted");
+        log.info(entityShortName(repository) + " perhaps was deleted"); //todo
+    }
+
+    public <T> void deleteAllAndLog(Iterable<UUID> uuidList, CrudRepository<T, UUID> repository) {
+        repository.deleteAllById(uuidList);
+        log.info(entityShortName(repository) + " perhaps was deleted"); //todo
     }
 
     public <T> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
@@ -240,6 +253,11 @@ public class EntitySmartService {
         Iterable<T> result = saveAllAndLog(entities, repository);
         log.info("Changes: " + changesHelper.collectForLog());
         return result;
+    }
+
+    public <T> void saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, UUID> repository) {
+        saveAllAndLog(entityChangesMap.keySet(), repository);
+        //todo collect an log changes
     }
 
     public <T> T saveAndLogChanges(T entity, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {

@@ -22,8 +22,8 @@ public class TwinLinkAddRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLin
     public void map(TwinLinkAddDTOv1 src, TwinLinkEntity dst, MapperContext mapperContext) throws Exception {
         ApiUser apiUser = authService.getApiUser();
         dst
-                .setLinkId(src.getLinkId())
                 .setDstTwin(twinService.findEntity(src.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows))
+                .setLinkId(src.getLinkId())
                 .setDstTwinId(src.getDstTwinId())
                 .setCreatedByUserId(apiUser.getUser().getId());
     }

@@ -13,5 +13,7 @@ public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUI
 
     TwinFieldEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
 
+    TwinFieldEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
+
     void deleteByTwinId(UUID twinId);
 }

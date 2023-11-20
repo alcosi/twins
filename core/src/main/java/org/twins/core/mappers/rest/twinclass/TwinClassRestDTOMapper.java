@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -13,9 +14,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
-import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -42,8 +43,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final TwinStatusService twinStatusService;
     final LinkService linkService;
+    @Lazy
     @Autowired
-    TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {

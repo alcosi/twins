@@ -3,18 +3,25 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    @Lazy
+    @Autowired
+    TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
     @Override
     public void map(FieldDescriptor src, TwinClassFieldDescriptorDTO dst, MapperContext mapperContext) throws Exception {
@@ -23,31 +30,41 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
 
     @Override
     public TwinClassFieldDescriptorDTO convert(FieldDescriptor fieldDescriptor, MapperContext mapperContext) throws Exception {
-        if (fieldDescriptor instanceof FieldDescriptorText text)
+        if (fieldDescriptor instanceof FieldDescriptorText textDescriptor)
             return new TwinClassFieldDescriptorTextDTOv1()
-                    .regExp(text.regExp());
-        if (fieldDescriptor instanceof FieldDescriptorColorPicker color)
+                    .regExp(textDescriptor.regExp());
+        else if (fieldDescriptor instanceof FieldDescriptorColorPicker colorDescriptor)
             return new TwinClassFieldDescriptorColorHexDTOv1();
-        if (fieldDescriptor instanceof FieldDescriptorDate date)
+        else if (fieldDescriptor instanceof FieldDescriptorDate dateDescriptor)
             return new TwinClassFieldDescriptorDateScrollDTOv1()
-                    .pattern(date.pattern());
-        if (fieldDescriptor instanceof FieldDescriptorList list)
-            if (list.dataListId() != null) {
+                    .pattern(dateDescriptor.pattern());
+        else if (fieldDescriptor instanceof FieldDescriptorList listDescriptor)
+            if (listDescriptor.dataListId() != null) {
                 return new TwinClassFieldDescriptorListLongDTOv1()
-                        .supportCustom(list.supportCustom())
-                        .multiple(list.multiple())
-                        .dataListId(list.dataListId());
+                        .supportCustom(listDescriptor.supportCustom())
+                        .multiple(listDescriptor.multiple())
+                        .dataListId(listDescriptor.dataListId());
             } else {
                 return new TwinClassFieldDescriptorListDTOv1()
-                        .supportCustom(list.supportCustom())
-                        .multiple(list.multiple())
-                        .options(dataListOptionRestDTOMapper.convertList(list.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
+                        .supportCustom(listDescriptor.supportCustom())
+                        .multiple(listDescriptor.multiple())
+                        .options(dataListOptionRestDTOMapper.convertList(listDescriptor.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
             }
-        if (fieldDescriptor instanceof FieldDescriptorListShared listShared)
+        else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
-                    .multiple(listShared.isMultiple());
-        if (fieldDescriptor instanceof FieldDescriptorUrl url)
+                    .multiple(listSharedDescriptor.isMultiple());
+        else if (fieldDescriptor instanceof FieldDescriptorUrl urlDescriptor)
             return new TwinClassFieldDescriptorUrlDTOv1();
+        else if (fieldDescriptor instanceof FieldDescriptorLink linkDescriptor)
+            if (linkDescriptor.linkId() != null) {
+                return new TwinClassFieldDescriptorLinkLongDTOv1()
+                        .multiple(linkDescriptor.multiple())
+                        .linkId(linkDescriptor.linkId());
+            } else {
+                return new TwinClassFieldDescriptorLinkDTOv1()
+                        .multiple(linkDescriptor.multiple())
+                        .dstTwins(twinBaseV2RestDTOMapper.convertList(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+            }
         return null;
     }
 }

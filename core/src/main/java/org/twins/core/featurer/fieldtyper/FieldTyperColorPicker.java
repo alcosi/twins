@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.EntitiesChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorColorPicker;
 import org.twins.core.featurer.fieldtyper.value.FieldValueColorHEX;
@@ -26,16 +27,16 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     }
 
     @Override
-    protected String serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueColorHEX value) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueColorHEX value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.hex()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.hex().matches(HEX_PATTERN))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +  " hex[" + value.hex() + "] does not match pattern[" + HEX_PATTERN + "]");
-        return value.hex();
+        detectLocalChange(twinFieldEntity, entitiesChangesCollector, value.hex());
     }
 
     @Override
-    protected FieldValueColorHEX deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity, Object value) {
-        return new FieldValueColorHEX().hex(value != null ? value.toString() : "");
+    protected FieldValueColorHEX deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+        return new FieldValueColorHEX().hex(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
     }
 }

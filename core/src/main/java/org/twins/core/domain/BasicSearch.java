@@ -3,7 +3,10 @@ package org.twins.core.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -24,6 +27,11 @@ public class BasicSearch {
 
     public BasicSearch addTwinClassId(UUID twinClassId) {
         twinClassIdList = safeAdd(twinClassIdList, twinClassId);
+        return this;
+    }
+
+    public BasicSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
+        twinClassIdList = safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
@@ -61,6 +69,13 @@ public class BasicSearch {
         if (set == null)
             set = new HashSet<>();
         set.add(element);
+        return set;
+    }
+
+    private Set<UUID> safeAdd(Set<UUID> set, Collection<UUID> elements) {
+        if (set == null)
+            set = new HashSet<>();
+        set.addAll(elements);
         return set;
     }
 }

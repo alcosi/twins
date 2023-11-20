@@ -3,6 +3,8 @@ package org.twins.core.service;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -10,14 +12,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -28,6 +29,8 @@ public class SystemEntityService {
     final TwinClassRepository twinClassRepository;
     final TwinStatusRepository twinStatusRepository;
     final UserRepository userRepository;
+    final TwinClassExtendsMapRepository twinClassExtendsMapRepository;
+    final TwinClassChildMapRepository twinClassChildMapRepository;
     final EntitySmartService entitySmartService;
 
     private static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -91,6 +94,74 @@ public class SystemEntityService {
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinEntity.getId(), twinEntity, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
+        loadTwinClassInheritanceMaps();
+    }
+
+    private void loadTwinClassInheritanceMaps() {
+//        Iterable<TwinClassNoRelationsProjection> allClasses = twinClassRepository.findAllProjectedBy(TwinClassNoRelationsProjection.class); // projections are not working : (
+        Iterable<TwinClassEntity> allClasses = twinClassRepository.findAll();
+//        HashMap<UUID, Set<UUID>> twinClassExtendsMap = new HashMap<>();
+//        HashMap<UUID, Set<UUID>> twinClassChildMap = new HashMap<>();
+        List<TwinClassChildMapEntity> twinClassChildMapEntityList = new ArrayList<>();
+        List<TwinClassExtendsMapEntity> twinClassExtendsMapEntityList = new ArrayList<>();
+        for (TwinClassEntity twinClassEntity : allClasses) {
+            for (UUID twinClassExtendsId : loadExtendedClasses(twinClassEntity)) {
+                twinClassExtendsMapEntityList.add(new TwinClassExtendsMapEntity()
+                        .setTwinClassId(twinClassEntity.getId())
+                        .setExtendsTwinClassId(twinClassExtendsId));
+            }
+            for (UUID twinClassChildId : loadChildClasses(twinClassEntity.getId())) {
+                twinClassChildMapEntityList.add(new TwinClassChildMapEntity()
+                        .setTwinClassId(twinClassEntity.getId())
+                        .setChildTwinClassId(twinClassChildId));
+            }
+        }
+        twinClassExtendsMapRepository.truncateTable();
+        twinClassExtendsMapRepository.saveAll(twinClassExtendsMapEntityList);
+        twinClassChildMapRepository.truncateTable();
+        twinClassChildMapRepository.saveAll(twinClassChildMapEntityList);
+        //todo db trigger must be added on twin_class table
+    }
+
+    public Set<UUID> loadExtendedClasses(TwinClassEntity twinClassEntity) {
+        Set<UUID> extendedClassIdSet = new LinkedHashSet<>();
+        extendedClassIdSet.add(twinClassEntity.getId());
+        if (twinClassEntity.getExtendsTwinClassId() == null)
+            return extendedClassIdSet;
+        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
+        extendedClassIdSet.add(extendedTwinClassId);
+        for (int i = 0; i <= 10; i++) {
+            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
+            if (extendedTwinClassId == null)
+                break;
+            if (extendedClassIdSet.contains(extendedTwinClassId)) {
+                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
+                break;
+            }
+            extendedClassIdSet.add(extendedTwinClassId);
+        }
+        return extendedClassIdSet;
+    }
+
+    public Set<UUID> loadChildClasses(UUID twinClassId) {
+        Set<UUID> childClassIdSet = new LinkedHashSet<>();
+        childClassIdSet.add(twinClassId);
+        loadChildClasses(childClassIdSet, twinClassId, 10);
+        return childClassIdSet;
+    }
+
+    private void loadChildClasses(Set<UUID> childClassIdSet, UUID twinClassId, int recursionDepth) {
+        if (recursionDepth <= 0) {
+            log.warn("Load child classes recursion depth limit reached");
+            return;
+        }
+        List<UUID> childTwinClassIdList = twinClassRepository.findChildClassIdList(twinClassId);
+        if (CollectionUtils.isNotEmpty(childTwinClassIdList)) {
+            for (UUID childTwinClassId : childTwinClassIdList) {
+                childClassIdSet.add(childTwinClassId);
+                loadChildClasses(childClassIdSet, childTwinClassId, recursionDepth - 1);
+            }
+        }
     }
 
     public UUID getUserIdSystem() {

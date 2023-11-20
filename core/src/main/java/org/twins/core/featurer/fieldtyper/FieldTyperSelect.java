@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
+import org.twins.core.service.EntitySmartService;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -20,7 +21,6 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public class FieldTyperSelect extends FieldTyperList {
-
     @FeaturerParam(name = "multiple", description = "If true, then multiple select available")
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
 
@@ -33,7 +33,7 @@ public class FieldTyperSelect extends FieldTyperList {
     @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
-        dataListService.findEntitySafe(listId);
+        dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
         int listSize = dataListOptionRepository.countByDataListId(listId);
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
                 .supportCustom(supportCustom.extract(properties))

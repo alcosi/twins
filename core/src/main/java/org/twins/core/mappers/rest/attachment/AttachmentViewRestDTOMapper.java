@@ -1,7 +1,6 @@
 package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
