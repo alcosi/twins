@@ -207,7 +207,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
-        TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity.getTwinClass());
+        TwinflowEntity twinflowEntity = twinflowService.getTwinflow(twinEntity.getTwinClassId());
         TwinClassEntity twinClassEntity = twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
         twinEntity
                 .setTwinClass(twinClassEntity)

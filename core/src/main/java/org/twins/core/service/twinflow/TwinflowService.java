@@ -99,15 +99,18 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public TwinflowEntity loadTwinflow(TwinClassEntity twinClass) throws ServiceException {
         if (twinClass.getTwinflow() != null)
             return twinClass.getTwinflow();
-        ApiUser apiUser = authService.getApiUser();
-        TwinflowEntity twinflowEntity;
-        if (apiUser.isBusinessAccountSpecified()) {
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId()); //todo store in apiUser
-            twinflowEntity = getTwinflow(domainBusinessAccountEntity.getTwinflowSchemaId(), twinClass.getId());
-        } else
-            twinflowEntity = getTwinflow(apiUser.getDomain().getTwinflowSchemaId(), twinClass.getId());
+        TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
         twinClass.setTwinflow(twinflowEntity);
         return twinflowEntity;
+    }
+
+    public TwinflowEntity getTwinflow(UUID twinClassId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.getBusinessAccount() != null) {
+            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId()); //todo store in apiUser
+            return getTwinflow(domainBusinessAccountEntity.getTwinflowSchemaId(), twinClassId);
+        }
+        return getTwinflow(apiUser.getDomain().getTwinflowSchemaId(), twinClassId);
     }
 
     public TwinflowEntity getTwinflow(UUID twinflowSchemaId, UUID twinClassId) throws ServiceException {
