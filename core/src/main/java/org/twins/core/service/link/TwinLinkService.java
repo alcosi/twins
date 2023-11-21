@@ -225,7 +225,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             linkDirection = linkService.detectLinkDirection(linkEntity, twinEntity.getTwinClass());
         switch (linkDirection) {
             case forward:
-                return List.of(twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class));
+                TwinLinkEntity twinLinkEntity = twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
+                return twinLinkEntity != null ? List.of(twinLinkEntity) : null;
             case backward:
                 return twinLinkRepository.findByDstTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             default:

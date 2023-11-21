@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -91,6 +92,9 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     private Set<UUID> childClassIdSet;
+
+    @Transient
+    private TwinflowEntity twinflow;
 
     public String easyLog(Level level) {
         return "twinClass[id:" + id + ", key:" + key + "]";

@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionListDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
 
 import java.util.List;
 
@@ -22,5 +23,5 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
     public TwinLinkListDTOv1 links;
 
     @Schema(description = "transitions")
-    public TwinTransitionListDTOv1 transitions;
+    public List<TwinTransitionViewDTOv1> transitions;
 }

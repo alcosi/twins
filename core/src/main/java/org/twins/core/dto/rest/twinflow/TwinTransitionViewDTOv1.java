@@ -22,4 +22,16 @@ public class TwinTransitionViewDTOv1 extends TwinTransitionBaseDTOv1 {
 
     @Schema(description = "name")
     public String name;
+
+    @Schema()
+    public boolean allowComment;
+
+    @Schema()
+    public boolean allowAttachments;
+
+    @Schema()
+    public boolean allowLinks;
+
+    @Schema()
+    public boolean allowEdit;
 }

@@ -99,11 +99,13 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 
     @Override
     protected FieldValueLink deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
+        FieldValueLink ret = new FieldValueLink();
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinFieldEntity.getTwin().getTwinClass());
         List<TwinLinkEntity> twinLinkEntityList = twinLinkService.findTwinLinks(linkEntity, twinFieldEntity.getTwin(), linkDirection);
-        return new FieldValueLink()
-                .setForwardLink(linkDirection == LinkService.LinkDirection.forward)
-                .setTwinLinks(twinLinkEntityList);
+        if (twinLinkEntityList != null)
+            ret.setTwinLinks(twinLinkEntityList);
+        return ret
+                .setForwardLink(linkDirection == LinkService.LinkDirection.forward);
     }
 }

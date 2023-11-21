@@ -22,8 +22,12 @@ public class TwinTransitionRestDTOMapper extends RestSimpleDTOMapper<TwinflowTra
             case DETAILED:
                 dst
                         .setDstTwinStatusId(src.getDstTwinStatusId())
-                        .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext))
+                        .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext))
                         .setName(i18nService.translateToLocale(src.getNameI18n()))
+                        .setAllowComment(src.isAllowComment())
+                        .setAllowAttachments(src.isAllowAttachment())
+                        .setAllowLinks(src.isAllowLinks())
+                        .setAllowEdit(src.isAllowEdit())
                         .setId(src.getId());
                 break;
             case SHORT:

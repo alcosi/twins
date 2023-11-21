@@ -14,10 +14,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
+import org.twins.core.featurer.transition.validator.TransitionValidator;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -36,6 +38,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     final TwinflowRepository twinflowRepository;
     final TwinflowSchemaRepository twinflowSchemaRepository;
     final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
+    final TwinflowTransitionRepository twinflowTransitionRepository;
+    final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
     final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
     @Lazy
     final DomainService domainService;
@@ -92,13 +96,18 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     //todo support space
-    public TwinflowEntity getTwinflowByTwinClass(UUID twinClassId) throws ServiceException {
+    public TwinflowEntity loadTwinflow(TwinClassEntity twinClass) throws ServiceException {
+        if (twinClass.getTwinflow() != null)
+            return twinClass.getTwinflow();
         ApiUser apiUser = authService.getApiUser();
-        if (apiUser.getBusinessAccount() != null) {
+        TwinflowEntity twinflowEntity;
+        if (apiUser.isBusinessAccountSpecified()) {
             DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId()); //todo store in apiUser
-            return getTwinflow(domainBusinessAccountEntity.getTwinflowSchemaId(), twinClassId);
-        }
-        return getTwinflow(apiUser.getDomain().getTwinflowSchemaId(), twinClassId);
+            twinflowEntity = getTwinflow(domainBusinessAccountEntity.getTwinflowSchemaId(), twinClass.getId());
+        } else
+            twinflowEntity = getTwinflow(apiUser.getDomain().getTwinflowSchemaId(), twinClass.getId());
+        twinClass.setTwinflow(twinflowEntity);
+        return twinflowEntity;
     }
 
     public TwinflowEntity getTwinflow(UUID twinflowSchemaId, UUID twinClassId) throws ServiceException {
@@ -148,6 +157,24 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         }
     }
 
-
+    public List<TwinflowTransitionEntity> findValidTransitions(TwinEntity twinEntity) throws ServiceException {
+        TwinflowEntity twinflowEntity = loadTwinflow(twinEntity.getTwinClass());
+        List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdAndSrcTwinStatusId(twinflowEntity.getId(), twinEntity.getTwinStatusId());
+        ListIterator<TwinflowTransitionEntity> iterator = twinflowTransitionEntityList.listIterator();
+        TwinflowTransitionEntity twinflowTransitionEntity;
+        while (iterator.hasNext()) {
+            twinflowTransitionEntity = iterator.next();
+            List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
+            for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
+                TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
+                if (!transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity)) {
+                    log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+        return twinflowTransitionEntityList;
+    }
 }
 
