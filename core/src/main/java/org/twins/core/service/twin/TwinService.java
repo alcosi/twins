@@ -88,11 +88,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
+                && entity.getOwnerBusinessAccountId() != null //for twin_templates owner will not be filled
                 && !entity.getOwnerBusinessAccountId().equals(apiUser.getBusinessAccount().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isUserLevel()
+                && entity.getOwnerUserId() != null //for twin_templates owner will not be filled
                 && !entity.getOwnerUserId().equals(apiUser.getUser().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
             return true;
