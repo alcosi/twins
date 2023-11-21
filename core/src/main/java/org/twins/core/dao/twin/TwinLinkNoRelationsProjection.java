@@ -1,27 +1,10 @@
 package org.twins.core.dao.twin;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
-
-@Data
-@Accessors(chain = true)
-public class TwinLinkNoRelationsProjection implements EasyLoggable, TwinFieldStorage {
-    private UUID id;
-
-    private UUID srcTwinId;
-
-    private UUID dstTwinId;
-
-    private UUID linkId;
-
-    private UUID createdByUserId;
-
-    private Timestamp createdAt;
-
+public record TwinLinkNoRelationsProjection(UUID id, UUID srcTwinId, UUID dstTwinId, UUID linkId,UUID createdByUserId, Timestamp createdAt) implements EasyLoggable, TwinFieldStorage {
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:

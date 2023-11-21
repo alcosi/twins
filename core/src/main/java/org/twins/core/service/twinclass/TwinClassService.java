@@ -98,8 +98,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setLogo(srcTwinClassEntity.getLogo())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
-                .setOwnerType(srcTwinClassEntity.getOwnerType())
-                .setDomain(srcTwinClassEntity.getDomain());
+                .setOwnerType(srcTwinClassEntity.getOwnerType());
         I18nEntity i18nDuplicate;
         if (srcTwinClassEntity.getNameI18n() != null) {
             i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18n());

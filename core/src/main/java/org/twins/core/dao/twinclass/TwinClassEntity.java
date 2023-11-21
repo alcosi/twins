@@ -70,9 +70,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
 
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
+//    @ManyToOne
+//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+//    private DomainEntity domain;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)

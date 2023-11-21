@@ -82,7 +82,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         twinLinkService.prepareTwinLinks(twinFieldEntity.getTwin(), newTwinLinks);
         Map<UUID, TwinLinkNoRelationsProjection> storedLinks = null;
         if (twinFieldEntity.getId() != null) //not new field
-            storedLinks = twinLinkRepository.findBySrcTwinId(twinFieldEntity.getId(), TwinLinkNoRelationsProjection.class).stream().collect(Collectors.toMap(TwinLinkNoRelationsProjection::getId, Function.identity()));
+            storedLinks = twinLinkRepository.findBySrcTwinId(twinFieldEntity.getId(), TwinLinkNoRelationsProjection.class).stream().collect(Collectors.toMap(TwinLinkNoRelationsProjection::id, Function.identity()));
         else
             twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldDataListEntity is linked to TwinFieldEntity by FK
         for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
@@ -94,7 +94,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             }
         }
         if (storedLinks != null && CollectionUtils.isNotEmpty(storedLinks.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(storedLinks.values().stream().map(TwinLinkNoRelationsProjection::getId).toList());
+            entitiesChangesCollector.deleteAll(storedLinks.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
     }
 
     @Override

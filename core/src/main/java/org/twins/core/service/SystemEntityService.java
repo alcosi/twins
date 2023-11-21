@@ -98,21 +98,18 @@ public class SystemEntityService {
     }
 
     private void loadTwinClassInheritanceMaps() {
-//        Iterable<TwinClassNoRelationsProjection> allClasses = twinClassRepository.findAllProjectedBy(TwinClassNoRelationsProjection.class); // projections are not working : (
-        Iterable<TwinClassEntity> allClasses = twinClassRepository.findAll();
-//        HashMap<UUID, Set<UUID>> twinClassExtendsMap = new HashMap<>();
-//        HashMap<UUID, Set<UUID>> twinClassChildMap = new HashMap<>();
+        Iterable<TwinClassNoRelationsProjection> allClasses = twinClassRepository.findAllProjectedBy(TwinClassNoRelationsProjection.class);
         List<TwinClassChildMapEntity> twinClassChildMapEntityList = new ArrayList<>();
         List<TwinClassExtendsMapEntity> twinClassExtendsMapEntityList = new ArrayList<>();
-        for (TwinClassEntity twinClassEntity : allClasses) {
+        for (TwinClassNoRelationsProjection twinClassEntity : allClasses) {
             for (UUID twinClassExtendsId : loadExtendedClasses(twinClassEntity)) {
                 twinClassExtendsMapEntityList.add(new TwinClassExtendsMapEntity()
-                        .setTwinClassId(twinClassEntity.getId())
+                        .setTwinClassId(twinClassEntity.id())
                         .setExtendsTwinClassId(twinClassExtendsId));
             }
-            for (UUID twinClassChildId : loadChildClasses(twinClassEntity.getId())) {
+            for (UUID twinClassChildId : loadChildClasses(twinClassEntity.id())) {
                 twinClassChildMapEntityList.add(new TwinClassChildMapEntity()
-                        .setTwinClassId(twinClassEntity.getId())
+                        .setTwinClassId(twinClassEntity.id())
                         .setChildTwinClassId(twinClassChildId));
             }
         }
@@ -123,12 +120,12 @@ public class SystemEntityService {
         //todo db trigger must be added on twin_class table
     }
 
-    public Set<UUID> loadExtendedClasses(TwinClassEntity twinClassEntity) {
+    public Set<UUID> loadExtendedClasses(TwinClassNoRelationsProjection twinClassEntity) {
         Set<UUID> extendedClassIdSet = new LinkedHashSet<>();
-        extendedClassIdSet.add(twinClassEntity.getId());
-        if (twinClassEntity.getExtendsTwinClassId() == null)
+        extendedClassIdSet.add(twinClassEntity.id());
+        if (twinClassEntity.extendsTwinClassId() == null)
             return extendedClassIdSet;
-        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
+        UUID extendedTwinClassId = twinClassEntity.extendsTwinClassId();
         extendedClassIdSet.add(extendedTwinClassId);
         for (int i = 0; i <= 10; i++) {
             extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
