@@ -41,19 +41,23 @@ public class I18nService {
     }
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale, Map<String, String> context) {
+        return translateToLocale(i18NEntity.getId(), locale, context);
+    }
+
+    public String translateToLocale(UUID i18nId, Locale locale, Map<String, String> context) {
         String ret = null;
         if (locale == null)
             locale = i18nProperties.defaultLocale();
-        if (i18NEntity == null) {
+        if (i18nId == null) {
             log.warn("I18n not configured");
             return "";
         }
-        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nAndLocale(i18NEntity, locale);
+        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, locale);
         if (i18nTranslationEntity.isPresent())
             ret = i18nTranslationEntity.get().getTranslation();
         if (StringUtils.isBlank(ret)) {
-            i18nTranslationRepository.incrementUsageCounter(i18NEntity.getId(), locale.getLanguage());
-            i18nTranslationEntity = i18nTranslationRepository.findByI18nAndLocale(i18NEntity, i18nProperties.defaultLocale());
+            i18nTranslationRepository.incrementUsageCounter(i18nId, locale.getLanguage());
+            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, i18nProperties.defaultLocale());
             if (i18nTranslationEntity.isPresent())
                 ret = i18nTranslationEntity.get().getTranslation();
         }
@@ -140,8 +144,20 @@ public class I18nService {
         return translateToLocale(i18NEntity, httpRequestService.getLocale(), context);
     }
 
+    public String translateToLocale(UUID i18nId, Map<String, String> context) {
+        return translateToLocale(i18nId, httpRequestService.getLocale(), context);
+    }
+
     public String translateToLocale(I18nEntity i18NEntity) {
         return translateToLocale(i18NEntity, httpRequestService.getLocale(), null);
+    }
+
+    public String translateToLocale(UUID i18nId) {
+        return translateToLocale(i18nId, httpRequestService.getLocale(), null);
+    }
+
+    public I18nEntity duplicateI18n(UUID srcI18nId) {
+        return duplicateI18n(i18nRepository.findById(srcI18nId).get());
     }
 
     @Transactional(rollbackFor = Throwable.class)

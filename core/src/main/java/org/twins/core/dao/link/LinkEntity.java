@@ -47,9 +47,9 @@ public class LinkEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
+//    @ManyToOne
+//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+//    private DomainEntity domain;
 
     @ManyToOne
     @JoinColumn(name = "src_twin_class_id", insertable = false, updatable = false, nullable = false)
@@ -59,13 +59,13 @@ public class LinkEntity implements EasyLoggable {
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
 
-    @ManyToOne
-    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false, nullable = false)
-    private I18nEntity forwardNameI18n;
+//    @ManyToOne
+//    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false, nullable = false)
+//    private I18nEntity forwardNameI18n;
 
-    @ManyToOne
-    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false, nullable = false)
-    private I18nEntity backwardNameI18n;
+//    @ManyToOne
+//    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false, nullable = false)
+//    private I18nEntity backwardNameI18n;
 
     public String easyLog(Level level) {
         return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";

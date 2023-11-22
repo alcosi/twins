@@ -42,11 +42,11 @@ public class TwinStatusEntity {
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18n;
-
-    @ManyToOne
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18n;
+//    @ManyToOne
+//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity nameI18n;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity descriptionI18n;
 }

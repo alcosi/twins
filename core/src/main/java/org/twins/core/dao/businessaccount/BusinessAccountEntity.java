@@ -28,9 +28,9 @@ public class BusinessAccountEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "owner_user_group_id", insertable = false, updatable = false)
-    private UserGroupEntity ownerUserGroup;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "owner_user_group_id", insertable = false, updatable = false)
+//    private UserGroupEntity ownerUserGroup;
 
     public String easyLog(Level level) {
         return "businessAccount[id:" + id + "]";

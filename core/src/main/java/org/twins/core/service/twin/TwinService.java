@@ -182,7 +182,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public List<TwinFieldEntity> findTwinFieldsIncludeMissing(TwinEntity twinEntity) {
-        Map<UUID, TwinFieldEntity> twinFieldEntityMap = twinFieldRepository.findByTwinId(twinEntity.getId()).stream().collect(Collectors.toMap(TwinFieldEntity::getTwinClassFieldId, Function.identity()));
+        List<TwinFieldEntity> twinFieldEntityList = twinFieldRepository.findByTwinId(twinEntity.getId());
+        Map<UUID, TwinFieldEntity> twinFieldEntityMap = twinFieldEntityList.stream().collect(Collectors.toMap(TwinFieldEntity::getTwinClassFieldId, Function.identity()));
         List<TwinClassFieldEntity> twinFieldClassEntityList = twinClassFieldService.findTwinClassFieldsIncludeParent(twinEntity.getTwinClass());
         List<TwinFieldEntity> ret = new ArrayList<>();
         for (TwinClassFieldEntity twinClassField : twinFieldClassEntityList) {
@@ -243,7 +244,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without businessAccount owner");
                 twinEntity
                         .setOwnerBusinessAccountId(businessAccountEntity.getId())
-                        .setOwnerBusinessAccount(businessAccountEntity)
                         .setOwnerUserId(null);
                 break;
             case USER:
@@ -252,7 +252,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created without user owner");
                 twinEntity
                         .setOwnerUserId(userEntity.getId())
-                        .setOwnerUser(userEntity)
                         .setOwnerBusinessAccountId(null);
         }
         return twinEntity;
@@ -360,7 +359,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getTwinClass().getOwnerType() != TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT && twinEntity.getTwinClass().getOwnerType() != TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT_USER)
             return new ArrayList<>(); // businessAccountAliases can not be created for this twin
         twinBusinessAccountAliasRepository.createAliasByClass(twinEntity.getId());
-        TwinEntity spaceTwin = findSpaceForTwin(twinEntity);
+        TwinEntity spaceTwin = loadSpaceForTwin(twinEntity);
         if (spaceTwin != null) {
             twinBusinessAccountAliasRepository.createAliasBySpace(twinEntity.getId(), spaceTwin.getId());
         }
@@ -369,20 +368,31 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public List<TwinDomainAliasEntity> createTwinDomainAliases(TwinEntity twinEntity) {
         twinDomainAliasRepository.createAliasByClass(twinEntity.getId());
-        TwinEntity spaceTwin = findSpaceForTwin(twinEntity);
+        TwinEntity spaceTwin = loadSpaceForTwin(twinEntity);
         if (spaceTwin != null) {
             twinDomainAliasRepository.createAliasBySpace(twinEntity.getId(), spaceTwin.getId());
         }
         return twinDomainAliasRepository.findAllByTwinId(twinEntity.getId());
     }
 
-    public TwinEntity findSpaceForTwin(TwinEntity twinEntity) {
+    public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) {
         if (twinEntity.getSpaceTwin() != null)
             return twinEntity.getSpaceTwin();
-        if (twinEntity.getHeadTwin() == null && twinEntity.getHeadTwinId() != null)
-            twinEntity.setHeadTwin(twinRepository.findById(twinEntity.getHeadTwinId()).get()); //todo fix
+        loadHeadForTwin(twinEntity);
+        if (twinEntity.getHeadTwin() == null)
+            return null;
         twinEntity.setSpaceTwin(findSpaceForTwin(twinEntity, twinEntity.getHeadTwin(), 10));
         return twinEntity.getSpaceTwin();
+    }
+
+    public TwinEntity loadHeadForTwin(TwinEntity twinEntity) {
+        if (twinEntity.getHeadTwin() != null)
+            return twinEntity.getHeadTwin();
+        if (twinEntity.getHeadTwinId() == null)
+            return null;
+        TwinEntity headTwin = twinRepository.findById(twinEntity.getHeadTwinId()).get(); //fix
+        twinEntity.setHeadTwin(headTwin);
+        return headTwin;
     }
 
     protected TwinEntity findSpaceForTwin(TwinEntity twinEntity, TwinEntity headTwin, int recursionDepth) {
@@ -393,8 +403,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         else if (recursionDepth == 0) {
             log.warn("Can not detect space for " + twinEntity);
             return null;
-        } else
+        } else {
+            loadHeadForTwin(headTwin);
             return findSpaceForTwin(twinEntity, headTwin.getHeadTwin(), recursionDepth - 1);
+        }
     }
 
     public TwinFieldEntity updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
@@ -418,15 +430,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setName(twinEntity.getName())
                 .setDescription(twinEntity.getDescription())
                 .setHeadTwinId(twinEntity.getHeadTwinId())
-                .setHeadTwin(twinEntity.getHeadTwin())
                 .setSpaceTwin(twinEntity.getSpaceTwin())
                 .setAssignerUser(twinEntity.getAssignerUser())
                 .setAssignerUserId(twinEntity.getAssignerUserId())
                 .setCreatedByUser(twinEntity.getCreatedByUser())
                 .setCreatedByUserId(twinEntity.getCreatedByUserId())
-                .setOwnerBusinessAccount(twinEntity.getOwnerBusinessAccount())
                 .setOwnerBusinessAccountId(twinEntity.getOwnerBusinessAccountId())
-                .setOwnerUser(twinEntity.getOwnerUser())
                 .setOwnerUserId(twinEntity.getOwnerUserId())
                 ;
     }

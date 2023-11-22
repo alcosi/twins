@@ -23,21 +23,21 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.id())
-                        .key(src.key())
-                        .name(i18nService.translateToLocale(src.nameI18n()))
-                        .layoutKey(src.cardLayout().getKey())
-                        .logo(src.logo());
+                        .id(src.getId())
+                        .key(src.getKey())
+                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .layoutKey(src.getCardLayout().getKey())
+                        .logo(src.getLogo());
                 break;
             case SHORT:
                 dst
-                        .id(src.id())
-                        .key(src.key())
-                        .name(i18nService.translateToLocale(src.nameI18n()));
+                        .id(src.getId())
+                        .key(src.getKey())
+                        .name(i18nService.translateToLocale(src.getNameI18NId()));
                 break;
         }
         if (!cardWidgetRestDTOMapper.hideMode(mapperContext))
-            dst.widgets(cardWidgetRestDTOMapper.convertList(cardService.findCardWidgets(src.id())));
+            dst.widgets(cardWidgetRestDTOMapper.convertList(cardService.findCardWidgets(src.getId())));
     }
 
     public enum Mode implements MapperMode {

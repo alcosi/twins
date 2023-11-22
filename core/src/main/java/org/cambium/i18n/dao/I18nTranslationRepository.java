@@ -17,6 +17,8 @@ import java.util.UUID;
 public interface I18nTranslationRepository extends CrudRepository<I18nTranslationEntity, UUID>, JpaSpecificationExecutor<I18nTranslationEntity> {
     Optional<I18nTranslationEntity> findByI18nAndLocale(I18nEntity i18n, Locale locale);
 
+    Optional<I18nTranslationEntity> findByI18nIdAndLocale(UUID i18nId, Locale locale);
+
     List<I18nTranslationEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locales);
 
     List<I18nTranslationEntity> findByI18nId(UUID i18nId);

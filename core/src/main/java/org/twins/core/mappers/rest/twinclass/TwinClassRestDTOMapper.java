@@ -32,7 +32,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
-    final I18nService i18nService;
     final TwinClassFieldService twinClassFieldService;
     final TwinService twinService;
     final TwinHeadService twinHeadService;

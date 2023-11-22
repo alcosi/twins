@@ -27,13 +27,13 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
-    private DomainEntity domain;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private UserEntity user;
+//    @ManyToOne
+//    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+//    private DomainEntity domain;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+//    private UserEntity user;
 
     public String easyLog(Level level) {
         return "domainUser[id:" + id + ", domainId:" + domainId + ", userId:" + userId + "]";

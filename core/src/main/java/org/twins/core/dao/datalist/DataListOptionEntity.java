@@ -53,9 +53,9 @@ public class DataListOptionEntity {
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    private I18nEntity optionI18n;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity optionI18n;
 
     @Getter
     public enum Status {

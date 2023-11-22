@@ -39,12 +39,12 @@ public class SpaceRoleEntity {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
-    @ManyToOne
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByNameI18NId;
-
-    @ManyToOne
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity i18NByDescriptionI18NId;
+//    @ManyToOne
+//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity nameI18N;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity descriptionI18N;
 
 }

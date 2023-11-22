@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "card")
 public class CardEntity {
     @Id
@@ -32,7 +32,7 @@ public class CardEntity {
     @JoinColumn(name = "card_layout_id", insertable = false, updatable = false, nullable = false)
     private CardLayoutEntity cardLayout;
 
-    @ManyToOne
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18n;
+//    @ManyToOne
+//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity nameI18n;
 }

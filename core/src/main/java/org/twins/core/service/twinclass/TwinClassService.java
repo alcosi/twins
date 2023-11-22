@@ -100,16 +100,14 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setDomainId(srcTwinClassEntity.getDomainId())
                 .setOwnerType(srcTwinClassEntity.getOwnerType());
         I18nEntity i18nDuplicate;
-        if (srcTwinClassEntity.getNameI18n() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18n());
+        if (srcTwinClassEntity.getNameI18NId() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getNameI18NId());
             duplicateTwinClassEntity
-                    .setNameI18n(i18nDuplicate)
                     .setNameI18NId(i18nDuplicate.getId());
         }
-        if (srcTwinClassEntity.getDescriptionI18n() != null) {
-            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getDescriptionI18n());
+        if (srcTwinClassEntity.getDescriptionI18NId() != null) {
+            i18nDuplicate = i18nService.duplicateI18n(srcTwinClassEntity.getDescriptionI18NId());
             duplicateTwinClassEntity
-                    .setDescriptionI18n(i18nDuplicate)
                     .setDescriptionI18NId(i18nDuplicate.getId());
         }
         duplicateTwinClassEntity = entitySmartService.save(duplicateTwinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

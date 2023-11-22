@@ -51,13 +51,13 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
 
-    @ManyToOne
-    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
-    private TwinflowSchemaEntity twinflowSchema;
+//    @ManyToOne
+//    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
+//    private TwinflowSchemaEntity twinflowSchema;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
-    private TwinClassSchemaEntity twinClassSchema;
+//    @ManyToOne
+//    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
+//    private TwinClassSchemaEntity twinClassSchema;
 
     public String easyLog(Level level) {
         return "domainBusinessAccount[id:" + id + ", domainId:" + domainId + ", businessAccountId:" + businessAccountId+ "]";

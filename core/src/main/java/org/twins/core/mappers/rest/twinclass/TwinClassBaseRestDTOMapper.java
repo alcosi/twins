@@ -25,8 +25,8 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                         .headClassId(src.getHeadTwinClassId())
 //                        .headClass(convertOrPostpone(src))
                         .abstractClass(src.isAbstractt())
-                        .name(i18nService.translateToLocale(src.getNameI18n()))
-                        .description(src.getDescriptionI18n() != null ? i18nService.translateToLocale(src.getDescriptionI18n()) : "")
+                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .logo(src.getLogo());
                 break;
             case SHORT:

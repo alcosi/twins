@@ -34,7 +34,7 @@ public class ErrorEntity {
     @Column(name = "client_msg_i18n_id")
     private UUID clientMsgI18nId;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "client_msg_i18n_id", nullable = false, insertable = false, updatable = false)
-    private I18nEntity clientMsgI18n;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "client_msg_i18n_id", nullable = false, insertable = false, updatable = false)
+//    private I18nEntity clientMsgI18n;
 }

@@ -75,17 +75,17 @@ public class TwinClassEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-    private I18nEntity nameI18n;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity nameI18n;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-    private I18nEntity descriptionI18n;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+//    private I18nEntity descriptionI18n;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity createdByUser;
+//    @ManyToOne
+//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+//    private UserEntity createdByUser;
 
     @Transient
     private Set<UUID> extendedClassIdSet;

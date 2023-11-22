@@ -35,7 +35,7 @@ public abstract class ApiController {
         logException(ex);
         ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(statusCode);
         if (errorEntity != null) {
-            rs.setMsg(i18NService.translateToLocale(errorEntity.getClientMsgI18n(), context));
+            rs.setMsg(i18NService.translateToLocale(errorEntity.getClientMsgI18nId(), context));
         } else
             rs.setMsg(defaultMsg);
 

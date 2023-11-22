@@ -23,9 +23,9 @@ public class TwinFieldDataListEntity implements EasyLoggable, TwinFieldStorage {
     @Column(name = "data_list_option_id")
     private UUID dataListOptionId;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_field_id", insertable = false, updatable = false, nullable = false)
-    private TwinFieldEntity twinField;
+//    @ManyToOne
+//    @JoinColumn(name = "twin_field_id", insertable = false, updatable = false, nullable = false)
+//    private TwinFieldEntity twinField;
 
     @ManyToOne
     @JoinColumn(name = "data_list_option_id", insertable = false, updatable = false, nullable = false)

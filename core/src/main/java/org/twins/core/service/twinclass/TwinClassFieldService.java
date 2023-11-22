@@ -101,21 +101,17 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setFieldTyperFeaturerId(srcFieldEntity.getFieldTyperFeaturerId())
                 .setFieldTyperParams(srcFieldEntity.getFieldTyperParams())
                 .setViewPermissionId(srcFieldEntity.getViewPermissionId())
-                .setViewPermission(srcFieldEntity.getViewPermission())
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
-                .setEditPermission(srcFieldEntity.getEditPermission())
                 .setRequired(srcFieldEntity.isRequired());
         I18nEntity i18nEntity;
-        if (srcFieldEntity.getNameI18n() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18n());
+        if (srcFieldEntity.getNameI18NId() != null) {
+            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18NId());
             duplicateFieldEntity
-                    .setNameI18n(i18nEntity)
                     .setNameI18NId(i18nEntity.getId());
         }
-        if (srcFieldEntity.getDescriptionI18n() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18n());
+        if (srcFieldEntity.getDescriptionI18NId() != null) {
+            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18NId());
             duplicateFieldEntity
-                    .setDescriptionI18n(i18nEntity)
                     .setDescriptionI18NId(i18nEntity.getId());
         }
         entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

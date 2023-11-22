@@ -33,11 +33,11 @@ public class TwinClassSchemaEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false, nullable = false)
-    private DomainEntity domain;
-
-    @ManyToOne
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity createdByUser;
+//    @ManyToOne
+//    @JoinColumn(name = "domain_id", insertable = false, updatable = false, nullable = false)
+//    private DomainEntity domain;
+//
+//    @ManyToOne
+//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+//    private UserEntity createdByUser;
 }

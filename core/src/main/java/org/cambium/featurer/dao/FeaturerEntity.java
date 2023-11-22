@@ -14,9 +14,9 @@ public class FeaturerEntity {
     @Column(name = "id")
     private int id;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "featurer_type_id", insertable = false, updatable = false)
-    private FeaturerTypeEntity featurerType;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "featurer_type_id", insertable = false, updatable = false)
+//    private FeaturerTypeEntity featurerType;
 
     @Basic
     @Column(name = "featurer_type_id")

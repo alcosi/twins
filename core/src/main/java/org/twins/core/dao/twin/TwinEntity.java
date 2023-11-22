@@ -65,17 +65,17 @@ public class TwinEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
-    private TwinEntity headTwin;
+//    @ManyToOne(fetch = FetchType.EAGER)
+//    @JoinColumn(name = "head_twin_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = true)
+//    private TwinEntity headTwin;
 
-    @ManyToOne
-    @JoinColumn(name = "owner_business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity ownerBusinessAccount;
+//    @ManyToOne
+//    @JoinColumn(name = "owner_business_account_id", insertable = false, updatable = false)
+//    private BusinessAccountEntity ownerBusinessAccount;
 
-    @ManyToOne
-    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
-    private UserEntity ownerUser;
+//    @ManyToOne
+//    @JoinColumn(name = "owner_user_id", insertable = false, updatable = false)
+//    private UserEntity ownerUser;
 
     @ManyToOne
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
@@ -91,6 +91,9 @@ public class TwinEntity implements EasyLoggable {
 
     @Transient
     private TwinEntity spaceTwin;
+
+    @Transient
+    private TwinEntity headTwin;
 
     public String easyLog(Level level) {
         return "twin[id:" + id + "]";
