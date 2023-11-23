@@ -6,7 +6,9 @@ plugins {
     id 'com.bmuschko.docker-remote-api' version '9.3.4'
 }
 
-import com.bmuschko.gradle.docker.tasks.image.*
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 
 def profile = parent.ext.get('profile')
 def imageVersion = project.property('docker.image.version')
@@ -97,14 +99,15 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jdbc:3.1.0") {
         exclude group: "com.zaxxer", module: "HikariCP"
     }
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.0")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa:3.1.5")
     runtimeOnly("org.postgresql:postgresql:42.6.0")
-    implementation('org.hibernate:hibernate-core:6.2.7.Final')
+    implementation('org.hibernate:hibernate-core:6.3.1.Final')
     implementation('io.hypersistence:hypersistence-utils-hibernate-62:3.5.1')
     implementation('io.hypersistence:hypersistence-utils-hibernate-62:3.5.1')
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0')
     implementation('org.springframework.boot:spring-boot-starter-validation:3.1.2')
     implementation group: 'commons-validator', name: 'commons-validator', version: '1.7'
+    implementation group: 'com.google.guava', name: 'guava', version: '32.1.3-jre'
 }
 
 configurations {

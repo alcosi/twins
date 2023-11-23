@@ -1,5 +1,6 @@
 package org.cambium.i18n.dao;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public interface I18nTranslationRepository extends CrudRepository<I18nTranslationEntity, UUID>, JpaSpecificationExecutor<I18nTranslationEntity> {
     Optional<I18nTranslationEntity> findByI18nAndLocale(I18nEntity i18n, Locale locale);
 
+    @Cacheable(value = "I18nTranslationRepository.findByI18nIdAndLocale", key = "{#i18nId, #locale }")
     Optional<I18nTranslationEntity> findByI18nIdAndLocale(UUID i18nId, Locale locale);
 
     List<I18nTranslationEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locales);
