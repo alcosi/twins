@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 
 @Component
@@ -21,7 +21,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
-    final TwinflowService twinflowService;
+    final TwinflowTransitionService twinflowTransitionService;
     final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
     final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
 
@@ -33,7 +33,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.links(twinLinkListRestDTOMapper.convert(twinLinkService.findTwinLinks(src.getId()), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext))
-            dst.transitions(twinTransitionRestDTOMapper.convertList(twinflowService.findValidTransitions(src), mapperContext));
+            dst.transitions(twinTransitionRestDTOMapper.convertList(twinflowTransitionService.findValidTransitions(src), mapperContext));
     }
 
     @Override

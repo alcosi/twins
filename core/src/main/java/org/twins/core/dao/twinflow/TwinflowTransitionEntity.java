@@ -73,13 +73,13 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity dstTwinStatus;
 
-    @ManyToOne
-    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
-    private PermissionEntity permission;
+//    @ManyToOne
+//    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
+//    private PermissionEntity permission;
 
-    @ManyToOne
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity createdByUser;
+//    @ManyToOne
+//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+//    private UserEntity createdByUser;
 
     @Override
     public String easyLog(Level level) {

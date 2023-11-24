@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition_trigger")
-public class TwinflowTransitionTriggerEntity {
+public class TwinflowTransitionTriggerEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -38,4 +39,15 @@ public class TwinflowTransitionTriggerEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
+
+    public String easyLog(EasyLoggable.Level level) {
+        switch (level) {
+            case SHORT:
+                return "twinflowTransitionTrigger[id:" + id + "]";
+            case NORMAL:
+                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  "]";
+            default:
+                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + "]";
+        }
+    }
 }

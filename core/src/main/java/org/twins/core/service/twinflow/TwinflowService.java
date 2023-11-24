@@ -159,25 +159,5 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }
-
-    public List<TwinflowTransitionEntity> findValidTransitions(TwinEntity twinEntity) throws ServiceException {
-        TwinflowEntity twinflowEntity = loadTwinflow(twinEntity.getTwinClass());
-        List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdAndSrcTwinStatusId(twinflowEntity.getId(), twinEntity.getTwinStatusId());
-        ListIterator<TwinflowTransitionEntity> iterator = twinflowTransitionEntityList.listIterator();
-        TwinflowTransitionEntity twinflowTransitionEntity;
-        while (iterator.hasNext()) {
-            twinflowTransitionEntity = iterator.next();
-            List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
-            for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
-                TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
-                if (!transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity)) {
-                    log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.easyLog(EasyLoggable.Level.NORMAL));
-                    iterator.remove();
-                    break;
-                }
-            }
-        }
-        return twinflowTransitionEntityList;
-    }
 }
 

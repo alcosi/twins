@@ -10,7 +10,11 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     public RestSimpleDTOMapper() {
         Type t = getClass().getGenericSuperclass();
         ParameterizedType pt = (ParameterizedType) t;
-        type = (Class) pt.getActualTypeArguments()[1];
+        Type dstType = pt.getActualTypeArguments()[1];
+        if (dstType instanceof Class<?>)
+            type = (Class) dstType;
+        else
+            type = (Class)((ParameterizedType) dstType).getRawType();
     }
 
     public S convert(T src) throws Exception {

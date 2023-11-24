@@ -21,10 +21,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.AttachmentAUD;
-import org.twins.core.domain.EntitiesChangesCollector;
-import org.twins.core.domain.TwinLinkAUD;
+import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -287,7 +284,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, AttachmentAUD attachmentManage, TwinLinkAUD twinLinkManage) throws ServiceException {
+    public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
+        updateTwin(twinUpdate.getUpdatedEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getUpdatedFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
+    }
+    @Transactional
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
@@ -301,25 +302,39 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (changesHelper.isChanged("assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
             dbTwinEntity.setAssignerUserId(updateTwinEntity.getAssignerUserId());
         }
+        if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
+            dbTwinEntity.setTwinStatusId(updateTwinEntity.getTwinStatusId());
+        }
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
         updateTwinFields(dbTwinEntity, values);
-        if (CollectionUtils.isNotEmpty(attachmentManage.getAddEntityList())) {
-            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentManage.getAddEntityList());
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
+            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentCUD.getCreateList());
         }
-        if (CollectionUtils.isNotEmpty(attachmentManage.getUpdateEntityList())) {
-            attachmentService.updateAttachments(attachmentManage.getUpdateEntityList());
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
+            attachmentService.updateAttachments(attachmentCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(attachmentManage.getDeleteUUIDList())) {
-            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentManage.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteUUIDList())) {
+            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentCUD.getDeleteUUIDList());
         }
-        if (CollectionUtils.isNotEmpty(twinLinkManage.getAddEntityList())) {
-            twinLinkService.addLinks(dbTwinEntity, twinLinkManage.getAddEntityList());
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getCreateList())) {
+            twinLinkService.addLinks(dbTwinEntity, twinLinkCUD.getCreateList());
         }
-        if (CollectionUtils.isNotEmpty(twinLinkManage.getUpdateEntityList())) {
-            twinLinkService.updateTwinLinks(dbTwinEntity, twinLinkManage.getUpdateEntityList());
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getUpdateList())) {
+            twinLinkService.updateTwinLinks(dbTwinEntity, twinLinkCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(twinLinkManage.getDeleteUUIDList())) {
-            twinLinkService.deleteTwinLinks(dbTwinEntity.getId(), twinLinkManage.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteUUIDList())) {
+            twinLinkService.deleteTwinLinks(dbTwinEntity.getId(), twinLinkCUD.getDeleteUUIDList());
+        }
+    }
+
+    @Transactional
+    public void changeStatus(TwinEntity twinEntity, TwinStatusEntity newStatus) {
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("status", twinEntity.getTwinStatusId(), newStatus.getId())) {
+            twinEntity
+                    .setTwinStatusId(newStatus.getId())
+                    .setTwinStatus(newStatus);
+            entitySmartService.saveAndLogChanges(twinEntity, twinRepository, changesHelper);
         }
     }
 
