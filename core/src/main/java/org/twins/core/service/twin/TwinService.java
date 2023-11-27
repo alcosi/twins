@@ -289,6 +289,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
     @Transactional
     public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
+        updateTwin(updateTwinEntity, dbTwinEntity, values);
+        cudAttachments(dbTwinEntity, attachmentCUD);
+        cudTwinLinks(dbTwinEntity, twinLinkCUD);
+    }
+
+    @Transactional
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
@@ -307,23 +314,29 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
         updateTwinFields(dbTwinEntity, values);
+    }
+
+    public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
         if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
-            attachmentService.addAttachments(dbTwinEntity.getId(), dbTwinEntity.getCreatedByUser(), attachmentCUD.getCreateList());
+            attachmentService.addAttachments(twinEntity.getId(), twinEntity.getCreatedByUser(), attachmentCUD.getCreateList());
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
             attachmentService.updateAttachments(attachmentCUD.getUpdateList());
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteUUIDList())) {
-            attachmentService.deleteAttachments(dbTwinEntity.getId(), attachmentCUD.getDeleteUUIDList());
+            attachmentService.deleteAttachments(twinEntity.getId(), attachmentCUD.getDeleteUUIDList());
         }
+    }
+
+    public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getCreateList())) {
-            twinLinkService.addLinks(dbTwinEntity, twinLinkCUD.getCreateList());
+            twinLinkService.addLinks(twinEntity, twinLinkCUD.getCreateList());
         }
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getUpdateList())) {
-            twinLinkService.updateTwinLinks(dbTwinEntity, twinLinkCUD.getUpdateList());
+            twinLinkService.updateTwinLinks(twinEntity, twinLinkCUD.getUpdateList());
         }
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteUUIDList())) {
-            twinLinkService.deleteTwinLinks(dbTwinEntity.getId(), twinLinkCUD.getDeleteUUIDList());
+            twinLinkService.deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteUUIDList());
         }
     }
 

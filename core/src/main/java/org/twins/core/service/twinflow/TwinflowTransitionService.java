@@ -111,10 +111,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void performTransition(TwinflowTransitionEntity transitionEntity, TwinUpdate twinUpdate) throws ServiceException {
         if (!validateTransition(transitionEntity, twinUpdate.getDbTwinEntity()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT);
-        twinUpdate.getUpdatedEntity()
-                .setTwinStatusId(transitionEntity.getDstTwinStatusId())
-                .setTwinStatus(transitionEntity.getDstTwinStatus());
-        twinService.updateTwin(twinUpdate);
+        if (transitionEntity.isAllowEdit()) {
+            twinUpdate.getUpdatedEntity()
+                    .setTwinStatusId(transitionEntity.getDstTwinStatusId())
+                    .setTwinStatus(transitionEntity.getDstTwinStatus());
+            twinService.updateTwin(twinUpdate.getUpdatedEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getUpdatedFields());
+        } else
+            twinService.changeStatus(twinUpdate.getDbTwinEntity(), transitionEntity.getDstTwinStatus());
+        if (transitionEntity.isAllowAttachment())
+            twinService.cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
+        if (transitionEntity.isAllowLinks())
+            twinService.cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
 
         List<TwinflowTransitionTriggerEntity> transitionTriggerEntityList = twinflowTransitionTriggerRepository.findByTwinflowTransitionIdOrderByOrder(transitionEntity.getId());
         for (TwinflowTransitionTriggerEntity triggerEntity : transitionTriggerEntityList) {
