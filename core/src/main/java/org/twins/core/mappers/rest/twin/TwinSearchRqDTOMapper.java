@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.BasicSearch;
+import org.twins.core.dto.rest.twin.TwinSearchByLinkDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -24,6 +25,10 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
                 .setAssignerUserIdList(convertSafe(src.getAssignerUserIdList()))
                 .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))
                 .setCreatedByUserIdList(convertSafe(src.getCreatedByUserIdList()));
+        if (src.getLinksList() != null)
+            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
+                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList());
+            }
     }
 
     private Set<UUID> convertSafe(List<UUID> list) {

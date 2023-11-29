@@ -3,10 +3,7 @@ package org.twins.core.domain;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -19,6 +16,7 @@ public class BasicSearch {
     Set<UUID> createdByUserIdList;
     Set<UUID> ownerUserIdList;
     Set<UUID> ownerBusinessAccountIdList;
+    Map<UUID, Set<UUID>> twinLinksMap;
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = safeAdd(twinIdList, twinId);
@@ -64,6 +62,14 @@ public class BasicSearch {
         ownerBusinessAccountIdList = safeAdd(ownerBusinessAccountIdList, ownerBusinessAccountId);
         return this;
     }
+
+    public BasicSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
+        if (twinLinksMap == null)
+            twinLinksMap = new HashMap<>();
+        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(dstTwinIdList);
+        return this;
+    }
+
 
     private Set<UUID> safeAdd(Set<UUID> set, UUID element) {
         if (set == null)

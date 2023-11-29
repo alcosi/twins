@@ -2,26 +2,24 @@ package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.criteria.CriteriaBuilder;
-import jakarta.persistence.criteria.CriteriaQuery;
-import jakarta.persistence.criteria.Predicate;
-import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.JPACriteriaQueryStub;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -33,7 +31,7 @@ public class TwinSearchService {
     @Lazy
     final AuthService authService;
 
-    private Predicate createClassPredicate(UUID twinClassId, CriteriaBuilder criteriaBuilder, Root<TwinEntity> twin, ApiUser apiUser) throws ServiceException {
+    private Predicate createClassPredicate(UUID twinClassId, CriteriaBuilder criteriaBuilder, Path<TwinEntity> twin, ApiUser apiUser) throws ServiceException {
         TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
         List<Predicate> predicate = new ArrayList<>();
         predicate.add(criteriaBuilder.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId));
@@ -47,61 +45,98 @@ public class TwinSearchService {
         return criteriaBuilder.and(predicate.toArray(Predicate[]::new));
     }
 
-    private Predicate[] createWhere(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery criteriaQuery, Root<TwinEntity> root) throws ServiceException {
+    private List<Predicate> createTwinEntityPredicates(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery<?> criteriaQuery, Path<TwinEntity> root) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        List<Predicate> predicate = new ArrayList<>();
+        List<Predicate> predicateList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinIdList()))
-            predicate.add(root.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
+            predicateList.add(root.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList())) {
             List<Predicate> classPredicates = new ArrayList<>();
             for (UUID twinClassId : basicSearch.getTwinClassIdList())
                 classPredicates.add(createClassPredicate(twinClassId, criteriaBuilder, root, apiUser));
-            predicate.add(criteriaBuilder.or(classPredicates.toArray(Predicate[]::new)));
+            predicateList.add(criteriaBuilder.or(classPredicates.toArray(Predicate[]::new)));
         } else { // no class filter, so we have to add force filtering by owner
             if (apiUser.isUserSpecified()) {
-                predicate.add(criteriaBuilder.or(
+                predicateList.add(criteriaBuilder.or(
                         criteriaBuilder.equal(root.get(TwinEntity.Fields.ownerUserId), apiUser.getUser().getId()), //only user owned twins will be listed
                         criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerUserId))));
             } else
-                predicate.add(criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerUserId)));
+                predicateList.add(criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerUserId)));
             if (apiUser.isBusinessAccountSpecified()) {
-                predicate.add(criteriaBuilder.or(
+                predicateList.add(criteriaBuilder.or(
                         criteriaBuilder.equal(root.get(TwinEntity.Fields.ownerBusinessAccountId), apiUser.getBusinessAccount().getId()), //only businessAccount owned twins will be listed
                         criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerBusinessAccountId))));
             } else
-                predicate.add(criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerBusinessAccountId)));
+                predicateList.add(criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerBusinessAccountId)));
         }
         if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
-            predicate.add(root.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
+            predicateList.add(root.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getCreatedByUserIdList()))
-            predicate.add(root.get(TwinEntity.Fields.createdByUserId).in(basicSearch.getCreatedByUserIdList()));
+            predicateList.add(root.get(TwinEntity.Fields.createdByUserId).in(basicSearch.getCreatedByUserIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getStatusIdList()))
-            predicate.add(root.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
+            predicateList.add(root.get(TwinEntity.Fields.twinStatusId).in(basicSearch.getStatusIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getHeaderTwinIdList()))
-            predicate.add(root.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
-        return predicate.stream().toArray(Predicate[]::new);
+            predicateList.add(root.get(TwinEntity.Fields.headTwinId).in(basicSearch.getHeaderTwinIdList()));
+        //        if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
+//            Root<TwinLinkEntity> fromTwinLinks = criteriaQuery.from(TwinLinkEntity.class);
+//            for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinLinksMap().entrySet()) {
+//                predicate.add(criteriaBuilder.equal(fromTwinLinks.get(TwinLinkEntity.Fields.srcTwinId), root.get(TwinEntity.Fields.id))); //join unassociated entities
+//                predicate.add(criteriaBuilder.equal(fromTwinLinks.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()));
+//                predicate.add(fromTwinLinks.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue()));
+//            }
+//        }
+        return predicateList;
+    }
+
+    private List<Predicate> createTwinLinkEntityPredicates(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery<?> criteriaQuery, Path<TwinLinkEntity> linkPath) throws ServiceException {
+        List<Predicate> predicate = new ArrayList<>();
+        if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
+            for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinLinksMap().entrySet()) {
+                predicate.add(criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()));
+                predicate.add(linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue()));
+            }
+        }
+        return predicate;
     }
 
     private CriteriaQuery<TwinEntity> getQuery(BasicSearch basicSearch) throws ServiceException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<TwinEntity> criteriaQuery = criteriaBuilder.createQuery(TwinEntity.class);
-        Root<TwinEntity> fromTwin = criteriaQuery.from(TwinEntity.class);
+        JPACriteriaQueryStub queryStub = createQueryStub(basicSearch, criteriaBuilder, criteriaQuery);
         return criteriaQuery
-                .select(fromTwin)
-                .where(createWhere(basicSearch, criteriaBuilder, criteriaQuery, fromTwin));
+                .select((Selection<? extends TwinEntity>) queryStub.getSelect())
+                .where(queryStub.getWhere());
     }
 
     private CriteriaQuery<Long> getQueryForCount(BasicSearch basicSearch) throws ServiceException {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
-        Root<TwinEntity> fromTwin = criteriaQuery.from(TwinEntity.class);
+        JPACriteriaQueryStub queryStub = createQueryStub(basicSearch, criteriaBuilder, criteriaQuery);
         return criteriaQuery
-                .select(criteriaBuilder.count(fromTwin))
-                .where(createWhere(basicSearch, criteriaBuilder, criteriaQuery, fromTwin));
+                .select(criteriaBuilder.count(queryStub.getSelect()))
+                .where(queryStub.getWhere());
+    }
+
+    protected JPACriteriaQueryStub createQueryStub(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery<?> criteriaQuery) throws ServiceException {
+        Path<TwinEntity> select;
+        List<Predicate> wherePredicateList;
+        if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
+            Root<TwinLinkEntity> fromTwinLink = criteriaQuery.from(TwinLinkEntity.class);
+            select = fromTwinLink.get(TwinLinkEntity.Fields.srcTwin);
+            wherePredicateList = createTwinLinkEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, fromTwinLink);
+            Join<TwinLinkEntity, TwinEntity> linkSrcTwin = fromTwinLink.join(TwinLinkEntity.Fields.srcTwin);
+            wherePredicateList.addAll(createTwinEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, linkSrcTwin));
+        } else {
+            select = criteriaQuery.from(TwinEntity.class);
+            wherePredicateList= createTwinEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, select);
+        }
+        return new JPACriteriaQueryStub()
+                .setSelect(select)
+                .setWhere(wherePredicateList.toArray(Predicate[]::new));
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
-        TypedQuery<TwinEntity> q = this.entityManager.createQuery(this.getQuery(basicSearch));
+        TypedQuery<TwinEntity> q = entityManager.createQuery(getQuery(basicSearch));
         List<TwinEntity> ret = q.getResultList();
         if (ret != null)
             return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
@@ -109,7 +144,7 @@ public class TwinSearchService {
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {
-        TypedQuery<Long> q = this.entityManager.createQuery(this.getQueryForCount(basicSearch));
+        TypedQuery<Long> q = entityManager.createQuery(getQueryForCount(basicSearch));
         return q.getSingleResult();
     }
 }
