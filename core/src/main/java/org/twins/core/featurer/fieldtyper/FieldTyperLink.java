@@ -94,7 +94,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             }
         }
         if (storedLinks != null && CollectionUtils.isNotEmpty(storedLinks.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(storedLinks.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
+            entitiesChangesCollector.deleteAll(TwinLinkEntity.class, storedLinks.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
     }
 
     @Override

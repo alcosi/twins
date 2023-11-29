@@ -48,13 +48,13 @@ public class EntitiesChangesCollector {
         return saveEntityMap.size() > 0 || deleteEntityIdMap.size() > 0;
     }
 
-    public void deleteAll(Collection<UUID> entitiesIds) {
-        for (UUID entity : entitiesIds)
-            delete(entity);
+    public void deleteAll(Class entityClass, Collection<UUID> entitiesIds) {
+        for (UUID id : entitiesIds)
+            delete(entityClass, id);
     }
 
-    public void delete(UUID entity) {
-        List<UUID> entityClassDeletions = deleteEntityIdMap.computeIfAbsent(entity.getClass(), k -> new ArrayList<>());
+    public void delete(Class entityClass, UUID entity) {
+        List<UUID> entityClassDeletions = deleteEntityIdMap.computeIfAbsent(entityClass, k -> new ArrayList<>());
         entityClassDeletions.add(entity);
     }
 }

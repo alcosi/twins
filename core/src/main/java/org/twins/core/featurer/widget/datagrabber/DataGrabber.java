@@ -5,7 +5,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 
 
-@FeaturerType(id = 11,
+@FeaturerType(id = 12,
         name = "DataGrabber",
         description = "")
 @Slf4j

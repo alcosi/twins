@@ -68,7 +68,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             }
         }
         if (storedOptions != null && CollectionUtils.isNotEmpty(storedOptions.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(storedOptions.values().stream().map(TwinFieldDataListEntity::getId).toList());
+            entitiesChangesCollector.deleteAll(TwinFieldDataListEntity.class, storedOptions.values().stream().map(TwinFieldDataListEntity::getId).toList());
     }
 
     public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
