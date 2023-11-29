@@ -12,6 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinSearchRsV2")
-public class TwinSearchRsDTOv2 extends TwinListDTOv1 {
+@Schema(name =  "TwinListV1")
+public class TwinListDTOv1 extends ResponseRelatedObjectsDTOv1 {
+    @Schema(description = "pagination data")
+    public PaginationBean pagination;
+
+    @Schema(description = "results - transfers list")
+    public List<TwinDTOv2> twinList;
 }

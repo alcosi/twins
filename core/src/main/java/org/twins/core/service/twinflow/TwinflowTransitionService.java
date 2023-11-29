@@ -111,7 +111,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void performTransition(TwinflowTransitionEntity transitionEntity, TwinUpdate twinUpdate) throws ServiceException {
         if (!validateTransition(transitionEntity, twinUpdate.getDbTwinEntity()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT);
-        if (transitionEntity.isAllowEdit()) {
+        if (transitionEntity.isAllowEdit() && twinUpdate.getUpdatedEntity() != null) {
             twinUpdate.getUpdatedEntity()
                     .setTwinStatusId(transitionEntity.getDstTwinStatusId())
                     .setTwinStatus(transitionEntity.getDstTwinStatus());
@@ -128,6 +128,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
             TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinUpdate.getUpdatedEntity(), transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
+        }
+    }
+
+    @Transactional
+    public void performTransition(TwinflowTransitionEntity transitionEntity, List<TwinUpdate> twinUpdateBatch) throws ServiceException {
+        for (TwinUpdate twinUpdate : twinUpdateBatch) {
+            performTransition(transitionEntity, twinUpdate); //todo change to entityChangeCollector
         }
     }
 
