@@ -58,11 +58,13 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             if (storedOptions == null) { // no values were saved before
                 entitiesChangesCollector.add(new TwinFieldDataListEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
-                        .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity)));
+                        .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
+                        .setDataListOption(dataListOptionEntity));
             } else if (!storedOptions.containsKey(dataListOptionEntity.getId())) { // new option value
                 entitiesChangesCollector.add(new TwinFieldDataListEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
-                        .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity)));
+                        .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
+                        .setDataListOption(dataListOptionEntity));
             } else {
                 storedOptions.remove(dataListOptionEntity.getId()); // option is already saved
             }

@@ -118,13 +118,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             if (linkEntity.getType().isUniqForSrcTwin()) {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null) {
-                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin() + ". TwinLink[" + dbTwinLink + "] will be updated");
+                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                     twinLinkEntity.setId(dbTwinLink.id());
                 }
             } else {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null) {
-                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin() + ".");
+                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ".");
                     twinLinkEntity.setId(dbTwinLink.id()); // todo better to remove from save list
                 }
             }
