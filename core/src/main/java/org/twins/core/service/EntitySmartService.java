@@ -3,6 +3,7 @@ package org.twins.core.service;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -12,14 +13,13 @@ import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
 public class EntitySmartService {
     public static final String DAO_BASE_PACKAGE = "org.twins.core.dao";
+
     public <T> T save(UUID uuid, T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
         SaveResult<T> saveResult = saveWithResult(uuid, entity, repository, mode);
         return saveResult.getSavedEntity();
@@ -102,12 +102,16 @@ public class EntitySmartService {
     }
 
     private <T> void logSaving(UUID uuid, T entity) {
+        log.info(createSaveLogMsg(uuid, entity));
+    }
+
+    private <T> String createSaveLogMsg(UUID uuid, T entity) {
         if (entity instanceof EasyLoggable prettyLoggable)
-            log.info(prettyLoggable.easyLog(EasyLoggable.Level.DETAILED) + " was saved");
+            return prettyLoggable.easyLog(EasyLoggable.Level.DETAILED) + " was saved";
         else if (uuid != null)
-            log.info(entityShortName(entity) + " was saved. Perhaps with id[" + uuid + "]");
+            return entityShortName(entity) + " was saved. Perhaps with id[" + uuid + "]";
         else
-            log.info(entityShortName(entity) + " was saved. Please implement PrettyLoggable interface for more detailed logging");
+            return entityShortName(entity) + " was saved. Please implement PrettyLoggable interface for more detailed logging";
     }
 
     public <T> T save(T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
@@ -174,7 +178,7 @@ public class EntitySmartService {
             case ifEmptyNull:
                 return optional.isEmpty() ? null : optional.get();
             case ifEmptyLogAndNull:
-                if(optional.isEmpty()) {
+                if (optional.isEmpty()) {
                     log.error(entityShortName(repository) + " can not find entity with id[" + uuid + "]");
                     return null;
                 } else
@@ -192,6 +196,7 @@ public class EntitySmartService {
         ifEmptyLogAndNull,
         ifEmptyThrows,
     }
+
     public UUID check(UUID uuid, CrudRepository<?, UUID> repository, CheckMode checkMode) throws ServiceException {
         String entityName = entityShortName(repository);
         switch (checkMode) {
@@ -235,22 +240,26 @@ public class EntitySmartService {
 
     public <T> void deleteAndLog(UUID uuid, CrudRepository<T, UUID> repository) throws ServiceException {
         repository.deleteById(throwIfEmptyId(uuid));
-        log.info(entityShortName(repository) + " perhaps was deleted"); //todo
+        log.info(entityShortName(repository) + "[" + uuid +  "] perhaps was deleted");
     }
 
     public <T> void deleteAllAndLog(Iterable<UUID> uuidList, CrudRepository<T, UUID> repository) {
         repository.deleteAllById(uuidList);
-        log.info(entityShortName(repository) + " perhaps was deleted"); //todo
+        log.info(entityShortName(repository) + "[" + StringUtils.join(",", uuidList) +  "] perhaps was deleted");
     }
 
     public <T> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
         Iterable<T> result = repository.saveAll(entities);
-        result.forEach(e -> logSaving(null, e));
+        List<String> messages = new ArrayList<>();
+        for(T e : result) {
+            messages.add(createSaveLogMsg(null, e));
+        }
+        log.info(String.join(System.lineSeparator(), messages));
         return result;
     }
 
     public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
-        Iterable<T> result = saveAllAndLog(entities, repository);
+        Iterable<T> result = repository.saveAll(entities);
         log.info("Changes: " + changesHelper.collectForLog());
         return result;
     }
