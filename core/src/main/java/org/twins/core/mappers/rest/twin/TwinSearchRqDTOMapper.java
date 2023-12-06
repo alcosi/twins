@@ -21,6 +21,7 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
     public void map(TwinSearchRqDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassIdList(convertSafe(src.getTwinClassIdList()))
+                .setExtendsTwinClassIdList(convertSafe(src.getExtendsTwinClassIdList()))
                 .setStatusIdList(convertSafe(src.getStatusIdList()))
                 .setAssignerUserIdList(convertSafe(src.getAssignerUserIdList()))
                 .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))

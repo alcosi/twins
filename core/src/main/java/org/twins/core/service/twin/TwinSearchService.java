@@ -69,6 +69,7 @@ public class TwinSearchService {
             } else
                 predicateList.add(criteriaBuilder.isNull(root.get(TwinEntity.Fields.ownerBusinessAccountId)));
         }
+        //todo create filter by basicSearch.getExtendsTwinClassIdList()
         if (CollectionUtils.isNotEmpty(basicSearch.getAssignerUserIdList()))
             predicateList.add(root.get(TwinEntity.Fields.assignerUserId).in(basicSearch.getAssignerUserIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getCreatedByUserIdList()))

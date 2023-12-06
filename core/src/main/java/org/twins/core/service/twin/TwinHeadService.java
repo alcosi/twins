@@ -42,7 +42,7 @@ public class TwinHeadService {
     final BusinessAccountService businessAccountService;
 
     public List<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null)
+        if (twinClassEntity.getHeadTwinClassId() == null) //todo check parent
             return new ArrayList<>();
         BasicSearch basicSearch = new BasicSearch()
                 .addTwinClassId(twinClassEntity.getHeadTwinClassId());

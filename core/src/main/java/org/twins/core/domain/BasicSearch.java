@@ -10,6 +10,7 @@ import java.util.*;
 public class BasicSearch {
     Set<UUID> twinIdList;
     Set<UUID> twinClassIdList;
+    Set<UUID> extendsTwinClassIdList;
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
     Set<UUID> assignerUserIdList;
