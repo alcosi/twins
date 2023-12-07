@@ -71,6 +71,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final SystemEntityService systemEntityService;
     final EntityChangesService entityChangesService;
 
+    public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
+        Map<UUID, List<TwinEntity>> ret = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList) {
+            List<TwinEntity> twinsGroupedByClass = ret.computeIfAbsent(twinEntity.getTwinClassId(), k -> new ArrayList<>());
+            twinsGroupedByClass.add(twinEntity);
+        }
+        return ret;
+    }
+
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
         return twinRepository;
@@ -206,17 +215,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, List<FieldValue> values, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
+    public TwinCreateResult createTwin(ApiUser apiUser, TwinCreate twinCreate) throws ServiceException {
+        return createTwin(apiUser, twinCreate.getTwinEntity(), twinCreate.getFields(), twinCreate.getAttachmentEntityList(), twinCreate.getLinksEntityList());
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, Map<UUID, FieldValue> fields, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.getTwinflow(twinEntity.getTwinClassId());
-        TwinClassEntity twinClassEntity = twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        if (twinEntity.getTwinClass() == null)
+            twinEntity.setTwinClass(twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
         twinEntity
-                .setTwinClass(twinClassEntity)
-                .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinClassEntity))
+                .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()))
                 .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                 .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
         twinEntity = saveTwin(twinEntity);
-        saveTwinFields(twinEntity, values);
+        saveTwinFields(twinEntity, fields);
         if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
             attachmentService.addAttachments(twinEntity.getId(), apiUser.getUser(), attachmentEntityList);
         }
@@ -263,14 +277,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public void saveTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
-        Map<UUID, FieldValue> twinClassFieldValuesMap = values.stream().collect(Collectors.toMap(f -> f.getTwinClassField().getId(), Function.identity()));
+    public void saveTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+        EntitiesChangesCollector entitiesChangesCollector = convertTwinFields(twinEntity, fields);
+        entityChangesService.saveEntities(entitiesChangesCollector);
+    }
+
+    public EntitiesChangesCollector convertTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         List<TwinClassFieldEntity> twinClassFieldEntityList = twinClassFieldService.findTwinClassFieldsIncludeParent(twinEntity.getTwinClass());
         TwinFieldEntity twinFieldEntity;
         FieldValue fieldValue;
         EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector(); //all fields will be saved at once, in one transaction
         for (TwinClassFieldEntity twinClassFieldEntity : twinClassFieldEntityList) {
-            fieldValue = twinClassFieldValuesMap.get(twinClassFieldEntity.getId());
+            fieldValue = fields.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
                 if (twinClassFieldEntity.isRequired())
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is required");
@@ -280,22 +298,23 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             var fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
             fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
         }
-        entityChangesService.saveEntities(entitiesChangesCollector);
+        return entitiesChangesCollector;
     }
 
     @Transactional
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        updateTwin(twinUpdate.getUpdatedEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getUpdatedFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
+        updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
     }
+
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
-        updateTwin(updateTwinEntity, dbTwinEntity, values);
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
+        updateTwin(updateTwinEntity, dbTwinEntity, fields);
         cudAttachments(dbTwinEntity, attachmentCUD);
         cudTwinLinks(dbTwinEntity, twinLinkCUD);
     }
 
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, List<FieldValue> values) throws ServiceException {
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
@@ -313,7 +332,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             dbTwinEntity.setTwinStatusId(updateTwinEntity.getTwinStatusId());
         }
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
-        updateTwinFields(dbTwinEntity, values);
+        updateTwinFields(dbTwinEntity, fields.values().stream().toList());
     }
 
     public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
@@ -351,6 +370,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    @Transactional
+    public void changeStatus(Collection<TwinEntity> twinEntityList, TwinStatusEntity newStatus) {
+        ChangesHelper changesHelper = new ChangesHelper();
+        for (TwinEntity twinEntity : twinEntityList) {
+            if (changesHelper.isChanged(twinEntity + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
+                twinEntity
+                        .setTwinStatusId(newStatus.getId())
+                        .setTwinStatus(newStatus);
+            }
+        }
+        entitySmartService.saveAllAndLogChanges(twinEntityList, twinRepository, changesHelper);
+    }
+
 //    @Transactional
 //    public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
 //        List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
@@ -372,7 +404,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
-        List<TwinFieldEntity> twinFieldEntityList = new ArrayList<>();
         TwinFieldEntity twinFieldEntity;
         EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector();
         for (FieldValue fieldValue : values) {
@@ -489,10 +520,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return cloneList;
     }
 
-    public List<TwinFieldEntity> cloneAndSaveTwinFieldList(TwinEntity srcTwin, TwinEntity dstTwinEntity) {
+    public CloneFieldsResult cloneTwinFieldListAndSave(TwinEntity srcTwin, TwinEntity dstTwinEntity) {
+        CloneFieldsResult cloneFieldsResult = cloneTwinFieldList(srcTwin, dstTwinEntity);
+        if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldEntityList()))
+            entitySmartService.saveAllAndLog(cloneFieldsResult.getFieldEntityList(), twinFieldRepository);
+        if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldDataListEntityList()))
+            entitySmartService.saveAllAndLog(cloneFieldsResult.getFieldDataListEntityList(), twinFieldDataListRepository);
+        //todo do we need to clone links?
+        return cloneFieldsResult;
+    }
+
+    public CloneFieldsResult cloneTwinFieldList(TwinEntity srcTwin, TwinEntity dstTwinEntity) {
+        CloneFieldsResult cloneFieldsResult = new CloneFieldsResult();
         List<TwinFieldEntity> srcTwinFieldEntityList = findTwinFields(srcTwin.getId());
         if (CollectionUtils.isEmpty(srcTwinFieldEntityList))
-            return srcTwinFieldEntityList;
+            return cloneFieldsResult;
         List<TwinFieldDataListEntity> twinFieldDataListEntityList = twinFieldDataListRepository.findByTwinField_TwinId(srcTwin.getId()); // we also need to clone TwinFieldDataListEntities for twin
         Map<UUID, List<TwinFieldDataListEntity>> twinFieldDataListEntityMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(twinFieldDataListEntityList)) { // converting from plain list to map, for easy access by key
@@ -501,23 +543,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 list.add(twinFieldDataListEntity);
             }
         }
-        List<TwinFieldEntity> cloneFieldEntityList = new ArrayList<>();
-        List<TwinFieldDataListEntity> cloneFieldDataListEntityList = new ArrayList<>();
         for (TwinFieldEntity twinFieldEntity : srcTwinFieldEntityList) {
             TwinFieldEntity duplicateTwinFieldEntity = cloneTwinField(twinFieldEntity);
             duplicateTwinFieldEntity
                     .setId(UUID.randomUUID()) // we have to generate it here, for creating TwinFieldDataListEntity
                     .setTwin(dstTwinEntity)
                     .setTwinId(dstTwinEntity.getId());
-            cloneFieldEntityList.add(duplicateTwinFieldEntity);
+            cloneFieldsResult.add(duplicateTwinFieldEntity);
             twinFieldDataListEntityList = twinFieldDataListEntityMap.get(twinFieldEntity.getId());
             if (twinFieldDataListEntityList != null)
-                cloneFieldDataListEntityList.addAll(cloneTwinFieldDataList(twinFieldDataListEntityList, duplicateTwinFieldEntity));
+                cloneFieldsResult.add(cloneTwinFieldDataList(twinFieldDataListEntityList, duplicateTwinFieldEntity));
         }
-        entitySmartService.saveAllAndLog(cloneFieldEntityList, twinFieldRepository);
-        entitySmartService.saveAllAndLog(cloneFieldDataListEntityList, twinFieldDataListRepository);
-        //todo do we need to clone links?
-        return cloneFieldEntityList;
+        return cloneFieldsResult;
     }
 
     public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
@@ -535,7 +572,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setId(newTwinId)
                 .setCreatedByUserId(userEntity.getId());
         duplicateEntity = saveTwin(duplicateEntity);
-        cloneAndSaveTwinFieldList(srcTwin, duplicateEntity);
+        cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
         return duplicateEntity;
     }
@@ -546,5 +583,32 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         private TwinEntity createdTwin;
         private List<TwinBusinessAccountAliasEntity> businessAccountAliasEntityList;
         private List<TwinDomainAliasEntity> domainAliasEntityList;
+    }
+
+    @Data
+    public static class CloneFieldsResult {
+        List<TwinFieldEntity> fieldEntityList;
+        List<TwinFieldDataListEntity> fieldDataListEntityList;
+
+        public CloneFieldsResult add(TwinFieldEntity cloneTwinFieldEntity) {
+            if (fieldEntityList == null)
+                fieldEntityList = new ArrayList<>();
+            fieldEntityList.add(cloneTwinFieldEntity);
+            return this;
+        }
+
+        public CloneFieldsResult add(TwinFieldDataListEntity cloneTwinFieldDataListEntity) {
+            if (fieldDataListEntityList == null)
+                fieldDataListEntityList = new ArrayList<>();
+            fieldDataListEntityList.add(cloneTwinFieldDataListEntity);
+            return this;
+        }
+
+        public CloneFieldsResult add(List<TwinFieldDataListEntity> cloneTwinFieldDataListEntity) {
+            if (fieldDataListEntityList == null)
+                fieldDataListEntityList = new ArrayList<>();
+            fieldDataListEntityList.addAll(cloneTwinFieldDataListEntity);
+            return this;
+        }
     }
 }

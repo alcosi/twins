@@ -117,7 +117,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             twinLinkEntity.setCreatedAt(Timestamp.from(Instant.now()));
             if (linkEntity.getType().isUniqForSrcTwin()) {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
-                if (dbTwinLink != null) {
+                if (dbTwinLink != null && twinLinkEntity.isUniqForSrcRelink()) {
                     log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                     twinLinkEntity.setId(dbTwinLink.id());
                 }
@@ -179,6 +179,32 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 log.warn(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
         }
         return linksResult;
+    }
+
+    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinId(twinId, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
+    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId, Collection<UUID> linkIdCollection) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinId, linkIdCollection, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
+    public List<TwinLinkEntity> findTwinBackwardLinks(UUID twinId) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findByDstTwinId(twinId, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
+    protected List<TwinLinkEntity> filterDenied(List<TwinLinkEntity> twinLinkEntityList) throws ServiceException {
+        ListIterator<TwinLinkEntity> iterator = twinLinkEntityList.listIterator();
+        TwinLinkEntity twinLinkEntity;
+        while (iterator.hasNext()) {
+            twinLinkEntity = iterator.next();
+            if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
+                iterator.remove();
+        }
+        return twinLinkEntityList;
     }
 
     @Transactional

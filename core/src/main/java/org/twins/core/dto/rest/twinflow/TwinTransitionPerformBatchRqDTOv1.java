@@ -9,19 +9,17 @@ import org.twins.core.dto.rest.Request;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinTransitionPerformBatchRqV1")
-public class TwinTransitionPerformBatchRqDTOv1 extends Request {
-    @Schema
-    public List<UUID> twinIdList;
-
+public class TwinTransitionPerformBatchRqDTOv1 extends TwinTransitionDraftBatchRqDTOv1 {
     @Schema
     public String batchComment;
 
-    @Schema(description = "Data to be update in all target twins during transition (if allowEdit = true)")
-    public TwinUpdateDTOv1 batchUpdate;
+    @Schema(description = "some extra data to perform transition")
+    public TwinTransitionContextDTOv1 batchContext;
 }

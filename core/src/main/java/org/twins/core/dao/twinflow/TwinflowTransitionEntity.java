@@ -57,6 +57,12 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "allow_edit")
     private boolean allowEdit;
 
+    @Column(name = "inbuilt_twin_factory_id")
+    private UUID inbuiltTwinFactoryId;
+
+    @Column(name = "drafting_twin_factory_id")
+    private UUID draftingTwinFactoryId;
+
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;

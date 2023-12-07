@@ -62,4 +62,7 @@ public class TwinLinkEntity implements EasyLoggable {
                 return "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId +  "]";
         }
     }
+
+    @Transient
+    private boolean uniqForSrcRelink = true;
 }

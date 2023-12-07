@@ -79,6 +79,15 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 .setTwinClassField(twinClassFieldEntity);
     }
 
+    public FieldValueText createValueByTwinClassFieldId(UUID twinClassFieldId, String fieldValue) throws ServiceException {
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
+        if (twinClassFieldEntity == null)
+            return null;
+        return (FieldValueText) new FieldValueText()
+                .setValue(fieldValue)
+                .setTwinClassField(twinClassFieldEntity);
+    }
+
     public FieldValueText createValueByTwinFieldId(UUID twinFieldId, String fieldValue) throws ServiceException {
         TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
         if (twinFieldEntity == null)
@@ -112,6 +121,16 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 CollectionUtils.addIgnoreNull(
                         fields,
                         createValueByClassIdAndFieldKey(twinClassId, entry.getKey(), entry.getValue()));
+        return convertList(fields);
+    }
+
+    public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
+        List<FieldValueText> fields = new ArrayList<>();
+        if (fieldsMap != null)
+            for (Map.Entry<UUID, String> entry : fieldsMap.entrySet())
+                CollectionUtils.addIgnoreNull(
+                        fields,
+                        createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
         return convertList(fields);
     }
 }

@@ -2,9 +2,11 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -15,9 +17,10 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity implements EasyLoggable {
+public class TwinEntity extends EasyLoggableImpl {
     @Id
     private UUID id;
 

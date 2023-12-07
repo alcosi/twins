@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
-public class TwinClassFieldEntity implements EasyLoggable {
+public class TwinClassFieldEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

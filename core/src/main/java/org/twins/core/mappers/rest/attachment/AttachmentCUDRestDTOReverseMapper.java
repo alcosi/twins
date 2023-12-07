@@ -1,21 +1,17 @@
-package org.twins.core.mappers.rest.twin;
+package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentBaseRestDTOReverseMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentUpdateRestDTOReverseMapper;
 
 
 @Component
 @RequiredArgsConstructor
-public class TwinAttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpdateDTOv1, EntityCUD<TwinAttachmentEntity>> {
+public class AttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpdateDTOv1, EntityCUD<TwinAttachmentEntity>> {
     final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
     @Override

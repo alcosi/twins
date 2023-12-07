@@ -41,7 +41,9 @@ public enum ErrorCodeTwins implements ErrorCode {
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
     TWIN_ALIAS_UNKNOWN(10801, "alias is unknown"),
-    TWIN_LINK_INCORRECT(10901, "twins can not be linkend");
+    TWIN_LINK_INCORRECT(10901, "twins can not be linkend"),
+    TWIN_FIELD_VALUR_INCORRECT(10902, "twins field value can not be converted"),
+    FACTORY_INCORRECT(11001, "twin factory config is incorrect");
 
     private final int code;
     private final String message;

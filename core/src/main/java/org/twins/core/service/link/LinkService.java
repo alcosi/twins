@@ -95,6 +95,12 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             return LinkDirection.invalid;
     }
 
+    public List<LinkEntity> findLinks(TwinClassEntity srcTwinClass, TwinClassEntity dstTwinClass) {
+        Set<UUID> extendedSrcTwinClasses = twinClassService.loadExtendedClasses(srcTwinClass);
+        Set<UUID> extendedDstTwinClasses = twinClassService.loadExtendedClasses(dstTwinClass);
+        return linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedSrcTwinClasses, extendedDstTwinClasses);
+    }
+
     public enum LinkDirection {
         forward,
         backward,

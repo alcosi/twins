@@ -5,6 +5,8 @@ import java.util.*;
 
 public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     public List<S> convertList(List<T> srcList, MapperContext mapperContext) throws Exception {
+        if (srcList == null)
+            return null;
         List<S> ret = new ArrayList<>();
         for (T src : srcList) {
             ret.add(this.convert(src, mapperContext));

@@ -14,20 +14,18 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinCreate;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldValueDTO;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -45,11 +43,11 @@ public class TwinCreateController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
     final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final UserService userService;
     final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
     final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
@@ -64,25 +62,28 @@ public class TwinCreateController extends ApiController {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            TwinEntity twinEntity = new TwinEntity()
-                    .setTwinClassId(request.getClassId())
-                    .setName(request.getName())
-                    .setCreatedByUserId(apiUser.getUser().getId())
-                    .setHeadTwinId(request.getHeadTwinId())
-                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                    .setDescription(request.getDescription());
             List<TwinFieldValueDTO> fields = new ArrayList<>();
             if (request.getFields() != null)
                 for (Map.Entry<String, TwinFieldValueDTO> entry : request.getFields().entrySet())
                     fields.add(entry.getValue()
                             .fieldKey(entry.getKey())
                             .twinClassId(request.getClassId()));
-            List<FieldValue> twinFields = twinFieldValueRestDTOReverseMapper.convertList(fields);
-            List<TwinAttachmentEntity> addAttachmentEntityList = attachmentAddRestDTOReverseMapper.convertList(request.getAttachments());
-            List<TwinLinkEntity> addLinksEntityList = twinLinkAddRestDTOReverseMapper.convertList(request.getLinks());
+            TwinCreate twinCreate = new TwinCreate();
+            twinCreate
+                    .setTwinEntity(new TwinEntity()
+                            .setTwinClassId(request.getClassId())
+                            .setName(request.getName())
+                            .setCreatedByUserId(apiUser.getUser().getId())
+                            .setHeadTwinId(request.getHeadTwinId())
+                            .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
+                            .setDescription(request.getDescription()))
+                    .setFields(twinFieldValueRestDTOReverseMapper.convertList(fields));
+            twinCreate
+                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()))
+                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(apiUser, twinEntity, twinFields, addAttachmentEntityList, addLinksEntityList));
+                            .createTwin(apiUser, twinCreate));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -104,19 +105,10 @@ public class TwinCreateController extends ApiController {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            TwinEntity twinEntity = new TwinEntity()
-                    .setTwinClassId(request.getClassId())
-                    .setName(request.getName())
-                    .setCreatedByUserId(apiUser.getUser().getId())
-                    .setHeadTwinId(request.getHeadTwinId())
-                    .setAssignerUserId(userService.checkUserId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                    .setDescription(request.getDescription());
-            List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(request.getClassId(), request.getFields());
-            List<TwinAttachmentEntity> addAttachmentEntityList = attachmentAddRestDTOReverseMapper.convertList(request.getAttachments());
-            List<TwinLinkEntity> addLinksEntityList = twinLinkAddRestDTOReverseMapper.convertList(request.getLinks());
+            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(apiUser, twinEntity, fields, addAttachmentEntityList, addLinksEntityList));
+                            .createTwin(apiUser, twinCreate));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

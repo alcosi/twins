@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
@@ -20,21 +19,24 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinListDTOv1;
-import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformBatchRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRqDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinTransitionPerformRsRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -42,7 +44,6 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -53,20 +54,24 @@ import java.util.UUID;
 public class TwinTransitionPerformController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
+    final UserService userService;
     final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final UserService userService;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinflowTransitionService twinflowTransitionService;
     final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
+    final TwinLinkCUDRestDTOReverseMapperV2 twinLinkCUDRestDTOReverseMapperV2;
+    final TwinTransitionPerformRsRestDTOMapper twinTransitionPerformRsRestDTOMapper;
+    final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinRsDTOv2.class))}),
+                    @Schema(implementation = TwinTransitionPerformRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionPerformV1(
@@ -81,15 +86,26 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
-        TwinRsDTOv2 rs = new TwinRsDTOv2();
+        TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
             TwinflowTransitionEntity transitionEntity = twinflowTransitionService.findEntitySafe(transitionId);
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
-            TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.getTwinUpdate(), dbTwinEntity));
-            twinflowTransitionService.performTransition(transitionEntity, twinUpdate);
+            TransitionContext transitionContext = new TransitionContext();
+            transitionContext
+                    .setTransitionEntity(transitionEntity)
+                    .addTargetTwin(dbTwinEntity);
+            if (request.getContext() != null) {
+                transitionContext
+                        .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getContext().getAttachments()))
+                        .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapperV2.convert(request.getContext().getTwinLinks()))
+                        .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(request.getContext().getFields()))
+                        .setNewTwinList(twinCreateRqRestDTOReverseMapper.convertList(request.getContext().getNewTwins()));
+            }
+            TwinflowTransitionService.TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
@@ -100,9 +116,10 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showTwinFieldMode)
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode);
+                    .setMode(showLinkMode)
+                    .setMode(showTwinTransitionMode);
+            twinTransitionPerformRsRestDTOMapper.map(transitionResult, rs, mapperContext);
             rs
-                    .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(request.getTwinId()), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -117,7 +134,7 @@ public class TwinTransitionPerformController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinListDTOv1.class))}),
+                    @Schema(implementation = TwinTransitionPerformRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionPerformBatchV1(
@@ -132,19 +149,27 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
-        TwinListDTOv1 rs = new TwinListDTOv1();
+        TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
             TwinflowTransitionEntity transitionEntity = twinflowTransitionService.findEntitySafe(transitionId);
-            List<TwinUpdate> twinUpdates = new ArrayList<>();
+            TransitionContext transitionContext = new TransitionContext();
+            transitionContext.setTransitionEntity(transitionEntity);
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
                 if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
                     throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
-                twinUpdates.add(twinUpdateRestDTOReverseMapper.convert(Pair.of(request.getBatchUpdate(), dbTwinEntity)));
+                transitionContext.addTargetTwin(dbTwinEntity);
             }
-            if (twinUpdates.size() > 0)
-                twinflowTransitionService.performTransition(transitionEntity, twinUpdates);
+            if (request.getBatchContext() != null) {
+                transitionContext
+                        .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getBatchContext().getAttachments()))
+                        .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapperV2.convert(request.getBatchContext().getTwinLinks()))
+                        .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(request.getBatchContext().getFields()))
+                        .setNewTwinList(twinCreateRqRestDTOReverseMapper.convertList(request.getBatchContext().getNewTwins()));
+            }
+            TwinflowTransitionService.TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
@@ -155,9 +180,10 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showTwinFieldMode)
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode);
+                    .setMode(showLinkMode)
+                    .setMode(showTwinTransitionMode);
+            twinTransitionPerformRsRestDTOMapper.map(transitionResult, rs, mapperContext);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinUpdates.stream().map(TwinUpdate::getDbTwinEntity).toList(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
