@@ -1,8 +1,12 @@
 package org.twins.core.mappers.rest;
 
 
+import org.cambium.common.util.CollectionUtils;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> {
     private final Class<S> type;
@@ -39,10 +43,21 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     public S convertOrPostpone(T src, MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
             return convert(src, mapperContext);
-        else {
-            mapperContext.addRelatedObject(src);
+        if (mapperContext.addRelatedObject(src))
             return null;
+        return convert(src, mapperContext);
+    }
+
+    public List<S> convertListPostpone(List<T> srcList, MapperContext mapperContext) throws Exception {
+        if (srcList == null)
+            return null;
+        List<S> ret = null;
+        for (T src : srcList) {
+            S converted = this.convertOrPostpone(src, mapperContext);
+            if (converted != null)
+                ret = CollectionUtils.safeAdd(ret, this.convert(src, mapperContext));
         }
+        return ret;
     }
 
     public boolean hideMode(MapperContext mapperContext) {

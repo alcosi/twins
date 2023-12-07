@@ -1,12 +1,14 @@
 package org.twins.core.mappers.rest;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.Hashtable;
@@ -14,16 +16,20 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-@Data
 @Slf4j
-@Accessors(fluent = true)
 public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
-    private Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
-    private Map<UUID, TwinClassEntity> relatedTwinClassMap = new LinkedHashMap<>();
-    private Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
-    private Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
+    @Getter
+    private final Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
+    @Getter
+    private final Map<UUID, TwinClassEntity> relatedTwinClassMap = new LinkedHashMap<>();
+    @Getter
+    private final Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
+    @Getter
+    private final Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
+    @Getter
+    private final Map<UUID, TwinflowTransitionEntity> relatedTwinflowTransitionMap = new LinkedHashMap<>();
     private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -52,9 +58,9 @@ public class MapperContext {
         return this;
     }
 
-    public MapperContext addRelatedObject(Object relatedObject) {
+    public boolean addRelatedObject(Object relatedObject) {
         if (relatedObject == null)
-            return this;
+            return true;
         if (relatedObject instanceof UserEntity user)
             relatedUserMap.put(user.getId(), user);
         else if (relatedObject instanceof TwinClassEntity twinClass)
@@ -63,13 +69,15 @@ public class MapperContext {
             relatedTwinStatusMap.put(twinStatus.getId(), twinStatus);
         else if (relatedObject instanceof TwinEntity twin)
             relatedTwinMap.put(twin.getId(), twin);
+        else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
+            relatedTwinflowTransitionMap.put(twinflowTransition.getId(), twinflowTransition);
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
-            return this;
+            return false;
         }
         if (relatedObject instanceof EasyLoggable loggable)
             log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + " will be converted later");
-        return this;
+        return true;
     }
 
     public <T> T getProperty(String key, Class<T> type) {
@@ -105,22 +113,6 @@ public class MapperContext {
             return configuredMode.equals(mode);
         else
             return true;
-    }
-
-    public Map<UUID, UserEntity> getRelatedUserMap() {
-        return relatedUserMap;
-    }
-
-    public Map<UUID, TwinClassEntity> getRelatedTwinClassMap() {
-        return relatedTwinClassMap;
-    }
-
-    public Map<UUID, TwinEntity> getRelatedTwinMap() {
-        return relatedTwinMap;
-    }
-
-    public Map<UUID, TwinStatusEntity> getRelatedTwinStatusMap() {
-        return relatedTwinStatusMap;
     }
 
     public <S> S getFromCache(Class<S> clazz, String cacheId) {

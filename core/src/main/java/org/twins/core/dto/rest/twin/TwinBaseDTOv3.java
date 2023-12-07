@@ -10,6 +10,7 @@ import org.twins.core.dto.rest.twinflow.TwinTransitionListDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -24,4 +25,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
 
     @Schema(description = "transitions")
     public List<TwinTransitionViewDTOv1> transitions;
+
+    @Schema(description = "transitionsIdList")
+    public List<UUID> transitionsIdList;
 }

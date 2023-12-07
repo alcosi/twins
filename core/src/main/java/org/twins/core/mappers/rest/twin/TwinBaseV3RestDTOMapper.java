@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -12,6 +13,8 @@ import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
+
+import java.util.List;
 
 
 @Component
@@ -32,8 +35,13 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.links(twinLinkListRestDTOMapper.convert(twinLinkService.findTwinLinks(src.getId()), mapperContext));
-        if (!twinTransitionRestDTOMapper.hideMode(mapperContext))
-            dst.transitions(twinTransitionRestDTOMapper.convertList(twinflowTransitionService.findValidTransitions(src), mapperContext));
+        if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
+            List<TwinflowTransitionEntity> validTransitions = twinflowTransitionService.findValidTransitions(src);
+            dst.transitions(twinTransitionRestDTOMapper.convertListPostpone(validTransitions, mapperContext));
+            if (dst.transitions == null) {// convert was postponed
+                dst.transitionsIdList(validTransitions.stream().map(TwinflowTransitionEntity::getId).toList());
+            }
+        }
     }
 
     @Override
