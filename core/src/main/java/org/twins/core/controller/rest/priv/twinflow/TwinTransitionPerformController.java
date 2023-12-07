@@ -77,6 +77,7 @@ public class TwinTransitionPerformController extends ApiController {
     public ResponseEntity<?> twinTransitionPerformV1(
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -108,6 +109,7 @@ public class TwinTransitionPerformController extends ApiController {
             TwinflowTransitionService.TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showTwinflowTransitionResultMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -140,6 +142,7 @@ public class TwinTransitionPerformController extends ApiController {
     public ResponseEntity<?> twinTransitionPerformBatchV1(
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -171,6 +174,7 @@ public class TwinTransitionPerformController extends ApiController {
             }
             TwinflowTransitionService.TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
             MapperContext mapperContext = new MapperContext()
+                    .setMode(showTwinflowTransitionResultMode)
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)

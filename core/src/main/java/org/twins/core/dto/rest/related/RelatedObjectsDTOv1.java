@@ -16,9 +16,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
 @Schema(name =  "RelatedObjectsV1")
-public class RelatedObjectsDTOv1 extends Response {
+public class RelatedObjectsDTOv1 {
     @Schema(description = "related statuses map")
     public Map<UUID, TwinDTOv2> twinMap;
 

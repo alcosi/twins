@@ -9,11 +9,13 @@ import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinflow.TwinTransitionContextDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
+import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
@@ -28,16 +30,33 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
 
     @Override
     public void map(TwinflowTransitionService.TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
-        dst.setTransitionedTwinList(twinRestDTOMapperV2.convertList(src.getTransitionedTwinList(), mapperContext));
-        List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertList(src.getProcessedTwinList(), mapperContext);
+        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+            case DETAILED:
+                List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertList(src.getProcessedTwinList(), mapperContext);
 
-        if (CollectionUtils.isNotEmpty(processedList)) {
-            Map<UUID, List<TwinDTOv2>> processedGroupedByClass = new HashMap<>();
-            for (TwinDTOv2 twinDTOv2 : processedList) {
-                List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twinDTOv2.twinClassId(), k -> new ArrayList<>());
-                twinsGroupedByClass.add(twinDTOv2);
-            }
-            dst.setProcessedTwinList(processedGroupedByClass);
+                if (CollectionUtils.isNotEmpty(processedList)) {
+                    Map<UUID, List<TwinDTOv2>> processedGroupedByClass = new HashMap<>();
+                    for (TwinDTOv2 twinDTOv2 : processedList) {
+                        List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twinDTOv2.twinClassId(), k -> new ArrayList<>());
+                        twinsGroupedByClass.add(twinDTOv2);
+                    }
+                    dst.setProcessedTwinList(processedGroupedByClass);
+                }
+            case SHORT:
+                dst.setTransitionedTwinList(twinRestDTOMapperV2.convertList(src.getTransitionedTwinList(), mapperContext));
         }
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(TwinStatusRestDTOMapper.Mode.HIDE);
+    }
+
+    public enum Mode implements MapperMode {
+        HIDE, SHORT, DETAILED;
+
+        public static final String _SHORT = "SHORT";
+        public static final String _DETAILED = "DETAILED";
+        public static final String _HIDE = "HIDE";
     }
 }

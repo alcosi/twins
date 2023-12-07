@@ -20,6 +20,7 @@ public interface RestRequestParam {
     String showTwinLinkMode = "showTwinLinkMode";
     String showLinkMode = "showLinkMode";
     String showTwinTransitionMode = "showTwinflowTransitionMode";
+    String showTwinflowTransitionResultMode = "showTwinflowTransitionResultMode";
     String lazyRelation = "lazyRelation";
     String fieldValue = "fieldValue";
 }
