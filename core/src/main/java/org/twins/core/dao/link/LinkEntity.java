@@ -2,8 +2,10 @@ package org.twins.core.dao.link;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -13,8 +15,9 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = true)
 @Table(name = "link")
-public class LinkEntity implements EasyLoggable {
+public class LinkEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

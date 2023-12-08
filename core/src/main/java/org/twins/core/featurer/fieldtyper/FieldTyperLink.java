@@ -75,6 +75,10 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueLink value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
         List<TwinLinkEntity> newTwinLinks = value.getTwinLinks() != null ? value.getTwinLinks() : new ArrayList<>();
+        for (TwinLinkEntity newTwinLinkEntity : newTwinLinks) //we have to set link, because it can be empty
+            newTwinLinkEntity
+                    .setLinkId(linkEntity.getId())
+                    .setLink(linkEntity);
         if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(newTwinLinks))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (newTwinLinks != null && newTwinLinks.size() > 1 && !allowMultiply(linkEntity, twinFieldEntity.getTwinClassField()))

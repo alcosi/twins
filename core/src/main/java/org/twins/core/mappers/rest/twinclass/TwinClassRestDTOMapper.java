@@ -53,7 +53,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
                             twinClassFieldService.findTwinClassFieldsIncludeParent(src), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
-        if (!mapperContext.hasMode(HeadTwinMode.HIDE) && src.getHeadTwinClassId() != null)
+        if (mapperContext.hasMode(HeadTwinMode.SHOW) && src.getHeadTwinClassId() != null)
             dst.validHeads(
                     twinBaseRestDTOMapper.convertList(
                             twinHeadService.findValidHeads(src), mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.SHORT)));
@@ -63,7 +63,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))
                     .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
-        if (!mapperContext.hasMode(StatusMode.HIDE)) {
+        if (mapperContext.hasMode(StatusMode.SHOW)) {
             List<TwinStatusEntity> validTwinClassStatusList = twinStatusService.findByTwinClass(src);
             if (validTwinClassStatusList != null) {
                 Map<UUID, TwinStatusEntity> map = validTwinClassStatusList.stream().collect(Collectors.toMap(TwinStatusEntity::getId, Function.identity(), (left, right) -> left,

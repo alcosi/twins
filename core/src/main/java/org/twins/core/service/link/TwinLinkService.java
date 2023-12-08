@@ -17,6 +17,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -86,18 +87,20 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     public void prepareTwinLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         for (TwinLinkEntity twinLinkEntity : linksEntityList) {
-            LinkEntity linkEntity = linkService.findEntity(twinLinkEntity.getLinkId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+            if (twinLinkEntity.getLink() == null)
+                twinLinkEntity.setLink(linkService.findEntity(twinLinkEntity.getLinkId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
             if (twinLinkEntity.getDstTwin() == null)
                 twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
             Set<UUID> srcTwinExtendedClasses = twinClassService.loadExtendedClasses(srcTwinEntity.getTwinClass());
             Set<UUID> dstTwinExtendedClasses = twinClassService.loadExtendedClasses(twinLinkEntity.getDstTwin().getTwinClass());
-            if (srcTwinExtendedClasses.contains(linkEntity.getSrcTwinClassId())) { // forward link creation
+            if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId())) { // forward link creation
                 log.info("Forward link creation");
                 twinLinkEntity
                         .setSrcTwin(srcTwinEntity)
                         .setSrcTwinId(srcTwinEntity.getId()); //dst is already filled
-            } else if (srcTwinExtendedClasses.contains(linkEntity.getDstTwinClassId())) { // backward link creation, dst and src twins had to change places
+            } else if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId())) { // backward link creation, dst and src twins had to change places
                 log.info("Backward link creation");
                 twinLinkEntity
                         .setSrcTwin(twinLinkEntity.getDstTwin())
@@ -108,23 +111,27 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 srcTwinExtendedClasses = dstTwinExtendedClasses;
                 dstTwinExtendedClasses = temp;
             } else {
-                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink() + " can not be created for twinId[" + srcTwinEntity.getId() + "]");
             }
-            if (!srcTwinExtendedClasses.contains(linkEntity.getSrcTwinClassId()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
-            if (!dstTwinExtendedClasses.contains(linkEntity.getDstTwinClassId()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be created to twinId[" + twinLinkEntity.getDstTwinId() + "] of twinClass[" + twinLinkEntity.getDstTwin().getTwinClassId() + "]");
+            if (!srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink() + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
+            if (!dstTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink() + " can not be created to twinId[" + twinLinkEntity.getDstTwinId() + "] of twinClass[" + twinLinkEntity.getDstTwin().getTwinClassId() + "]");
             twinLinkEntity.setCreatedAt(Timestamp.from(Instant.now()));
-            if (linkEntity.getType().isUniqForSrcTwin()) {
+            if (twinLinkEntity.getCreatedByUserId() == null)
+                twinLinkEntity
+                        .setCreatedByUserId(apiUser.getUser().getId())
+                        .setCreatedByUser(apiUser.getUser());
+            if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null && twinLinkEntity.isUniqForSrcRelink()) {
-                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
+                    log.warn(twinLinkEntity.getLink() + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                     twinLinkEntity.setId(dbTwinLink.id());
                 }
             } else {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null) {
-                    log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ".");
+                    log.warn(twinLinkEntity.getLink() + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ".");
                     twinLinkEntity.setId(dbTwinLink.id()); // todo better to remove from save list
                 }
             }
@@ -256,7 +263,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             case backward:
                 return twinLinkRepository.findByDstTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             default:
-                return  null;
+                return null;
         }
     }
 
