@@ -27,7 +27,6 @@ public class TwinTransitionRestDTOMapper extends RestSimpleDTOMapper<TwinflowTra
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
-                        .setAllowEdit(src.isAllowEdit())
                         .setId(src.getId());
                 break;
             case SHORT:

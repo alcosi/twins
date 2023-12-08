@@ -10,6 +10,7 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -61,12 +62,29 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 try {
                     dataListOptionUUID = UUID.fromString(dataListOptionId);
                 } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect UUID[" + dataListOptionId + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect datalist UUID[" + dataListOptionId + "]");
                 }
                 ((FieldValueSelect) fieldValue).add(new DataListOptionEntity()
                         .setId(dataListOptionUUID));
             }
         }
+        if (fieldTyper.getValueType() == FieldValueLink.class) {
+            fieldValue = new FieldValueLink();
+            for (String dstTwinId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dstTwinId))
+                    continue;
+                UUID dstTwinUUID;
+                try {
+                    dstTwinUUID = UUID.fromString(dstTwinId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
+                }
+                ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
+                        .setDstTwinId(dstTwinUUID));
+            }
+        }
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
         return fieldValue.setTwinClassField(fieldValueText.getTwinClassField());
     }
 

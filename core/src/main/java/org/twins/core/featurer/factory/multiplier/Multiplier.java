@@ -33,7 +33,11 @@ public abstract class Multiplier extends Featurer {
     public List<FactoryItem> multiply(HashMap<String, String> multiplierParams, List<TwinEntity> input, FactoryContext factoryContext) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, multiplierParams, new HashMap<>());
         log.info("Running multiplier[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        return multiply(properties, input, factoryContext);
+        List<FactoryItem> ret =  multiply(properties, input, factoryContext);
+        for (FactoryItem factoryItem : ret) {
+            factoryItem.setFactoryContext(factoryContext);
+        }
+        return ret;
     }
 
     public abstract List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException;

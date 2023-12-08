@@ -31,7 +31,4 @@ public class TwinTransitionViewDTOv1 extends TwinTransitionBaseDTOv1 {
 
     @Schema()
     public boolean allowLinks;
-
-    @Schema()
-    public boolean allowEdit;
 }

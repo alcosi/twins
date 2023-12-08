@@ -31,9 +31,6 @@ public class TwinFactoryMultiplierEntity extends EasyLoggableImpl {
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;
 
-    @Column(name = "output_twin_class_id")
-    private UUID outputTwinClassId;
-
     @Column(name = "multiplier_featurer_id")
     private int multiplierFeaturerId;
 

@@ -16,7 +16,7 @@ public class TransitionDraftContext {
     public TransitionDraftContext addTargetTwin(TwinEntity twinEntity) {
         if (targetTwinList == null)
             targetTwinList = new HashMap<>();
-        targetTwinList.put(twinEntity.getTwinStatusId(), twinEntity);
+        targetTwinList.put(twinEntity.getId(), twinEntity);
         return this;
     }
 }

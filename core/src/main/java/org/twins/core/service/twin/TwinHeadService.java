@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
@@ -61,6 +62,7 @@ public class TwinHeadService {
         return twinSearchService.findTwins(basicSearch);
     }
 
+    @Transactional
     public UUID checkHeadTwinAllowedForClass(UUID headTwinId, TwinClassEntity subClass) throws ServiceException {
         if (subClass.getHeadTwinClassId() != null)
             if (headTwinId != null) {

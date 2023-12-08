@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
@@ -278,6 +279,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void saveTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+        if (fields == null)
+            return;
         EntitiesChangesCollector entitiesChangesCollector = convertTwinFields(twinEntity, fields);
         entityChangesService.saveEntities(entitiesChangesCollector);
     }
@@ -332,10 +335,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             dbTwinEntity.setTwinStatusId(updateTwinEntity.getTwinStatusId());
         }
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
-        updateTwinFields(dbTwinEntity, fields.values().stream().toList());
+        if (MapUtils.isNotEmpty(fields))
+            updateTwinFields(dbTwinEntity, fields.values().stream().toList());
     }
 
     public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
+        if (attachmentCUD == null)
+            return;
         if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
             attachmentService.addAttachments(twinEntity.getId(), twinEntity.getCreatedByUser(), attachmentCUD.getCreateList());
         }
@@ -348,6 +354,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
+        if (twinLinkCUD == null)
+            return;
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getCreateList())) {
             twinLinkService.addLinks(twinEntity, twinLinkCUD.getCreateList());
         }

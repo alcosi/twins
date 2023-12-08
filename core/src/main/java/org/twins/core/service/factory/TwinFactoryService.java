@@ -36,7 +36,6 @@ public class TwinFactoryService {
     public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryId); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
         Map<UUID, List<TwinEntity>> factoryInputTwins = TwinService.toClassMap(factoryContext.getInputTwinList().stream().toList());
-        List<TwinOperation> ret = new ArrayList<>();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
             List<TwinEntity> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
@@ -67,9 +66,8 @@ public class TwinFactoryService {
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin());
                 }
-                ret.add(pipelineInput.getOutputTwin());
             }
         }
-        return ret;
+        return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutputTwin).toList();
     }
 }

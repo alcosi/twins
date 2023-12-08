@@ -55,7 +55,7 @@ public enum ErrorCodeTwins implements ErrorCode {
 
     @Override
     public String getServiceCode() {
-        return "TWINS_USER";
+        return "TWINS";
     }
 
     public int getCode() {

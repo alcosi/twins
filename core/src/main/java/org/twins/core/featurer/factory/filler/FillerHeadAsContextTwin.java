@@ -16,9 +16,7 @@ import java.util.Properties;
 public class FillerHeadAsContextTwin extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        if (factoryItem.getContextTwinList().size() != 0)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "context twin size != 1. Please check multiplier");
-        TwinEntity contextTwin = factoryItem.getContextTwinList().get(0);
+        TwinEntity contextTwin = checkNotMultiplySrc(factoryItem);
         factoryItem.getOutputTwin().getTwinEntity()
                 .setHeadTwin(contextTwin)
                 .setHeadTwinId(contextTwin.getId());

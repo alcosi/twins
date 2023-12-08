@@ -50,7 +50,7 @@ public class TwinEntity extends EasyLoggableImpl {
     private UUID twinStatusId;
 
     @Column(name = "name")
-    private String name;
+    private String name = ""; // not null in db
 
     @Column(name = "description")
     private String description;

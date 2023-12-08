@@ -49,4 +49,9 @@ public class FactoryContext {
                         ));
         factoryItemList.add(factoryItem);
     }
+
+    @Override
+    public String toString() {
+        return "FactoryContext";
+    }
 }

@@ -36,7 +36,7 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
     private UUID templateTwinId;
 
     @ManyToOne
-    @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity templateTwin;
 
     public String easyLog(Level level) {
