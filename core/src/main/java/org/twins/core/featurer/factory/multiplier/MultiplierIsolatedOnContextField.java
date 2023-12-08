@@ -1,5 +1,6 @@
 package org.twins.core.featurer.factory.multiplier;
 
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -31,7 +32,7 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
     public static final FeaturerParamUUID elseOutputTwinClassId = new FeaturerParamUUID("elseOutputTwinClassId");
     @Override
     public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
-        FieldValue fieldValue = factoryContext.getFields().get(outputTwinClassIdFromContextField.extract(properties));
+        FieldValue fieldValue = MapUtils.getObject(factoryContext.getFields(), outputTwinClassIdFromContextField.extract(properties));
         UUID outputTwinClassId;
         if (fieldValue != null)
             outputTwinClassId = fieldValue.getTwinClassField().getTwinClassId();
