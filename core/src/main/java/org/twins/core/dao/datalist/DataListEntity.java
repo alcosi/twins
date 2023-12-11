@@ -3,6 +3,7 @@ package org.twins.core.dao.datalist;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
@@ -50,5 +51,6 @@ public class DataListEntity implements EasyLoggable {
     }
     
     @Transient
+    @HashCodeExclude
     List<DataListOptionEntity> options;
 }

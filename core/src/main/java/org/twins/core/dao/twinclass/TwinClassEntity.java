@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
@@ -88,12 +89,15 @@ public class TwinClassEntity implements EasyLoggable {
 //    private UserEntity createdByUser;
 
     @Transient
+    @HashCodeExclude
     private Set<UUID> extendedClassIdSet;
 
     @Transient
+    @HashCodeExclude
     private Set<UUID> childClassIdSet;
 
     @Transient
+    @HashCodeExclude
     private TwinflowEntity twinflow;
 
     public String easyLog(Level level) {
@@ -130,4 +134,6 @@ public class TwinClassEntity implements EasyLoggable {
             return this == SYSTEM;
         }
     }
+
+
 }

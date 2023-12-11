@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -93,9 +94,11 @@ public class TwinEntity extends EasyLoggableImpl {
     private UserEntity assignerUser;
 
     @Transient
+    @HashCodeExclude
     private TwinEntity spaceTwin;
 
     @Transient
+    @HashCodeExclude
     private TwinEntity headTwin;
 
     public String easyLog(Level level) {
