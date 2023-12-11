@@ -23,4 +23,7 @@ public class TwinBaseDTOv2 extends TwinBaseDTOv1 {
 
     @Schema(description = "author")
     public UserDTOv1 authorUser;
+
+    @Schema(description = "headTwin")
+    public TwinBaseDTOv2 headTwin;
 }

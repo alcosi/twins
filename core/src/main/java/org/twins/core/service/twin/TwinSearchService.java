@@ -92,10 +92,14 @@ public class TwinSearchService {
     private List<Predicate> createTwinLinkEntityPredicates(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery<?> criteriaQuery, Path<TwinLinkEntity> linkPath) throws ServiceException {
         List<Predicate> predicate = new ArrayList<>();
         if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
+            List<Predicate> orPredicate = new ArrayList<>();
             for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinLinksMap().entrySet()) {
-                predicate.add(criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()));
-                predicate.add(linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue()));
+                orPredicate.add(criteriaBuilder.and(
+                                        criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
+                                        linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
+                                ));
             }
+            predicate.add(criteriaBuilder.or(orPredicate.toArray(Predicate[]::new)));
         }
         return predicate;
     }
