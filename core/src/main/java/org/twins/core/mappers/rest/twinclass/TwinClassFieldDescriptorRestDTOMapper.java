@@ -13,12 +13,14 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    final UserRestDTOMapper userRestDTOMapper;
     @Lazy
     @Autowired
     TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
@@ -49,6 +51,16 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
                         .options(dataListOptionRestDTOMapper.convertList(listDescriptor.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
+            }
+        else if (fieldDescriptor instanceof FieldDescriptorUser userDescriptor)
+            if (userDescriptor.userFilterId() != null) {
+                return new TwinClassFieldDescriptorUserLongDTOv1()
+                        .multiple(userDescriptor.multiple())
+                        .userFilterId(userDescriptor.userFilterId());
+            } else {
+                return new TwinClassFieldDescriptorUserDTOv1()
+                        .multiple(userDescriptor.multiple())
+                        .users(userRestDTOMapper.convertList(userDescriptor.validUsers(), new MapperContext().setMode(UserRestDTOMapper.Mode.SHORT)));
             }
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()

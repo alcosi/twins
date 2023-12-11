@@ -12,6 +12,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
@@ -66,6 +67,21 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 }
                 ((FieldValueSelect) fieldValue).add(new DataListOptionEntity()
                         .setId(dataListOptionUUID));
+            }
+        }
+        if (fieldTyper.getValueType() == FieldValueUser.class) {
+            fieldValue = new FieldValueUser();
+            for (String userId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(userId))
+                    continue;
+                UUID userUUID;
+                try {
+                    userUUID = UUID.fromString(userId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
+                }
+                ((FieldValueUser) fieldValue).add(new UserEntity()
+                        .setId(userUUID));
             }
         }
         if (fieldTyper.getValueType() == FieldValueLink.class) {

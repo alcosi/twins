@@ -16,8 +16,28 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
 
     @Query(value = "select domainUser.userId from DomainUserEntity domainUser where domainUser.domainId = :domainId")
     List<UUID> findUserIdByDomainId(@Param("domainId") UUID domainId);
+
+    @Query(value = "select count(domainUser.userId) from DomainUserEntity domainUser where domainUser.domainId = :domainId")
+    long countByDomainId(@Param("domainId") UUID domainId);
+
+    @Query(value = "select user from DomainUserEntity domainUser join UserEntity user on domainUser.userId = user.id where domainUser.domainId = :domainId")
+    List<UserEntity> findByDomainId(@Param("domainId") UUID domainId);
+
     @Query(value = "select domainUser.userId from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
             "where businessAccountUser.businessAccountId = :businessAccountId " +
             "and domainUser.domainId = :domainId")
     List<UUID> findUserIdByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select user from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
+            "join UserEntity user on domainUser.userId = user.id " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and domainUser.domainId = :domainId")
+    List<UserEntity> findByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select count(domainUser.userId) from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and domainUser.domainId = :domainId")
+    long countByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    List<UserEntity> findByIdIn(List<UUID> idList);
 }

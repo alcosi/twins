@@ -19,6 +19,7 @@ public class EntityChangesService {
     final TwinFieldRepository twinFieldRepository;
     final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinLinkRepository twinLinkRepository;
+    final TwinFieldUserRepository twinFieldUserRepository;
     final EntitySmartService entitySmartService;
 
     public void saveEntities(EntitiesChangesCollector entitiesChangesCollector) {
@@ -27,6 +28,7 @@ public class EntityChangesService {
         saveEntities(entitiesChangesCollector, TwinFieldEntity.class, twinFieldRepository);
         saveEntities(entitiesChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         saveEntities(entitiesChangesCollector, TwinLinkEntity.class, twinLinkRepository);
+        saveEntities(entitiesChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
         if (entitiesChangesCollector.getSaveEntityMap().size() > 0)
             for (Map.Entry<Class, Map<Object, ChangesHelper>> classChanges : entitiesChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for saving");
@@ -34,6 +36,7 @@ public class EntityChangesService {
         deleteEntities(entitiesChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         deleteEntities(entitiesChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(entitiesChangesCollector, TwinFieldEntity.class, twinFieldRepository);
+        deleteEntities(entitiesChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
         if (entitiesChangesCollector.getDeleteEntityIdMap().size() > 0)
             for (Map.Entry<Class, List<UUID>> classChanges : entitiesChangesCollector.getDeleteEntityIdMap().entrySet()) {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for deletion");
