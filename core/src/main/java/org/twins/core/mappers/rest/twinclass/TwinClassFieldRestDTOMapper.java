@@ -32,7 +32,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .name(i18nService.translateToLocale(src.getNameI18NId()))
                         .required(src.isRequired())
                         .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor));
+                        .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
                 break;
             case SHORT:
                 dst

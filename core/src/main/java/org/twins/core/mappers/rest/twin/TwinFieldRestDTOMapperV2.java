@@ -6,11 +6,15 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Component
@@ -32,7 +36,12 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
         } else if (fieldValue instanceof FieldValueSelect select) {
             dst.setValue(String.join(",", select.options().stream().map(o -> o.getId().toString()).toList()));
         } else if (fieldValue instanceof FieldValueUser userField) {
-            dst.setValue(String.join(",", userField.users().stream().map(o -> o.getId().toString()).toList()));
+            List<String> userIdList = new ArrayList<>();
+            for (UserEntity userEntity : userField.users()) {
+                mapperContext.addRelatedObject(userEntity); // we have to put users to related object
+                userIdList.add(userEntity.getId().toString());
+            }
+            dst.setValue(String.join(",", userIdList));
         } else if (fieldValue instanceof FieldValueLink link) {
             if (link.isForwardLink())
                 dst.setValue(String.join(",", link.getTwinLinks().stream().map(l -> l.getDstTwinId().toString()).toList()));

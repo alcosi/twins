@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
@@ -22,8 +23,6 @@ public class TwinClassFieldDescriptorUserDTOv1 implements TwinClassFieldDescript
     @Schema(description = "Valid users", example = "")
     public List<UserDTOv1> users = new ArrayList<>();
 
-    public TwinClassFieldDescriptorUserDTOv1 add(UserDTOv1 user) {
-        users.add(user);
-        return this;
-    }
+    @Schema(description = "Valid users id list", example = "")
+    public List<UUID> userIdList = new ArrayList<>();
 }

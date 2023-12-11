@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
 import org.twins.core.mappers.rest.MapperContext;
@@ -58,9 +59,14 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(userDescriptor.multiple())
                         .userFilterId(userDescriptor.userFilterId());
             } else {
-                return new TwinClassFieldDescriptorUserDTOv1()
+                TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor =  new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
-                        .users(userRestDTOMapper.convertList(userDescriptor.validUsers(), new MapperContext().setMode(UserRestDTOMapper.Mode.SHORT)));
+                        .users(userRestDTOMapper.convertListPostpone(userDescriptor.validUsers(), mapperContext
+                                .setMode(UserRestDTOMapper.Mode.SHORT)
+                                .setLazyRelations(mapperContext.isLazyRelations())));
+                if (userFieldDescriptor.users == null)
+                    userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());
+                return userFieldDescriptor;
             }
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
