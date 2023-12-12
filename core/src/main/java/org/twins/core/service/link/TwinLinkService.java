@@ -125,13 +125,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null && twinLinkEntity.isUniqForSrcRelink()) {
-                    log.warn(twinLinkEntity.getLink() + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
+                    log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                     twinLinkEntity.setId(dbTwinLink.id());
                 }
             } else {
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null) {
-                    log.warn(twinLinkEntity.getLink() + " is already exists for " + twinLinkEntity.getSrcTwin().easyLog(EasyLoggable.Level.NORMAL) + ".");
+                    log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ".");
                     twinLinkEntity.setId(dbTwinLink.id()); // todo better to remove from save list
                 }
             }
@@ -183,7 +183,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                     continue;
                 linksResult.backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
             } else
-                log.warn(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
+                log.warn(twinLinkEntity.logShort() + " is incorrect");
         }
         return linksResult;
     }
@@ -224,11 +224,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             if (twinLinkEntity == null)
                 continue;
             if (!twinLinkEntity.getSrcTwinId().equals(twinId) && !twinLinkEntity.getDstTwinId().equals(twinId)) {
-                log.error(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be delete because it's from other twin");
+                log.error(twinLinkEntity.logShort() + " can not be delete because it's from other twin");
                 continue;
             }
             if (twinLinkEntity.getLink().isMandatory()) {
-                log.error(twinLinkEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be deleted because link is mandatory");
+                log.error(twinLinkEntity.logShort() + " can not be deleted because link is mandatory");
                 continue;
             }
             entitySmartService.deleteAndLog(twinLinkId, twinLinkRepository);

@@ -44,8 +44,8 @@ public class FillerFieldsFromContextAll extends Filler {
         List<String> logMsgs = new ArrayList<>();
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {
             if (twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField().getTwinClassId())) {
-                logMsgs.add(outputTwinEntity + "" + fieldValue.getValue().getTwinClassField() + " will be filled from context");
-                factoryItem.getOutputTwin().addField(fieldValue.getValue());
+                logMsgs.add(outputTwinEntity.logShort() + "" + fieldValue.getValue().getTwinClassField().logNormal() + " will be filled from context");
+                factoryItem.getOutputTwin().addField(fieldValue.getValue().clone());
             }
         }
         if (logMsgs.size() > 0)

@@ -115,7 +115,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
             TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
             if (!transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity)) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.logShort());
                 return false;
             }
         }

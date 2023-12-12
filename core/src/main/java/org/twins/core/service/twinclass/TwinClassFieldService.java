@@ -92,7 +92,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional
     public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId) throws ServiceException {
-        log.info(srcFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " will be duplicated for class[" + duplicateTwinClassId + "]");
+        log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + duplicateTwinClassId + "]");
         TwinClassFieldEntity duplicateFieldEntity = new TwinClassFieldEntity()
                 .setKey(srcFieldEntity.getKey())
                 .setTwinClassId(duplicateTwinClassId)

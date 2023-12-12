@@ -9,4 +9,13 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class FieldValueText extends FieldValue {
     private String value;
+
+    @Override
+    public FieldValue clone() {
+        FieldValueText clone = new FieldValueText();
+        clone
+                .setValue(this.value)
+                .setTwinClassField(this.getTwinClassField());
+        return clone;
+    }
 }

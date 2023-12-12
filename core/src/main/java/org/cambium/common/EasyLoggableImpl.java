@@ -1,10 +1,15 @@
 package org.cambium.common;
 
-import org.cambium.common.EasyLoggable;
-
 public abstract class EasyLoggableImpl implements EasyLoggable {
-    @Override
-    public String toString() {
+    public String logNormal() {
         return easyLog(Level.NORMAL);
+    }
+
+    public String logShort() {
+        return easyLog(Level.SHORT);
+    }
+
+    public String logDetailed() {
+        return easyLog(Level.DETAILED);
     }
 }

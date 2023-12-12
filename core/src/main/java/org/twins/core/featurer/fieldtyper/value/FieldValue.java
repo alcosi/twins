@@ -6,6 +6,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 @Data
 @Accessors(chain = true)
-public abstract class FieldValue {
+public abstract class FieldValue implements Cloneable{
     private TwinClassFieldEntity twinClassField;
+
+    public abstract FieldValue clone();
 }

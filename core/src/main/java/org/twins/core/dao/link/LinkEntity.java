@@ -71,7 +71,13 @@ public class LinkEntity extends EasyLoggableImpl {
 //    private I18nEntity backwardNameI18n;
 
     public String easyLog(Level level) {
-        return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+        switch (level) {
+            case SHORT:
+                return "link[" + id + "]";
+            default:
+                return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+        }
+
     }
 
     @Getter

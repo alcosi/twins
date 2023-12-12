@@ -41,12 +41,12 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.options()))
+        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.getOptions()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (value.options() != null && value.options().size() > 1 && !allowMultiply(properties))
+        if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);
-        List<DataListOptionEntity> dataListOptionEntityList = dataListOptionRepository.findByIdIn(value.options().stream().map(DataListOptionEntity::getId).toList());
+        List<DataListOptionEntity> dataListOptionEntityList = dataListOptionRepository.findByIdIn(value.getOptions().stream().map(DataListOptionEntity::getId).toList());
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         if (twinFieldEntity.getId() != null) //not new field
             storedOptions = twinFieldDataListRepository.findByTwinFieldId(twinFieldEntity.getId()).stream().collect(Collectors.toMap(TwinFieldDataListEntity::getDataListOptionId, Function.identity()));

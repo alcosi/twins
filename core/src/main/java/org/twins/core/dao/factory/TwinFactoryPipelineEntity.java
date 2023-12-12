@@ -40,6 +40,12 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
     private TwinEntity templateTwin;
 
     public String easyLog(Level level) {
-        return "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + "]";
+        switch (level) {
+            case SHORT:
+                return "twinFactoryPipeline[id:" + id + "]";
+            default:
+                return "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
+        }
+
     }
 }

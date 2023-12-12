@@ -152,6 +152,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinFieldRepository.findByTwinId(twinId);
     }
 
+    public List<TwinFieldEntity> loadTwinFields(TwinEntity twinEntity) {
+        if (twinEntity.getTwinFieldList() != null)
+            return twinEntity.getTwinFieldList();
+        List<TwinFieldEntity> fields = findTwinFields(twinEntity.getId());
+        twinEntity.setTwinFieldList(fields);
+        return fields;
+    }
+
     public TwinFieldEntity findTwinField(UUID twinFieldId) throws ServiceException {
         return entitySmartService.findById(twinFieldId, twinFieldRepository, EntitySmartService.FindMode.ifEmptyThrows);
     }
@@ -168,6 +176,24 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinFieldEntity = new TwinFieldEntity()
                 .setTwinClassField(twinClassField)
                 .setTwinClassFieldId(twinClassField.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue("");
+        return twinFieldEntity;
+    }
+
+    public TwinFieldEntity findTwinField(UUID twinId, UUID twinClassFieldId) throws ServiceException {
+        return twinFieldRepository.findByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+    }
+
+    public TwinFieldEntity findTwinFieldIncludeMissing(UUID twinId, UUID twinClassFieldId) throws ServiceException {
+        TwinFieldEntity twinFieldEntity = twinFieldRepository.findByTwinIdAndTwinClassFieldId(twinId, twinClassFieldId);
+        if (twinFieldEntity != null)
+            return twinFieldEntity;
+        TwinEntity twinEntity = findEntitySafe(twinId);
+        twinFieldEntity = new TwinFieldEntity()
+                .setTwinClassField(twinClassFieldService.findEntitySafe(twinClassFieldId))
+                .setTwinClassFieldId(twinClassFieldId)
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
                 .setValue("");
@@ -468,7 +494,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         else if (headTwin.getTwinClass().isSpace())
             return headTwin;
         else if (recursionDepth == 0) {
-            log.warn("Can not detect space for " + twinEntity);
+            log.warn("Can not detect space for " + twinEntity.logShort());
             return null;
         } else {
             loadHeadForTwin(headTwin);

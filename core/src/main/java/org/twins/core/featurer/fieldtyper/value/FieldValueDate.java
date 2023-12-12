@@ -6,7 +6,16 @@ import lombok.experimental.Accessors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class FieldValueDate extends FieldValue {
     private String date;
+
+    @Override
+    public FieldValueDate clone() {
+        FieldValueDate clone = new FieldValueDate();
+        clone
+                .setDate(this.date)
+                .setTwinClassField(this.getTwinClassField());
+        return clone;
+    }
 }

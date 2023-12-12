@@ -6,7 +6,16 @@ import lombok.experimental.Accessors;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class FieldValueColorHEX extends FieldValue {
     private String hex;
+
+    @Override
+    public FieldValueColorHEX clone() {
+        FieldValueColorHEX clone = new FieldValueColorHEX();
+        clone
+                .setHex(this.hex)
+                .setTwinClassField(this.getTwinClassField());
+        return clone;
+    }
 }

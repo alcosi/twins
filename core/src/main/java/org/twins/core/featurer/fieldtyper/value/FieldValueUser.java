@@ -11,12 +11,21 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class FieldValueUser extends FieldValue {
     private List<UserEntity> users = new ArrayList<>();
 
     public FieldValueUser add(UserEntity user) {
         users.add(user);
         return this;
+    }
+
+    @Override
+    public FieldValue clone() {
+        FieldValueUser clone = new FieldValueUser();
+        clone
+                .setTwinClassField(this.getTwinClassField());
+        clone.getUsers().addAll(this.getUsers()); // we have to copy list
+        return clone;
     }
 }

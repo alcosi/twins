@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -20,7 +21,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class")
-public class TwinClassEntity implements EasyLoggable {
+public class TwinClassEntity extends EasyLoggableImpl {
     @Id
     private UUID id;
 
@@ -101,7 +102,13 @@ public class TwinClassEntity implements EasyLoggable {
     private TwinflowEntity twinflow;
 
     public String easyLog(Level level) {
-        return "twinClass[id:" + id + ", key:" + key + "]";
+        switch (level) {
+            case SHORT:
+                return "twinClass[" + key + "]";
+            default:
+                return "twinClass[id:" + id + ", key:" + key + "]";
+        }
+
     }
 
     @Getter

@@ -43,6 +43,7 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
         List<FactoryItem> ret = new ArrayList<>();
         for (TwinEntity inputTwin : inputTwinList) {
             TwinEntity newTwin = new TwinEntity()
+                    .setName("")
                     .setTwinClass(outputTwinClassEntity)
                     .setTwinClassId(outputTwinClassEntity.getId())
                     .setCreatedAt(Timestamp.from(Instant.now()))

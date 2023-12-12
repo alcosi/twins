@@ -13,6 +13,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -51,7 +52,7 @@ public class TwinEntity extends EasyLoggableImpl {
     private UUID twinStatusId;
 
     @Column(name = "name")
-    private String name = ""; // not null in db
+    private String name;
 
     @Column(name = "description")
     private String description;
@@ -101,7 +102,19 @@ public class TwinEntity extends EasyLoggableImpl {
     @HashCodeExclude
     private TwinEntity headTwin;
 
+    @Transient
+    @HashCodeExclude
+    private List<TwinFieldEntity> twinFieldList;
+
     public String easyLog(Level level) {
-        return "twin[id:" + id + "]";
+        switch (level) {
+            case SHORT:
+                return "twin[" + id + "]";
+            case NORMAL:
+                return "twin[id:" + id + ", twinClassId:" + twinClassId + "]";
+            default:
+                return "twin[id:" + id + ", twinClassId:" + twinClassId + ", twinStatusId:" + twinStatusId + "]";
+        }
+
     }
 }

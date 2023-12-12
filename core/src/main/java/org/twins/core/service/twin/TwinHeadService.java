@@ -55,7 +55,7 @@ public class TwinHeadService {
                 } else if (systemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
                     return getValidBusinessAccountTwinListByTwinClass(twinClassEntity);
                 }
-                log.warn(headTwinClassEntity + " unknown system twin class for head");
+                log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
             }
         }
         // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)

@@ -50,10 +50,10 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             fieldValue = fieldValueText;
         if (fieldTyper.getValueType() == FieldValueColorHEX.class)
             fieldValue = new FieldValueColorHEX()
-                    .hex(fieldValueText.getValue());
+                    .setHex(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueDate.class)
             fieldValue = new FieldValueDate()
-                    .date(fieldValueText.getValue());
+                    .setDate(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
             fieldValue = new FieldValueSelect();
             for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
@@ -161,10 +161,13 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
     public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
         List<FieldValueText> fields = new ArrayList<>();
         if (fieldsMap != null)
-            for (Map.Entry<UUID, String> entry : fieldsMap.entrySet())
+            for (Map.Entry<UUID, String> entry : fieldsMap.entrySet()) {
+                if (entry.getValue() == null)
+                    continue; //skipping nullable
                 CollectionUtils.addIgnoreNull(
                         fields,
                         createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
+            }
         return convertList(fields);
     }
 }

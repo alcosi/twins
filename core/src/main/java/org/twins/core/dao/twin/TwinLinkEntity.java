@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity implements EasyLoggable {
+public class TwinLinkEntity extends EasyLoggableImpl implements Cloneable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -65,4 +66,15 @@ public class TwinLinkEntity implements EasyLoggable {
 
     @Transient
     private boolean uniqForSrcRelink = true;
+
+    public TwinLinkEntity clone() {
+        return new TwinLinkEntity()
+                .setDstTwinId(dstTwinId)
+                .setDstTwin(dstTwin)
+                .setLinkId(linkId)
+                .setLink(link)
+                .setSrcTwinId(srcTwinId)
+                .setSrcTwin(srcTwin)
+                .setCreatedByUserId(createdByUserId);
+    }
 }

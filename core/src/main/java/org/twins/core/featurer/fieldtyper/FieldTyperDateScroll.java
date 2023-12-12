@@ -35,17 +35,17 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueDate value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.date()))
+        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String datePatter = pattern.extract(properties);
-        if (!GenericValidator.isDate(value.date(), datePatter, false))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.date() + "] does not match pattern[" + datePatter + "]");
-        detectLocalChange(twinFieldEntity, entitiesChangesCollector, value.date());
+        if (!GenericValidator.isDate(value.getDate(), datePatter, false))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.getDate() + "] does not match pattern[" + datePatter + "]");
+        detectLocalChange(twinFieldEntity, entitiesChangesCollector, value.getDate());
     }
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueDate().date(twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : "");
+        return new FieldValueDate().setDate(twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : "");
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {

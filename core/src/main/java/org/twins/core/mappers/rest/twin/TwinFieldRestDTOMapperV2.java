@@ -30,14 +30,14 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
         if (fieldValue instanceof FieldValueText text) {
             dst.setValue(text.getValue());
         } else if (fieldValue instanceof FieldValueColorHEX color) {
-            dst.setValue(color.hex());
+            dst.setValue(color.getHex());
         } else if (fieldValue instanceof FieldValueDate date) {
-            dst.setValue(date.date());
+            dst.setValue(date.getDate());
         } else if (fieldValue instanceof FieldValueSelect select) {
-            dst.setValue(String.join(",", select.options().stream().map(o -> o.getId().toString()).toList()));
+            dst.setValue(String.join(",", select.getOptions().stream().map(o -> o.getId().toString()).toList()));
         } else if (fieldValue instanceof FieldValueUser userField) {
             List<String> userIdList = new ArrayList<>();
-            for (UserEntity userEntity : userField.users()) {
+            for (UserEntity userEntity : userField.getUsers()) {
                 mapperContext.addRelatedObject(userEntity); // we have to put users to related object
                 userIdList.add(userEntity.getId().toString());
             }

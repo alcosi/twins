@@ -87,7 +87,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Transactional
     public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) throws ServiceException {
         TwinClassEntity srcTwinClassEntity = findEntity(twinClassId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        log.info(srcTwinClassEntity + " will be duplicated with ne key[" + newKey + "]");
+        log.info(srcTwinClassEntity.logShort() + " will be duplicated with ne key[" + newKey + "]");
         TwinClassEntity duplicateTwinClassEntity = new TwinClassEntity()
                 .setKey(newKey)
                 .setCreatedByUserId(apiUser.getUser().getId())
@@ -132,7 +132,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             if (extendedTwinClassId == null)
                 break;
             if (ret.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
+                log.warn(twinClassEntity.logShort() + " inheritance recursion");
                 break;
             }
             ret.add(extendedTwinClassId);

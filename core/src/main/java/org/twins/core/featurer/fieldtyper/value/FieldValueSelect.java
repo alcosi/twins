@@ -10,12 +10,21 @@ import java.util.List;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 public class FieldValueSelect extends FieldValue {
     private List<DataListOptionEntity> options = new ArrayList<>();
 
     public FieldValueSelect add(DataListOptionEntity option) {
         options.add(option);
         return this;
+    }
+
+    @Override
+    public FieldValue clone() {
+        FieldValueSelect clone = new FieldValueSelect();
+        clone
+                .setTwinClassField(this.getTwinClassField());
+        clone.getOptions().addAll(this.options);
+        return clone;
     }
 }

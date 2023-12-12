@@ -10,8 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinCreate;
-import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.factory.filler.Filler;
@@ -34,12 +32,13 @@ public class TwinFactoryService {
     final FeaturerService featurerService;
 
     public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
+        log.info("Running factory[" + factoryId + "]");
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryId); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
-        Map<UUID, List<TwinEntity>> factoryInputTwins = TwinService.toClassMap(factoryContext.getInputTwinList().stream().toList());
+        Map<UUID, List<TwinEntity>> factoryInputTwins = TwinService.toClassMap(factoryContext.getFactoryItemList().stream().map(factoryItem -> factoryItem.getOutputTwin().getTwinEntity()).toList());
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
             List<TwinEntity> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
-                log.info(factoryMultiplierEntity + " empty input");
+                log.info(factoryMultiplierEntity.logNormal() + " empty input");
                 continue;
             }
             Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturer(), Multiplier.class);
@@ -48,13 +47,14 @@ public class TwinFactoryService {
         }
         List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryId(factoryId);
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
+            log.info("Running " + factoryPipelineEntity.logNormal());
             List<FactoryItem> pipelineInputList = new ArrayList<>();
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
                 if (twinClassService.isInstanceOf(factoryItem.getOutputTwin().getTwinEntity().getTwinClass(), factoryPipelineEntity.getInputTwinClassId()))
                     pipelineInputList.add(factoryItem);
             }
             if (CollectionUtils.isEmpty(pipelineInputList)) {
-                log.info(factoryPipelineEntity + " empty input");
+                log.info(factoryPipelineEntity.logShort() + " empty input");
                 continue;
             }
             List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineId(factoryPipelineEntity.getId());
@@ -66,6 +66,10 @@ public class TwinFactoryService {
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin());
                 }
+            }
+            if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
+                log.info(factoryPipelineEntity.logShort() + " has nextFactoryId configured");
+                runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext); //todo endless recursion risk
             }
         }
         return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutputTwin).toList();

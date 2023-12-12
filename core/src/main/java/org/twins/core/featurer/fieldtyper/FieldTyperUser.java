@@ -60,12 +60,12 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueUser value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.users()))
+        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.getUsers()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (value.users() != null && value.users().size() > 1 && !allowMultiply(properties))
+        if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID userFilterId = userFilterUUID.extract(properties); //todo not implemented yet
-        List<UserEntity> selectedUserEntityList = userRepository.findByIdIn(value.users().stream().map(UserEntity::getId).toList());
+        List<UserEntity> selectedUserEntityList = userRepository.findByIdIn(value.getUsers().stream().map(UserEntity::getId).toList());
         Map<UUID, TwinFieldUserEntity> storedFieldUsers = null;
         if (twinFieldEntity.getId() != null) //not new field
             storedFieldUsers = twinFieldUserRepository.findByTwinFieldId(twinFieldEntity.getId()).stream().collect(Collectors.toMap(TwinFieldUserEntity::getUserId, Function.identity()));

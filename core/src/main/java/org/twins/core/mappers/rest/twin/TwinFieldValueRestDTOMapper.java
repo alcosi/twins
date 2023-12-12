@@ -28,13 +28,13 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .text(text.getValue());
         if (fieldValue instanceof FieldValueColorHEX color)
             return new TwinFieldValueColorHexDTOv1()
-                    .hex(color.hex());
+                    .hex(color.getHex());
         if (fieldValue instanceof FieldValueDate date)
             return new TwinFieldValueDateDTOv1()
-                    .date(date.date());
+                    .date(date.getDate());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.getOptions(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
         return null;
     }
 }

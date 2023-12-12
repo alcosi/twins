@@ -30,6 +30,7 @@ public class MultiplierAggregate extends Multiplier {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId.extract(properties));
         ApiUser apiUser = authService.getApiUser();
         TwinEntity newTwin = new TwinEntity()
+                .setName("")
                 .setTwinClass(outputTwinClassEntity)
                 .setTwinClassId(outputTwinClassEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))

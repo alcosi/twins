@@ -19,4 +19,16 @@ public class FieldValueLink extends FieldValue {
         twinLinks.add(twinLinkEntity);
         return this;
     }
+
+    @Override
+    public FieldValue clone() {
+        FieldValueLink clone = new FieldValueLink();
+        clone
+                .setForwardLink(this.forwardLink)
+                .setTwinClassField(this.getTwinClassField());
+        for (TwinLinkEntity twinLinkEntity : twinLinks) {
+            clone.getTwinLinks().add(twinLinkEntity.clone());
+        }
+        return clone;
+    }
 }

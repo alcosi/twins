@@ -35,11 +35,11 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
             return;
         List<LinkEntity> linkEntityList = linkService.findLinks(contextTwin.getTwinClass(), factoryItem.getOutputTwin().getTwinEntity().getTwinClass());
         if (CollectionUtils.isEmpty(linkEntityList)) {
-            log.warn("No links configured from twinClass[" + contextTwin.getTwinClass() + "] to twinClass[" + factoryItem.getOutputTwin().getTwinEntity().getTwinClassId());
+            log.warn("No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
             return;
         }
         if (linkEntityList.size() > 1) {
-            log.warn(linkEntityList.size() + " links configured from twinClass[" + contextTwin.getTwinClass() + "] to twinClass[" + factoryItem.getOutputTwin().getTwinEntity().getTwinClassId());
+            log.warn(linkEntityList.size() + " links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
             //todo get link by hierarchy priority
         }
         LinkEntity linkEntity = linkEntityList.get(0);
