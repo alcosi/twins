@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinOperation;
+import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.factory.filler.Filler;
@@ -34,7 +35,7 @@ public class TwinFactoryService {
     public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
         log.info("Running factory[" + factoryId + "]");
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryId); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
-        Map<UUID, List<TwinEntity>> factoryInputTwins = TwinService.toClassMap(factoryContext.getFactoryItemList().stream().map(factoryItem -> factoryItem.getOutputTwin().getTwinEntity()).toList());
+        Map<UUID, List<TwinEntity>> factoryInputTwins = groupItemsByClass(factoryContext);
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
             List<TwinEntity> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
@@ -73,5 +74,18 @@ public class TwinFactoryService {
             }
         }
         return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutputTwin).toList();
+    }
+
+    private Map<UUID, List<TwinEntity>> groupItemsByClass(FactoryContext factoryContext) {
+        Map<UUID, List<TwinEntity>> factoryInputTwins = new HashMap<>();
+        for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
+            TwinOperation twinOperation = factoryItem.getOutputTwin();
+            List<TwinEntity> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(factoryItem.getOutputTwin().getTwinEntity().getTwinClassId(), k -> new ArrayList<>());
+            if (twinOperation instanceof TwinUpdate twinUpdate)
+                twinsGroupedByClass.add(twinUpdate.getDbTwinEntity());
+            else
+                twinsGroupedByClass.add(twinOperation.getTwinEntity());
+        }
+        return factoryInputTwins;
     }
 }

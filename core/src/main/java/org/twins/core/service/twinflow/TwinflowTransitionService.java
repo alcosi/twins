@@ -141,17 +141,21 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             List<TwinOperation> twinFactoryOutput = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
             for (TwinOperation twinOperation : twinFactoryOutput) {
                 if (twinOperation instanceof TwinCreate twinCreate) {
-                    twinService.createTwin(apiUser, twinCreate);
-                    ret.addProcessedTwin(twinCreate.getTwinEntity());
+                    TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
+                    ret.addProcessedTwin(twinCreateResult.getCreatedTwin());
                 } else if (twinOperation instanceof TwinUpdate twinUpdate) {
+                    boolean isProcessedTwin = true;
                     if (transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinUpdate.getTwinEntity().getId())) {// case when twin was taken from input, we have to force update status from transition
                         twinUpdate.getTwinEntity()
                                 .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
                                 .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
-                        ret.addTransitionedTwin(twinUpdate.getDbTwinEntity());
-                    } else
-                        ret.addProcessedTwin(twinUpdate.getDbTwinEntity());
+                        isProcessedTwin = false;
+                    }
                     twinService.updateTwin(twinUpdate);
+                    if (isProcessedTwin) {
+                        ret.addProcessedTwin(twinUpdate.getDbTwinEntity());
+                    } else
+                        ret.addTransitionedTwin(twinUpdate.getDbTwinEntity());
                 }
             }
         } else {

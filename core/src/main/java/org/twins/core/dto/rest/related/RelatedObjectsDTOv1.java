@@ -18,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "RelatedObjectsV1")
 public class RelatedObjectsDTOv1 {
-    @Schema(description = "related statuses map")
+    @Schema(description = "related statuses map", example = "")
     public Map<UUID, TwinDTOv2> twinMap;
 
     @Schema(description = "related statuses map")

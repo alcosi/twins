@@ -331,19 +331,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
+    public TwinUpdateResult updateTwin(TwinUpdate twinUpdate) throws ServiceException {
+        return updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
     }
 
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
-        updateTwin(updateTwinEntity, dbTwinEntity, fields);
+    public TwinUpdateResult updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
+        TwinUpdateResult twinUpdateResult = updateTwin(updateTwinEntity, dbTwinEntity, fields);
         cudAttachments(dbTwinEntity, attachmentCUD);
         cudTwinLinks(dbTwinEntity, twinLinkCUD);
+        return twinUpdateResult;
     }
 
     @Transactional
-    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+    public TwinUpdateResult updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
@@ -360,9 +361,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
             dbTwinEntity.setTwinStatusId(updateTwinEntity.getTwinStatusId());
         }
-        entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
+        TwinEntity updatedTwin = entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
         if (MapUtils.isNotEmpty(fields))
             updateTwinFields(dbTwinEntity, fields.values().stream().toList());
+        return new TwinUpdateResult().setUpdatedTwin(updatedTwin);
     }
 
     public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
@@ -617,6 +619,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         private TwinEntity createdTwin;
         private List<TwinBusinessAccountAliasEntity> businessAccountAliasEntityList;
         private List<TwinDomainAliasEntity> domainAliasEntityList;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class TwinUpdateResult {
+        private TwinEntity updatedTwin;
     }
 
     @Data
