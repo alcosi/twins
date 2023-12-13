@@ -15,7 +15,7 @@
             <charset>UTF-8</charset>
             <immediateFlush>true</immediateFlush>
             <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}|%X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
+                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
                 '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
             </pattern>
         </encoder>
@@ -34,7 +34,7 @@
             <charset>UTF-8</charset>
             <immediateFlush>true</immediateFlush>
             <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}|%X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
+                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
                 '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
             </pattern>
         </encoder>
@@ -47,7 +47,7 @@
         <encoder>
             <charset>UTF-8</charset>
             <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}|%X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
+                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{CLIENT}%replace(%replace(%msg){'"base64":".*"',
                 '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
             </pattern>
         </encoder>
@@ -79,6 +79,9 @@
         <appender-ref ref="ASYNC-RQ-RS-FILE"/>
     </logger>
     <logger name="RqRsLoggerShort" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC-FILE"/>
+    </logger>
+    <logger name="org.twins.core.mappers.rest.MapperContext" level="DEBUG" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
 

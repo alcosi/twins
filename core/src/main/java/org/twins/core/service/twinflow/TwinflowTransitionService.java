@@ -150,7 +150,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                                 .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
                         ret.addTransitionedTwin(twinUpdate.getDbTwinEntity());
                     } else
-                        ret.addProcessedTwin(twinUpdate.getTwinEntity());
+                        ret.addProcessedTwin(twinUpdate.getDbTwinEntity());
                     twinService.updateTwin(twinUpdate);
                 }
             }
