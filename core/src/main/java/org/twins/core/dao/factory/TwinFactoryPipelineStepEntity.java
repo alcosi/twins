@@ -30,6 +30,9 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     
     @Column(name = "filler_featurer_id")
     private int fillerFeaturerId;
+
+    @Column(name = "comment")
+    private String comment;
     
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "filler_params", columnDefinition = "hstore")

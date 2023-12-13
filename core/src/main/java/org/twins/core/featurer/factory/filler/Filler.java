@@ -17,9 +17,9 @@ import java.util.*;
 @Slf4j
 public abstract class Filler extends Featurer {
 
-    public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
+    public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin, String logMsg) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fillerParams, new HashMap<>());
-        log.info("Running filler[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        log.info(logMsg + ": running filler[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
         fill(properties, factoryItem, templateTwin);
     }
 

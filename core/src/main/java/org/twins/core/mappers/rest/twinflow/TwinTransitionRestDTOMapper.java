@@ -27,11 +27,13 @@ public class TwinTransitionRestDTOMapper extends RestSimpleDTOMapper<TwinflowTra
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
+                        .setAlias(src.getTwinflowTransitionAliasId())
                         .setId(src.getId());
                 break;
             case SHORT:
                 dst
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
+                        .setAlias(src.getTwinflowTransitionAliasId())
                         .setId(src.getId());
                 break;
         }

@@ -99,6 +99,22 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return twinflowTransitionEntityList;
     }
 
+    public Map<UUID, TwinflowTransitionEntity> findTransitionsByAlias(String transitionAlias) throws ServiceException {
+        List<TwinflowTransitionEntity> transitionEntityList = twinflowTransitionRepository.findByTwinflowTransitionAliasId(transitionAlias);
+        Map<UUID, TwinflowTransitionEntity> ret = new HashMap<>(); //key is srcStatus
+        for (TwinflowTransitionEntity transitionEntity : transitionEntityList) {
+            if (validateEntity(transitionEntity, EntitySmartService.EntityValidateMode.afterRead))
+                ret.put(transitionEntity.getSrcTwinStatusId(), transitionEntity);
+        }
+//        Iterator<TwinflowTransitionEntity> iter = transitionEntityList.iterator();
+//        while (iter.hasNext()) {
+//            TwinflowTransitionEntity transitionEntity = iter.next();
+//            if (!validateEntity(transitionEntity, EntitySmartService.EntityValidateMode.afterRead))
+//                iter.remove();
+//        }
+        return ret;
+    }
+
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {
         List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
@@ -190,8 +206,26 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return this;
         }
 
+        public TransitionResult addTransitionedTwin(List<TwinEntity> twinEntityList) {
+            if (CollectionUtils.isEmpty(twinEntityList))
+                return this;
+            if (transitionedTwinList == null)
+                transitionedTwinList = new ArrayList<>();
+            transitionedTwinList.addAll(twinEntityList);
+            return this;
+        }
+
         public TransitionResult addProcessedTwin(TwinEntity twinEntity) {
             processedTwinList = org.cambium.common.util.CollectionUtils.safeAdd(processedTwinList, twinEntity);
+            return this;
+        }
+
+        public TransitionResult addProcessedTwin(List<TwinEntity> twinEntityList) {
+            if (CollectionUtils.isEmpty(twinEntityList))
+                return this;
+            if (processedTwinList == null)
+                processedTwinList = new ArrayList<>();
+            processedTwinList.addAll(twinEntityList);
             return this;
         }
     }

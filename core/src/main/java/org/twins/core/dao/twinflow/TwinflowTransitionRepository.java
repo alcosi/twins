@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTransitionEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionEntity> {
     List<TwinflowTransitionEntity> findByTwinflowIdAndSrcTwinStatusId(UUID twinflowId, UUID srcTwinStatusID);
+    List<TwinflowTransitionEntity> findByTwinflowTransitionAliasId(String alias); //todo also filter by current domainId
 }

@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.cambium.i18n.dao.I18nEntity;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -59,6 +56,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Column(name = "drafting_twin_factory_id")
     private UUID draftingTwinFactoryId;
+
+    @Column(name = "twinflow_transition_alias_id")
+    private String twinflowTransitionAliasId;
 
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)

@@ -23,6 +23,9 @@ public class TwinTransitionViewDTOv1 extends TwinTransitionBaseDTOv1 {
     @Schema(description = "name")
     public String name;
 
+    @Schema(description = "alias", example = DTOExamples.TWINFLOW_TRANSITION_ALIAS)
+    public String alias;
+
     @Schema()
     public boolean allowComment;
 
