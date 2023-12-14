@@ -56,7 +56,7 @@ public class TwinLinkEntity extends EasyLoggableImpl implements Cloneable {
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "twinLink[id:" + id + "]";
+                return "twinLink[" + id + "]";
             case NORMAL:
                 return "twinLink[id:" + id + ", linkId:" + linkId +  "]";
             default:

@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -14,6 +15,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Lazy
@@ -41,5 +43,13 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public List<TwinStatusEntity> findByTwinClass(TwinClassEntity twinClassEntity) {
         twinClassService.loadExtendedClasses(twinClassEntity);
         return twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
+    }
+
+    public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {
+        if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
+            return true;
+        }
+        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinEntity.getTwinClass());
+        return extendedTwinClasses.contains(twinStatusEntity.getTwinClassId());
     }
 }

@@ -51,7 +51,7 @@ public class FillerFieldsFromTemplateTwinAll extends Filler {
                 logMsgs.add(outputTwinEntity + "" + fieldValue.getTwinClassField() + " will be filled from template");
             }
         } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUR_INCORRECT);
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT);
         }
         if (logMsgs.size() > 0)
             log.info(String.join(System.lineSeparator(), logMsgs));

@@ -19,14 +19,14 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Properties;
+import java.util.*;
 
 @Component
-@Featurer(id = 2312,
-        name = "FillerFieldFromContext",
+@Featurer(id = 2311,
+        name = "FillerFieldFromContextTwinField",
         description = "")
 @Slf4j
-public class FillerFieldFromContext extends Filler {
+public class FillerFieldFromContextTwinField extends Filler {
     @FeaturerParam(name = "srcTwinClassFieldId", description = "")
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUID("srcTwinClassFieldId");
 
@@ -51,14 +51,22 @@ public class FillerFieldFromContext extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        FieldValue fieldValue = factoryItem.getFactoryContext().getFields().get(srcTwinClassFieldId.extract(properties));
-        if (fieldValue == null) {
-            log.warn("TwinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present in context fields");
+        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
+        TwinEntity contextTwin = checkNotMultiplySrc(factoryItem);
+        TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), srcTwinClassFieldId.extract(properties));
+        if (srcField != null) {
+            log.warn("twinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present for context " + contextTwin.logShort());
             return;
         }
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
-        FieldValue clone = fieldValue.clone();
-        clone.setTwinClassField(dstTwinClassField); //value will be copied to dst
-        factoryItem.getOutputTwin().addField(clone);
+        FieldValue fieldValue = null;
+        try {
+            fieldValue = twinFieldRestDTOMapperV2.convert(srcField);
+            log.info(outputTwinEntity.logShort() + " " + dstTwinClassField.logShort() + " will be filled from context twin " + srcField);
+        } catch (Exception e) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT);
+        }
+        fieldValue.setTwinClassField(dstTwinClassField); //value will be copied to dst
+        factoryItem.getOutputTwin().addField(fieldValue);
     }
 }

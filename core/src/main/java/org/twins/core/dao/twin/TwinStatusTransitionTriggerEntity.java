@@ -54,7 +54,7 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "twinStatusTransitionTrigger[id:" + id + "]";
+                return "twinStatusTransitionTrigger[" + id + "]";
             case NORMAL:
                 return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type +  "]";
             default:

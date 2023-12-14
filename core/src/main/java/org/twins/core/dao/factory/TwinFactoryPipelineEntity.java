@@ -42,7 +42,7 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "twinFactoryPipeline[id:" + id + "]";
+                return "twinFactoryPipeline[" + id + "]";
             default:
                 return "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
         }

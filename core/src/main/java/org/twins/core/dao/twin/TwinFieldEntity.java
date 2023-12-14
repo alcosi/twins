@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_field")
-public class TwinFieldEntity implements EasyLoggable {
+public class TwinFieldEntity extends EasyLoggableImpl {
     @Id
     private UUID id;
 
@@ -42,6 +43,13 @@ public class TwinFieldEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        switch (level) {
+            case SHORT:
+                return "twinField[" + id + "]";
+            case NORMAL:
+                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+            default:
+                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        }
     }
 }
