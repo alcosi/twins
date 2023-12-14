@@ -81,24 +81,34 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                     .setLink(linkEntity);
         if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(newTwinLinks))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (newTwinLinks != null && newTwinLinks.size() > 1 && !allowMultiply(linkEntity, twinFieldEntity.getTwinClassField()))
+        if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, twinFieldEntity.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
         twinLinkService.prepareTwinLinks(twinFieldEntity.getTwin(), newTwinLinks);
-        Map<UUID, TwinLinkNoRelationsProjection> storedLinks = null;
-        if (twinFieldEntity.getId() != null) //not new field
-            storedLinks = twinLinkRepository.findBySrcTwinId(twinFieldEntity.getId(), TwinLinkNoRelationsProjection.class).stream().collect(Collectors.toMap(TwinLinkNoRelationsProjection::id, Function.identity()));
-        else
+        if (twinFieldEntity.getId() == null) //not new field
             twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldDataListEntity is linked to TwinFieldEntity by FK
+        List<TwinLinkNoRelationsProjection> storedLinksList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkNoRelationsProjection.class);
+        Map<UUID, TwinLinkNoRelationsProjection> storedLinksMap = null; // key is links dstTwinId
+        if (CollectionUtils.isNotEmpty(storedLinksList))
+            storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkNoRelationsProjection::dstTwinId, Function.identity()));
         for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
-            if (storedLinks == null // no links were saved before
-                    || twinLinkEntity.getId() == null) {  //after twinLinkService.prepareTwinLinks all existed twinLinks will be filled with id from db
+            if (storedLinksMap == null) {  // no links were saved before //after twinLinkService.prepareTwinLinks all existed twinLinks will be filled with id from db
                 entitiesChangesCollector.add(twinLinkEntity);
-            } else if (storedLinks.containsKey(twinLinkEntity.getId())) { // link is already saved
-                storedLinks.remove(twinLinkEntity.getId());
+            } else if (storedLinksMap.containsKey(twinLinkEntity.getDstTwinId())) { // link is already saved
+                storedLinksMap.remove(twinLinkEntity.getDstTwinId()); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
+            } else if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
+                if (storedLinksMap.size() != 1)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, "Multiple links not valid for type[" + twinLinkEntity.getLink().getType().name() + "]");
+                TwinLinkNoRelationsProjection dbTwinLink = storedLinksList.get(0);
+                log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
+                twinLinkEntity.setId(dbTwinLink.id());
+                entitiesChangesCollector.add(twinLinkEntity);
+                storedLinksMap.clear(); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
+            } else {
+                entitiesChangesCollector.add(twinLinkEntity);
             }
         }
-        if (storedLinks != null && CollectionUtils.isNotEmpty(storedLinks.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(TwinLinkEntity.class, storedLinks.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
+        if (storedLinksMap != null && CollectionUtils.isNotEmpty(storedLinksMap.entrySet())) // old values must be deleted
+            entitiesChangesCollector.deleteAll(TwinLinkEntity.class, storedLinksMap.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
     }
 
     @Override

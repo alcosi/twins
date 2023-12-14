@@ -122,9 +122,19 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 twinLinkEntity
                         .setCreatedByUserId(apiUser.getUser().getId())
                         .setCreatedByUser(apiUser.getUser());
+        }
+    }
+
+    public void processAlreadyExisted(List<TwinLinkEntity> linksEntityList) throws ServiceException {
+        Iterator<TwinLinkEntity> iterator = linksEntityList.listIterator();
+        while (iterator.hasNext()) {
+            TwinLinkEntity twinLinkEntity = iterator.next();
             if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
-                TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
-                if (dbTwinLink != null && twinLinkEntity.isUniqForSrcRelink()) {
+                List<TwinLinkNoRelationsProjection> dbTwinLinkList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
+                if (dbTwinLinkList != null && dbTwinLinkList.size() > 1)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, "Multiple links not valid for type[" + twinLinkEntity.getLink().getType().name() + "]");
+                else if (dbTwinLinkList != null && twinLinkEntity.isUniqForSrcRelink()) {
+                    TwinLinkNoRelationsProjection dbTwinLink = dbTwinLinkList.get(1);
                     log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                     twinLinkEntity.setId(dbTwinLink.id());
                 }
@@ -132,7 +142,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 TwinLinkNoRelationsProjection dbTwinLink = twinLinkRepository.findBySrcTwinIdAndDstTwinIdAndLinkId(twinLinkEntity.getSrcTwinId(), twinLinkEntity.getDstTwinId(), twinLinkEntity.getLinkId(), TwinLinkNoRelationsProjection.class);
                 if (dbTwinLink != null) {
                     log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ".");
-                    twinLinkEntity.setId(dbTwinLink.id()); // todo better to remove from save list
+                    iterator.remove();
                 }
             }
         }
@@ -140,6 +150,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
         prepareTwinLinks(srcTwinEntity, linksEntityList);
+        processAlreadyExisted(linksEntityList);
         entitySmartService.saveAllAndLog(linksEntityList, twinLinkRepository);
     }
 
@@ -258,8 +269,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             linkDirection = linkService.detectLinkDirection(linkEntity, twinEntity.getTwinClass());
         switch (linkDirection) {
             case forward:
-                TwinLinkEntity twinLinkEntity = twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
-                return twinLinkEntity != null ? List.of(twinLinkEntity) : null;
+                List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
+                return twinLinkEntityList;
             case backward:
                 return twinLinkRepository.findByDstTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             default:
