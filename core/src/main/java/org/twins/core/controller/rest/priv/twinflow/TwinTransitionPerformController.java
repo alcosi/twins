@@ -69,7 +69,7 @@ public class TwinTransitionPerformController extends ApiController {
     final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition")
+    @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition by transition id. Transition will be performed only if current twin status is correct for given transition")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
@@ -134,7 +134,8 @@ public class TwinTransitionPerformController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTransitionByAliasPerformV1", summary = "Perform twin transition")
+    @Operation(operationId = "twinTransitionByAliasPerformV1", summary = "Perform twin transition by alias. An alias can be useful for performing transitions for twin from different statuses. " +
+            "For incoming twin, the appropriate transition will be selected based on its current status.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
@@ -200,7 +201,7 @@ public class TwinTransitionPerformController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTransitionPerformBatchV1", summary = "Perform transition for batch of twins")
+    @Operation(operationId = "twinTransitionPerformBatchV1", summary = "Perform transition for batch of twins by transition id. Transition will be performed only if current twin status is correct for given transition")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
@@ -266,7 +267,8 @@ public class TwinTransitionPerformController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTransitionByAliasPerformBatchV1", summary = "Perform transition for batch of twins")
+    @Operation(operationId = "twinTransitionByAliasPerformBatchV1", summary = "Perform transition for batch of twins by alias. An alias can be useful for performing transitions for twins from different statuses. " +
+            "For each incoming twin, the appropriate transition will be selected based on its current status.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =

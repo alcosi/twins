@@ -58,15 +58,16 @@ public class TwinFactoryService {
                 log.info(factoryPipelineEntity.logShort() + " empty input");
                 continue;
             }
-            List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineId(factoryPipelineEntity.getId());
+            List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineIdOrderByOrder(factoryPipelineEntity.getId());
             for (FactoryItem pipelineInput : pipelineInputList) {
                 pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
                 if (pipelineInput.getOutputTwin().getTwinEntity().getId() == null)
                     pipelineInput.getOutputTwin().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
                 String logMsg;
-                for (TwinFactoryPipelineStepEntity pipelineStepEntity : pipelineStepEntityList) {
+                for (int step = 0; step < pipelineStepEntityList.size(); step++) {
+                    TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
-                    logMsg = "Step " + pipelineStepEntity.getOrder() + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**)";
+                    logMsg = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**)";
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                 }
             }
