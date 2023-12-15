@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -33,6 +32,9 @@ public class TwinFactoryMultiplierEntity extends EasyLoggableImpl {
 
     @Column(name = "multiplier_featurer_id")
     private int multiplierFeaturerId;
+
+    @Column(name = "comment")
+    private String comment;
 
     @FeaturerList(type = Multiplier.class)
     @ManyToOne(fetch = FetchType.EAGER)

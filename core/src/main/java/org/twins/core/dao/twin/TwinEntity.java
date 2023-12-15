@@ -6,9 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.builder.HashCodeExclude;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -22,7 +20,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity extends EasyLoggableImpl {
+public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @Id
     private UUID id;
 
@@ -116,5 +114,25 @@ public class TwinEntity extends EasyLoggableImpl {
                 return "twin[id:" + id + ", twinClassId:" + twinClassId + ", twinStatusId:" + twinStatusId + "]";
         }
 
+    }
+
+    public TwinEntity clone() {
+        return new TwinEntity()
+                .setId(id)
+                .setTwinClassId(twinClassId)
+                .setTwinClass(twinClass)
+                .setTwinStatusId(twinStatusId)
+                .setTwinStatus(twinStatus)
+                .setName(name)
+                .setAssignerUserId(assignerUserId)
+                .setCreatedByUserId(createdByUserId)
+                .setCreatedAt(createdAt)
+                .setHeadTwinId(headTwinId)
+                .setHeadTwin(headTwin)
+                .setOwnerUserId(ownerUserId)
+                .setOwnerBusinessAccountId(ownerBusinessAccountId)
+                .setExternalId(externalId)
+                .setDescription(description)
+                .setSpaceTwin(spaceTwin);
     }
 }

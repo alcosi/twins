@@ -3,22 +3,15 @@ package org.twins.core.featurer.factory.multiplier;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.service.twin.TwinService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -42,9 +35,11 @@ public class MultiplierIsolatedShiftHead extends Multiplier {
                 log.error(inputTwin.logShort() + " no head twin. Skipped by multiplier");
                 continue;
             }
-
+            TwinEntity headTwin = inputTwin.getHeadTwin();
             TwinUpdate twinUpdate = new TwinUpdate();
-            twinUpdate.setTwinEntity(inputTwin.getHeadTwin());
+            twinUpdate
+                    .setDbTwinEntity(headTwin) // original twin
+                    .setTwinEntity(headTwin.clone()); // collecting updated in new twin
             ret.add(new FactoryItem()
                     .setOutputTwin(twinUpdate)
                     .setContextTwinList(List.of(inputTwin)));

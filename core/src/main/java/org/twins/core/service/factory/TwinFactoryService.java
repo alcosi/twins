@@ -43,7 +43,7 @@ public class TwinFactoryService {
                 continue;
             }
             Multiplier multiplier = featurerService.getFeaturer(factoryMultiplierEntity.getMultiplierFeaturer(), Multiplier.class);
-            List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity.getMultiplierParams(), multiplierInput, factoryContext);
+            List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity, multiplierInput, factoryContext);
             factoryContext.getFactoryItemList().addAll(multiplierOutput);
         }
         List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryId(factoryId);
@@ -66,7 +66,7 @@ public class TwinFactoryService {
                 String logMsg;
                 for (TwinFactoryPipelineStepEntity pipelineStepEntity : pipelineStepEntityList) {
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
-                    logMsg = "step " + pipelineStepEntity.getOrder() + "/" + pipelineStepEntityList.size() + "(" + pipelineStepEntity.getComment() + ")";
+                    logMsg = "Step " + pipelineStepEntity.getOrder() + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**)";
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                 }
             }

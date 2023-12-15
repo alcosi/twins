@@ -2,7 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.HashMap;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class TwinOperation {
-    protected TwinEntity twinEntity;
+    protected TwinEntity twinEntity; // only for new/updated data
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
 
     public TwinOperation addField(FieldValue fieldValue) {

@@ -3,15 +3,14 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,12 +19,11 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntity, FieldValueText> {
-    final FeaturerService featurerService;
+    final TwinService twinService;
 
     @Override
     public void map(TwinFieldEntity src, FieldValueText dst, MapperContext mapperContext) throws Exception {
-        FieldTyper fieldTyper = featurerService.getFeaturer(src.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-        FieldValue fieldValue = fieldTyper.deserializeValue(src);
+        FieldValue fieldValue = twinService.getTwinFieldValue(src);
         dst.setTwinClassField(fieldValue.getTwinClassField());
         if (fieldValue instanceof FieldValueText text) {
             dst.setValue(text.getValue());

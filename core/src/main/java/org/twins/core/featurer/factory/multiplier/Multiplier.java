@@ -6,6 +6,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -30,9 +31,9 @@ public abstract class Multiplier extends Featurer {
     @Autowired
     AuthService authService;
 
-    public List<FactoryItem> multiply(HashMap<String, String> multiplierParams, List<TwinEntity> input, FactoryContext factoryContext) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, multiplierParams, new HashMap<>());
-        log.info("Running multiplier[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+    public List<FactoryItem> multiply(TwinFactoryMultiplierEntity multiplierEntity, List<TwinEntity> input, FactoryContext factoryContext) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, multiplierEntity.getMultiplierParams(), new HashMap<>());
+        log.info("Running multiplier[" + this.getClass().getSimpleName() + "] **" + multiplierEntity.getComment() + "** with params: " + properties.toString());
         List<FactoryItem> ret =  multiply(properties, input, factoryContext);
         for (FactoryItem factoryItem : ret) {
             factoryItem.setFactoryContext(factoryContext);

@@ -16,7 +16,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 
@@ -40,10 +39,6 @@ public class FillerBasicsAssigneeFromContextTwinField extends Filler {
     @Autowired
     TwinStatusService twinStatusService;
 
-    @Lazy
-    @Autowired
-    TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
-
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
@@ -54,12 +49,7 @@ public class FillerBasicsAssigneeFromContextTwinField extends Filler {
             log.warn("TwinClassField[" + assigneeFieldId + "] is not present for context " + contextTwin.logShort());
             return;
         }
-        FieldValue fieldValue;
-        try {
-            fieldValue = twinFieldRestDTOMapperV2.convert(srcField);
-        } catch (Exception e) {
-            throw new ServiceException(ErrorCodeTwins.TWIN_FIELD_VALUE_INCORRECT);
-        }
+        FieldValue fieldValue = twinService.getTwinFieldValue(srcField);
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             if (CollectionUtils.isEmpty(fieldValueUser.getUsers()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, srcField.logShort() + " is not filled");

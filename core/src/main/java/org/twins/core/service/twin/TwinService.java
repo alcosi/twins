@@ -152,6 +152,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinFieldRepository.findByTwinId(twinId);
     }
 
+    public FieldValue getTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+        return fieldTyper.deserializeValue(twinFieldEntity);
+    }
+
     public List<TwinFieldEntity> loadTwinFields(TwinEntity twinEntity) {
         if (twinEntity.getTwinFieldList() != null)
             return twinEntity.getTwinFieldList();
