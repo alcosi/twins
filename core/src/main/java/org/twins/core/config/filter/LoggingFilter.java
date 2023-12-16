@@ -65,7 +65,7 @@ public class LoggingFilter extends OncePerRequestFilter {
             for (String headerName : headerNameList) {
                 String headerValue = request.getHeader(headerName);
                 if (headerValue != null)
-                    logHeaders.add(headerName +  ":[" + headerValue + "]");
+                    logHeaders.add(headerName + ":[" + headerValue + "]");
             }
             if (logHeaders.size() > 0)
                 logInfoBoth("RQ_HEADERS: {}", String.join(", ", logHeaders));
@@ -76,7 +76,9 @@ public class LoggingFilter extends OncePerRequestFilter {
             try {
                 String message = new String(content, contentEncoding);
                 log.info("{}_BODY: {}", prfx, message);
-                if (logShortThreshold == 0 || logShortThreshold > message.length())
+                if (message.length() > 2000 && message.indexOf("openapi") > 0) { // swagger output is too big
+                    logShort.info("{}_BODY: <content> is longer then 2000 symbols. Please see other log file", prfx);
+                } else if (logShortThreshold == 0 || logShortThreshold > message.length())
                     logShort.info("{}_BODY: {}", prfx, message);
                 else
                     logShort.info("{}_BODY: <content> is longer then {} symbols. Please see other log file", prfx, logShortThreshold);
@@ -136,7 +138,7 @@ public class LoggingFilter extends OncePerRequestFilter {
             logSessionId(request);
             doFilterWrapped(wrapRequest(request), wrapResponse(response), filterChain);
         } else {
-            filterChain.doFilter(request,response);
+            filterChain.doFilter(request, response);
             log.trace("Ignoring request logging {}", request.getRequestURI());
             logShort.trace("Ignoring request logging {}", request.getRequestURI());
         }
