@@ -49,7 +49,7 @@ public class UserGroupListController extends ApiController {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             rs.userGroupList = userGroupDTOMapper.convertList(
-                    userGroupService.findGroupsForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperContext().setMode(showUserGroupMode));
+                    userGroupService.findGroupsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperContext().setMode(showUserGroupMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -16,6 +16,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -33,6 +34,7 @@ public class BusinessAccountService {
     @Lazy
     final TwinService twinService;
     final SystemEntityService systemEntityService;
+    final UserService userService;
     @Lazy
     final AuthService authService;
 
@@ -44,15 +46,17 @@ public class BusinessAccountService {
         return entitySmartService.check(businessAccountId, businessAccountRepository, checkMode);
     }
 
-    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+    public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+        userService.addUser(userId, userCreateMode);
         addBusinessAccount(businessAccountId, businessAccountEntityCreateMode);
         BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId);
-        if (businessAccountUserEntity != null)
+        if (businessAccountUserEntity != null) {
             if (ignoreAlreadyExists)
                 return;
             else
                 throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in businessAccount[" + businessAccountId + "]");
-         businessAccountUserEntity = new BusinessAccountUserEntity()
+        }
+        businessAccountUserEntity = new BusinessAccountUserEntity()
                 .setBusinessAccountId(businessAccountId)
                 .setUserId(userId);
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);

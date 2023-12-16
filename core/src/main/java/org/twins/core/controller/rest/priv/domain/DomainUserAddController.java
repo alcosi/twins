@@ -35,7 +35,8 @@ public class DomainUserAddController extends ApiController {
     final AuthService authService;
 
     @ParameterChannelHeader
-    @Operation(operationId = "domainUserAddV1", summary = "Add new user to domain")
+    @Operation(operationId = "domainUserAddV1", summary = "Add user to domain" +
+            "If user is not exist it will be created.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
                     @Content(mediaType = "application/json", schema =

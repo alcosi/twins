@@ -51,10 +51,6 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         return true;
     }
 
-    public UUID checkUserId(UUID userId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(userId, userRepository, checkMode);
-    }
-
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));

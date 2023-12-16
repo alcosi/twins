@@ -23,6 +23,7 @@ import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -33,9 +34,11 @@ import java.util.UUID;
 public class BusinessAccountUserAddController extends ApiController {
     final BusinessAccountService businessAccountService;
     final AuthService authService;
+    final UserService userService;
 
     @ParameterChannelHeader
-    @Operation(operationId = "businessAccountUserAddV1", summary = "Add new user to businessAccount")
+    @Operation(operationId = "businessAccountUserAddV1", summary = "Add user to business account. " +
+            "If business account is not exist it will be created. If user is not exist it will be created")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "User was added", content = {
                     @Content(mediaType = "application/json", schema =
@@ -53,6 +56,7 @@ public class BusinessAccountUserAddController extends ApiController {
             businessAccountService.addUser(
                     businessAccountId,
                     request.userId,
+                    EntitySmartService.SaveMode.ifNotPresentCreate,
                     EntitySmartService.SaveMode.ifNotPresentCreate,
                     true);
         } catch (ServiceException se) {

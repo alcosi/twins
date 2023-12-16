@@ -37,7 +37,8 @@ public class DomainBusinessAccountAddController extends ApiController {
     final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
-    @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add new businessAccount to domain")
+    @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add businessAccount to domain. " +
+            "If business account is not exist it will be created. Domain must be already present.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
                     @Content(mediaType = "application/json", schema =
@@ -53,7 +54,11 @@ public class DomainBusinessAccountAddController extends ApiController {
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
                     .setUserResolver(userResolverSystem);
-            domainService.addBusinessAccount(domainId, request.businessAccountId, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+            domainService.addBusinessAccount(
+                    domainId,
+                    request.businessAccountId,
+                    EntitySmartService.SaveMode.ifNotPresentCreate,
+                    false);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

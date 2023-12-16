@@ -52,7 +52,7 @@ public class UserGroupMemberManageController extends ApiController {
             @RequestBody UserGroupMemberManageRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
-            userGroupService.manageForUser(userService.checkUserId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS), request.getUserGroupEnterList(), request.getUserGroupExitList());
+            userGroupService.manageForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS), request.getUserGroupEnterList(), request.getUserGroupExitList());
             rs.userGroupList = userGroupDTOMapper.convertList(
                     userGroupService.findGroupsForUser(userId), new MapperContext().setMode(showUserGroupMode));
         } catch (ServiceException se) {
