@@ -110,7 +110,8 @@ public class TwinSearchService {
         JPACriteriaQueryStub queryStub = createQueryStub(basicSearch, criteriaBuilder, criteriaQuery);
         return criteriaQuery
                 .select((Selection<? extends TwinEntity>) queryStub.getSelect())
-                .where(queryStub.getWhere());
+                .where(queryStub.getWhere())
+                .orderBy(criteriaBuilder.desc(queryStub.getSelect().get(TwinEntity.Fields.createdAt)));
     }
 
     private CriteriaQuery<Long> getQueryForCount(BasicSearch basicSearch) throws ServiceException {
