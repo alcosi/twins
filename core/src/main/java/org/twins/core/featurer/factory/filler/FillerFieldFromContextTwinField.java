@@ -19,7 +19,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.*;
+import java.util.Properties;
 
 @Component
 @Featurer(id = 2311,
@@ -52,7 +52,7 @@ public class FillerFieldFromContextTwinField extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
-        TwinEntity contextTwin = checkNotMultiplySrc(factoryItem);
+        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
         TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), srcTwinClassFieldId.extract(properties));
         if (srcField != null) {
             log.warn("twinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present for context " + contextTwin.logShort());

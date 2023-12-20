@@ -5,14 +5,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.service.link.TwinLinkService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +25,7 @@ public class FillerForwardLinksFromContextTwin extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkNotMultiplySrc(factoryItem);
+        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
         if (contextTwin == null)
             return;
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin.getId(), linksIds.extract(properties));

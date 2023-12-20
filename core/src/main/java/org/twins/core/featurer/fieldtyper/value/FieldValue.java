@@ -10,4 +10,6 @@ public abstract class FieldValue implements Cloneable{
     private TwinClassFieldEntity twinClassField;
 
     public abstract FieldValue clone();
+
+    public abstract boolean hasValue(String value);
 }

@@ -7,6 +7,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -30,5 +31,20 @@ public class FieldValueLink extends FieldValue {
             clone.getTwinLinks().add(twinLinkEntity.clone());
         }
         return clone;
+    }
+
+    @Override
+    public boolean hasValue(String value) {
+        UUID valueUUID;
+        try {
+            valueUUID = UUID.fromString(value);
+        } catch (Exception e) {
+            return false;
+        }
+        for (TwinLinkEntity linkEntity : twinLinks) {
+            if (linkEntity.getDstTwinId() != null &&linkEntity.getDstTwinId().equals(valueUUID)) // only dst twin id is checking
+                return true;
+        }
+        return false;
     }
 }

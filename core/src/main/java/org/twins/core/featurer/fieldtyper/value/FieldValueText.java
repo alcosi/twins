@@ -3,6 +3,7 @@ package org.twins.core.featurer.fieldtyper.value;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.StringUtils;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -17,5 +18,10 @@ public class FieldValueText extends FieldValue {
                 .setValue(this.value)
                 .setTwinClassField(this.getTwinClassField());
         return clone;
+    }
+
+    @Override
+    public boolean hasValue(String value) {
+        return StringUtils.equals(this.value, value);
     }
 }

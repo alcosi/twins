@@ -1,23 +1,17 @@
 package org.twins.core.dao.factory;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Type;
-import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.cambium.common.EasyLoggableImpl;
 
-import java.util.HashMap;
 import java.util.UUID;
 
 @Entity
 @Table(name = "twin_factory")
 @Accessors(chain = true)
 @Data
-public class TwinFactoryEntity implements EasyLoggable {
+public class TwinFactoryEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -35,7 +29,12 @@ public class TwinFactoryEntity implements EasyLoggable {
     private UUID descriptionI18NId;
 
     public String easyLog(Level level) {
-        return "twinFactory[id:" + id + ", key:" + key + "]";
+        switch (level) {
+            case SHORT:
+                return "twinFactory[" + id + "]";
+            default:
+                return "twinFactory[id:" + id + ", key:" + key + "]";
+        }
     }
 
 }

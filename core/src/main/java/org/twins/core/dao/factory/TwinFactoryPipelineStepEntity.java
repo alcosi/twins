@@ -24,9 +24,18 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     
     @Column(name = "twin_factory_pipeline_id")
     private UUID twinFactoryPipelineId;
+
+    @Column(name = "twin_factory_condition_set_id")
+    private UUID twinFactoryConditionSetId;
+
+    @Column(name = "twin_factory_condition_invert")
+    private boolean twinFactoryConditionInvert;
     
     @Column(name = "order")
     private int order;
+
+    @Column(name = "active")
+    private boolean active;
     
     @Column(name = "filler_featurer_id")
     private int fillerFeaturerId;
@@ -44,6 +53,12 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     private FeaturerEntity fillerFeaturer;
 
     public String easyLog(Level level) {
-        return "twinFactoryPipelineStep[id:" + id + ", twinFactoryWorkshopId:" + twinFactoryPipelineId + "]";
+        switch (level) {
+            case SHORT:
+                return "twinFactoryPipelineStep[" + id + "]";
+            default:
+                return "twinFactoryPipelineStep[id:" + id + ", twinFactoryWorkshopId:" + twinFactoryPipelineId + "]";
+        }
+
     }
 }

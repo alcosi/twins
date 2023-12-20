@@ -8,6 +8,6 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TwinFactoryPipelineRepository extends CrudRepository<TwinFactoryPipelineEntity, UUID>, JpaSpecificationExecutor<TwinFactoryPipelineEntity> {
-    List<TwinFactoryPipelineEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
+public interface TwinFactoryConditionRepository extends CrudRepository<TwinFactoryConditionEntity, UUID>, JpaSpecificationExecutor<TwinFactoryConditionEntity> {
+    List<TwinFactoryConditionEntity> findByTwinFactoryConditionSetIdAndActiveTrue(UUID twinFactoryConditionSetId);
 }

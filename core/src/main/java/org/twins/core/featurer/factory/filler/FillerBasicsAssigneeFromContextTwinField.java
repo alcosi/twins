@@ -42,7 +42,7 @@ public class FillerBasicsAssigneeFromContextTwinField extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
-        TwinEntity contextTwin = checkNotMultiplySrc(factoryItem);
+        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
         UUID assigneeFieldId = assigneeField.extract(properties);
         TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), assigneeFieldId);
         if (srcField == null) {

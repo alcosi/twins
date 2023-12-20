@@ -8,7 +8,8 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Properties;
 
 
 @FeaturerType(id = 23,
@@ -25,11 +26,18 @@ public abstract class Filler extends Featurer {
 
     public abstract void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException;
 
-    protected TwinEntity checkNotMultiplySrc(FactoryItem factoryItem) throws ServiceException {
+    public static TwinEntity checkNotMultiplyContextTwin(FactoryItem factoryItem) throws ServiceException {
         if (factoryItem.getContextTwinList().size() == 0)
             return null;
         else if (factoryItem.getContextTwinList().size() > 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "context twin size > 1. Please check multiplier");
+        else
+            return factoryItem.getContextTwinList().get(0);
+    }
+
+    public static TwinEntity checkSingleContextTwin(FactoryItem factoryItem) throws ServiceException {
+        if (factoryItem.getContextTwinList().size() != 1)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "context twin size != 1. Please check multiplier");
         else
             return factoryItem.getContextTwinList().get(0);
     }

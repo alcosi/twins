@@ -253,13 +253,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, Map<UUID, FieldValue> fields, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
-        TwinflowEntity twinflowEntity = twinflowService.getTwinflow(twinEntity.getTwinClassId());
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
-        twinEntity
-                .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()))
-                .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
-                .setTwinStatus(twinflowEntity.getInitialTwinStatus());
+        twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
+        if (twinEntity.getTwinStatusId() == null) {
+            TwinflowEntity twinflowEntity = twinflowService.getTwinflow(twinEntity.getTwinClassId());
+            twinEntity.setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
+                    .setTwinStatus(twinflowEntity.getInitialTwinStatus());
+        }
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
         twinEntity = saveTwin(twinEntity);
         saveTwinFields(twinEntity, fields);
@@ -415,7 +416,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void changeStatus(Collection<TwinEntity> twinEntityList, TwinStatusEntity newStatus) {
         ChangesHelper changesHelper = new ChangesHelper();
         for (TwinEntity twinEntity : twinEntityList) {
-            if (changesHelper.isChanged(twinEntity + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
+            if (changesHelper.isChanged(twinEntity.logShort() + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
                 twinEntity
                         .setTwinStatusId(newStatus.getId())
                         .setTwinStatus(newStatus);

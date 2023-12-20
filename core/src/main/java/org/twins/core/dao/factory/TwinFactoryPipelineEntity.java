@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twin.TwinEntity;
 
@@ -25,15 +24,27 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
     
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;
+
+    @Column(name = "twin_factory_condition_set_id")
+    private UUID twinFactoryConditionSetId;
+
+    @Column(name = "twin_factory_condition_invert")
+    private boolean twinFactoryConditionInvert;
     
-    @Column(name = "draft")
-    private boolean draft;
+    @Column(name = "active")
+    private boolean active;
     
     @Column(name = "next_twin_factory_id")
     private UUID nextTwinFactoryId;
 
     @Column(name = "template_twin_id")
     private UUID templateTwinId;
+
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "output_twin_status_id")
+    private UUID outputTwinStatusId;
 
     @ManyToOne
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)

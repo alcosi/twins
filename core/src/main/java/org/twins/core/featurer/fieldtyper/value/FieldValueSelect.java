@@ -7,6 +7,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -26,5 +27,20 @@ public class FieldValueSelect extends FieldValue {
                 .setTwinClassField(this.getTwinClassField());
         clone.getOptions().addAll(this.options);
         return clone;
+    }
+
+    @Override
+    public boolean hasValue(String value) {
+        UUID valueUUID;
+        try {
+            valueUUID = UUID.fromString(value);
+        } catch (Exception e) {
+            return false;
+        }
+        for (DataListOptionEntity dataListOptionEntity : options) {
+            if (dataListOptionEntity.getId() != null &&dataListOptionEntity.getId().equals(valueUUID))
+                return true;
+        }
+        return false;
     }
 }
