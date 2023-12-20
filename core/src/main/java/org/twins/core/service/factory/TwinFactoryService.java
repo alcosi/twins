@@ -106,6 +106,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 if (factoryPipelineEntity.getOutputTwinStatusId() != null) {
                     log.info("Pipeline output twin status[" + factoryPipelineEntity.getOutputTwinStatusId() + "]");
                     pipelineInput.getOutputTwin().getTwinEntity()
+                            .setTwinStatus(factoryPipelineEntity.getOutputTwinStatus())
                             .setTwinStatusId(factoryPipelineEntity.getOutputTwinStatusId());
                 }
 

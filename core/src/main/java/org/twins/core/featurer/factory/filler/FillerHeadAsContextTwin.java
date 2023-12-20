@@ -15,7 +15,7 @@ import java.util.Properties;
 public class FillerHeadAsContextTwin extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
+        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
         factoryItem.getOutputTwin().getTwinEntity()
                 .setHeadTwin(contextTwin)
                 .setHeadTwinId(contextTwin.getId());

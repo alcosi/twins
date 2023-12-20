@@ -354,6 +354,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             dbTwinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()));
+            dbTwinEntity.setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
         }
         if (changesHelper.isChanged("name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
             dbTwinEntity.setName(updateTwinEntity.getName());
@@ -363,9 +364,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (changesHelper.isChanged("assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
             dbTwinEntity.setAssignerUserId(updateTwinEntity.getAssignerUserId());
+            dbTwinEntity.setAssignerUser(updateTwinEntity.getAssignerUser() != null ? updateTwinEntity.getAssignerUser() : null);
         }
         if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
             dbTwinEntity.setTwinStatusId(updateTwinEntity.getTwinStatusId());
+            dbTwinEntity.setTwinStatus(updateTwinEntity.getTwinStatus() != null ? updateTwinEntity.getTwinStatus() : null);
         }
         TwinEntity updatedTwin = entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
         if (MapUtils.isNotEmpty(fields))

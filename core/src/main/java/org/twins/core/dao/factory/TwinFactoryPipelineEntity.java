@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.util.UUID;
 
@@ -45,6 +46,10 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
 
     @Column(name = "output_twin_status_id")
     private UUID outputTwinStatusId;
+
+    @ManyToOne
+    @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity outputTwinStatus;
 
     @ManyToOne
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
