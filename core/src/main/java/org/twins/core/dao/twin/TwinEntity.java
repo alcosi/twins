@@ -109,9 +109,9 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
             case SHORT:
                 return "twin[" + id + "]";
             case NORMAL:
-                return "twin[id:" + id + ", twinClassId:" + twinClassId + "]";
+                return "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
             default:
-                return "twin[id:" + id + ", twinClassId:" + twinClassId + ", twinStatusId:" + twinStatusId + "]";
+                return "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
         }
 
     }

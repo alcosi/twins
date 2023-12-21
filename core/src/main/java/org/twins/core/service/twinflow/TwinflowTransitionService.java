@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -18,10 +19,10 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
+import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.transition.TransitionContext;
-import org.twins.core.domain.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.featurer.transition.validator.TransitionValidator;
@@ -154,7 +155,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                             .setFactoryContext(factoryContext)
                             .setContextTwinList(transitionContext.getTargetTwinList().values().stream().toList()));
                 }
+            LoggerUtils.traceTreeStart();
             List<TwinOperation> twinFactoryOutput = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
+            LoggerUtils.traceTreeEnd();
             for (TwinOperation twinOperation : twinFactoryOutput) {
                 if (twinOperation instanceof TwinCreate twinCreate) {
                     TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);

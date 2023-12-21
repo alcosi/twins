@@ -10,6 +10,7 @@ public class LoggerUtils {
     private static final String LOD_PREFIX = "logPrefix";
     private static final String CONTROLLER = "controller";
     private static final String SESSION = "session";
+    private static final String TRACE_TREE = "traceTree";
 
     public static void logPrefix(String logPrefix) {
         MDC.put(LOD_PREFIX, logPrefix + " ");
@@ -60,6 +61,28 @@ public class LoggerUtils {
 
     public static String prettyLogNotBlank(String key, Object value) {
         return value != null && StringUtils.isNoneBlank(value.toString()) ? key + "[" + value + "] " : "";
+    }
+
+    private static final String TRACE_TREE_LEAF = "|- ";
+    private static final String TRACE_TREE_BRANCH = "| ";
+    public static void traceTreeStart() {
+        MDC.put(TRACE_TREE, TRACE_TREE_LEAF);
+    }
+
+    public static void traceTreeEnd() {
+        MDC.remove(TRACE_TREE);
+    }
+
+    public static void traceTreeLevelUp() {
+        String currentLeaf = MDC.get(TRACE_TREE);
+        currentLeaf = (currentLeaf == null || currentLeaf.length() < 4) ? TRACE_TREE_LEAF : currentLeaf.substring(2);
+        MDC.put(TRACE_TREE, currentLeaf);
+    }
+
+    public static void traceTreeLevelDown() {
+        String currentLeaf = MDC.get(TRACE_TREE);
+        currentLeaf = (currentLeaf == null || currentLeaf.length() == 0) ? TRACE_TREE_LEAF : TRACE_TREE_BRANCH + currentLeaf;
+        MDC.put(TRACE_TREE, currentLeaf);
     }
 
 }

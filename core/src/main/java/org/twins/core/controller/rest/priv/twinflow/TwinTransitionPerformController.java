@@ -96,7 +96,7 @@ public class TwinTransitionPerformController extends ApiController {
             TwinflowTransitionEntity transitionEntity = twinflowTransitionService.findEntitySafe(transitionId);
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.logDetailed());
             TransitionContext transitionContext = new TransitionContext();
             transitionContext
                     .setTransitionEntity(transitionEntity)

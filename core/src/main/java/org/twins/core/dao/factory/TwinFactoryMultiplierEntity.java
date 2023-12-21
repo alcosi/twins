@@ -46,6 +46,13 @@ public class TwinFactoryMultiplierEntity extends EasyLoggableImpl {
     private HashMap<String, String> multiplierParams;
 
     public String easyLog(Level level) {
-        return "twinFactoryMultiplier[id:" + id + ", twinFactoryId:" + twinFactoryId + "]";
+        switch (level) {
+            case SHORT:
+                return "twinFactoryMultiplier[" + id + "]";
+            case NORMAL:
+                return "twinFactoryMultiplier[id:" + id + ", class:" + multiplierFeaturer.getName() + "]";
+            default:
+                return "**" + comment + "** twinFactoryMultiplier[id:" + id + ", class:" + multiplierFeaturer.getName() + ", twinFactoryId:" + twinFactoryId + "]";
+        }
     }
 }

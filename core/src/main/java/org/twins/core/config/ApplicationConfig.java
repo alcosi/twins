@@ -86,4 +86,10 @@ public class ApplicationConfig {
             }
         };
     }
+
+//    @Bean(name = "cacheManagerRequestScope")
+//    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)
+//    public CacheManager getCacheManager(){
+//        return new ConcurrentMapCacheManager();
+//    }
 }
