@@ -163,7 +163,7 @@ public class TwinTransitionPerformController extends ApiController {
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinflowTransitionEntity selectedTransition = transitionEntityMap.get(dbTwinEntity.getTwinStatusId());
             if (selectedTransition == null)
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.logDetailed());
             TransitionContext transitionContext = new TransitionContext();
             transitionContext
                     .setTransitionEntity(selectedTransition)
@@ -231,7 +231,7 @@ public class TwinTransitionPerformController extends ApiController {
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
                 if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
-                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.logDetailed());
                 transitionContext.addTargetTwin(dbTwinEntity);
             }
             if (request.getBatchContext() != null) {
@@ -299,7 +299,7 @@ public class TwinTransitionPerformController extends ApiController {
                 TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
                 TwinflowTransitionEntity selectedTransitionEntity = transitionEntityMap.get(dbTwinEntity.getTwinStatusId());
                 if (selectedTransitionEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.easyLog(EasyLoggable.Level.NORMAL));
+                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.logDetailed());
                 TransitionContext transitionContext = transitionContextMap.get(selectedTransitionEntity.getId());
                 if (transitionContext == null) {
                     transitionContext = new TransitionContext();
