@@ -1,8 +1,6 @@
 package org.twins.core.mappers.rest;
 
-import lombok.Data;
 import lombok.Getter;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinEntity;
@@ -10,6 +8,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.SystemEntityService;
 
 import java.util.Hashtable;
 import java.util.LinkedHashMap;
@@ -67,8 +66,10 @@ public class MapperContext {
             relatedTwinClassMap.put(twinClass.getId(), twinClass);
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
             relatedTwinStatusMap.put(twinStatus.getId(), twinStatus);
-        else if (relatedObject instanceof TwinEntity twin)
-            relatedTwinMap.put(twin.getId(), twin);
+        else if (relatedObject instanceof TwinEntity twin) {
+            if (!SystemEntityService.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
+                relatedTwinMap.put(twin.getId(), twin);
+        }
         else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
             relatedTwinflowTransitionMap.put(twinflowTransition.getId(), twinflowTransition);
         else {

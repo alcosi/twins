@@ -165,12 +165,16 @@ public class SystemEntityService {
         return USER_SYSTEM;
     }
 
-    public boolean isTwinClassForUser(UUID twinClassId) {
+    public static boolean isTwinClassForUser(UUID twinClassId) {
         return TWIN_CLASS_USER.equals(twinClassId);
     }
 
-    public boolean isTwinClassForBusinessAccount(UUID twinClassId) {
+    public static boolean isTwinClassForBusinessAccount(UUID twinClassId) {
         return TWIN_CLASS_BUSINESS_ACCOUNT.equals(twinClassId);
+    }
+
+    public static boolean isSystemClass(UUID twinClassId) {
+        return isTwinClassForBusinessAccount(twinClassId) || isTwinClassForUser(twinClassId);
     }
 
     public UUID getTwinIdTemplateForUser() {

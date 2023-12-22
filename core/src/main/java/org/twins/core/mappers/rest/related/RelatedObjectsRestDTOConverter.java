@@ -36,8 +36,9 @@ public class RelatedObjectsRestDTOConverter {
         if (mapperContext.isLazyRelations())
             return null;
         MapperContext isolatedMapperContext = mapperContext.cloneIgnoreRelatedObjects()
-                .setMode(TwinLinkRestDTOMapper.Mode.HIDE)
-                .setMode(AttachmentViewRestDTOMapper.Mode.HIDE);
+                .setMode(TwinLinkRestDTOMapper.Mode.HIDE) //no links in related objects
+                .setMode(AttachmentViewRestDTOMapper.Mode.HIDE) //no attachments in related objects
+                .setMode(TwinTransitionRestDTOMapper.Mode.HIDE); //no transitions
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
