@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class TwinOperation {
+public abstract class TwinOperation {
     protected TwinEntity twinEntity; // only for new/updated data
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
 
@@ -39,4 +39,6 @@ public class TwinOperation {
         }
         return this;
     }
+
+    public abstract UUID nullifyUUID();
 }

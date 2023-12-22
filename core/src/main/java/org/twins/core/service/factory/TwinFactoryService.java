@@ -119,7 +119,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                         continue;
                     }
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
-                    logMsg = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**)";
+                    logMsg = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**";
                     filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                 }
                 LoggerUtils.traceTreeLevelUp();
