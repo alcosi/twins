@@ -1,6 +1,7 @@
 package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +44,8 @@ public class FillerFieldsFromTemplateTwinAll extends Filler {
         if (!twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), templateTwin.getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "factoryItem output twinClass[" + outputTwinEntity.getTwinClassId() +"] is not instance of template twin class[" + templateTwin.getTwinClassId() + "]");
         List<TwinFieldEntity> twinFieldEntityList = twinService.findTwinFields(templateTwin.getId());
+        if (CollectionUtils.isEmpty(twinFieldEntityList))
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No template twin fields present. Please check fields for " + templateTwin.logShort());
         List<FieldValue> cloneFieldList = new ArrayList<>();
         List<String> logMsgs = new ArrayList<>();
         for (TwinFieldEntity  srcField : twinFieldEntityList) {

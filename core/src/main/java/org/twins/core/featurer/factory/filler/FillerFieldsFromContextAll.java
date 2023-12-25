@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
@@ -37,10 +38,8 @@ public class FillerFieldsFromContextAll extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
         Map<UUID, FieldValue> contextFields = factoryItem.getFactoryContext().getFields();
-        if (contextFields == null) {
-            log.error("No context fields present. Please check pipeline config");
-            return;
-        }
+        if (contextFields == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No context fields present. Please check pipeline config");
         List<String> logMsgs = new ArrayList<>();
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {
             if (twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField().getTwinClassId())) {

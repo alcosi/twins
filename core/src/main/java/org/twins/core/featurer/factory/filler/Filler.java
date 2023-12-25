@@ -26,18 +26,22 @@ public abstract class Filler extends Featurer {
 
     public abstract void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException;
 
+    public boolean canBeOptional() {
+        return true; // most steps can be option by default. otherwise method must be overridden
+    }
+
     public static TwinEntity checkNotMultiplyContextTwin(FactoryItem factoryItem) throws ServiceException {
         if (factoryItem.getContextTwinList().size() == 0)
             return null;
         else if (factoryItem.getContextTwinList().size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "context twin size > 1. Please check multiplier");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "context twin size > 1. Please check multiplier");
         else
             return factoryItem.getContextTwinList().get(0);
     }
 
     public static TwinEntity checkSingleContextTwin(FactoryItem factoryItem) throws ServiceException {
         if (factoryItem.getContextTwinList().size() != 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "context twin size != 1. Please check multiplier");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "context twin size != 1. Please check multiplier");
         else
             return factoryItem.getContextTwinList().get(0);
     }

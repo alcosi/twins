@@ -120,7 +120,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     }
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
                     logMsg = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**";
-                    filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
+                    try {
+                        filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
+                    } catch (Exception ex) {
+                        if (pipelineStepEntity.isOptional() && filler.canBeOptional()) {
+                            log.warn("Option step is unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
+                        } else {
+                            log.error("Step is mandatory. Factory process will be aborted");
+                            throw ex;
+                        }
+                    }
                 }
                 LoggerUtils.traceTreeLevelUp();
                 if (factoryPipelineEntity.getOutputTwinStatusId() != null) {

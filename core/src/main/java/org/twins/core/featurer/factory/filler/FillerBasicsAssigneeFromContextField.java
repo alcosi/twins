@@ -43,15 +43,13 @@ public class FillerBasicsAssigneeFromContextField extends Filler {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
         UUID assigneeFieldId = assigneeField.extract(properties);
         FieldValue assigneeField = factoryItem.getFactoryContext().getFields().get(assigneeFieldId);
-        if (assigneeField == null) {
-            log.warn("TwinClassField[" + assigneeFieldId + "] is not present in context ");
-            return;
-        }
+        if (assigneeField == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present in context ");
         if (assigneeField instanceof FieldValueUser fieldValueUser) {
             if (CollectionUtils.isEmpty(fieldValueUser.getUsers()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, assigneeField.getTwinClassField().logShort() + " is not filled");
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is not filled");
             else if (fieldValueUser.getUsers().size() > 1) {
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, assigneeField.getTwinClassField().logShort() + " is filled by multiply users");
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " is filled by multiply users");
             } else {
                 log.info(outputTwinEntity.logShort() + " [assignee] will be filled from context " + assigneeField.getTwinClassField().logShort());
                 UserEntity assignee = fieldValueUser.getUsers().get(0);
@@ -60,6 +58,6 @@ public class FillerBasicsAssigneeFromContextField extends Filler {
                         .setAssignerUserId(assignee.getId());
             }
         } else
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, assigneeField.getTwinClassField().logShort() + " is not for user");
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, assigneeField.getTwinClassField().logShort() + " has unexpected type");
     }
 }

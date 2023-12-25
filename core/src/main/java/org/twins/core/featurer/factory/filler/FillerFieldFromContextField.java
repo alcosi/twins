@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
@@ -50,10 +51,8 @@ public class FillerFieldFromContextField extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         FieldValue fieldValue = factoryItem.getFactoryContext().getFields().get(srcTwinClassFieldId.extract(properties));
-        if (fieldValue == null) {
-            log.warn("TwinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present in context fields");
-            return;
-        }
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present in context fields");
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
         FieldValue clone = fieldValue.clone();
         clone.setTwinClassField(dstTwinClassField); //value will be copied to dst

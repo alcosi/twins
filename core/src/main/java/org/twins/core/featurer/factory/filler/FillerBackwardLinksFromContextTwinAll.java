@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,12 +27,10 @@ public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
-        if (contextTwin == null)
-            return;
+        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinBackwardLinks(contextTwin.getId());
         if (CollectionUtils.isEmpty(contextTwinLinksList))
-            return;
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No backward links for contextTwin " + contextTwin.logShort());
         TwinOperation outputTwin = factoryItem.getOutputTwin();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : contextTwinLinksList) {

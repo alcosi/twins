@@ -6,18 +6,17 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.service.link.LinkService;
-import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
 
 @Slf4j
 @Component
@@ -30,14 +29,10 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.getContextFirstTwin(); // all context twins must be the same class
-        if (contextTwin == null)
-            return;
+        TwinEntity contextTwin = checkSingleContextTwin(factoryItem); // all context twins must be the same class
         List<LinkEntity> linkEntityList = linkService.findLinks(contextTwin.getTwinClass(), factoryItem.getOutputTwin().getTwinEntity().getTwinClass());
-        if (CollectionUtils.isEmpty(linkEntityList)) {
-            log.warn("No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
-            return;
-        }
+        if (CollectionUtils.isEmpty(linkEntityList))
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
         if (linkEntityList.size() > 1) {
             log.warn(linkEntityList.size() + " links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
             //todo get link by hierarchy priority
@@ -46,13 +41,13 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
         TwinOperation outputTwin = factoryItem.getOutputTwin();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinEntity contextTwinEntity : factoryItem.getContextTwinList()) {
-                twinLinkEntityList.add(new TwinLinkEntity()
-                        .setDstTwin(contextTwinEntity) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
-                        .setDstTwinId(contextTwinEntity.getId())
-                        .setLink(linkEntity)
-                        .setLinkId(linkEntity.getId())
-                        .setUniqForSrcRelink(uniqForSrcRelink.extract(properties))
-                );
+            twinLinkEntityList.add(new TwinLinkEntity()
+                    .setDstTwin(contextTwinEntity) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
+                    .setDstTwinId(contextTwinEntity.getId())
+                    .setLink(linkEntity)
+                    .setLinkId(linkEntity.getId())
+                    .setUniqForSrcRelink(uniqForSrcRelink.extract(properties))
+            );
         }
         addLinks(outputTwin, twinLinkEntityList);
     }

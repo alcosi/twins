@@ -42,13 +42,11 @@ public class FillerBasicsAssigneeFromContextTwinField extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
-        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
+        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
         UUID assigneeFieldId = assigneeField.extract(properties);
         TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), assigneeFieldId);
-        if (srcField == null) {
-            log.warn("TwinClassField[" + assigneeFieldId + "] is not present for context " + contextTwin.logShort());
-            return;
-        }
+        if (srcField == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + assigneeFieldId + "] is not present for context " + contextTwin.logShort());
         FieldValue fieldValue = twinService.getTwinFieldValue(srcField);
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             if (CollectionUtils.isEmpty(fieldValueUser.getUsers()))

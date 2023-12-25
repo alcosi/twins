@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
@@ -50,13 +51,10 @@ public class FillerFieldFromContextTwinField extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
         TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
         TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), srcTwinClassFieldId.extract(properties));
-        if (srcField == null) {
-            log.warn("twinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present for context " + contextTwin.logShort());
-            return;
-        }
+        if (srcField == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "twinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present for context " + contextTwin.logShort());
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
         FieldValue fieldValue = twinService.getTwinFieldValue(srcField);
         FieldValue clone = fieldValue.clone();

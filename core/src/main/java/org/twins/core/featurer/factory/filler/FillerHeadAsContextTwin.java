@@ -20,4 +20,9 @@ public class FillerHeadAsContextTwin extends Filler {
                 .setHeadTwin(contextTwin)
                 .setHeadTwinId(contextTwin.getId());
     }
+
+    @Override
+    public boolean canBeOptional() {
+        return false;
+    }
 }

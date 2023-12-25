@@ -33,4 +33,9 @@ public class FillerHeadFromContextTwinHead extends Filler {
                 .setHeadTwin(detectedHeadTwin)
                 .setHeadTwinId(detectedHeadTwinId);
     }
+
+    @Override
+    public boolean canBeOptional() {
+        return false;
+    }
 }

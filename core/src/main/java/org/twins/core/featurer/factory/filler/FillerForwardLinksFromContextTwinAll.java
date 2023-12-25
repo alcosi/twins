@@ -6,10 +6,9 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -20,22 +19,10 @@ import java.util.Properties;
 public class FillerForwardLinksFromContextTwinAll extends FillerLinks {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkNotMultiplyContextTwin(factoryItem);
-        if (contextTwin == null)
-            return;
+        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin.getId());
         if (CollectionUtils.isEmpty(contextTwinLinksList))
-            return;
-        TwinOperation outputTwin = factoryItem.getOutputTwin();
-        List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
-        for (TwinLinkEntity contextTwinLinkEntity : contextTwinLinksList) {
-            twinLinkEntityList.add(new TwinLinkEntity()
-                    .setDstTwin(contextTwinLinkEntity.getDstTwin())
-                    .setDstTwinId(contextTwinLinkEntity.getDstTwinId())
-                    .setLink(contextTwinLinkEntity.getLink())
-                    .setLinkId(contextTwinLinkEntity.getLinkId())
-            );
-        }
-        addLinks(outputTwin, twinLinkEntityList);
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No forward links configured from " + contextTwin.logShort());
+        addLinks(factoryItem, contextTwinLinksList);
     }
 }
