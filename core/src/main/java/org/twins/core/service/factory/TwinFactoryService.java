@@ -181,7 +181,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         boolean ret = true;
         for (TwinFactoryConditionEntity conditionEntity : conditionEntityList) {
             Conditioner conditioner = featurerService.getFeaturer(conditionEntity.getConditionerFeaturer(), Conditioner.class);
-            ret = ret && conditioner.check(conditionEntity, factoryItem);
+            boolean conditionerResult = conditioner.check(conditionEntity, factoryItem);
+            if (conditionEntity.isInvert())
+                conditionerResult = !conditionerResult;
+            ret = ret && conditionerResult;
             if (!ret) // no need to check other conditions if one of it is already false
                 break;
         }

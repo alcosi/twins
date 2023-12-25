@@ -36,6 +36,9 @@ public class TwinFactoryConditionEntity extends EasyLoggableImpl {
     @Column(name = "active")
     private boolean active;
 
+    @Column(name = "invert")
+    private boolean invert;
+
     @FeaturerList(type = Multiplier.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "conditioner_featurer_id", insertable = false, updatable = false)
