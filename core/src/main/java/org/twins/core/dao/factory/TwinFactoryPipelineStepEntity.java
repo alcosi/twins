@@ -3,8 +3,9 @@ package org.twins.core.dao.factory;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -17,7 +18,8 @@ import java.util.UUID;
 @Table(name = "twin_factory_pipeline_step")
 @Accessors(chain = true)
 @Data
-public class TwinFactoryPipelineStepEntity implements EasyLoggable {
+@EqualsAndHashCode(callSuper = false)
+public class TwinFactoryPipelineStepEntity extends EasyLoggableImpl {
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
@@ -59,8 +61,10 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
         switch (level) {
             case SHORT:
                 return "twinFactoryPipelineStep[" + id + "]";
+            case NORMAL:
+                return "twinFactoryPipelineStep[" + id + "] **" + comment + "**";
             default:
-                return "twinFactoryPipelineStep[id:" + id + ", twinFactoryWorkshopId:" + twinFactoryPipelineId + "]";
+                return "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
         }
 
     }

@@ -40,7 +40,7 @@ public class PermissionSchemaUserEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
-    private UserEntity userByUser;
+    private UserEntity user;
 
     @ManyToOne
     @JoinColumn(name = "granted_by_user_id", insertable = false, updatable = false, nullable = false)

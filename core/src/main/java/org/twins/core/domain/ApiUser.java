@@ -1,6 +1,8 @@
 package org.twins.core.domain;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
@@ -14,6 +16,7 @@ import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -27,6 +30,12 @@ public class ApiUser {
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private Channel channel;
+    @Getter
+    @Setter
+    private Set<UUID> permissions;
+    @Getter
+    @Setter
+    private Set<UUID> userGroups;
 
     final EntitySmartService entitySmartService;
     final DomainRepository domainRepository;

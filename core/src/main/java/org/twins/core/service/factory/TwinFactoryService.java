@@ -95,7 +95,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     if (checkCondition(factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert(), factoryItem))
                         pipelineInputList.add(factoryItem);
                     else
-                        log.info("Factory item will be skipped because of invalid condition");
+                        log.warn("Factory item will be skipped because of unsuccessful condition check");
                 }
             }
             if (CollectionUtils.isEmpty(pipelineInputList)) {
@@ -110,23 +110,24 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
                 if (pipelineInput.getOutputTwin().getTwinEntity().getId() == null)
                     pipelineInput.getOutputTwin().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
-                String logMsg;
+                String logMsg, stepOrder;
                 LoggerUtils.traceTreeLevelDown();
                 for (int step = 0; step < pipelineStepEntityList.size(); step++) {
+                    stepOrder = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " ";
                     TwinFactoryPipelineStepEntity pipelineStepEntity = pipelineStepEntityList.get(step);
                     if (!checkCondition(pipelineStepEntity.getTwinFactoryConditionSetId(), pipelineStepEntity.isTwinFactoryConditionInvert(), pipelineInput)) {
-                        log.info("Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "** was skipped)");
+                        log.info(stepOrder + pipelineStepEntity.logNormal() + " was skipped)");
                         continue;
                     }
                     Filler filler = featurerService.getFeaturer(pipelineStepEntity.getFillerFeaturer(), Filler.class);
-                    logMsg = "Step " + (step + 1) + "/" + pipelineStepEntityList.size() + " **" + pipelineStepEntity.getComment() + "**";
+                    logMsg = stepOrder + pipelineStepEntity.logNormal();
                     try {
                         filler.fill(pipelineStepEntity.getFillerParams(), pipelineInput, factoryPipelineEntity.getTemplateTwin(), logMsg);
                     } catch (Exception ex) {
                         if (pipelineStepEntity.isOptional() && filler.canBeOptional()) {
-                            log.warn("Option step is unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
+                            log.warn("Step is optional and unsuccessful: " + (ex instanceof ServiceException serviceException ? serviceException.getErrorLocation() : ex.getMessage()) + ". Pipeline will not be aborted");
                         } else {
-                            log.error("Step is mandatory. Factory process will be aborted");
+                            log.error("Step[" + pipelineStepEntity.getId() + "] is mandatory. Factory process will be aborted");
                             throw ex;
                         }
                     }

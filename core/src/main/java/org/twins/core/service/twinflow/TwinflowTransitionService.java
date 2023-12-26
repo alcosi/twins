@@ -30,6 +30,7 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -54,6 +55,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
+    final PermissionService permissionService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -90,11 +92,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public List<TwinflowTransitionEntity> findValidTransitions(TwinEntity twinEntity) throws ServiceException {
         TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity.getTwinClass());
         List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdAndSrcTwinStatusId(twinflowEntity.getId(), twinEntity.getTwinStatusId());
+        if (CollectionUtils.isEmpty(twinflowTransitionEntityList))
+            return twinflowTransitionEntityList;
+        ApiUser apiUser = authService.getApiUser();
+        permissionService.loadUserPermissions(apiUser);
         ListIterator<TwinflowTransitionEntity> iterator = twinflowTransitionEntityList.listIterator();
         TwinflowTransitionEntity twinflowTransitionEntity;
         while (iterator.hasNext()) {
             twinflowTransitionEntity = iterator.next();
-            if (!validateTransition(twinflowTransitionEntity, twinEntity))
+            if (twinflowTransitionEntity.getPermissionId() != null && !apiUser.getPermissions().contains(twinflowTransitionEntity.getPermissionId()))
+                iterator.remove();
+            if (!runTransitionValidators(twinflowTransitionEntity, twinEntity))
                 iterator.remove();
         }
         return twinflowTransitionEntityList;
@@ -117,21 +125,29 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        permissionService.loadUserPermissions(apiUser);
+        TwinflowTransitionEntity twinflowTransitionEntity = transitionContext.getTransitionEntity();
+        if (twinflowTransitionEntity.getPermissionId() != null && !apiUser.getPermissions().contains(twinflowTransitionEntity.getPermissionId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED, "Current user does not have required permissionId[" + twinflowTransitionEntity.getPermissionId() + "]");
         List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
-            if (!validateTransition(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT);
+            if (!runTransitionValidators(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
+                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED);
     }
 
-    public boolean validateTransition(TwinflowTransitionEntity twinflowTransitionEntity, TwinEntity twinEntity) throws ServiceException {
+    public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, TwinEntity twinEntity) throws ServiceException {
         List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
-        return validateTransition(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
+        return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
 
-    public boolean validateTransition(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
+    public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
         for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
             TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
-            if (!transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity)) {
+            boolean validationResult = transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity);
+            if (transitionValidatorEntity.isInvert())
+                validationResult = !validationResult;
+            if (!validationResult) {
                 log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.logShort());
                 return false;
             }
@@ -156,8 +172,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                             .setContextTwinList(transitionContext.getTargetTwinList().values().stream().toList()));
                 }
             LoggerUtils.traceTreeStart();
-            List<TwinOperation> twinFactoryOutput = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
-            LoggerUtils.traceTreeEnd();
+            List<TwinOperation> twinFactoryOutput;
+            try {
+                twinFactoryOutput = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
+            } finally {
+                LoggerUtils.traceTreeEnd();
+            }
             for (TwinOperation twinOperation : twinFactoryOutput) {
                 if (twinOperation instanceof TwinCreate twinCreate) {
                     TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);

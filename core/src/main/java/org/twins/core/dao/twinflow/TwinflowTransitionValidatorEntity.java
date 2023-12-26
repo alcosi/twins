@@ -25,6 +25,9 @@ public class TwinflowTransitionValidatorEntity {
     @Column(name = "order")
     private Integer order;
 
+    @Column(name = "invert")
+    private boolean invert;
+
     @Column(name = "transition_validator_featurer_id")
     private Integer transitionValidatorFeaturerId;
 

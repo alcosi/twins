@@ -22,5 +22,5 @@ public abstract class TransitionValidator extends Featurer {
         return isValid(properties, twinEntity);
     }
 
-    protected abstract boolean isValid(Properties properties, TwinEntity twinEntity);
+    protected abstract boolean isValid(Properties properties, TwinEntity twinEntity) throws ServiceException;
 }

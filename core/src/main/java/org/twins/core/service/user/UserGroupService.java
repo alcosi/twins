@@ -2,6 +2,7 @@ package org.twins.core.service.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -17,9 +18,7 @@ import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -43,6 +42,21 @@ public class UserGroupService {
                 userGroupEntityList.add(userGroup);
         }
         return userGroupEntityList;
+    }
+
+    public Set<UUID> loadGroups(ApiUser apiUser) throws ServiceException {
+        if (apiUser.getUserGroups() != null)
+            return apiUser.getUserGroups();
+        List<UserGroupMapEntity> userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+        if (CollectionUtils.isNotEmpty(userGroupMapEntityList))
+            apiUser.setUserGroups(new HashSet<>());
+        for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
+            Slugger slugger = featurerService.getFeaturer(userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);
+            UserGroupEntity userGroup = slugger.checkConfigAndGetGroup(userGroupMapEntity);
+            if (userGroup != null)
+                apiUser.getUserGroups().add(userGroup.getId());
+        }
+        return apiUser.getUserGroups();
     }
 
 

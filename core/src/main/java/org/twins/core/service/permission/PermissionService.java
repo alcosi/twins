@@ -69,14 +69,7 @@ public class PermissionService {
     public FindUserPermissionsResult findPermissionsForUser(UUID userId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomain().getId();
-        UUID permissionSchemaId;
-        if (apiUser.getBusinessAccount() != null) {
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(domainId, apiUser.getBusinessAccount().getId());
-            checkPermissionSchemaAllowed(domainBusinessAccountEntity);
-            permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
-        } else {
-            permissionSchemaId = apiUser.getDomain().getPermissionSchemaId();
-        }
+        UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
         return new FindUserPermissionsResult()
                 .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(
                                 permissionSchemaId, userId)
@@ -85,6 +78,38 @@ public class PermissionService {
                                 permissionSchemaId,
                                 userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
                         .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
+    }
+
+    private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
+        UUID permissionSchemaId;
+        if (apiUser.getBusinessAccount() != null) {
+            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId());
+            checkPermissionSchemaAllowed(domainBusinessAccountEntity);
+            permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
+        } else {
+            permissionSchemaId = apiUser.getDomain().getPermissionSchemaId();
+        }
+        return permissionSchemaId;
+    }
+
+    public boolean currentUserHasPermission(UUID permissionId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        loadUserPermissions(apiUser);
+        return apiUser.getPermissions().contains(permissionId);
+    }
+
+    public void loadUserPermissions(ApiUser apiUser) throws ServiceException {
+        if (apiUser.getPermissions() != null)
+            return;
+        UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
+        userGroupService.loadGroups(apiUser);
+        List<UUID> permissionList = permissionSchemaUserRepository
+                .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, apiUser.getUser().getId());
+        Set<UUID> permissionSet = new HashSet<>(permissionList);
+        permissionList = permissionSchemaUserGroupRepository
+                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, apiUser.getUserGroups());
+        permissionSet.addAll(permissionList);
+        apiUser.setPermissions(permissionSet);
     }
 
     @Data
