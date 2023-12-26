@@ -184,7 +184,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             if (conditionEntity.isInvert())
                 conditionerResult = !conditionerResult;
             if (!conditionerResult) // no need to check other conditions if one of it is already false
-                break;
+                return false;
         }
         return true;
     }
