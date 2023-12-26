@@ -155,10 +155,10 @@ public class MapperContext {
 
     public MapperContext cloneIgnoreRelatedObjects() {
         MapperContext mapperContext = new MapperContext();
-        mapperContext.modes = this.modes;
+        mapperContext.modes = new Hashtable<>(this.modes);
         mapperContext.cachedObjects = this.cachedObjects;
         mapperContext.lazyRelations = this.lazyRelations;
-        mapperContext.properties = this.properties;
+        mapperContext.properties = new Hashtable<>(this.properties);
         return mapperContext;
     }
 
