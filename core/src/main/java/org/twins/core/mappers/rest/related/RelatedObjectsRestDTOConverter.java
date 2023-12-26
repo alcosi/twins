@@ -53,9 +53,11 @@ public class RelatedObjectsRestDTOConverter {
             statusMap.putAll(twinStatusRestDTOMapper.convertMap(mapperContext.getRelatedTwinStatusMap(), isolatedMapperContext));
         if (!mapperContext.getRelatedUserMap().isEmpty())
             userMap.putAll(userRestDTOMapper.convertMap(mapperContext.getRelatedUserMap(), isolatedMapperContext));
-        if (!mapperContext.getRelatedTwinflowTransitionMap().isEmpty())
+        if (!mapperContext.getRelatedTwinflowTransitionMap().isEmpty()) {
+            isolatedMapperContext.setMode(mapperContext.getModeOrUse(TwinTransitionRestDTOMapper.Mode.HIDE)); // we have to temporary use mode from original context
             twinTransitionMap.putAll(twinTransitionRestDTOMapper.convertMap(mapperContext.getRelatedTwinflowTransitionMap(), isolatedMapperContext));
-
+            isolatedMapperContext.setMode(TwinTransitionRestDTOMapper.Mode.HIDE);
+        }
         //run mappers one more time, because related objects can also contain relations
         if (!isolatedMapperContext.getRelatedTwinClassMap().isEmpty())
             twinClassMap.putAll(twinClassRestDTOMapper.convertMap(isolatedMapperContext.getRelatedTwinClassMap(), isolatedMapperContext));
