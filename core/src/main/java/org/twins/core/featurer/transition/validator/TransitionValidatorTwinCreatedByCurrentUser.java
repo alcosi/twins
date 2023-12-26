@@ -14,16 +14,16 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 1601,
-        name = "TransitionValidatorAssigneeIsCurrentUser",
+@Featurer(id = 1602,
+        name = "TransitionValidatorTwinCreatedByCurrentUser",
         description = "")
-public class TransitionValidatorAssigneeIsCurrentUser extends TransitionValidator {
+public class TransitionValidatorTwinCreatedByCurrentUser extends TransitionValidator {
     @Lazy
     @Autowired
     AuthService authService;
     @Override
     protected boolean isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return twinEntity.getAssignerUserId() != null && twinEntity.getAssignerUserId().equals(apiUser.getUser().getId());
+        return twinEntity.getCreatedByUserId() != null && twinEntity.getCreatedByUserId().equals(apiUser.getUser().getId());
     }
 }
