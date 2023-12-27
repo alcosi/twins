@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -39,14 +40,17 @@ public class TwinflowEntity implements EasyLoggable {
     private Timestamp createdAt;
 
     @ManyToOne
+    @HashCodeExclude
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
     @ManyToOne
+    @HashCodeExclude
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
     @ManyToOne
+    @HashCodeExclude
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialTwinStatus;
 
