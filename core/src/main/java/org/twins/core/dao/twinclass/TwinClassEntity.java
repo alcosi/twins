@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 
@@ -88,15 +87,15 @@ public class TwinClassEntity extends EasyLoggableImpl {
 //    private UserEntity createdByUser;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private Set<UUID> extendedClassIdSet;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private Set<UUID> childClassIdSet;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private TwinflowEntity twinflow;
 
     public String easyLog(Level level) {

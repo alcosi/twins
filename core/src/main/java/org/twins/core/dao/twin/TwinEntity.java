@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -93,15 +92,15 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     private UserEntity assignerUser;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private TwinEntity spaceTwin;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private TwinEntity headTwin;
 
     @Transient
-    @HashCodeExclude
+    @EqualsAndHashCode.Exclude
     private List<TwinFieldEntity> twinFieldList;
 
     public String easyLog(Level level) {

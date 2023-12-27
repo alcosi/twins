@@ -2,12 +2,12 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.builder.HashCodeExclude;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -51,6 +51,6 @@ public class DataListEntity implements EasyLoggable {
     }
     
     @Transient
-    @HashCodeExclude
-    List<DataListOptionEntity> options;
+    @EqualsAndHashCode.Exclude
+    Map<UUID, DataListOptionEntity> options;
 }
