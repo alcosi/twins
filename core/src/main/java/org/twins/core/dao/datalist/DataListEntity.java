@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
-import java.util.Map;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -52,5 +52,5 @@ public class DataListEntity implements EasyLoggable {
     
     @Transient
     @EqualsAndHashCode.Exclude
-    Map<UUID, DataListOptionEntity> options;
+    List<DataListOptionEntity> options;
 }

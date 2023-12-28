@@ -52,7 +52,8 @@ public class FillerFieldFromContextTwinField extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
-        TwinFieldEntity srcField = twinService.findTwinField(contextTwin.getId(), srcTwinClassFieldId.extract(properties));
+        // we have to check missing fields because of links (link can be added to twin not by fields mechanism)
+        TwinFieldEntity srcField = twinService.findTwinFieldIncludeMissing(contextTwin.getId(), srcTwinClassFieldId.extract(properties));
         if (srcField == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "twinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present for context " + contextTwin.logShort());
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
