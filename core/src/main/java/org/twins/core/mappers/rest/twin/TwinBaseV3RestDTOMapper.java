@@ -3,18 +3,19 @@ package org.twins.core.mappers.rest.twin;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinMarkerService;
+import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
-
-import java.util.List;
 
 
 @Component
@@ -27,20 +28,34 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinflowTransitionService twinflowTransitionService;
     final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
     final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+    final TwinMarkerService twinMarkerService;
+    final TwinTagService twinTagService;
+    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
-            dst.attachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
-            dst.links(twinLinkListRestDTOMapper.convert(twinLinkService.findTwinLinks(src.getId()), mapperContext));
+            dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.findTwinLinks(src.getId()), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
-            List<TwinflowTransitionEntity> validTransitions = twinflowTransitionService.findValidTransitions(src);
-            dst.transitions(twinTransitionRestDTOMapper.convertListPostpone(validTransitions, mapperContext));
-            if (dst.transitions == null) {// convert was postponed
-                dst.transitionsIdList(validTransitions.stream().map(TwinflowTransitionEntity::getId).toList());
-            }
+            twinflowTransitionService.loadValidTransitions(src);
+            convertOrPostpone(src.getValidTransitionsKit(), dst, twinTransitionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTransitions, TwinBaseDTOv3::setTransitionsIdList);
+//            if (src.getValidTransitionsKit() != null) {
+//                if (mapperContext.isLazyRelations())
+//                    dst.transitions(twinTransitionRestDTOMapper.convertList(src.getValidTransitionsKit().getList(), mapperContext));
+//                else  // convert was postponed
+//                    dst.transitionsIdList(src.getValidTransitionsKit().getIdSet());
+//            }
+        }
+        if (mapperContext.hasMode(TwinMarkerMode.SHOW)) {
+            twinMarkerService.loadMarkers(src);
+            convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
+        }
+        if (mapperContext.hasMode(TwinTagMode.SHOW)) {
+            twinTagService.loadTags(src);
+            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
     }
 
@@ -52,5 +67,19 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public String getObjectCacheId(TwinEntity src) {
         return src.getId().toString();
+    }
+
+    public enum TwinMarkerMode implements MapperMode {
+        SHOW, HIDE;
+
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
+    }
+
+    public enum TwinTagMode implements MapperMode {
+        SHOW, HIDE;
+
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
     }
 }

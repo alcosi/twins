@@ -21,6 +21,8 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
     }
 
     public Map<UUID, S> convertMap(Map<UUID, T> srcMap, MapperContext mapperContext) throws Exception {
+        if (srcMap == null)
+            return null;
         Map<UUID, S> ret = new LinkedHashMap<>();
         for (Map.Entry<UUID, T>  src : srcMap.entrySet()) {
             ret.put(src.getKey(), this.convert(src.getValue(), mapperContext));

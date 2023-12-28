@@ -53,6 +53,8 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassHeadMode, defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showClassHeadMode,
             @RequestParam(name = RestRequestParam.showClassStatusMode, defaultValue = TwinClassRestDTOMapper.StatusMode._HIDE) TwinClassRestDTOMapper.StatusMode showClassStatusMode,
+            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
+            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestBody TwinClassSearchRqDTOv1 request) {
@@ -65,6 +67,9 @@ public class TwinClassListController extends ApiController {
                     .setMode(showClassHeadMode)
                     .setMode(showClassFieldMode)
                     .setMode(showClassStatusMode)
+                    .setMode(showClassMarkerMode)
+                    .setMode(showClassTagMode)
+                    .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
                     .setMode(showLinkMode)
                     .setMode(showStatusMode);
             rs
@@ -94,6 +99,8 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassHeadMode, defaultValue = TwinClassRestDTOMapper.HeadTwinMode._SHOW) TwinClassRestDTOMapper.HeadTwinMode showClassHeadMode,
             @RequestParam(name = RestRequestParam.showClassStatusMode, defaultValue = TwinClassRestDTOMapper.StatusMode._HIDE) TwinClassRestDTOMapper.StatusMode showClassStatusMode,
+            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
+            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
@@ -105,6 +112,8 @@ public class TwinClassListController extends ApiController {
                     .setMode(showClassHeadMode)
                     .setMode(showClassFieldMode)
                     .setMode(showClassStatusMode)
+                    .setMode(showClassMarkerMode)
+                    .setMode(showClassTagMode)
                     .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
                     .setMode(showLinkMode)
                     .setMode(showStatusMode);

@@ -14,6 +14,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -278,6 +280,15 @@ public class EntitySmartService {
         else
             log.info(entityShortName(entity) + " was updated: " + changesHelper.collectForLog());
         return entity;
+    }
+
+    public static <T> Map<UUID, T> convertToMap(List<T> entityList, Function<? super T, ? extends UUID> functionGetId) {
+        Map<UUID, T> ret = null;
+        if (entityList != null) {
+            ret = entityList
+                    .stream().collect(Collectors.toMap(functionGetId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
+        }
+        return ret;
     }
 
     public enum CheckMode {

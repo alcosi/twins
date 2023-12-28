@@ -23,6 +23,7 @@ import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,7 +38,6 @@ public class TwinHeadService {
     final TwinService twinService;
     final TwinSearchService twinSearchService;
     final TwinClassService twinClassService;
-    final SystemEntityService systemEntityService;
     final AuthService authService;
     final UserService userService;
     final BusinessAccountService businessAccountService;
@@ -50,9 +50,9 @@ public class TwinHeadService {
         if (twinClassEntity.getDomainId() != null) {
             TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
             if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
-                if (systemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
+                if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
                     return getValidUserTwinListByTwinClass(twinClassEntity);
-                } else if (systemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
+                } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
                     return getValidBusinessAccountTwinListByTwinClass(twinClassEntity);
                 }
                 log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
@@ -60,6 +60,12 @@ public class TwinHeadService {
         }
         // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)
         return twinSearchService.findTwins(basicSearch);
+    }
+
+    //todo cache it
+    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity) throws ServiceException {
+        List<TwinEntity> validHeads = findValidHeads(twinClassEntity);
+        return EntitySmartService.convertToMap(validHeads, TwinEntity::getId);
     }
 
     @Transactional

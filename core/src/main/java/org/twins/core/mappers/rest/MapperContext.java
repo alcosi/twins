@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -10,25 +11,24 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.service.SystemEntityService;
 
-import java.util.Hashtable;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
     @Getter
-    private final Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
+    private Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
     @Getter
-    private final Map<UUID, TwinClassEntity> relatedTwinClassMap = new LinkedHashMap<>();
+    private Map<UUID, TwinClassEntity> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
-    private final Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
+    private Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
     @Getter
-    private final Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
+    private Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
     @Getter
-    private final Map<UUID, TwinflowTransitionEntity> relatedTwinflowTransitionMap = new LinkedHashMap<>();
+    private Map<UUID, TwinflowTransitionEntity> relatedTwinflowTransitionMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, DataListEntity> relatedDataListMap = new LinkedHashMap<>();
     private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -57,6 +57,20 @@ public class MapperContext {
         return this;
     }
 
+    public boolean addRelatedObjectCollection(Collection<?> relatedObjectCollection) {
+        if (relatedObjectCollection == null)
+            return true;
+        relatedObjectCollection.forEach(this::addRelatedObject);
+        return true;
+    }
+
+    public List<UUID> addRelatedObjectMap(Map<UUID, ?> relatedObjectMap) {
+        if (relatedObjectMap == null)
+            return null;
+        relatedObjectMap.values().forEach(this::addRelatedObject);
+        return relatedObjectMap.keySet().stream().toList();
+    }
+
     public boolean addRelatedObject(Object relatedObject) {
         if (relatedObject == null)
             return true;
@@ -72,6 +86,8 @@ public class MapperContext {
         }
         else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
             relatedTwinflowTransitionMap.put(twinflowTransition.getId(), twinflowTransition);
+        else if (relatedObject instanceof DataListEntity dataList)
+            relatedDataListMap.put(dataList.getId(), dataList);
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -155,10 +171,21 @@ public class MapperContext {
 
     public MapperContext cloneIgnoreRelatedObjects() {
         MapperContext mapperContext = new MapperContext();
-        mapperContext.modes = new Hashtable<>(this.modes);
-        mapperContext.cachedObjects = this.cachedObjects;
-        mapperContext.lazyRelations = this.lazyRelations;
-        mapperContext.properties = new Hashtable<>(this.properties);
+        mapperContext.modes = new Hashtable<>(this.modes); // new map with presets
+        mapperContext.cachedObjects = this.cachedObjects; // same map
+        mapperContext.lazyRelations = this.lazyRelations; // same map
+        mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
+        return mapperContext;
+    }
+
+    public MapperContext isolateModes() {
+        MapperContext mapperContext = cloneIgnoreRelatedObjects();
+        mapperContext.relatedUserMap = this.relatedUserMap;
+        mapperContext.relatedTwinClassMap = this.relatedTwinClassMap;
+        mapperContext.relatedTwinStatusMap = this.relatedTwinStatusMap;
+        mapperContext.relatedTwinMap = this.relatedTwinMap;
+        mapperContext.relatedTwinflowTransitionMap = this.relatedTwinflowTransitionMap;
+        mapperContext.relatedDataListMap = this.relatedDataListMap;
         return mapperContext;
     }
 

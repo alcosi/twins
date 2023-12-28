@@ -24,6 +24,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -77,6 +78,18 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
     public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {
         return dataListOptionRepository.findByDataListId(dataListId);
+    }
+
+    //todo cache it
+    public Map<UUID, DataListOptionEntity> findDataListOptionsAsMap(UUID dataListId) {
+        return EntitySmartService.convertToMap(findDataListOptions(dataListId), DataListOptionEntity::getId);
+    }
+
+    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) {
+        if (dataListEntity.getOptions() != null)
+            return dataListEntity.getOptions();
+        dataListEntity.setOptions(findDataListOptionsAsMap(dataListEntity.getId()));
+        return dataListEntity.getOptions();
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {

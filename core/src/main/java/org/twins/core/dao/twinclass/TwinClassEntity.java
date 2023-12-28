@@ -29,7 +29,6 @@ public class TwinClassEntity extends EasyLoggableImpl {
         }
     }
 
-
     @Column(name = "domain_id")
     private UUID domainId;
 
@@ -65,6 +64,12 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Column(name = "domain_alias_counter")
     private int domainAliasCounter;
+
+    @Column(name = "marker_data_list_id")
+    private UUID markerDataListId;
+
+    @Column(name = "tag_data_list_id")
+    private UUID tagDataListId;
 
     @Column(name = "twin_class_owner_type_id")
     @Convert(converter = TwinClassOwnerTypeConverter.class)

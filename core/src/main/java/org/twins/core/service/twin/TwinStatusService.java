@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -25,6 +26,7 @@ import java.util.UUID;
 public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEntity> {
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
+
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
         return twinStatusRepository;
@@ -43,6 +45,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public List<TwinStatusEntity> findByTwinClass(TwinClassEntity twinClassEntity) {
         twinClassService.loadExtendedClasses(twinClassEntity);
         return twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
+    }
+
+    //todo cache it
+    public Kit<TwinStatusEntity> findByTwinClassAsMap(TwinClassEntity twinClassEntity) {
+        List<TwinStatusEntity> validTwinClassStatusList = findByTwinClass(twinClassEntity);
+        if (validTwinClassStatusList == null)
+            return null;
+        return new Kit<>(validTwinClassStatusList, TwinStatusEntity::getId);
     }
 
     public boolean checkStatusAllowed(TwinEntity twinEntity, TwinStatusEntity twinStatusEntity) {

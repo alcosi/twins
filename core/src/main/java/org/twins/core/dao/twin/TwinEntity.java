@@ -6,7 +6,10 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.Kit;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -16,7 +19,7 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Table(name = "twin")
 @FieldNameConstants
 public class TwinEntity extends EasyLoggableImpl implements Cloneable {
@@ -102,6 +105,18 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @Transient
     @EqualsAndHashCode.Exclude
     private List<TwinFieldEntity> twinFieldList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowTransitionEntity> validTransitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<DataListOptionEntity> twinMarkerKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<DataListOptionEntity> twinTagKit;
 
     public String easyLog(Level level) {
         switch (level) {

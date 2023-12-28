@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
@@ -89,11 +90,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return true;
     }
 
-    public List<TwinflowTransitionEntity> findValidTransitions(TwinEntity twinEntity) throws ServiceException {
+    public Kit<TwinflowTransitionEntity> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getValidTransitionsKit() != null)
+            return twinEntity.getValidTransitionsKit();
         TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity.getTwinClass());
         List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdAndSrcTwinStatusId(twinflowEntity.getId(), twinEntity.getTwinStatusId());
         if (CollectionUtils.isEmpty(twinflowTransitionEntityList))
-            return twinflowTransitionEntityList;
+            return null;
         ApiUser apiUser = authService.getApiUser();
         permissionService.loadUserPermissions(apiUser);
         ListIterator<TwinflowTransitionEntity> iterator = twinflowTransitionEntityList.listIterator();
@@ -105,7 +108,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             if (!runTransitionValidators(twinflowTransitionEntity, twinEntity))
                 iterator.remove();
         }
-        return twinflowTransitionEntityList;
+        twinEntity.setValidTransitionsKit(new Kit<>(twinflowTransitionEntityList, TwinflowTransitionEntity::getId));
+        return twinEntity.getValidTransitionsKit();
     }
 
     public Map<UUID, TwinflowTransitionEntity> findTransitionsByAlias(String transitionAlias) throws ServiceException {

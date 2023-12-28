@@ -38,4 +38,10 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
     public UUID headClassId;
+
+    @Schema(description = "some markers for twins. Are domain level and not editable by user")
+    public UUID markersDataListId;
+
+    @Schema(description = "some tags for twins. Can be business account level and editable by user")
+    public UUID tagsDataListId;
 }

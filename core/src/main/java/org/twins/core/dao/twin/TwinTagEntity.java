@@ -5,16 +5,17 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Table(name = "twin_field")
-public class TwinFieldEntity extends EasyLoggableImpl {
+@Table(name = "twin_tag")
+public class TwinTagEntity extends EasyLoggableImpl {
     @Id
     private UUID id;
 
@@ -28,29 +29,27 @@ public class TwinFieldEntity extends EasyLoggableImpl {
     @Column(name = "twin_id")
     private UUID twinId;
 
-    @Column(name = "twin_class_field_id")
-    private UUID twinClassFieldId;
+    @Column(name = "tag_data_list_option_id")
+    private UUID tagDataListOptionId;
 
-    @Column(name = "value")
-    private String value;
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
 
     @ManyToOne
-    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = false)
-    private TwinClassFieldEntity twinClassField;
+    @JoinColumn(name = "tag_data_list_option_id", insertable = false, updatable = false, nullable = false)
+    private DataListOptionEntity tagDataListOption;
 
     @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:
-                return "twinField[" + id + "]";
-            case NORMAL:
-                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+                return "twinTag[" + id + "]";
             default:
-                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+                return "twinTag[id:" + id + ", twinId:" + twinId + "]";
         }
     }
 }

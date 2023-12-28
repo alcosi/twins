@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.Instant;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -26,5 +26,5 @@ public class DataListDTOv1 {
     public Instant updatedAt;
 
     @Schema(description = "List options")
-    public List<DataListOptionDTOv1> options;
+    public Map<UUID, DataListOptionDTOv1> options;
 }

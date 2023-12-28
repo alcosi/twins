@@ -1,12 +1,15 @@
 package org.twins.core.mappers.rest;
 
 
+import org.cambium.common.Kit;
 import org.cambium.common.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
 
 public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> {
     private final Class<S> type;
@@ -66,5 +69,14 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
 
     public String getObjectCacheId(T src) {
         return null;
+    }
+
+    public <F, Y> void convertOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+        if (kit != null) {
+            if (mapperContext.isLazyRelations())
+                lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getList(), mapperContext));
+            else
+                noLazyModeFunction.accept(dst, kit.getIdSet());
+        }
     }
 }

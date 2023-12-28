@@ -12,12 +12,16 @@ public interface RestRequestParam {
     String showClassFieldMode = "showClassFieldMode";
     String showClassHeadMode = "showClassHeadMode";
     String showClassStatusMode = "showClassStatusMode";
+    String showClassMarkerMode = "showClassMarkerMode";
+    String showClassTagMode = "showClassTagMode";
     String showPermissionMode = "showPermissionMode";
     String showPermissionGroupMode = "showPermissionGroupMode";
     String showStatusMode = "showStatusMode";
     String showTwinMode = "showTwinMode";
     String showTwinFieldMode = "showTwinFieldMode";
     String showTwinLinkMode = "showTwinLinkMode";
+    String showTwinMarkerMode = "showTwinMarkerMode";
+    String showTwinTagMode = "showTwinTagMode";
     String showLinkMode = "showLinkMode";
     String showTwinTransitionMode = "showTwinflowTransitionMode";
     String showTwinflowTransitionResultMode = "showTwinflowTransitionResultMode";

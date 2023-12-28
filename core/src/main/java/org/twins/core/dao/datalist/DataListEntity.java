@@ -3,11 +3,12 @@ package org.twins.core.dao.datalist;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
-import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -49,8 +50,9 @@ public class DataListEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";
     }
-    
+
     @Transient
     @EqualsAndHashCode.Exclude
-    List<DataListOptionEntity> options;
+    @ToString.Exclude
+    Map<UUID, DataListOptionEntity> options;
 }

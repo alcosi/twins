@@ -12,8 +12,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorListShared;
+import org.twins.core.service.EntitySmartService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -48,7 +50,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
         Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
         UUID listId = listUUID.extract(properties);
         DataListEntity dataListEntity = dataListService.findEntitySafe(listId);
-        return dataListEntity.setOptions(
-                dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId));
+        List<DataListOptionEntity> options = dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId);
+        return dataListEntity.setOptions(EntitySmartService.convertToMap(options, DataListOptionEntity::getId));
     }
 }

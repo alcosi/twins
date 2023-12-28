@@ -33,12 +33,9 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                 break;
         }
         if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
-            if (src.getOptions() == null)
-                src.setOptions(dataListService.findDataListOptions(src.getId()));
-            dst.options(dataListOptionRestDTOMapper.convertList(
-                    src.getOptions(), mapperContext));
+            dataListService.loadDataListOptions(src);
+            dst.options(dataListOptionRestDTOMapper.convertMap(src.getOptions(), mapperContext));
         }
-
     }
 
     public enum Mode implements MapperMode {
