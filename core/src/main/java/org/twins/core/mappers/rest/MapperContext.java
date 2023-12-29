@@ -171,15 +171,16 @@ public class MapperContext {
 
     public MapperContext cloneIgnoreRelatedObjects() {
         MapperContext mapperContext = new MapperContext();
+        mapperContext.lazyRelations = false;
         mapperContext.modes = new Hashtable<>(this.modes); // new map with presets
         mapperContext.cachedObjects = this.cachedObjects; // same map
-        mapperContext.lazyRelations = this.lazyRelations; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         return mapperContext;
     }
 
     public MapperContext isolateModes() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
+        mapperContext.lazyRelations = this.lazyRelations;
         mapperContext.relatedUserMap = this.relatedUserMap;
         mapperContext.relatedTwinClassMap = this.relatedTwinClassMap;
         mapperContext.relatedTwinStatusMap = this.relatedTwinStatusMap;
