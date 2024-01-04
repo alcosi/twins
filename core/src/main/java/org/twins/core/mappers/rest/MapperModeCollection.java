@@ -7,6 +7,6 @@
 
 package org.twins.core.mappers.rest;
 
-public interface MapperMode {
-    int getPriority();
+public interface MapperModeCollection extends MapperMode{
+    MapperMode[] getConfiguredModes();
 }

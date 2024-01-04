@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.twinclass;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.service.I18nService;
@@ -47,12 +49,18 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
         return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        ;
+
+        @Getter
+        final int priority;
     }
 
     @Override

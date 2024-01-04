@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.link;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -20,7 +22,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                 dst
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.setModeIfNotPresent(UserRestDTOMapper.Mode.SHORT)))
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setLinkId(src.getLinkId());
                 break;
@@ -42,11 +44,17 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
         return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

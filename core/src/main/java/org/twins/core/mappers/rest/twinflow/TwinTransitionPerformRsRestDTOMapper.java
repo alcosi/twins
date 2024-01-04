@@ -1,24 +1,18 @@
 package org.twins.core.mappers.rest.twinflow;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinflow.TwinTransitionContextDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
-import org.twins.core.service.user.UserService;
 
 import java.util.*;
 
@@ -52,11 +46,17 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
         return mapperContext.hasModeOrEmpty(TwinStatusRestDTOMapper.Mode.HIDE);
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        HIDE, SHORT, DETAILED;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

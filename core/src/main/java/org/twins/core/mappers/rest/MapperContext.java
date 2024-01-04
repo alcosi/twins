@@ -17,19 +17,20 @@ import java.util.*;
 public class MapperContext {
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
+
     @Getter
-    private Map<UUID, UserEntity> relatedUserMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<UserEntity>> relatedUserMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, TwinClassEntity> relatedTwinClassMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, TwinStatusEntity> relatedTwinStatusMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, TwinEntity> relatedTwinMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinEntity>> relatedTwinMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, TwinflowTransitionEntity> relatedTwinflowTransitionMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<TwinflowTransitionEntity>> relatedTwinflowTransitionMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, DataListEntity> relatedDataListMap = new LinkedHashMap<>();
-    private Hashtable<Class<MapperMode>, MapperMode> modes = new Hashtable<>();
+    private Map<UUID, RelatedObject<DataListEntity>> relatedDataListMap = new LinkedHashMap<>();
+    private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     public static MapperContext create() {
@@ -37,7 +38,19 @@ public class MapperContext {
     }
 
     public MapperContext setMode(MapperMode mapperMode) {
-        modes.put((Class<MapperMode>) mapperMode.getClass(), mapperMode);
+        modes.put(mapperMode);
+        return this;
+    }
+
+    public MapperContext setModes(MapperMode... mapperModes) {
+        if (mapperModes != null)
+            for (MapperMode mapperMode : mapperModes)
+                modes.put(mapperMode);
+        return this;
+    }
+
+    public MapperContext setModesMap(MapperModeMap mapperModeMap) {
+        modes = mapperModeMap;
         return this;
     }
 
@@ -75,19 +88,19 @@ public class MapperContext {
         if (relatedObject == null)
             return true;
         if (relatedObject instanceof UserEntity user)
-            relatedUserMap.put(user.getId(), user);
+            smartPut(relatedUserMap, user, user.getId());
         else if (relatedObject instanceof TwinClassEntity twinClass)
-            relatedTwinClassMap.put(twinClass.getId(), twinClass);
+            smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
-            relatedTwinStatusMap.put(twinStatus.getId(), twinStatus);
+            smartPut(relatedTwinStatusMap, twinStatus, twinStatus.getId());
         else if (relatedObject instanceof TwinEntity twin) {
             if (!SystemEntityService.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
-                relatedTwinMap.put(twin.getId(), twin);
+                smartPut(relatedTwinMap, twin, twin.getId());
         }
         else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
-            relatedTwinflowTransitionMap.put(twinflowTransition.getId(), twinflowTransition);
+            smartPut(relatedTwinflowTransitionMap, twinflowTransition, twinflowTransition.getId());
         else if (relatedObject instanceof DataListEntity dataList)
-            relatedDataListMap.put(dataList.getId(), dataList);
+            smartPut(relatedDataListMap, dataList, dataList.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -95,6 +108,28 @@ public class MapperContext {
         if (relatedObject instanceof EasyLoggable loggable)
             log.debug(loggable.easyLog(EasyLoggable.Level.NORMAL) + " will be converted later");
         return true;
+    }
+
+    /**
+     * We should not blindly put new related object to correspondence map.
+     * In some case we can already have an object with same id in map, but with more detailed modes.
+     * So we have to use the most detailed modes in such case
+     */
+    public <E> void smartPut(Map<UUID, RelatedObject<E>> map, E object, UUID id) {
+        RelatedObject<E> alreadyRelated = map.get(id);
+        if (alreadyRelated == null) {
+            MapperModeMap relatedObjectModes = isolateModes();
+            map.put(id, new RelatedObject<>(object, relatedObjectModes));
+            return;
+        }
+        // merge modes. detailed is more high priority
+        MapperMode alreadyRegisteredMode;
+        for (MapperMode newMapperMode : modes.values()) {
+            alreadyRegisteredMode = alreadyRelated.getModes().get(newMapperMode.getClass());
+            if (alreadyRegisteredMode == null || alreadyRegisteredMode.getPriority() < newMapperMode.getPriority())
+                alreadyRelated.getModes().put(newMapperMode);
+            //else current stored mode is more priority
+        }
     }
 
     public <T> T getProperty(String key, Class<T> type) {
@@ -116,6 +151,17 @@ public class MapperContext {
             return mode;
     }
 
+    /**
+     * if we have some more priority mode in map we will use it, otherwise wi will user this
+     */
+    public <T extends MapperMode> T getPriorityModeOrUse(T mode) {
+        MapperMode configuredMode = modes.get(mode.getClass());
+        if (configuredMode != null && configuredMode.getPriority() > mode.getPriority())
+            return (T) configuredMode;
+        else
+            return mode;
+    }
+
     public <T extends MapperMode> boolean hasMode(T mode) {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode != null)
@@ -130,6 +176,11 @@ public class MapperContext {
             return configuredMode.equals(mode);
         else
             return true;
+    }
+
+    public <T extends MapperMode> boolean hasEmpty(T mode) {
+        MapperMode configuredMode = modes.get(mode.getClass());
+        return configuredMode == null;
     }
 
     public <S> S getFromCache(Class<S> clazz, String cacheId) {
@@ -169,17 +220,21 @@ public class MapperContext {
         cache.put(cacheId, obj);
     }
 
+    public MapperModeMap isolateModes() {
+        return new MapperModeMap(this.modes);
+    }
+
     public MapperContext cloneIgnoreRelatedObjects() {
         MapperContext mapperContext = new MapperContext();
-        mapperContext.modes = new Hashtable<>(this.modes); // new map with presets
+        mapperContext.lazyRelations = this.lazyRelations;
+        mapperContext.modes = isolateModes(); // new map with presets
         mapperContext.cachedObjects = this.cachedObjects; // same map
         mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
         return mapperContext;
     }
 
-    public MapperContext isolateModes() {
+    public MapperContext cloneWithIsolatedModes() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
-        mapperContext.lazyRelations = this.lazyRelations;
         mapperContext.relatedUserMap = this.relatedUserMap;
         mapperContext.relatedTwinClassMap = this.relatedTwinClassMap;
         mapperContext.relatedTwinStatusMap = this.relatedTwinStatusMap;
@@ -187,6 +242,13 @@ public class MapperContext {
         mapperContext.relatedTwinflowTransitionMap = this.relatedTwinflowTransitionMap;
         mapperContext.relatedDataListMap = this.relatedDataListMap;
         return mapperContext;
+    }
+
+    public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
+        MapperContext cloneMapperContext = cloneWithIsolatedModes();
+        mapperModeCollection = getModeOrUse(mapperModeCollection);
+        cloneMapperContext.setModes(mapperModeCollection.getConfiguredModes());
+        return cloneMapperContext;
     }
 
     private void debugLog(Object obj, String message) {

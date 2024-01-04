@@ -55,4 +55,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "Map of tags." + DTOExamples.LAZY_RELATION_MODE_ON)
     public Map<UUID, DataListOptionDTOv1> tagMap;
+
+    @Schema(description = "head class")
+    public TwinClassBaseDTOv1 headClass;
 }

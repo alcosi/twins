@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.usergroup;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
@@ -32,11 +34,17 @@ public class UserGroupRestDTOMapper extends RestSimpleDTOMapper<UserGroupEntity,
         return src.getId().toString();
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

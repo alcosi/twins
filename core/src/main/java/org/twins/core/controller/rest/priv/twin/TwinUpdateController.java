@@ -66,6 +66,7 @@ public class TwinUpdateController extends ApiController {
     public ResponseEntity<?> twinUpdateV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -90,6 +91,7 @@ public class TwinUpdateController extends ApiController {
             twinService.updateTwin(twinUpdate);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)

@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.twinclass;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.Kit;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasMode(HeadTwinMode.SHOW) && src.getHeadTwinClassId() != null) {
             Map<UUID, TwinEntity> validHeadsMap = twinHeadService.findValidHeadsAsMap(src);
             if (mapperContext.isLazyRelations())
-                dst.validHeadsMap(twinBaseRestDTOMapper.convertMap(validHeadsMap, mapperContext.setModeIfNotPresent(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+                dst.validHeadsMap(twinBaseRestDTOMapper.convertMap(validHeadsMap, mapperContext.cloneWithIsolatedModes().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
             else {
                 dst.validHeadsIds(mapperContext.addRelatedObjectMap(validHeadsMap));
             }
@@ -79,24 +81,26 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
-        if (mapperContext.hasMode(MarkerMode.SHOW) && src.getMarkerDataListId() != null) {
+        if (!mapperContext.hasMode(MarkerMode.HIDE) && src.getMarkerDataListId() != null) {
             DataListEntity markerDataListEntity = dataListService.findEntitySafe(src.getMarkerDataListId());
             dataListService.loadDataListOptions(markerDataListEntity);
             if (markerDataListEntity.getOptions() != null) {
+                MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
+                        .setModeIfNotPresent(mapperContext.hasMode(MarkerMode.SHORT) ? DataListOptionRestDTOMapper.Mode.SHORT : DataListOptionRestDTOMapper.Mode.DETAILED);
                 if (mapperContext.isLazyRelations())
-                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions(), mapperContext.isolateModes().setModeIfNotPresent(DataListOptionRestDTOMapper.Mode.SHORT)));
+                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions(), dataListMapperContext));
                 else {
                     dst.markerList(markerDataListEntity.getOptions().keySet().stream().toList());
-                    mapperContext.addRelatedObject(markerDataListEntity);
+                    dataListMapperContext.addRelatedObject(markerDataListEntity);
                 }
             }
         }
-        if (mapperContext.hasMode(TagMode.SHOW) && src.getTagDataListId() != null) {
+        if (!mapperContext.hasMode(TagMode.HIDE) && src.getTagDataListId() != null) {
             DataListEntity tagDataListEntity = dataListService.findEntitySafe(src.getTagDataListId());
             dataListService.loadDataListOptions(tagDataListEntity);
             if (tagDataListEntity.getOptions() != null) {
                 if (mapperContext.isLazyRelations())
-                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions(), mapperContext.isolateModes().setModeIfNotPresent(DataListOptionRestDTOMapper.Mode.SHORT)));
+                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(DataListOptionRestDTOMapper.Mode.SHORT)));
                 else {
                     dst.tagList(tagDataListEntity.getOptions().keySet().stream().toList());
                     mapperContext.addRelatedObject(tagDataListEntity);
@@ -115,27 +119,51 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         return src.getId().toString();
     }
 
+    @AllArgsConstructor
     public enum HeadTwinMode implements MapperMode {
-        SHOW, HIDE;
+        HIDE(0),
+        SHOW(1);
         public static final String _SHOW = "SHOW";
         public static final String _HIDE = "HIDE";
+        @Getter
+        final int priority;
     }
 
+    @AllArgsConstructor
     public enum StatusMode implements MapperMode {
-        SHOW, HIDE;
+        HIDE(0),
+        SHOW(1);
         public static final String _SHOW = "SHOW";
         public static final String _HIDE = "HIDE";
+        @Getter
+        final int priority;
     }
 
+    @AllArgsConstructor
     public enum MarkerMode implements MapperMode {
-        SHOW, HIDE;
-        public static final String _SHOW = "SHOW";
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
+
         public static final String _HIDE = "HIDE";
+        public static final String _SHORT = "SHORT";
+        public static final String _DETAILED = "DETAILED";
+
+        @Getter
+        final int priority;
     }
 
+    @AllArgsConstructor
     public enum TagMode implements MapperMode {
-        SHOW, HIDE;
-        public static final String _SHOW = "SHOW";
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
+
         public static final String _HIDE = "HIDE";
+        public static final String _SHORT = "SHORT";
+        public static final String _DETAILED = "DETAILED";
+
+        @Getter
+        final int priority;
     }
 }

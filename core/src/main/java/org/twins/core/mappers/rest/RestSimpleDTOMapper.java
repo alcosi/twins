@@ -44,6 +44,8 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     }
 
     public S convertOrPostpone(T src, MapperContext mapperContext) throws Exception {
+        if (hideMode(mapperContext))
+            return null;
         if (mapperContext.isLazyRelations())
             return convert(src, mapperContext);
         if (mapperContext.addRelatedObject(src))
@@ -75,8 +77,10 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         if (kit != null) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getList(), mapperContext));
-            else
+            else {
                 noLazyModeFunction.accept(dst, kit.getIdSet());
+                mapperContext.addRelatedObjectCollection(kit.getList());
+            }
         }
     }
 }

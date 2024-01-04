@@ -64,6 +64,7 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -84,10 +85,13 @@ public class TwinListController extends ApiController {
             List<TwinEntity> twinList = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
                     .setMode(showClassFieldMode)
+                    .setMode(showClassMarkerMode)
+                    .setMode(showClassTagMode)
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showAttachmentMode)
@@ -118,6 +122,7 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -138,12 +143,15 @@ public class TwinListController extends ApiController {
             List<TwinEntity> twinList = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
                     .setMode(showClassFieldMode)
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
+                    .setMode(showClassMarkerMode)
+                    .setMode(showClassTagMode)
                     .setMode(showAttachmentMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)

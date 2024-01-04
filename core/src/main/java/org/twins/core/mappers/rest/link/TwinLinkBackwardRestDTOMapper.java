@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.twin.RelatedTwinMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
 @Component
@@ -18,7 +19,8 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinLinkRestDTOMapper.map(src, dst, mapperContext);
         dst
-                .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getSrcTwin(), mapperContext))
+                .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getSrcTwin(), mapperContext
+                        .cloneWithIsolatedModes(RelatedTwinMode.GREEN)))
                 .setLink(linkBackwardRestDTOMapper.convert(src.getLink(), mapperContext))
                 .setDstTwinId(src.getSrcTwinId());
     }

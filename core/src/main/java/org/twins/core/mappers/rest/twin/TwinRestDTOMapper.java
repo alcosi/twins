@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.twin;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -45,11 +47,18 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         return src.getId().toString();
     }
 
+    @AllArgsConstructor
     public enum FieldsMode implements MapperMode {
-        NO_FIELDS, ALL_FIELDS, NOT_EMPTY_FIELDS;
+        NO_FIELDS(0),
+        NOT_EMPTY_FIELDS(1),
+        ALL_FIELDS(2);
 
         public static final String _NO_FIELDS = "NO_FIELDS";
         public static final String _ALL_FIELDS = "ALL_FIELDS";
         public static final String _NOT_EMPTY_FIELDS = "NOT_EMPTY_FIELDS";
+
+        @Getter
+        final int priority;
+
     }
 }

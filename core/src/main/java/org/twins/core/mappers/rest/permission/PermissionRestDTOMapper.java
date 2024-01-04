@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.permission;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
@@ -37,11 +39,17 @@ public class PermissionRestDTOMapper extends RestSimpleDTOMapper<PermissionEntit
         return src.getId().toString();
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.attachment;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,7 +33,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.setModeIfNotPresent(UserRestDTOMapper.Mode.SHORT)))
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
@@ -53,11 +55,17 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
+    @AllArgsConstructor
     public enum Mode implements MapperMode {
-        SHORT, DETAILED, HIDE;
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
 
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

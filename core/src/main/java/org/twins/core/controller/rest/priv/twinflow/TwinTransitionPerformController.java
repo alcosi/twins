@@ -80,6 +80,7 @@ public class TwinTransitionPerformController extends ApiController {
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -112,6 +113,7 @@ public class TwinTransitionPerformController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showTwinflowTransitionResultMode)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -146,6 +148,7 @@ public class TwinTransitionPerformController extends ApiController {
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -179,6 +182,7 @@ public class TwinTransitionPerformController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showTwinflowTransitionResultMode)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -212,6 +216,7 @@ public class TwinTransitionPerformController extends ApiController {
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -245,6 +250,7 @@ public class TwinTransitionPerformController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showTwinflowTransitionResultMode)
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -279,6 +285,7 @@ public class TwinTransitionPerformController extends ApiController {
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = TwinTransitionPerformRsRestDTOMapper.Mode._HIDE) TwinTransitionPerformRsRestDTOMapper.Mode showTwinflowTransitionResultMode,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -326,6 +333,7 @@ public class TwinTransitionPerformController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showTwinflowTransitionResultMode)
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)

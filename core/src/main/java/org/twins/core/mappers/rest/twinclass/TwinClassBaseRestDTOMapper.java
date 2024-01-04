@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.twinclass;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
@@ -49,11 +51,18 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
         return src.getId().toString();
     }
 
-    public enum ClassMode implements MapperMode {
-        SHORT, DETAILED, HIDE;
 
+    @AllArgsConstructor
+    public enum ClassMode implements MapperMode {
+        HIDE(0),
+        SHORT(1),
+        DETAILED(2);
+
+        public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
-        public static final String _HIDE = "HIDE";
+
+        @Getter
+        final int priority;
     }
 }

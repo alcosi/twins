@@ -58,6 +58,7 @@ public class TwinViewController extends ApiController {
     public ResponseEntity<?> twinViewV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -78,6 +79,7 @@ public class TwinViewController extends ApiController {
         try {
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -116,6 +118,7 @@ public class TwinViewController extends ApiController {
     public ResponseEntity<?> twinViewV2(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -136,6 +139,7 @@ public class TwinViewController extends ApiController {
         try {
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -174,6 +178,7 @@ public class TwinViewController extends ApiController {
     public ResponseEntity<?> twinViewByAliasV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -195,6 +200,7 @@ public class TwinViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -233,6 +239,7 @@ public class TwinViewController extends ApiController {
     public ResponseEntity<?> twinViewByAliasV2(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -254,6 +261,7 @@ public class TwinViewController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
+                    .setMode(showRelatedTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)

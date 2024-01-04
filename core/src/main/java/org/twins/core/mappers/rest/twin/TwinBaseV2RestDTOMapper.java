@@ -1,5 +1,7 @@
 package org.twins.core.mappers.rest.twin;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -37,10 +39,10 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
                         .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext))
                         .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
                         .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext))
-                        .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext))
-                        .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext)); //todo deep recursion risk
-//                if (!mapperContext.hasMode(TwinHeadMode.HIDE))
-//                     dst.headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.setOneTimeMode(TwinHeadMode.HIDE))); //using oneTimeMode because of recursion loop risk
+                        .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext)); //todo deep recursion risk
+                if (!mapperContext.hasMode(TwinHeadMode.HIDE))
+                    dst.headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.cloneWithIsolatedModes() //head twin will be much less detail
+                            .cloneWithIsolatedModes(RelatedTwinMode.GREEN)));
         }
     }
 
@@ -54,10 +56,15 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return src.getId().toString();
     }
 
+    @AllArgsConstructor
     public enum TwinHeadMode implements MapperMode {
-        SHOW, HIDE;
+        HIDE(0),
+        SHOW(1);
 
-        public static final String _SHOW = "SHOW";
         public static final String _HIDE = "HIDE";
+        public static final String _SHOW = "SHOW";
+
+        @Getter
+        final int priority;
     }
 }
