@@ -67,6 +67,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     final TwinLinkService twinLinkService;
     @Lazy
+    final TwinMarkerService twinMarkerService;
+    @Lazy
     final AuthService authService;
     @Lazy
     final SystemEntityService systemEntityService;
@@ -107,9 +109,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         if (entity.getTwinClass().getOwnerType().isSystemLevel()) {
-            if (systemEntityService.isTwinClassForUser(entity.getTwinClassId()))
+            if (SystemEntityService.isTwinClassForUser(entity.getTwinClassId()))
                 return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
-            if (systemEntityService.isTwinClassForBusinessAccount(entity.getTwinClassId()))
+            if (SystemEntityService.isTwinClassForBusinessAccount(entity.getTwinClassId()))
                 return false;  //todo check if entity.id is in domain businessAccount users scope. should be cached
             return false;
         }
@@ -248,11 +250,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(ApiUser apiUser, TwinCreate twinCreate) throws ServiceException {
-        return createTwin(apiUser, twinCreate.getTwinEntity(), twinCreate.getFields(), twinCreate.getAttachmentEntityList(), twinCreate.getLinksEntityList());
-    }
-
-    @Transactional(rollbackFor = Throwable.class)
-    public TwinCreateResult createTwin(ApiUser apiUser, TwinEntity twinEntity, Map<UUID, FieldValue> fields, List<TwinAttachmentEntity> attachmentEntityList, List<TwinLinkEntity> linksEntityList) throws ServiceException {
+        TwinEntity twinEntity = twinCreate.getTwinEntity();
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
         twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
@@ -263,12 +261,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
         twinEntity = saveTwin(twinEntity);
-        saveTwinFields(twinEntity, fields);
-        if (CollectionUtils.isNotEmpty(attachmentEntityList)) {
-            attachmentService.addAttachments(twinEntity.getId(), apiUser.getUser(), attachmentEntityList);
+        saveTwinFields(twinEntity, twinCreate.getFields());
+        if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
+            attachmentService.addAttachments(twinEntity.getId(), apiUser.getUser(), twinCreate.getAttachmentEntityList());
         }
-        if (CollectionUtils.isNotEmpty(linksEntityList))
-            twinLinkService.addLinks(twinEntity, linksEntityList);
+        if (CollectionUtils.isNotEmpty(twinCreate.getLinksEntityList()))
+            twinLinkService.addLinks(twinEntity, twinCreate.getLinksEntityList());
+        if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd()))
+            twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd());
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
@@ -338,14 +338,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public TwinUpdateResult updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        return updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), twinUpdate.getAttachmentCUD(), twinUpdate.getTwinLinkCUD());
-    }
-
-    @Transactional
-    public TwinUpdateResult updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields, EntityCUD<TwinAttachmentEntity> attachmentCUD, EntityCUD<TwinLinkEntity> twinLinkCUD) throws ServiceException {
-        TwinUpdateResult twinUpdateResult = updateTwin(updateTwinEntity, dbTwinEntity, fields);
-        cudAttachments(dbTwinEntity, attachmentCUD);
-        cudTwinLinks(dbTwinEntity, twinLinkCUD);
+        TwinUpdateResult twinUpdateResult = updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
+        cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
+        cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
+        twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd());
+        twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete());
         return twinUpdateResult;
     }
 

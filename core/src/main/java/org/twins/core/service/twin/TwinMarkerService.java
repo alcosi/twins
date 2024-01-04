@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
@@ -16,7 +17,9 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.datalist.DataListService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Lazy
@@ -27,6 +30,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final DataListService dataListService;
+    final EntitySmartService entitySmartService;
 
     @Override
     public CrudRepository<TwinMarkerEntity, UUID> entityRepository() {
@@ -72,5 +76,34 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         if (dataListOptionEntityList != null)
             twinEntity.setTwinMarkerKit(new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId));
         return twinEntity.getTwinMarkerKit();
+    }
+
+    public boolean hasMarker(TwinEntity twinEntity, UUID marker) {
+        Kit<DataListOptionEntity> markers = loadMarkers(twinEntity);
+        return markers != null && markers.getIdSet().contains(marker);
+    }
+
+    public void addMarkers(TwinEntity twinEntity, Set<UUID> markersAdd) throws ServiceException {
+        if (CollectionUtils.isEmpty(markersAdd))
+            return;
+        List<TwinMarkerEntity> list = new ArrayList<>();
+        TwinMarkerEntity twinMarkerEntity;
+        for (UUID marker : markersAdd) {
+            twinMarkerEntity = new TwinMarkerEntity()
+                    .setTwinId(twinEntity.getId())
+                    .setTwin(twinEntity)
+                    .setMarkerDataListOptionId(marker);
+            validateEntityAndThrow(twinMarkerEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            list.add(twinMarkerEntity);
+        }
+        entitySmartService.saveAllAndLog(list, twinMarkerRepository);
+        twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
+    }
+
+    public void deleteMarkers(TwinEntity twinEntity, Set<UUID> markersDelete) throws ServiceException {
+        if (CollectionUtils.isEmpty(markersDelete))
+            return;
+        entitySmartService.deleteAllAndLog(markersDelete, twinMarkerRepository);
+        twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
     }
 }

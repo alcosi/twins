@@ -5,16 +5,15 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
 public abstract class TwinOperation {
     protected TwinEntity twinEntity; // only for new/updated data
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
+    protected Set<UUID> markersAdd;
+    protected Set<UUID> markersDelete;
 
     public TwinOperation addField(FieldValue fieldValue) {
         if (fields == null)
@@ -37,6 +36,20 @@ public abstract class TwinOperation {
             for (FieldValue fieldValue : fieldValueList)
                 fields.put(fieldValue.getTwinClassField().getId(), fieldValue);
         }
+        return this;
+    }
+
+    public TwinOperation addMarker(UUID marker) {
+        if (markersAdd == null)
+            markersAdd = new HashSet<>();
+        markersAdd.add(marker);
+        return this;
+    }
+
+    public TwinOperation deleteMarker(UUID marker) {
+        if (markersDelete == null)
+            markersDelete = new HashSet<>();
+        markersDelete.add(marker);
         return this;
     }
 
