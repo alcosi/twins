@@ -112,6 +112,47 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return twinEntity.getValidTransitionsKit();
     }
 
+    public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Set<UUID> statusIdList = new HashSet<>();
+        Set<UUID> twinflowIdList = new HashSet<>();
+        for (TwinEntity twinEntity : twinEntityList) {
+            if (twinEntity.getValidTransitionsKit() != null)
+                continue;
+            statusIdList.add(twinEntity.getTwinStatusId());
+            twinflowService.loadTwinflow(twinEntity.getTwinClass());
+            twinflowIdList.add(twinEntity.getTwinClass().getTwinflow().getId());
+        }
+        if (CollectionUtils.isEmpty(statusIdList))
+            return;
+        List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdInAndSrcTwinStatusIdIn(twinflowIdList, statusIdList);
+        if (CollectionUtils.isEmpty(twinflowTransitionEntityList))
+            return;
+        ApiUser apiUser = authService.getApiUser();
+        permissionService.loadUserPermissions(apiUser);
+        Map<UUID, List<TwinflowTransitionEntity>> statusTransitionsMap = new HashMap<>();
+        for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
+            statusTransitionsMap.computeIfAbsent(transitionEntity.getSrcTwinStatusId(), k -> new ArrayList<>())
+                    .add(transitionEntity);
+        }
+        for (TwinEntity twinEntity : twinEntityList) {
+            List<TwinflowTransitionEntity> statusTransitions = statusTransitionsMap.get(twinEntity.getTwinStatusId());
+            if (statusTransitions == null)
+                continue;
+            List<TwinflowTransitionEntity> validTransitions = null;
+            for (TwinflowTransitionEntity transitionEntity : statusTransitions) {
+                if (transitionEntity.getPermissionId() != null && !apiUser.getPermissions().contains(transitionEntity.getPermissionId()))
+                    continue;
+                if (!runTransitionValidators(transitionEntity, twinEntity))
+                    continue;
+                if (validTransitions == null)
+                    validTransitions = new ArrayList<>();
+                validTransitions.add(transitionEntity);
+            }
+            if (validTransitions != null)
+                twinEntity.setValidTransitionsKit(new Kit<>(validTransitions, TwinflowTransitionEntity::getId));
+        }
+    }
+
     public Map<UUID, TwinflowTransitionEntity> findTransitionsByAlias(String transitionAlias) throws ServiceException {
         List<TwinflowTransitionEntity> transitionEntityList = twinflowTransitionRepository.findByTwinflowTransitionAliasId(transitionAlias);
         Map<UUID, TwinflowTransitionEntity> ret = new HashMap<>(); //key is srcStatus

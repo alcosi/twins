@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.Kit;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 
 import java.sql.Timestamp;
@@ -102,6 +103,10 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinflowEntity twinflow;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassFieldEntity> twinClassFieldKit;
 
     public String easyLog(Level level) {
         switch (level) {

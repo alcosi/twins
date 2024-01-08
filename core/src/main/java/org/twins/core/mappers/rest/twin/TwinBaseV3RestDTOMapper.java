@@ -19,6 +19,8 @@ import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -40,16 +42,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
-            dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.findTwinLinks(src.getId()), mapperContext));
+            dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
             twinflowTransitionService.loadValidTransitions(src);
             convertOrPostpone(src.getValidTransitionsKit(), dst, twinTransitionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTransitions, TwinBaseDTOv3::setTransitionsIdList);
-//            if (src.getValidTransitionsKit() != null) {
-//                if (mapperContext.isLazyRelations())
-//                    dst.transitions(twinTransitionRestDTOMapper.convertList(src.getValidTransitionsKit().getList(), mapperContext));
-//                else  // convert was postponed
-//                    dst.transitionsIdList(src.getValidTransitionsKit().getIdSet());
-//            }
         }
         if (mapperContext.hasMode(TwinMarkerMode.SHOW)) {
             twinMarkerService.loadMarkers(src);
@@ -59,6 +55,19 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinTagService.loadTags(src);
             convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
+    }
+
+    @Override
+    public void beforeListConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeListConversion(srcCollection, mapperContext);
+        if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
+            twinLinkService.loadTwinLinks(srcCollection);
+        if (!twinTransitionRestDTOMapper.hideMode(mapperContext))
+            twinflowTransitionService.loadValidTransitions(srcCollection);
+        if (mapperContext.hasMode(TwinMarkerMode.SHOW))
+            twinMarkerService.loadMarkers(srcCollection);
+        if (mapperContext.hasMode(TwinTagMode.SHOW))
+            twinTagService.loadTags(srcCollection);
     }
 
     @Override

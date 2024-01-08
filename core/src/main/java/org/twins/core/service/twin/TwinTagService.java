@@ -2,6 +2,7 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
@@ -16,8 +17,7 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.datalist.DataListService;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Lazy
 @Slf4j
@@ -72,5 +72,27 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         if (dataListOptionEntityList != null)
             twinEntity.setTwinTagKit(new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId));
         return twinEntity.getTwinTagKit();
+    }
+
+    public void loadTags(Collection<TwinEntity> twinEntityList) {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getTwinTagKit() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.size() == 0)
+            return;
+        List<TwinTagEntity> twinTagEntityList = twinTagRepository.findByTwinIdIn(needLoad.keySet());
+        if (CollectionUtils.isEmpty(twinTagEntityList))
+            return;
+        Map<UUID, List<DataListOptionEntity>> fieldsMap = new HashMap<>(); // key - twinId
+        for (TwinTagEntity twinTagEntity : twinTagEntityList) { //grouping by twin
+            fieldsMap.computeIfAbsent(twinTagEntity.getTwinId(), k -> new ArrayList<>());
+            fieldsMap.get(twinTagEntity.getTwinId()).add(twinTagEntity.getTagDataListOption());
+        }
+        TwinEntity twinEntity;
+        for (Map.Entry<UUID, List<DataListOptionEntity>> entry : fieldsMap.entrySet()) {
+            twinEntity = needLoad.get(entry.getKey());
+            twinEntity.setTwinTagKit(new Kit<>(entry.getValue(), DataListOptionEntity::getId));
+        }
     }
 }

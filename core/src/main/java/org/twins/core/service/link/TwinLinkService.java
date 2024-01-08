@@ -199,6 +199,44 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return linksResult;
     }
 
+    public FindTwinLinksResult loadTwinLinks(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getTwinLinks() != null)
+            return twinEntity.getTwinLinks();
+        twinEntity.setTwinLinks(findTwinLinks(twinEntity.getId()));
+        return twinEntity.getTwinLinks();
+    }
+
+    public void loadTwinLinks(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getTwinLinks() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.size() == 0)
+            return;
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdInOrDstTwinIdIn(needLoad.keySet(), needLoad.keySet());
+        if (CollectionUtils.isEmpty(twinLinkEntityList))
+            return;
+        TwinEntity twinEntity = null;
+        for (TwinLinkEntity twinLinkEntity : twinLinkEntityList) {
+            if (needLoad.get(twinLinkEntity.getSrcTwinId()) != null) {
+                if (twinService.isEntityReadDenied(twinLinkEntity.getDstTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
+                    continue;
+                twinEntity = needLoad.get(twinLinkEntity.getSrcTwinId());
+                if (twinEntity.getTwinLinks() == null)
+                    twinEntity.setTwinLinks(new FindTwinLinksResult());
+                twinEntity.getTwinLinks().forwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+            }
+            if (needLoad.get(twinLinkEntity.getDstTwinId()) != null) {
+                if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
+                    continue;
+                twinEntity = needLoad.get(twinLinkEntity.getDstTwinId());
+                if (twinEntity.getTwinLinks() == null)
+                    twinEntity.setTwinLinks(new FindTwinLinksResult());
+                twinEntity.getTwinLinks().backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+            }
+        }
+    }
+
     public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinId(twinId, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);

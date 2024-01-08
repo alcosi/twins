@@ -11,9 +11,9 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -102,9 +102,16 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @EqualsAndHashCode.Exclude
     private TwinEntity headTwin;
 
+    /*
+     we have to use TwinClassFieldId as key, not Id. because of case when we load not missing fields
+     */
     @Transient
     @EqualsAndHashCode.Exclude
-    private List<TwinFieldEntity> twinFieldList;
+    private Kit<TwinFieldEntity> twinFieldKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinLinkService.FindTwinLinksResult twinLinks;
 
     @Transient
     @EqualsAndHashCode.Exclude

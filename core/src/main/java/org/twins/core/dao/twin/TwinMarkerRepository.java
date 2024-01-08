@@ -8,11 +8,13 @@ import org.springframework.stereotype.Repository;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface TwinMarkerRepository extends CrudRepository<TwinMarkerEntity, UUID>, JpaSpecificationExecutor<TwinMarkerEntity> {
     List<TwinMarkerEntity> findByTwinId(UUID twinId);
+    List<TwinMarkerEntity> findByTwinIdIn(Set<UUID> twinIdList);
 
     @Query(value = "select m.markerDataListOption from TwinMarkerEntity m where m.twinId = :twinId ")
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
