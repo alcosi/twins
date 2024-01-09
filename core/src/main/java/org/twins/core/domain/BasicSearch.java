@@ -44,6 +44,13 @@ public class BasicSearch {
         return this;
     }
 
+    public BasicSearch addStatusId(Collection<UUID> statusIdList) {
+        if (this.statusIdList == null)
+            this.statusIdList = new HashSet<>();
+        this.statusIdList.addAll(statusIdList);
+        return this;
+    }
+
     public BasicSearch addAssignerUserId(UUID assignerUserId) {
         assignerUserIdList = safeAdd(assignerUserIdList, assignerUserId);
         return this;
@@ -65,23 +72,20 @@ public class BasicSearch {
     }
 
     public BasicSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
-        if (twinLinksMap == null)
-            twinLinksMap = new HashMap<>();
+        if (twinLinksMap == null) twinLinksMap = new HashMap<>();
         twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(dstTwinIdList);
         return this;
     }
 
 
     private Set<UUID> safeAdd(Set<UUID> set, UUID element) {
-        if (set == null)
-            set = new HashSet<>();
+        if (set == null) set = new HashSet<>();
         set.add(element);
         return set;
     }
 
     private Set<UUID> safeAdd(Set<UUID> set, Collection<UUID> elements) {
-        if (set == null)
-            set = new HashSet<>();
+        if (set == null) set = new HashSet<>();
         set.addAll(elements);
         return set;
     }

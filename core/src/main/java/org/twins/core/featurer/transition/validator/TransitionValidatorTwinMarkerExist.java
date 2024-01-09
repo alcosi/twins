@@ -25,7 +25,10 @@ public class TransitionValidatorTwinMarkerExist extends TransitionValidator {
     @Autowired
     TwinMarkerService twinMarkerService;
     @Override
-    protected boolean isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
-        return twinMarkerService.hasMarker(twinEntity, markerId.extract(properties));
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+        boolean isValid = twinMarkerService.hasMarker(twinEntity, markerId.extract(properties));
+        return new ValidationResult()
+                .setValid(isValid)
+                .setMessage(isValid ? "" : twinEntity.logShort() + " does not have marker[" + markerId.extract(properties) + "]");
     }
 }

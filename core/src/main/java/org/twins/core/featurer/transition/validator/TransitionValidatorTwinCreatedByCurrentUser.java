@@ -22,8 +22,11 @@ public class TransitionValidatorTwinCreatedByCurrentUser extends TransitionValid
     @Autowired
     AuthService authService;
     @Override
-    protected boolean isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return twinEntity.getCreatedByUserId() != null && twinEntity.getCreatedByUserId().equals(apiUser.getUser().getId());
+        boolean isValid = twinEntity.getCreatedByUserId() != null && twinEntity.getCreatedByUserId().equals(apiUser.getUser().getId());
+        return new ValidationResult()
+                .setValid(isValid)
+                .setMessage(isValid ? "" : twinEntity.logShort() + " is not created by current user[" + apiUser.getUser().getId() + "]");
     }
 }

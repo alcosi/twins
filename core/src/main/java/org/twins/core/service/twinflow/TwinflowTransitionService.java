@@ -189,11 +189,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
         for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
             TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
-            boolean validationResult = transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity);
+            TransitionValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity);
             if (transitionValidatorEntity.isInvert())
-                validationResult = !validationResult;
-            if (!validationResult) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid for " + twinEntity.logShort());
+                validationResult.setValid(!validationResult.isValid());
+            if (!validationResult.isValid()) {
+                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
                 return false;
             }
         }

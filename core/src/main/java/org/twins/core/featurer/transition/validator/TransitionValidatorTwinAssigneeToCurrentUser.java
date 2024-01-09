@@ -22,8 +22,11 @@ public class TransitionValidatorTwinAssigneeToCurrentUser extends TransitionVali
     @Autowired
     AuthService authService;
     @Override
-    protected boolean isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return twinEntity.getAssignerUserId() != null && twinEntity.getAssignerUserId().equals(apiUser.getUser().getId());
+        boolean isValid = twinEntity.getAssignerUserId() != null && twinEntity.getAssignerUserId().equals(apiUser.getUser().getId());
+        return new ValidationResult()
+                .setValid(isValid)
+                .setMessage(isValid ? "" : twinEntity.logShort() + " is not assignee to current user[" + apiUser.getUser().getId() + "]");
     }
 }
