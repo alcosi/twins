@@ -5,12 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
@@ -18,8 +20,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -60,6 +61,37 @@ public class AttachmentService {
 
     public List<TwinAttachmentEntity> findAttachmentByTwinId(UUID twinId) {
         return twinAttachmentRepository.findByTwinId(twinId);
+    }
+
+    public Kit<TwinAttachmentEntity> loadAttachments(TwinEntity twinEntity) {
+        if (twinEntity.getAttachmentKit() != null)
+            return twinEntity.getAttachmentKit();
+        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinId(twinEntity.getId());
+        if (attachmentEntityList != null)
+            twinEntity.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
+        return twinEntity.getAttachmentKit();
+    }
+
+    public void loadAttachments(Collection<TwinEntity> twinEntityList) {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getAttachmentKit() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.size() == 0)
+            return;
+        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
+        if (CollectionUtils.isEmpty(attachmentEntityList))
+            return;
+        Map<UUID, List<TwinAttachmentEntity>> attachmentMap = new HashMap<>(); // key - twinId
+        for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) { //grouping by twin
+            attachmentMap.computeIfAbsent(attachmentEntity.getTwinId(), k -> new ArrayList<>());
+            attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
+        }
+        TwinEntity twinEntity;
+        for (Map.Entry<UUID, List<TwinAttachmentEntity>> entry : attachmentMap.entrySet()) {
+            twinEntity = needLoad.get(entry.getKey());
+            twinEntity.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
+        }
     }
 
     @Transactional

@@ -119,6 +119,10 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinAttachmentEntity> attachmentKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Kit<DataListOptionEntity> twinMarkerKit;
 
     @Transient

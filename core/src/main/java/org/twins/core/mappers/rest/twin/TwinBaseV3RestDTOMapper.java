@@ -40,7 +40,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
-            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.findAttachmentByTwinId(src.getId()), mapperContext));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
@@ -60,6 +60,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void beforeListConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeListConversion(srcCollection, mapperContext);
+        if (!attachmentRestDTOMapper.hideMode(mapperContext))
+            attachmentService.loadAttachments(srcCollection);
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             twinLinkService.loadTwinLinks(srcCollection);
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext))
