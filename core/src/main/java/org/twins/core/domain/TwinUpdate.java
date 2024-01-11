@@ -7,6 +7,8 @@ import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -17,9 +19,17 @@ public class TwinUpdate extends TwinOperation {
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
+    protected Set<UUID> markersDelete;
 
     @Override
     public UUID nullifyUUID() {
         return NULLIFY_MARKER;
+    }
+
+    public TwinOperation deleteMarker(UUID marker) {
+        if (markersDelete == null)
+            markersDelete = new HashSet<>();
+        markersDelete.add(marker);
+        return this;
     }
 }

@@ -13,7 +13,7 @@ public abstract class TwinOperation {
     protected TwinEntity twinEntity; // only for new/updated data
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
     protected Set<UUID> markersAdd;
-    protected Set<UUID> markersDelete;
+
 
     public TwinOperation addField(FieldValue fieldValue) {
         if (fields == null)
@@ -46,12 +46,7 @@ public abstract class TwinOperation {
         return this;
     }
 
-    public TwinOperation deleteMarker(UUID marker) {
-        if (markersDelete == null)
-            markersDelete = new HashSet<>();
-        markersDelete.add(marker);
-        return this;
-    }
+
 
     public abstract UUID nullifyUUID();
 }

@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryItem;
 
 import java.util.Properties;
@@ -23,6 +24,7 @@ public class FillerMarkerDelete extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        factoryItem.getOutputTwin().deleteMarker(markerId.extract(properties));
+        if (factoryItem.getOutputTwin() instanceof TwinUpdate twinUpdate)
+            twinUpdate.deleteMarker(markerId.extract(properties));
     }
 }
