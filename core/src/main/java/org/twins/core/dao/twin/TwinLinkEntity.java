@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.PublicCloneable;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -17,7 +17,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity extends EasyLoggableImpl implements Cloneable {
+public class TwinLinkEntity extends EasyLoggableImpl implements PublicCloneable<TwinLinkEntity> {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

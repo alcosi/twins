@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.PublicCloneable;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements EasyLoggable {
+public class TwinAttachmentEntity implements EasyLoggable, PublicCloneable<TwinAttachmentEntity> {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -66,4 +67,21 @@ public class TwinAttachmentEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @Override
+    public TwinAttachmentEntity clone() {
+        return new TwinAttachmentEntity()
+                .setTwinId(twinId)
+                .setTwin(twin)
+                .setCreatedByUser(createdByUser)
+                .setExternalId(externalId)
+                .setTitle(title)
+                .setDescription(description)
+                .setStorageLink(storageLink)
+                .setCreatedAt(createdAt)
+                .setTwinflowTransition(twinflowTransition)
+                .setTwinflowTransitionId(twinflowTransitionId)
+                .setViewPermission(viewPermission)
+                .setViewPermissionId(viewPermissionId);
+    }
 }
