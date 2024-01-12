@@ -16,25 +16,16 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.space.SpaceRoleUserListRsDTOv1;
-import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.space.SpaceUserRoleService;
-import org.twins.core.service.user.UserGroupService;
-import org.twins.core.service.user.UserService;
 
-import java.util.List;
 import java.util.UUID;
 
-@Tag(name = ApiTag.SPACE_ROLE_USER)
+@Tag(name = ApiTag.SPACE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -65,6 +56,4 @@ public class SpaceRoleUserListController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
-
 }
