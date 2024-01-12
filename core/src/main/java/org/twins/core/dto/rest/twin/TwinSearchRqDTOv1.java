@@ -23,6 +23,12 @@ public class TwinSearchRqDTOv1 extends Request {
     @Schema(description = "Head twin id list")
     public List<UUID> headTwinIdList;
 
+    @Schema(description = "Twin id list")
+    public List<UUID> twinIdList;
+
+    @Schema(description = "Twin id exclude list")
+    public List<UUID> twinIdExcludeList;
+
     @Schema(description = "Status id list")
     public List<UUID> statusIdList;
 

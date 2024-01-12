@@ -9,6 +9,7 @@ import java.util.*;
 @Accessors(chain = true)
 public class BasicSearch {
     Set<UUID> twinIdList;
+    Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> extendsTwinClassIdList;
     Set<UUID> headerTwinIdList;
@@ -21,6 +22,11 @@ public class BasicSearch {
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = safeAdd(twinIdList, twinId);
+        return this;
+    }
+
+    public BasicSearch addTwinExcludeId(UUID twinId) {
+        twinIdExcludeList = safeAdd(twinIdExcludeList, twinId);
         return this;
     }
 
