@@ -11,7 +11,7 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "UserGroupV1")
 public class UserGroupDTOv1 {
-    @Schema(description = "id", example = DTOExamples.USER_GROUP_ID)
+    @Schema(description = "id", example = DTOExamples.SPACE_ROLE_USER_ID)
     public UUID id;
 
     @Schema(description = "type")

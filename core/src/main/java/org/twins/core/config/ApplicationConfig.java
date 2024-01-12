@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 //@ComponentScan(basePackages = {"org.twins", "org.cambium"}, excludeFilters = {
 //        @Filter({Controller.class, Configuration.class})})
 @PropertySources({
-        @PropertySource(value = "classpath:/application.properties", ignoreResourceNotFound = true)})
+        @PropertySource(value = "classpath:/application-devlocal.properties", ignoreResourceNotFound = true)})
 @EnableConfigurationProperties({I18nProperties.class})
 public class ApplicationConfig {
     @Bean
