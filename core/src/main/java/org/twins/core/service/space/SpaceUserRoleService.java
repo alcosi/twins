@@ -3,6 +3,7 @@ package org.twins.core.service.space;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
@@ -57,6 +58,7 @@ public class SpaceUserRoleService {
         if (!spaceRoleUserExitList.isEmpty()) {
             for (UUID id : spaceRoleUserExitList) {
                 spaceRoleUserRepository.deleteAllByUserId(id);
+                log.info("SpaceRoleUser [" + id + "] was deleted");
             }
         }
     }
