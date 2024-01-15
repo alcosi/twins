@@ -14,4 +14,10 @@ import java.util.UUID;
 public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEntity, UUID>, JpaSpecificationExecutor<SpaceRoleUserEntity> {
     @Query(value = "select su.user from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId = :spaceRoleId")
     List<UserEntity> findByTwinIdAndSpaceRoleId(@Param("twinId") UUID twinId, @Param("spaceRoleId") UUID spaceRoleId);
+
+    void deleteAllByUserId(UUID id);
+
+    @Query(value = "SELECT CASE WHEN COUNT(sru) > 0 THEN true ELSE false END FROM SpaceRoleUserEntity sru " +
+            "WHERE sru.twinId = :twinId AND sru.spaceRoleId = :roleId AND sru.userId = :userId")
+    boolean existsByTwinIdAndRoleIdAndUserId(UUID twinId, UUID roleId, UUID userId);
 }

@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "UserGroupMemberManageRqV1")
-public class UserGroupMemberManageRqDTOv1 extends Request {
+@Schema(name = "SpaceRoleUserRqDTOv1")
+public class SpaceRoleUserRqDTOv1 extends Request {
     @Schema()
     public List<UUID> spaceRoleUserEnterList;
 
