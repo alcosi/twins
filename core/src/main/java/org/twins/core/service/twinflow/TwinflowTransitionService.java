@@ -205,6 +205,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         ApiUser apiUser = authService.getApiUser();
         validateTransition(transitionContext);
         TransitionResult ret = new TransitionResult();
+        if (transitionContext.getAttachmentCUD() != null && CollectionUtils.isNotEmpty(transitionContext.getAttachmentCUD().getCreateList())) {
+            transitionContext.getAttachmentCUD().getCreateList().forEach(a -> a
+                    .setTwinflowTransitionId(transitionContext.getTransitionEntity().getId())
+                    .setTwinflowTransition(transitionContext.getTransitionEntity()));
+        }
         if (transitionContext.getTransitionEntity().getInbuiltTwinFactoryId() != null) {
             FactoryContext factoryContext = new FactoryContext()
                     .setInputTwinList(transitionContext.getTargetTwinList().values())

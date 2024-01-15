@@ -13,6 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
@@ -22,6 +23,7 @@ import org.twins.core.service.twin.TwinService;
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
     final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
@@ -34,6 +36,8 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
                         .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
+                        .setTwinflowTransitionId(src.getTwinflowTransitionId())
+                        .setTwinflowTransition(twinTransitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.cloneWithIsolatedModes().setMode(TwinTransitionRestDTOMapper.Mode.SHORT)))
                         .setCreatedAt(src.getCreatedAt().toInstant())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
