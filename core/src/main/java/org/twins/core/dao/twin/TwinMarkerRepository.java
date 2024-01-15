@@ -20,4 +20,6 @@ public interface TwinMarkerRepository extends CrudRepository<TwinMarkerEntity, U
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
 
     void deleteByTwinId(UUID twinId);
+
+    void deleteByTwinIdAndMarkerDataListOptionIdIn(UUID twinId, Set<UUID> markerIdList);
 }

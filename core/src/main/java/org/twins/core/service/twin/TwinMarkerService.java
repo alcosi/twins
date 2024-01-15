@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
@@ -122,7 +123,8 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     public void deleteMarkers(TwinEntity twinEntity, Set<UUID> markersDelete) throws ServiceException {
         if (CollectionUtils.isEmpty(markersDelete))
             return;
-        entitySmartService.deleteAllAndLog(markersDelete, twinMarkerRepository);
+        twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
+        log.info("Markers[" + StringUtils.join(markersDelete, ",") + "] perhaps were deleted from " + twinEntity.logShort());
         twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
     }
 }
