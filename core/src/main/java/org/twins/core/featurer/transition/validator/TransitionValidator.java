@@ -20,7 +20,7 @@ public abstract class TransitionValidator extends Featurer {
 
     public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());
-        log.info("Running trigger[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        log.info("Running validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
         return isValid(properties, twinEntity);
     }
 
