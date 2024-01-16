@@ -11,6 +11,7 @@ import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
@@ -24,13 +25,15 @@ import java.util.UUID;
 public class SpaceUserRoleService {
     final EntitySmartService entitySmartService;
     final SpaceRoleUserRepository spaceRoleUserRepository;
+    final AuthService authService;
 
     public List<UserEntity> findUserByRole(UUID twinId, UUID spaceRoleId) throws ServiceException {
         return spaceRoleUserRepository.findByTwinIdAndSpaceRoleId(twinId, spaceRoleId);
     }
 
     @Transactional
-    public void manageForRoleUser(UUID spaceId, UUID roleId, UUID createUserId, SpaceRoleUserRqDTOv1 request) {
+    public void manageForRoleUser(UUID spaceId, UUID roleId, SpaceRoleUserRqDTOv1 request) throws ServiceException {
+        UUID createUserId = authService.getApiUser().getUser().getId();
         addEntryRoleUserList(spaceId, roleId, createUserId, request.spaceRoleUserEnterList);
         deleteEntryRoleUserList(spaceId, roleId, request.spaceRoleUserExitList);
     }
@@ -41,11 +44,10 @@ public class SpaceUserRoleService {
         List<SpaceRoleUserEntity> list = new ArrayList<>();
         for (UUID userId : spaceRoleUserEnterList) {
             if (checkSeemEntityInDB(spaceId, roleId, userId)) {
-                log.warn("user[" + "] is already registered for role[" + roleId + "] in space[" + spaceId + "]");
+                log.warn("user[" + userId + "] is already registered for role[" + roleId + "] in space[" + spaceId + "]");
                 continue;
             }
             list.add(new SpaceRoleUserEntity()
-                    .setId(UUID.randomUUID())
                     .setTwinId(spaceId)
                     .setSpaceRoleId(roleId)
                     .setUserId(userId)
@@ -61,7 +63,7 @@ public class SpaceUserRoleService {
         if (CollectionUtils.isNotEmpty(spaceRoleUserExitList)) {
             for (UUID userId : spaceRoleUserExitList) {
                 spaceRoleUserRepository.deleteAllByTwinIdAndSpaceRoleIdAndUserId(spaceId, roleId, userId);
-                log.info("user[" + userId + "] was deleted by space[" + spaceId + "] and role[" + roleId + "]");
+                log.info("user[" + userId + "] perhaps was deleted by space[" + spaceId + "] and role[" + roleId + "]");
             }
         }
     }
