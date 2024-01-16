@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
@@ -32,10 +31,10 @@ public class SpaceUserRoleService {
     }
 
     @Transactional
-    public void manageForRoleUser(UUID spaceId, UUID roleId, SpaceRoleUserRqDTOv1 request) throws ServiceException {
+    public void manageSpaceRoleForUsers(UUID spaceId, UUID roleId, List<UUID> spaceRoleUserEnterList, List<UUID> spaceRoleUserExitList) throws ServiceException {
         UUID createUserId = authService.getApiUser().getUser().getId();
-        addEntryRoleUserList(spaceId, roleId, createUserId, request.spaceRoleUserEnterList);
-        deleteEntryRoleUserList(spaceId, roleId, request.spaceRoleUserExitList);
+        addEntryRoleUserList(spaceId, roleId, createUserId, spaceRoleUserEnterList);
+        deleteEntryRoleUserList(spaceId, roleId, spaceRoleUserExitList);
     }
 
     private void addEntryRoleUserList(UUID spaceId, UUID roleId, UUID createUserId, List<UUID> spaceRoleUserEnterList) {
