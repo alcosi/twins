@@ -9,6 +9,8 @@ import java.util.*;
 @Accessors(chain = true)
 public class BasicSearch {
     Set<UUID> twinIdList;
+
+    Set<String> twinNameLikeList;
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> extendsTwinClassIdList;
@@ -22,6 +24,11 @@ public class BasicSearch {
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = safeAdd(twinIdList, twinId);
+        return this;
+    }
+
+    public BasicSearch addTwinNameLike(String twinNameLike) {
+        twinNameLikeList = safeAdd(twinNameLikeList, twinNameLike);
         return this;
     }
 
@@ -84,13 +91,13 @@ public class BasicSearch {
     }
 
 
-    private Set<UUID> safeAdd(Set<UUID> set, UUID element) {
+    private <T> Set<T> safeAdd(Set<T> set, T element) {
         if (set == null) set = new HashSet<>();
         set.add(element);
         return set;
     }
 
-    private Set<UUID> safeAdd(Set<UUID> set, Collection<UUID> elements) {
+    private <T> Set<T> safeAdd(Set<T> set, Collection<T> elements) {
         if (set == null) set = new HashSet<>();
         set.addAll(elements);
         return set;

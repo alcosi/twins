@@ -10,7 +10,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 
 
 @Component
@@ -27,6 +26,7 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
                 .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))
                 .setTwinIdList(convertSafe(src.getTwinIdList()))
                 .setTwinIdExcludeList(convertSafe(src.getTwinIdExcludeList()))
+                .setTwinNameLikeList(convertSafe(src.getTwinNameLikeList()))
                 .setCreatedByUserIdList(convertSafe(src.getCreatedByUserIdList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
@@ -34,7 +34,7 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
             }
     }
 
-    private Set<UUID> convertSafe(List<UUID> list) {
+    private <T> Set<T> convertSafe(List<T> list) {
         if (list == null)
             return null;
         return Set.copyOf(list);

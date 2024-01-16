@@ -52,6 +52,12 @@ public class TwinSearchService {
             predicateList.add(root.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdList()));
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinIdExcludeList()))
             predicateList.add(root.get(TwinEntity.Fields.id).in(basicSearch.getTwinIdExcludeList()).not());
+        if (CollectionUtils.isNotEmpty(basicSearch.getTwinNameLikeList())) {
+            List<Predicate> namePredicates = new ArrayList<>();
+            for (String twinNameLike : basicSearch.getTwinNameLikeList())
+                namePredicates.add(criteriaBuilder.like(root.get(TwinEntity.Fields.name), twinNameLike));
+            predicateList.add(criteriaBuilder.or(namePredicates.toArray(Predicate[]::new)));
+        }
         if (CollectionUtils.isNotEmpty(basicSearch.getTwinClassIdList())) {
             List<Predicate> classPredicates = new ArrayList<>();
             for (UUID twinClassId : basicSearch.getTwinClassIdList())
