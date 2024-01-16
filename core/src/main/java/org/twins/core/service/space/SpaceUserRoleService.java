@@ -3,7 +3,7 @@ package org.twins.core.service.space;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
@@ -32,39 +32,42 @@ public class SpaceUserRoleService {
     @Transactional
     public void manageForRoleUser(UUID spaceId, UUID roleId, UUID createUserId, SpaceRoleUserRqDTOv1 request) {
         addEntryRoleUserList(spaceId, roleId, createUserId, request.spaceRoleUserEnterList);
-        deleteEntryRoleUserList(request.spaceRoleUserExitList);
+        deleteEntryRoleUserList(spaceId, roleId, request.spaceRoleUserExitList);
     }
 
     private void addEntryRoleUserList(UUID spaceId, UUID roleId, UUID createUserId, List<UUID> spaceRoleUserEnterList) {
-        if (!spaceRoleUserEnterList.isEmpty()) {
-            List<SpaceRoleUserEntity> list = new ArrayList<>();
-            for (UUID userId : spaceRoleUserEnterList) {
-                if (!checkSeemEntityInDB(spaceId, roleId, userId)) {
-                    SpaceRoleUserEntity entity = new SpaceRoleUserEntity();
-                    entity.setId(UUID.randomUUID());
-                    entity.setTwinId(spaceId);
-                    entity.setSpaceRoleId(roleId);
-                    entity.setUserId(userId);
-                    entity.setCreatedByUserId(createUserId);
-                    entity.setCreatedAt(Timestamp.valueOf(LocalDateTime.now()));
-                    list.add(entity);
-                }
+        if (CollectionUtils.isEmpty(spaceRoleUserEnterList))
+            return;
+        List<SpaceRoleUserEntity> list = new ArrayList<>();
+        for (UUID userId : spaceRoleUserEnterList) {
+            if (checkSeemEntityInDB(spaceId, roleId, userId)) {
+                log.warn("user[" + "] is already registered for role[" + roleId + "] in space[" + spaceId + "]");
+                continue;
             }
-            entitySmartService.saveAllAndLog(list, spaceRoleUserRepository);
+            list.add(new SpaceRoleUserEntity()
+                    .setId(UUID.randomUUID())
+                    .setTwinId(spaceId)
+                    .setSpaceRoleId(roleId)
+                    .setUserId(userId)
+                    .setCreatedByUserId(createUserId)
+                    .setCreatedAt(Timestamp.valueOf(LocalDateTime.now()))
+            );
+            if (CollectionUtils.isNotEmpty(list))
+                entitySmartService.saveAllAndLog(list, spaceRoleUserRepository);
         }
     }
 
-    private void deleteEntryRoleUserList(List<UUID> spaceRoleUserExitList) {
-        if (!spaceRoleUserExitList.isEmpty()) {
-            for (UUID id : spaceRoleUserExitList) {
-                spaceRoleUserRepository.deleteAllByUserId(id);
-                log.info("SpaceRoleUser [" + id + "] was deleted");
+    private void deleteEntryRoleUserList(UUID spaceId, UUID roleId, List<UUID> spaceRoleUserExitList) {
+        if (CollectionUtils.isNotEmpty(spaceRoleUserExitList)) {
+            for (UUID userId : spaceRoleUserExitList) {
+                spaceRoleUserRepository.deleteAllByTwinIdAndSpaceRoleIdAndUserId(spaceId, roleId, userId);
+                log.info("user[" + userId + "] was deleted by space[" + spaceId + "] and role[" + roleId + "]");
             }
         }
     }
 
     private Boolean checkSeemEntityInDB(UUID spaceId, UUID roleId, UUID userId) {
-        return spaceRoleUserRepository.existsByTwinIdAndRoleIdAndUserId(spaceId, roleId, userId);
+        return spaceRoleUserRepository.existsByTwinIdAndSpaceRoleIdAndUserId(spaceId, roleId, userId);
     }
 
 }

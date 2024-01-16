@@ -2,6 +2,7 @@ package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -10,6 +11,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "space_role_user")
 public class SpaceRoleUserEntity {
     @Id
