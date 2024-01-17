@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
-import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -38,7 +37,7 @@ public class SpaceRoleUserListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserGroupListRsDTOv1.class))}),
+                    @Schema(implementation = UserListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/space/{spaceId}/role/{roleId}/users/v1", method = RequestMethod.GET)
     public ResponseEntity<?> spaceRoleForUserListV1(
