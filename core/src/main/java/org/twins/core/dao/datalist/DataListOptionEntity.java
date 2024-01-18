@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -20,6 +19,9 @@ public class DataListOptionEntity {
 
     @Column(name = "data_list_id")
     private UUID dataListId;
+
+    @Column(name = "business_account_id")
+    private UUID businessAccountId;
 
     @Column(name = "option")
     private String option;
