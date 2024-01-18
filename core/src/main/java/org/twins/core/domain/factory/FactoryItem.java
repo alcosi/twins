@@ -1,6 +1,7 @@
 package org.twins.core.domain.factory;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggableImpl;
@@ -11,6 +12,7 @@ import org.twins.core.domain.TwinOperation;
 import java.util.List;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 public class FactoryItem extends EasyLoggableImpl {
     private FactoryContext factoryContext;

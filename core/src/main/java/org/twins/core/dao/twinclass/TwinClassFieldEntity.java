@@ -3,14 +3,12 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
-import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 
 import java.util.HashMap;
@@ -18,6 +16,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
 public class TwinClassFieldEntity extends EasyLoggableImpl {

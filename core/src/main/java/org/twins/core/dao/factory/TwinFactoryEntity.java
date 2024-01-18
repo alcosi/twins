@@ -2,6 +2,7 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Table(name = "twin_factory")
 @Accessors(chain = true)
 @Data
+@EqualsAndHashCode(callSuper = false)
 public class TwinFactoryEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
