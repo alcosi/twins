@@ -1,16 +1,18 @@
 package org.twins.core.dto.rest.twin;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinBaseV1")
+@Schema(name = "TwinBaseV1")
 public class TwinBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_ID)
     public UUID id;
@@ -21,8 +23,9 @@ public class TwinBaseDTOv1 {
     @Schema(description = "headTwinId", example = DTOExamples.HEAD_TWIN_ID)
     public UUID headTwinId;
 
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public Instant createdAt;
+    public LocalDateTime createdAt;
 
     @Schema(description = "name", example = "Oak")
     public String name;

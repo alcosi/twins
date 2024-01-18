@@ -38,7 +38,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
                         .setTwinflowTransitionId(src.getTwinflowTransitionId())
                         .setTwinflowTransition(twinTransitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.cloneWithIsolatedModes().setMode(TwinTransitionRestDTOMapper.Mode.SHORT)))
-                        .setCreatedAt(src.getCreatedAt().toInstant())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setDescription(src.getDescription())
                         .setTitle(src.getTitle())
                         .setExternalId(src.getExternalId());

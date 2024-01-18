@@ -1,11 +1,13 @@
 package org.twins.core.dto.rest.twinclass;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
@@ -24,8 +26,9 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "description", example = "Projects business objects")
     public String description;
 
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public Instant createdAt;
+    public LocalDateTime createdAt;
 
     @Schema(description = "logo", example = "http://twins.org/t/class/project.png")
     public String logo;

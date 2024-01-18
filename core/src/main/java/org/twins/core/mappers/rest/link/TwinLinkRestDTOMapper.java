@@ -23,7 +23,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
                         .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
-                        .setCreatedAt(src.getCreatedAt().toInstant())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setLinkId(src.getLinkId());
                 break;
             case SHORT:

@@ -1,11 +1,13 @@
 package org.twins.core.dto.rest.datalist;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
@@ -22,8 +24,9 @@ public class DataListDTOv1 {
     @Schema(description = "description", example = "Supported country list")
     public String description;
 
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
-    public Instant updatedAt;
+    public LocalDateTime updatedAt;
 
     @Schema(description = "List options")
     public Map<UUID, DataListOptionDTOv1> options;

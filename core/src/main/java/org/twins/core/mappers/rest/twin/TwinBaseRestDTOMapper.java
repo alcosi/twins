@@ -28,7 +28,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
                         .statusId(src.getTwinStatusId())
                         .twinClassId(src.getTwinClassId())
                         .description(src.getDescription())
-                        .createdAt(src.getCreatedAt().toInstant());
+                        .createdAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
