@@ -103,10 +103,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         TwinflowTransitionEntity twinflowTransitionEntity;
         while (iterator.hasNext()) {
             twinflowTransitionEntity = iterator.next();
-            if (twinflowTransitionEntity.getPermissionId() != null && !apiUser.getPermissions().contains(twinflowTransitionEntity.getPermissionId()))
+            if (twinflowTransitionEntity.getPermissionId() != null && !apiUser.getPermissions().contains(twinflowTransitionEntity.getPermissionId())) {
                 iterator.remove();
-            if (!runTransitionValidators(twinflowTransitionEntity, twinEntity))
+                continue;
+            }
+            if (!runTransitionValidators(twinflowTransitionEntity, twinEntity)) {
                 iterator.remove();
+                continue;
+            }
         }
         twinEntity.setValidTransitionsKit(new Kit<>(twinflowTransitionEntityList, TwinflowTransitionEntity::getId));
         return twinEntity.getValidTransitionsKit();
