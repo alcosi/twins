@@ -32,21 +32,21 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class HistoryViewController extends ApiController {
+public class HistoryListController extends ApiController {
     final AuthService authService;
     final HistoryService historyService;
     final HistoryDTOMapperV1 historyDTOMapperV1;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinViewV2", summary = "Returns twin history by id")
+    @Operation(operationId = "historyListV1", summary = "Returns twin history by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = HistoryListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/history/v1", method = RequestMethod.GET)
-    public ResponseEntity<?> twinViewV2(
+    @RequestMapping(value = "/private/twin/{twinId}/history/list/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> historyListV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
