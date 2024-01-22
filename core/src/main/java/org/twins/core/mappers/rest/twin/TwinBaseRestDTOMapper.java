@@ -48,6 +48,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         return src.getId().toString();
     }
 
+    @Getter
     @AllArgsConstructor
     public enum TwinMode implements MapperMode {
         HIDE(0),
@@ -58,7 +59,6 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
 
-        @Getter
         final int priority;
     }
 }

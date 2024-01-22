@@ -5,6 +5,7 @@ public class ApiTag {
     public static final String PERMISSION = "permission";
     public static final String USER = "user";
     public static final String TWIN = "twin";
+    public static final String HISTORY = "history";
     public static final String TWIN_CLASS = "twinClass";
     public static final String CARD = "card";
     public static final String WIDGET = "widget";
