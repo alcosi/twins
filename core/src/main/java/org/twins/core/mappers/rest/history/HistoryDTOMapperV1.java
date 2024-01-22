@@ -14,6 +14,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 
 @Component
@@ -34,7 +35,7 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<TwinHistoryItem, His
                 .actorUserId(apiUser.getUser().getId())
                 .twinId(src.getTwin().getId())
                 .type(src.getType())
-                .createdAt(LocalDateTime.from(src.getCreatedAt()));
+                .createdAt(LocalDateTime.ofInstant(src.getCreatedAt(), ZoneId.systemDefault()));
         switch (dst.type) {
             case twinCreated:
                 dst.changeDescription("Twin was created");

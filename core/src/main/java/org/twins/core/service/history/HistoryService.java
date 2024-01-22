@@ -10,6 +10,7 @@ import org.twins.core.domain.TwinHistoryItem;
 import org.twins.core.dto.rest.history.HistoryType;
 import org.twins.core.service.twin.TwinService;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,19 +27,23 @@ public class HistoryService {
         ret.add(new TwinHistoryItem()
                 .setId(UUID.randomUUID())
                 .setTwin(twinEntity)
-                .setType(HistoryType.twinCreated));
+                .setType(HistoryType.twinCreated)
+                .setCreatedAt(Instant.now().minusSeconds(600)));
         ret.add(new TwinHistoryItem()
                 .setId(UUID.randomUUID())
                 .setTwin(twinEntity)
-                .setType(HistoryType.statusChanged));
+                .setType(HistoryType.statusChanged)
+                .setCreatedAt(Instant.now().minusSeconds(900)));
         ret.add(new TwinHistoryItem()
                 .setId(UUID.randomUUID())
                 .setTwin(twinEntity)
-                .setType(HistoryType.assigneeChanged));
+                .setType(HistoryType.assigneeChanged)
+                .setCreatedAt(Instant.now().minusSeconds(1200)));
         ret.add(new TwinHistoryItem()
                 .setId(UUID.randomUUID())
                 .setTwin(twinEntity)
-                .setType(HistoryType.nameChanged));
+                .setType(HistoryType.nameChanged)
+                .setCreatedAt(Instant.now().minusSeconds(1500)));
         return ret; //todo
     }
 }
