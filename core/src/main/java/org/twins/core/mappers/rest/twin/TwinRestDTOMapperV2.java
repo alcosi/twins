@@ -27,7 +27,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
 
         Kit<TwinFieldEntity> twinFieldKit;
-        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.FieldsMode.ALL_FIELDS)) {
+        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.FieldsMode.NO_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS:

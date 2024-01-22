@@ -7,7 +7,7 @@ import org.twins.core.domain.TwinHistoryItem;
 import org.twins.core.dto.rest.history.HistoryDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -21,7 +21,7 @@ import java.time.ZoneId;
 @RequiredArgsConstructor
 public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<TwinHistoryItem, HistoryDTOv1> {
     final UserRestDTOMapper userRestDTOMapper;
-    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+    final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
     final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
     final TwinService twinService;
     final AuthService authService;
@@ -31,10 +31,11 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<TwinHistoryItem, His
         ApiUser apiUser = authService.getApiUser();
         dst
                 .actorUser(userRestDTOMapper.convertOrPostpone(apiUser.getUser(), mapperContext))
-                .twin(twinBaseRestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext))
+                .twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext.cloneWithIsolatedModes()))
                 .actorUserId(apiUser.getUser().getId())
                 .twinId(src.getTwin().getId())
                 .type(src.getType())
+                .id(src.getId())
                 .createdAt(LocalDateTime.ofInstant(src.getCreatedAt(), ZoneId.systemDefault()));
         switch (dst.type) {
             case twinCreated:

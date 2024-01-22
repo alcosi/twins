@@ -22,6 +22,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
@@ -50,14 +51,16 @@ public class HistoryListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode) {
+            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._HIDE) UserRestDTOMapper.Mode showUserMode,
+            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
+            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
-                    .setMode(showTwinMode);
+                    .setMode(showTwinMode)
+                    .setMode(showClassMode);
             rs
                     .setHistoryList(historyDTOMapperV1.convertList(historyService.findHistory(twinId, childDepth), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
