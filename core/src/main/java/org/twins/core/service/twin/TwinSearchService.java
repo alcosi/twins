@@ -9,6 +9,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.JPACriteriaQueryStub;
 import org.twins.core.dao.twin.TwinEntity;
@@ -16,6 +17,8 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
+import org.twins.core.dto.rest.PaginationBean;
+import org.twins.core.dto.rest.twin.TwinSearchAndPaginationPsDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -103,9 +106,9 @@ public class TwinSearchService {
             List<Predicate> orPredicate = new ArrayList<>();
             for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinLinksMap().entrySet()) {
                 orPredicate.add(criteriaBuilder.and(
-                                        criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
-                                        linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
-                                ));
+                        criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
+                        linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
+                ));
             }
             predicate.add(criteriaBuilder.or(orPredicate.toArray(Predicate[]::new)));
         }
@@ -142,7 +145,7 @@ public class TwinSearchService {
             wherePredicateList.addAll(createTwinEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, linkSrcTwin));
         } else {
             select = criteriaQuery.from(TwinEntity.class);
-            wherePredicateList= createTwinEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, select);
+            wherePredicateList = createTwinEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, select);
         }
         return new JPACriteriaQueryStub()
                 .setSelect(select)
@@ -155,6 +158,24 @@ public class TwinSearchService {
         if (ret != null)
             return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
         return ret;
+    }
+
+    public TwinSearchAndPaginationPsDTOv1 findTwinsWithPagination(BasicSearch basicSearch, Pageable pageable) throws ServiceException {
+        TwinSearchAndPaginationPsDTOv1 twinSearchAndPaginationPsDTOv1 = new TwinSearchAndPaginationPsDTOv1();
+        TypedQuery<TwinEntity> q = entityManager.createQuery(getQuery(basicSearch));
+        q.setFirstResult((int) pageable.getOffset());
+        q.setMaxResults(pageable.getPageSize());
+        List<TwinEntity> ret = q.getResultList();
+        if (ret != null)
+            return twinSearchAndPaginationPsDTOv1
+                    .setPaginationBean(
+                            new PaginationBean<Long>()
+                                    .setPage(pageable.getPageNumber())
+                                    .setCount(pageable.getPageSize())
+                                    .setTotal(count(basicSearch))
+                    )
+                    .setResponse(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList());
+        return twinSearchAndPaginationPsDTOv1;
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {

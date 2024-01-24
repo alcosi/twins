@@ -28,4 +28,6 @@ public interface RestRequestParam {
     String showRelatedTwinMode = "showRelatedTwinMode";
     String lazyRelation = "lazyRelation";
     String fieldValue = "fieldValue";
+    String paginationPage = "page";
+    String paginationSize = "size";
 }
