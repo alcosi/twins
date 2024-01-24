@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.history.change;
+package org.twins.core.dto.rest.history.context;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

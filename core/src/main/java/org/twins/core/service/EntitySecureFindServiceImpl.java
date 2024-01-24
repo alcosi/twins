@@ -12,7 +12,7 @@ import java.util.UUID;
 @Slf4j
 public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFindService<T> {
     @Autowired
-    EntitySmartService entitySmartService;
+    public EntitySmartService entitySmartService;
 
     @Override
     public UUID checkId(UUID id, EntitySmartService.CheckMode checkMode) throws ServiceException {

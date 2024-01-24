@@ -1,9 +1,9 @@
-package org.twins.core.domain;
+package org.twins.core.domain.history;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dto.rest.history.HistoryType;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -15,4 +15,5 @@ public class TwinHistoryItem {
     private TwinEntity twin;
     private HistoryType type;
     private Instant createdAt;
+
 }

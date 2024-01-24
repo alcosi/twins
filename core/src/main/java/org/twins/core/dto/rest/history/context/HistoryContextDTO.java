@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.history.change;
+package org.twins.core.dto.rest.history.context;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;

@@ -18,8 +18,14 @@ import java.util.UUID;
 @Table(name = "twin_attachment")
 public class TwinAttachmentEntity implements EasyLoggable, PublicCloneable<TwinAttachmentEntity> {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
+    @PrePersist
+    protected void onCreate() {
+        if (id == null) {
+            this.id = UUID.randomUUID();
+        }
+    }
 
     @Column(name = "twin_id")
     private UUID twinId;

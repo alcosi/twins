@@ -2,8 +2,7 @@ package org.twins.core.mappers.rest.history;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinHistoryItem;
+import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.history.HistoryDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -11,48 +10,35 @@ import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
-
-import java.time.LocalDateTime;
-import java.time.ZoneId;
 
 
 @Component
 @RequiredArgsConstructor
-public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<TwinHistoryItem, HistoryDTOv1> {
+public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, HistoryDTOv1> {
     final UserRestDTOMapper userRestDTOMapper;
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
     final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
     final TwinService twinService;
     final AuthService authService;
+    final HistoryService historyService;
 
     @Override
-    public void map(TwinHistoryItem src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
-        ApiUser apiUser = authService.getApiUser();
+    public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .actorUser(userRestDTOMapper.convertOrPostpone(apiUser.getUser(), mapperContext))
+                .changeDescription(historyService.getChangeFreshestDescription(src))
+                .actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext))
                 .twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext.cloneWithIsolatedModes()))
-                .actorUserId(apiUser.getUser().getId())
+                .actorUserId(src.getActorUserId())
                 .twinId(src.getTwin().getId())
-                .type(src.getType())
+                .type(src.getHistoryType())
                 .id(src.getId())
-                .createdAt(LocalDateTime.ofInstant(src.getCreatedAt(), ZoneId.systemDefault()));
-        switch (dst.type) {
-            case twinCreated:
-                dst.changeDescription("Twin was created");
-            case statusChanged:
-                dst.changeDescription("Status was changed");
-            case assigneeChanged:
-                dst.changeDescription("Assignee was changed");
-            case nameChanged:
-                dst.changeDescription("Name was changed");
-            default:
-                dst.changeDescription("Some data was changed");
-        }
+                .createdAt(src.getCreatedAt().toLocalDateTime());
     }
 
     @Override
-    public String getObjectCacheId(TwinHistoryItem src) {
+    public String getObjectCacheId(HistoryEntity src) {
         return src.getId().toString();
     }
 }

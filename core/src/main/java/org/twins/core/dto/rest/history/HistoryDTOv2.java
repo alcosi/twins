@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.history.change.HistoryContextDTO;
+import org.twins.core.dto.rest.history.context.HistoryContextDTO;
 
 @Data
 @EqualsAndHashCode(callSuper = true)

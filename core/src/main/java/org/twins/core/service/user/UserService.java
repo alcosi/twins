@@ -11,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
@@ -103,5 +104,20 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
                 //todo all users
         }
         return userIdList != null ? Set.copyOf(userIdList) : null;
+    }
+
+    public UserEntity loadUserAndCheck(UUID userId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UserEntity userEntity = null;
+        if (apiUser.isDomainSpecified() && apiUser.isBusinessAccountSpecified()) {
+            userEntity = userRepository.findUserByUserIdAndBusinessAccountIdAndDomainId(userId, apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
+        } else if (apiUser.isDomainSpecified()) {
+            userEntity = userRepository.findUserByUserIdAndDomainId(userId, apiUser.getDomain().getId());
+        } else if (apiUser.isBusinessAccountSpecified()) {
+            userEntity = userRepository.findUserByUserIdAndBusinessAccountId(userId, apiUser.getBusinessAccount().getId());
+        }
+        if (userEntity == null)
+            throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is unknown");
+        return userEntity;
     }
 }

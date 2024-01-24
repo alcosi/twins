@@ -4,13 +4,13 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
@@ -34,7 +34,6 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                     .setId(dbTwinEntity.getId())
                     .setName(twinUpdateDTO.getName())
                     .setHeadTwinId(twinUpdateDTO.getHeadTwinId())
-                    .setAssignerUserId(userService.checkId(twinUpdateDTO.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                     .setDescription(twinUpdateDTO.getDescription());
             dst
                     .setTwinEntity(updatedTwinEntity)
@@ -42,6 +41,12 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
             dst
                     .setAttachmentCUD(twinAttachmentCUDRestDTOReverseMapper.convert(twinUpdateDTO))
                     .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapper.convert(twinUpdateDTO));
+            if (twinUpdateDTO.getAssignerUserId() != null) {
+                UserEntity newAssignee = userService.loadUserAndCheck(twinUpdateDTO.getAssignerUserId());
+                updatedTwinEntity
+                        .setAssignerUser(newAssignee)
+                        .setAssignerUserId(newAssignee.getId());
+            }
         }
     }
 }

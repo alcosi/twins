@@ -28,6 +28,22 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId")
     List<UUID> findUserIdByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
+    @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and domainUser.domainId = :domainId " +
+            "and user.id = :userId")
+    UserEntity findUserByUserIdAndBusinessAccountIdAndDomainId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId " +
+            "where domainUser.domainId = :domainId " +
+            "and user.id = :userId")
+    UserEntity findUserByUserIdAndDomainId(@Param("userId") UUID userId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select user from UserEntity user join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and user.id = :userId")
+    UserEntity findUserByUserIdAndBusinessAccountId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId);
+
     @Query(value = "select user from DomainUserEntity domainUser join BusinessAccountUserEntity businessAccountUser on domainUser.userId = businessAccountUser.userId " +
             "join UserEntity user on domainUser.userId = user.id " +
             "where businessAccountUser.businessAccountId = :businessAccountId " +

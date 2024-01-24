@@ -4,18 +4,23 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.history.context.HistoryContextAttachment;
+import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.history.HistoryCollector;
+import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.history.MultiTwinHistoryCollector;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -29,6 +34,7 @@ public class AttachmentService {
     final EntitySmartService entitySmartService;
     final TwinAttachmentRepository twinAttachmentRepository;
     final UserService userService;
+    final HistoryService historyService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
@@ -39,23 +45,22 @@ public class AttachmentService {
     }
 
     @Transactional
-    public List<TwinAttachmentEntity> addAttachments(UUID twinId, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
+    public List<TwinAttachmentEntity> addAttachments(TwinEntity twinEntity, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
+        HistoryCollector historyCollector = new HistoryCollector();
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             attachmentEntity
-                    .setTwinId(twinId)
+                    .setId(UUID.randomUUID()) // need for history
+                    .setTwinId(twinEntity.getId())
+                    .setTwin(twinEntity)
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(userEntity.getId())
                     .setCreatedByUser(userEntity);
+            historyCollector.add(HistoryType.attachmentCreate, new HistoryContextAttachment()
+                    .setAttachmentId(attachmentEntity.getId())
+                    .setAttachment(HistoryContextAttachment.AttachmentDraft.convertEntity(attachmentEntity)));
         }
-        return IterableUtils.toList(entitySmartService.saveAllAndLog(attachments, twinAttachmentRepository));
-    }
-
-    @Transactional
-    public TwinAttachmentEntity addAttachment(TwinAttachmentEntity twinAttachmentEntity) {
-        TwinAttachmentEntity ret = twinAttachmentRepository.save(
-                twinAttachmentEntity
-                        .setCreatedAt(Timestamp.from(Instant.now())));
-        log.info(ret.easyLog(EasyLoggable.Level.NORMAL) + " was saved");
+        List<TwinAttachmentEntity> ret = IterableUtils.toList(entitySmartService.saveAllAndLog(attachments, twinAttachmentRepository));
+        historyService.saveHistory(twinEntity, historyCollector);
         return ret;
     }
 
@@ -105,25 +110,38 @@ public class AttachmentService {
             return;
         ChangesHelper changesHelper = new ChangesHelper();
         TwinAttachmentEntity dbAttachmentEntity;
+        MultiTwinHistoryCollector multiTwinHistoryCollector = new MultiTwinHistoryCollector();
+        List<TwinAttachmentEntity> saveList = new ArrayList<>();
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             changesHelper.flush();
             dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            HistoryContextAttachmentChange historyContextAttachmentChange = new HistoryContextAttachmentChange()
+                    .setAttachmentId(attachmentEntity.getId())
+                    .setFromAttachment(HistoryContextAttachment.AttachmentDraft.convertEntity(dbAttachmentEntity));
             if (changesHelper.isChanged("description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
+                historyContextAttachmentChange.setToDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
             }
             if (changesHelper.isChanged("title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
+                historyContextAttachmentChange.setToTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
             if (changesHelper.isChanged("storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
+                historyContextAttachmentChange.setToStorageLink(attachmentEntity.getStorageLink());
                 dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
             }
             if (changesHelper.isChanged("externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
+                historyContextAttachmentChange.setToExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }
             if (changesHelper.hasChanges()) {
-                twinAttachmentRepository.save(dbAttachmentEntity);
-                log.info(dbAttachmentEntity.easyLog(EasyLoggable.Level.NORMAL) + " was updated: " + changesHelper.collectForLog());
+                saveList.add(dbAttachmentEntity);
+                multiTwinHistoryCollector.add(dbAttachmentEntity.getTwin(), HistoryType.attachmentUpdate, historyContextAttachmentChange);
             }
+        }
+        if (CollectionUtils.isEmpty(saveList)) {
+            entitySmartService.saveAllAndLog(saveList, twinAttachmentRepository);
+            historyService.saveHistory(multiTwinHistoryCollector);
         }
     }
 
