@@ -29,4 +29,5 @@ public interface RestRequestParam {
     String lazyRelation = "lazyRelation";
     String childDepth = "childDepth";
     String fieldValue = "fieldValue";
+    String sortDirection = "sortDirection";
 }
