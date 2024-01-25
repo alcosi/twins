@@ -75,6 +75,22 @@ public enum RelatedTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
+            TwinTransitionRestDTOMapper.Mode.HIDE),
+    ORANGE(1,
+            TwinBaseRestDTOMapper.TwinMode.DETAILED,
+            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
+            TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
+            TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
+            TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
+            AttachmentViewRestDTOMapper.Mode.HIDE,
+            TwinClassFieldRestDTOMapper.Mode.DETAILED,
+            TwinClassBaseRestDTOMapper.ClassMode.DETAILED,
+            TwinClassRestDTOMapper.HeadTwinMode.HIDE,
+            TwinClassRestDTOMapper.StatusMode.HIDE,
+            TwinClassRestDTOMapper.MarkerMode.HIDE,
+            TwinClassRestDTOMapper.TagMode.HIDE,
+            TwinLinkRestDTOMapper.Mode.HIDE,
+            LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE);
 
     public static final String _GREEN = "GREEN";
