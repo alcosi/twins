@@ -1,7 +1,7 @@
 package org.twins.core.domain;
 
 import lombok.Getter;
-import org.twins.core.service.history.MultiTwinHistoryCollector;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 @Getter
 public class TwinChangesCollector extends EntitiesChangesCollector {
@@ -9,5 +9,5 @@ public class TwinChangesCollector extends EntitiesChangesCollector {
         super();
     }
 
-    MultiTwinHistoryCollector historyCollector = new MultiTwinHistoryCollector();
+    HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
 }

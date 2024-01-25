@@ -19,8 +19,8 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.history.HistoryCollector;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.history.MultiTwinHistoryCollector;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -115,7 +115,7 @@ public class AttachmentService {
             return;
         ChangesHelper changesHelper = new ChangesHelper();
         TwinAttachmentEntity dbAttachmentEntity;
-        MultiTwinHistoryCollector multiTwinHistoryCollector = new MultiTwinHistoryCollector();
+        HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
         List<TwinAttachmentEntity> saveList = new ArrayList<>();
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             changesHelper.flush();
@@ -140,12 +140,12 @@ public class AttachmentService {
             }
             if (changesHelper.hasChanges()) {
                 saveList.add(dbAttachmentEntity);
-                multiTwinHistoryCollector.add(dbAttachmentEntity.getTwin(), HistoryType.attachmentUpdate, historyContextAttachmentChange);
+                historyCollector.add(dbAttachmentEntity.getTwin(), HistoryType.attachmentUpdate, historyContextAttachmentChange);
             }
         }
         if (CollectionUtils.isEmpty(saveList)) {
             entitySmartService.saveAllAndLog(saveList, twinAttachmentRepository);
-            historyService.saveHistory(multiTwinHistoryCollector);
+            historyService.saveHistory(historyCollector);
         }
     }
 

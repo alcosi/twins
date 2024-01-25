@@ -11,6 +11,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 
+@Getter
 public enum RelatedTwinMode implements MapperModeCollection {
     GREEN(0,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
@@ -96,10 +97,7 @@ public enum RelatedTwinMode implements MapperModeCollection {
     public static final String _GREEN = "GREEN";
     public static final String _YELLOW = "YELLOW";
 
-    @Getter
     final int priority;
-
-    @Getter
     final MapperMode[] configuredModes;
 
     RelatedTwinMode(int priority, MapperMode... configuredModes) {

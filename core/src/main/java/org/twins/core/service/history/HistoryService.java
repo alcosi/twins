@@ -107,7 +107,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
     }
 
-    public void saveHistory(MultiTwinHistoryCollector multiTwinHistoryCollector) throws ServiceException {
+    public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
         if (MapUtils.isEmpty(multiTwinHistoryCollector.getMultiTwinHistory()))
             return;
         List<HistoryEntity> historyEntityList = new ArrayList<>();

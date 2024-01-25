@@ -40,8 +40,8 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryCollector;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.history.MultiTwinHistoryCollector;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -500,10 +500,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Transactional
     public void changeStatus(Collection<TwinEntity> twinEntityList, TwinStatusEntity newStatus) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
-        MultiTwinHistoryCollector multiTwinHistoryCollector = new MultiTwinHistoryCollector();
+        HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
         for (TwinEntity twinEntity : twinEntityList) {
             if (changesHelper.isChanged(twinEntity.logShort() + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
-                multiTwinHistoryCollector.add(twinEntity, HistoryType.statusChanged, new HistoryContextStatusChange()
+                historyCollector.add(twinEntity, HistoryType.statusChanged, new HistoryContextStatusChange()
                         .shotFromStatus(twinEntity.getTwinStatus(), i18nService)
                         .shotToStatus(newStatus, i18nService));
                 twinEntity
@@ -512,7 +512,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         entitySmartService.saveAllAndLogChanges(twinEntityList, twinRepository, changesHelper);
-        historyService.saveHistory(multiTwinHistoryCollector);
+        historyService.saveHistory(historyCollector);
     }
 
 //    @Transactional

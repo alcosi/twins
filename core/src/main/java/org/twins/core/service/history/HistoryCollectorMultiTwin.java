@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.UUID;
 
 @Getter
-public class MultiTwinHistoryCollector {
+public class HistoryCollectorMultiTwin {
     private Map<UUID, Pair<TwinEntity, HistoryCollector>> multiTwinHistory;
-    public MultiTwinHistoryCollector add(TwinEntity twinEntity, HistoryType historyType, HistoryContext context) {
+    public HistoryCollectorMultiTwin add(TwinEntity twinEntity, HistoryType historyType, HistoryContext context) {
         if (multiTwinHistory == null)
             multiTwinHistory = new HashMap<>();
         HistoryCollector historyCollector = multiTwinHistory.computeIfAbsent(twinEntity.getId(), k -> Pair.of(twinEntity, new HistoryCollector())).getValue();
