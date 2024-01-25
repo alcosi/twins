@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "history")
+@FieldNameConstants
 public class HistoryEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")

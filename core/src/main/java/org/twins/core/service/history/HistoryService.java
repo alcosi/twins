@@ -9,6 +9,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
@@ -55,16 +56,13 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return true;
     }
 
-    public List<HistoryEntity> findHistory(UUID twinId, int childDepth) throws ServiceException {
+    public List<HistoryEntity> findHistory(UUID twinId, int childDepth, Sort.Direction createdBySortDirection) throws ServiceException {
         UserEntity user = authService.getApiUser().getUser();
         List<HistoryEntity> list = null;
         if (childDepth == 0)
-            list = historyRepository.findByTwinId(twinId);
+            list = historyRepository.findByTwinId(twinId, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
         else //todo support different depth
-            list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId);
-        list.forEach(h -> h //todo delete
-                .setActorUser(user)
-                .setActorUserId(user.getId()));
+            list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
         return list;
     }
 
