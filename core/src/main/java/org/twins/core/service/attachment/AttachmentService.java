@@ -101,7 +101,14 @@ public class AttachmentService {
 
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
+        TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
+        if (attachmentEntity == null)
+            return;
+        log.info(attachmentEntity.logDetailed() + " will be deleted");
         entitySmartService.deleteAndLog(attachmentId, twinAttachmentRepository);
+        historyService.saveHistory(attachmentEntity.getTwin(), HistoryType.attachmentDelete, new HistoryContextAttachment()
+                .setAttachmentId(attachmentId)
+                .setAttachment(HistoryContextAttachment.AttachmentDraft.convertEntity(attachmentEntity)));
     }
 
     @Transactional
