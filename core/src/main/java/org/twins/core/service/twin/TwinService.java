@@ -18,6 +18,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextStatusChange;
 import org.twins.core.dao.history.context.HistoryContextStringChange;
@@ -322,7 +323,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd()))
             twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd());
         if (CollectionUtils.isNotEmpty(twinCreate.getNewTags())) {
-            twinTagService.addTags(twinEntity, twinCreate.getNewTags());
+            Kit<DataListOptionEntity> tags = twinTagService.createTags(twinEntity, twinCreate.getNewTags());
+            twinEntity.setTwinTagKit(tags);
         }
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()

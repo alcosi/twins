@@ -1,7 +1,9 @@
 package org.twins.core.service.twin;
 
+import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
@@ -11,6 +13,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final TwinTagRepository twinTagRepository;
+    final DataListOptionRepository dataListOptionRepository;
     final TwinService twinService;
     final DataListService dataListService;
     final EntitySmartService entitySmartService;
@@ -51,9 +55,9 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwin() == null)
-                    entity.setTwin(twinService.findEntitySafe(entity.getTwinId()));
+                    entity.setTwin(twinService.findEntitySafe(entity.getTwinId())); // Why there is a side effect in validate function ?!
                 if (entity.getTagDataListOption() == null)
-                    entity.setTagDataListOption(dataListService.findDataListOption(entity.getTagDataListOptionId()));
+                    entity.setTagDataListOption(dataListService.findDataListOption(entity.getTagDataListOptionId())); // Why there is a side effect in validate function ?!
             default:
                 if (!entity.getTwin().getTwinClass().getTagDataListId().equals(entity.getTagDataListOption().getDataListId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinTag dataListOptionId[" + entity.getTagDataListOptionId() + "]");
@@ -103,42 +107,71 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
     }
 
-    public void addTags(TwinEntity twinEntity, Set<String> newTags) throws ServiceException {
+    public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags) throws ServiceException {
         if (CollectionUtils.isEmpty(newTags)) {
-            return;
+            return null;
         }
 
-        List<DataListOptionEntity> tagOptions = new ArrayList<>();
-
-        List<TwinTagEntity> tagsToSave = newTags.stream()
-                .filter(tag -> !twinTagRepository.existsByTagName(tag))
-                .map(tag -> {
-                    TwinTagEntity newTag = new TwinTagEntity(); // Builder could allow to map directly without creating a new instance
-                    newTag.setTwin(twinEntity);
-                    newTag.setTwinId(twinEntity.getId());
-
-                    DataListOptionEntity option = new DataListOptionEntity();
-                    option.setOption(tag);
-                    option.setBusinessAccountId(twinEntity.getOwnerBusinessAccountId());
-                    newTag.setTagDataListOption(option);
-
-                    tagOptions.add(option);
-
-                    return newTag;
-                })
-                .collect(Collectors.toList());
-
-        // TODO: FIXME: this is only required like that , because we don't have a wrapper function to use in stream
-        for (TwinTagEntity tag : tagsToSave) {
-            validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
-        }
-
-        entitySmartService.saveAllAndLog(tagsToSave, twinTagRepository);
-        twinEntity.setTwinTagKit(new Kit<>(tagOptions, DataListOptionEntity::getId)); // TODO: FIXME: is this really ok to have side effects, which may not be actually expected ???
+        return saveTags(twinEntity, newTags);
     }
 
     public void deleteTags(TwinEntity twinEntity, Set<UUID> tags) {
         // TODO: implement
         throw new UnsupportedOperationException();
+    }
+
+    private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags) throws ServiceException {
+        List<DataListOptionEntity> tagOptions = saveTagOptions(twinEntity, newTags);
+
+        List<TwinTagEntity> tagsToSave = new ArrayList<>();
+
+        tagOptions.forEach(option -> {
+            TwinTagEntity newTag = new TwinTagEntity(); // TODO: FIXME: Builder could allow to map directly without creating a new instance
+            newTag.setTwin(twinEntity);
+            newTag.setTwinId(twinEntity.getId());
+            newTag.setTagDataListOptionId(option.getId());
+            newTag.setTagDataListOption(option);
+
+            tagsToSave.add(newTag);
+        });
+
+        for (TwinTagEntity tag : tagsToSave) {
+            validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
+        }
+
+        entitySmartService.saveAllAndLog(tagsToSave, twinTagRepository);
+
+        return new Kit<>(tagOptions, DataListOptionEntity::getId);
+    }
+
+    private List<DataListOptionEntity> saveTagOptions(TwinEntity twinEntity, Set<String> newTagOptions) {
+        List<DataListOptionEntity> tagOptions = new ArrayList<>();
+
+        List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
+                DataListOptionEntity foundOption = twinTagRepository.findOptionByTagName(option.trim());
+
+                if (foundOption != null) {
+                    tagOptions.add(foundOption);
+                    return false;
+                }
+
+                return true;
+            }).map(tag -> {
+                DataListOptionEntity option = new DataListOptionEntity();
+                option.setOption(tag);
+                option.setBusinessAccountId(twinEntity.getOwnerBusinessAccountId());
+                option.setStatus(DataListOptionEntity.Status.active);
+                option.setDataListId(twinEntity.getTwinClass().getTagDataListId());
+
+                return option;
+            })
+            .collect(Collectors.toList());
+
+        // TODO: FIXME: there is no validator for data list options.
+
+        Iterable<DataListOptionEntity> savedOptions = entitySmartService.saveAllAndLog(optionsToSave, dataListOptionRepository);
+        savedOptions.forEach(tagOptions::add);
+
+        return tagOptions;
     }
 }
