@@ -3,7 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.PublicCloneable;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -16,7 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity implements EasyLoggable, PublicCloneable<TwinAttachmentEntity> {
+public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicCloneable<TwinAttachmentEntity> {
     @Id
     private UUID id;
 
@@ -54,10 +54,6 @@ public class TwinAttachmentEntity implements EasyLoggable, PublicCloneable<TwinA
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    public String easyLog(Level level) {
-        return "attachment[id:" + id + ", storageLink:" + storageLink + "]";
-    }
-
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;
@@ -89,5 +85,17 @@ public class TwinAttachmentEntity implements EasyLoggable, PublicCloneable<TwinA
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setViewPermission(viewPermission)
                 .setViewPermissionId(viewPermissionId);
+    }
+
+    public String easyLog(Level level) {
+        switch (level) {
+            case SHORT:
+                return "attachment[" + id + "]";
+            case NORMAL:
+                return "attachment[id:" + id + ", twinId:" + twinId + "]";
+            default:
+                return "attachment[id:" + id + ", twinId:" + twinId + ", storageLink:" + storageLink + "]";
+        }
+
     }
 }

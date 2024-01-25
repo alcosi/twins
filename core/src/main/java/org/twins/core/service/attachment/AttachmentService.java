@@ -150,10 +150,23 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) {
+    public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
-        attachmentDeleteUUIDList.forEach(aId -> log.info("Attachment[" +  aId + "] will be deleted (if present)"));
+        List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
+        if (CollectionUtils.isEmpty(deleteEntityList))
+            return;
+        HistoryCollector historyCollector = new HistoryCollector();
+        TwinEntity twinEntity = null;
+        for (TwinAttachmentEntity attachmentEntity : deleteEntityList) {
+            if (twinEntity == null)
+                twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
+            log.info(attachmentEntity.logDetailed() + " will be deleted");
+            historyCollector.add(HistoryType.attachmentDelete, new HistoryContextAttachment()
+                    .setAttachmentId(attachmentEntity.getId())
+                    .setAttachment(HistoryContextAttachment.AttachmentDraft.convertEntity(attachmentEntity)));
+        }
         twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
+        historyService.saveHistory(twinEntity, historyCollector);
     }
 }
