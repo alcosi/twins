@@ -11,9 +11,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class HistoryContextTwinChange extends HistoryContext {
     public static final String DISCRIMINATOR = "history.twinChange";
-    private UUID fromTwinId;
     private TwinDraft fromTwin; //in case if twin is already deleted from DB we can display this draft data
-    private UUID toTwinId;
     private TwinDraft toTwin; //in case if twin is already deleted from DB we can display this draft data
 
     @Override
@@ -21,23 +19,23 @@ public class HistoryContextTwinChange extends HistoryContext {
         return DISCRIMINATOR;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        return false;
+    public HistoryContextTwinChange shotFromTwin(TwinEntity twinEntity) {
+        fromTwin = TwinDraft.convertEntity(twinEntity);
+        return this;
     }
 
-    @Override
-    public int hashCode() {
-        return 0;
+    public HistoryContextTwinChange shotToTwin(TwinEntity twinEntity) {
+        toTwin = TwinDraft.convertEntity(twinEntity);
+        return this;
     }
 
     @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = new HashMap<>();
-        vars.put("fromTwin.id", fromTwinId != null ? fromTwinId.toString() : "");
+        vars.put("fromTwin.id", fromTwin != null ? fromTwin.id.toString() : "");
         vars.put("fromTwin.name", fromTwin != null ? fromTwin.name : "");
         vars.put("fromTwin.alias", fromTwin != null ? fromTwin.alias : "");
-        vars.put("toTwin.id", toTwinId != null ? toTwinId.toString() : "");
+        vars.put("toTwin.id", toTwin != null ? toTwin.id.toString() : "");
         vars.put("toTwin.name", toTwin != null ? toTwin.name : "");
         vars.put("toTwin.alias", toTwin != null ? toTwin.alias : "");
         return vars;
@@ -46,6 +44,7 @@ public class HistoryContextTwinChange extends HistoryContext {
     @Data
     @Accessors(chain = true)
     public static final class TwinDraft {
+        private UUID id;
         private String name;
         private String alias;
 
@@ -53,6 +52,7 @@ public class HistoryContextTwinChange extends HistoryContext {
             if (twinEntity == null)
                 return null;
             return new TwinDraft()
+                    .setId(twinEntity.getId())
                     .setName(twinEntity.getName())
                     .setAlias("TWIN-108"); //todo fix it
         }

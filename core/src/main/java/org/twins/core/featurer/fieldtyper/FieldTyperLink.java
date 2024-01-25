@@ -17,7 +17,7 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.domain.EntitiesChangesCollector;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -72,7 +72,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueLink value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
         List<TwinLinkEntity> newTwinLinks = value.getTwinLinks() != null ? value.getTwinLinks() : new ArrayList<>();
         for (TwinLinkEntity newTwinLinkEntity : newTwinLinks) //we have to set link, because it can be empty
@@ -92,7 +92,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkNoRelationsProjection::dstTwinId, Function.identity()));
         for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
             if (storedLinksMap == null) {  // no links were saved before //after twinLinkService.prepareTwinLinks all existed twinLinks will be filled with id from db
-                entitiesChangesCollector.add(twinLinkEntity);
+                twinChangesCollector.add(twinLinkEntity);
             } else if (storedLinksMap.containsKey(twinLinkEntity.getDstTwinId())) { // link is already saved
                 storedLinksMap.remove(twinLinkEntity.getDstTwinId()); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
             } else if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
@@ -101,14 +101,14 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                 TwinLinkNoRelationsProjection dbTwinLink = storedLinksList.get(0);
                 log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
                 twinLinkEntity.setId(dbTwinLink.id());
-                entitiesChangesCollector.add(twinLinkEntity);
+                twinChangesCollector.add(twinLinkEntity);
                 storedLinksMap.clear(); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
             } else {
-                entitiesChangesCollector.add(twinLinkEntity);
+                twinChangesCollector.add(twinLinkEntity);
             }
         }
         if (storedLinksMap != null && CollectionUtils.isNotEmpty(storedLinksMap.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(TwinLinkEntity.class, storedLinksMap.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
+            twinChangesCollector.deleteAll(TwinLinkEntity.class, storedLinksMap.values().stream().map(TwinLinkNoRelationsProjection::id).toList());
     }
 
     @Override

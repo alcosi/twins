@@ -1,12 +1,14 @@
 package org.twins.core.domain;
 
+import lombok.Getter;
 import org.cambium.common.util.ChangesHelper;
 
 import java.util.*;
 
+@Getter
 public class EntitiesChangesCollector {
-    Map<Class, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
-    Map<Class, List<UUID>> deleteEntityIdMap = new HashMap<>();
+    Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
+    Map<Class<?>, List<UUID>> deleteEntityIdMap = new HashMap<>();
 
     private ChangesHelper detectChangesHelper(Object entity) {
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
@@ -36,16 +38,8 @@ public class EntitiesChangesCollector {
         return false;
     }
 
-    public Map<Class, Map<Object, ChangesHelper>> getSaveEntityMap() {
-        return saveEntityMap;
-    }
-
-    public Map<Class, List<UUID>> getDeleteEntityIdMap() {
-        return deleteEntityIdMap;
-    }
-
     public boolean hasChanges() {
-        return saveEntityMap.size() > 0 || deleteEntityIdMap.size() > 0;
+        return !saveEntityMap.isEmpty() || !deleteEntityIdMap.isEmpty();
     }
 
     public void deleteAll(Class entityClass, Collection<UUID> entitiesIds) {

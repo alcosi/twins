@@ -4,18 +4,15 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class HistoryContextAttachmentChange extends HistoryContext {
+public class HistoryContextAttachmentChange extends HistoryContextAttachment {
     public static final String DISCRIMINATOR = "history.attachmentChange";
-    private UUID attachmentId;
-    private HistoryContextAttachment.AttachmentDraft fromAttachment; // attachment draft with old data (before change)
-    private String toStorageLink;
-    private String toExternalId;
-    private String toTitle;
-    private String toDescription;
+    private String newStorageLink;
+    private String newExternalId;
+    private String newTitle;
+    private String newDescription;
 
     @Override
     public String getType() {
@@ -23,31 +20,16 @@ public class HistoryContextAttachmentChange extends HistoryContext {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return 0;
-    }
-
-    @Override
     protected HashMap<String, String> extractTemplateVars() {
-        HashMap<String, String> vars = new HashMap<>();
-        vars.put("attachment.id", attachmentId != null ? attachmentId.toString() : "");
-        vars.put("attachment.fromStorageLink", fromAttachment != null ? fromAttachment.getStorageLink() : "");
-        vars.put("attachment.fromExternalId", fromAttachment != null ? fromAttachment.getExternalId() : "");
-        vars.put("attachment.fromTitle", fromAttachment != null ? fromAttachment.getTitle() : "");
-        vars.put("attachment.fromDescription", fromAttachment != null ? fromAttachment.getDescription() : "");
-        if (toStorageLink != null)
-            vars.put("attachment.toStorageLink", toStorageLink);
-        if (toExternalId != null)
-            vars.put("attachment.toExternalId", toExternalId);
-        if (toTitle != null)
-            vars.put("attachment.toTitle", toTitle);
-        if (toDescription != null)
-            vars.put("attachment.toDescription", toDescription);
+        HashMap<String, String> vars = super.extractTemplateVars();
+        if (newStorageLink != null)
+            vars.put("attachment.newStorageLink", newStorageLink);
+        if (newExternalId != null)
+            vars.put("attachment.newExternalId", newExternalId);
+        if (newTitle != null)
+            vars.put("attachment.newTitle", newTitle);
+        if (newDescription != null)
+            vars.put("attachment.newDescription", newDescription);
         return vars;
     }
 }
