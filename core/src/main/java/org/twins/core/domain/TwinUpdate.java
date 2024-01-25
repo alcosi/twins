@@ -20,6 +20,7 @@ public class TwinUpdate extends TwinOperation {
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
     protected Set<UUID> markersDelete;
+    protected Set<UUID> tagsDelete;
 
     @Override
     public UUID nullifyUUID() {
@@ -30,6 +31,15 @@ public class TwinUpdate extends TwinOperation {
         if (markersDelete == null)
             markersDelete = new HashSet<>();
         markersDelete.add(marker);
+        return this;
+    }
+
+    public TwinOperation addToTagRemoveList(UUID tag) {
+        if (tagsDelete == null) {
+            tagsDelete = new HashSet<>();
+        }
+
+        tagsDelete.add(tag);
         return this;
     }
 }

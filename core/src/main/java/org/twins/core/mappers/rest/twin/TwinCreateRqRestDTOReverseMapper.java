@@ -15,6 +15,9 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
+import java.util.HashSet;
+import java.util.Optional;
+
 
 @Component
 @RequiredArgsConstructor
@@ -41,6 +44,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                 .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()));
         dst
                 .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(src.getAttachments()))
-                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(src.getLinks()));
+                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(src.getLinks()))
+                .setNewTags(Optional.ofNullable(src.getTags().newTags()).orElse(new HashSet<>()))
+                .setExistingTags(Optional.ofNullable(src.getTags().existingTags()).orElse(new HashSet<>()));
     }
 }

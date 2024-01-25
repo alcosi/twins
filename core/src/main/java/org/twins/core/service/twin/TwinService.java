@@ -86,6 +86,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Lazy
     final HistoryService historyService;
     final I18nService i18nService;
+    @Lazy
+    final TwinTagService twinTagService;
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -319,6 +321,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinLinkService.addLinks(twinEntity, twinCreate.getLinksEntityList());
         if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd()))
             twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd());
+        if (CollectionUtils.isNotEmpty(twinCreate.getNewTags())) {
+            twinTagService.addTags(twinEntity, twinCreate.getNewTags());
+        }
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)

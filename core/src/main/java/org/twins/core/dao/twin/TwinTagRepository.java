@@ -20,5 +20,13 @@ public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, 
     @Query(value = "select m.tagDataListOption from TwinTagEntity m where m.twinId = :twinId ")
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
 
+    @Query(value = "select case when count(tag)> 0 then true else false end" +
+            " from TwinTagEntity tag " +
+            " join DataListOptionEntity o on tag.tagDataListOption.id = o.id " +
+            " join I18nEntity i on o.optionI18NId = i.id" +
+            " join I18nTranslationEntity t on i.id = t.i18nId" +
+            " where lower(t.translation) like lower(:name)")
+    boolean existsByTagName(@Param("name") String name);
+
     void deleteByTwinId(UUID twinId);
 }

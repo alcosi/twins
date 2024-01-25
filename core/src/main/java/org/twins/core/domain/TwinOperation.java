@@ -13,7 +13,8 @@ public abstract class TwinOperation {
     protected TwinEntity twinEntity; // only for new/updated data
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
     protected Set<UUID> markersAdd;
-
+    protected Set<String> newTags;
+    protected Set<UUID> existingTags;
 
     public TwinOperation addField(FieldValue fieldValue) {
         if (fields == null)

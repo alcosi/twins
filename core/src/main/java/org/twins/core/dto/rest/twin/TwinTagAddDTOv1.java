@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -13,8 +14,8 @@ import java.util.UUID;
 @Schema(name =  "TwinTagAddV1")
 public class TwinTagAddDTOv1 {
     @Schema(description = "add already existing tags by their ids", example = DTOExamples.TWIN_TAG_ID)
-    public List<UUID> addExistingTags;
+    public Set<UUID> existingTags;
 
     @Schema(description = "add new tags by name (in current locale). If tag with given name is already exist, it will be used")
-    public List<String> addNewTags;
+    public Set<String> newTags;
 }

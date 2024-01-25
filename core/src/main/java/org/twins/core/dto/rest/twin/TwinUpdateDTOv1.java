@@ -53,4 +53,7 @@ public class TwinUpdateDTOv1 extends Request {
 
     @Schema(description = "TwinLinks for updating")
     public List<TwinLinkUpdateDTOv1> twinLinksUpdate;
+
+    @Schema(description = "TwinTags for updating")
+    public TwinTagManageDTOv1 tagsUpdate;
 }
