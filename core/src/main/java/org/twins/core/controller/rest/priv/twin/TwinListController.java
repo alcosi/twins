@@ -19,7 +19,6 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dto.rest.twin.TwinSearchAndPaginationPsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
@@ -27,6 +26,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
+import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -35,6 +35,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
@@ -55,6 +56,7 @@ public class TwinListController extends ApiController {
     final TwinRestDTOMapper twinRestDTOMapper;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinSearchRqDTOMapper twinSearchRqDTOMapper;
+    final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchV1", summary = "Twins basic search")
@@ -88,7 +90,7 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         Pageable pageable = PageRequest.of(page, size);
         try {
-            TwinSearchAndPaginationPsDTOv1 twinSearchAndPaginationPsDTOv1 = twinSearchService.findTwinsWithPagination(twinSearchRqDTOMapper.convert(request), pageable);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), pageable);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedTwinMode)
@@ -107,8 +109,8 @@ public class TwinListController extends ApiController {
                     .setMode(showLinkMode)
                     .setMode(showTwinTransitionMode);
             rs
-                    .setTwinList(twinRestDTOMapper.convertList(twinSearchAndPaginationPsDTOv1.response, mapperContext))
-                    .setPagination(twinSearchAndPaginationPsDTOv1.getPaginationBean())
+                    .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getResponse(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

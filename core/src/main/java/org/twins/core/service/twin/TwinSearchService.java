@@ -17,8 +17,6 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
-import org.twins.core.dto.rest.PaginationBean;
-import org.twins.core.dto.rest.twin.TwinSearchAndPaginationPsDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -160,22 +158,19 @@ public class TwinSearchService {
         return ret;
     }
 
-    public TwinSearchAndPaginationPsDTOv1 findTwinsWithPagination(BasicSearch basicSearch, Pageable pageable) throws ServiceException {
-        TwinSearchAndPaginationPsDTOv1 twinSearchAndPaginationPsDTOv1 = new TwinSearchAndPaginationPsDTOv1();
+    public TwinSearchResult findTwins(BasicSearch basicSearch, Pageable pageable) throws ServiceException {
+        TwinSearchResult twinSearchResult = new TwinSearchResult();
         TypedQuery<TwinEntity> q = entityManager.createQuery(getQuery(basicSearch));
         q.setFirstResult((int) pageable.getOffset());
         q.setMaxResults(pageable.getPageSize());
         List<TwinEntity> ret = q.getResultList();
         if (ret != null)
-            return twinSearchAndPaginationPsDTOv1
-                    .setPaginationBean(
-                            new PaginationBean<Long>()
-                                    .setPage(pageable.getPageNumber())
-                                    .setCount(pageable.getPageSize())
-                                    .setTotal(count(basicSearch))
-                    )
-                    .setResponse(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList());
-        return twinSearchAndPaginationPsDTOv1;
+            return (TwinSearchResult) twinSearchResult
+                    .setResponse(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
+                    .setPage(pageable.getPageNumber())
+                    .setCount(pageable.getPageSize())
+                    .setTotal(count(basicSearch));
+        return twinSearchResult;
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {
