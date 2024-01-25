@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.PaginationDTOv1;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest;
+package org.twins.core.dto.rest.pagination;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
