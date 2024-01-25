@@ -322,10 +322,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinLinkService.addLinks(twinEntity, twinCreate.getLinksEntityList());
         if (CollectionUtils.isNotEmpty(twinCreate.getMarkersAdd()))
             twinMarkerService.addMarkers(twinEntity, twinCreate.getMarkersAdd());
-        if (CollectionUtils.isNotEmpty(twinCreate.getNewTags())) {
-            Kit<DataListOptionEntity> tags = twinTagService.createTags(twinEntity, twinCreate.getNewTags());
+
+        if (CollectionUtils.isNotEmpty(twinCreate.getNewTags()) || CollectionUtils.isNotEmpty(twinCreate.getExistingTags())) {
+            Kit<DataListOptionEntity> tags = twinTagService.createTags(twinEntity, twinCreate.getNewTags(), twinCreate.getExistingTags());
             twinEntity.setTwinTagKit(tags);
         }
+
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)

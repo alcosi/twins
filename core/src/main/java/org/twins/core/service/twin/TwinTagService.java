@@ -22,6 +22,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Lazy
@@ -107,12 +108,12 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
     }
 
-    public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags) throws ServiceException {
-        if (CollectionUtils.isEmpty(newTags)) {
-            return null;
-        }
-
-        return saveTags(twinEntity, newTags);
+    public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+        return saveTags(twinEntity,
+                Optional.ofNullable(newTags)
+                        .orElse(new HashSet<>()),
+                Optional.ofNullable(existingTags)
+                        .orElse(new HashSet<>()));
     }
 
     public void deleteTags(TwinEntity twinEntity, Set<UUID> tags) {
@@ -120,26 +121,29 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         throw new UnsupportedOperationException();
     }
 
-    private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags) throws ServiceException {
+    private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
         List<DataListOptionEntity> tagOptions = saveTagOptions(twinEntity, newTags);
+        List<UUID> filteredTags = filterTagsByBusinessAccount(twinEntity, existingTags);
 
         List<TwinTagEntity> tagsToSave = new ArrayList<>();
 
-        tagOptions.forEach(option -> {
-            TwinTagEntity newTag = new TwinTagEntity(); // TODO: FIXME: Builder could allow to map directly without creating a new instance
-            newTag.setTwin(twinEntity);
-            newTag.setTwinId(twinEntity.getId());
-            newTag.setTagDataListOptionId(option.getId());
-            newTag.setTagDataListOption(option);
+        tagOptions.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), option)));
+        filteredTags.forEach(optionId -> tagsToSave.add(createTagEntity(twinEntity, optionId, null)));
 
-            tagsToSave.add(newTag);
-        });
+        // remove duplicates if any
+        List<TwinTagEntity> distinctTags = tagsToSave.stream()
+                .collect(Collectors.toMap(TwinTagEntity::getTagDataListOptionId,
+                        Function.identity(),
+                        (first, second) -> first))
+                .values()
+                .stream()
+                .collect(Collectors.toList());
 
-        for (TwinTagEntity tag : tagsToSave) {
+        for (TwinTagEntity tag : distinctTags) {
             validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
         }
 
-        entitySmartService.saveAllAndLog(tagsToSave, twinTagRepository);
+        entitySmartService.saveAllAndLog(distinctTags, twinTagRepository);
 
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
     }
@@ -173,5 +177,21 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         savedOptions.forEach(tagOptions::add);
 
         return tagOptions;
+    }
+
+    private List<UUID> filterTagsByBusinessAccount(TwinEntity twinEntity, Set<UUID> existingTags) {
+        return existingTags.stream()
+                .filter(tag -> twinTagRepository.isTagOptionValid(tag, twinEntity.getOwnerBusinessAccountId()))
+                .collect(Collectors.toList());
+    }
+
+    private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) {
+        TwinTagEntity newTag = new TwinTagEntity();
+        newTag.setTwin(twinEntity);
+        newTag.setTwinId(twinEntity.getId());
+        newTag.setTagDataListOptionId(optionId);
+        newTag.setTagDataListOption(option);
+
+        return newTag;
     }
 }
