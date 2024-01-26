@@ -84,12 +84,3 @@ nb-configuration.xml
 ## OS X
 ##############################
 .DS_Store
-
-#TurkovFiles
-logs/
-core/src/main/resources/application-devlocal.properties
-core/src/main/resources/application-stage.properties
-gradlew
-gradlew.bat
-gradle/
-core/controller/rest/priv/space/SpaceRoleUserManagmentController.java
