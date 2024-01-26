@@ -14,6 +14,9 @@ import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
+import java.util.HashSet;
+import java.util.Optional;
+
 
 @Component
 @RequiredArgsConstructor
@@ -47,6 +50,15 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                         .setAssignerUser(newAssignee)
                         .setAssignerUserId(newAssignee.getId());
             }
+
+            // map tags to update
+            dst
+                    .setTagsDelete(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().deleteTags())
+                            .orElse(new HashSet<>()))
+                    .setExistingTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().existingTags())
+                            .orElse(new HashSet<>()))
+                    .setNewTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().newTags())
+                            .orElse(new HashSet<>()));
         }
     }
 }

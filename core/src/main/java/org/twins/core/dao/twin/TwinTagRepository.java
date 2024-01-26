@@ -30,5 +30,5 @@ public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, 
     @Query(value = "select exists (select id from DataListOptionEntity o where o.businessAccountId = :businessAccountId and o.id = :optionId)")
     boolean isTagOptionValid(@Param("optionId") UUID optionId, @Param("businessAccountId") UUID businessAccountId);
 
-    void deleteByTwinId(UUID twinId);
+    void deleteByTwinIdAndTagDataListOptionIdIn(UUID twinId, Set<UUID> markerIdList);
 }

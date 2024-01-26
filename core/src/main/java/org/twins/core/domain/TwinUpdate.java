@@ -33,13 +33,4 @@ public class TwinUpdate extends TwinOperation {
         markersDelete.add(marker);
         return this;
     }
-
-    public TwinOperation addToTagRemoveList(UUID tag) {
-        if (tagsDelete == null) {
-            tagsDelete = new HashSet<>();
-        }
-
-        tagsDelete.add(tag);
-        return this;
-    }
 }

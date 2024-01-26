@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.IteratorUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
@@ -17,8 +18,10 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.*;
@@ -36,6 +39,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final DataListService dataListService;
     final EntitySmartService entitySmartService;
     final I18nService i18nService;
+    final AuthService authService;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -116,14 +120,23 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                         .orElse(new HashSet<>()));
     }
 
-    public void deleteTags(TwinEntity twinEntity, Set<UUID> tags) {
-        // TODO: implement
-        throw new UnsupportedOperationException();
+    public void removeTags(UUID twinId, Set<UUID> tags) {
+        log.info(String.format("removeTags(%s, %s)", twinId, tags.toString()));
+
+        Optional.ofNullable(tags)
+                .ifPresent(tagsToRemove -> twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinId, tagsToRemove));
+    }
+
+    public void updateTwinTags(TwinEntity twinEntity, Set<UUID> tagsToRemove, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+        removeTags(twinEntity.getId(), tagsToRemove);
+        createTags(twinEntity, newTags, existingTags);
     }
 
     private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
-        List<DataListOptionEntity> tagOptions = saveTagOptions(twinEntity, newTags);
-        List<UUID> filteredTags = filterTagsByBusinessAccount(twinEntity, existingTags);
+        UUID businessAccountId = authService.getApiUser().getBusinessAccount().getId();
+
+        List<DataListOptionEntity> tagOptions = saveTagOptions(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
+        List<UUID> filteredTags = filterTagsByBusinessAccount(existingTags, businessAccountId);
 
         List<TwinTagEntity> tagsToSave = new ArrayList<>();
 
@@ -148,7 +161,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
     }
 
-    private List<DataListOptionEntity> saveTagOptions(TwinEntity twinEntity, Set<String> newTagOptions) {
+    private List<DataListOptionEntity> saveTagOptions(UUID dataListId, Set<String> newTagOptions, UUID businessAccountId) {
         List<DataListOptionEntity> tagOptions = new ArrayList<>();
 
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
@@ -163,9 +176,9 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             }).map(tag -> {
                 DataListOptionEntity option = new DataListOptionEntity();
                 option.setOption(tag);
-                option.setBusinessAccountId(twinEntity.getOwnerBusinessAccountId());
+                option.setBusinessAccountId(businessAccountId);
                 option.setStatus(DataListOptionEntity.Status.active);
-                option.setDataListId(twinEntity.getTwinClass().getTagDataListId());
+                option.setDataListId(dataListId);
 
                 return option;
             })
@@ -179,9 +192,9 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return tagOptions;
     }
 
-    private List<UUID> filterTagsByBusinessAccount(TwinEntity twinEntity, Set<UUID> existingTags) {
+    private List<UUID> filterTagsByBusinessAccount(Set<UUID> existingTags, UUID businessAccountId) {
         return existingTags.stream()
-                .filter(tag -> twinTagRepository.isTagOptionValid(tag, twinEntity.getOwnerBusinessAccountId()))
+                .filter(tag -> twinTagRepository.isTagOptionValid(tag, businessAccountId))
                 .collect(Collectors.toList());
     }
 
