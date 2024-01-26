@@ -43,6 +43,7 @@ public class HistoryContextUserChange extends HistoryContext {
         return vars;
     }
 
+    //todo delete this because of GDPR
     @Data
     @Accessors(chain = true)
     public static final class UserDraft {

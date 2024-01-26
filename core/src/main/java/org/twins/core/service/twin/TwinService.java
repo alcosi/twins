@@ -34,15 +34,15 @@ import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.EntityChangesService;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryCollector;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.history.MultiTwinHistoryCollector;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -83,7 +83,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final AuthService authService;
     @Lazy
     final SystemEntityService systemEntityService;
-    final EntityChangesService entityChangesService;
+    final TwinChangesService twinChangesService;
     @Lazy
     final HistoryService historyService;
     final I18nService i18nService;
@@ -374,15 +374,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void saveTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         if (fields == null)
             return;
-        EntitiesChangesCollector entitiesChangesCollector = convertTwinFields(twinEntity, fields);
-        entityChangesService.saveEntities(entitiesChangesCollector);
+        TwinChangesCollector twinChangesCollector = convertTwinFields(twinEntity, fields);
+        twinChangesService.saveEntities(twinChangesCollector);
     }
 
-    public EntitiesChangesCollector convertTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+    public TwinChangesCollector convertTwinFields(TwinEntity twinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         TwinFieldEntity twinFieldEntity;
         FieldValue fieldValue;
-        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector(); //all fields will be saved at once, in one transaction
+        TwinChangesCollector entitiesChangesCollector = new TwinChangesCollector(); //all fields will be saved at once, in one transaction
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getList()) {
             fieldValue = fields.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
@@ -413,10 +413,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         HistoryCollector historyCollector = new HistoryCollector();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             historyCollector.add(HistoryType.headChanged, new HistoryContextTwinChange()
-                    .setFromTwinId(dbTwinEntity.getHeadTwinId())
-                    .setFromTwin(HistoryContextTwinChange.TwinDraft.convertEntity(dbTwinEntity.getHeadTwin()))
-                    .setToTwinId(updateTwinEntity.getTwinStatusId())
-                    .setToTwin(HistoryContextTwinChange.TwinDraft.convertEntity(updateTwinEntity.getHeadTwin())));
+                    .shotFromTwin(dbTwinEntity.getHeadTwin())
+                    .shotToTwin(updateTwinEntity.getHeadTwin()));
             dbTwinEntity
                     .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()))
                     .setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
@@ -455,10 +453,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
             historyCollector.add(HistoryType.statusChanged, new HistoryContextStatusChange()
-                    .setFromStatusId(dbTwinEntity.getTwinStatusId())
-                    .setFromStatus(HistoryContextStatusChange.StatusDraft.convertEntity(dbTwinEntity.getTwinStatus(), i18nService))
-                    .setToStatusId(updateTwinEntity.getTwinStatusId())
-                    .setToStatus(HistoryContextStatusChange.StatusDraft.convertEntity(updateTwinEntity.getTwinStatus(), i18nService)));
+                    .shotFromStatus(dbTwinEntity.getTwinStatus(), i18nService)
+                    .shotToStatus(updateTwinEntity.getTwinStatus(), i18nService));
             dbTwinEntity
                     .setTwinStatusId(updateTwinEntity.getTwinStatusId())
                     .setTwinStatus(updateTwinEntity.getTwinStatus() != null ? updateTwinEntity.getTwinStatus() : null);
@@ -513,21 +509,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Transactional
     public void changeStatus(Collection<TwinEntity> twinEntityList, TwinStatusEntity newStatus) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
-        MultiTwinHistoryCollector multiTwinHistoryCollector = new MultiTwinHistoryCollector();
+        HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
         for (TwinEntity twinEntity : twinEntityList) {
             if (changesHelper.isChanged(twinEntity.logShort() + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
-                multiTwinHistoryCollector.add(twinEntity, HistoryType.statusChanged, new HistoryContextStatusChange()
-                        .setFromStatusId(twinEntity.getTwinStatusId())
-                        .setFromStatus(HistoryContextStatusChange.StatusDraft.convertEntity(twinEntity.getTwinStatus(), i18nService))
-                        .setToStatusId(newStatus.getId())
-                        .setToStatus(HistoryContextStatusChange.StatusDraft.convertEntity(newStatus, i18nService)));
+                historyCollector.add(twinEntity, HistoryType.statusChanged, new HistoryContextStatusChange()
+                        .shotFromStatus(twinEntity.getTwinStatus(), i18nService)
+                        .shotToStatus(newStatus, i18nService));
                 twinEntity
                         .setTwinStatusId(newStatus.getId())
                         .setTwinStatus(newStatus);
             }
         }
         entitySmartService.saveAllAndLogChanges(twinEntityList, twinRepository, changesHelper);
-        historyService.saveHistory(multiTwinHistoryCollector);
+        historyService.saveHistory(historyCollector);
     }
 
 //    @Transactional
@@ -552,13 +546,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values) throws ServiceException {
         TwinFieldEntity twinFieldEntity;
-        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector();
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         for (FieldValue fieldValue : values) {
             twinFieldEntity = findTwinFieldIncludeMissing(twinEntity.getId(), fieldValue.getTwinClassField());
             var fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-            fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
+            fieldTyper.serializeValue(twinFieldEntity, fieldValue, twinChangesCollector);
         }
-        entityChangesService.saveEntities(entitiesChangesCollector);
+        twinChangesService.saveEntities(twinChangesCollector);
     }
 
     public List<TwinBusinessAccountAliasEntity> createTwinBusinessAccountAliases(TwinEntity twinEntity) {
@@ -617,9 +611,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public TwinFieldEntity updateField(TwinFieldEntity twinFieldEntity, FieldValue fieldValue) throws ServiceException {
         FieldTyper fieldTyper = featurerService.getFeaturer(twinFieldEntity.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
-        EntitiesChangesCollector entitiesChangesCollector = new EntitiesChangesCollector();
-        fieldTyper.serializeValue(twinFieldEntity, fieldValue, entitiesChangesCollector);
-        entityChangesService.saveEntities(entitiesChangesCollector);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        fieldTyper.serializeValue(twinFieldEntity, fieldValue, twinChangesCollector);
+        twinChangesService.saveEntities(twinChangesCollector);
         return twinFieldEntity;
     }
 

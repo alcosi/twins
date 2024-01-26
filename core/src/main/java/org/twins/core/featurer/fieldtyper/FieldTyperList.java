@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -10,19 +11,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
+import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.history.context.HistoryContextFieldDatalistChange;
+import org.twins.core.dao.history.context.HistoryContextFieldDatalistMultiChange;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
-import org.twins.core.domain.EntitiesChangesCollector;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.datalist.DataListService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,9 +31,11 @@ import java.util.stream.Collectors;
 public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect> {
     @Autowired
     DataListOptionRepository dataListOptionRepository;
+
     @Autowired
     @Lazy
     DataListService dataListService;
+
     @Autowired
     TwinFieldDataListRepository twinFieldDataListRepository;
 
@@ -40,7 +43,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUID("listUUID");
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.getOptions()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
@@ -52,25 +55,65 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             storedOptions = twinFieldDataListRepository.findByTwinFieldId(twinFieldEntity.getId()).stream().collect(Collectors.toMap(TwinFieldDataListEntity::getDataListOptionId, Function.identity()));
         else
             twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldDataListEntity is linked to TwinFieldEntity by FK
-        for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {
-            if (!dataListOptionEntity.getDataListId().equals(fieldListId))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
-            if (storedOptions == null) { // no values were saved before
-                entitiesChangesCollector.add(new TwinFieldDataListEntity()
+        if (dataListOptionEntityList.size() == 1 && (MapUtils.isEmpty(storedOptions) || storedOptions.size() == 1)) { // simples case with single field value
+            DataListOptionEntity dataListOptionEntity = dataListOptionEntityList.get(0);
+            if (MapUtils.isEmpty(storedOptions)) {
+                twinChangesCollector.getHistoryCollector()
+                        .add(twinFieldEntity.getTwin(), HistoryType.fieldChanged, new HistoryContextFieldDatalistChange()
+                                .shotToDataListOption(dataListOptionEntity, i18nService)
+                                .shotField(twinFieldEntity.getTwinClassField(), i18nService));
+                twinChangesCollector.add(new TwinFieldDataListEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
                         .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
                         .setDataListOption(dataListOptionEntity));
-            } else if (!storedOptions.containsKey(dataListOptionEntity.getId())) { // new option value
-                entitiesChangesCollector.add(new TwinFieldDataListEntity()
-                        .setTwinFieldId(twinFieldEntity.getId())
-                        .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
-                        .setDataListOption(dataListOptionEntity));
-            } else {
-                storedOptions.remove(dataListOptionEntity.getId()); // option is already saved
+            } else if (storedOptions.size() == 1) {
+                TwinFieldDataListEntity storeField = storedOptions.values().iterator().next();
+                if (!storeField.getDataListOptionId().equals(dataListOptionEntity.getId())) { //we can update existing record
+                    twinChangesCollector.getHistoryCollector()
+                            .add(twinFieldEntity.getTwin(), HistoryType.fieldChanged, new HistoryContextFieldDatalistChange()
+                                    .shotToDataListOption(dataListOptionEntity, i18nService)
+                                    .shotFromDataListOption(storeField.getDataListOption(), i18nService)
+                                    .shotField(twinFieldEntity.getTwinClassField(), i18nService));
+                    twinChangesCollector.add(storeField
+                            .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
+                            .setDataListOption(dataListOptionEntity));
+                }
             }
+        } else {
+            HistoryContextFieldDatalistMultiChange historyContextFieldDatalistMultiChange = new HistoryContextFieldDatalistMultiChange();
+            historyContextFieldDatalistMultiChange.shotField(twinFieldEntity.getTwinClassField(), i18nService);
+            for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {
+                if (!dataListOptionEntity.getDataListId().equals(fieldListId))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
+                if (storedOptions == null) { // no values were saved before
+                    historyContextFieldDatalistMultiChange
+                            .shotAddedDataListOption(dataListOptionEntity, i18nService);
+                    twinChangesCollector.add(new TwinFieldDataListEntity()
+                            .setTwinFieldId(twinFieldEntity.getId())
+                            .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
+                            .setDataListOption(dataListOptionEntity));
+                } else if (!storedOptions.containsKey(dataListOptionEntity.getId())) { // new option value
+                    historyContextFieldDatalistMultiChange
+                            .shotAddedDataListOption(dataListOptionEntity, i18nService);
+                    twinChangesCollector.add(new TwinFieldDataListEntity()
+                            .setTwinFieldId(twinFieldEntity.getId())
+                            .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
+                            .setDataListOption(dataListOptionEntity));
+                } else {
+                    storedOptions.remove(dataListOptionEntity.getId()); // option is already saved
+                }
+            }
+            if (storedOptions != null && CollectionUtils.isNotEmpty(storedOptions.entrySet())) {// old values must be deleted
+                List<UUID> deleteIds = new ArrayList<>();
+                for (TwinFieldDataListEntity deleteField  : storedOptions.values()) {
+                    deleteIds.add(deleteField.getId());
+                    historyContextFieldDatalistMultiChange.shotDeletedDataListOption(deleteField.getDataListOption(), i18nService);
+                }
+                twinChangesCollector.deleteAll(TwinFieldDataListEntity.class, deleteIds);
+            }
+            if (historyContextFieldDatalistMultiChange.getAddedDataListOptionDraftList() != null || historyContextFieldDatalistMultiChange.getDeletedDataListOptionDraftList() != null)
+                twinChangesCollector.getHistoryCollector().add(twinFieldEntity.getTwin(), HistoryType.fieldChanged, historyContextFieldDatalistMultiChange);
         }
-        if (storedOptions != null && CollectionUtils.isNotEmpty(storedOptions.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(TwinFieldDataListEntity.class, storedOptions.values().stream().map(TwinFieldDataListEntity::getId).toList());
     }
 
     public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {

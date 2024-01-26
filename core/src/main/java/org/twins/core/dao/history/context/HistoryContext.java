@@ -1,6 +1,7 @@
 package org.twins.core.dao.history.context;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
@@ -9,7 +10,6 @@ import java.util.HashMap;
 
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
-        include = JsonTypeInfo.As.PROPERTY,
         property = "type"
 )
 @JsonSubTypes({
@@ -20,6 +20,18 @@ import java.util.HashMap;
         @JsonSubTypes.Type(
                 name = HistoryContextAttachmentChange.DISCRIMINATOR,
                 value = HistoryContextAttachmentChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextFieldDatalistChange.DISCRIMINATOR,
+                value = HistoryContextFieldDatalistChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextFieldDatalistMultiChange.DISCRIMINATOR,
+                value = HistoryContextFieldDatalistMultiChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextFieldSimpleChange.DISCRIMINATOR,
+                value = HistoryContextFieldSimpleChange.class
         ),
         @JsonSubTypes.Type(
                 name = HistoryContextStatusChange.DISCRIMINATOR,
@@ -38,6 +50,7 @@ import java.util.HashMap;
                 value = HistoryContextUserChange.class
         ),
 })
+@JsonIgnoreProperties(ignoreUnknown = true)
 public abstract class HistoryContext implements Serializable {
     @JsonIgnore
     private HashMap<String, String> templateVars;
@@ -47,9 +60,9 @@ public abstract class HistoryContext implements Serializable {
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
     public abstract String getType();
 
-    public abstract boolean equals(Object o);
-
-    public abstract int hashCode();
+//    public abstract boolean equals(Object o);
+//
+//    public abstract int hashCode();
 
     public HashMap<String, String> getTemplateVars() {
         if (templateVars == null)

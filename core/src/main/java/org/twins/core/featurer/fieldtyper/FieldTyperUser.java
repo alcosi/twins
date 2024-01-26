@@ -12,17 +12,17 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinFieldUserEntity;
+import org.twins.core.dao.twin.TwinFieldUserRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
-import org.twins.core.domain.EntitiesChangesCollector;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
-import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.user.UserFilterService;
 
 import java.util.List;
@@ -59,7 +59,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueUser value, EntitiesChangesCollector entitiesChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.getUsers()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
@@ -74,12 +74,12 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         for (UserEntity userEntity : selectedUserEntityList) {
             //todo check if user valid for current filter result
             if (storedFieldUsers == null) { // no values were saved before
-                entitiesChangesCollector.add(new TwinFieldUserEntity()
+                twinChangesCollector.add(new TwinFieldUserEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
             } else if (!storedFieldUsers.containsKey(userEntity.getId())) { // new option value
-                entitiesChangesCollector.add(new TwinFieldUserEntity()
+                twinChangesCollector.add(new TwinFieldUserEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
@@ -88,7 +88,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             }
         }
         if (storedFieldUsers != null && CollectionUtils.isNotEmpty(storedFieldUsers.entrySet())) // old values must be deleted
-            entitiesChangesCollector.deleteAll(TwinFieldDataListEntity.class, storedFieldUsers.values().stream().map(TwinFieldUserEntity::getId).toList());
+            twinChangesCollector.deleteAll(TwinFieldDataListEntity.class, storedFieldUsers.values().stream().map(TwinFieldUserEntity::getId).toList());
     }
 
     public UUID checkUserAllowed(TwinFieldEntity twinFieldEntity, UserEntity userEntity) throws ServiceException {
