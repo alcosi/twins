@@ -146,10 +146,13 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.paginationPage, defaultValue = "0") Integer page,
+            @RequestParam(name = RestRequestParam.paginationSize, defaultValue = "10") Integer size,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
+        Pageable pageable = PageRequest.of(page, size);
         try {
-            List<TwinEntity> twinList = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request));
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), pageable);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedTwinMode)
@@ -168,7 +171,8 @@ public class TwinListController extends ApiController {
                     .setMode(showLinkMode)
                     .setMode(showTwinTransitionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinList, mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getResponse(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
