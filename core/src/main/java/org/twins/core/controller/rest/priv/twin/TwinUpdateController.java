@@ -86,9 +86,12 @@ public class TwinUpdateController extends ApiController {
             @RequestBody TwinUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
+            // update twin
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request, dbTwinEntity));
             twinService.updateTwin(twinUpdate);
+
+            // get twin by id and set result based on mapper context
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedTwinMode)
@@ -108,9 +111,11 @@ public class TwinUpdateController extends ApiController {
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
                     .setMode(showTwinTransitionMode);
+
             rs
                     .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
+
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

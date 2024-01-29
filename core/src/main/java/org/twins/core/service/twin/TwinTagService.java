@@ -70,22 +70,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return true;
     }
 
-    public List<TwinTagEntity> findByTwinId(UUID twinId) {
-        return twinTagRepository.findByTwinId(twinId);
-    }
-
-    public List<DataListOptionEntity> findDataListOptionByTwinId(UUID twinId) {
+    public List<DataListOptionEntity> findTagsByTwinId(UUID twinId) {
         return twinTagRepository.findDataListOptionByTwinId(twinId);
-    }
-
-    public Kit<DataListOptionEntity> loadTags(TwinEntity twinEntity) {
-        if (twinEntity.getTwinTagKit() != null)
-            return twinEntity.getTwinTagKit();
-        List<DataListOptionEntity> dataListOptionEntityList = findDataListOptionByTwinId(twinEntity.getId());
-        // it's a side effect, but reading a method one would say it's just load / get based on return type too.
-        if (dataListOptionEntityList != null)
-            twinEntity.setTwinTagKit(new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId));
-        return twinEntity.getTwinTagKit();
     }
 
     // usage log

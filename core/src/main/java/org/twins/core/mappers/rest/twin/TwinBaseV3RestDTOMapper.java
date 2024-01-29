@@ -3,7 +3,9 @@ package org.twins.core.mappers.rest.twin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.Kit;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.MapperContext;
@@ -20,6 +22,7 @@ import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.Collection;
+import java.util.List;
 
 
 @Component
@@ -52,14 +55,17 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
         }
         if (mapperContext.hasMode(TwinTagMode.SHOW)) {
-            twinTagService.loadTags(src);
-            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
+            List<DataListOptionEntity> tags = twinTagService.findTagsByTwinId(src.getId());
+            Kit<DataListOptionEntity> twinTagKit = new Kit<>(tags, DataListOptionEntity::getId);
+
+            convertOrPostpone(twinTagKit, dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
     }
 
     @Override
     public void beforeListConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeListConversion(srcCollection, mapperContext);
+
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             attachmentService.loadAttachments(srcCollection);
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
@@ -68,8 +74,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinflowTransitionService.loadValidTransitions(srcCollection);
         if (mapperContext.hasMode(TwinMarkerMode.SHOW))
             twinMarkerService.loadMarkers(srcCollection);
-        if (mapperContext.hasMode(TwinTagMode.SHOW))
+
+        if (mapperContext.hasMode(TwinTagMode.SHOW)) {
             twinTagService.loadTags(srcCollection);
+        }
     }
 
     @Override

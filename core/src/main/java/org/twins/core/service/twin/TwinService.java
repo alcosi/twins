@@ -398,20 +398,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     @Transactional
-    public TwinUpdateResult updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        TwinUpdateResult twinUpdateResult = updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
+    public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
+        updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
         cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
         cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
         twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd());
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete());
 
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getNewTags(), twinUpdate.getExistingTags());
-
-        return twinUpdateResult;
     }
 
     @Transactional
-    public TwinUpdateResult updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
+    public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         HistoryCollector historyCollector = new HistoryCollector();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
@@ -462,12 +460,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinStatusId(updateTwinEntity.getTwinStatusId())
                     .setTwinStatus(updateTwinEntity.getTwinStatus() != null ? updateTwinEntity.getTwinStatus() : null);
         }
-        TwinEntity updatedTwin = entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
+
+        entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
+
         if (changesHelper.hasChanges())
             historyService.saveHistory(dbTwinEntity, historyCollector);
         if (MapUtils.isNotEmpty(fields))
             updateTwinFields(dbTwinEntity, fields.values().stream().toList());
-        return new TwinUpdateResult().setUpdatedTwin(updatedTwin);
     }
 
     public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
