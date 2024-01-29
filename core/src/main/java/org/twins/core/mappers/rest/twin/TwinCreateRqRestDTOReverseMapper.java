@@ -6,6 +6,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
+import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
@@ -45,7 +46,11 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
         dst
                 .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(src.getAttachments()))
                 .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(src.getLinks()))
-                .setNewTags(Optional.ofNullable(src.getTags().newTags()).orElse(new HashSet<>()))
-                .setExistingTags(Optional.ofNullable(src.getTags().existingTags()).orElse(new HashSet<>()));
+                .setNewTags(Optional.ofNullable(src.getTags())
+                        .map(TwinTagAddDTOv1::newTags)
+                        .orElseGet(HashSet::new))
+                .setExistingTags(Optional.ofNullable(src.getTags())
+                        .map(TwinTagAddDTOv1::existingTags)
+                        .orElseGet(HashSet::new));
     }
 }

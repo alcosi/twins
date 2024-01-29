@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinUpdate;
+import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
+import org.twins.core.dto.rest.twin.TwinTagManageDTOv1;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -53,12 +55,15 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
 
             // map tags to update
             dst
-                    .setTagsDelete(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().deleteTags())
-                            .orElse(new HashSet<>()))
-                    .setExistingTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().existingTags())
-                            .orElse(new HashSet<>()))
-                    .setNewTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate().newTags())
-                            .orElse(new HashSet<>()));
+                    .setTagsDelete(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
+                            .map(TwinTagManageDTOv1::deleteTags)
+                            .orElseGet(HashSet::new))
+                    .setExistingTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
+                            .map(TwinTagAddDTOv1::existingTags)
+                            .orElseGet(HashSet::new))
+                    .setNewTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
+                            .map(TwinTagAddDTOv1::newTags)
+                            .orElseGet(HashSet::new));
         }
     }
 }
