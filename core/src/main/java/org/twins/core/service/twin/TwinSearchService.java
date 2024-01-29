@@ -166,7 +166,7 @@ public class TwinSearchService {
         List<TwinEntity> ret = q.getResultList();
         if (ret != null)
             return (TwinSearchResult) twinSearchResult
-                    .setResponse(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
+                    .setTwinList(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
                     .setPage(pageable.getPageNumber())
                     .setCount(pageable.getPageSize())
                     .setTotal(count(basicSearch));

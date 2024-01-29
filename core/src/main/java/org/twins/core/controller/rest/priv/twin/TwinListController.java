@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
@@ -38,8 +37,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
-
-import java.util.List;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -109,7 +106,7 @@ public class TwinListController extends ApiController {
                     .setMode(showLinkMode)
                     .setMode(showTwinTransitionMode);
             rs
-                    .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getResponse(), mapperContext))
+                    .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -171,7 +168,7 @@ public class TwinListController extends ApiController {
                     .setMode(showLinkMode)
                     .setMode(showTwinTransitionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getResponse(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

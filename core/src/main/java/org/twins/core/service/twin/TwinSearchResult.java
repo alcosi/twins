@@ -10,5 +10,5 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 public class TwinSearchResult extends PageableResult {
-    private List<TwinEntity> response;
+    private List<TwinEntity> twinList;
 }
