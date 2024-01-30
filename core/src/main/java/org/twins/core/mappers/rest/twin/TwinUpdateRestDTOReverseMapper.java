@@ -54,16 +54,12 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
             }
 
             // map tags to update
-            dst
-                    .setTagsDelete(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
-                            .map(TwinTagManageDTOv1::deleteTags)
-                            .orElseGet(HashSet::new))
-                    .setExistingTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
-                            .map(TwinTagAddDTOv1::existingTags)
-                            .orElseGet(HashSet::new))
-                    .setNewTags(Optional.ofNullable(twinUpdateDTO.getTagsUpdate())
-                            .map(TwinTagAddDTOv1::newTags)
-                            .orElseGet(HashSet::new));
+            if (twinUpdateDTO.getTagsUpdate() != null) {
+                dst
+                        .setTagsDelete(twinUpdateDTO.getTagsUpdate().deleteTags())
+                        .setExistingTags(twinUpdateDTO.getTagsUpdate().existingTags())
+                        .setNewTags(twinUpdateDTO.getTagsUpdate().newTags());
+            }
         }
     }
 }

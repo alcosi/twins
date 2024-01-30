@@ -55,10 +55,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
         }
         if (mapperContext.hasMode(TwinTagMode.SHOW)) {
-            List<DataListOptionEntity> tags = twinTagService.findTagsByTwinId(src.getId());
-            Kit<DataListOptionEntity> twinTagKit = new Kit<>(tags, DataListOptionEntity::getId);
-
-            convertOrPostpone(twinTagKit, dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
+            twinTagService.loadTags(src);
+            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext, TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
     }
 

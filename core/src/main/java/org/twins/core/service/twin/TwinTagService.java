@@ -66,7 +66,16 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return true;
     }
 
-    public List<DataListOptionEntity> findTagsByTwinId(UUID twinId) {
+    public Kit<DataListOptionEntity> loadTags(TwinEntity twinEntity) {
+        if (twinEntity.getTwinTagKit() != null)
+            return twinEntity.getTwinTagKit();
+        List<DataListOptionEntity> dataListOptionEntityList = findDataListOptionByTwinId(twinEntity.getId());
+        if (dataListOptionEntityList != null)
+            twinEntity.setTwinTagKit(new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId));
+        return twinEntity.getTwinTagKit();
+    }
+
+    public List<DataListOptionEntity> findDataListOptionByTwinId(UUID twinId) {
         return twinTagRepository.findDataListOptionByTwinId(twinId);
     }
 
