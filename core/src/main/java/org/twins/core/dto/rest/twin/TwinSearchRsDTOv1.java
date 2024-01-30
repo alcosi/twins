@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.PaginationBean;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @Schema(name =  "TwinSearchRsV1")
 public class TwinSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
-    public PaginationBean pagination;
+    public PaginationDTOv1 pagination;
 
     @Schema(description = "results - transfers list")
     public List<TwinDTOv1> twinList;
