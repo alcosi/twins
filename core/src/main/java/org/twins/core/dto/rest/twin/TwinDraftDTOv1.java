@@ -41,4 +41,7 @@ public class TwinDraftDTOv1 extends Request {
 
     @Schema(description = "Links list")
     public List<TwinLinkAddDTOv1> links;
+
+    @Schema(description = "Tags list")
+    public TwinTagAddDTOv1 tags;
 }

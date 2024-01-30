@@ -18,7 +18,4 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinCreateRqV2")
 public class TwinCreateRqDTOv2 extends TwinDraftDTOv1 {
-
-    @Schema(description = "Tags list")
-    public TwinTagAddDTOv1 tags;
 }
