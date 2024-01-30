@@ -104,22 +104,27 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     }
 
     public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
-        return saveTags(twinEntity,
+        Kit<DataListOptionEntity> savedTags = saveTags(twinEntity,
                 Optional.ofNullable(newTags)
                         .orElse(new HashSet<>()),
                 Optional.ofNullable(existingTags)
                         .orElse(new HashSet<>()));
+
+        twinEntity.setTwinTagKit(null);
+        return savedTags;
     }
 
-    public void removeTags(UUID twinId, Set<UUID> tags) {
-        log.info(String.format("removeTags(%s, %s)", twinId, tags.toString()));
+    public void removeTags(TwinEntity twinEntity, Set<UUID> tags) {
+        log.info(String.format("removeTags(%s, %s)", twinEntity.getId(), tags.toString()));
 
         Optional.ofNullable(tags)
-                .ifPresent(tagsToRemove -> twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinId, tagsToRemove));
+                .ifPresent(tagsToRemove -> twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagsToRemove));
+
+        twinEntity.setTwinTagKit(null);
     }
 
     public void updateTwinTags(TwinEntity twinEntity, Set<UUID> tagsToRemove, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
-        removeTags(twinEntity.getId(), tagsToRemove);
+        removeTags(twinEntity, tagsToRemove);
         createTags(twinEntity, newTags, existingTags);
     }
 
