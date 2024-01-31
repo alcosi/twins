@@ -48,7 +48,7 @@ public class FillerFieldsFromTemplateTwinAll extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No template twin fields present. Please check fields for " + templateTwin.logShort());
         List<FieldValue> cloneFieldList = new ArrayList<>();
         List<String> logMsgs = new ArrayList<>();
-        for (TwinFieldEntity  srcField : twinFieldEntityList) {
+        for (TwinFieldEntity srcField : twinFieldEntityList) {
             FieldValue fieldValue = twinService.getTwinFieldValue(srcField);
             FieldValue clone = fieldValue.clone();
             cloneFieldList.add(clone);

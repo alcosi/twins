@@ -31,6 +31,10 @@ public abstract class TwinOperation {
         return this;
     }
 
+    public FieldValue getField(UUID twinClassFieldId) {
+        return fields != null ? fields.get(twinClassFieldId) : null;
+    }
+
     public TwinOperation setFields(List<FieldValue> fieldValueList) {
         if (fieldValueList != null) {
             fields = new HashMap<>();

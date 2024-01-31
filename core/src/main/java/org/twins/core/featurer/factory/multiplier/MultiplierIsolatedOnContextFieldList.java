@@ -1,0 +1,64 @@
+package org.twins.core.featurer.factory.multiplier;
+
+import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamUUIDSet;
+import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinCreate;
+import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
+
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
+
+@Component
+@Featurer(id = 2206,
+        name = "MultiplierIsolatedOnContextFieldList",
+        description = "New output twin for each input. Output class is selected by checking if fields in context (in loop). Order is important." +
+                "If field is present then output twin class will be selected from this field class, otherwise loop will continue")
+public class MultiplierIsolatedOnContextFieldList extends Multiplier {
+    @FeaturerParam(name = "contextFieldList", description = "")
+    public static final FeaturerParamUUIDSet contextFieldIdList = new FeaturerParamUUIDSet("contextFieldIdList");
+    @Override
+    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+        UUID outputTwinClassId = null;
+        //detecting twinClass in loop. order is important
+        for (UUID fieldId : contextFieldIdList.extract(properties)) {
+            FieldValue fieldValue = MapUtils.getObject(factoryContext.getFields(), fieldId);
+            if (fieldValue != null)
+                outputTwinClassId = fieldValue.getTwinClassField().getTwinClassId();
+
+        }
+        if (outputTwinClassId == null)
+            throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "can not detect twin class. No one of expected fields[" + properties.get(contextFieldIdList.getKey()) + "] presents in context");
+        TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId);
+        ApiUser apiUser = authService.getApiUser();
+        List<FactoryItem> ret = new ArrayList<>();
+        for (TwinEntity inputTwin : inputTwinList) {
+            TwinEntity newTwin = new TwinEntity()
+                    .setName("")
+                    .setTwinClass(outputTwinClassEntity)
+                    .setTwinClassId(outputTwinClassEntity.getId())
+                    .setCreatedAt(Timestamp.from(Instant.now()))
+                    .setCreatedByUserId(apiUser.getUser().getId())
+                    .setCreatedByUser(apiUser.getUser());
+            TwinCreate twinCreate = new TwinCreate();
+            twinCreate.setTwinEntity(newTwin);
+            ret.add(new FactoryItem()
+                    .setOutputTwin(twinCreate)
+                    .setContextTwinList(List.of(inputTwin)));
+        }
+        return ret;
+    }
+}

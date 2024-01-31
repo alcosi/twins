@@ -46,6 +46,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
+    FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect");
 
     private final int code;
