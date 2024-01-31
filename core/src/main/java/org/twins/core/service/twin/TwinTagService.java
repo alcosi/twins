@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
@@ -115,11 +116,10 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     }
 
     public void removeTags(TwinEntity twinEntity, Set<UUID> tags) {
-        log.info(String.format("removeTags(%s, %s)", twinEntity.getId(), tags.toString()));
-
-        Optional.ofNullable(tags)
-                .ifPresent(tagsToRemove -> twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagsToRemove));
-
+        if (CollectionUtils.isEmpty(tags))
+            return;
+        log.info(String.format("%s tags[%s] perhaps will be deleted", twinEntity.getId(), StringUtils.join(tags, ",")));
+        twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tags);
         twinEntity.setTwinTagKit(null);
     }
 
