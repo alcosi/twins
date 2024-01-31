@@ -103,10 +103,15 @@ public class TwinSearchService {
         if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
             List<Predicate> orPredicate = new ArrayList<>();
             for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinLinksMap().entrySet()) {
-                orPredicate.add(criteriaBuilder.and(
-                        criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
-                        linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
-                ));
+                if (CollectionUtils.isNotEmpty(linkDstTwinSet.getValue())) {
+                    orPredicate.add(
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
+                                    linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
+                            ));
+                } else {
+                    orPredicate.add(criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()));
+                }
             }
             predicate.add(criteriaBuilder.or(orPredicate.toArray(Predicate[]::new)));
         }
