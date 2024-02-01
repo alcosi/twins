@@ -14,7 +14,7 @@ import java.util.Properties;
         name = "ConditionerTwinUpdateOperation",
         description = "")
 @Slf4j
-public class ConditionerTwinUpdateOperation extends Conditioner {
+public class ConditionerFactoryItemTwinUpdateOperation extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         return factoryItem.getOutputTwin() instanceof TwinUpdate;

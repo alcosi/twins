@@ -11,10 +11,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = 2406,
-        name = "ConditionerIsInFactoryInputList",
+        name = "ConditionerFactoryItemTwinIsInFactoryInputList",
         description = "")
 @Slf4j
-public class ConditionerIsInFactoryInputList extends Conditioner {
+public class ConditionerFactoryItemTwinIsInFactoryInputList extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         for (TwinEntity factoryInputTwinEntity : factoryItem.getFactoryContext().getInputTwinList()) {

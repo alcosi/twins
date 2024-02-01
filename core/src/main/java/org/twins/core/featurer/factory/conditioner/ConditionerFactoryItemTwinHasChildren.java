@@ -4,24 +4,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = 2407,
-        name = "ConditionerHasChildren",
+        name = "ConditionerFactoryItemTwinHasChildren",
         description = "")
 @Slf4j
-public class ConditionerHasChildren extends Conditioner {
+public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
     @FeaturerParam(name = "statusIds", description = "")
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
+
+    @FeaturerParam(name = "excludeFactoryInput", description = "")
+    public static final FeaturerParamBoolean excludeFactoryInput = new FeaturerParamBoolean("excludeFactoryInput");
 
     @Lazy
     @Autowired
@@ -29,9 +35,12 @@ public class ConditionerHasChildren extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        long count = twinSearchService.count(new BasicSearch()
+        BasicSearch search = new BasicSearch()
                 .addHeaderTwinId(factoryItem.getOutputTwin().getTwinEntity().getId())
-                .addStatusId(statusIds.extract(properties)));
+                .addStatusId(statusIds.extract(properties));
+        if (excludeFactoryInput.extract(properties))
+            search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
+        long count = twinSearchService.count(search);
         return count > 0;
     }
 }

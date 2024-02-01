@@ -16,12 +16,13 @@ import org.twins.core.service.twin.TwinSearchService;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
+@Deprecated
 @Component
 @Featurer(id = 2408,
         name = "ConditionerHasChildrenButNotFromFactoryInput",
         description = "")
 @Slf4j
-public class ConditionerHasChildrenButNotFromFactoryInput extends Conditioner {
+public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput extends Conditioner {
     @FeaturerParam(name = "statusIds", description = "")
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
 
