@@ -9,6 +9,8 @@ import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -136,7 +138,12 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
 
         List<DataListOptionEntity> tagOptions = processNewTags(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
-        List<DataListOptionEntity> filteredExistingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTags);
+
+        List<DataListOptionEntity> filteredExistingTags;
+        if (businessAccountId != null)
+            filteredExistingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTags);
+        else
+            filteredExistingTags = twinTagRepository.findTagsOutOfBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), existingTags);
 
         List<TwinTagEntity> tagsToSave = new ArrayList<>();
 
@@ -165,10 +172,14 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         List<DataListOptionEntity> tagOptions = new ArrayList<>();
 
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
-                DataListOptionEntity foundOption = twinTagRepository.findOptionByTagName(option.trim());
+                List<DataListOptionEntity> foundOption;
+                if (businessAccountId != null)
+                    foundOption = twinTagRepository.findOptionForBusinessAccount(option.trim(), businessAccountId, PageRequest.of(0, 1));
+                else
+                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(option.trim(), PageRequest.of(0, 1));
 
-                if (foundOption != null) {
-                    tagOptions.add(foundOption);
+                if (CollectionUtils.isNotEmpty(foundOption)) {
+                    tagOptions.add(foundOption.get(0));
                     return false;
                 }
 
