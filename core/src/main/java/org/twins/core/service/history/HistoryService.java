@@ -12,12 +12,18 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
-import org.twins.core.dao.history.context.HistoryContext;
+import org.twins.core.dao.history.context.*;
+import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -80,6 +86,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context);
+        if (context instanceof HistoryContextFieldChange fieldChange && fieldChange.getField() != null)
+            historyEntity.setTwinClassFieldId(fieldChange.getField().getId());
+        else if (context instanceof HistoryContextLink linkChange) {
+
+        }
         fillSnapshotMessage(historyEntity);
         return historyEntity;
     }
@@ -161,5 +172,154 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return historyEntity.getSnapshotMessage(); //todo
     }
 
+    public HistoryItem<HistoryContextUserChange> assigneeChanged(UserEntity fromUser, UserEntity toUser) {
+        return new HistoryItem<>(HistoryType.assigneeChanged, new HistoryContextUserChange()
+                .shotFromUser(fromUser)
+                .shotToUser(toUser));
+    }
 
+    public HistoryItem<HistoryContextAttachment> attachmentCreate(TwinAttachmentEntity attachmentEntity) {
+        return new HistoryItem<>(HistoryType.attachmentCreate, new HistoryContextAttachment()
+                .shotAttachment(attachmentEntity));
+    }
+
+    public HistoryItem<HistoryContextAttachmentChange> attachmentUpdate(TwinAttachmentEntity attachmentEntity) {
+        HistoryContextAttachmentChange context = new HistoryContextAttachmentChange();
+        context.shotAttachment(attachmentEntity);
+        return new HistoryItem<>(HistoryType.attachmentUpdate, context);
+    }
+
+    public HistoryItem<HistoryContextAttachment> attachmentDelete(TwinAttachmentEntity attachmentEntity) {
+        return new HistoryItem<>(HistoryType.attachmentDelete, new HistoryContextAttachment()
+                .shotAttachment(attachmentEntity));
+    }
+
+    public HistoryItem<HistoryContextTwinChange> headChanged(TwinEntity fromTwin, TwinEntity toTwin) {
+        return new HistoryItem<>(HistoryType.headChanged, new HistoryContextTwinChange()
+                .shotFromTwin(fromTwin)
+                .shotToTwin(toTwin));
+    }
+
+    public HistoryItem<HistoryContextStringChange> nameChanged(String fromValue, String toValue) {
+        return new HistoryItem<>(HistoryType.nameChanged, new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue));
+    }
+
+    public HistoryItem<HistoryContextStringChange> descriptionChanged(String fromValue, String toValue) {
+        return new HistoryItem<>(HistoryType.descriptionChanged, new HistoryContextStringChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue));
+    }
+
+    public HistoryItem<HistoryContextStatusChange> statusChanged(TwinStatusEntity fromStatus, TwinStatusEntity toStatus) {
+        return new HistoryItem<>(HistoryType.statusChanged, new HistoryContextStatusChange()
+                .shotFromStatus(fromStatus, i18nService)
+                .shotToStatus(toStatus, i18nService));
+    }
+
+    public HistoryItem<HistoryContextFieldSimpleChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
+        HistoryContextFieldSimpleChange context = new HistoryContextFieldSimpleChange()
+                .setFromValue(fromValue)
+                .setToValue(toValue);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextFieldUserChange> fieldChangeUser(TwinClassFieldEntity twinClassFieldEntity, UUID fromUserId, UUID toUserId) {
+        HistoryContextFieldUserChange context = new HistoryContextFieldUserChange()
+                .setFromUserId(fromUserId)
+                .setToUserId(toUserId);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextFieldUserMultiChange> fieldChangeUserMulti(TwinClassFieldEntity twinClassFieldEntity) {
+        HistoryContextFieldUserMultiChange context = new HistoryContextFieldUserMultiChange();
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextFieldDatalistChange> fieldChangeDataList(TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity fromDataListOption, DataListOptionEntity toDataListOption) {
+        HistoryContextFieldDatalistChange context = new HistoryContextFieldDatalistChange()
+                .shotFromDataListOption(fromDataListOption, i18nService)
+                .shotToDataListOption(toDataListOption, i18nService);
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextFieldDatalistMultiChange> fieldChangeDataListMulti(TwinClassFieldEntity twinClassFieldEntity) {
+        HistoryContextFieldDatalistMultiChange context = new HistoryContextFieldDatalistMultiChange();
+        context.shotField(twinClassFieldEntity, i18nService);
+        return new HistoryItem<>(HistoryType.fieldChanged, context);
+    }
+
+    public HistoryItem<HistoryContextLink> linkCreated(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {
+        HistoryContextLink context = new HistoryContextLink()
+                .setTwinLinkId(twinLinkId)
+                .shotLink(linkEntity, forward, i18nService)
+                .shotDstTwin(dstTwinEntity);
+        return new HistoryItem<>(HistoryType.linkCreate, context);
+    }
+
+    public HistoryItem<HistoryContextLink> linkDeleted(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {
+        HistoryContextLink context = new HistoryContextLink()
+                .setTwinLinkId(twinLinkId)
+                .shotLink(linkEntity, forward, i18nService)
+                .shotDstTwin(dstTwinEntity);
+        return new HistoryItem<>(HistoryType.linkDelete, context);
+    }
+
+    public HistoryItem<HistoryContextLinkChange> linkChange(UUID twinLinkId, LinkEntity linkEntity, TwinEntity fromTwinEntity, TwinEntity toTwinEntity) {
+        HistoryContextLinkChange context = new HistoryContextLinkChange()
+                .setTwinLinkId(twinLinkId)
+                .shotLink(linkEntity, true, i18nService);
+        context
+                .shotFromTwin(fromTwinEntity)
+                .shotToTwin(toTwinEntity);
+        return new HistoryItem<>(HistoryType.linkUpdate, context);
+    }
+
+    /**
+     * 2 change records will be stored. One for each twin (src and dst)
+     */
+    public HistoryCollectorMultiTwin linkCreated(TwinLinkEntity twinLinkEntity) {
+        HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
+        ret.forTwin(twinLinkEntity.getSrcTwin())
+                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
+        ret.forTwin(twinLinkEntity.getDstTwin())
+                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        return ret;
+    }
+
+    /**
+     * 2 change records will be stored.
+     * - one for src twin
+     * - one for dst twin
+     */
+    public HistoryCollectorMultiTwin linkDeleted(TwinLinkEntity twinLinkEntity) {
+        HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
+        ret.forTwin(twinLinkEntity.getSrcTwin())
+                .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
+        ret.forTwin(twinLinkEntity.getDstTwin())
+                .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        return ret;
+    }
+
+    /**
+     * 3 change records will be stored.
+     * - one for src twin
+     * - one for old dst twin
+     * - one for new dst twin
+     */
+    public HistoryCollectorMultiTwin linkUpdated(TwinLinkEntity twinLinkEntity, TwinEntity fromDstTwinEntity) {
+        HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
+        ret.forTwin(twinLinkEntity.getSrcTwin())
+                .add(linkChange(twinLinkEntity.getId(), twinLinkEntity.getLink(), fromDstTwinEntity, twinLinkEntity.getDstTwin()));
+        ret.forTwin(twinLinkEntity.getDstTwin())
+                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        ret.forTwin(fromDstTwinEntity)
+                .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        return ret;
+    }
 }

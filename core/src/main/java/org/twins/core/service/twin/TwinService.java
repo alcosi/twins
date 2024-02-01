@@ -18,12 +18,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.context.HistoryContextStatusChange;
-import org.twins.core.dao.history.context.HistoryContextStringChange;
-import org.twins.core.dao.history.context.HistoryContextTwinChange;
-import org.twins.core.dao.history.context.HistoryContextUserChange;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -412,49 +407,34 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ChangesHelper changesHelper = new ChangesHelper();
         HistoryCollector historyCollector = new HistoryCollector();
         if (changesHelper.isChanged("headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
-            historyCollector.add(HistoryType.headChanged, new HistoryContextTwinChange()
-                    .shotFromTwin(dbTwinEntity.getHeadTwin())
-                    .shotToTwin(updateTwinEntity.getHeadTwin()));
+            historyCollector.add(historyService.headChanged(dbTwinEntity.getHeadTwin(), updateTwinEntity.getHeadTwin()));
             dbTwinEntity
                     .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()))
                     .setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
         }
         if (changesHelper.isChanged("name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
-            historyCollector.add(HistoryType.nameChanged, new HistoryContextStringChange()
-                    .setFromValue(dbTwinEntity.getName())
-                    .setToValue(updateTwinEntity.getName()));
+            historyCollector.add(historyService.nameChanged(dbTwinEntity.getName(), updateTwinEntity.getName()));
             dbTwinEntity.setName(updateTwinEntity.getName());
         }
         if (changesHelper.isChanged("description", dbTwinEntity.getDescription(), updateTwinEntity.getDescription())) {
-            historyCollector.add(HistoryType.descriptionChanged, new HistoryContextStringChange()
-                    .setFromValue(dbTwinEntity.getDescription())
-                    .setToValue(updateTwinEntity.getDescription()));
+            historyCollector.add(historyService.descriptionChanged(dbTwinEntity.getDescription(),updateTwinEntity.getDescription()));
             dbTwinEntity.setDescription(updateTwinEntity.getDescription());
         }
         if (changesHelper.isChanged("assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
-            HistoryContextUserChange historyContextUserChange = new HistoryContextUserChange()
-                    .setFromUserId(dbTwinEntity.getAssignerUserId())
-                    .setFromUser(HistoryContextUserChange.UserDraft.convertEntity(dbTwinEntity.getAssignerUser()));
             if (updateTwinEntity.getAssignerUserId().equals(TwinUpdate.NULLIFY_MARKER)) {
-                historyContextUserChange
-                        .setToUserId(null);
+                historyCollector.add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), null));
                 dbTwinEntity
                         .setAssignerUserId(null)
                         .setAssignerUser(null);
             } else {
-                historyContextUserChange
-                        .setToUserId(updateTwinEntity.getAssignerUserId())
-                        .setToUser(HistoryContextUserChange.UserDraft.convertEntity(updateTwinEntity.getAssignerUser()));
+                historyCollector.add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), updateTwinEntity.getAssignerUser()));
                 dbTwinEntity
                         .setAssignerUserId(updateTwinEntity.getAssignerUserId())
                         .setAssignerUser(updateTwinEntity.getAssignerUser() != null ? updateTwinEntity.getAssignerUser() : null);
             }
-            historyCollector.add(HistoryType.assigneeChanged, historyContextUserChange);
         }
         if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
-            historyCollector.add(HistoryType.statusChanged, new HistoryContextStatusChange()
-                    .shotFromStatus(dbTwinEntity.getTwinStatus(), i18nService)
-                    .shotToStatus(updateTwinEntity.getTwinStatus(), i18nService));
+            historyCollector.add(historyService.statusChanged(dbTwinEntity.getTwinStatus(), updateTwinEntity.getTwinStatus()));
             dbTwinEntity
                     .setTwinStatusId(updateTwinEntity.getTwinStatusId())
                     .setTwinStatus(updateTwinEntity.getTwinStatus() != null ? updateTwinEntity.getTwinStatus() : null);
@@ -513,9 +493,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
         for (TwinEntity twinEntity : twinEntityList) {
             if (changesHelper.isChanged(twinEntity.logShort() + ".status", twinEntity.getTwinStatusId(), newStatus.getId())) {
-                historyCollector.add(twinEntity, HistoryType.statusChanged, new HistoryContextStatusChange()
-                        .shotFromStatus(twinEntity.getTwinStatus(), i18nService)
-                        .shotToStatus(newStatus, i18nService));
+                historyCollector.forTwin(twinEntity).add(historyService.statusChanged(twinEntity.getTwinStatus(), newStatus));
                 twinEntity
                         .setTwinStatusId(newStatus.getId())
                         .setTwinStatus(newStatus);

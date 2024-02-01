@@ -6,9 +6,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
 
-public class CollectionUtils {
+public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
     public static List<String> singletonListOrNull(String string) {
         if (StringUtils.isNotBlank(string))
             return Collections.singletonList(string);

@@ -39,6 +39,9 @@ public class HistoryEntity extends EasyLoggableImpl {
     @Convert(converter = HistoryTypeConverter.class)
     private HistoryType historyType;
 
+    @Column(name = "twin_class_field_id")
+    private UUID twinClassFieldId;
+
     @Type(JsonType.class)
     @Column(name = "context", columnDefinition = "jsonb")
     private HistoryContext context;

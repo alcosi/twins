@@ -15,8 +15,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldChange {
     public static final String DISCRIMINATOR = "history.fieldChange.datalistMulti";
-    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> addedDataListOptionDraftList;
-    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> deletedDataListOptionDraftList;
+    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> addedDataListOptionSnapshotList;
+    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> deletedDataListOptionSnapshotList;
     @Override
     public String getType() {
         return DISCRIMINATOR;
@@ -25,20 +25,23 @@ public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldC
     @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = super.extractTemplateVars();
-        //todo add other var in loop
+        //todo loop lists and add more template vars
         return vars;
     }
 
     public HistoryContextFieldDatalistMultiChange shotAddedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
-        addedDataListOptionDraftList = CollectionUtils.safeAdd(addedDataListOptionDraftList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
+        addedDataListOptionSnapshotList = CollectionUtils.safeAdd(addedDataListOptionSnapshotList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;
     }
 
     public HistoryContextFieldDatalistMultiChange shotDeletedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
-        deletedDataListOptionDraftList = CollectionUtils.safeAdd(deletedDataListOptionDraftList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
+        deletedDataListOptionSnapshotList = CollectionUtils.safeAdd(deletedDataListOptionSnapshotList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;
     }
 
+    public boolean notEmpty() {
+        return CollectionUtils.isNotEmpty(addedDataListOptionSnapshotList) || CollectionUtils.isNotEmpty(deletedDataListOptionSnapshotList);
+    }
 }

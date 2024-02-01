@@ -12,7 +12,7 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.history.context.HistoryContextFieldUserMultiChange;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
@@ -23,12 +23,10 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
+import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,24 +69,50 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             storedFieldUsers = twinFieldUserRepository.findByTwinFieldId(twinFieldEntity.getId()).stream().collect(Collectors.toMap(TwinFieldUserEntity::getUserId, Function.identity()));
         else
             twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldUserEntity is linked to TwinFieldEntity by FK
-        for (UserEntity userEntity : selectedUserEntityList) {
-            //todo check if user valid for current filter result
-            if (storedFieldUsers == null) { // no values were saved before
-                twinChangesCollector.add(new TwinFieldUserEntity()
-                        .setTwinFieldId(twinFieldEntity.getId())
+        if (FieldValueChangeHelper.isSingleValueAdd(selectedUserEntityList, storedFieldUsers)) {
+            UserEntity userEntity = selectedUserEntityList.get(0);
+            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), null, userEntity.getId()));
+            twinChangesCollector.add(new TwinFieldUserEntity()
+                    .setTwinFieldId(twinFieldEntity.getId())
+                    .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
+                    .setUser(userEntity));
+            return;
+        }
+        if (FieldValueChangeHelper.isSingleValueUpdate(selectedUserEntityList, storedFieldUsers)) {
+            UserEntity userEntity = selectedUserEntityList.get(0);
+            TwinFieldUserEntity storeField = storedFieldUsers.values().iterator().next();
+            if (!storeField.getUserId().equals(userEntity.getId())) {
+                twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), storeField.getUserId(), userEntity.getId()));
+                twinChangesCollector.add(storeField //we can update existing record
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
-            } else if (!storedFieldUsers.containsKey(userEntity.getId())) { // new option value
+            }
+            return;
+        }
+
+        HistoryItem<HistoryContextFieldUserMultiChange> historyItem = historyService.fieldChangeUserMulti(twinFieldEntity.getTwinClassField());
+        for (UserEntity userEntity : selectedUserEntityList) {
+            //todo check if user valid for current filter result
+            if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before
+                historyItem.getContext().shotAddedUserId(userEntity.getId());
                 twinChangesCollector.add(new TwinFieldUserEntity()
                         .setTwinFieldId(twinFieldEntity.getId())
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
             } else {
-                storedFieldUsers.remove(userEntity.getId()); // option is already saved
+                storedFieldUsers.remove(userEntity.getId()); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
             }
         }
-        if (storedFieldUsers != null && CollectionUtils.isNotEmpty(storedFieldUsers.entrySet())) // old values must be deleted
-            twinChangesCollector.deleteAll(TwinFieldDataListEntity.class, storedFieldUsers.values().stream().map(TwinFieldUserEntity::getId).toList());
+        if (FieldValueChangeHelper.hasOutOfDateValues(storedFieldUsers)) {// old values must be deleted
+            List<UUID> deletedUserIdList = new ArrayList<>();
+            for (TwinFieldUserEntity deleteField : storedFieldUsers.values()) {
+                deletedUserIdList.add(deleteField.getId()); // we have to delete fields by id, not by userId
+                historyItem.getContext().shotDeletedUserId(deleteField.getUserId());
+            }
+            twinChangesCollector.deleteAll(TwinFieldUserEntity.class, deletedUserIdList);
+        }
+        if (historyItem.getContext().notEmpty())
+            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyItem);
     }
 
     public UUID checkUserAllowed(TwinFieldEntity twinFieldEntity, UserEntity userEntity) throws ServiceException {
