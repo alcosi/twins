@@ -9,6 +9,8 @@ import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -170,14 +172,14 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         List<DataListOptionEntity> tagOptions = new ArrayList<>();
 
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
-                DataListOptionEntity foundOption;
+                List<DataListOptionEntity> foundOption;
                 if (businessAccountId != null)
-                    foundOption = twinTagRepository.findOptionForBusinessAccount(option.trim(), businessAccountId);
+                    foundOption = twinTagRepository.findOptionForBusinessAccount(option.trim(), businessAccountId, PageRequest.of(0, 1));
                 else
-                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(option.trim());
+                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(option.trim(), PageRequest.of(0, 1));
 
-                if (foundOption != null) {
-                    tagOptions.add(foundOption);
+                if (CollectionUtils.isNotEmpty(foundOption)) {
+                    tagOptions.add(foundOption.get(0));
                     return false;
                 }
 
