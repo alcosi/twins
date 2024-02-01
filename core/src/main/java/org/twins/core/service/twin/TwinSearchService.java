@@ -9,7 +9,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.JPACriteriaQueryStub;
 import org.twins.core.dao.twin.TwinEntity;
@@ -163,17 +162,17 @@ public class TwinSearchService {
         return ret;
     }
 
-    public TwinSearchResult findTwins(BasicSearch basicSearch, Pageable pageable) throws ServiceException {
+    public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int limit) throws ServiceException {
         TwinSearchResult twinSearchResult = new TwinSearchResult();
         TypedQuery<TwinEntity> q = entityManager.createQuery(getQuery(basicSearch));
-        q.setFirstResult((int) pageable.getOffset());
-        q.setMaxResults(pageable.getPageSize());
+        q.setFirstResult(offset);
+        q.setMaxResults(limit);
         List<TwinEntity> ret = q.getResultList();
         if (ret != null)
             return (TwinSearchResult) twinSearchResult
                     .setTwinList(ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                    .setPage(pageable.getPageNumber())
-                    .setCount(pageable.getPageSize())
+                    .setOffset(offset)
+                    .setLimit(limit)
                     .setTotal(count(basicSearch));
         return twinSearchResult;
     }

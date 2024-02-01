@@ -30,6 +30,6 @@ public interface RestRequestParam {
     String childDepth = "childDepth";
     String fieldValue = "fieldValue";
     String sortDirection = "sortDirection";
-    String paginationPage = "page";
-    String paginationSize = "size";
+    String paginationOffset = "offset";
+    String paginationSize = "limit";
 }
