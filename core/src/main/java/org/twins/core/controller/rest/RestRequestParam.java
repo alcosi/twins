@@ -31,5 +31,5 @@ public interface RestRequestParam {
     String fieldValue = "fieldValue";
     String sortDirection = "sortDirection";
     String paginationOffset = "offset";
-    String paginationSize = "limit";
+    String paginationLimit = "limit";
 }
