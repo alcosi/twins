@@ -8,11 +8,11 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @Schema(name = "PaginationV1")
 public class PaginationDTOv1 {
-    @Schema(description = "page number", example = "1")
-    private int page;
-    @Schema(description = "rows count per page", example = "10")
-    private int count;
-    @Schema(description = "total results count", example = "300")
+    @Schema(description = "record number from which data sampling begins", example = "25")
+    private int offset;
+    @Schema(description = "number of records in the query result", example = "10")
+    private int limit;
+    @Schema(description = "total results count", example = "100")
     private long total;
 
     public PaginationDTOv1() {

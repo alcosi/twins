@@ -8,8 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -81,13 +79,12 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.paginationPage, defaultValue = "0") Integer page,
-            @RequestParam(name = RestRequestParam.paginationSize, defaultValue = "10") Integer size,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
-        Pageable pageable = PageRequest.of(page, size);
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), pageable);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedTwinMode)
@@ -143,13 +140,12 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.paginationPage, defaultValue = "0") Integer page,
-            @RequestParam(name = RestRequestParam.paginationSize, defaultValue = "10") Integer size,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "30") int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
-        Pageable pageable = PageRequest.of(page, size);
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), pageable);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedTwinMode)

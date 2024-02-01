@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "HistoryListRsV2")
+@Schema(name = "HistoryListRsV2")
 public class HistoryListRsDTOv2 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
