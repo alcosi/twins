@@ -24,17 +24,30 @@ public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, 
     @Query(value = "select tag.tagDataListOption from TwinTagEntity tag " +
             " join DataListOptionEntity o on tag.tagDataListOption.id = o.id " +
             " left join I18nTranslationEntity t on o.optionI18NId = t.i18nId" +
-            " where (lower(:name) like lower(o.option) or lower(:name) like lower(t.translation))")
-    DataListOptionEntity findOptionByTagName(@Param("name") String name);
+            " where o.businessAccountId is null and " +
+            " (lower(:name) like lower(o.option) or lower(:name) like lower(t.translation)) " +
+            " limit 1")
+    DataListOptionEntity findOptionOutOfBusinessAccount(@Param("name") String name);
 
-    @Query(value = "select exists (select id from DataListOptionEntity o where o.businessAccountId = :businessAccountId and o.id = :optionId)")
-    boolean isTagOptionValid(@Param("optionId") UUID optionId, @Param("businessAccountId") UUID businessAccountId);
+    @Query(value = "select tag.tagDataListOption from TwinTagEntity tag " +
+                " join DataListOptionEntity o on tag.tagDataListOption.id = o.id " +
+                " left join I18nTranslationEntity t on o.optionI18NId = t.i18nId" +
+                " where (o.businessAccountId = :businessAccountId or o.businessAccountId is null) and " +
+                " (lower(:name) like lower(o.option) or lower(:name) like lower(t.translation)) " +
+                " order by o.businessAccountId limit 1")
+   DataListOptionEntity findOptionForBusinessAccount(@Param("name") String name, @Param("businessAccountId") UUID businessAccountId);
 
     @Query(value = "select o from DataListOptionEntity o " +
             "where o.dataListId = :dataListId " +
             "and (o.businessAccountId = :businessAccountId or o.businessAccountId is null) " +
             "and o.id in (:idList)")
     List<DataListOptionEntity> findForBusinessAccount(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId, @Param("idList") Collection<UUID> idList);
+
+    @Query(value = "select o from DataListOptionEntity o " +
+                        "where o.dataListId = :dataListId " +
+                        "and o.businessAccountId is null " +
+                        "and o.id in (:idList)")
+    List<DataListOptionEntity> findTagsOutOfBusinessAccount(@Param("dataListId") UUID dataListId, @Param("idList") Collection<UUID> idList);
 
     void deleteByTwinIdAndTagDataListOptionIdIn(UUID twinId, Set<UUID> markerIdList);
 }
