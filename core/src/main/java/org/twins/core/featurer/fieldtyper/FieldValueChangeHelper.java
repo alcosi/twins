@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class FieldValueChangeHelper {
     public static boolean isSingleValueUpdate(List<?> newValueList, Map<UUID, ?> oldValueMap) {
-        return newValueList != null && newValueList.size() == 1 && oldValueMap != null && oldValueMap.size() == 1;
+        return newValueList != null && newValueList.size() == 1 && oldValueMap != null && oldValueMap.size() > 1;
     }
 
     public static boolean isSingleValueAdd(List<?> newValueList, Map<UUID, ?> oldValueMap) {

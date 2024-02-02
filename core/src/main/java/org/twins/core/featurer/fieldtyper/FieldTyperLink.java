@@ -92,22 +92,47 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 //        if (twinFieldEntity.getId() == null) //not new field
 //            twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldDataListEntity is linked to TwinFieldEntity by FK
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinFieldEntity.getTwin().getTwinClass());
-        List<TwinLinkOnlyDstTwinRelationsProjection> storedLinksList;
-        Map<UUID, TwinLinkOnlyDstTwinRelationsProjection> storedLinksMap = null; // key is links dstTwinId
+        List<TwinLinkEntity> storedLinksList;
+        Map<UUID, TwinLinkEntity> storedLinksMap = null; // key is links dstTwinId
         switch (linkDirection) {
             case forward:
-                storedLinksList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkOnlyDstTwinRelationsProjection.class);
+                storedLinksList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkEntity.class);
                 if (CollectionUtils.isNotEmpty(storedLinksList))
-                    storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkOnlyDstTwinRelationsProjection::dstTwinId, Function.identity()));
+                    storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getDstTwinId, Function.identity()));
                 break;
             case backward:
-                storedLinksList = twinLinkRepository.findByDstTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkOnlyDstTwinRelationsProjection.class);
+                storedLinksList = twinLinkRepository.findByDstTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkEntity.class);
                 if (CollectionUtils.isNotEmpty(storedLinksList))
-                    storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkOnlyDstTwinRelationsProjection::srcTwinId, Function.identity()));
+                    storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getSrcTwinId, Function.identity()));
                 break;
             default:
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twinFieldEntity.getTwin().getTwinClass().logShort());
         }
+        if (FieldValueChangeHelper.isSingleValueAdd(newTwinLinks, storedLinksMap)) {
+            TwinLinkEntity twinLinkEntity = newTwinLinks.get(0);
+            twinChangesCollector.add(twinLinkEntity);
+            twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
+            return;
+        }
+        if (FieldValueChangeHelper.isSingleValueUpdate(newTwinLinks, storedLinksMap)) {
+            TwinLinkEntity newLink = newTwinLinks.get(0);
+            TwinLinkEntity storedLink = storedLinksMap.values().iterator().next();
+            if (!storedLink.getSrcTwinId().equals(newLink.getSrcTwinId()) || !storedLink.getDstTwinId().equals(newLink.getSrcTwinId())) {
+                if (linkDirection == LinkService.LinkDirection.forward) {
+                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and dstTwin will be updated to " + newLink.getDstTwinId());
+                    twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getDstTwin(), true));
+                } else {
+                    log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and srcTwin will be updated to " + newLink.getSrcTwinId());
+                    twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getSrcTwin(), false));
+                }
+                newLink.setId(storedLink.getId());
+                twinChangesCollector.add(newLink);
+                storedLinksMap.clear(); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
+            }
+            return;
+        }
+
+
         UUID linkTargetTwinId; // it will be different for link direction
         for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
             if (linkDirection == LinkService.LinkDirection.forward)
@@ -115,13 +140,15 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             else
                 linkTargetTwinId = twinLinkEntity.getSrcTwinId();
 
+
             if (storedLinksMap == null) {  // no links were saved before //after twinLinkService.prepareTwinLinks all existed twinLinks will be filled with id from db
                 twinChangesCollector.add(twinLinkEntity);
                 twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             } else if (storedLinksMap.containsKey(linkTargetTwinId)) { // link is already saved
                 storedLinksMap.remove(linkTargetTwinId); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
-            } else if (twinLinkEntity.getLink().getType().isUniqForSrcTwin()) {
-                if (storedLinksMap.size() != 1)
+            } else {
+                if (linkDirection == LinkService.LinkDirection.forward && twinLinkEntity.getLink().getType().isUniqForSrcTwin() )
+                    if (storedLinksMap.size() != 1)
                     throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, "Multiple links not valid for type[" + twinLinkEntity.getLink().getType().name() + "]"); //todo may be it's better not to throw but to delete???
                 TwinLinkOnlyDstTwinRelationsProjection dbTwinLink = storedLinksList.get(0);
                 log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");

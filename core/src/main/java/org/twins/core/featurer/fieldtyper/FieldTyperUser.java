@@ -87,6 +87,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
             }
+            storedFieldUsers.re
             return;
         }
 

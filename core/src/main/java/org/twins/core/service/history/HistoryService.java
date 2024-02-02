@@ -312,14 +312,23 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
      * - one for old dst twin
      * - one for new dst twin
      */
-    public HistoryCollectorMultiTwin linkUpdated(TwinLinkEntity twinLinkEntity, TwinEntity fromDstTwinEntity) {
+    public HistoryCollectorMultiTwin linkUpdated(TwinLinkEntity twinLinkEntity, TwinEntity unlinkedTwinEntity, boolean forward) {
         HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
-        ret.forTwin(twinLinkEntity.getSrcTwin())
-                .add(linkChange(twinLinkEntity.getId(), twinLinkEntity.getLink(), fromDstTwinEntity, twinLinkEntity.getDstTwin()));
-        ret.forTwin(twinLinkEntity.getDstTwin())
-                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
-        ret.forTwin(fromDstTwinEntity)
-                .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        if (forward) { //dstTwinChanged
+            ret.forTwin(twinLinkEntity.getSrcTwin())
+                    .add(linkChange(twinLinkEntity.getId(), twinLinkEntity.getLink(), unlinkedTwinEntity, twinLinkEntity.getDstTwin()));
+            ret.forTwin(twinLinkEntity.getDstTwin())
+                    .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+            ret.forTwin(unlinkedTwinEntity)
+                    .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        } else { // srcTwin changed
+            ret.forTwin(twinLinkEntity.getDstTwin())
+                    .add(linkChange(twinLinkEntity.getId(), twinLinkEntity.getLink(), unlinkedTwinEntity, twinLinkEntity.getSrcTwin()));
+            ret.forTwin(twinLinkEntity.getSrcTwin())
+                    .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
+            ret.forTwin(unlinkedTwinEntity)
+                    .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
+        }
         return ret;
     }
 }
