@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -24,6 +25,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -102,6 +104,10 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
         return entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+    }
+
+    public Map<UUID, DataListOptionEntity> findDataListOptionsMapByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+        return new Kit<>(dataListOptionRepository.findByIdIn(dataListOptionIdSet), DataListOptionEntity::getId).getMap();
     }
 }
 
