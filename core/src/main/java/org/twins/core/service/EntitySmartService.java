@@ -178,7 +178,7 @@ public class EntitySmartService {
         Optional<T> optional = repository.findById(uuid);
         switch (mode) {
             case ifEmptyNull:
-                return optional.isEmpty() ? null : optional.get();
+                return optional.orElse(null);
             case ifEmptyLogAndNull:
                 if (optional.isEmpty()) {
                     log.error(entityShortName(repository) + " can not find entity with id[" + uuid + "]");

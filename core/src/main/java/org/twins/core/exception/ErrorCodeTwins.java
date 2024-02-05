@@ -37,6 +37,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
     TWINFLOW_TRANSACTION_DENIED(10504, "twinflow transition is denied"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
+    DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT(10602, "data list option is not valid for current business account"),
     DATALIST_LIST_UNKNOWN(10602, "data list is unknown"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),

@@ -101,27 +101,13 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
-        return authService.getApiUser().isBusinessAccountSpecified() ?
-                findByIdAndBusinessAccount(dataListOptionId, authService.getApiUser().getBusinessAccount().getId(), EntitySmartService.FindMode.ifEmptyThrows) :
-                entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
-    }
-    private DataListOptionEntity findByIdAndBusinessAccount(UUID uuid, UUID businessAccountId, EntitySmartService.FindMode mode) throws ServiceException {
-        Optional<DataListOptionEntity> optional = dataListOptionRepository.findByIdAndBusinessAccountId(uuid, businessAccountId);
-        switch (mode) {
-            case ifEmptyNull:
-                return optional.isEmpty() ? null : optional.get();
-            case ifEmptyLogAndNull:
-                if (optional.isEmpty()) {
-                    log.error(dataListOptionRepository.getClass().getSimpleName() + " can not find entity with id[" + uuid + "]");
-                    return null;
-                } else
-                    return optional.get();
-            case ifEmptyThrows:
-                if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + dataListOptionRepository.getClass().getSimpleName() + "[" + uuid + "]");
-                return optional.get();
-        }
-        return null;
+        DataListOptionEntity dataListOptionEntity = entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.isBusinessAccountSpecified()
+                && dataListOptionEntity.getBusinessAccountId() != null
+                && !dataListOptionEntity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT, dataListOptionEntity.logShort() + " is not valid for " + apiUser.getBusinessAccount().logShort());
+        return dataListOptionEntity;
     }
 
     public Map<UUID, DataListOptionEntity> findDataListOptionsMapByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
