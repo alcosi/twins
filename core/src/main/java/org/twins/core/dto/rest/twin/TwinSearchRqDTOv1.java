@@ -43,4 +43,7 @@ public class TwinSearchRqDTOv1 extends Request {
 
     @Schema(description = "Reporter id list")
     public List<TwinSearchByLinkDTOv1> linksList;
+
+    @Schema(description = "Include reporter id list")
+    public List<TwinSearchByLinkDTOv1> noLinksList;
 }

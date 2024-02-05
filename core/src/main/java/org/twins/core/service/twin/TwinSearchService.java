@@ -114,6 +114,21 @@ public class TwinSearchService {
             }
             predicate.add(criteriaBuilder.or(orPredicate.toArray(Predicate[]::new)));
         }
+        if (MapUtils.isNotEmpty(basicSearch.getTwinNoLinksMap())) {
+            List<Predicate> orPredicate = new ArrayList<>();
+            for (Map.Entry<UUID, Set<UUID>> linkDstTwinSet : basicSearch.getTwinNoLinksMap().entrySet()) {
+                if (CollectionUtils.isNotEmpty(linkDstTwinSet.getValue())) {
+                    orPredicate.add(
+                            criteriaBuilder.and(
+                                    criteriaBuilder.equal(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()),
+                                    criteriaBuilder.not(linkPath.get(TwinLinkEntity.Fields.dstTwinId).in(linkDstTwinSet.getValue())
+                                    )));
+                } else {
+                    orPredicate.add(criteriaBuilder.notEqual(linkPath.get(TwinLinkEntity.Fields.linkId), linkDstTwinSet.getKey()));
+                }
+            }
+            predicate.add(criteriaBuilder.or(orPredicate.toArray(Predicate[]::new)));
+        }
         return predicate;
     }
 
