@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.i18n.service.I18nService;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.history.context.snapshot.DataListOptionSnapshot;
 
 import java.util.HashMap;
 import java.util.List;
@@ -15,8 +16,8 @@ import java.util.List;
 @Accessors(chain = true)
 public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldChange {
     public static final String DISCRIMINATOR = "history.fieldChange.datalistMulti";
-    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> addedDataListOptionSnapshotList;
-    private List<HistoryContextFieldDatalistChange.DataListOptionSnapshot> deletedDataListOptionSnapshotList;
+    private List<DataListOptionSnapshot> addedDataListOptionSnapshotList;
+    private List<DataListOptionSnapshot> deletedDataListOptionSnapshotList;
     @Override
     public String getType() {
         return DISCRIMINATOR;
@@ -30,13 +31,13 @@ public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldC
     }
 
     public HistoryContextFieldDatalistMultiChange shotAddedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
-        addedDataListOptionSnapshotList = CollectionUtils.safeAdd(addedDataListOptionSnapshotList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
+        addedDataListOptionSnapshotList = CollectionUtils.safeAdd(addedDataListOptionSnapshotList, DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;
     }
 
     public HistoryContextFieldDatalistMultiChange shotDeletedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
-        deletedDataListOptionSnapshotList = CollectionUtils.safeAdd(deletedDataListOptionSnapshotList, HistoryContextFieldDatalistChange.DataListOptionSnapshot
+        deletedDataListOptionSnapshotList = CollectionUtils.safeAdd(deletedDataListOptionSnapshotList, DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;
     }

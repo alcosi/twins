@@ -5,9 +5,9 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.service.I18nService;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.history.context.snapshot.DataListOptionSnapshot;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -25,14 +25,8 @@ public class HistoryContextFieldDatalistChange extends HistoryContextFieldChange
     @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = super.extractTemplateVars();
-        vars.put("fromDataListOption.id", fromDataListOption != null ? fromDataListOption.id.toString() : "");
-        vars.put("fromDataListOption.option", fromDataListOption != null ? fromDataListOption.option : "");
-        vars.put("fromDataListOption.optionI18n", fromDataListOption != null ? fromDataListOption.optionI18n : "");
-        vars.put("fromDataListOption.dataList.id", fromDataListOption != null && fromDataListOption.dataListId != null ? fromDataListOption.dataListId.toString() : "");
-        vars.put("toDataListOption.id", toDataListOption != null ? toDataListOption.id.toString() : "");
-        vars.put("toDataListOption.option", toDataListOption != null ? toDataListOption.option : "");
-        vars.put("toDataListOption.optionI18n", toDataListOption != null ? toDataListOption.optionI18n : "");
-        vars.put("toDataListOption.dataList.id", toDataListOption != null && toDataListOption.dataListId != null ? toDataListOption.dataListId.toString() : "");
+        DataListOptionSnapshot.extractTemplateVars(vars, fromDataListOption, "fromDataListOption");
+        DataListOptionSnapshot.extractTemplateVars(vars, toDataListOption, "toDataListOption");
         return vars;
     }
 
@@ -44,24 +38,5 @@ public class HistoryContextFieldDatalistChange extends HistoryContextFieldChange
     public HistoryContextFieldDatalistChange shotToDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
         toDataListOption = DataListOptionSnapshot.convertEntity(dataListOptionEntity, i18nService);
         return this;
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static final class DataListOptionSnapshot {
-        private UUID id;
-        private String option;
-        private String optionI18n;
-        private UUID dataListId;
-
-        public static DataListOptionSnapshot convertEntity(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
-            if (dataListOptionEntity == null)
-                return null;
-            return new DataListOptionSnapshot()
-                    .setId(dataListOptionEntity.getId())
-                    .setOption(dataListOptionEntity.getOption())
-                    .setOptionI18n(i18nService.translateToLocale(dataListOptionEntity.getOptionI18NId()))
-                    .setDataListId(dataListOptionEntity.getDataListId());
-        }
     }
 }
