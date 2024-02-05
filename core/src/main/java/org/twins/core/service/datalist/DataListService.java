@@ -24,7 +24,9 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -86,10 +88,10 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
-    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
-        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions().getMap();
+    public Kit<DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
+        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
-        return dataListEntity.getOptions().getMap();
+        return dataListEntity.getOptions();
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
@@ -110,12 +112,13 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dataListOptionEntity;
     }
 
-    public Map<UUID, DataListOptionEntity> findDataListOptionsMapByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
-        return EntitySmartService.convertToMap(
-                authService.getApiUser().isBusinessAccountSpecified() ?
-                        dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId()) :
-                        dataListOptionRepository.findByIdIn(dataListOptionIdSet), DataListOptionEntity::getId
-        );
+    public Kit<DataListOptionEntity> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+        List<DataListOptionEntity> dataListOptionEntityList;
+        if (authService.getApiUser().isBusinessAccountSpecified())
+            dataListOptionEntityList = dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId());
+        else
+            dataListOptionEntityList = dataListOptionRepository.findByIdIn(dataListOptionIdSet);
+        return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 }
 

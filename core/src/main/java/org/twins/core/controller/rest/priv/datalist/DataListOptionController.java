@@ -18,7 +18,9 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.datalist.*;
+import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
@@ -73,7 +75,7 @@ public class DataListOptionController extends ApiController {
         try {
             rs
                     .dataListOptionMap(dataListOptionRestDTOMapper.convertMap(
-                            dataListService.findDataListOptionsMapByIds(request.dataListOptionIdSet()),
+                            dataListService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(),
                             new MapperContext().setMode(showDataListOptionMode)
                     ));
         } catch (ServiceException se) {
