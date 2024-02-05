@@ -88,9 +88,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
                         .setModeIfNotPresent(mapperContext.hasMode(MarkerMode.SHORT) ? DataListOptionRestDTOMapper.Mode.SHORT : DataListOptionRestDTOMapper.Mode.DETAILED);
                 if (mapperContext.isLazyRelations())
-                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions(), dataListMapperContext));
+                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions().getMap(), dataListMapperContext));
                 else {
-                    dst.markerList(markerDataListEntity.getOptions().keySet().stream().toList());
+                    dst.markerList(markerDataListEntity.getOptions().getMap().keySet().stream().toList());
                     dataListMapperContext.addRelatedObject(markerDataListEntity);
                 }
             }
@@ -100,9 +100,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dataListService.loadDataListOptions(tagDataListEntity);
             if (tagDataListEntity.getOptions() != null) {
                 if (mapperContext.isLazyRelations())
-                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(DataListOptionRestDTOMapper.Mode.SHORT)));
+                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions().getMap(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(DataListOptionRestDTOMapper.Mode.SHORT)));
                 else {
-                    dst.tagList(tagDataListEntity.getOptions().keySet().stream().toList());
+                    dst.tagList(tagDataListEntity.getOptions().getMap().keySet().stream().toList());
                     mapperContext.addRelatedObject(tagDataListEntity);
                 }
             }

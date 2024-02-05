@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -81,14 +82,14 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     //todo cache it
-    public Map<UUID, DataListOptionEntity> findDataListOptionsAsMap(UUID dataListId) throws ServiceException {
-        return EntitySmartService.convertToMap(findDataListOptions(dataListId), DataListOptionEntity::getId);
+    public Kit<DataListOptionEntity> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
+        return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
     public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
-        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
-        dataListEntity.setOptions(findDataListOptionsAsMap(dataListEntity.getId()));
-        return dataListEntity.getOptions();
+        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions().getMap();
+        dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
+        return dataListEntity.getOptions().getMap();
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {

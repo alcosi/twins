@@ -36,7 +36,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
         }
         if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
             dataListService.loadDataListOptions(src);
-            dst.options(dataListOptionRestDTOMapper.convertMap(src.getOptions(), mapperContext));
+            dst.options(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext));
         }
     }
 
