@@ -226,10 +226,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextFieldUserChange> fieldChangeUser(TwinClassFieldEntity twinClassFieldEntity, UUID fromUserId, UUID toUserId) {
+    public HistoryItem<HistoryContextFieldUserChange> fieldChangeUser(TwinClassFieldEntity twinClassFieldEntity, UserEntity fromUser, UserEntity toUser) {
         HistoryContextFieldUserChange context = new HistoryContextFieldUserChange()
-                .setFromUserId(fromUserId)
-                .setToUserId(toUserId);
+                .shotFromUser(fromUser)
+                .shotToUser(toUser);
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }

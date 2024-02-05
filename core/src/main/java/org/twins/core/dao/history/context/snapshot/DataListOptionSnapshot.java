@@ -27,6 +27,12 @@ public class DataListOptionSnapshot {
                 .setDataListId(dataListOptionEntity.getDataListId());
     }
 
+    public String getValue() {
+        if (StringUtils.isNotEmpty(optionI18n))
+            return optionI18n;
+        return option;
+    }
+
     public static void extractTemplateVars(HashMap<String, String> vars, DataListOptionSnapshot dataListOptionSnapshot, String prefix) {
         prefix = StringUtils.isNotEmpty(prefix) ? prefix + "." : "";
         vars.put(prefix + "id", dataListOptionSnapshot != null ? dataListOptionSnapshot.id.toString() : "");

@@ -30,6 +30,16 @@ public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldC
         return vars;
     }
 
+    @Override
+    public String getTemplateFromValue() {
+        return null; //todo any idea?
+    }
+
+    @Override
+    public String getTemplateToValue() {
+        return null; //todo any idea?
+    }
+
     public HistoryContextFieldDatalistMultiChange shotAddedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
         addedDataListOptionSnapshotList = CollectionUtils.safeAdd(addedDataListOptionSnapshotList, DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));

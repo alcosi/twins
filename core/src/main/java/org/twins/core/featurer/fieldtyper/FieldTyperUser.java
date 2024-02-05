@@ -72,7 +72,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldUserEntity is linked to TwinFieldEntity by FK
         if (FieldValueChangeHelper.isSingleValueAdd(selectedUserEntityList, storedFieldUsers)) {
             UserEntity userEntity = selectedUserEntityList.get(0);
-            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), null, userEntity.getId()));
+            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), null, userEntity));
             twinChangesCollector.add(new TwinFieldUserEntity()
                     .setTwinFieldId(twinFieldEntity.getId())
                     .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
@@ -83,7 +83,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             UserEntity userEntity = selectedUserEntityList.get(0);
             TwinFieldUserEntity storeField = MapUtils.pullAny(storedFieldUsers);
             if (!storeField.getUserId().equals(userEntity.getId())) {
-                twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), storeField.getUserId(), userEntity.getId()));
+                twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), storeField.getUser(), userEntity));
                 twinChangesCollector.add(storeField //we can update existing record
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));

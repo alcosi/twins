@@ -20,8 +20,15 @@ public abstract class HistoryContextFieldChange extends HistoryContext {
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = new HashMap<>();
         FieldSnapshot.extractTemplateVars(vars, field, "field");
+        String fromValue = getTemplateFromValue();
+        String toValue = getTemplateToValue();
+        vars.put("fromValue", fromValue != null ? fromValue : "");
+        vars.put("toValue", toValue != null ? toValue : "");
         return vars;
     }
+
+    public abstract String getTemplateFromValue();
+    public abstract String getTemplateToValue();
 
     public HistoryContextFieldChange shotField(TwinClassFieldEntity fieldEntity, I18nService i18nService) {
         field = FieldSnapshot.convertEntity(fieldEntity, i18nService);

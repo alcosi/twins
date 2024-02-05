@@ -29,6 +29,16 @@ public class HistoryContextFieldUserMultiChange extends HistoryContextFieldChang
         return vars;
     }
 
+    @Override
+    public String getTemplateFromValue() {
+        return null; //todo any idea?
+    }
+
+    @Override
+    public String getTemplateToValue() {
+        return null; //todo any idea?
+    }
+
     public HistoryContextFieldUserMultiChange shotAddedUserId(UUID userId) {
         addedUserIdList = CollectionUtils.safeAdd(addedUserIdList, userId);
         return this;
