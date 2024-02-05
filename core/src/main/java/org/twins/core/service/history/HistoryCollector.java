@@ -18,4 +18,18 @@ public class HistoryCollector {
         historyList.add(Pair.of(historyType, context));
         return this;
     }
+
+    public HistoryCollector add(HistoryItem<?> historyItem) {
+        add(historyItem.getType(), historyItem.getContext());
+        return this;
+    }
+
+    public HistoryCollector add(HistoryCollector otherCollector) {
+        if (otherCollector == null)
+            return this;
+        if (historyList == null)
+            historyList = new ArrayList<>();
+        historyList.addAll(otherCollector.getHistoryList());
+        return this;
+    }
 }

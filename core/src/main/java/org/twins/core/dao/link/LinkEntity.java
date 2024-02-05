@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.EasyLoggableImpl;
-import org.cambium.i18n.dao.I18nEntity;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.sql.Timestamp;
@@ -82,16 +79,18 @@ public class LinkEntity extends EasyLoggableImpl {
 
     @Getter
     public enum TwinlinkType {
-        ManyToOne(true, true),
-        ManyToMany(true, false),
-        OneToOne(false, true);
+        ManyToOne(true, true, false),
+        ManyToMany(true, false, false),
+        OneToOne(false, true, true);
 
         private final boolean many;
         private final boolean uniqForSrcTwin;
+        private final boolean uniqForDstTwin;
 
-        TwinlinkType(boolean many, boolean uniqForSrcTwin) {
+        TwinlinkType(boolean many, boolean uniqForSrcTwin, boolean uniqForDstTwin) {
             this.many = many;
             this.uniqForSrcTwin = uniqForSrcTwin;
+            this.uniqForDstTwin = uniqForDstTwin;
         }
     }
 }

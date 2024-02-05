@@ -22,9 +22,9 @@ public enum HistoryType {
     attachmentCreate("attachmentCreate"),
     attachmentDelete("attachmentDelete"),
     attachmentUpdate("attachmentUpdate"),
-    linkCreate("linkCreate"),
-    linkUpdate("linkUpdate"),
-    linkDelete("linkDelete"),
+    linkCreate("linkCreate"), // 2 history records will be created
+    linkUpdate("linkUpdate"), // 3 history records will be created
+    linkDelete("linkDelete"), // 2 history records will be created
     twinDeleted("twinDeleted"),
     unknown("unknown");
 

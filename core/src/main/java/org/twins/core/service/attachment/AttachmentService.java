@@ -20,6 +20,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
+import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.user.UserService;
 
@@ -55,8 +56,7 @@ public class AttachmentService {
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(userEntity.getId())
                     .setCreatedByUser(userEntity);
-            historyCollector.add(HistoryType.attachmentCreate, new HistoryContextAttachment()
-                    .shotAttachment(attachmentEntity));
+            historyCollector.add(historyService.attachmentCreate(attachmentEntity));
         }
         List<TwinAttachmentEntity> ret = IterableUtils.toList(entitySmartService.saveAllAndLog(attachments, twinAttachmentRepository));
         historyService.saveHistory(twinEntity, historyCollector);
@@ -120,27 +120,26 @@ public class AttachmentService {
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             changesHelper.flush();
             dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            HistoryContextAttachmentChange historyContextAttachmentChange = new HistoryContextAttachmentChange();
-            historyContextAttachmentChange.shotAttachment(attachmentEntity);
+            HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
             if (changesHelper.isChanged("description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
-                historyContextAttachmentChange.setNewDescription(attachmentEntity.getDescription());
+                historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
             }
             if (changesHelper.isChanged("title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
-                historyContextAttachmentChange.setNewTitle(attachmentEntity.getTitle());
+                historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
             if (changesHelper.isChanged("storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
-                historyContextAttachmentChange.setNewStorageLink(attachmentEntity.getStorageLink());
+                historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
                 dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
             }
             if (changesHelper.isChanged("externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
-                historyContextAttachmentChange.setNewExternalId(attachmentEntity.getExternalId());
+                historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }
             if (changesHelper.hasChanges()) {
                 saveList.add(dbAttachmentEntity);
-                historyCollector.add(dbAttachmentEntity.getTwin(), HistoryType.attachmentUpdate, historyContextAttachmentChange);
+                historyCollector.forTwin(dbAttachmentEntity.getTwin()).add(historyItem);
             }
         }
         if (CollectionUtils.isEmpty(saveList)) {
@@ -166,8 +165,7 @@ public class AttachmentService {
             if (twinEntity == null)
                 twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
             log.info(attachmentEntity.logDetailed() + " will be deleted");
-            historyCollector.add(HistoryType.attachmentDelete, new HistoryContextAttachment()
-                    .shotAttachment(attachmentEntity));
+            historyCollector.add(historyService.attachmentDelete(attachmentEntity));
         }
         twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
         historyService.saveHistory(twinEntity, historyCollector);

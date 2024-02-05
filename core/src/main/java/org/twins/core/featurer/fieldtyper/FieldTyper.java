@@ -7,14 +7,13 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
-import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.context.HistoryContextFieldSimpleChange;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.history.HistoryService;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -27,6 +26,10 @@ import java.util.Properties;
         description = "Customize format of twin class field")
 @Slf4j
 public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue> extends Featurer {
+    @Lazy
+    @Autowired
+    HistoryService historyService;
+
     @Lazy
     @Autowired
     I18nService i18nService;
@@ -73,10 +76,8 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     protected void detectValueChange(TwinFieldEntity twinFieldEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.isChanged(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", twinFieldEntity.getValue(), newValue)) {
-            twinChangesCollector.getHistoryCollector().add(twinFieldEntity.getTwin(), HistoryType.fieldChanged, new HistoryContextFieldSimpleChange()
-                    .setFromValue(twinFieldEntity.getValue())
-                    .setToValue(newValue)
-                    .shotField(twinFieldEntity.getTwinClassField(), i18nService));
+            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(
+                    historyService.fieldChangeSimple(twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue(), newValue));
             twinFieldEntity.setValue(newValue);
         }
     }

@@ -30,8 +30,28 @@ import java.util.HashMap;
                 value = HistoryContextFieldDatalistMultiChange.class
         ),
         @JsonSubTypes.Type(
+                name = HistoryContextFieldLinkChange.DISCRIMINATOR,
+                value = HistoryContextFieldLinkChange.class
+        ),
+        @JsonSubTypes.Type(
                 name = HistoryContextFieldSimpleChange.DISCRIMINATOR,
                 value = HistoryContextFieldSimpleChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextFieldUserChange.DISCRIMINATOR,
+                value = HistoryContextFieldUserChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextFieldUserMultiChange.DISCRIMINATOR,
+                value = HistoryContextFieldUserMultiChange.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextLink.DISCRIMINATOR,
+                value = HistoryContextLink.class
+        ),
+        @JsonSubTypes.Type(
+                name = HistoryContextLinkChange.DISCRIMINATOR,
+                value = HistoryContextLinkChange.class
         ),
         @JsonSubTypes.Type(
                 name = HistoryContextStatusChange.DISCRIMINATOR,

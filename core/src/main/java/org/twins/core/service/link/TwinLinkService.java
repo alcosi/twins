@@ -323,4 +323,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         Map<UUID, TwinLinkEntity> forwardLinks = new LinkedHashMap<>();
         Map<UUID, TwinLinkEntity> backwardLinks = new LinkedHashMap<>();
     }
+
+    public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {
+        return one.getSrcTwinId().equals(two.getSrcTwinId()) && one.getDstTwinId().equals(two.getDstTwinId());
+    }
 }
