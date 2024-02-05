@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.user.UserGroupEntity;
 
@@ -15,7 +16,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "business_account")
 @DynamicUpdate
-public class BusinessAccountEntity implements EasyLoggable {
+public class BusinessAccountEntity extends EasyLoggableImpl {
     @Id
     private UUID id;
 

@@ -88,7 +88,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
                         .setModeIfNotPresent(mapperContext.hasMode(MarkerMode.SHORT) ? DataListOptionRestDTOMapper.Mode.SHORT : DataListOptionRestDTOMapper.Mode.DETAILED);
                 if (mapperContext.isLazyRelations())
-                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions(), dataListMapperContext));
+                    dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions().getMap(), dataListMapperContext));
                 else {
                     //dst.markerList(markerDataListEntity.getOptions().keySet().stream().toList());
                     dataListMapperContext.addRelatedObject(markerDataListEntity);
@@ -101,9 +101,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             if (tagDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(mapperContext.hasMode(TagMode.SHORT) ? DataListOptionRestDTOMapper.Mode.SHORT : DataListOptionRestDTOMapper.Mode.DETAILED);
                 if (mapperContext.isLazyRelations())
-                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions(), dataListMapperContext));
+                    dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions().getMap(), dataListMapperContext));
                 else {
-                    //dst.tagList(tagDataListEntity.getOptions().keySet().stream().toList());
+                    //dst.tagList(tagDataListEntity.getOptions().getMap().keySet().stream().toList());
                     dataListMapperContext.addRelatedObject(tagDataListEntity);
                 }
             }

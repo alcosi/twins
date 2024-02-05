@@ -2,6 +2,7 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -12,7 +13,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorListShared;
-import org.twins.core.service.EntitySmartService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +51,6 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
         UUID listId = listUUID.extract(properties);
         DataListEntity dataListEntity = dataListService.findEntitySafe(listId);
         List<DataListOptionEntity> options = dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId);
-        return dataListEntity.setOptions(EntitySmartService.convertToMap(options, DataListOptionEntity::getId));
+        return dataListEntity.setOptions(new Kit<>(options, DataListOptionEntity::getId));
     }
 }

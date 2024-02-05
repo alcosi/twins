@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -23,9 +24,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -76,20 +75,21 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dataListEntity;
     }
 
-    public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {
-        return dataListOptionRepository.findByDataListId(dataListId);
+    public List<DataListOptionEntity> findDataListOptions(UUID dataListId) throws ServiceException {
+        return authService.getApiUser().isBusinessAccountSpecified() ?
+                dataListOptionRepository.findByDataListIdAndBusinessAccountId(dataListId, authService.getApiUser().getBusinessAccount().getId()) :
+                dataListOptionRepository.findByDataListId(dataListId);
     }
 
     //todo cache it
-    public Map<UUID, DataListOptionEntity> findDataListOptionsAsMap(UUID dataListId) {
-        return EntitySmartService.convertToMap(findDataListOptions(dataListId), DataListOptionEntity::getId);
+    public Kit<DataListOptionEntity> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
+        return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
-    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) {
-        if (dataListEntity.getOptions() != null)
-            return dataListEntity.getOptions();
-        dataListEntity.setOptions(findDataListOptionsAsMap(dataListEntity.getId()));
-        return dataListEntity.getOptions();
+    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
+        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions().getMap();
+        dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
+        return dataListEntity.getOptions().getMap();
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
@@ -101,7 +101,21 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
-        return entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        DataListOptionEntity dataListOptionEntity = entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.isBusinessAccountSpecified()
+                && dataListOptionEntity.getBusinessAccountId() != null
+                && !dataListOptionEntity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT, dataListOptionEntity.logShort() + " is not valid for " + apiUser.getBusinessAccount().logShort());
+        return dataListOptionEntity;
+    }
+
+    public Map<UUID, DataListOptionEntity> findDataListOptionsMapByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+        return EntitySmartService.convertToMap(
+                authService.getApiUser().isBusinessAccountSpecified() ?
+                        dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId()) :
+                        dataListOptionRepository.findByIdIn(dataListOptionIdSet), DataListOptionEntity::getId
+        );
     }
 }
 
