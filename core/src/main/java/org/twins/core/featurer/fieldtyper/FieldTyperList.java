@@ -63,7 +63,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
                     .setDataListOption(dataListOptionEntity));
             return;
         }
-        if (FieldValueChangeHelper.isSingleValueUpdate(dataListOptionEntityList, storedOptions)) {
+        if (FieldValueChangeHelper.isSingleToSingleValueUpdate(dataListOptionEntityList, storedOptions)) {
             DataListOptionEntity dataListOptionEntity = dataListOptionEntityList.get(0);
             TwinFieldDataListEntity storeField = storedOptions.values().iterator().next();
             if (!storeField.getDataListOptionId().equals(dataListOptionEntity.getId())) {
@@ -73,6 +73,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
                         .setDataListOptionId(checkOptionAllowed(twinFieldEntity, dataListOptionEntity))
                         .setDataListOption(dataListOptionEntity));
             }
+            return;
         }
         HistoryItem<HistoryContextFieldDatalistMultiChange> historyItem = historyService.fieldChangeDataListMulti(twinFieldEntity.getTwinClassField());
         for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {

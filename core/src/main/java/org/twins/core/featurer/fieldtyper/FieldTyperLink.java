@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
@@ -14,7 +15,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinLinkOnlyDstTwinRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
@@ -114,10 +114,10 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
             return;
         }
-        if (FieldValueChangeHelper.isSingleValueUpdate(newTwinLinks, storedLinksMap)) {
-            TwinLinkEntity newLink = newTwinLinks.get(0);
-            TwinLinkEntity storedLink = storedLinksMap.values().iterator().next();
-            if (!storedLink.getSrcTwinId().equals(newLink.getSrcTwinId()) || !storedLink.getDstTwinId().equals(newLink.getSrcTwinId())) {
+        if (FieldValueChangeHelper.isAnyToSingleValueUpdate(newTwinLinks, storedLinksMap)) {
+            TwinLinkEntity newLink = newTwinLinks.get(0); //wh have only one element
+            TwinLinkEntity storedLink = MapUtils.pullAny(storedLinksMap); // we will update any of existed link it doesn't matter which one. all other will be deleted
+            if (!TwinLinkService.equalsInSrcTwinIdAndDstTwinId(newLink, storedLink)) {
                 if (linkDirection == LinkService.LinkDirection.forward) {
                     log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and dstTwin will be updated to " + newLink.getDstTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getDstTwin(), true));
@@ -127,43 +127,50 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                 }
                 newLink.setId(storedLink.getId());
                 twinChangesCollector.add(newLink);
-                storedLinksMap.clear(); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
             }
+            deleteOutOfDateLinks(twinChangesCollector, storedLinksMap);
             return;
         }
-
-
         UUID linkTargetTwinId; // it will be different for link direction
-        for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
-            if (linkDirection == LinkService.LinkDirection.forward)
-                linkTargetTwinId = twinLinkEntity.getDstTwinId();
-            else
-                linkTargetTwinId = twinLinkEntity.getSrcTwinId();
-
-
-            if (storedLinksMap == null) {  // no links were saved before //after twinLinkService.prepareTwinLinks all existed twinLinks will be filled with id from db
-                twinChangesCollector.add(twinLinkEntity);
-                twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
-            } else if (storedLinksMap.containsKey(linkTargetTwinId)) { // link is already saved
-                storedLinksMap.remove(linkTargetTwinId); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
-            } else {
-                if (linkDirection == LinkService.LinkDirection.forward && twinLinkEntity.getLink().getType().isUniqForSrcTwin() )
-                    if (storedLinksMap.size() != 1)
-                    throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, "Multiple links not valid for type[" + twinLinkEntity.getLink().getType().name() + "]"); //todo may be it's better not to throw but to delete???
-                TwinLinkOnlyDstTwinRelationsProjection dbTwinLink = storedLinksList.get(0);
-                log.warn(twinLinkEntity.getLink().logShort() + " is already exists for " + twinLinkEntity.getSrcTwin().logShort() + ". " + dbTwinLink.easyLog(EasyLoggable.Level.NORMAL) + " will be updated");
-                twinLinkEntity.setId(dbTwinLink.id());
-                twinChangesCollector.add(twinLinkEntity);
-                twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(twinLinkEntity, dbTwinLink.dstTwin()));
-                storedLinksMap.clear(); // we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
-            } else {
-                twinChangesCollector.add(twinLinkEntity);
-                twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
+        //removing not changes links
+        if (MapUtils.isNotEmpty(storedLinksMap)) {
+            Iterator<TwinLinkEntity> iterator = newTwinLinks.listIterator();
+            while (iterator.hasNext()) {
+                TwinLinkEntity twinLinkEntity = iterator.next();
+                if (linkDirection == LinkService.LinkDirection.forward)
+                    linkTargetTwinId = twinLinkEntity.getDstTwinId();
+                else
+                    linkTargetTwinId = twinLinkEntity.getSrcTwinId();
+                if (storedLinksMap.containsKey(linkTargetTwinId)) {
+                    storedLinksMap.remove(linkTargetTwinId); // if link is already saved we remove is from list, because all remained list elements will be deleted from database (pretty logic inversion)
+                    iterator.remove(); // also we need to remove it newLinks list, there is no need to save it
+                }
             }
         }
-        if (storedLinksMap != null && CollectionUtils.isNotEmpty(storedLinksMap.entrySet())) { // old values must be deleted
+        // here we have storedLinksMap either empty, either with out-of-dated elements
+        for (TwinLinkEntity twinLinkEntity : newTwinLinks) {
+            if (storedLinksMap == null) {  // no links remains in storageLinks
+                twinChangesCollector.add(twinLinkEntity);
+                twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
+            } else {
+                TwinLinkEntity dbTwinLink = MapUtils.pullAny(storedLinksMap);
+                if (dbTwinLink != null) {
+                    log.warn(dbTwinLink.logShort() + " will be updated");
+                    twinLinkEntity.setId(dbTwinLink.getId());
+                    twinChangesCollector.add(twinLinkEntity);
+                    twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(twinLinkEntity, dbTwinLink.getDstTwin(), linkDirection == LinkService.LinkDirection.forward));
+                } else {
+                    twinChangesCollector.add(twinLinkEntity);
+                    twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
+                }
+            }
+        }
+        deleteOutOfDateLinks(twinChangesCollector, storedLinksMap);
+    }
 
-            twinChangesCollector.deleteAll(TwinLinkEntity.class, storedLinksMap.values().stream().map(TwinLinkOnlyDstTwinRelationsProjection::id).toList());
+    public void deleteOutOfDateLinks(TwinChangesCollector twinChangesCollector, Map<UUID, TwinLinkEntity> outOfDateStoredLinksMap) {
+        if (outOfDateStoredLinksMap != null && CollectionUtils.isNotEmpty(outOfDateStoredLinksMap.entrySet())) { // old values must be deleted
+            twinChangesCollector.deleteAll(TwinLinkEntity.class, outOfDateStoredLinksMap.values().stream().map(TwinLinkEntity::getId).toList());
         }
     }
 

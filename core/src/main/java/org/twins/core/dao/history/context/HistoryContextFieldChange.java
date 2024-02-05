@@ -4,10 +4,10 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.HashMap;
-import java.util.UUID;
 
 
 @Data
@@ -19,9 +19,7 @@ public abstract class HistoryContextFieldChange extends HistoryContext {
     @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = new HashMap<>();
-        vars.put("field.id",field != null ? field.id.toString() : "");
-        vars.put("field.name", field != null ? field.name : "");
-        vars.put("field.key", field != null ? field.key : "");
+        FieldSnapshot.extractTemplateVars(vars, field, "field");
         return vars;
     }
 
@@ -30,20 +28,5 @@ public abstract class HistoryContextFieldChange extends HistoryContext {
         return this;
     }
 
-    @Data
-    @Accessors(chain = true)
-    public static final class FieldSnapshot {
-        private UUID id;
-        private String key;
-        private String name;
 
-        public static FieldSnapshot convertEntity(TwinClassFieldEntity fieldEntity, I18nService i18nService) {
-            if (fieldEntity == null)
-                return null;
-            return new FieldSnapshot()
-                    .setId(fieldEntity.getId())
-                    .setName(i18nService.translateToLocale(fieldEntity.getNameI18NId()))
-                    .setKey(fieldEntity.getKey());
-        }
-    }
 }

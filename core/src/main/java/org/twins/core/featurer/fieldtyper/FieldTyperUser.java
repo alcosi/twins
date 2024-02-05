@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -78,16 +79,15 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
                     .setUser(userEntity));
             return;
         }
-        if (FieldValueChangeHelper.isSingleValueUpdate(selectedUserEntityList, storedFieldUsers)) {
+        if (FieldValueChangeHelper.isSingleToSingleValueUpdate(selectedUserEntityList, storedFieldUsers)) {
             UserEntity userEntity = selectedUserEntityList.get(0);
-            TwinFieldUserEntity storeField = storedFieldUsers.values().iterator().next();
+            TwinFieldUserEntity storeField = MapUtils.pullAny(storedFieldUsers);
             if (!storeField.getUserId().equals(userEntity.getId())) {
                 twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(historyService.fieldChangeUser(twinFieldEntity.getTwinClassField(), storeField.getUserId(), userEntity.getId()));
                 twinChangesCollector.add(storeField //we can update existing record
                         .setUserId(checkUserAllowed(twinFieldEntity, userEntity))
                         .setUser(userEntity));
             }
-            storedFieldUsers.re
             return;
         }
 

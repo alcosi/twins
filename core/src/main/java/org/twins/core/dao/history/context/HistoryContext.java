@@ -46,6 +46,10 @@ import java.util.HashMap;
                 value = HistoryContextLink.class
         ),
         @JsonSubTypes.Type(
+                name = HistoryContextLinkChange.DISCRIMINATOR,
+                value = HistoryContextLinkChange.class
+        ),
+        @JsonSubTypes.Type(
                 name = HistoryContextStatusChange.DISCRIMINATOR,
                 value = HistoryContextStatusChange.class
         ),
