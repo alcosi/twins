@@ -23,8 +23,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(description = "Get data list option", name = ApiTag.DATA_LIST)
@@ -73,13 +71,11 @@ public class DataListOptionController extends ApiController {
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
         try {
-            Map<UUID, DataListOptionDTOv1> result = new HashMap<>();
-            Map<UUID, DataListOptionEntity> dataListOptionEntityMap = dataListService.findDataListOptionsMapByIds(request.dataListOptionIdSet());
-            for (Map.Entry<UUID, DataListOptionEntity> entry : dataListOptionEntityMap.entrySet())
-                result.put(entry.getKey(), dataListOptionRestDTOMapper.convert(entry.getValue(), new MapperContext().setMode(showDataListOptionMode)));
-
             rs
-                    .dataListOptionMap(result);
+                    .dataListOptionMap(dataListOptionRestDTOMapper.convertMap(
+                            dataListService.findDataListOptionsMapByIds(request.dataListOptionIdSet()),
+                            new MapperContext().setMode(showDataListOptionMode)
+                    ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -16,8 +17,15 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
     @Cacheable(value = "DataListOptionRepository.findByDataListId", key = "{#dataListId}")
     List<DataListOptionEntity> findByDataListId(UUID dataListId);
 
+    @Cacheable(value = "DataListOptionRepository.findByDataListIdAndBusinessAccountId", key = "{#dataListId}")
+    List<DataListOptionEntity> findByDataListIdAndBusinessAccountId(UUID dataListId, UUID businessAccountId);
+
     int countByDataListId(UUID dataListId);
+
     List<DataListOptionEntity> findByIdIn(Collection<UUID> dataListOptionId);
+    List<DataListOptionEntity> findByIdInAndBusinessAccountId(Collection<UUID> dataListOptionId, UUID businessAccountId);
+
+    Optional<DataListOptionEntity> findByIdAndBusinessAccountId(UUID dataListOptionId, UUID businessAccountId);
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +

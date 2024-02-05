@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
@@ -24,10 +23,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.List;
-import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -78,18 +74,19 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dataListEntity;
     }
 
-    public List<DataListOptionEntity> findDataListOptions(UUID dataListId) {
-        return dataListOptionRepository.findByDataListId(dataListId);
+    public List<DataListOptionEntity> findDataListOptions(UUID dataListId) throws ServiceException {
+        return authService.getApiUser().isBusinessAccountSpecified() ?
+                dataListOptionRepository.findByDataListIdAndBusinessAccountId(dataListId, authService.getApiUser().getBusinessAccount().getId()) :
+                dataListOptionRepository.findByDataListId(dataListId);
     }
 
     //todo cache it
-    public Map<UUID, DataListOptionEntity> findDataListOptionsAsMap(UUID dataListId) {
+    public Map<UUID, DataListOptionEntity> findDataListOptionsAsMap(UUID dataListId) throws ServiceException {
         return EntitySmartService.convertToMap(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
-    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) {
-        if (dataListEntity.getOptions() != null)
-            return dataListEntity.getOptions();
+    public Map<UUID, DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
+        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsMap(dataListEntity.getId()));
         return dataListEntity.getOptions();
     }
@@ -103,11 +100,35 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public DataListOptionEntity findDataListOption(UUID dataListOptionId) throws ServiceException {
-        return entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        return authService.getApiUser().isBusinessAccountSpecified() ?
+                findByIdAndBusinessAccount(dataListOptionId, authService.getApiUser().getBusinessAccount().getId(), EntitySmartService.FindMode.ifEmptyThrows) :
+                entitySmartService.findById(dataListOptionId, dataListOptionRepository, EntitySmartService.FindMode.ifEmptyThrows);
+    }
+    private DataListOptionEntity findByIdAndBusinessAccount(UUID uuid, UUID businessAccountId, EntitySmartService.FindMode mode) throws ServiceException {
+        Optional<DataListOptionEntity> optional = dataListOptionRepository.findByIdAndBusinessAccountId(uuid, businessAccountId);
+        switch (mode) {
+            case ifEmptyNull:
+                return optional.isEmpty() ? null : optional.get();
+            case ifEmptyLogAndNull:
+                if (optional.isEmpty()) {
+                    log.error(dataListOptionRepository.getClass().getSimpleName() + " can not find entity with id[" + uuid + "]");
+                    return null;
+                } else
+                    return optional.get();
+            case ifEmptyThrows:
+                if (optional.isEmpty())
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + dataListOptionRepository.getClass().getSimpleName() + "[" + uuid + "]");
+                return optional.get();
+        }
+        return null;
     }
 
     public Map<UUID, DataListOptionEntity> findDataListOptionsMapByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
-        return new Kit<>(dataListOptionRepository.findByIdIn(dataListOptionIdSet), DataListOptionEntity::getId).getMap();
+        return EntitySmartService.convertToMap(
+                authService.getApiUser().isBusinessAccountSpecified() ?
+                        dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId()) :
+                        dataListOptionRepository.findByIdIn(dataListOptionIdSet), DataListOptionEntity::getId
+        );
     }
 }
 

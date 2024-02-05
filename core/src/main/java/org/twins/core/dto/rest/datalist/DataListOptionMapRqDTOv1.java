@@ -15,7 +15,7 @@ import java.util.UUID;
 @Schema(name = "DataListOptionMapRqV1")
 public class DataListOptionMapRqDTOv1 extends Request {
     @Schema(description = "data list option id set", example = """
-         [ "074eaf50-3030-4bfe-b15a-d4f6e3f35270", "56d3b3d1-59ca-4a93-81d8-6d173674edfc" ]
+         [ "133b1c94-a8c0-4795-8076-10548ed772b3", "7de977d4-df6d-4250-9cb2-088363d139a1" ]
             """)
     public Set<UUID> dataListOptionIdSet;
 }
