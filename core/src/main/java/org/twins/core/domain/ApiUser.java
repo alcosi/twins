@@ -30,6 +30,9 @@ public class ApiUser {
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private Channel channel;
+
+    @Getter
+    private final UUID requestId = UUID.randomUUID();
     @Getter
     @Setter
     private Set<UUID> permissions;

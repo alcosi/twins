@@ -21,6 +21,9 @@ public class HistoryBaseDTOv1 {
     @Schema(description = "twinId", example = DTOExamples.TWIN_ID)
     public UUID twinId;
 
+    @Schema(description = "changes batch id")
+    public UUID batchId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;

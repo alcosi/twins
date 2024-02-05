@@ -91,6 +91,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         else if (context instanceof HistoryContextLink linkChange) {
 
         }
+        if (authService.getApiUser() != null)
+            historyEntity.setHistoryBatchId(authService.getApiUser().getRequestId());
         fillSnapshotMessage(historyEntity);
         return historyEntity;
     }

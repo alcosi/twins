@@ -39,6 +39,9 @@ public class HistoryEntity extends EasyLoggableImpl {
     @Convert(converter = HistoryTypeConverter.class)
     private HistoryType historyType;
 
+    @Column(name = "history_batch_id")
+    private UUID historyBatchId;
+
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 

@@ -32,6 +32,7 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
                 .twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext.cloneWithIsolatedModes()))
                 .actorUserId(src.getActorUserId())
                 .twinId(src.getTwin().getId())
+                .batchId(src.getHistoryBatchId())
                 .type(src.getHistoryType())
                 .id(src.getId())
                 .createdAt(src.getCreatedAt().toLocalDateTime());
