@@ -181,4 +181,11 @@ public class TwinSearchService {
         TypedQuery<Long> q = entityManager.createQuery(getQueryForCount(basicSearch));
         return q.getSingleResult();
     }
+
+    public Map<String, Long> countTwinsInBatch(Map<String, BasicSearch> searchMap) throws ServiceException {
+        Map<String, Long> result = new HashMap<>();
+        for (Map.Entry<String, BasicSearch> entry : searchMap.entrySet())
+            result.put(entry.getKey(), count(entry.getValue()));
+        return result;
+    }
 }
