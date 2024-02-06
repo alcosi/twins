@@ -9,33 +9,35 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface DataListOptionRepository extends CrudRepository<DataListOptionEntity, UUID>, JpaSpecificationExecutor<DataListOptionEntity> {
     @Cacheable(value = "DataListOptionRepository.findByDataListId", key = "{#dataListId}")
-    List<DataListOptionEntity> findByDataListId(UUID dataListId);
+    @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and option.businessAccountId is null")
+    List<DataListOptionEntity> findByDataListId(@Param("dataListId") UUID dataListId);
 
-    @Cacheable(value = "DataListOptionRepository.findByDataListIdAndBusinessAccountId", key = "{#dataListId}")
-    List<DataListOptionEntity> findByDataListIdAndBusinessAccountId(UUID dataListId, UUID businessAccountId);
+    @Cacheable(value = "DataListOptionRepository.findByDataListIdAndBusinessAccountId", key = "{#dataListId, #businessAccountId}")
+    @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and (option.businessAccountId is null or option.businessAccountId = :businessAccountId)")
+    List<DataListOptionEntity> findByDataListIdAndBusinessAccountId(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId);
 
-    int countByDataListId(UUID dataListId);
+    int countByDataListId(UUID dataListId); //todo make it businessAccount safe
 
-    List<DataListOptionEntity> findByIdIn(Collection<UUID> dataListOptionId);
-    List<DataListOptionEntity> findByIdInAndBusinessAccountId(Collection<UUID> dataListOptionId, UUID businessAccountId);
+    @Query(value = "from DataListOptionEntity option where option.businessAccountId is null and option.id in (:idList)")
+    List<DataListOptionEntity> findByIdIn(@Param("idList") Collection<UUID> dataListOptionId);
 
-    Optional<DataListOptionEntity> findByIdAndBusinessAccountId(UUID dataListOptionId, UUID businessAccountId);
+    @Query(value = "from DataListOptionEntity option where (option.businessAccountId is null or option.businessAccountId = :businessAccountId) and option.id in (:idList)")
+    List<DataListOptionEntity> findByIdInAndBusinessAccountId(@Param("idList") Collection<UUID> dataListOptionId, UUID businessAccountId);
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
             "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId )")
-    List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId);
+    List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId); //todo make it businessAccount safe
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
             "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.ownerBusinessAccountId = :businessAccountId )")
-    List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("businessAccountId") UUID businessAccountId);
+    List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("businessAccountId") UUID businessAccountId); //todo make it businessAccount safe
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
