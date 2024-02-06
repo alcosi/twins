@@ -1,5 +1,6 @@
 package org.twins.core.dao.history.context.snapshot;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
@@ -27,6 +28,7 @@ public class DataListOptionSnapshot {
                 .setDataListId(dataListOptionEntity.getDataListId());
     }
 
+    @JsonIgnore
     public String getValue() {
         if (StringUtils.isNotEmpty(optionI18n))
             return optionI18n;
