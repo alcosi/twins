@@ -154,7 +154,7 @@ public class TwinSearchService {
     protected JPACriteriaQueryStub createQueryStub(BasicSearch basicSearch, CriteriaBuilder criteriaBuilder, CriteriaQuery<?> criteriaQuery) throws ServiceException {
         Path<TwinEntity> select;
         List<Predicate> wherePredicateList;
-        if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap())) {
+        if (MapUtils.isNotEmpty(basicSearch.getTwinLinksMap()) || MapUtils.isNotEmpty(basicSearch.getTwinNoLinksMap())) {
             Root<TwinLinkEntity> fromTwinLink = criteriaQuery.from(TwinLinkEntity.class);
             select = fromTwinLink.get(TwinLinkEntity.Fields.srcTwin);
             wherePredicateList = createTwinLinkEntityPredicates(basicSearch, criteriaBuilder, criteriaQuery, fromTwinLink);
