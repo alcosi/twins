@@ -14,7 +14,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldChange {
+public class HistoryContextDatalistMultiChange extends HistoryContext {
     public static final String DISCRIMINATOR = "history.fieldChange.datalistMulti";
     private List<DataListOptionSnapshot> addedDataListOptionSnapshotList;
     private List<DataListOptionSnapshot> deletedDataListOptionSnapshotList;
@@ -31,22 +31,22 @@ public class HistoryContextFieldDatalistMultiChange extends HistoryContextFieldC
     }
 
     @Override
-    public String getTemplateFromValue() {
+    public String templateFromValue() {
         return null; //todo any idea?
     }
 
     @Override
-    public String getTemplateToValue() {
+    public String templateToValue() {
         return null; //todo any idea?
     }
 
-    public HistoryContextFieldDatalistMultiChange shotAddedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
+    public HistoryContextDatalistMultiChange shotAddedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
         addedDataListOptionSnapshotList = CollectionUtils.safeAdd(addedDataListOptionSnapshotList, DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;
     }
 
-    public HistoryContextFieldDatalistMultiChange shotDeletedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
+    public HistoryContextDatalistMultiChange shotDeletedDataListOption(DataListOptionEntity dataListOptionEntity, I18nService i18nService) {
         deletedDataListOptionSnapshotList = CollectionUtils.safeAdd(deletedDataListOptionSnapshotList, DataListOptionSnapshot
                 .convertEntity(dataListOptionEntity, i18nService));
         return this;

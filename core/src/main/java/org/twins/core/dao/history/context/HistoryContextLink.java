@@ -15,7 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class HistoryContextLink extends HistoryContext {
+public class HistoryContextLink extends HistoryContext implements IHistoryContextLink {
     public static final String DISCRIMINATOR = "history.link";
     private UUID twinLinkId;
     private LinkSnapshot link; //in case if link is already deleted from DB we can display this draft data
@@ -43,5 +43,15 @@ public class HistoryContextLink extends HistoryContext {
         LinkSnapshot.extractTemplateVars(vars, link, "link");
         TwinSnapshot.extractTemplateVars(vars, dstTwin, "dstTwin");
         return vars;
+    }
+
+    @Override
+    public String templateFromValue() {
+        return null;  //todo fixme
+    }
+
+    @Override
+    public String templateToValue() {
+        return null;  //todo fixme
     }
 }

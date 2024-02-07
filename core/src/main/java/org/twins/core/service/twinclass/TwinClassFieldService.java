@@ -16,6 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -120,5 +121,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     .setDescriptionI18NId(i18nEntity.getId());
         }
         entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
+        return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
     }
 }

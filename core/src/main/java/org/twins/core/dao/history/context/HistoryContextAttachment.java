@@ -28,6 +28,16 @@ public class HistoryContextAttachment extends HistoryContext {
         return vars;
     }
 
+    @Override
+    public String templateFromValue() {
+        return null; //todo fixme
+    }
+
+    @Override
+    public String templateToValue() {
+        return null; //todo fixme
+    }
+
     public HistoryContextAttachment shotAttachment(TwinAttachmentEntity attachmentEntity) {
         attachment = AttachmentSnapshot.convertEntity(attachmentEntity);
         return this;

@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.history.context.HistoryContextFieldDatalistMultiChange;
+import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
 import org.twins.core.dao.twin.TwinFieldEntity;
@@ -75,7 +75,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             }
             return;
         }
-        HistoryItem<HistoryContextFieldDatalistMultiChange> historyItem = historyService.fieldChangeDataListMulti(twinFieldEntity.getTwinClassField());
+        HistoryItem<HistoryContextDatalistMultiChange> historyItem = historyService.fieldChangeDataListMulti(twinFieldEntity.getTwinClassField());
         for (DataListOptionEntity dataListOptionEntity : dataListOptionEntityList) {
             if (!dataListOptionEntity.getDataListId().equals(fieldListId))
                 throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");

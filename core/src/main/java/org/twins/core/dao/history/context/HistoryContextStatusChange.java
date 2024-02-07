@@ -38,6 +38,16 @@ public class HistoryContextStatusChange extends HistoryContext {
         return vars;
     }
 
+    @Override
+    public String templateFromValue() {
+        return fromStatus != null ? fromStatus.getName() : "";
+    }
+
+    @Override
+    public String templateToValue() {
+        return toStatus != null ? toStatus.getName() : "";
+    }
+
     public HistoryContextStatusChange shotFromStatus(TwinStatusEntity statusEntity, I18nService i18nService) {
         fromStatus = StatusSnapshot.convertEntity(statusEntity, i18nService);
         return this;

@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class HistoryContextFieldUserMultiChange extends HistoryContextFieldChange {
+public class HistoryContextUserMultiChange extends HistoryContext {
     public static final String DISCRIMINATOR = "history.fieldChange.userMulti";
     private List<UUID> addedUserIdList;
     private List<UUID> deletedUserIdList;
@@ -30,21 +30,21 @@ public class HistoryContextFieldUserMultiChange extends HistoryContextFieldChang
     }
 
     @Override
-    public String getTemplateFromValue() {
+    public String templateFromValue() {
         return null; //todo any idea?
     }
 
     @Override
-    public String getTemplateToValue() {
+    public String templateToValue() {
         return null; //todo any idea?
     }
 
-    public HistoryContextFieldUserMultiChange shotAddedUserId(UUID userId) {
+    public HistoryContextUserMultiChange shotAddedUserId(UUID userId) {
         addedUserIdList = CollectionUtils.safeAdd(addedUserIdList, userId);
         return this;
     }
 
-    public HistoryContextFieldUserMultiChange shotDeletedUserId(UUID userId) {
+    public HistoryContextUserMultiChange shotDeletedUserId(UUID userId) {
         deletedUserIdList = CollectionUtils.safeAdd(deletedUserIdList, userId);
         return this;
     }

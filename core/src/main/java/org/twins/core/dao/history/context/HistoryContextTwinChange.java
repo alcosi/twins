@@ -36,4 +36,14 @@ public class HistoryContextTwinChange extends HistoryContext {
         TwinSnapshot.extractTemplateVars(vars, toTwin, "toTwin");
         return vars;
     }
+
+    @Override
+    public String templateFromValue() {
+        return fromTwin != null ? fromTwin.getName() : "";
+    }
+
+    @Override
+    public String templateToValue() {
+        return toTwin != null ? toTwin.getName() : "";
+    }
 }

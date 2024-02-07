@@ -16,7 +16,9 @@ public enum HistoryType {
     createdByChanged("createdByChanged"),
     assigneeChanged("assigneeChanged"),
 
+    fieldCreate("fieldCreate"),
     fieldChanged("fieldChanged"),
+    fieldDelete("fieldDelete"),
     markerChanged("markerChanged"),
     tagChanged("tagChanged"),
     attachmentCreate("attachmentCreate"),

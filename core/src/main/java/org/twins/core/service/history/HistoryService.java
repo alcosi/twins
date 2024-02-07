@@ -18,6 +18,7 @@ import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
+import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -30,6 +31,7 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,6 +44,7 @@ import java.util.*;
 public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Lazy
     final TwinService twinService;
+    final TwinClassFieldService twinClassFieldService;
     final HistoryRepository historyRepository;
     final HistoryTypeDomainTemplateRepository historyTypeDomainTemplateRepository;
     final AuthService authService;
@@ -86,10 +89,20 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context);
-        if (context instanceof HistoryContextFieldChange fieldChange && fieldChange.getField() != null)
-            historyEntity.setTwinClassFieldId(fieldChange.getField().getId());
-        else if (context instanceof HistoryContextLink linkChange) {
-
+        if (context.getField() != null) {
+            historyEntity.setTwinClassFieldId(context.getField().getId());
+            if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
+                if (StringUtils.isEmpty(context.templateFromValue()))
+                    historyEntity.setHistoryType(HistoryType.fieldCreate);
+                else if (StringUtils.isEmpty(context.templateToValue()))
+                    historyEntity.setHistoryType(HistoryType.fieldDelete);
+        } else if (context instanceof IHistoryContextLink linkChange) {
+            //we will try to detect if it's some field configured to represent current link
+            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getFieldIdConfiguredForLink(twinEntity.getTwinClassId(), linkChange.getLink().getId());
+            if (twinClassFieldEntity != null) {
+                historyEntity.setTwinClassFieldId(twinClassFieldEntity.getId());
+                context.setField(FieldSnapshot.convertEntity(twinClassFieldEntity, i18nService));
+            }
         }
         if (authService.getApiUser() != null)
             historyEntity.setHistoryBatchId(authService.getApiUser().getRequestId());
@@ -220,38 +233,38 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .shotToStatus(toStatus, i18nService));
     }
 
-    public HistoryItem<HistoryContextFieldSimpleChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
-        HistoryContextFieldSimpleChange context = new HistoryContextFieldSimpleChange()
+    public HistoryItem<HistoryContextStringChange> fieldChangeSimple(TwinClassFieldEntity twinClassFieldEntity, String fromValue, String toValue) {
+        HistoryContextStringChange context = new HistoryContextStringChange()
                 .setFromValue(fromValue)
                 .setToValue(toValue);
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextFieldUserChange> fieldChangeUser(TwinClassFieldEntity twinClassFieldEntity, UserEntity fromUser, UserEntity toUser) {
-        HistoryContextFieldUserChange context = new HistoryContextFieldUserChange()
+    public HistoryItem<HistoryContextUserChange> fieldChangeUser(TwinClassFieldEntity twinClassFieldEntity, UserEntity fromUser, UserEntity toUser) {
+        HistoryContextUserChange context = new HistoryContextUserChange()
                 .shotFromUser(fromUser)
                 .shotToUser(toUser);
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextFieldUserMultiChange> fieldChangeUserMulti(TwinClassFieldEntity twinClassFieldEntity) {
-        HistoryContextFieldUserMultiChange context = new HistoryContextFieldUserMultiChange();
+    public HistoryItem<HistoryContextUserMultiChange> fieldChangeUserMulti(TwinClassFieldEntity twinClassFieldEntity) {
+        HistoryContextUserMultiChange context = new HistoryContextUserMultiChange();
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextFieldDatalistChange> fieldChangeDataList(TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity fromDataListOption, DataListOptionEntity toDataListOption) {
-        HistoryContextFieldDatalistChange context = new HistoryContextFieldDatalistChange()
+    public HistoryItem<HistoryContextDatalistChange> fieldChangeDataList(TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity fromDataListOption, DataListOptionEntity toDataListOption) {
+        HistoryContextDatalistChange context = new HistoryContextDatalistChange()
                 .shotFromDataListOption(fromDataListOption, i18nService)
                 .shotToDataListOption(toDataListOption, i18nService);
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
 
-    public HistoryItem<HistoryContextFieldDatalistMultiChange> fieldChangeDataListMulti(TwinClassFieldEntity twinClassFieldEntity) {
-        HistoryContextFieldDatalistMultiChange context = new HistoryContextFieldDatalistMultiChange();
+    public HistoryItem<HistoryContextDatalistMultiChange> fieldChangeDataListMulti(TwinClassFieldEntity twinClassFieldEntity) {
+        HistoryContextDatalistMultiChange context = new HistoryContextDatalistMultiChange();
         context.shotField(twinClassFieldEntity, i18nService);
         return new HistoryItem<>(HistoryType.fieldChanged, context);
     }
@@ -286,6 +299,18 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
      * 2 change records will be stored. One for each twin (src and dst)
      */
     public HistoryCollectorMultiTwin linkCreated(TwinLinkEntity twinLinkEntity) {
+        HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
+        ret.forTwin(twinLinkEntity.getSrcTwin())
+                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
+        ret.forTwin(twinLinkEntity.getDstTwin())
+                .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getSrcTwin(), false));
+        return ret;
+    }
+
+    /**
+     * 2 change records will be stored. One for each twin (src and dst)
+     */
+    public HistoryCollectorMultiTwin fieldLinkCreated(TwinClassFieldEntity fieldEntity, TwinLinkEntity twinLinkEntity) {
         HistoryCollectorMultiTwin ret = new HistoryCollectorMultiTwin();
         ret.forTwin(twinLinkEntity.getSrcTwin())
                 .add(linkCreated(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));

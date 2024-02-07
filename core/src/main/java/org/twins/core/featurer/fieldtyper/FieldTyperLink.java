@@ -37,6 +37,8 @@ import java.util.stream.Collectors;
         name = "FieldTyperLink",
         description = "")
 public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink> {
+    public static final Integer ID = 1310;
+
     @Autowired
     EntitySmartService entitySmartService;
     @Lazy
@@ -118,6 +120,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             TwinLinkEntity newLink = newTwinLinks.get(0); //wh have only one element
             TwinLinkEntity storedLink = MapUtils.pullAny(storedLinksMap); // we will update any of existed link it doesn't matter which one. all other will be deleted
             if (!TwinLinkService.equalsInSrcTwinIdAndDstTwinId(newLink, storedLink)) {
+                newLink.setId(storedLink.getId());
                 if (linkDirection == LinkService.LinkDirection.forward) {
                     log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and dstTwin will be updated to " + newLink.getDstTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getDstTwin(), true));
@@ -125,7 +128,6 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
                     log.info(storedLink.easyLog(EasyLoggable.Level.SHORT) + " is already exists and srcTwin will be updated to " + newLink.getSrcTwinId());
                     twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(newLink, storedLink.getSrcTwin(), false));
                 }
-                newLink.setId(storedLink.getId());
                 twinChangesCollector.add(newLink);
             }
             deleteOutOfDateLinks(twinChangesCollector, storedLinksMap);
@@ -170,7 +172,12 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 
     public void deleteOutOfDateLinks(TwinChangesCollector twinChangesCollector, Map<UUID, TwinLinkEntity> outOfDateStoredLinksMap) {
         if (outOfDateStoredLinksMap != null && CollectionUtils.isNotEmpty(outOfDateStoredLinksMap.entrySet())) { // old values must be deleted
-            twinChangesCollector.deleteAll(TwinLinkEntity.class, outOfDateStoredLinksMap.values().stream().map(TwinLinkEntity::getId).toList());
+            List<UUID> deleteIdList = new ArrayList<>();
+            for (TwinLinkEntity twinLinkEntity : outOfDateStoredLinksMap.values()) {
+                deleteIdList.add(twinLinkEntity.getId());
+                twinChangesCollector.getHistoryCollector().add(historyService.linkDeleted(twinLinkEntity));
+            }
+            twinChangesCollector.deleteAll(TwinLinkEntity.class, deleteIdList);
         }
     }
 

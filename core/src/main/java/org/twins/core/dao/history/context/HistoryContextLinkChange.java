@@ -13,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @Accessors(chain = true)
-public class HistoryContextLinkChange extends HistoryContextTwinChange {
+public class HistoryContextLinkChange extends HistoryContextTwinChange implements IHistoryContextLink {
     public static final String DISCRIMINATOR = "history.linkChange";
     private UUID twinLinkId;
     private LinkSnapshot link; //in case if link is already deleted from DB we can display this draft data

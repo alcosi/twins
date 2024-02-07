@@ -38,4 +38,14 @@ public class HistoryContextUserChange extends HistoryContext {
         UserSnapshot.extractTemplateVars(vars, toUser, "toUser");
         return vars;
     }
+
+    @Override
+    public String templateFromValue() {
+        return fromUser != null ? fromUser.getName() : "";
+    }
+
+    @Override
+    public String templateToValue() {
+        return toUser != null ? toUser.getName() : "";
+    }
 }

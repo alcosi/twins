@@ -13,7 +13,7 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.history.context.HistoryContextFieldUserMultiChange;
+import org.twins.core.dao.history.context.HistoryContextUserMultiChange;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinFieldUserEntity;
 import org.twins.core.dao.twin.TwinFieldUserRepository;
@@ -91,7 +91,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             return;
         }
 
-        HistoryItem<HistoryContextFieldUserMultiChange> historyItem = historyService.fieldChangeUserMulti(twinFieldEntity.getTwinClassField());
+        HistoryItem<HistoryContextUserMultiChange> historyItem = historyService.fieldChangeUserMulti(twinFieldEntity.getTwinClassField());
         for (UserEntity userEntity : selectedUserEntityList) {
             //todo check if user valid for current filter result
             if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before

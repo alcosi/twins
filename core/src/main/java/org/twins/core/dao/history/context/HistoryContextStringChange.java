@@ -3,8 +3,6 @@ package org.twins.core.dao.history.context;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.HashMap;
-
 @Data
 @Accessors(chain = true)
 public class HistoryContextStringChange extends HistoryContext {
@@ -28,10 +26,12 @@ public class HistoryContextStringChange extends HistoryContext {
     }
 
     @Override
-    protected HashMap<String, String> extractTemplateVars() {
-        HashMap<String, String> vars = new HashMap<>();
-        vars.put("fromValue", fromValue != null ? fromValue : "");
-        vars.put("toValue", toValue != null ? toValue : "");
-        return vars;
+    public String templateFromValue() {
+        return fromValue != null ? fromValue : "";
+    }
+
+    @Override
+    public String templateToValue() {
+        return toValue != null ? toValue : "";
     }
 }

@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import org.cambium.i18n.service.I18nService;
+import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.io.Serializable;
 import java.util.HashMap;
@@ -22,28 +27,16 @@ import java.util.HashMap;
                 value = HistoryContextAttachmentChange.class
         ),
         @JsonSubTypes.Type(
-                name = HistoryContextFieldDatalistChange.DISCRIMINATOR,
-                value = HistoryContextFieldDatalistChange.class
+                name = HistoryContextDatalistChange.DISCRIMINATOR,
+                value = HistoryContextDatalistChange.class
         ),
         @JsonSubTypes.Type(
-                name = HistoryContextFieldDatalistMultiChange.DISCRIMINATOR,
-                value = HistoryContextFieldDatalistMultiChange.class
+                name = HistoryContextDatalistMultiChange.DISCRIMINATOR,
+                value = HistoryContextDatalistMultiChange.class
         ),
         @JsonSubTypes.Type(
-                name = HistoryContextFieldLinkChange.DISCRIMINATOR,
-                value = HistoryContextFieldLinkChange.class
-        ),
-        @JsonSubTypes.Type(
-                name = HistoryContextFieldSimpleChange.DISCRIMINATOR,
-                value = HistoryContextFieldSimpleChange.class
-        ),
-        @JsonSubTypes.Type(
-                name = HistoryContextFieldUserChange.DISCRIMINATOR,
-                value = HistoryContextFieldUserChange.class
-        ),
-        @JsonSubTypes.Type(
-                name = HistoryContextFieldUserMultiChange.DISCRIMINATOR,
-                value = HistoryContextFieldUserMultiChange.class
+                name = HistoryContextUserMultiChange.DISCRIMINATOR,
+                value = HistoryContextUserMultiChange.class
         ),
         @JsonSubTypes.Type(
                 name = HistoryContextLink.DISCRIMINATOR,
@@ -71,18 +64,31 @@ import java.util.HashMap;
         ),
 })
 @JsonIgnoreProperties(ignoreUnknown = true)
+@Data
+@Accessors(chain = true)
 public abstract class HistoryContext implements Serializable {
     @JsonIgnore
     private HashMap<String, String> templateVars;
-    public void setType(String type) {
-
-    }
+    public void setType(String type) {}
     @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
     public abstract String getType();
 
-//    public abstract boolean equals(Object o);
-//
-//    public abstract int hashCode();
+    protected FieldSnapshot field; //in case of changes of field
+
+
+    protected HashMap<String, String> extractTemplateVars() {
+        HashMap<String, String> vars = new HashMap<>();
+        FieldSnapshot.extractTemplateVars(vars, field, "field");
+        String fromValue = templateFromValue();
+        String toValue = templateToValue();
+        vars.put("fromValue", fromValue != null ? fromValue : "");
+        vars.put("toValue", toValue != null ? toValue : "");
+        return vars;
+    }
+
+    public abstract String templateFromValue();
+
+    public abstract String templateToValue();
 
     public HashMap<String, String> getTemplateVars() {
         if (templateVars == null)
@@ -90,5 +96,8 @@ public abstract class HistoryContext implements Serializable {
         return templateVars;
     }
 
-    protected abstract HashMap<String, String> extractTemplateVars();
+    public HistoryContext shotField(TwinClassFieldEntity fieldEntity, I18nService i18nService) {
+        field = FieldSnapshot.convertEntity(fieldEntity, i18nService);
+        return this;
+    }
 }
