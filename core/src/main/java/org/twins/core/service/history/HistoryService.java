@@ -93,9 +93,9 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             historyEntity.setTwinClassFieldId(context.getField().getId());
             if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
                 if (StringUtils.isEmpty(context.templateFromValue()))
-                    historyEntity.setHistoryType(HistoryType.fieldCreate);
+                    historyEntity.setHistoryType(HistoryType.fieldCreated);
                 else if (StringUtils.isEmpty(context.templateToValue()))
-                    historyEntity.setHistoryType(HistoryType.fieldDelete);
+                    historyEntity.setHistoryType(HistoryType.fieldDeleted);
         } else if (context instanceof IHistoryContextLink linkChange) {
             //we will try to detect if it's some field configured to represent current link
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getFieldIdConfiguredForLink(twinEntity.getTwinClassId(), linkChange.getLink().getId());
@@ -274,7 +274,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        return new HistoryItem<>(HistoryType.linkCreate, context);
+        return new HistoryItem<>(HistoryType.linkCreated, context);
     }
 
     public HistoryItem<HistoryContextLink> linkDeleted(UUID twinLinkId, LinkEntity linkEntity, TwinEntity dstTwinEntity, boolean forward) {
@@ -282,7 +282,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setTwinLinkId(twinLinkId)
                 .shotLink(linkEntity, forward, i18nService)
                 .shotDstTwin(dstTwinEntity);
-        return new HistoryItem<>(HistoryType.linkDelete, context);
+        return new HistoryItem<>(HistoryType.linkDeleted, context);
     }
 
     public HistoryItem<HistoryContextLinkChange> linkChange(UUID twinLinkId, LinkEntity linkEntity, TwinEntity fromTwinEntity, TwinEntity toTwinEntity) {
@@ -292,7 +292,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         context
                 .shotFromTwin(fromTwinEntity)
                 .shotToTwin(toTwinEntity);
-        return new HistoryItem<>(HistoryType.linkUpdate, context);
+        return new HistoryItem<>(HistoryType.linkUpdated, context);
     }
 
     /**

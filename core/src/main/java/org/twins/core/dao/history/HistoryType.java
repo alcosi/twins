@@ -16,17 +16,17 @@ public enum HistoryType {
     createdByChanged("createdByChanged"),
     assigneeChanged("assigneeChanged"),
 
-    fieldCreate("fieldCreate"),
+    fieldCreated("fieldCreated"),
     fieldChanged("fieldChanged"),
-    fieldDelete("fieldDelete"),
+    fieldDeleted("fieldDeleted"),
     markerChanged("markerChanged"),
     tagChanged("tagChanged"),
     attachmentCreate("attachmentCreate"),
     attachmentDelete("attachmentDelete"),
     attachmentUpdate("attachmentUpdate"),
-    linkCreate("linkCreate"), // 2 history records will be created
-    linkUpdate("linkUpdate"), // 3 history records will be created
-    linkDelete("linkDelete"), // 2 history records will be created
+    linkCreated("linkCreated"), // 2 history records will be created
+    linkUpdated("linkUpdated"), // 3 history records will be created
+    linkDeleted("linkDeleted"), // 2 history records will be created
     twinDeleted("twinDeleted"),
     unknown("unknown");
 
