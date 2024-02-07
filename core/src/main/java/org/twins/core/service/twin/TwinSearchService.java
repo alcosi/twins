@@ -13,7 +13,9 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.not;
@@ -31,16 +33,16 @@ public class TwinSearchService {
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         return where(
-                checkTwinLinks(basicSearch.getTwinLinksMap())
-                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList()))
-                        .and(not(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList())))
+                checkTwinLinksDummy(basicSearch.getTwinLinksMap())
+//                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList()))
+//                        .and(not(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList())))
                         .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
                         .and(checkClass(basicSearch.getTwinClassIdList(), authService.getApiUser()))
                         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList()))
-                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList()))
-                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList()))
-                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList()))
+//                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList()))
+//                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList()))
+//                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList()))
+//                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList()))
 
         );
     }
@@ -52,15 +54,12 @@ public class TwinSearchService {
 
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int size) throws ServiceException {
         TwinSearchResult twinSearchResult = new TwinSearchResult();
-        int page = offset / size;
         Page<TwinEntity> ret = twinRepository.findAll(where(createTwinEntitySearchSpecification(basicSearch)), PaginationUtils.pagination(offset /size, size, sort(false, TwinEntity.Fields.createdAt)));
-        if (ret != null)
-            return (TwinSearchResult) twinSearchResult
-                    .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                    .setOffset(offset)
-                    .setLimit(size)
-                    .setTotal(ret.getTotalElements());
-        return twinSearchResult;
+        return (TwinSearchResult) twinSearchResult
+                .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
+                .setOffset(offset)
+                .setLimit(size)
+                .setTotal(ret.getTotalElements());
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {
