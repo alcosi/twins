@@ -13,7 +13,7 @@ import java.util.HashMap;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class HistoryContextDatalistChange extends HistoryContext {
-    public static final String DISCRIMINATOR = "history.fieldChange.datalist";
+    public static final String DISCRIMINATOR = "history.datalistChange";
     private DataListOptionSnapshot fromDataListOption;
     private DataListOptionSnapshot toDataListOption;
 

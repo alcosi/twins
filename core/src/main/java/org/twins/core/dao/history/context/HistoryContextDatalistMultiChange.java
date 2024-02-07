@@ -15,7 +15,7 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class HistoryContextDatalistMultiChange extends HistoryContext {
-    public static final String DISCRIMINATOR = "history.fieldChange.datalistMulti";
+    public static final String DISCRIMINATOR = "history.datalistMultiChange";
     private List<DataListOptionSnapshot> addedDataListOptionSnapshotList;
     private List<DataListOptionSnapshot> deletedDataListOptionSnapshotList;
     @Override

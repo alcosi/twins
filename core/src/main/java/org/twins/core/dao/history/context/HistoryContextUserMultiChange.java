@@ -13,7 +13,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class HistoryContextUserMultiChange extends HistoryContext {
-    public static final String DISCRIMINATOR = "history.fieldChange.userMulti";
+    public static final String DISCRIMINATOR = "history.userMultiChange";
     private List<UUID> addedUserIdList;
     private List<UUID> deletedUserIdList;
 
