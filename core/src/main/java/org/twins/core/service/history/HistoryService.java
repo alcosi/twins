@@ -89,19 +89,21 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context);
-        if (context.getField() != null) {
-            historyEntity.setTwinClassFieldId(context.getField().getId());
-            if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
-                if (StringUtils.isEmpty(context.templateFromValue()))
-                    historyEntity.setHistoryType(HistoryType.fieldCreated);
-                else if (StringUtils.isEmpty(context.templateToValue()))
-                    historyEntity.setHistoryType(HistoryType.fieldDeleted);
-        } else if (context instanceof IHistoryContextLink linkChange) {
-            //we will try to detect if it's some field configured to represent current link
-            TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getFieldIdConfiguredForLink(twinEntity.getTwinClassId(), linkChange.getLink().getId());
-            if (twinClassFieldEntity != null) {
-                historyEntity.setTwinClassFieldId(twinClassFieldEntity.getId());
-                context.setField(FieldSnapshot.convertEntity(twinClassFieldEntity, i18nService));
+        if (context != null) {
+            if (context.getField() != null) {
+                historyEntity.setTwinClassFieldId(context.getField().getId());
+                if (historyEntity.getHistoryType() == HistoryType.fieldChanged) //we will use more detailed type
+                    if (StringUtils.isEmpty(context.templateFromValue()))
+                        historyEntity.setHistoryType(HistoryType.fieldCreated);
+                    else if (StringUtils.isEmpty(context.templateToValue()))
+                        historyEntity.setHistoryType(HistoryType.fieldDeleted);
+            } else if (context instanceof IHistoryContextLink linkChange) {
+                //we will try to detect if it's some field configured to represent current link
+                TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getFieldIdConfiguredForLink(twinEntity.getTwinClassId(), linkChange.getLink().getId());
+                if (twinClassFieldEntity != null) {
+                    historyEntity.setTwinClassFieldId(twinClassFieldEntity.getId());
+                    context.setField(FieldSnapshot.convertEntity(twinClassFieldEntity, i18nService));
+                }
             }
         }
         if (authService.getApiUser() != null)
