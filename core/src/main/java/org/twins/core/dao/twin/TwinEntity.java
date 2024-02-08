@@ -14,6 +14,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.UUID;
 
 @Entity
@@ -93,6 +94,15 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @ManyToOne
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assignerUser;
+
+    @OneToMany
+    @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
+    private Collection<TwinLinkEntity> linksBySrcTwinId;
+
+    @OneToMany
+    @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
+    private Collection<TwinLinkEntity> linksByDstTwinId;
+
 
     @Transient
     @EqualsAndHashCode.Exclude

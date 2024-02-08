@@ -3,7 +3,6 @@ package org.twins.core.service.twin;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.context.annotation.Lazy;
@@ -12,14 +11,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 
 import static org.cambium.common.util.PaginationUtils.sort;
-import static org.springframework.data.jpa.domain.Specification.not;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
@@ -34,18 +31,18 @@ public class TwinSearchService {
     final AuthService authService;
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
-        boolean links = MapUtils.isNotEmpty(basicSearch.getTwinLinksMap()) || MapUtils.isNotEmpty(null);
-        ApiUser apiUser = authService.getApiUser();
-        return where(links ? checkJoinLinksSingleSpecification(basicSearch, apiUser) :
-                checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList()))
-                .and(not(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdExcludeList())))
-                .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
-                .and(checkClass(basicSearch.getTwinClassIdList(), apiUser))
-                //todo create filter by basicSearch.getExtendsTwinClassIdList()
-                .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList()))
-                .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList()))
-                .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList()))
-                .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList()));
+        return where(
+                checkTwinLinks(basicSearch.getTwinLinksMap(), null)
+                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdExcludeList(), true))
+                        .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
+                        .and(checkClass(basicSearch.getTwinClassIdList(), authService.getApiUser()))
+                        //todo create filter by basicSearch.getExtendsTwinClassIdList()
+                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
+        );
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
