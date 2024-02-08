@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Table(name = "link")
+@FieldNameConstants
 public class LinkEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
