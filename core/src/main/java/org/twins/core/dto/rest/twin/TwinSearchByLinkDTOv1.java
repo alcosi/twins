@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,5 +15,5 @@ public class TwinSearchByLinkDTOv1 {
     public UUID linkId;
 
     @Schema(description = "Twin dest ids for in(ex)clude from search")
-    public List<UUID> dstTwinIdList = new ArrayList<>();
+    public List<UUID> dstTwinIdList;
 }

@@ -87,13 +87,13 @@ public class BasicSearch {
 
     public BasicSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
         if (twinLinksMap == null) twinLinksMap = new HashMap<>();
-        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>());
+        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
     public BasicSearch addNoLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
         if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
-        twinNoLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(dstTwinIdList);
+        twinNoLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
