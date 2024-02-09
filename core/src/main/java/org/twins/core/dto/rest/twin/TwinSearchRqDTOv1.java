@@ -41,6 +41,9 @@ public class TwinSearchRqDTOv1 extends Request {
     @Schema(description = "Reporter id list")
     public List<UUID> createdByUserIdList;
 
-    @Schema(description = "Reporter id list")
+    @Schema(description = "Include dst twins with given links")
     public List<TwinSearchByLinkDTOv1> linksList;
+
+    @Schema(description = "Exclude dst twins with given links")
+    public List<TwinSearchByLinkDTOv1> noLinksList;
 }

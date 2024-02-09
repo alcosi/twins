@@ -21,6 +21,7 @@ public class BasicSearch {
     Set<UUID> ownerUserIdList;
     Set<UUID> ownerBusinessAccountIdList;
     Map<UUID, Set<UUID>> twinLinksMap;
+    Map<UUID, Set<UUID>> twinNoLinksMap;
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = safeAdd(twinIdList, twinId);
@@ -90,6 +91,11 @@ public class BasicSearch {
         return this;
     }
 
+    public BasicSearch addNoLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
+        if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
+        twinNoLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(dstTwinIdList);
+        return this;
+    }
 
     private <T> Set<T> safeAdd(Set<T> set, T element) {
         if (set == null) set = new HashSet<>();
