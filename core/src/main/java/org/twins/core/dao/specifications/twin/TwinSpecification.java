@@ -52,33 +52,34 @@ public class TwinSpecification {
         UUID finalBusinessAccountId = businessAccountId;
         return (twin, query, cb) -> {
             if (!CollectionUtils.isEmpty(twinClassUuids)) {
+                List<Predicate> predicates = new ArrayList<>();
                 for (UUID twinClassId : twinClassUuids) {
-                    Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
                     Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
-
-                    Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
-                    Predicate joinPredicateUserLevel = cb.or(
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                    );
-                    Predicate joinPredicateBusinessLevel = cb.or(
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
-                            cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                    );
-
-                    Predicate rootPredicateUser = cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId);
-                    Predicate rootPredicateBusiness = cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
-                    return cb.and(
-                            checkClassId,
-                            cb.or(
-                                    cb.and(joinPredicateUserLevel, rootPredicateUser),
-                                    cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
-                                    //todo system level:  add Subquery to detect valid user and business account twins
-                            )
-                    );
-
+                    predicates.add(checkClassId);
                 }
+                Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
+                Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
+                Predicate joinPredicateUserLevel = cb.or(
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+                );
+                Predicate joinPredicateBusinessLevel = cb.or(
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+                );
+
+                Predicate rootPredicateUser = cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId);
+                Predicate rootPredicateBusiness = cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
+
+                return cb.and(
+                        getPredicate(cb, predicates, true),
+                        cb.or(
+                                cb.and(joinPredicateUserLevel, rootPredicateUser),
+                                cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
+                                //todo system level:  add Subquery to detect valid user and business account twins
+                        )
+                );
             } else { // no class filter, so we have to add force filtering by owner
                 Predicate predicate;
                 if (apiUser.isUserSpecified()) {
@@ -123,10 +124,10 @@ public class TwinSpecification {
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinLeft = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
                 for (Map.Entry<UUID, Set<UUID>> entry : noTwinLinksMap.entrySet()) {
                     Predicate linkCondition, dstTwinCondition, nullSrcTwin, unitedPredicate;
-                    if(entry.getValue().isEmpty()) {
+                    if (entry.getValue().isEmpty()) {
                         linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey()).not();
                         nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
-                        unitedPredicate = cb.or(linkCondition,nullSrcTwin);
+                        unitedPredicate = cb.or(linkCondition, nullSrcTwin);
                     } else {
                         linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey());
                         dstTwinCondition = linkSrcTwinLeft.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue()).not();
