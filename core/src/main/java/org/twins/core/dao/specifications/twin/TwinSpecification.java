@@ -101,7 +101,6 @@ public class TwinSpecification {
                 } else cb.and(predicate, cb.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)));
                 return predicate;
             }
-            return null;
         };
     }
 
