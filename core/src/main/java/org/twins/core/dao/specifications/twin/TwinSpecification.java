@@ -15,10 +15,8 @@ import java.util.*;
 
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
-
 @Slf4j
 public class TwinSpecification {
-
     private TwinSpecification() {
     }
 
@@ -32,12 +30,11 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search)) {
+            if (CollectionUtils.isNotEmpty(search))
                 for (String s : search) {
                     Predicate predicate = cb.like(cb.lower(root.get(field)), s.toLowerCase());
                     predicates.add(predicate);
                 }
-            }
             return getPredicate(cb, predicates, or);
         };
     }
@@ -58,6 +55,7 @@ public class TwinSpecification {
                 for (UUID twinClassId : twinClassUuids) {
                     Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
                     Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
+
                     Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
                     Predicate joinPredicateUserLevel = cb.or(
                             cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
@@ -68,6 +66,7 @@ public class TwinSpecification {
                             cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
                             cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
                     );
+
                     Predicate rootPredicateUser = cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId);
                     Predicate rootPredicateBusiness = cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
                     return cb.and(
@@ -105,29 +104,48 @@ public class TwinSpecification {
         };
     }
 
-
     public static Specification<TwinEntity> checkTwinLinks(Map<UUID, Set<UUID>> twinLinksMap, Map<UUID, Set<UUID>> noTwinLinksMap) {
         return (root, query, cb) -> {
+
             List<Predicate> predicates = new ArrayList<>();
             if (MapUtils.isNotEmpty(twinLinksMap)) {
-                Join<TwinEntity, TwinLinkEntity> linkSrcTwin = root.join(TwinEntity.Fields.linksBySrcTwinId);
-//                Join<TwinEntity, TwinLinkEntity> linkDstTwin = root.join(TwinEntity.Fields.linksByDstTwinId);
+                //todo на данном этапе join в linksByDstTwinId не нужен, как и это поле в twinentit, может убрать?
+                Join<TwinEntity, TwinLinkEntity> linkSrcTwinInner = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
                 for (Map.Entry<UUID, Set<UUID>> entry : twinLinksMap.entrySet()) {
-                    Predicate linkCondition = cb.equal(linkSrcTwin.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                    Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwin.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
+                    Predicate linkCondition = cb.equal(linkSrcTwinInner.get(TwinLinkEntity.Fields.linkId), entry.getKey());
+                    Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInner.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
                     predicates.add(cb.and(linkCondition, dstTwinCondition));
                 }
             }
-            return predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
+            Predicate include = predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
+
+            predicates = new ArrayList<>();
+            if (MapUtils.isNotEmpty(noTwinLinksMap)) {
+                Join<TwinEntity, TwinLinkEntity> linkSrcTwinLeft = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
+                for (Map.Entry<UUID, Set<UUID>> entry : noTwinLinksMap.entrySet()) {
+                    Predicate linkCondition, dstTwinCondition, nullSrcTwin, unitedPredicate;
+                    if(entry.getValue().isEmpty()) {
+                        linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey()).not();
+                        nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
+                        unitedPredicate = cb.or(linkCondition,nullSrcTwin);
+                    } else {
+                        linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey());
+                        dstTwinCondition = linkSrcTwinLeft.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue()).not();
+                        unitedPredicate = cb.and(linkCondition, dstTwinCondition);
+                    }
+                    predicates.add(unitedPredicate);
+                }
+            }
+            Predicate exclude = predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
+
+            return cb.and(include, exclude);
         };
     }
 
     public static Predicate getPredicate(CriteriaBuilder cb, List<Predicate> predicates, boolean or) {
-        int size = predicates.size();
-        if (size == 0) {
-            return cb.conjunction();
-        } else {
-            Predicate[] stockArr = new Predicate[size];
+        if (predicates.isEmpty()) return cb.conjunction();
+        else {
+            Predicate[] stockArr = new Predicate[predicates.size()];
             stockArr = predicates.toArray(stockArr);
             return or ? cb.or(stockArr) : cb.and(stockArr);
         }

@@ -32,7 +32,7 @@ public class TwinSearchService {
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         return where(
-                checkTwinLinks(basicSearch.getTwinLinksMap(), null)
+                checkTwinLinks(basicSearch.getTwinLinksMap(), basicSearch.getTwinNoLinksMap())
                         .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdExcludeList(), true))
                         .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
@@ -47,8 +47,17 @@ public class TwinSearchService {
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
         List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sort(false, TwinEntity.Fields.createdAt));
+        //todo чей-та за проверка если мы ранее проверили домен юзера и бизнес акк. Чисто лог для контроля если что-то проскочит?
         return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
     }
+
+    //*****************************************************//
+    //todo уточнить про offset и кратность size.           //
+    // ибо в репозитории pagination постраничный           //
+    // of25 + sz10 = pg2 (21-30) могут ожидать 26-35?      //
+    // of8 + s10 = pg0 (1-10) могут ожидать 9-18?          //
+    // если кратно, то of30 + sz10 = pg3 (31-40) - все окей//
+    //*****************************************************//
 
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int size) throws ServiceException {
         TwinSearchResult twinSearchResult = new TwinSearchResult();

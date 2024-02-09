@@ -11,9 +11,9 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinSearchByLinkV1")
 public class TwinSearchByLinkDTOv1 {
-    @Schema(description = "Twin class id list")
+    @Schema(description = "Twin-link class id")
     public UUID linkId;
 
-    @Schema(description = "Head twin id list")
+    @Schema(description = "Twin dest ids for in(ex)clude from search")
     public List<UUID> dstTwinIdList;
 }
