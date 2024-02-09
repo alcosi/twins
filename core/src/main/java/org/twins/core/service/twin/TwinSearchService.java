@@ -19,6 +19,7 @@ import java.util.*;
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
+import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
 @Service
 @Slf4j
@@ -47,19 +48,20 @@ public class TwinSearchService {
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
         List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sort(false, TwinEntity.Fields.createdAt));
-        //todo чей-та за проверка если мы ранее проверили домен юзера и бизнес акк. Чисто лог для контроля если что-то проскочит?
+        //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
         return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
     }
 
-    //*****************************************************//
-    //todo уточнить про offset и кратность size.           //
-    // ибо в репозитории pagination постраничный           //
-    // of25 + sz10 = pg2 (21-30) могут ожидать 26-35?      //
-    // of8 + s10 = pg0 (1-10) могут ожидать 9-18?          //
-    // если кратно, то of30 + sz10 = pg3 (31-40) - все окей//
-    //*****************************************************//
+    //***********************************************************************//
+    //todo clarify about offset and multiplicity of size.                    //
+    // because in the repository pagination is paginated                     //
+    // of25 + sz10 = pg2 (21-30) can expect 26-35?                           //
+    // of8 + s10 = pg0 (1-10) can expect 9-18?                               //
+    // if it is a multiple, then of30 + sz10 = pg3 (31-40) - everything is ok//
+    //***********************************************************************//
 
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int size) throws ServiceException {
+        if(offset % size > 0) throw new ServiceException(PAGINATION_ERROR);
         TwinSearchResult twinSearchResult = new TwinSearchResult();
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.pagination(offset / size, size, sort(false, TwinEntity.Fields.createdAt)));

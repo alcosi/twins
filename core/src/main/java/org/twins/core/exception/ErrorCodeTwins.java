@@ -48,7 +48,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
-    TWIN_STATUS_INCORRECT(11101, "twin status is incorrect");
+    TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
+    PAGINATION_ERROR(11201, "the offset must be a multiple of the size");
 
     private final int code;
     private final String message;

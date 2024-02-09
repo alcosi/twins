@@ -109,7 +109,6 @@ public class TwinSpecification {
 
             List<Predicate> predicates = new ArrayList<>();
             if (MapUtils.isNotEmpty(twinLinksMap)) {
-                //todo на данном этапе join в linksByDstTwinId не нужен, как и это поле в twinentit, может убрать?
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinInner = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
                 for (Map.Entry<UUID, Set<UUID>> entry : twinLinksMap.entrySet()) {
                     Predicate linkCondition = cb.equal(linkSrcTwinInner.get(TwinLinkEntity.Fields.linkId), entry.getKey());
