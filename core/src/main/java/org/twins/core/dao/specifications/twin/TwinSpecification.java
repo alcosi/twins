@@ -130,7 +130,8 @@ public class TwinSpecification {
                     } else {
                         linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey());
                         dstTwinCondition = linkSrcTwinLeft.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue()).not();
-                        unitedPredicate = cb.and(linkCondition, dstTwinCondition);
+                        nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
+                        unitedPredicate = cb.or(cb.and(linkCondition, dstTwinCondition), nullSrcTwin);
                     }
                     predicates.add(unitedPredicate);
                 }

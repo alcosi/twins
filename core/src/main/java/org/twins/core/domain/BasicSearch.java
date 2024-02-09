@@ -87,7 +87,7 @@ public class BasicSearch {
 
     public BasicSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
         if (twinLinksMap == null) twinLinksMap = new HashMap<>();
-        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(dstTwinIdList);
+        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>());
         return this;
     }
 
