@@ -7,8 +7,10 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -65,14 +67,23 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return true;
     }
 
-    public List<HistoryEntity> findHistory(UUID twinId, int childDepth, Sort.Direction createdBySortDirection) throws ServiceException {
+    public HistoryListResult findHistory(UUID twinId, int childDepth, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
         UserEntity user = authService.getApiUser().getUser();
+        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
         List<HistoryEntity> list = null;
-        if (childDepth == 0)
-            list = historyRepository.findByTwinId(twinId, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
-        else //todo support different depth
-            list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
-        return list;
+        long countElement = 0;
+        if (childDepth == 0) {
+            list = historyRepository.findByTwinId(twinId, pageable);
+            countElement = historyRepository.countByTwinId(twinId);
+        } else {//todo support different depth
+            list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable).getContent();
+            countElement = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, Pageable.unpaged()).getNumberOfElements();
+        }
+        return (HistoryListResult) new HistoryListResult()
+                .setHistoryList(list)
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(countElement);
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {
