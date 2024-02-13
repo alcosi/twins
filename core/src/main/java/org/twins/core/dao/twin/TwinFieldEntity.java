@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_field")
+@FieldNameConstants
 public class TwinFieldEntity extends EasyLoggableImpl {
     @Id
     private UUID id;

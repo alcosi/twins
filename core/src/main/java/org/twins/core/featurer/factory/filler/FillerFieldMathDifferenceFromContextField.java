@@ -26,6 +26,8 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Properties;
 import java.util.UUID;
 
+import static org.cambium.common.util.StringUtils.fmt;
+
 @Component
 @Featurer(id = 2321,
         name = "FillerFieldMathDifferenceFromContextField",
@@ -88,11 +90,5 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
 
     }
 
-    public static String fmt(double d)
-    {
-        if(d == (long) d)
-            return String.format("%d",(long)d);
-        else
-            return String.format("%s",d);
-    }
+
 }
