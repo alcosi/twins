@@ -14,12 +14,13 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
-import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
 @Service
 @Slf4j
@@ -61,10 +62,9 @@ public class TwinSearchService {
     //***********************************************************************//
 
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int size) throws ServiceException {
-        if(offset % size > 0) throw new ServiceException(PAGINATION_ERROR);
         TwinSearchResult twinSearchResult = new TwinSearchResult();
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
-        Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.pagination(offset / size, size, sort(false, TwinEntity.Fields.createdAt)));
+        Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.paginationOffset(offset, size, sort(false, TwinEntity.Fields.createdAt)));
         return (TwinSearchResult) twinSearchResult
                 .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
                 .setOffset(offset)

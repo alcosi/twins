@@ -37,6 +37,9 @@ import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
+import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_LIMIT;
+import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_OFFSET;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,8 +86,8 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
@@ -146,8 +149,8 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
