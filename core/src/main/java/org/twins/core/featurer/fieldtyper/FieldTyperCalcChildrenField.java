@@ -6,13 +6,8 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.specifications.twin.TwinFieldSpecification;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
-
-import java.util.List;
-import java.util.Properties;
 
 public interface FieldTyperCalcChildrenField {
 
@@ -24,19 +19,6 @@ public interface FieldTyperCalcChildrenField {
 
     @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Stauss.IDs from query result")
     FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
-
-
-    default Specification<TwinFieldEntity> getCalcChildrenFieldSpecification(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return  Specification.where(TwinFieldSpecification.getCalcChildrenFieldSpecification(
-                twinFieldEntity, exclude.extract(properties), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties))
-        );
-    }
-
-    default Double sumChildrenFieldValues(List<TwinFieldEntity> twinFieldEntities) throws ServiceException {
-        double result = 0d;
-        if (!twinFieldEntities.isEmpty()) for (TwinFieldEntity item : twinFieldEntities) result += parseTwinFieldValue(item);
-        return result;
-    }
 
     default Double parseTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
         double result = 0d;

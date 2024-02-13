@@ -36,14 +36,10 @@ public class FieldTyperCalcChildrenFieldV2 extends FieldTyper<FieldDescriptorTex
     @Deprecated
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-//        List<TwinFieldEntity> resultTwinFieldsList = twinFieldRepository.findAll(getCalcChildrenFieldSpecification(properties, twinFieldEntity));
-//        double result = sumChildrenFieldValues(resultTwinFieldsList);
-
         double result =
                 exclude.extract(properties) ?
                         twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
                         twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
-
         detectValueChange(twinFieldEntity, twinChangesCollector, fmt(result));
     }
 

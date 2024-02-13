@@ -11,7 +11,6 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
-import java.util.List;
 import java.util.Properties;
 
 import static org.cambium.common.util.StringUtils.fmt;
@@ -39,7 +38,11 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        List<TwinFieldEntity> resultTwinFieldsList = twinFieldRepository.findAll(getCalcChildrenFieldSpecification(properties, twinFieldEntity));
-        return new FieldValueText().setValue(fmt(sumChildrenFieldValues(resultTwinFieldsList)));
+        double result =
+                exclude.extract(properties) ?
+                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
+                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+
+        return new FieldValueText().setValue(fmt(result));
     }
 }
