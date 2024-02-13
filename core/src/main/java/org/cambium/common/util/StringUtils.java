@@ -20,5 +20,12 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
         return s.replace(str);
     }
 
+    public static String fmt(double d)
+    {
+        if(d == (long) d)
+            return String.format("%d",(long)d);
+        else
+            return String.format("%s",d);
+    }
 
 }

@@ -11,17 +11,18 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
-import java.util.List;
 import java.util.Properties;
 
 import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
-@Featurer(id = 1312,
-        name = "FieldTyperCalcChildrenFieldV1",
-        description = "Get sum of child.fields.values on fly")
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText> implements FieldTyperCalcChildrenField {
-    public static final Integer ID = 1312;
+@Featurer(id = 1313,
+        name = "FieldTyperCalcChildrenFieldV2",
+        description = """
+Save sum of child.fields.values on serializeValue, and return saved total from database
+                              """)
+public class FieldTyperCalcChildrenFieldV2 extends FieldTyper<FieldDescriptorText, FieldValueText> implements FieldTyperCalcChildrenField {
+    public static final Integer ID = 1313;
 
     @Autowired
     TwinFieldRepository twinFieldRepository;
@@ -35,11 +36,19 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
     @Deprecated
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+//        List<TwinFieldEntity> resultTwinFieldsList = twinFieldRepository.findAll(getCalcChildrenFieldSpecification(properties, twinFieldEntity));
+//        double result = sumChildrenFieldValues(resultTwinFieldsList);
+
+        double result =
+                exclude.extract(properties) ?
+                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
+                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+
+        detectValueChange(twinFieldEntity, twinChangesCollector, fmt(result));
     }
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        List<TwinFieldEntity> resultTwinFieldsList = twinFieldRepository.findAll(getCalcChildrenFieldSpecification(properties, twinFieldEntity));
-        return new FieldValueText().setValue(fmt(sumChildrenFieldValues(resultTwinFieldsList)));
+        return new FieldValueText().setValue(fmt(parseTwinFieldValue(twinFieldEntity)));
     }
 }
