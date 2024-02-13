@@ -32,6 +32,9 @@ import org.twins.core.service.history.HistoryService;
 
 import java.util.UUID;
 
+import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_LIMIT;
+import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_OFFSET;
+
 @Tag(description = "", name = ApiTag.HISTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -59,8 +62,8 @@ public class HistoryListController extends ApiController {
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._HIDE) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit) {
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
             HistoryListResult historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);

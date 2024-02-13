@@ -77,7 +77,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             countElement = historyRepository.countByTwinId(twinId);
         } else {//todo support different depth
             list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable).getContent();
-            countElement = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, Pageable.unpaged()).getNumberOfElements();
+            countElement = historyRepository.countByTwinIdIncludeFirstLevelChildren(twinId);
         }
         return (HistoryListResult) new HistoryListResult()
                 .setHistoryList(list)
