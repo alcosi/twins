@@ -32,8 +32,8 @@ import org.twins.core.service.history.HistoryService;
 
 import java.util.UUID;
 
-import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_LIMIT;
-import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(description = "", name = ApiTag.HISTORY)
 @RestController

@@ -8,6 +8,8 @@ import org.springframework.data.domain.Sort;
 import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
 public class PaginationUtils {
+    public static final String DEFAULT_VALUE_LIMIT = "10";
+    public static final String DEFAULT_VALUE_OFFSET = "0";
 
     public static Sort sort(boolean asc, String field) {
         Sort.Direction direction = Sort.Direction.DESC;

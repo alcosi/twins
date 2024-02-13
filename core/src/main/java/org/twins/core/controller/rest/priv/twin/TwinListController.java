@@ -37,11 +37,11 @@ import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
-import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_LIMIT;
-import static org.cambium.constant.PaginationConstant.DEFAULT_VALUE_OFFSET;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController

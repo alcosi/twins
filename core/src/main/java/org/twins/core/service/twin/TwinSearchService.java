@@ -73,12 +73,11 @@ public class TwinSearchService {
     }
 
     public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int size) throws ServiceException {
-        if(offset % size > 0) throw new ServiceException(PAGINATION_ERROR);
         TwinSearchResult twinSearchResult = new TwinSearchResult();
         Specification<TwinEntity> spec = where(null);
         for(BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pagination(offset / size, size, sort(false, TwinEntity.Fields.createdAt)));
+        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset , size, sort(false, TwinEntity.Fields.createdAt)));
         return (TwinSearchResult) twinSearchResult
                 .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
                 .setOffset(offset)
