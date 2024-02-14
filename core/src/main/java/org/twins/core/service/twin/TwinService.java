@@ -697,6 +697,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return duplicateEntity;
     }
 
+    public UserEntity getTwinAssignee(UUID twinId) {
+        return twinRepository.getAssignee(twinId);
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {
