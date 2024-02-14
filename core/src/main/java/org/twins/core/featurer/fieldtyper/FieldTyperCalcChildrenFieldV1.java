@@ -38,11 +38,6 @@ public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorTex
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        double result =
-                exclude.extract(properties) ?
-                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
-                        twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
-
-        return new FieldValueText().setValue(fmt(result));
+        return new FieldValueText().setValue(fmt(getSumResult(properties, twinFieldEntity, twinFieldRepository)));
     }
 }

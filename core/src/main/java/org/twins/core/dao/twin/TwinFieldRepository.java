@@ -13,11 +13,21 @@ import java.util.UUID;
 @Repository
 public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUID>, JpaSpecificationExecutor<TwinFieldEntity> {
 
-    @Query(value = "select sum(cast(field.value as double)) from TwinFieldEntity field join TwinEntity twin on field.twinId = twin.headTwinId where field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList")
-    Double sumChildrenTwinFieldValuesWithStatusIn(@Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    @Query(value = """
+            select coalesce(sum(cast(field.value as double)), 0)
+            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
+            where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
+             """)
+    double sumChildrenTwinFieldValuesWithStatusIn(
+            @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
-    @Query(value = "select sum(cast(field.value as double)) from TwinFieldEntity field join TwinEntity twin on field.twinId = twin.headTwinId where field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList")
-    Double sumChildrenTwinFieldValuesWithStatusNotIn(@Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+    @Query(value = """
+            select coalesce(sum(cast(field.value as double)), 0)
+            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
+            where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
+             """)
+    double sumChildrenTwinFieldValuesWithStatusNotIn(
+            @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
 
     List<TwinFieldEntity> findByTwinId(UUID twinId);
