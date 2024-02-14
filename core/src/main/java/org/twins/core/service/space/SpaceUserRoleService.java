@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dto.rest.space.SpaceRoleUserSearch;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
@@ -25,6 +26,20 @@ public class SpaceUserRoleService {
     final EntitySmartService entitySmartService;
     final SpaceRoleUserRepository spaceRoleUserRepository;
     final AuthService authService;
+
+    // twinId is equivalent of spaceId
+
+    public List<UserEntity> findAllUsersBySpaceId(UUID twinId) throws ServiceException {
+        return spaceRoleUserRepository.findAllByTwinId(twinId);
+    }
+
+    public List<UserEntity> findUsers(SpaceRoleUserSearch search, UUID spaceId) {
+        if(search.getRolesList().isEmpty()) {
+            return spaceRoleUserRepository.findByTwinIdAndNameLike(spaceId, search.getNameLike());
+        } else {
+            return spaceRoleUserRepository.findByTwinIdAndNameLikeAndRoleIn(spaceId, search.getNameLike(), search.getRolesList());
+        }
+    }
 
     public List<UserEntity> findUserByRole(UUID twinId, UUID spaceRoleId) throws ServiceException {
         return spaceRoleUserRepository.findByTwinIdAndSpaceRoleId(twinId, spaceRoleId);
