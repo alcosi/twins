@@ -32,4 +32,5 @@ public interface RestRequestParam {
     String sortDirection = "sortDirection";
     String paginationOffset = "offset";
     String paginationLimit = "limit";
+    String filename = "filename";
 }

@@ -13,4 +13,5 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
     List<TwinflowTransitionEntity> findByTwinflowIdAndSrcTwinStatusId(UUID twinflowId, UUID srcTwinStatusId);
     List<TwinflowTransitionEntity> findByTwinflowIdInAndSrcTwinStatusIdIn(Set<UUID> twinflowIdList, Set<UUID> srcTwinStatusIdList);
     List<TwinflowTransitionEntity> findByTwinflowTransitionAliasId(String alias); //todo also filter by current domainId
+    List<TwinflowTransitionEntity> findByTwinflowIdIn(Set<UUID> twinflowUuids);
 }

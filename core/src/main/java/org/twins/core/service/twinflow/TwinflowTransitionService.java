@@ -90,6 +90,13 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return true;
     }
 
+    public Set<TwinflowTransitionEntity> getTransitionsByTwinflows(Set<TwinflowEntity> twinflowEntities) {
+        Set<UUID> twinflowUuids = new HashSet<>();
+        for(TwinflowEntity twinflowEntity : twinflowEntities) twinflowUuids.add(twinflowEntity.getId());
+        return  new HashSet<>(twinflowTransitionRepository.findByTwinflowIdIn(twinflowUuids));
+    }
+
+
     public Kit<TwinflowTransitionEntity> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getValidTransitionsKit() != null)
             return twinEntity.getValidTransitionsKit();

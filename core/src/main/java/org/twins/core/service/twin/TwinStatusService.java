@@ -15,9 +15,7 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Lazy
 @Slf4j
@@ -46,6 +44,16 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         twinClassService.loadExtendedClasses(twinClassEntity);
         return twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
     }
+
+    public Map<TwinClassEntity, List<TwinStatusEntity>> findByTwinClasses(List<TwinClassEntity> twinClassEntities) {
+        Map<TwinClassEntity, List<TwinStatusEntity>> result = new HashMap<>();
+        for(TwinClassEntity twinClassEntity : twinClassEntities) {
+            twinClassService.loadExtendedClasses(twinClassEntity);
+            result.put(twinClassEntity, twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()));
+        }
+        return result;
+    }
+
 
     //todo cache it
     public Kit<TwinStatusEntity> findByTwinClassAsMap(TwinClassEntity twinClassEntity) {

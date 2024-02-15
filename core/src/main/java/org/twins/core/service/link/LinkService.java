@@ -78,6 +78,15 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         return linksResult;
     }
 
+    public Set<LinkEntity> findLinksSet(List<TwinClassEntity> twinClassEntities) throws ServiceException {
+        Set<LinkEntity> result = new HashSet<>();
+        for(TwinClassEntity twinClass : twinClassEntities) {
+            Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClass);
+            result.addAll(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses));
+        }
+        return result;
+    }
+
     public boolean isForwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
         return twinClassService.isInstanceOf(twinClassEntity, linkEntity.getSrcTwinClassId());
     }
