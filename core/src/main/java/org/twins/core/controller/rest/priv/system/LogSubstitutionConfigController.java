@@ -17,9 +17,9 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.system.log.CommandRsDTOv1;
+import org.twins.core.dto.rest.system.CommandRsDTOv1;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.domain.system.log.LogSupportService;
+import org.twins.core.service.system.LogSupportService;
 
 @Tag(description = "Config substitution for log file", name = ApiTag.SYSTEM)
 @RestController

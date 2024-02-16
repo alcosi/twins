@@ -95,7 +95,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     //todo support space
-    public TwinflowEntity loadTwinflow(TwinClassEntity twinClass) throws ServiceException {
+    public TwinflowEntity loadTwinflowsForTwinClass(TwinClassEntity twinClass) throws ServiceException {
         if (twinClass.getTwinflow() != null)
             return twinClass.getTwinflow();
         TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
@@ -103,8 +103,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinflowEntity;
     }
 
-    public Set<TwinflowEntity> loadTwinflow(List<TwinClassEntity> twinClasses) throws ServiceException {
-        Set<TwinflowEntity> result = new HashSet<>();
+    public void loadTwinflowsForTwinClasses(List<TwinClassEntity> twinClasses) throws ServiceException {
         for(TwinClassEntity twinClass : twinClasses) {
             if (twinClass.getTwinflow() == null) {
                 try {
@@ -114,9 +113,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                     System.out.println(e.getMessage());
                 }
             }
-            if (twinClass.getTwinflow() != null) result.add(twinClass.getTwinflow());
         }
-        return result;
     }
 
     public TwinflowEntity getTwinflow(UUID twinClassId) throws ServiceException {

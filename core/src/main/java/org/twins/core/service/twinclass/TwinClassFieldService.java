@@ -76,8 +76,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassEntity.getTwinClassFieldKit();
     }
 
-    public Set<TwinClassFieldEntity> loadTwinClassFields(List<TwinClassEntity> twinClassEntities) {
-        Set<TwinClassFieldEntity> result = new HashSet<>();
+    public void loadTwinClassFields(List<TwinClassEntity> twinClassEntities) {
         for(TwinClassEntity twinClassEntity : twinClassEntities) {
             if (twinClassEntity.getTwinClassFieldKit() == null) {
                 Set<UUID> extendedClasses = twinClassService.loadExtendedClasses(twinClassEntity);
@@ -85,9 +84,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 ret = ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
                 twinClassEntity.setTwinClassFieldKit(new Kit<>(ret, TwinClassFieldEntity::getTwinClassId));
             }
-            result.addAll(twinClassEntity.getTwinClassFieldKit().getList());
         }
-        return result;
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {

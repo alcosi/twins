@@ -45,13 +45,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
     }
 
-    public Map<TwinClassEntity, List<TwinStatusEntity>> findByTwinClasses(List<TwinClassEntity> twinClassEntities) {
-        Map<TwinClassEntity, List<TwinStatusEntity>> result = new HashMap<>();
+    public void loadStatusesForTwinClasses(List<TwinClassEntity> twinClassEntities) {
         for(TwinClassEntity twinClassEntity : twinClassEntities) {
             twinClassService.loadExtendedClasses(twinClassEntity);
-            result.put(twinClassEntity, twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()));
+            twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getTwinClassId));
         }
-        return result;
     }
 
 
