@@ -16,15 +16,20 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
+import org.twins.core.dao.user.UserEntity;
+import org.twins.core.domain.system.UserWithinSpaceRolesListRsDTOv1;
+import org.twins.core.domain.system.UsersMapWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearchDTOv1;
+import org.twins.core.domain.system.SpaceRoleUserSearchDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
+import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOMapper;
-import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.domain.system.SpaceRoleUserSearchRqDTOMapper;
 
-import java.util.UUID;
+import java.util.*;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -60,19 +65,19 @@ public class SpaceRoleUserListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleWithinUserListV1", summary = "Return all users of specific space")
+    @Operation(operationId = "spaceRoleWithinUserMapV1", summary = "Return all users within roles of specific space")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserListRsDTOv1.class))}),
+                    @Schema(implementation = UsersMapWithinSpaceRolesListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/users/list/v1")
     public ResponseEntity<?> spaceUserListV1(
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode) {
-        UserListRsDTOv1 rs = new UserListRsDTOv1();
+        UsersMapWithinSpaceRolesListRsDTOv1 rs = new UsersMapWithinSpaceRolesListRsDTOv1();
         try {
-            rs.userList = userRestDTOMapper.convertList(spaceUserRoleService.findAllUsersBySpaceId(spaceId), new MapperContext().setMode(showUserMode));
+            rs.spaceRoleUsersMap = convert(spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId), showUserMode);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -82,26 +87,43 @@ public class SpaceRoleUserListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleWithinUserListV1", summary = "Search users within their roles of specific space")
+    @Operation(operationId = "spaceRoleWithinUserMapV1", summary = "Search users within their roles of specific space")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = UserListRsDTOv1.class))}),
+                    @Schema(implementation = UsersMapWithinSpaceRolesListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/users/search/v1")
     public ResponseEntity<?> spaceRoleUserSearchV1(
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
             @RequestBody SpaceRoleUserSearchDTOv1 request) {
-        UserListRsDTOv1 rs = new UserListRsDTOv1();
+        UsersMapWithinSpaceRolesListRsDTOv1 rs = new UsersMapWithinSpaceRolesListRsDTOv1();
         try {
-            rs.userList = userRestDTOMapper.convertList(spaceUserRoleService.findUsers(userSearchRqDTOMapper.convert(request), spaceId), new MapperContext().setMode(showUserMode));
+            rs.spaceRoleUsersMap = convert(spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOMapper.convert(request), spaceId), showUserMode);
         } catch (ServiceException se) {
+            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
+            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    private Map<UUID, UserWithinSpaceRolesListRsDTOv1> convert(Map<UserEntity, List<SpaceRoleUserEntity>> userMap, UserRestDTOMapper.Mode showUserMode) throws Exception {
+        Map<UUID, UserWithinSpaceRolesListRsDTOv1> resultMap = new HashMap<>();
+        UserWithinSpaceRolesListRsDTOv1 userRoleDto;
+        for(Map.Entry<UserEntity, List<SpaceRoleUserEntity>> entry : userMap.entrySet()) {
+            UserDTOv1 userDto =  userRestDTOMapper.convert(entry.getKey(), new MapperContext().setMode(showUserMode));
+            userRoleDto = new UserWithinSpaceRolesListRsDTOv1().setUser(userDto).setSpaceRoleUserList(new ArrayList<>());
+            for(SpaceRoleUserEntity role : entry.getValue()) {
+                SpaceRoleUserDTOv1 roleDto = new SpaceRoleUserDTOv1().id(role.getId()).name(role.getSpaceRole().getKey());
+                userRoleDto.getSpaceRoleUserList().add(roleDto);
+            }
+            resultMap.put(entry.getKey().getId(), userRoleDto);
+        }
+        return resultMap;
     }
 
 }

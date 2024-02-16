@@ -1,9 +1,7 @@
-package org.twins.core.mappers.rest.space;
+package org.twins.core.domain.system;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearchDTOv1;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearch;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 

@@ -1,4 +1,4 @@
-package org.twins.core.service.space;
+package org.twins.core.controller.rest.priv.space;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -6,18 +6,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearch;
+import org.twins.core.domain.system.SpaceRoleUserSearch;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -29,16 +28,35 @@ public class SpaceUserRoleService {
 
     // twinId is equivalent of spaceId
 
-    public List<UserEntity> findAllUsersBySpaceId(UUID twinId) throws ServiceException {
-        return spaceRoleUserRepository.findAllByTwinId(twinId);
+    public Map<UserEntity, List<SpaceRoleUserEntity>> getAllUsersRefRolesBySpaceIdMap(UUID twinId) throws ServiceException {
+        List<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAllByTwinId(twinId);
+        return createUserRoleMap(spaceRoleUserEntities);
     }
 
-    public List<UserEntity> findUsers(SpaceRoleUserSearch search, UUID spaceId) {
-        if(search.getRolesList().isEmpty()) {
-            return spaceRoleUserRepository.findByTwinIdAndNameLike(spaceId, search.getNameLike());
-        } else {
-            return spaceRoleUserRepository.findByTwinIdAndNameLikeAndRoleIn(spaceId, search.getNameLike(), search.getRolesList());
+
+    public Map<UserEntity, List<SpaceRoleUserEntity>> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID spaceId) throws ServiceException {
+        if(CollectionUtils.isEmpty(search.getRolesList()) && ObjectUtils.isEmpty(search.getNameLike())) return getAllUsersRefRolesBySpaceIdMap(spaceId);
+        else {
+            List<SpaceRoleUserEntity> spaceRoleUserEntities;
+            String name = search.getNameLike();
+            if (CollectionUtils.isEmpty(search.getRolesList()) && !ObjectUtils.isEmpty(name)) {
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLike(spaceId, name);
+            } else if(CollectionUtils.isNotEmpty(search.getRolesList()) && ObjectUtils.isEmpty(name)) {
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndRoleIn(spaceId, search.getRolesList());
+            } else {
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLikeAndRoleIn(spaceId, name, search.getRolesList());
+            }
+            return createUserRoleMap(spaceRoleUserEntities);
         }
+    }
+
+    private Map<UserEntity, List<SpaceRoleUserEntity>> createUserRoleMap(List<SpaceRoleUserEntity> spaceRoleUserEntities) {
+        Map<UserEntity, List<SpaceRoleUserEntity>> result = new HashMap<>();
+        for(SpaceRoleUserEntity item : spaceRoleUserEntities) {
+            result.putIfAbsent(item.getUser(), new ArrayList<>());
+            result.get(item.getUser()).add(item);
+        }
+        return result;
     }
 
     public List<UserEntity> findUserByRole(UUID twinId, UUID spaceRoleId) throws ServiceException {

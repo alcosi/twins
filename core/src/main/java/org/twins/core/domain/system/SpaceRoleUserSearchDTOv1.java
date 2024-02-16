@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.space;
+package org.twins.core.domain.system;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -14,9 +14,9 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "SpaceUserSearchV1")
 public class SpaceRoleUserSearchDTOv1 extends Request {
-    @Schema(description = "Filter by user name, case ignore", example = "Test User")
+    @Schema(description = "Filter by user name, case ignore", example = "st Us")
     public String nameLike;
 
-    @Schema(description = "Filter by specific roles(uuids)", example = "793e3120-e14a-4a22-ab09-060b9fedee35")
+    @Schema(description = "Filter by specific roles(uuids)", example = "[\"793e3120-e14a-4a22-ab09-060b9fedee35\"]")
     public List<UUID> rolesList;
 }
