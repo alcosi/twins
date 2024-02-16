@@ -68,22 +68,28 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             if (extendedTwinClasses.contains(linkEntity.getSrcTwinClassId())) {
                 if (twinClassService.isEntityReadDenied(linkEntity.getDstTwinClass(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
-                linksResult.forwardLinks.put(linkEntity.getId() ,linkEntity);
+                linksResult.forwardLinks.put(linkEntity.getId(), linkEntity);
             } else if (extendedTwinClasses.contains(linkEntity.getDstTwinClassId())) {
                 if (twinClassService.isEntityReadDenied(linkEntity.getSrcTwinClass(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
-                linksResult.backwardLinks.put(linkEntity.getId() ,linkEntity);
+                linksResult.backwardLinks.put(linkEntity.getId(), linkEntity);
             } else
                 log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
         }
         return linksResult;
     }
 
-    public void loadLinksForTwinClasses(List<TwinClassEntity> twinClassEntities) throws ServiceException {
-        for(TwinClassEntity twinClass : twinClassEntities) {
-            Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClass);
-            twinClass.setLinksKit(new Kit<>(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses), LinkEntity::getId));
-        }
+    public void loadLinksForTwinClasses(List<TwinClassEntity> twinClassEntities) {
+        for (TwinClassEntity twinClass : twinClassEntities)
+            loadLinks(twinClass);
+    }
+
+    public Kit<LinkEntity> loadLinks(TwinClassEntity twinClassEntity){
+        if (twinClassEntity.getLinksKit() != null)
+            return twinClassEntity.getLinksKit();
+        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClassEntity);
+        twinClassEntity.setLinksKit(new Kit<>(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses), LinkEntity::getId));
+        return twinClassEntity.getLinksKit();
     }
 
     public boolean isForwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {
