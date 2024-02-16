@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -76,6 +77,13 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 log.warn(linkEntity.easyLog(EasyLoggable.Level.NORMAL) + " is incorrect");
         }
         return linksResult;
+    }
+
+    public void loadLinksForTwinClasses(List<TwinClassEntity> twinClassEntities) throws ServiceException {
+        for(TwinClassEntity twinClass : twinClassEntities) {
+            Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClass);
+            twinClass.setLinksKit(new Kit<>(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses), LinkEntity::getId));
+        }
     }
 
     public boolean isForwardLink(LinkEntity linkEntity, TwinClassEntity twinClassEntity) throws ServiceException {

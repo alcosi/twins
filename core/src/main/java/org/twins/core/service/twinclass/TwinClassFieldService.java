@@ -22,6 +22,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -73,6 +74,17 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         ret = ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
         twinClassEntity.setTwinClassFieldKit(new Kit<>(ret, TwinClassFieldEntity::getTwinClassId));
         return twinClassEntity.getTwinClassFieldKit();
+    }
+
+    public void loadTwinClassFields(List<TwinClassEntity> twinClassEntities) {
+        for(TwinClassEntity twinClassEntity : twinClassEntities) {
+            if (twinClassEntity.getTwinClassFieldKit() == null) {
+                Set<UUID> extendedClasses = twinClassService.loadExtendedClasses(twinClassEntity);
+                List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(extendedClasses);
+                ret = ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
+                twinClassEntity.setTwinClassFieldKit(new Kit<>(ret, TwinClassFieldEntity::getTwinClassId));
+            }
+        }
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {

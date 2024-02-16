@@ -1,0 +1,10 @@
+# autocomlete for make(twins log substitutions)
+_make_filename_completion() {
+    local cur=${COMP_WORDS[COMP_CWORD]}
+    if [[ "$cur" == cfg=* || "$cur" == src=* ]]; then
+        COMPREPLY=($(compgen -f -- "${cur#*=}" ))
+    else
+        COMPREPLY=($(compgen -W "$(make -pRrq : 2>/dev/null | awk -v RS= -F: '/^# Files/,/^# Finished Make data base/ {if ($1 !~ "^[#.]") {print $1}}' | sort | uniq)" -- "$cur"))
+    fi
+}
+# autocomlete for make(twins log substitutions)

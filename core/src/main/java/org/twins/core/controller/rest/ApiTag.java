@@ -16,4 +16,5 @@ public class ApiTag {
     public static final String BUSINESS_ACCOUNT = "businessAccount";
     public static final String DOMAIN = "domain";
     public static final String SPACE = "space";
+    public static final String SYSTEM = "system";
 }

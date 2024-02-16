@@ -19,7 +19,6 @@ import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
-import org.twins.core.featurer.transition.validator.TransitionValidator;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -96,12 +95,25 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     }
 
     //todo support space
-    public TwinflowEntity loadTwinflow(TwinClassEntity twinClass) throws ServiceException {
+    public TwinflowEntity loadTwinflowsForTwinClass(TwinClassEntity twinClass) throws ServiceException {
         if (twinClass.getTwinflow() != null)
             return twinClass.getTwinflow();
         TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
         twinClass.setTwinflow(twinflowEntity);
         return twinflowEntity;
+    }
+
+    public void loadTwinflowsForTwinClasses(List<TwinClassEntity> twinClasses) throws ServiceException {
+        for(TwinClassEntity twinClass : twinClasses) {
+            if (twinClass.getTwinflow() == null) {
+                try {
+                    TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
+                    twinClass.setTwinflow(twinflowEntity);
+                } catch (ServiceException e) {
+                    System.out.println(e.getMessage());
+                }
+            }
+        }
     }
 
     public TwinflowEntity getTwinflow(UUID twinClassId) throws ServiceException {

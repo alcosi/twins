@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
@@ -90,10 +91,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return true;
     }
 
+    public void loadTransitionsForTwinClasses(List<TwinClassEntity> twinClasses) {
+        for(TwinClassEntity twinClass : twinClasses)
+            if(null != twinClass.getTwinflow())
+                twinClass.setTransitionsKit(new Kit<>(twinflowTransitionRepository.findByTwinflowId(twinClass.getTwinflow().getId()), TwinflowTransitionEntity::getTwinflowId));
+    }
+
+
     public Kit<TwinflowTransitionEntity> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getValidTransitionsKit() != null)
             return twinEntity.getValidTransitionsKit();
-        TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity.getTwinClass());
+        TwinflowEntity twinflowEntity = twinflowService.loadTwinflowsForTwinClass(twinEntity.getTwinClass());
         List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findByTwinflowIdAndSrcTwinStatusId(twinflowEntity.getId(), twinEntity.getTwinStatusId());
         if (CollectionUtils.isEmpty(twinflowTransitionEntityList))
             return null;
@@ -123,7 +131,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
             statusIdList.add(twinEntity.getTwinStatusId());
-            twinflowService.loadTwinflow(twinEntity.getTwinClass());
+            twinflowService.loadTwinflowsForTwinClass(twinEntity.getTwinClass());
             twinflowIdList.add(twinEntity.getTwinClass().getTwinflow().getId());
         }
         if (CollectionUtils.isEmpty(statusIdList))

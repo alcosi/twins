@@ -8,7 +8,10 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
+import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
 import java.sql.Timestamp;
 import java.util.Arrays;
@@ -109,6 +112,18 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinClassFieldEntity> twinClassFieldKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinStatusEntity> twinStatusKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<LinkEntity> linksKit;
+    //TODO m.b. move to Twinflow entity? services logic
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowTransitionEntity> transitionsKit;
 
     public String easyLog(Level level) {
         switch (level) {
