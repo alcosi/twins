@@ -24,7 +24,7 @@ public class FillerMarkerDelete extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        if (factoryItem.getOutputTwin() instanceof TwinUpdate twinUpdate)
+        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
             twinUpdate.deleteMarker(markerId.extract(properties));
     }
 }

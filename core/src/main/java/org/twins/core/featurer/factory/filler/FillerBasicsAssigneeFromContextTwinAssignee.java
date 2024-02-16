@@ -17,8 +17,8 @@ import java.util.Properties;
 public class FillerBasicsAssigneeFromContextTwinAssignee extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
-        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
+        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
+        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         outputTwinEntity
                 .setAssignerUser(contextTwin.getAssignerUser())
                 .setAssignerUserId(contextTwin.getAssignerUserId());

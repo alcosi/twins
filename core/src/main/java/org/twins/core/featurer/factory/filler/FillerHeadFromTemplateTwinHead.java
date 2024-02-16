@@ -20,7 +20,7 @@ public class FillerHeadFromTemplateTwinHead extends Filler {
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template twin");
         if (templateTwin.getHeadTwinId() == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Empty template head twin");
-        factoryItem.getOutputTwin().getTwinEntity()
+        factoryItem.getOutput().getTwinEntity()
                 .setHeadTwin(templateTwin.getHeadTwin())
                 .setHeadTwinId(templateTwin.getHeadTwinId());
     }

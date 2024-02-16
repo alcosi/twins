@@ -25,26 +25,26 @@ public class MultiplierIsolatedCopy extends Multiplier {
     @FeaturerParam(name = "copyHead", description = "")
     public static final FeaturerParamBoolean copyHead = new FeaturerParamBoolean("copyHead");
     @Override
-    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         List<FactoryItem> ret = new ArrayList<>();
-        for (TwinEntity inputTwin : inputTwinList) {
+        for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
                     .setName("")
-                    .setTwinClass(inputTwin.getTwinClass())
-                    .setTwinClassId(inputTwin.getTwinClassId())
+                    .setTwinClass(inputItem.getTwin().getTwinClass())
+                    .setTwinClassId(inputItem.getTwin().getTwinClassId())
                     .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
             if (copyHead.extract(properties))
                 newTwin
-                        .setHeadTwin(inputTwin.getHeadTwin())
-                        .setHeadTwinId(inputTwin.getHeadTwinId());
+                        .setHeadTwin(inputItem.getTwin().getHeadTwin())
+                        .setHeadTwinId(inputItem.getTwin().getHeadTwinId());
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(newTwin);
             ret.add(new FactoryItem()
-                    .setOutputTwin(twinCreate)
-                    .setContextTwinList(List.of(inputTwin)));
+                    .setOutput(twinCreate)
+                    .setContextFactoryItemList(List.of(inputItem)));
         }
         return ret;
     }

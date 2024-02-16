@@ -24,7 +24,7 @@ public class FillerForwardLinksFromContextTwin extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
+        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin.getId(), linksIds.extract(properties));
         if (CollectionUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + linksIds.extract(properties) + "] configured from " + contextTwin.logShort());

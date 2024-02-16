@@ -219,13 +219,14 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     .setInputTwinList(transitionContext.getTargetTwinList().values())
                     .setFields(transitionContext.getFields())
                     .setAttachmentCUD(transitionContext.getAttachmentCUD());
-            if (CollectionUtils.isNotEmpty(transitionContext.getNewTwinList())) //new twins must be added to factory content for having possibility to run pipelines for them
+            if (CollectionUtils.isNotEmpty(transitionContext.getNewTwinList())) { //new twins must be added to factory content for having possibility to run pipelines for them
                 for (TwinCreate twinCreate : transitionContext.getNewTwinList()) {
                     factoryContext.getFactoryItemList().add(new FactoryItem()
-                            .setOutputTwin(twinCreate)
-                            .setFactoryContext(factoryContext)
-                            .setContextTwinList(transitionContext.getTargetTwinList().values().stream().toList()));
+                            .setOutput(twinCreate)
+                            .setFactoryContext(factoryContext));
+//                            .setContextFactoryItemList(transitionContext.getTargetTwinList().values().stream().toList())); //fixme
                 }
+            }
             LoggerUtils.traceTreeStart();
             List<TwinOperation> twinFactoryOutput;
             try {

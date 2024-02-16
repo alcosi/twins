@@ -42,12 +42,15 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    //todo delete it
     @Column(name = "allow_comment")
     private boolean allowComment;
 
+    //todo delete it
     @Column(name = "allow_attachments")
     private boolean allowAttachment;
 
+    //todo delete it
     @Column(name = "allow_links")
     private boolean allowLinks;
 

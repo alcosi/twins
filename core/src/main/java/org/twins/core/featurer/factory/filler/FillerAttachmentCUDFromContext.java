@@ -20,9 +20,9 @@ public class FillerAttachmentCUDFromContext extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (factoryItem.getFactoryContext().getAttachmentCUD() == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Not attachments in context");
-        if (factoryItem.getOutputTwin() instanceof TwinUpdate twinUpdate)
+        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
             twinUpdate.setAttachmentCUD(factoryItem.getFactoryContext().getAttachmentCUD().clone());
-        else if (factoryItem.getOutputTwin() instanceof TwinCreate twinCreate) {
+        else if (factoryItem.getOutput() instanceof TwinCreate twinCreate) {
             twinCreate.setAttachmentEntityList(factoryItem.getFactoryContext().getAttachmentCUD().clone().getCreateList());
         }
     }

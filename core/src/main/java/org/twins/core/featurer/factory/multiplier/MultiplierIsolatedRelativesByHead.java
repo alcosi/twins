@@ -38,9 +38,10 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
     TwinSearchService twinSearchService;
 
     @Override
-    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         List<FactoryItem> ret = new ArrayList<>();
-        for (TwinEntity inputTwin : inputTwinList) {
+        for (FactoryItem inputItem : inputFactoryItemList) {
+            TwinEntity inputTwin = inputItem.getTwin();
             twinService.loadHeadForTwin(inputTwin);
             if (inputTwin.getHeadTwin() == null) {
                 log.error(inputTwin.logShort() + " no head twin. Skipped by multiplier");
@@ -62,8 +63,8 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
                         .setDbTwinEntity(relativeTwinEntity) // original twin
                         .setTwinEntity(relativeTwinEntity.clone()); // collecting updated in new twin
                 ret.add(new FactoryItem()
-                        .setOutputTwin(twinUpdate)
-                        .setContextTwinList(List.of(inputTwin)));
+                        .setOutput(twinUpdate)
+                        .setContextFactoryItemList(List.of(inputItem)));
             }
         }
         return ret;

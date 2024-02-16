@@ -26,7 +26,7 @@ public abstract class FillerLinks extends Filler {
     LinkService linkService;
 
     protected void addLinks(FactoryItem factoryItem, List<TwinLinkEntity> twinLinkList) {
-        TwinOperation outputTwin = factoryItem.getOutputTwin();
+        TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : twinLinkList) {
             twinLinkEntityList.add(new TwinLinkEntity()

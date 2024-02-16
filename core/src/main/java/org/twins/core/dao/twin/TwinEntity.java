@@ -139,6 +139,11 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @EqualsAndHashCode.Exclude
     private Kit<DataListOptionEntity> twinTagKit;
 
+    @Override
+    public String toString() {
+        return logDetailed();
+    }
+
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:

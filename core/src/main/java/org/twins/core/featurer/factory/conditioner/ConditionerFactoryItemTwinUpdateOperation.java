@@ -17,6 +17,6 @@ import java.util.Properties;
 public class ConditionerFactoryItemTwinUpdateOperation extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return factoryItem.getOutputTwin() instanceof TwinUpdate;
+        return factoryItem.getOutput() instanceof TwinUpdate;
     }
 }

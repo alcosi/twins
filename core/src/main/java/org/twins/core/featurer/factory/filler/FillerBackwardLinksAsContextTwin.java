@@ -29,18 +29,19 @@ public class FillerBackwardLinksAsContextTwin extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkSingleContextTwin(factoryItem); // all context twins must be the same class
-        List<LinkEntity> linkEntityList = linkService.findLinks(contextTwin.getTwinClass(), factoryItem.getOutputTwin().getTwinEntity().getTwinClass());
+        TwinEntity contextTwin = factoryItem.checkSingleContextTwin(); // all context twins must be the same class
+        List<LinkEntity> linkEntityList = linkService.findLinks(contextTwin.getTwinClass(), factoryItem.getOutput().getTwinEntity().getTwinClass());
         if (CollectionUtils.isEmpty(linkEntityList))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutput().getTwinEntity().getTwinClass().logShort());
         if (linkEntityList.size() > 1) {
-            log.warn(linkEntityList.size() + " links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutputTwin().getTwinEntity().getTwinClass().logShort());
+            log.warn(linkEntityList.size() + " links configured from " + contextTwin.getTwinClass().logShort() + " to " + factoryItem.getOutput().getTwinEntity().getTwinClass().logShort());
             //todo get link by hierarchy priority
         }
         LinkEntity linkEntity = linkEntityList.get(0);
-        TwinOperation outputTwin = factoryItem.getOutputTwin();
+        TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
-        for (TwinEntity contextTwinEntity : factoryItem.getContextTwinList()) {
+        for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) {
+            TwinEntity contextTwinEntity = contextItem.getTwin();
             twinLinkEntityList.add(new TwinLinkEntity()
                     .setDstTwin(contextTwinEntity) //setting dst, because TwinLinkService.prepareTwinLinks will hold it
                     .setDstTwinId(contextTwinEntity.getId())

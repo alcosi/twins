@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -17,6 +19,9 @@ import java.util.Properties;
         description = "")
 @Slf4j
 public abstract class Filler extends Featurer {
+    @Lazy
+    @Autowired
+    TwinFactoryService factoryService;
 
     public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin, String logMsg) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fillerParams, new HashMap<>());
@@ -30,19 +35,5 @@ public abstract class Filler extends Featurer {
         return true; // most steps can be option by default. otherwise method must be overridden
     }
 
-    public static TwinEntity checkNotMultiplyContextTwin(FactoryItem factoryItem) throws ServiceException {
-        if (factoryItem.getContextTwinList().size() == 0)
-            return null;
-        else if (factoryItem.getContextTwinList().size() > 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "context twin size > 1. Please check multiplier");
-        else
-            return factoryItem.getContextTwinList().get(0);
-    }
 
-    public static TwinEntity checkSingleContextTwin(FactoryItem factoryItem) throws ServiceException {
-        if (factoryItem.getContextTwinList().size() != 1)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "context twin size != 1. Please check multiplier");
-        else
-            return factoryItem.getContextTwinList().get(0);
-    }
 }

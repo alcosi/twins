@@ -14,11 +14,11 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2413,
-        name = "ConditionerFactoryItemTwinInstanceOf",
+@Featurer(id = 2417,
+        name = "ConditionerContextTwinInstanceOfDeep",
         description = "")
 @Slf4j
-public class ConditionerFactoryItemTwinInstanceOf extends Conditioner {
+public class ConditionerContextTwinInstanceOfDeep extends Conditioner {
     @FeaturerParam(name = "instanceOfTwinClassId", description = "")
     public static final FeaturerParamUUID instanceOfTwinClassId = new FeaturerParamUUID("instanceOfTwinClassId");
 
@@ -28,6 +28,19 @@ public class ConditionerFactoryItemTwinInstanceOf extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClassId(), instanceOfTwinClassId.extract(properties));
+        return check(properties, factoryItem, 5);  //hope 5 is more than enough here
+    }
+
+
+    protected boolean check(Properties properties, FactoryItem factoryItem, int recursionCounter) throws ServiceException {
+        if (recursionCounter <= 0)
+            return false;
+        FactoryItem contextItem = factoryItem.checkNotMultiplyContextItem();
+        if (contextItem == null)
+            return false;
+        if (twinClassService.isInstanceOf(contextItem.getTwin().getTwinClassId(), instanceOfTwinClassId.extract(properties)))
+            return true;
+        // we will try to look deeper
+        return check(properties, factoryItem.checkNotMultiplyContextItem(), recursionCounter - 1);
     }
 }

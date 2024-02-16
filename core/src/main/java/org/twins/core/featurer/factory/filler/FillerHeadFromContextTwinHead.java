@@ -19,7 +19,8 @@ public class FillerHeadFromContextTwinHead extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID detectedHeadTwinId = null;
         TwinEntity detectedHeadTwin = null;
-        for (TwinEntity contextTwin : factoryItem.getContextTwinList()) { // we will check if all context twins have the save headTwinId, otherwise exception
+        for (FactoryItem contextItem : factoryItem.getContextFactoryItemList()) { // we will check if all context twins have the save headTwinId, otherwise exception
+            TwinEntity contextTwin = contextItem.getTwin();
             if (detectedHeadTwinId == null) {
                 detectedHeadTwinId = contextTwin.getHeadTwinId();
                 detectedHeadTwin = contextTwin.getHeadTwin();
@@ -29,7 +30,7 @@ public class FillerHeadFromContextTwinHead extends Filler {
             }
         }
 
-        factoryItem.getOutputTwin().getTwinEntity()
+        factoryItem.getOutput().getTwinEntity()
                 .setHeadTwin(detectedHeadTwin)
                 .setHeadTwinId(detectedHeadTwinId);
     }

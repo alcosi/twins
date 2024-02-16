@@ -18,7 +18,7 @@ public class ConditionerFactoryItemTwinIsInFactoryInputList extends Conditioner 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         for (TwinEntity factoryInputTwinEntity : factoryItem.getFactoryContext().getInputTwinList()) {
-            if (factoryInputTwinEntity.getId().equals(factoryItem.getOutputTwin().getTwinEntity().getId()))
+            if (factoryInputTwinEntity.getId().equals(factoryItem.getOutput().getTwinEntity().getId()))
                 return true;
         }
         return false;

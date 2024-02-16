@@ -40,7 +40,7 @@ public class FillerFieldsFromTemplateTwinAll extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
+        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         if (!twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), templateTwin.getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "factoryItem output twinClass[" + outputTwinEntity.getTwinClassId() +"] is not instance of template twin class[" + templateTwin.getTwinClassId() + "]");
         List<TwinFieldEntity> twinFieldEntityList = twinService.findTwinFields(templateTwin.getId());
@@ -56,6 +56,6 @@ public class FillerFieldsFromTemplateTwinAll extends Filler {
         }
         if (logMsgs.size() > 0)
             log.info(String.join(System.lineSeparator(), logMsgs));
-        factoryItem.getOutputTwin().addFields(cloneFieldList);
+        factoryItem.getOutput().addFields(cloneFieldList);
     }
 }

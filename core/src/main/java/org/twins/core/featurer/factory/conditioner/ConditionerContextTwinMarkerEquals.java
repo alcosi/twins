@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.service.twin.TwinMarkerService;
 
 import java.util.Properties;
@@ -30,7 +29,7 @@ public class ConditionerContextTwinMarkerEquals extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        TwinEntity contextTwin = Filler.checkNotMultiplyContextTwin(factoryItem);
+        TwinEntity contextTwin = factoryItem.checkNotMultiplyContextTwin();
         if (contextTwin == null)
             return false;
         return twinMarkerService.hasMarker(contextTwin, markerId.extract(properties));
