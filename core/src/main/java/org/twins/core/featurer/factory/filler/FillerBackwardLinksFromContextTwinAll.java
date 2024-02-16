@@ -27,11 +27,11 @@ public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = checkSingleContextTwin(factoryItem);
+        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinBackwardLinks(contextTwin.getId());
         if (CollectionUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No backward links for contextTwin " + contextTwin.logShort());
-        TwinOperation outputTwin = factoryItem.getOutputTwin();
+        TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : contextTwinLinksList) {
             if (contextTwinLinkEntity.getLink().getType() == LinkEntity.TwinlinkType.ManyToMany

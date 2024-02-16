@@ -3,20 +3,9 @@ package org.twins.core.featurer.factory.filler;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamUUID;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Properties;
 
@@ -25,37 +14,9 @@ import java.util.Properties;
         name = "FillerFieldFromContextField",
         description = "")
 @Slf4j
-public class FillerFieldFromContextField extends Filler {
-    @FeaturerParam(name = "srcTwinClassFieldId", description = "")
-    public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUID("srcTwinClassFieldId");
-
-    @FeaturerParam(name = "dstTwinClassFieldId", description = "")
-    public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUID("dstTwinClassFieldId");
-    @Lazy
-    @Autowired
-    TwinClassService twinClassService;
-
-    @Lazy
-    @Autowired
-    TwinService twinService;
-
-    @Lazy
-    @Autowired
-    TwinClassFieldService twinClassFieldService;
-
-
-    @Lazy
-    @Autowired
-    TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
-
+public class FillerFieldFromContextField extends FillerFieldFromContext {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        FieldValue fieldValue = factoryItem.getFactoryContext().getFields().get(srcTwinClassFieldId.extract(properties));
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + srcTwinClassFieldId.extract(properties) + "] is not present in context fields");
-        TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
-        FieldValue clone = fieldValue.clone();
-        clone.setTwinClassField(dstTwinClassField); //value will be copied to dst
-        factoryItem.getOutputTwin().addField(clone);
+        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFields);
     }
 }

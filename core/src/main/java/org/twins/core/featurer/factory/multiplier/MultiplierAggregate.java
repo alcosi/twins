@@ -26,7 +26,7 @@ public class MultiplierAggregate extends Multiplier {
     @FeaturerParam(name = "outputTwinClassId", description = "")
     public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUID("outputTwinClassId");
     @Override
-    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId.extract(properties));
         ApiUser apiUser = authService.getApiUser();
         TwinEntity newTwin = new TwinEntity()
@@ -40,7 +40,7 @@ public class MultiplierAggregate extends Multiplier {
         twinCreate.setTwinEntity(newTwin);
         return List.of(
                 new FactoryItem()
-                        .setOutputTwin(twinCreate)
-                        .setContextTwinList(inputTwinList));
+                        .setOutput(twinCreate)
+                        .setContextFactoryItemList(inputFactoryItemList));
     }
 }

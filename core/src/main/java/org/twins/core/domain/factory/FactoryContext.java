@@ -44,7 +44,7 @@ public class FactoryContext {
         FactoryItem factoryItem = new FactoryItem();
         factoryItem
                 .setFactoryContext(this)
-                .setOutputTwin(new TwinUpdate()
+                .setOutput(new TwinUpdate()
                         .setDbTwinEntity(inputTwin)
                         .setTwinEntity(new TwinEntity()
                                 .setId(inputTwin.getId())
@@ -52,6 +52,12 @@ public class FactoryContext {
                                 .setTwinClassId(inputTwin.getTwinClassId())
                         ));
         factoryItemList.add(factoryItem);
+    }
+
+    public Map<UUID, FieldValue> getFields() {
+        if (fields == null)
+            fields = new HashMap<>(); //to be sure that no one set in to null
+        return fields;
     }
 
     @Override

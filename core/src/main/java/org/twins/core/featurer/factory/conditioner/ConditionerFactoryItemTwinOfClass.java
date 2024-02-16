@@ -21,6 +21,6 @@ public class ConditionerFactoryItemTwinOfClass extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return factoryItem.getOutputTwin().getTwinEntity().getTwinClassId().equals(ofTwinClassId.extract(properties));
+        return factoryItem.getOutput().getTwinEntity().getTwinClassId().equals(ofTwinClassId.extract(properties));
     }
 }

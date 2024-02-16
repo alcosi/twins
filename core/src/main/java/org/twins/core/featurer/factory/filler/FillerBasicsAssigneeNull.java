@@ -18,9 +18,9 @@ public class FillerBasicsAssigneeNull extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
+        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         outputTwinEntity
                 .setAssignerUser(null)
-                .setAssignerUserId(factoryItem.getOutputTwin().nullifyUUID());
+                .setAssignerUserId(factoryItem.getOutput().nullifyUUID());
     }
 }

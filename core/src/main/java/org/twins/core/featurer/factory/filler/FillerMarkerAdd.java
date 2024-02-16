@@ -23,6 +23,6 @@ public class FillerMarkerAdd extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        factoryItem.getOutputTwin().addMarker(markerId.extract(properties));
+        factoryItem.getOutput().addMarker(markerId.extract(properties));
     }
 }

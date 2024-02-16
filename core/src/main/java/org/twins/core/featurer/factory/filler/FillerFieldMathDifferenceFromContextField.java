@@ -52,7 +52,6 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     @Autowired
     TwinClassFieldService twinClassFieldService;
 
-
     @Lazy
     @Autowired
     TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
@@ -61,20 +60,18 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
-        FieldValue subtrahendFieldValue = factoryItem.getFactoryContext().getFields().get(paramSubtrahendTwinClassFieldId);
-        if (subtrahendFieldValue == null)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not present in context fields");
+        FieldValue subtrahendFieldValue = factoryService.lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId, FieldLookupMode.fromContextFieldsAndContextTwinFields);
         if (!(subtrahendFieldValue instanceof FieldValueText))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         Number subtrahendNumber = NumberUtils.createNumber(((FieldValueText) subtrahendFieldValue).getValue());
 
-        FieldValue minuendFieldValue = factoryItem.getOutputTwin().getField(paramMinuendTwinClassFieldId);
-        if (minuendFieldValue == null && factoryItem.getOutputTwin() instanceof TwinCreate)
+        FieldValue minuendFieldValue = factoryItem.getOutput().getField(paramMinuendTwinClassFieldId);
+        if (minuendFieldValue == null && factoryItem.getOutput() instanceof TwinCreate)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory item is under creation and has no created field[" + paramMinuendTwinClassFieldId + "]");
-        if (factoryItem.getOutputTwin() instanceof TwinUpdate) { //perhaps we can get field value from database
-            TwinFieldEntity twinFieldEntity = twinService.findTwinField(factoryItem.getOutputTwin().getTwinEntity().getId(), paramMinuendTwinClassFieldId);
+        if (factoryItem.getOutput() instanceof TwinUpdate) { //perhaps we can get field value from database
+            TwinFieldEntity twinFieldEntity = twinService.findTwinField(factoryItem.getOutput().getTwinEntity().getId(), paramMinuendTwinClassFieldId);
             if (twinFieldEntity == null)
-                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not present in " + factoryItem.getOutputTwin().getTwinEntity().getId());
+                throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not present in " + factoryItem.getOutput().getTwinEntity().getId());
             minuendFieldValue = twinService.getTwinFieldValue(twinFieldEntity);
         }
         if (minuendFieldValue == null)
@@ -84,7 +81,7 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
             double difference = minuendNumber.doubleValue() - subtrahendNumber.doubleValue();
             if (!allowNegativeResult.extract(properties) && difference < 0)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "negative difference result");
-            factoryItem.getOutputTwin().addField(minuedFieldValueText.setValue(fmt(difference)));
+            factoryItem.getOutput().addField(minuedFieldValueText.setValue(fmt(difference)));
         } else
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
 

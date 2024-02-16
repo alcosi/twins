@@ -11,13 +11,16 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
+import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.twin.TwinService;
@@ -63,11 +66,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         log.info("Running " + factoryEntity.logNormal());
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryEntity.getId()); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
         log.info("Loaded " + factoryMultiplierEntityList.size() + " multipliers");
-        Map<UUID, List<TwinEntity>> factoryInputTwins = groupItemsByClass(factoryContext);
+        Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
             log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getComment() + "**");
-            List<TwinEntity> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
+            List<FactoryItem> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
                 continue;
@@ -91,7 +94,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
             List<FactoryItem> pipelineInputList = new ArrayList<>();
             for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-                if (twinClassService.isInstanceOf(factoryItem.getOutputTwin().getTwinEntity().getTwinClass(), factoryPipelineEntity.getInputTwinClassId())) {
+                if (twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), factoryPipelineEntity.getInputTwinClassId())) {
                     if (checkCondition(factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert(), factoryItem))
                         pipelineInputList.add(factoryItem);
                     else
@@ -108,8 +111,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             for (FactoryItem pipelineInput : pipelineInputList) {
                 log.info("Processing " + pipelineInput.logDetailed());
                 pipelineInput.setFactoryContext(factoryContext); // setting global factory context to be accessible from fillers
-                if (pipelineInput.getOutputTwin().getTwinEntity().getId() == null)
-                    pipelineInput.getOutputTwin().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
+                if (pipelineInput.getOutput().getTwinEntity().getId() == null)
+                    pipelineInput.getOutput().getTwinEntity().setId(UUID.randomUUID()); //generating id for using in fillers (if some field must be created)
                 String logMsg, stepOrder;
                 LoggerUtils.traceTreeLevelDown();
                 for (int step = 0; step < pipelineStepEntityList.size(); step++) {
@@ -135,7 +138,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 LoggerUtils.traceTreeLevelUp();
                 if (factoryPipelineEntity.getOutputTwinStatusId() != null) {
                     log.info("Pipeline output twin status[" + factoryPipelineEntity.getOutputTwinStatusId() + "]");
-                    pipelineInput.getOutputTwin().getTwinEntity()
+                    pipelineInput.getOutput().getTwinEntity()
                             .setTwinStatus(factoryPipelineEntity.getOutputTwinStatus())
                             .setTwinStatusId(factoryPipelineEntity.getOutputTwinStatusId());
                 }
@@ -150,18 +153,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         }
         LoggerUtils.traceTreeLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
-        return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutputTwin).toList();
+        return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutput).toList();
     }
 
-    private Map<UUID, List<TwinEntity>> groupItemsByClass(FactoryContext factoryContext) {
-        Map<UUID, List<TwinEntity>> factoryInputTwins = new HashMap<>();
+    private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {
+        Map<UUID, List<FactoryItem>> factoryInputTwins = new HashMap<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-            TwinOperation twinOperation = factoryItem.getOutputTwin();
-            List<TwinEntity> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(factoryItem.getOutputTwin().getTwinEntity().getTwinClassId(), k -> new ArrayList<>());
-            if (twinOperation instanceof TwinUpdate twinUpdate)
-                twinsGroupedByClass.add(twinUpdate.getDbTwinEntity());
-            else
-                twinsGroupedByClass.add(twinOperation.getTwinEntity());
+            List<FactoryItem> twinsGroupedByClass = factoryInputTwins.computeIfAbsent(factoryItem.getOutput().getTwinEntity().getTwinClassId(), k -> new ArrayList<>());
+            twinsGroupedByClass.add(factoryItem);
         }
         return factoryInputTwins;
     }
@@ -188,5 +187,55 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 return false;
         }
         return true;
+    }
+
+    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
+        FieldValue fieldValue = null;
+        TwinEntity contextTwin;
+        TwinFieldEntity twinFieldEntity;
+        switch (fieldLookupMode) {
+            case fromContextFields:
+                fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields");
+                break;
+            case fromContextTwinFields:
+                contextTwin = factoryItem.checkSingleContextTwin();
+                twinFieldEntity = twinService.findTwinField(contextTwin.getId(), twinClassFieldId);
+                if (twinFieldEntity == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present for context " + contextTwin.logShort());
+                fieldValue = twinService.getTwinFieldValue(twinFieldEntity);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                break;
+            case fromContextFieldsAndContextTwinFields:
+                fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
+                if (fieldValue == null) { // we can check if we have this field in context twin
+                    contextTwin = factoryItem.checkSingleContextTwin();
+                    twinFieldEntity = twinService.findTwinField(contextTwin.getId(), twinClassFieldId);
+                    if (twinFieldEntity == null) { // we will try to look deeper
+                        contextTwin = factoryItem.checkSingleContextItem().checkSingleContextTwin();
+                        twinFieldEntity = twinService.findTwinField(contextTwin.getId(), twinClassFieldId);
+                    }
+                    if (twinFieldEntity == null)
+                        throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present for context " + contextTwin.logShort());
+                    fieldValue = twinService.getTwinFieldValue(twinFieldEntity);
+                }
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                break;
+            case fromContextTwinFieldsAndContextFields:
+                contextTwin = factoryItem.checkSingleContextTwin();
+                twinFieldEntity = twinService.findTwinField(contextTwin.getId(), twinClassFieldId);
+                if (twinFieldEntity == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present for context " + contextTwin.logShort());
+                fieldValue = twinService.getTwinFieldValue(twinFieldEntity);
+                if (fieldValue == null)
+                    fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                break;
+        }
+        return fieldValue;
     }
 }

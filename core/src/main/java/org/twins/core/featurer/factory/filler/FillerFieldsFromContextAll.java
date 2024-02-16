@@ -36,7 +36,7 @@ public class FillerFieldsFromContextAll extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutputTwin().getTwinEntity();
+        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         Map<UUID, FieldValue> contextFields = factoryItem.getFactoryContext().getFields();
         if (contextFields == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No context fields present. Please check pipeline config");
@@ -44,7 +44,7 @@ public class FillerFieldsFromContextAll extends Filler {
         for (Map.Entry<UUID, FieldValue> fieldValue : contextFields.entrySet()) {
             if (twinClassService.isInstanceOf(outputTwinEntity.getTwinClass(), fieldValue.getValue().getTwinClassField().getTwinClassId())) {
                 logMsgs.add(outputTwinEntity.logShort() + " " + fieldValue.getValue().getTwinClassField().logNormal() + " will be filled from context");
-                factoryItem.getOutputTwin().addField(fieldValue.getValue().clone());
+                factoryItem.getOutput().addField(fieldValue.getValue().clone());
             }
         }
         if (logMsgs.size() > 0)

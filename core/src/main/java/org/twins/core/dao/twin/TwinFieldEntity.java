@@ -45,6 +45,11 @@ public class TwinFieldEntity extends EasyLoggableImpl {
     private TwinClassFieldEntity twinClassField;
 
     @Override
+    public String toString() {
+        return logDetailed();
+    }
+
+    @Override
     public String easyLog(Level level) {
         switch (level) {
             case SHORT:

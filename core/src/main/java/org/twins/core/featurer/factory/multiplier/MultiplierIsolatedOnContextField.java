@@ -31,7 +31,7 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
     @FeaturerParam(name = "elseOutputTwinClassId", description = "")
     public static final FeaturerParamUUID elseOutputTwinClassId = new FeaturerParamUUID("elseOutputTwinClassId");
     @Override
-    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         FieldValue fieldValue = MapUtils.getObject(factoryContext.getFields(), outputTwinClassIdFromContextField.extract(properties));
         UUID outputTwinClassId;
         if (fieldValue != null)
@@ -41,7 +41,7 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId);
         ApiUser apiUser = authService.getApiUser();
         List<FactoryItem> ret = new ArrayList<>();
-        for (TwinEntity inputTwin : inputTwinList) {
+        for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
                     .setName("")
                     .setTwinClass(outputTwinClassEntity)
@@ -52,8 +52,8 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(newTwin);
             ret.add(new FactoryItem()
-                    .setOutputTwin(twinCreate)
-                    .setContextTwinList(List.of(inputTwin)));
+                    .setOutput(twinCreate)
+                    .setContextFactoryItemList(List.of(inputItem)));
         }
         return ret;
     }

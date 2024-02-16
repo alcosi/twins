@@ -27,11 +27,11 @@ public class MultiplierIsolated extends Multiplier {
     public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUID("outputTwinClassId");
 
     @Override
-    public List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId.extract(properties));
         ApiUser apiUser = authService.getApiUser();
         List<FactoryItem> ret = new ArrayList<>();
-        for (TwinEntity inputTwin : inputTwinList) {
+        for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity newTwin = new TwinEntity()
                     .setName("")
                     .setTwinClass(outputTwinClassEntity)
@@ -42,8 +42,8 @@ public class MultiplierIsolated extends Multiplier {
             TwinCreate twinCreate = new TwinCreate();
             twinCreate.setTwinEntity(newTwin);
             ret.add(new FactoryItem()
-                    .setOutputTwin(twinCreate)
-                    .setContextTwinList(List.of(inputTwin)));
+                    .setOutput(twinCreate)
+                    .setContextFactoryItemList(List.of(inputItem)));
         }
         return ret;
     }

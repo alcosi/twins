@@ -7,7 +7,6 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.service.auth.AuthService;
@@ -31,7 +30,7 @@ public abstract class Multiplier extends Featurer {
     @Autowired
     AuthService authService;
 
-    public List<FactoryItem> multiply(TwinFactoryMultiplierEntity multiplierEntity, List<TwinEntity> input, FactoryContext factoryContext) throws ServiceException {
+    public List<FactoryItem> multiply(TwinFactoryMultiplierEntity multiplierEntity, List<FactoryItem> input, FactoryContext factoryContext) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, multiplierEntity.getMultiplierParams(), new HashMap<>());
 //        log.info("Running multiplier[" + this.getClass().getSimpleName() + "] **" + multiplierEntity.getComment() + "** with params: " + properties.toString());
         List<FactoryItem> ret =  multiply(properties, input, factoryContext);
@@ -41,5 +40,17 @@ public abstract class Multiplier extends Featurer {
         return ret;
     }
 
-    public abstract List<FactoryItem> multiply(Properties properties, List<TwinEntity> inputTwinList, FactoryContext factoryContext) throws ServiceException;
+    public abstract List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException;
+
+//    public List<TwinEntity> extractEntityList(List<FactoryItem> inputFactoryItemList) {
+//        List<TwinEntity> ret = new ArrayList<>();
+//        for (FactoryItem factoryItem : inputFactoryItemList) {
+//            TwinOperation twinOperation = factoryItem.getOutputTwin();
+//            if (twinOperation instanceof TwinUpdate twinUpdate)
+//                ret.add(twinUpdate.getDbTwinEntity());
+//            else
+//                ret.add(twinOperation.getTwinEntity());
+//        }
+//        return ret;
+//    }
 }

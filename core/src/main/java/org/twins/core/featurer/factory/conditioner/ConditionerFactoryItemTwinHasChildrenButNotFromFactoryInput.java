@@ -33,7 +33,7 @@ public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput extends
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         long count = twinSearchService.count(new BasicSearch()
-                .addHeaderTwinId(factoryItem.getOutputTwin().getTwinEntity().getId())
+                .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
                 .addStatusId(statusIds.extract(properties)));
         return count > 0;
