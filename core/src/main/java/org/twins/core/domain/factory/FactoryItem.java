@@ -5,6 +5,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
@@ -67,29 +69,45 @@ public class FactoryItem extends EasyLoggableImpl {
     @Override
     public String easyLog(Level level) {
         String details = "";
+        if (output == null || level == Level.SHORT)
+            return "factoryItem[" + System.identityHashCode(this) + "]";
+        String operation = output instanceof TwinCreate ? "createTwin" : "updateTwin";
         switch (level) {
-            case SHORT:
-                return "factoryItem[" + System.identityHashCode(this) + "]";
             case NORMAL:
-                if (output != null)
-                    details = output instanceof TwinCreate ? "createTwin" : "updateTwin";
-                return "factoryItem[" + System.identityHashCode(this) + "] " + details;
+                return "factoryItem[" + System.identityHashCode(this) + "] " + operation;
             default:
-                String ret = "factoryItem[" + System.identityHashCode(this) + "]: ";
-                if (output != null) {
-                    ret += output instanceof TwinCreate ? "createTwin" : "updateTwin";
-                    if (output.getTwinEntity() != null) {
-                        ret += "[class:" + output.getTwinEntity().getTwinClassId();
-                        ret += output instanceof TwinUpdate ? ", id:" + output.getTwinEntity().getId() : "";
-                        ret += "]";
-                    }
-                }
-                return ret;
+                return toString(1, 5);
         }
     }
 
+
     @Override
     public String toString() {
-        return "FactoryItem";
+        return toString(1, 1);
+    }
+
+    public String toString(int currentDepth, int limit) {
+        if (currentDepth > limit)
+            return "";
+        StringBuilder ret = new StringBuilder("factoryItem[" + System.identityHashCode(this) + "]: " + (output instanceof TwinCreate ? "createTwin" : "updateTwin"));
+        if (output.getTwinEntity() != null) {
+            ret.append("[class:").append(output.getTwinEntity().getTwinClassId());
+            ret.append(output instanceof TwinUpdate ? ", id:" + output.getTwinEntity().getId() : "");
+            ret.append("]");
+        }
+        ret.append(" context[");
+        if (CollectionUtils.isEmpty(contextFactoryItemList))
+            return ret + "<empty>" + "]";
+        FactoryItem factoryItem;
+        for (int i = 1; i <= contextFactoryItemList.size(); i++) {
+            factoryItem = contextFactoryItemList.get(i-1);
+            ret
+                    .append(System.lineSeparator())
+                    .append(StringUtils.tabs(currentDepth))
+                    .append(i)
+                    .append(" -> ")
+                    .append(factoryItem.toString(currentDepth + 1, limit));
+        }
+        return ret + "]";
     }
 }

@@ -28,4 +28,22 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
             return String.format("%s",d);
     }
 
+    public static String tabs(int i) {
+        switch (i) {
+            case 0:
+                return "";
+            case 1:
+                return "\t";
+            case 2:
+                return "\t\t";
+            case 3:
+                return "\t\t\t";
+            case 4:
+                return "\t\t\t\t";
+            case 5:
+                return "\t\t\t\t\t";
+            default:
+                return "\t\t\t\t\t\t";
+        }
+    }
 }
