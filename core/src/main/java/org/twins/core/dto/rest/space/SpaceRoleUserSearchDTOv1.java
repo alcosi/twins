@@ -1,4 +1,4 @@
-package org.twins.core.domain.system;
+package org.twins.core.dto.rest.space;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

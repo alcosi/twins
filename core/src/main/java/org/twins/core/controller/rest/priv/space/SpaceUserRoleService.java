@@ -10,7 +10,8 @@ import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.system.SpaceRoleUserSearch;
+import org.twins.core.domain.space.SpaceRoleUserMap;
+import org.twins.core.domain.space.SpaceRoleUserSearch;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
@@ -28,13 +29,13 @@ public class SpaceUserRoleService {
 
     // twinId is equivalent of spaceId
 
-    public Map<UserEntity, List<SpaceRoleUserEntity>> getAllUsersRefRolesBySpaceIdMap(UUID twinId) throws ServiceException {
+    public List<SpaceRoleUserMap> getAllUsersRefRolesBySpaceIdMap(UUID twinId) throws ServiceException {
         List<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAllByTwinId(twinId);
         return createUserRoleMap(spaceRoleUserEntities);
     }
 
 
-    public Map<UserEntity, List<SpaceRoleUserEntity>> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID spaceId) throws ServiceException {
+    public List<SpaceRoleUserMap> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID spaceId) throws ServiceException {
         if(CollectionUtils.isEmpty(search.getRolesList()) && ObjectUtils.isEmpty(search.getNameLike())) return getAllUsersRefRolesBySpaceIdMap(spaceId);
         else {
             List<SpaceRoleUserEntity> spaceRoleUserEntities;
@@ -50,12 +51,14 @@ public class SpaceUserRoleService {
         }
     }
 
-    private Map<UserEntity, List<SpaceRoleUserEntity>> createUserRoleMap(List<SpaceRoleUserEntity> spaceRoleUserEntities) {
-        Map<UserEntity, List<SpaceRoleUserEntity>> result = new HashMap<>();
+    private List<SpaceRoleUserMap> createUserRoleMap(List<SpaceRoleUserEntity> spaceRoleUserEntities) {
+        List<SpaceRoleUserMap> result = new ArrayList<>();
+        Map<UserEntity, List<SpaceRoleUserEntity>> map = new HashMap<>();
         for(SpaceRoleUserEntity item : spaceRoleUserEntities) {
-            result.putIfAbsent(item.getUser(), new ArrayList<>());
-            result.get(item.getUser()).add(item);
+            map.putIfAbsent(item.getUser(), new ArrayList<>());
+            map.get(item.getUser()).add(item);
         }
+        for(var entry : map.entrySet()) result.add(new SpaceRoleUserMap().setUser(entry.getKey()).addRoles(entry.getValue()));
         return result;
     }
 

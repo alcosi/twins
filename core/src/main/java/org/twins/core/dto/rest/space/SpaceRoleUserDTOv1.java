@@ -11,10 +11,16 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "SpaceRoleUserV1")
 public class SpaceRoleUserDTOv1 {
-    @Schema(description = "id", example = DTOExamples.SPACE_ROLE_USER_ID)
+    @Schema(description = "space role user id", example = DTOExamples.SPACE_ROLE_USER_ID)
     public UUID id;
 
-    @Schema(description = "name", example = "Member")
+    @Schema(description = "key", example = "Member")
+    public String key;
+
+    @Schema(description = "description", example = "Member i18n description")
+    public String description;
+
+    @Schema(description = "name", example = "Member i18n name")
     public String name;
 
 }

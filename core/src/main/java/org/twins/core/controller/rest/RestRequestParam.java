@@ -5,6 +5,7 @@ public interface RestRequestParam {
     String showDataListMode = "showDataListMode";
     String showDataListOptionMode = "showDataListOptionMode";
     String showUserMode = "showUserMode";
+    String showSpaceRoleMode = "showSpaceRoleMode";
     String showUserGroupMode = "showUserGroupMode";
     String showCardMode = "showCardMode";
     String showCardWidgetMode = "showCardWidgetMode";
