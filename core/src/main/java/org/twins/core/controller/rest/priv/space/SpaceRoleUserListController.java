@@ -17,22 +17,23 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.space.UsersRefSpaceRolePageable;
-import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
+import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
+import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.*;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -125,10 +126,8 @@ public class SpaceRoleUserListController extends ApiController {
 
 
         } catch (ServiceException se) {
-            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
