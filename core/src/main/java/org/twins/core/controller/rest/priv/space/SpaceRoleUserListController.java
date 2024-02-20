@@ -16,17 +16,23 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.space.UsersRefSpaceRolePageable;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.SpaceRoleUserSearchDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.space.SpaceRoleUserBaseDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleUserDTOMapper;
+import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
+import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
+import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
+
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -34,9 +40,11 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SpaceRoleUserListController extends ApiController {
     final UserRestDTOMapper userRestDTOMapper;
-    final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
+    final UserRefSpaceRoleDTOMapper userRefSpaceRoleDTOMapper;
+    final PaginationMapper paginationMapper;
     final SpaceUserRoleService spaceUserRoleService;
     final SpaceRoleUserSearchRqDTOReverseMapper userSearchRqDTOReverseMapper;
+    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleByUserListV1", summary = "Returns user list by selected space and role")
@@ -71,14 +79,18 @@ public class SpaceRoleUserListController extends ApiController {
     @GetMapping(value = "/private/space/{spaceId}/users/list/v1")
     public ResponseEntity<?> spaceUserListV1(
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleUserBaseDTOMapper.Mode._SHORT) SpaceRoleUserBaseDTOMapper.Mode spaceRoleMode) {
+            @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleDTOMapper.Mode._SHORT) SpaceRoleDTOMapper.Mode spaceRoleMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-
-            rs.spaceRoleUserList = spaceRoleUserDTOMapper.convertList(
-                    spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId), new MapperContext().setMode(showUserMode).setMode(spaceRoleMode)
-            );
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
+            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, offset, limit);
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
+                    .setPagination(paginationMapper.convert(usersRefRoles))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -97,14 +109,21 @@ public class SpaceRoleUserListController extends ApiController {
     @PostMapping(value = "/private/space/{spaceId}/users/search/v1")
     public ResponseEntity<?> spaceRoleUserSearchV1(
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleUserBaseDTOMapper.Mode._SHORT) SpaceRoleUserBaseDTOMapper.Mode spaceRoleMode,
+            @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleDTOMapper.Mode._SHORT) SpaceRoleDTOMapper.Mode spaceRoleMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody SpaceRoleUserSearchDTOv1 request) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            rs.spaceRoleUserList = spaceRoleUserDTOMapper.convertList(
-                    spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId), new MapperContext().setMode(showUserMode).setMode(spaceRoleMode)
-            );
+            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
+            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, offset, limit);
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
+                    .setPagination(paginationMapper.convert(usersRefRoles))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+
+
         } catch (ServiceException se) {
             se.printStackTrace();
             return createErrorRs(se, rs);

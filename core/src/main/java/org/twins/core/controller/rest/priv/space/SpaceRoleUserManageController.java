@@ -20,6 +20,7 @@ import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
 

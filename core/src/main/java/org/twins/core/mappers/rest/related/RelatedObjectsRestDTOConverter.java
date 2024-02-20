@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.related;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -10,6 +11,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -19,6 +21,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RelatedObject;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
+import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -41,6 +44,7 @@ public class RelatedObjectsRestDTOConverter {
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
     final DataListRestDTOMapper dataListRestDTOMapper;
+    final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -53,6 +57,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
         Map<UUID, TwinTransitionViewDTOv1> twinTransitionMap = new HashMap<>();
         Map<UUID, DataListDTOv1> dataListMap = new HashMap<>();
+        Map<UUID, SpaceRoleDTOv1> spaceRoleMap = new HashMap<>();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinClassMap(), twinClassRestDTOMapper, isolatedMapperContext, twinClassMap, TwinClassEntity::getId);
         if (!mapperContext.getRelatedTwinMap().isEmpty())
@@ -65,6 +70,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), twinTransitionRestDTOMapper, isolatedMapperContext, twinTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContext.getRelatedDataListMap().isEmpty())
             convertAndPut(mapperContext.getRelatedDataListMap(), dataListRestDTOMapper, isolatedMapperContext, dataListMap, DataListEntity::getId);
+        if (!mapperContext.getRelatedSpaceRoleMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, isolatedMapperContext, spaceRoleMap, SpaceRoleUserEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they was added to isolatedMapperContext on previous step)
         isolatedMapperContext.setLazyRelations(true); // on such depth we will not collect related objects anymore
@@ -80,6 +87,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(isolatedMapperContext.getRelatedTwinflowTransitionMap(), twinTransitionRestDTOMapper, isolatedMapperContext, twinTransitionMap, TwinflowTransitionEntity::getId);
         if (!isolatedMapperContext.getRelatedDataListMap().isEmpty())
             convertAndPut(isolatedMapperContext.getRelatedDataListMap(), dataListRestDTOMapper, isolatedMapperContext, dataListMap, DataListEntity::getId);
+       if (!isolatedMapperContext.getRelatedSpaceRoleMap().isEmpty())
+            convertAndPut(isolatedMapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, isolatedMapperContext, spaceRoleMap, SpaceRoleUserEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -87,7 +96,8 @@ public class RelatedObjectsRestDTOConverter {
                 .setStatusMap(statusMap.isEmpty() ? null : statusMap)
                 .setUserMap(userMap.isEmpty() ? null : userMap)
                 .setTransitionsMap(twinTransitionMap.isEmpty() ? null : twinTransitionMap)
-                .setDataListsMap(dataListMap.isEmpty() ? null : dataListMap);
+                .setDataListsMap(dataListMap.isEmpty() ? null : dataListMap)
+                .setSpaceRoleMap(spaceRoleMap.isEmpty() ? null : spaceRoleMap);
         return ret;
     }
 

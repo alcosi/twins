@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "SpaceRoleUserV1")
-public class SpaceRoleUserDTOv1 {
+public class SpaceRoleDTOv1 {
     @Schema(description = "space role user id", example = DTOExamples.SPACE_ROLE_USER_ID)
     public UUID id;
 

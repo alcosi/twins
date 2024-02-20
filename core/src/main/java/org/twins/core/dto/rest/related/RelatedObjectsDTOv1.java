@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -34,4 +35,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related datalist map", example = "{datalist map}")
     public Map<UUID, DataListDTOv1> dataListsMap;
+
+    @Schema(description = "related space role map", example = "{space role map}")
+    public Map<UUID, SpaceRoleDTOv1> spaceRoleMap;
 }

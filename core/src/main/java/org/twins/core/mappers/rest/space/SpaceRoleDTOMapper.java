@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
-import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -14,10 +14,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class SpaceRoleUserBaseDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEntity, SpaceRoleUserDTOv1> {
+public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEntity, SpaceRoleDTOv1> {
     final I18nService i18nService;
     @Override
-    public void map(SpaceRoleUserEntity src, SpaceRoleUserDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(SpaceRoleUserEntity src, SpaceRoleDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst

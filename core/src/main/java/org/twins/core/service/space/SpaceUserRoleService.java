@@ -1,23 +1,31 @@
-package org.twins.core.controller.rest.priv.space;
+package org.twins.core.service.space;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.space.SpaceRoleUserMap;
+import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
+import org.twins.core.domain.space.UsersRefSpaceRolePageable;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static org.cambium.common.util.PaginationUtils.paginationOffset;
+import static org.cambium.common.util.PaginationUtils.sort;
 
 @Slf4j
 @Service
@@ -26,40 +34,52 @@ public class SpaceUserRoleService {
     final EntitySmartService entitySmartService;
     final SpaceRoleUserRepository spaceRoleUserRepository;
     final AuthService authService;
+    final TwinService twinService;
 
     // twinId is equivalent of spaceId
 
-    public List<SpaceRoleUserMap> getAllUsersRefRolesBySpaceIdMap(UUID twinId) throws ServiceException {
-        List<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAllByTwinId(twinId);
-        return createUserRoleMap(spaceRoleUserEntities);
+    public UsersRefSpaceRolePageable getAllUsersRefRolesBySpaceIdMap(UUID twinId, int offset, int limit) throws ServiceException {
+        return getAllUsersRefRolesBySpaceIdMap(twinService.findEntitySafe(twinId), offset, limit);
+    }
+
+    public UsersRefSpaceRolePageable getAllUsersRefRolesBySpaceIdMap(TwinEntity twinEntity, int offset, int limit) throws ServiceException {
+        Pageable pageable = paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt));
+        Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAllByTwinId(twinEntity.getId(), pageable);
+        return createUserRoleMap(spaceRoleUserEntities, offset, limit);
     }
 
 
-    public List<SpaceRoleUserMap> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID spaceId) throws ServiceException {
-        if(CollectionUtils.isEmpty(search.getRolesList()) && ObjectUtils.isEmpty(search.getNameLike())) return getAllUsersRefRolesBySpaceIdMap(spaceId);
+    public UsersRefSpaceRolePageable getUsersRefRolesMap(SpaceRoleUserSearch search, UUID twinId, int offset, int limit) throws ServiceException {
+        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
+        if(CollectionUtils.isEmpty(search.getRolesList()) && ObjectUtils.isEmpty(search.getNameLike())) return getAllUsersRefRolesBySpaceIdMap(twinEntity, offset, limit);
         else {
-            List<SpaceRoleUserEntity> spaceRoleUserEntities;
+            Pageable pageable = paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt));
+            Page<SpaceRoleUserEntity> spaceRoleUserEntities;
             String name = search.getNameLike();
             if (CollectionUtils.isEmpty(search.getRolesList()) && !ObjectUtils.isEmpty(name)) {
-                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLike(spaceId, name);
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLike(twinEntity.getId(), name, pageable);
             } else if(CollectionUtils.isNotEmpty(search.getRolesList()) && ObjectUtils.isEmpty(name)) {
-                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndRoleIn(spaceId, search.getRolesList());
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndRoleIn(twinEntity.getId(), search.getRolesList(), pageable);
             } else {
-                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLikeAndRoleIn(spaceId, name, search.getRolesList());
+                spaceRoleUserEntities = spaceRoleUserRepository.findByTwinIdAndNameLikeAndRoleIn(twinEntity.getId(), name, search.getRolesList(), pageable);
             }
-            return createUserRoleMap(spaceRoleUserEntities);
+            return createUserRoleMap(spaceRoleUserEntities, offset, limit);
         }
     }
 
-    private List<SpaceRoleUserMap> createUserRoleMap(List<SpaceRoleUserEntity> spaceRoleUserEntities) {
-        List<SpaceRoleUserMap> result = new ArrayList<>();
+    private UsersRefSpaceRolePageable createUserRoleMap(Page<SpaceRoleUserEntity> spaceRoleUserEntities, int offset, int limit) {
+        List<UserRefSpaceRole> resultList = new ArrayList<>();
         Map<UserEntity, List<SpaceRoleUserEntity>> map = new HashMap<>();
         for(SpaceRoleUserEntity item : spaceRoleUserEntities) {
             map.putIfAbsent(item.getUser(), new ArrayList<>());
             map.get(item.getUser()).add(item);
         }
-        for(var entry : map.entrySet()) result.add(new SpaceRoleUserMap().setUser(entry.getKey()).addRoles(entry.getValue()));
-        return result;
+        for(var entry : map.entrySet()) resultList.add(new UserRefSpaceRole().setUser(entry.getKey()).addRoles(entry.getValue()));
+        return (UsersRefSpaceRolePageable) new UsersRefSpaceRolePageable()
+                .setUsersRefRoles(resultList)
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(spaceRoleUserEntities.getTotalElements());
     }
 
     public List<UserEntity> findUserByRole(UUID twinId, UUID spaceRoleId) throws ServiceException {

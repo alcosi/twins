@@ -9,18 +9,17 @@ import java.util.*;
 
 @Data
 @Accessors(chain = true)
-public class SpaceRoleUserMap {
+public class UserRefSpaceRole {
 
     UserEntity user;
     List<SpaceRoleUserEntity> roles;
 
-
-    public SpaceRoleUserMap addRole(SpaceRoleUserEntity role) {
+    public UserRefSpaceRole addRole(SpaceRoleUserEntity role) {
         roles = safeAdd(roles, role);
         return this;
     }
 
-    public SpaceRoleUserMap addRoles(List<SpaceRoleUserEntity> items) {
+    public UserRefSpaceRole addRoles(List<SpaceRoleUserEntity> items) {
         roles = safeAdd(roles, items);
         return this;
     }

@@ -1,5 +1,7 @@
 package org.twins.core.dao.space;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -15,19 +17,19 @@ import java.util.UUID;
 public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEntity, UUID>, JpaSpecificationExecutor<SpaceRoleUserEntity> {
 
     @Query(value = "select su from SpaceRoleUserEntity su where su.twinId = :twinId")
-    List<SpaceRoleUserEntity> findAllByTwinId(@Param("twinId") UUID twinId);
+    Page<SpaceRoleUserEntity> findAllByTwinId(@Param("twinId") UUID twinId, Pageable pageable);
 
     @Query(value = "select su.user from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId = :spaceRoleId")
     List<UserEntity> findByTwinIdAndSpaceRoleId(@Param("twinId") UUID twinId, @Param("spaceRoleId") UUID spaceRoleId);
 
     @Query(value = "select su from SpaceRoleUserEntity su where su.twinId = :twinId and lower(su.user.name) like CONCAT('%', lower(:nameLike), '%')")
-    List<SpaceRoleUserEntity> findByTwinIdAndNameLike(@Param("twinId") UUID twinId, @Param("nameLike") String nameLike);
+    Page<SpaceRoleUserEntity> findByTwinIdAndNameLike(@Param("twinId") UUID twinId, @Param("nameLike") String nameLike, Pageable pageable);
 
     @Query(value = "select su from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId in :spaceRoleIds")
-    List<SpaceRoleUserEntity> findByTwinIdAndRoleIn(@Param("twinId") UUID twinId, @Param("spaceRoleIds") Collection<UUID> spaceRoleIds);
+    Page<SpaceRoleUserEntity> findByTwinIdAndRoleIn(@Param("twinId") UUID twinId, @Param("spaceRoleIds") Collection<UUID> spaceRoleIds, Pageable pageable);
 
     @Query(value = "select su from SpaceRoleUserEntity su where su.twinId = :twinId and lower(su.user.name) like CONCAT('%', lower(:nameLike), '%') and su.spaceRoleId in :spaceRoleIds")
-    List<SpaceRoleUserEntity> findByTwinIdAndNameLikeAndRoleIn(@Param("twinId") UUID twinId, @Param("nameLike") String nameLike, @Param("spaceRoleIds") Collection<UUID> spaceRoleIds);
+    Page<SpaceRoleUserEntity> findByTwinIdAndNameLikeAndRoleIn(@Param("twinId") UUID twinId, @Param("nameLike") String nameLike, @Param("spaceRoleIds") Collection<UUID> spaceRoleIds, Pageable pageable);
 
     void deleteAllByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID spaceRoleId, UUID userId);
 
