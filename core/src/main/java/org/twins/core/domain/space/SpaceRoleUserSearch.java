@@ -2,6 +2,7 @@ package org.twins.core.domain.space;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
 
@@ -14,19 +15,7 @@ public class SpaceRoleUserSearch {
 
 
     public SpaceRoleUserSearch addRoleId(UUID roleId) {
-        rolesList = safeAdd(rolesList, roleId);
+        rolesList = CollectionUtils.safeAdd(rolesList, roleId);
         return this;
-    }
-
-    private <T> Set<T> safeAdd(Set<T> set, T element) {
-        if (set == null) set = new HashSet<>();
-        set.add(element);
-        return set;
-    }
-
-    private <T> Set<T> safeAdd(Set<T> set, Collection<T> elements) {
-        if (set == null) set = new HashSet<>();
-        set.addAll(elements);
-        return set;
     }
 }

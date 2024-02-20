@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "SpaceRoleUserRqv1")
+@Schema(name = "SpaceRoleUserRqV1")
 public class SpaceRoleUserRqDTOv1 extends Request {
     @Schema()
     public List<UUID> spaceRoleUserEnterList;

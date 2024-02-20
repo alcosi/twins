@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "SpaceUserSearchV1")
-public class SpaceRoleUserSearchDTOv1 extends Request {
+@Schema(name =  "UserRefSpaceRoleSearchV1")
+public class UserRefSpaceRoleSearchDTOv1 extends Request {
     @Schema(description = "Filter by user name, case ignore", example = "st Us")
     public String nameLike;
 

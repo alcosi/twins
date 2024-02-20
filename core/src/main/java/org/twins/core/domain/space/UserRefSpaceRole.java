@@ -2,6 +2,7 @@ package org.twins.core.domain.space;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -15,24 +16,13 @@ public class UserRefSpaceRole {
     List<SpaceRoleUserEntity> roles;
 
     public UserRefSpaceRole addRole(SpaceRoleUserEntity role) {
-        roles = safeAdd(roles, role);
+        roles = CollectionUtils.safeAdd(roles, role);
         return this;
     }
 
     public UserRefSpaceRole addRoles(List<SpaceRoleUserEntity> items) {
-        roles = safeAdd(roles, items);
+        roles = CollectionUtils.safeAdd(roles, items);
         return this;
     }
 
-    private <T> List<T> safeAdd(List<T> list, T element) {
-        if (list == null) list = new ArrayList<>();
-        list.add(element);
-        return list;
-    }
-
-    private <T> List<T> safeAdd(List<T> list, Collection<T> elements) {
-        if (list == null) list = new ArrayList<>();
-        list.addAll(elements);
-        return list;
-    }
 }

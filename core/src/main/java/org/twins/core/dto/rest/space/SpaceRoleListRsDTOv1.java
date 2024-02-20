@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "SpaceRoleUserListRsv1")
+@Schema(name = "SpaceRoleListRsv1")
 public class SpaceRoleListRsDTOv1 extends Response {
     @Schema(description = "space role user list")
     public List<SpaceRoleDTOv1> spaceRoleUserList;

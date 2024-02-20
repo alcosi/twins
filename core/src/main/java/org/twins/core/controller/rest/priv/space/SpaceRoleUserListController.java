@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.space.UsersRefSpaceRolePageable;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearchDTOv1;
+import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -114,7 +114,7 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleDTOMapper.Mode._SHORT) SpaceRoleDTOMapper.Mode spaceRoleMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
-            @RequestBody SpaceRoleUserSearchDTOv1 request) {
+            @RequestBody UserRefSpaceRoleSearchDTOv1 request) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);

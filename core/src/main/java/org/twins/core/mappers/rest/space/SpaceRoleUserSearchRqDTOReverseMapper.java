@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.space;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
-import org.twins.core.dto.rest.space.SpaceRoleUserSearchDTOv1;
+import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
@@ -13,10 +13,10 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class SpaceRoleUserSearchRqDTOReverseMapper extends RestSimpleDTOMapper<SpaceRoleUserSearchDTOv1, SpaceRoleUserSearch> {
+public class SpaceRoleUserSearchRqDTOReverseMapper extends RestSimpleDTOMapper<UserRefSpaceRoleSearchDTOv1, SpaceRoleUserSearch> {
 
     @Override
-    public void map(SpaceRoleUserSearchDTOv1 src, SpaceRoleUserSearch dst, MapperContext mapperContext) throws Exception {
+    public void map(UserRefSpaceRoleSearchDTOv1 src, SpaceRoleUserSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setNameLike(src.getNameLike())
                 .setRolesList(convertSafe(src.getRolesList()));
