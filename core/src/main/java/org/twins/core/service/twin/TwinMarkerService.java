@@ -81,20 +81,22 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getTwinMarkerKit() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.size() == 0)
+        if (needLoad.isEmpty())
             return;
         List<TwinMarkerEntity> twinMarkerEntityList = twinMarkerRepository.findByTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(twinMarkerEntityList))
             return;
-        Map<UUID, List<DataListOptionEntity>> fieldsMap = new HashMap<>(); // key - twinId
+        Map<UUID, List<DataListOptionEntity>> markersMap = new HashMap<>(); // key - twinId
         for (TwinMarkerEntity twinMarkerEntity : twinMarkerEntityList) { //grouping by twin
-            fieldsMap.computeIfAbsent(twinMarkerEntity.getTwinId(), k -> new ArrayList<>());
-            fieldsMap.get(twinMarkerEntity.getTwinId()).add(twinMarkerEntity.getMarkerDataListOption());
+            markersMap.computeIfAbsent(twinMarkerEntity.getTwinId(), k -> new ArrayList<>());
+            markersMap.get(twinMarkerEntity.getTwinId()).add(twinMarkerEntity.getMarkerDataListOption());
         }
         TwinEntity twinEntity;
-        for (Map.Entry<UUID, List<DataListOptionEntity>> entry : fieldsMap.entrySet()) {
-            twinEntity = needLoad.get(entry.getKey());
-            twinEntity.setTwinMarkerKit(new Kit<>(entry.getValue(), DataListOptionEntity::getId));
+        List<DataListOptionEntity> twinMarkers;
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            twinEntity = entry.getValue();
+            twinMarkers = markersMap.get(entry.getKey());
+            twinEntity.setTwinTagKit(new Kit<>(twinMarkers, DataListOptionEntity::getId));
         }
     }
 
