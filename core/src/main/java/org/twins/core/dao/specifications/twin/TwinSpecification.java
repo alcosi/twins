@@ -28,7 +28,7 @@ public class TwinSpecification {
             System.out.println(hierarchyTreeContainsIdList);
             List<Predicate> predicates = new ArrayList<>();
             for (UUID id : hierarchyTreeContainsIdList) {
-                String ltreeId = id.toString().replace("-", "_");
+                String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
                 Expression<String> hierarchyTreeExpression = root.get(field);
                 predicates.add(cb.isTrue(cb.function("ltree_check", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
             }
