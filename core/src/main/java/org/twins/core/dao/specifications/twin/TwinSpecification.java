@@ -20,6 +20,22 @@ public class TwinSpecification {
     private TwinSpecification() {
     }
 
+    //TODO work with space ids("S_")
+    public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
+            System.out.println(field);
+            System.out.println(hierarchyTreeContainsIdList);
+            List<Predicate> predicates = new ArrayList<>();
+            for (UUID id : hierarchyTreeContainsIdList) {
+                String ltreeId = id.toString().replace("-", "_");
+                Expression<String> hierarchyTreeExpression = root.get(field);
+                predicates.add(cb.isTrue(cb.function("ltree_check", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
+            }
+            return getPredicate(cb, predicates, true);
+        };
+    }
+
     public static Specification<TwinEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();

@@ -2,6 +2,7 @@ package org.twins.core.domain;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
 
@@ -22,39 +23,40 @@ public class BasicSearch {
     Set<UUID> ownerBusinessAccountIdList;
     Map<UUID, Set<UUID>> twinLinksMap;
     Map<UUID, Set<UUID>> twinNoLinksMap;
+    Set<UUID> hierarchyTreeContainsIdList;
 
     public BasicSearch addTwinId(UUID twinId) {
-        twinIdList = safeAdd(twinIdList, twinId);
+        twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
         return this;
     }
 
     public BasicSearch addTwinNameLike(String twinNameLike) {
-        twinNameLikeList = safeAdd(twinNameLikeList, twinNameLike);
+        twinNameLikeList = CollectionUtils.safeAdd(twinNameLikeList, twinNameLike);
         return this;
     }
 
     public BasicSearch addTwinExcludeId(UUID twinId) {
-        twinIdExcludeList = safeAdd(twinIdExcludeList, twinId);
+        twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
         return this;
     }
 
     public BasicSearch addTwinClassId(UUID twinClassId) {
-        twinClassIdList = safeAdd(twinClassIdList, twinClassId);
+        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
         return this;
     }
 
     public BasicSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
-        twinClassIdList = safeAdd(twinClassIdList, twinClassIdSet);
+        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
     public BasicSearch addHeaderTwinId(UUID headerTwinId) {
-        headerTwinIdList = safeAdd(headerTwinIdList, headerTwinId);
+        headerTwinIdList = CollectionUtils.safeAdd(headerTwinIdList, headerTwinId);
         return this;
     }
 
     public BasicSearch addStatusId(UUID statusId) {
-        statusIdList = safeAdd(statusIdList, statusId);
+        statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
         return this;
     }
 
@@ -66,22 +68,22 @@ public class BasicSearch {
     }
 
     public BasicSearch addAssignerUserId(UUID assignerUserId) {
-        assignerUserIdList = safeAdd(assignerUserIdList, assignerUserId);
+        assignerUserIdList = CollectionUtils.safeAdd(assignerUserIdList, assignerUserId);
         return this;
     }
 
     public BasicSearch addCreatedByUserId(UUID createdByUserId) {
-        createdByUserIdList = safeAdd(createdByUserIdList, createdByUserId);
+        createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
         return this;
     }
 
     public BasicSearch addOwnerUserId(UUID ownerUserId) {
-        ownerUserIdList = safeAdd(ownerUserIdList, ownerUserId);
+        ownerUserIdList = CollectionUtils.safeAdd(ownerUserIdList, ownerUserId);
         return this;
     }
 
     public BasicSearch addOwnerBusinessAccountId(UUID ownerBusinessAccountId) {
-        ownerBusinessAccountIdList = safeAdd(ownerBusinessAccountIdList, ownerBusinessAccountId);
+        ownerBusinessAccountIdList = CollectionUtils.safeAdd(ownerBusinessAccountIdList, ownerBusinessAccountId);
         return this;
     }
 
@@ -97,15 +99,9 @@ public class BasicSearch {
         return this;
     }
 
-    private <T> Set<T> safeAdd(Set<T> set, T element) {
-        if (set == null) set = new HashSet<>();
-        set.add(element);
-        return set;
+    public BasicSearch addHierarchyTreeContainsId(UUID twinId) {
+        hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
+        return this;
     }
 
-    private <T> Set<T> safeAdd(Set<T> set, Collection<T> elements) {
-        if (set == null) set = new HashSet<>();
-        set.addAll(elements);
-        return set;
-    }
 }

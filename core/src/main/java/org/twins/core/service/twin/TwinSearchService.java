@@ -44,6 +44,7 @@ public class TwinSearchService {
                         .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
+                        .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, basicSearch.getHierarchyTreeContainsIdList()))
         );
     }
 
