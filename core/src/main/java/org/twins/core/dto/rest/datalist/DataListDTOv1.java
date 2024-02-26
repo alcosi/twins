@@ -9,10 +9,11 @@ import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "DataListV1")
 public class DataListDTOv1 {
     @Schema(description = "id", example = DTOExamples.DATA_LIST_ID)
@@ -27,6 +28,9 @@ public class DataListDTOv1 {
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public LocalDateTime updatedAt;
+
+    @Schema(description = "List of option ids")
+    public Set<UUID> optionIdList;
 
     @Schema(description = "List options")
     public Map<UUID, DataListOptionDTOv1> options;

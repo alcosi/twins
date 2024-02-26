@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -77,6 +78,17 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         if (kit != null) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getList(), mapperContext));
+            else {
+                noLazyModeFunction.accept(dst, kit.getIdSet());
+                mapperContext.addRelatedObjectCollection(kit.getList());
+            }
+        }
+    }
+
+    public <F, Y> void convertMapOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+        if (kit != null) {
+            if (mapperContext.isLazyRelations())
+                lazyModeFunction.accept(dst, lazyModeMapper.convertMap(kit.getMap(), mapperContext));
             else {
                 noLazyModeFunction.accept(dst, kit.getIdSet());
                 mapperContext.addRelatedObjectCollection(kit.getList());
