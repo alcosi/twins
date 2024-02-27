@@ -109,6 +109,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     }
 
     public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+        if (CollectionUtils.isEmpty(newTags) && CollectionUtils.isEmpty(existingTags))
+            return null;
         if (twinEntity.getTwinClass().getTagDataListId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "tags are not allowed for " + twinEntity.logNormal());
         Kit<DataListOptionEntity> savedTags = saveTags(twinEntity,
