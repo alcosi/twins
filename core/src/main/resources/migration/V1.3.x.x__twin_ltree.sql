@@ -9,6 +9,19 @@ DO $$
         END IF;
     END$$;
 
+DO $$
+    BEGIN
+        IF NOT EXISTS (
+            SELECT 1
+            FROM   pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+            WHERE  c.relname = 'idx_hierarchy_tree'
+              AND    n.nspname = 'public'
+        ) THEN
+            EXECUTE 'CREATE INDEX idx_hierarchy_tree ON twin USING GIST (hierarchy_tree)';
+        END IF;
+    END$$;
+
+
 DROP TRIGGER IF EXISTS updateHierarchyTreeTrigger ON public.twin;
 DROP TRIGGER IF EXISTS trigger_recalculateHierarchy ON public.twin_class;
 DROP FUNCTION IF EXISTS public.detectHierarchyTree(UUID);
@@ -140,13 +153,13 @@ BEGIN
     IF TG_OP = 'UPDATE' AND (OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id) THEN
         RAISE NOTICE 'Process update for: %', NEW.id;
         IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
-            PERFORM public.updateHierarchyTreeSoft(NEW.id, public.detectHierarchyTree(COALESCE(NEW.head_twin_id, NEW.id)));
+            PERFORM public.updateHierarchyTreeSoft(NEW.id, public.detectHierarchyTree(NEW.id));
         ELSE
             PERFORM public.updateHierarchyTreeSoft(NEW.id, NULL);
         END IF;
     ELSIF TG_OP = 'INSERT' THEN
         RAISE NOTICE 'Process insert for: %', NEW.id;
-        PERFORM public.updateHierarchyTreeHard(NEW.id, public.detectHierarchyTree(COALESCE(NEW.head_twin_id, NEW.id)));
+        PERFORM public.updateHierarchyTreeHard(NEW.id, public.detectHierarchyTree(NEW.id));
     END IF;
     RETURN NEW;
 END;

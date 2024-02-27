@@ -41,7 +41,6 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @Column(name = "head_twin_id")
     private UUID headTwinId;
 
-    @Type(value = LtreeUserType.class)
     @Column(name = "hierarchy_tree", columnDefinition = "ltree")
     private String hierarchyTree;
 

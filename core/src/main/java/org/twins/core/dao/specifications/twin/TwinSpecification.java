@@ -24,8 +24,6 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
-            System.out.println(field);
-            System.out.println(hierarchyTreeContainsIdList);
             List<Predicate> predicates = new ArrayList<>();
             for (UUID id : hierarchyTreeContainsIdList) {
                 String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
