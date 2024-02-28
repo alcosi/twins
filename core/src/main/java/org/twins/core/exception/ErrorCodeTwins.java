@@ -32,7 +32,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_VALUE_INCORRECT(10406, "twin class field value incorrect"),
     TWIN_CLASS_FIELD_INCORRECT_TYPE(10407, "twin class field type incorrect"),
     TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE(10408, "twin class field value is already in use"),
-    TWIN_CLASS_TAGS_NOT_ALLOWED(10409, "tags are not allowed for given class"),
+    TWIN_COMMENT_FIELD_TEXT_IS_NULL(10409, "twin comment field is null"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
