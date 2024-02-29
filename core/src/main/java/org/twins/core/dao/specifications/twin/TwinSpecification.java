@@ -17,10 +17,43 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification {
-    private TwinSpecification() {
-    }
 
-    //TODO work with space ids("S_")
+//    public List<TwinEntity> findTwinsWithPermissions(BasicSearch basicSearch) throws ServiceException {
+//        Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
+//        spec = spec.and(hasPermission(basicSearch.getPermissionId(), basicSearch.getUserId(), basicSearch.getUserGroupIdList()));
+//
+//        return twinRepository.findAll(spec);
+//    }
+//
+//    private Specification<TwinEntity> hasPermission(UUID permissionId, UUID userId, List<UUID> userGroupIdList) {
+//        return (root, query, cb) -> {
+//            CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
+//            CriteriaQuery<Long> criteriaQuery = criteriaBuilder.createQuery(Long.class);
+//            Root<TwinEntity> rootTwin = criteriaQuery.from(TwinEntity.class);
+//
+//            criteriaQuery.select(criteriaBuilder.count(rootTwin));
+//
+//            List<Predicate> predicates = new ArrayList<>();
+//
+//            predicates.add(criteriaBuilder.equal(rootTwin.get("domainId"), basicSearch.getDomainId()));
+//            predicates.add(criteriaBuilder.equal(rootTwin.get("businessAccountId"), basicSearch.getBusinessAccountId()));
+//            predicates.add(criteriaBuilder.equal(rootTwin.get("spaceId"), basicSearch.getSpaceId()));
+//
+//            predicates.add(criteriaBuilder.function("permissionCheck",
+//                    Boolean.class,
+//                    criteriaBuilder.literal(basicSearch.getDomainId()),
+//                    criteriaBuilder.literal(basicSearch.getBusinessAccountId()),
+//                    criteriaBuilder.literal(basicSearch.getSpaceId()),
+//                    criteriaBuilder.literal(permissionId),
+//                    criteriaBuilder.literal(userId),
+//                    criteriaBuilder.literal(userGroupIdList.toArray(new UUID[0]))));
+//
+//            criteriaQuery.where(predicates.toArray(new Predicate[0]));
+//
+//            return criteriaBuilder.greaterThan(criteriaQuery.getSelection(), 0L);
+//        };
+//    }
+
     public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();

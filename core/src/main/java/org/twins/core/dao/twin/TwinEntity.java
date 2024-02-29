@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
-import org.hibernate.annotations.Type;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -52,6 +51,21 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
 
     @Column(name = "owner_user_id")
     private UUID ownerUserId;
+
+    @Column(name = "view_permission_id")
+    private UUID viewPermissionId;
+
+    @Column(name = "permission_schema_space_id")
+    private UUID permissionSchemaSpaceId;
+
+    @Column(name = "twinflow_schema_space_id")
+    private UUID twinflowSchemaSpaceId;
+
+    @Column(name = "twin_class_schema_space_id")
+    private UUID twinClassSchemaSpaceId;
+
+    @Column(name = "alias_space_id")
+    private UUID aliasSpaceId;
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
@@ -159,7 +173,6 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
         }
 
     }
-
     public TwinEntity clone() {
         return new TwinEntity()
                 .setId(id)
@@ -175,6 +188,11 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
                 .setHeadTwin(headTwin)
                 .setOwnerUserId(ownerUserId)
                 .setOwnerBusinessAccountId(ownerBusinessAccountId)
+                .setPermissionSchemaSpaceId(permissionSchemaSpaceId)
+                .setTwinflowSchemaSpaceId(twinflowSchemaSpaceId)
+                .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
+                .setAliasSpaceId(aliasSpaceId)
+                .setViewPermissionId(viewPermissionId)
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
