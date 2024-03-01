@@ -34,4 +34,12 @@ public class Kit<E> {
             return null;
         return map.keySet();
     }
+
+    public boolean isEmpty() {
+        return list == null || list.isEmpty();
+    }
+
+    public boolean isNotEmpty() {
+        return !isEmpty();
+    }
 }
