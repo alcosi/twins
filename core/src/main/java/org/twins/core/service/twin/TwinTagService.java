@@ -151,13 +151,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         filteredExistingTags.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), null)));
 
         // remove duplicates if any
-        List<TwinTagEntity> distinctTags = tagsToSave.stream()
+        List<TwinTagEntity> distinctTags = new ArrayList<>(tagsToSave.stream()
                 .collect(Collectors.toMap(TwinTagEntity::getTagDataListOptionId,
                         Function.identity(),
                         (first, second) -> first))
-                .values()
-                .stream()
-                .collect(Collectors.toList());
+                .values());
 
         for (TwinTagEntity tag : distinctTags) {
             validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
