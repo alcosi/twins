@@ -5,7 +5,10 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
@@ -17,6 +20,14 @@ public class TransitionDraftContext {
         if (targetTwinList == null)
             targetTwinList = new HashMap<>();
         targetTwinList.put(twinEntity.getId(), twinEntity);
+        return this;
+    }
+
+    public TransitionDraftContext addTargetTwins(Collection<TwinEntity> twinEntities) {
+        if (targetTwinList == null)
+            targetTwinList = new HashMap<>();
+        for (TwinEntity twin : twinEntities)
+            targetTwinList.put(twin.getId(), twin);
         return this;
     }
 }

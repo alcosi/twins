@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.service.link.TwinLinkService;
@@ -129,6 +130,10 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinEntity headTwin;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinflowEntity twinflow;
 
     /*
      we have to use TwinClassFieldId as key, not Id. because of case when we load not missing fields

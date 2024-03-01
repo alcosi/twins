@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +23,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformBatchRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
@@ -44,9 +42,9 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.TRANSITION)
@@ -94,14 +92,8 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
-            TwinflowTransitionEntity transitionEntity = twinflowTransitionService.findEntitySafe(transitionId);
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-            if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.logDetailed());
-            TransitionContext transitionContext = new TransitionContext();
-            transitionContext
-                    .setTransitionEntity(transitionEntity)
-                    .addTargetTwin(dbTwinEntity);
+            TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionId);
             if (request.getContext() != null) {
                 transitionContext
                         .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getContext().getAttachments()))
@@ -162,15 +154,8 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
-            Map<UUID, TwinflowTransitionEntity> transitionEntityMap = twinflowTransitionService.findTransitionsByAlias(transitionAlias);
             TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-            TwinflowTransitionEntity selectedTransition = transitionEntityMap.get(dbTwinEntity.getTwinStatusId());
-            if (selectedTransition == null)
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.logDetailed());
-            TransitionContext transitionContext = new TransitionContext();
-            transitionContext
-                    .setTransitionEntity(selectedTransition)
-                    .addTargetTwin(dbTwinEntity);
+            TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionAlias);
             if (request.getContext() != null) {
                 transitionContext
                         .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getContext().getAttachments()))
@@ -230,15 +215,12 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
-            TwinflowTransitionEntity transitionEntity = twinflowTransitionService.findEntitySafe(transitionId);
-            TransitionContext transitionContext = new TransitionContext();
-            transitionContext.setTransitionEntity(transitionEntity);
+            List<TwinEntity> twinEntities = new ArrayList<>();
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-                if (!dbTwinEntity.getTwinStatusId().equals(transitionEntity.getSrcTwinStatusId()))
-                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, transitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be performed for " + dbTwinEntity.logDetailed());
-                transitionContext.addTargetTwin(dbTwinEntity);
+                twinEntities.add(dbTwinEntity);
             }
+            TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(twinEntities, transitionId);
             if (request.getBatchContext() != null) {
                 transitionContext
                         .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getBatchContext().getAttachments()))
@@ -299,25 +281,14 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
-            Map<UUID, TwinflowTransitionEntity> transitionEntityMap = twinflowTransitionService.findTransitionsByAlias(transitionAlias);
-            Map<UUID, TransitionContext> transitionContextMap = new HashMap<>();
-
+            List<TwinEntity> twinEntities = new ArrayList<>();
             for (UUID twinId : request.getTwinIdList()) {
                 TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-                TwinflowTransitionEntity selectedTransitionEntity = transitionEntityMap.get(dbTwinEntity.getTwinStatusId());
-                if (selectedTransitionEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions from alias[" + transitionAlias + "] can not be performed for " + dbTwinEntity.logDetailed());
-                TransitionContext transitionContext = transitionContextMap.get(selectedTransitionEntity.getId());
-                if (transitionContext == null) {
-                    transitionContext = new TransitionContext();
-                    transitionContext.setTransitionEntity(selectedTransitionEntity);
-                    transitionContextMap.put(selectedTransitionEntity.getId(), transitionContext);
-                }
-                transitionContext.addTargetTwin(dbTwinEntity);
+                twinEntities.add(dbTwinEntity);
             }
-
+            Collection<TransitionContext> transitionContexts = twinflowTransitionService.createTransitionContext(twinEntities, transitionAlias);
             TwinflowTransitionService.TransitionResult commonTransitionResult = new TwinflowTransitionService.TransitionResult(); // we will collect result from all transaction in group
-            for (TransitionContext transitionContext : transitionContextMap.values()) {
+            for (TransitionContext transitionContext : transitionContexts) {
                 if (request.getBatchContext() != null)
                     transitionContext
                             .setAttachmentCUD(attachmentCUDRestDTOReverseMapperV2.convert(request.getBatchContext().getAttachments()))

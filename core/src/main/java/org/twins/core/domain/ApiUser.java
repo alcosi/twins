@@ -153,6 +153,10 @@ public class ApiUser {
         return null;
     }
 
+    public UUID getUserId() throws ServiceException {
+        return getUser().getId();
+    }
+
     public Channel getChannel() {
         return Channel.WEB; //todo fix
     }
