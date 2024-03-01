@@ -321,7 +321,7 @@ BEGIN
     SELECT COUNT(id) INTO groupPermissionExists
     FROM permission_schema_user_group
     WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionId
+      AND permission_id = permissionId_for_use
       AND user_group_id = ANY(userGroupIdList);
 
     RETURN groupPermissionExists > 0;
