@@ -22,7 +22,7 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
             // transform Set<UUID> to string (PostgreSQL array format);
-            String userGroupIdsStr = userGroups.isEmpty() ? "{}" :
+            String userGroupIdsStr = null != userGroups && userGroups.isEmpty() ? "{}" :
                     "{" + userGroups.stream().map(UUID::toString).collect(Collectors.joining(",")) + "}";
 
 
