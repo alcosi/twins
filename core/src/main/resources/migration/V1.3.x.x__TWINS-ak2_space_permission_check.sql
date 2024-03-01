@@ -58,6 +58,7 @@ DROP FUNCTION IF EXISTS public.permissionGetRoles(UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionDetectSchema(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[]);
+DROP FUNCTION IF EXISTS public.updateHierarchyTree(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeHard(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeSoft(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeHard(UUID, RECORD);
@@ -292,9 +293,6 @@ DO $$
                 PERFORM public.hierarchyUpdateTreeHard(root_twin.id, NULL);
             END LOOP;
     END $$;
-
-
-
 
 
 

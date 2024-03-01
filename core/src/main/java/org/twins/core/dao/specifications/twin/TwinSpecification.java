@@ -21,14 +21,14 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
-            String userGroupIdsStr = userGroups.stream()
-                    .map(UUID::toString)
-                    .collect(Collectors.joining(","));
+            // transform Set<UUID> to string (PostgreSQL array format);
+            String userGroupIdsStr = userGroups.isEmpty() ? "{}" :
+                    "{" + userGroups.stream().map(UUID::toString).collect(Collectors.joining(",")) + "}";
+
 
             Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
             Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
             Expression<UUID> permissionIdTwinClass = root.join("twinClass").get("viewPermissionId");
-
             return cb.isTrue(cb.function("permissionCheck", Boolean.class,
                     cb.literal(domainId),
                     cb.literal(businesAccountId),
