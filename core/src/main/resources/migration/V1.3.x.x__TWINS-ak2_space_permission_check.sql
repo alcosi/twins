@@ -146,7 +146,7 @@ BEGIN
     ELSE
         data_to_use := public.detectHierarchyTree(twin_id);
     END IF;
-    RAISE NOTICE 'Update detected hier. for: %', detect_data.hierarchy;
+    RAISE NOTICE 'Update detected hier. for: %', data_to_use.hierarchy;
 
     -- update hier. for twin-in
     UPDATE public.twin
@@ -168,15 +168,15 @@ BEGIN
                  INNER JOIN descendants d ON t.head_twin_id = d.id
         WHERE d.depth < 10
     ), updated_data AS (
-        SELECT dt.id, public.detectHierarchyTree(dt.id) AS dt_data
+        SELECT dt.id, (public.detectHierarchyTree(dt.id)).* -- use function and expand result
         FROM descendants dt
     )
     UPDATE public.twin t
-    SET hierarchy_tree = text2ltree(ud.dt_data.hierarchy),
-        permission_schema_space_id = ud.dt_data.permission_schema_space_id,
-        twinflow_schema_space_id = ud.dt_data.twinflow_schema_space_id,
-        twin_class_schema_space_id = ud.dt_data.twin_class_schema_space_id,
-        alias_space_id = ud.dt_data.alias_space_id
+    SET hierarchy_tree = text2ltree(ud.hierarchy),
+        permission_schema_space_id = ud.permission_schema_space_id,
+        twinflow_schema_space_id = ud.twinflow_schema_space_id,
+        twin_class_schema_space_id = ud.twin_class_schema_space_id,
+        alias_space_id = ud.alias_space_id
     FROM updated_data ud
     WHERE t.id = ud.id;
 END;
@@ -259,6 +259,22 @@ CREATE TRIGGER trigger_recalculateHierarchy
     FOR EACH ROW
 EXECUTE FUNCTION public.recalculateHierarchyForClassTwins();
 
+-------------------------------------------------------------------------
+-- call update... function for all root-twins, to update all twin's hier.
+DO $$
+    DECLARE
+        root_twin RECORD;
+    BEGIN
+        FOR root_twin IN SELECT id FROM public.twin WHERE head_twin_id IS NULL LOOP
+                PERFORM public.updateHierarchyTreeHard(root_twin.id, NULL);
+            END LOOP;
+    END $$;
+
+
+
+
+
+
 
 CREATE OR REPLACE FUNCTION permissionCheckBySchema(permissionSchemaId UUID, permissionId UUID, userId UUID, userGroupIdList UUID[])
     RETURNS BOOLEAN AS $$
@@ -339,19 +355,49 @@ CREATE OR REPLACE FUNCTION permissionCheck(
     RETURNS BOOLEAN AS $$
 DECLARE
     permissionSchemaId UUID;
+    userAssignedToRoleExists INT;
+    groupAssignedToRoleExists INT;
 BEGIN
     IF permissionId IS NULL THEN
         RETURN TRUE;
     END IF;
 
-    -- detect permission schema
+    -- Detect permission schema
     permissionSchemaId := permissionDetectSchema(domainId, businessAccountId, spaceId);
 
-    -- no permissions
+    -- Exit if no permission schema found
     IF permissionSchemaId IS NULL THEN
         RETURN FALSE;
     END IF;
 
---     TODO to be continued...
+    -- Check direct user or user group permissions
+    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Exit if spaceId is NULL, indicating no further hierarchy to check
+    IF spaceId IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Check if any space role assigned to the user has the given permission
+    SELECT COUNT(spru.id) INTO userAssignedToRoleExists
+    FROM space_role_user spru
+    WHERE spru.twin_id = spaceId
+      AND spru.user_id = userId
+      AND spru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+
+    IF userAssignedToRoleExists > 0 THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Check if any space role assigned to the user's group has the given permission
+    SELECT COUNT(sprug.id) INTO groupAssignedToRoleExists
+    FROM space_role_user_group sprug
+    WHERE sprug.twin_id = spaceId
+      AND sprug.user_group_id = ANY(userGroupIdList)
+      AND sprug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+
+    RETURN groupAssignedToRoleExists > 0;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
