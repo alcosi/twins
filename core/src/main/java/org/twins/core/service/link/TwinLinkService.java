@@ -209,9 +209,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public void loadTwinLinks(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinLinks() == null)
+            if (twinEntity.getTwinLinks() == null) {
+                // it's important to create it here, because this will indicate in future that links are already loaded
+                // (even if there are no links in db, we should not try to load them no more time)
+                twinEntity.setTwinLinks(new FindTwinLinksResult());
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.size() == 0)
+            }
+        if (needLoad.isEmpty())
             return;
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdInOrDstTwinIdIn(needLoad.keySet(), needLoad.keySet());
         if (CollectionUtils.isEmpty(twinLinkEntityList))
@@ -222,16 +226,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 if (twinService.isEntityReadDenied(twinLinkEntity.getDstTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 twinEntity = needLoad.get(twinLinkEntity.getSrcTwinId());
-                if (twinEntity.getTwinLinks() == null)
-                    twinEntity.setTwinLinks(new FindTwinLinksResult());
                 twinEntity.getTwinLinks().forwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
             }
             if (needLoad.get(twinLinkEntity.getDstTwinId()) != null) {
                 if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 twinEntity = needLoad.get(twinLinkEntity.getDstTwinId());
-                if (twinEntity.getTwinLinks() == null)
-                    twinEntity.setTwinLinks(new FindTwinLinksResult());
                 twinEntity.getTwinLinks().backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
             }
         }

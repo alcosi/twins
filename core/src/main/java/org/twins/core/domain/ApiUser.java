@@ -88,6 +88,12 @@ public class ApiUser {
         return domainId != null;
     }
 
+    public UUID getDomainId() throws ServiceException {
+        if (isDomainSpecified())
+            return getDomain().getId();
+        return null;
+    }
+
     public UserEntity getUser() throws ServiceException {
         if (user == null) {
             if (userResolver == null)
@@ -138,6 +144,13 @@ public class ApiUser {
             return false;
         }
         return businessAccountId != null;
+    }
+
+
+    public UUID getBusinessAccountId() throws ServiceException {
+        if (isBusinessAccountSpecified())
+            return getBusinessAccount().getId();
+        return null;
     }
 
     public Channel getChannel() {

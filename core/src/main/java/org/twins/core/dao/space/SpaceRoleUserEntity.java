@@ -2,6 +2,7 @@ package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -35,6 +36,7 @@ public class SpaceRoleUserEntity {
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    @ToString.Exclude
     private TwinEntity twin;
 
     @ManyToOne

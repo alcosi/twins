@@ -75,6 +75,9 @@
     <logger name="org.cambium" level="INFO" additivity="false">
         <appender-ref ref="ASYNC-FILE"/>
     </logger>
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="ASYNC-FILE"/>
+    </logger>
     <logger name="RqRsLogger" level="INFO" additivity="false">
         <appender-ref ref="ASYNC-RQ-RS-FILE"/>
     </logger>

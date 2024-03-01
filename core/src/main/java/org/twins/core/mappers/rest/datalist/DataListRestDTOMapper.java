@@ -23,20 +23,21 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
         switch (mapperContext.getModeOrUse(DataListRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(src.getName())
-                        .updatedAt(src.getUpdatedAt().toLocalDateTime())
-                        .description(src.getDescription());
+                        .setId(src.getId())
+                        .setName(src.getName())
+                        .setUpdatedAt(src.getUpdatedAt().toLocalDateTime())
+                        .setDescription(src.getDescription());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(src.getName());
+                        .setId(src.getId())
+                        .setName(src.getName());
                 break;
         }
         if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
             dataListService.loadDataListOptions(src);
-            dst.options(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext));
+            dst.setOptions(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
+            convertMapOrPostpone(src.getOptions(), dst, dataListOptionRestDTOMapper, mapperContext, DataListDTOv1::setOptions, DataListDTOv1::setOptionIdList);
         }
     }
 
