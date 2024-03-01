@@ -44,20 +44,32 @@ DO $$
 ALTER TABLE twin_class ALTER COLUMN permission_schema_space SET DEFAULT FALSE;
 
 DROP TRIGGER IF EXISTS updateHierarchyTreeTrigger ON public.twin;
+DROP TRIGGER IF EXISTS hierarchyUpdateTreeTrigger ON public.twin;
 DROP TRIGGER IF EXISTS trigger_recalculateHierarchy ON public.twin_class;
+DROP TRIGGER IF EXISTS hierarchyRecalculateTrigger ON public.twin_class;
+DROP FUNCTION IF EXISTS public.ltree_check(ltree, text);
+DROP FUNCTION IF EXISTS public.hierarchyCheck(ltree, text);
 DROP FUNCTION IF EXISTS public.detectHierarchyTree(UUID);
+DROP FUNCTION IF EXISTS public.detectHierarchyTree(UUID);
+DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
 DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionGetRoles(UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionDetectSchema(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[]);
+DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeHard(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeSoft(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeHard(UUID, RECORD);
+DROP FUNCTION IF EXISTS public.hierarchyUpdateTreeHard(UUID, RECORD);
 DROP FUNCTION IF EXISTS public.updateHierarchyTreeSoft(UUID, RECORD);
+DROP FUNCTION IF EXISTS public.hierarchyUpdateTreeSoft(UUID, RECORD);
 DROP FUNCTION IF EXISTS public.processHierarchyTreeUpdate();
+DROP FUNCTION IF EXISTS public.hierarchyProcessTreeUpdate();
 DROP FUNCTION IF EXISTS public.recalculateHierarchyForClassTwins();
+DROP FUNCTION IF EXISTS public.hierarchyRecalculateForClassTwins();
 
-CREATE OR REPLACE FUNCTION public.detectHierarchyTree(twin_id UUID)
+CREATE OR REPLACE FUNCTION public.hierarchyDetectTree(twin_id UUID)
     RETURNS TABLE(
                      hierarchy TEXT,
                      permission_schema_space_id UUID,
@@ -135,7 +147,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION public.updateHierarchyTreeHard(twin_id UUID, detect_data RECORD)
+CREATE OR REPLACE FUNCTION public.hierarchyUpdateTreeHard(twin_id UUID, detect_data RECORD)
     RETURNS VOID AS $$
 DECLARE
     data_to_use RECORD;
@@ -144,7 +156,7 @@ BEGIN
     IF detect_data IS NOT NULL THEN
         data_to_use := detect_data;
     ELSE
-        data_to_use := public.detectHierarchyTree(twin_id);
+        data_to_use := public.hierarchyDetectTree(twin_id);
     END IF;
     RAISE NOTICE 'Update detected hier. for: %', data_to_use.hierarchy;
 
@@ -168,7 +180,7 @@ BEGIN
                  INNER JOIN descendants d ON t.head_twin_id = d.id
         WHERE d.depth < 10
     ), updated_data AS (
-        SELECT dt.id, (public.detectHierarchyTree(dt.id)).* -- use function and expand result
+        SELECT dt.id, (public.hierarchyDetectTree(dt.id)).* -- use function and expand result
         FROM descendants dt
     )
     UPDATE public.twin t
@@ -183,7 +195,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION public.updateHierarchyTreeSoft(twin_id UUID, detect_data RECORD)
+CREATE OR REPLACE FUNCTION public.hierarchyUpdateTreeSoft(twin_id UUID, detect_data RECORD)
     RETURNS VOID AS $$
 DECLARE
     data_to_use RECORD;
@@ -198,7 +210,7 @@ BEGIN
     IF detect_data IS NOT NULL THEN
         data_to_use := detect_data;
     ELSE
-        data_to_use := public.detectHierarchyTree(twin_id);
+        data_to_use := public.hierarchyDetectTree(twin_id);
     END IF;
 
     new_hierarchy := data_to_use.hierarchy;
@@ -213,32 +225,43 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION public.processHierarchyTreeUpdate()
+CREATE OR REPLACE FUNCTION public.hierarchyProcessTreeUpdate()
     RETURNS TRIGGER AS $$
 BEGIN
     IF TG_OP = 'UPDATE' AND (OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id) THEN
         RAISE NOTICE 'Process update for: %', NEW.id;
         IF OLD.head_twin_id IS DISTINCT FROM NEW.head_twin_id THEN
-            PERFORM public.updateHierarchyTreeSoft(NEW.id, public.detectHierarchyTree(NEW.id));
+            PERFORM public.hierarchyUpdateTreeSoft(NEW.id, public.hierarchyDetectTree(NEW.id));
         ELSE
-            PERFORM public.updateHierarchyTreeSoft(NEW.id, NULL);
+            PERFORM public.hierarchyUpdateTreeSoft(NEW.id, NULL);
         END IF;
     ELSIF TG_OP = 'INSERT' THEN
         RAISE NOTICE 'Process insert for: %', NEW.id;
-        PERFORM public.updateHierarchyTreeHard(NEW.id, public.detectHierarchyTree(NEW.id));
+        PERFORM public.hierarchyUpdateTreeHard(NEW.id, public.hierarchyDetectTree(NEW.id));
     END IF;
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER updateHierarchyTreeTrigger
+CREATE TRIGGER hierarchyUpdateTreeTrigger
     AFTER INSERT OR UPDATE OF head_twin_id ON public.twin
     FOR EACH ROW
-EXECUTE FUNCTION public.processHierarchyTreeUpdate();
+EXECUTE FUNCTION public.hierarchyProcessTreeUpdate();
+
+
+
+CREATE OR REPLACE FUNCTION hierarchyCheck(hierarchy_tree ltree, ltree_value text)
+    RETURNS boolean AS $$
+BEGIN
+    RETURN hierarchy_tree ~ ltree_value::lquery;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+
 
 -- TWIN-CLASS SECTION------------------------------------------------------------------------------------
 -- if space field in twin class changed trigger update... function for all twin-descendants of this class
-CREATE OR REPLACE FUNCTION public.recalculateHierarchyForClassTwins()
+CREATE OR REPLACE FUNCTION public.hierarchyRecalculateForClassTwins()
     RETURNS TRIGGER AS $$
 BEGIN
     IF OLD.permission_schema_space IS DISTINCT FROM NEW.permission_schema_space OR
@@ -246,7 +269,7 @@ BEGIN
        OLD.twin_class_schema_space IS DISTINCT FROM NEW.twin_class_schema_space OR
        OLD.alias_space IS DISTINCT FROM NEW.alias_space
     THEN
-        PERFORM public.updateHierarchyTreeHard(t.id, NULL)
+        PERFORM public.hierarchyUpdateTreeHard(t.id, NULL)
         FROM public.twin t
         WHERE t.twin_class_id = NEW.id;
     END IF;
@@ -254,10 +277,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trigger_recalculateHierarchy
+CREATE TRIGGER hierarchyRecalculateTrigger
     AFTER UPDATE OF permission_schema_space, twinflow_schema_space, twin_class_schema_space, alias_space ON public.twin_class
     FOR EACH ROW
-EXECUTE FUNCTION public.recalculateHierarchyForClassTwins();
+EXECUTE FUNCTION public.hierarchyRecalculateForClassTwins();
 
 -------------------------------------------------------------------------
 -- call update... function for all root-twins, to update all twin's hier.
@@ -266,7 +289,7 @@ DO $$
         root_twin RECORD;
     BEGIN
         FOR root_twin IN SELECT id FROM public.twin WHERE head_twin_id IS NULL LOOP
-                PERFORM public.updateHierarchyTreeHard(root_twin.id, NULL);
+                PERFORM public.hierarchyUpdateTreeHard(root_twin.id, NULL);
             END LOOP;
     END $$;
 
@@ -276,16 +299,21 @@ DO $$
 
 
 
-CREATE OR REPLACE FUNCTION permissionCheckBySchema(permissionSchemaId UUID, permissionId UUID, userId UUID, userGroupIdList UUID[])
+CREATE OR REPLACE FUNCTION permissionCheckBySchema(permissionSchemaId UUID, permissionIdTwin UUID, permissionIdTwinClass UUID, userId UUID, userGroupIdList UUID[])
     RETURNS BOOLEAN AS $$
 DECLARE
     userPermissionExists INT;
     groupPermissionExists INT;
+    permissionId_for_use UUID := permissionIdTwinClass;
 BEGIN
+    IF permissionId_for_use IS NULL THEN
+        permissionId_for_use = permissionIdTwin;
+    END IF;
+
     SELECT COUNT(id) INTO userPermissionExists
     FROM permission_schema_user
     WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionId
+      AND permission_id = permissionId_for_use
       AND user_id = userId;
 
     IF userPermissionExists > 0 THEN
@@ -348,7 +376,8 @@ CREATE OR REPLACE FUNCTION permissionCheck(
     domainId UUID,
     businessAccountId UUID,
     spaceId UUID,
-    permissionId UUID,
+    permissionIdTwin UUID,
+    permissionIdTwinClass UUID,
     userId UUID,
     userGroupIdList UUID[]
 )
@@ -358,7 +387,7 @@ DECLARE
     userAssignedToRoleExists INT;
     groupAssignedToRoleExists INT;
 BEGIN
-    IF permissionId IS NULL THEN
+    IF permissionIdTwin IS NULL AND permissionIdTwinClass  IS NULL THEN
         RETURN TRUE;
     END IF;
 
@@ -371,7 +400,7 @@ BEGIN
     END IF;
 
     -- Check direct user or user group permissions
-    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
+    IF permissionCheckBySchema(permissionSchemaId, permissionIdTwin, permissionIdTwinClass, userId, userGroupIdList) THEN
         RETURN TRUE;
     END IF;
 

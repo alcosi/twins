@@ -12,12 +12,34 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification {
 
+    public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
+        return (root, query, cb) -> {
+            String userGroupIdsStr = userGroups.stream()
+                    .map(UUID::toString)
+                    .collect(Collectors.joining(","));
+
+            Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
+            Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
+            Expression<UUID> permissionIdTwinClass = root.join("twinClass").get("viewPermissionId");
+
+            return cb.isTrue(cb.function("permissionCheck", Boolean.class,
+                    cb.literal(domainId),
+                    cb.literal(businesAccountId),
+                    spaceId,
+                    permissionIdTwin,
+                    permissionIdTwinClass,
+                    cb.literal(userId),
+                    cb.literal(userGroupIdsStr)
+            ));
+        };
+    }
 
     public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
         return (root, query, cb) -> {
@@ -26,7 +48,7 @@ public class TwinSpecification {
             for (UUID id : hierarchyTreeContainsIdList) {
                 String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
                 Expression<String> hierarchyTreeExpression = root.get(field);
-                predicates.add(cb.isTrue(cb.function("ltree_check", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
+                predicates.add(cb.isTrue(cb.function("hierarchyCheck", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
             }
             return getPredicate(cb, predicates, true);
         };

@@ -11,12 +11,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.Set;
 
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -33,18 +36,24 @@ public class TwinSearchService {
     final AuthService authService;
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomain().getId();
+        UUID businesAccountId = apiUser.getBusinessAccount().getId();
+        UUID userId = apiUser.getUser().getId();
+        Set<UUID> userGroups = apiUser.getUserGroups();
         return where(
                 checkTwinLinks(basicSearch.getTwinLinksMap(), basicSearch.getTwinNoLinksMap())
                         .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdExcludeList(), true))
                         .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
-                        .and(checkClass(basicSearch.getTwinClassIdList(), authService.getApiUser()))
+                        .and(checkClass(basicSearch.getTwinClassIdList(), apiUser))
                         //todo create filter by basicSearch.getExtendsTwinClassIdList()
                         .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
                         .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, basicSearch.getHierarchyTreeContainsIdList()))
+                        .and(checkPermissions(domainId, businesAccountId, userId, userGroups))
         );
     }
 
