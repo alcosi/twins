@@ -52,8 +52,9 @@ DROP FUNCTION IF EXISTS public.hierarchyCheck(ltree, text);
 DROP FUNCTION IF EXISTS public.detectHierarchyTree(UUID);
 DROP FUNCTION IF EXISTS public.detectHierarchyTree(UUID);
 DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
-DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID);
-DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID, UUID[]);
+DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID, UUID[]);
+DROP FUNCTION IF EXISTS public.permissionCheckBySchema(UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionGetRoles(UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionDetectSchema(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[]);
@@ -297,21 +298,17 @@ DO $$
 
 
 
-CREATE OR REPLACE FUNCTION permissionCheckBySchema(permissionSchemaId UUID, permissionIdTwin UUID, permissionIdTwinClass UUID, userId UUID, userGroupIdList UUID[])
+CREATE OR REPLACE FUNCTION permissionCheckBySchema(permissionSchemaId UUID, permissionIdForUse UUID, userId UUID, userGroupIdList UUID[])
     RETURNS BOOLEAN AS $$
 DECLARE
     userPermissionExists INT;
     groupPermissionExists INT;
-    permissionId_for_use UUID := permissionIdTwinClass;
 BEGIN
-    IF permissionId_for_use IS NULL THEN
-        permissionId_for_use = permissionIdTwin;
-    END IF;
 
     SELECT COUNT(id) INTO userPermissionExists
     FROM permission_schema_user
     WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionId_for_use
+      AND permission_id = permissionIdForUse
       AND user_id = userId;
 
     IF userPermissionExists > 0 THEN
@@ -321,7 +318,7 @@ BEGIN
     SELECT COUNT(id) INTO groupPermissionExists
     FROM permission_schema_user_group
     WHERE permission_schema_id = permissionSchemaId
-      AND permission_id = permissionId_for_use
+      AND permission_id = permissionIdForUse
       AND user_group_id = ANY(userGroupIdList);
 
     RETURN groupPermissionExists > 0;
@@ -369,7 +366,6 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-
 CREATE OR REPLACE FUNCTION permissionCheck(
     domainId UUID,
     businessAccountId UUID,
@@ -381,11 +377,30 @@ CREATE OR REPLACE FUNCTION permissionCheck(
 )
     RETURNS BOOLEAN AS $$
 DECLARE
+    permissionIdForUse UUID := permissionIdTwin;
+BEGIN
+    IF permissionIdForUse IS NULL THEN
+        permissionIdForUse = permissionIdTwinClass;
+    END IF;
+    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION permissionCheck(
+    domainId UUID,
+    businessAccountId UUID,
+    spaceId UUID,
+    permissionId UUID,
+    userId UUID,
+    userGroupIdList UUID[]
+)
+    RETURNS BOOLEAN AS $$
+DECLARE
     permissionSchemaId UUID;
     userAssignedToRoleExists INT;
     groupAssignedToRoleExists INT;
 BEGIN
-    IF permissionIdTwin IS NULL AND permissionIdTwinClass  IS NULL THEN
+    IF permissionId IS NULL THEN
         RETURN TRUE;
     END IF;
 
@@ -398,7 +413,7 @@ BEGIN
     END IF;
 
     -- Check direct user or user group permissions
-    IF permissionCheckBySchema(permissionSchemaId, permissionIdTwin, permissionIdTwinClass, userId, userGroupIdList) THEN
+    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
         RETURN TRUE;
     END IF;
 
@@ -428,3 +443,5 @@ BEGIN
     RETURN groupAssignedToRoleExists > 0;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
+
+
