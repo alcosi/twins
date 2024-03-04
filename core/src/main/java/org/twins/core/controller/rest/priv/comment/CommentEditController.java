@@ -20,7 +20,7 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
-import org.twins.core.mappers.rest.comment.CommentCudRestDTOReversedMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
 
@@ -33,7 +33,7 @@ import java.util.UUID;
 public class CommentEditController extends ApiController {
     final AuthService authService;
     final CommentService commentService;
-    final CommentCudRestDTOReversedMapper commentCudRestDTOReversedMapper;
+    final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentUpdateV1", summary = "Update comment")
@@ -48,11 +48,9 @@ public class CommentEditController extends ApiController {
             @RequestBody CommentUpdateRqDTOv1 request) {
         Response rs = new Response();
         try {
-            EntityCUD<TwinAttachmentEntity> attachmentUpdate = new EntityCUD<>();
-            commentCudRestDTOReversedMapper.map(request, attachmentUpdate, null);
+            EntityCUD<TwinAttachmentEntity> attachmentUpdate = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
             commentService.updateComment(commentId, request.getText(), attachmentUpdate);
         } catch (ServiceException se) {
-            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);

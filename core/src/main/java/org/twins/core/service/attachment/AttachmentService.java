@@ -17,6 +17,7 @@ import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -153,12 +154,14 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
+    public void deleteAttachments(UUID twinId, UUID userId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
         List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
         if (CollectionUtils.isEmpty(deleteEntityList))
             return;
+        if (!deleteEntityList.stream().allMatch(attachment -> attachment.getCreatedByUserId().equals(userId)))
+            throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_DELETE_ACCESS_DENIED, "This attachment does not belong to the commenter");
         HistoryCollector historyCollector = new HistoryCollector();
         TwinEntity twinEntity = null;
         for (TwinAttachmentEntity attachmentEntity : deleteEntityList) {

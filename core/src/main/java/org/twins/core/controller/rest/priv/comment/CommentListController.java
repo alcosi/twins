@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.comment.CommentListResult;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.comment.CommentRsDTOv1;
+import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
@@ -49,7 +49,7 @@ public class CommentListController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = CommentRsDTOv1.class))}),
+                    @Schema(implementation = CommentListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/comment/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinCommentListV1(
@@ -60,7 +60,7 @@ public class CommentListController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
-        CommentRsDTOv1 rs = new CommentRsDTOv1();
+        CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
             CommentListResult commentListResult = commentService.findComment(twinId, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
@@ -68,7 +68,7 @@ public class CommentListController extends ApiController {
                     .setMode(showCommentMode)
                     .setMode(showAttachmentMode);
             rs
-                    .setCommentViewDTOv1s(commentViewRestDTOMapper.convertList(commentListResult.getCommentList(), mapperContext))
+                    .setComments(commentViewRestDTOMapper.convertList(commentListResult.getCommentList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentListResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

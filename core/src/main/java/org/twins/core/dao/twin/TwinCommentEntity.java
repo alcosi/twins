@@ -3,6 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.Kit;
 import org.hibernate.annotations.CreationTimestamp;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "twin_comment")
+@Accessors(chain = true)
 @FieldNameConstants
 public class TwinCommentEntity {
     @Id

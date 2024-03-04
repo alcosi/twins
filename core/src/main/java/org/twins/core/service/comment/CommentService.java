@@ -9,6 +9,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.*;
@@ -16,9 +17,11 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.comment.CommentListResult;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -27,8 +30,9 @@ import java.util.*;
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class CommentService {
+public class CommentService extends EntitySecureFindServiceImpl {
     final AuthService authService;
+    final UserService userService;
     final EntitySmartService entitySmartService;
     final AttachmentService attachmentService;
     final TwinRepository twinRepository;
@@ -41,20 +45,27 @@ public class CommentService {
         ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUser().getId();
         comment.setCreatedByUserId(userId);
+        comment.setCreatedByUser(apiUser.getUser());
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
         addAttachmentsByCommentId(comment.getId(), comment.getTwinId(), userId, attachmentList);
     }
 
     @Transactional
     public void updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentUpdate) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         TwinCommentEntity currentComment = entitySmartService.findById(commentId, commentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        if (!apiUser.getUser().getId().equals(currentComment.getCreatedByUserId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_EDIT_ACCESS_DENIED, "This comment belongs to another user. Editing is not possible");
         if (!currentComment.getText().equals(commentText)) {
-            currentComment.setText(commentText);
-            currentComment.setChangedAt(new Timestamp(System.currentTimeMillis()));
+            currentComment
+                    .setText(commentText)
+                    .setChangedAt(new Timestamp(System.currentTimeMillis()));
         }
         addAttachmentsByCommentId(commentId, currentComment.getTwinId(), currentComment.getCreatedByUserId(), attachmentUpdate.getCreateList());
+        if (!attachmentUpdate.getUpdateList().stream().allMatch(attachment -> attachment.getTwinCommentId().equals(commentId)))
+            throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
         attachmentService.updateAttachments(attachmentUpdate.getUpdateList());
-        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentUpdate.getDeleteUUIDList());
+        attachmentService.deleteAttachments(currentComment.getTwinId(), apiUser.getUser().getId(), attachmentUpdate.getDeleteUUIDList());
     }
 
     public CommentListResult findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
@@ -70,8 +81,6 @@ public class CommentService {
 
     public void deleteComment(UUID commentId, UUID twinId) throws ServiceException {
         // attachments will be deleted by cascade by fk
-        entitySmartService.check(commentId, commentRepository, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-        entitySmartService.check(twinId, twinRepository, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
         commentRepository.deleteByIdAndTwinId(commentId, twinId);
         log.info("comment[" + commentId + "] perhaps was deleted by twin id[" + twinId + "]");
     }
@@ -84,7 +93,6 @@ public class CommentService {
             attachment.setCreatedByUserId(userId);
             attachment.setTwinCommentId(commentId);
         });
-        entitySmartService.saveAllAndLog(attachmentList, attachmentRepository);
     }
 
     public void loadAttachments(Collection<TwinCommentEntity> twinCommentList) {
@@ -107,5 +115,20 @@ public class CommentService {
             twinComment = needLoad.get(entry.getKey());
             twinComment.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
         }
+    }
+
+    @Override
+    public CrudRepository entityRepository() {
+        return null;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(Object entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(Object entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return false;
     }
 }

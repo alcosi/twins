@@ -47,9 +47,7 @@ public class CommentAddController extends ApiController {
             @RequestBody CommentCreateRqDTOv1 request) {
         TwinLinkAddRsDTOv1 rs = new TwinLinkAddRsDTOv1();
         try {
-            TwinCommentEntity comment = new TwinCommentEntity();
-            comment.setTwinId(twinId);
-            commentRestDTOReverseMapper.map(request, comment, null);
+            TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
             commentService.createComment(comment, attachmentAddRestDTOReverseMapper.convertList(request.attachments));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
