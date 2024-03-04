@@ -366,7 +366,6 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-
 CREATE OR REPLACE FUNCTION permissionCheck(
     domainId UUID,
     businessAccountId UUID,
@@ -378,17 +377,33 @@ CREATE OR REPLACE FUNCTION permissionCheck(
 )
     RETURNS BOOLEAN AS $$
 DECLARE
-    permissionSchemaId UUID;
-    userAssignedToRoleExists INT;
-    groupAssignedToRoleExists INT;
     permissionIdForUse UUID := permissionIdTwin;
 BEGIN
-    IF permissionIdTwin IS NULL AND permissionIdTwinClass  IS NULL THEN
-        RETURN TRUE;
-    END IF;
     IF permissionIdForUse IS NULL THEN
         permissionIdForUse = permissionIdTwinClass;
     END IF;
+    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION permissionCheck(
+    domainId UUID,
+    businessAccountId UUID,
+    spaceId UUID,
+    permissionId UUID,
+    userId UUID,
+    userGroupIdList UUID[]
+)
+    RETURNS BOOLEAN AS $$
+DECLARE
+    permissionSchemaId UUID;
+    userAssignedToRoleExists INT;
+    groupAssignedToRoleExists INT;
+BEGIN
+    IF permissionId IS NULL THEN
+        RETURN TRUE;
+    END IF;
+
     -- Detect permission schema
     permissionSchemaId := permissionDetectSchema(domainId, businessAccountId, spaceId);
 
@@ -398,7 +413,7 @@ BEGIN
     END IF;
 
     -- Check direct user or user group permissions
-    IF permissionCheckBySchema(permissionSchemaId, permissionIdForUse, userId, userGroupIdList) THEN
+    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
         RETURN TRUE;
     END IF;
 
@@ -412,7 +427,7 @@ BEGIN
     FROM space_role_user spru
     WHERE spru.twin_id = spaceId
       AND spru.user_id = userId
-      AND spru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionIdForUse));
+      AND spru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
 
     IF userAssignedToRoleExists > 0 THEN
         RETURN TRUE;
@@ -423,8 +438,10 @@ BEGIN
     FROM space_role_user_group sprug
     WHERE sprug.twin_id = spaceId
       AND sprug.user_group_id = ANY(userGroupIdList)
-      AND sprug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionIdForUse));
+      AND sprug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
 
     RETURN groupAssignedToRoleExists > 0;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
+
+
