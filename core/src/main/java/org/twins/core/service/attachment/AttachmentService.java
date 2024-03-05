@@ -82,7 +82,7 @@ public class AttachmentService {
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getAttachmentKit() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.size() == 0)
+        if (needLoad.isEmpty())
             return;
         List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(attachmentEntityList))
@@ -93,9 +93,11 @@ public class AttachmentService {
             attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
         }
         TwinEntity twinEntity;
-        for (Map.Entry<UUID, List<TwinAttachmentEntity>> entry : attachmentMap.entrySet()) {
-            twinEntity = needLoad.get(entry.getKey());
-            twinEntity.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
+        List<TwinAttachmentEntity> twinAttachmentList;
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            twinEntity = entry.getValue();
+            twinAttachmentList = attachmentMap.get(entry.getKey());
+            twinEntity.setAttachmentKit(new Kit<>(twinAttachmentList, TwinAttachmentEntity::getId));
         }
     }
 
