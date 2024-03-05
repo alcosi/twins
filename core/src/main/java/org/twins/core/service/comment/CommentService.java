@@ -24,13 +24,14 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 
 @Service
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
-public class CommentService extends EntitySecureFindServiceImpl {
+public class CommentService extends EntitySecureFindServiceImpl<CommentService> {
     final AuthService authService;
     final UserService userService;
     final EntitySmartService entitySmartService;
@@ -39,6 +40,7 @@ public class CommentService extends EntitySecureFindServiceImpl {
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
 
+    @Transactional
     public void createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
         if (comment.getText() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
@@ -46,8 +48,10 @@ public class CommentService extends EntitySecureFindServiceImpl {
         UUID userId = apiUser.getUser().getId();
         comment.setCreatedByUserId(userId);
         comment.setCreatedByUser(apiUser.getUser());
+        TwinEntity twinEntity = entitySmartService.findById(comment.getTwinId(), twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
-        addAttachmentsByCommentId(comment.getId(), comment.getTwinId(), userId, attachmentList);
+        addCommentIdInAttachments(comment.getId(), attachmentList);
+        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentList);
     }
 
     @Transactional
@@ -59,13 +63,13 @@ public class CommentService extends EntitySecureFindServiceImpl {
         if (!currentComment.getText().equals(commentText)) {
             currentComment
                     .setText(commentText)
-                    .setChangedAt(new Timestamp(System.currentTimeMillis()));
+                    .setChangedAt(Timestamp.from(Instant.now()));
         }
-        addAttachmentsByCommentId(commentId, currentComment.getTwinId(), currentComment.getCreatedByUserId(), attachmentUpdate.getCreateList());
-        if (!attachmentUpdate.getUpdateList().stream().allMatch(attachment -> attachment.getTwinCommentId().equals(commentId)))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
+        addCommentIdInAttachments(commentId, attachmentUpdate.getCreateList());
+        TwinEntity twinEntity = entitySmartService.findById(currentComment.getTwinId(), twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentUpdate.getCreateList());
         attachmentService.updateAttachments(attachmentUpdate.getUpdateList());
-        attachmentService.deleteAttachments(currentComment.getTwinId(), apiUser.getUser().getId(), attachmentUpdate.getDeleteUUIDList());
+        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentUpdate.getDeleteUUIDList());
     }
 
     public CommentListResult findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
@@ -85,12 +89,10 @@ public class CommentService extends EntitySecureFindServiceImpl {
         log.info("comment[" + commentId + "] perhaps was deleted by twin id[" + twinId + "]");
     }
 
-    private void addAttachmentsByCommentId(UUID commentId, UUID twinId, UUID userId, List<TwinAttachmentEntity> attachmentList) {
+    private void addCommentIdInAttachments(UUID commentId, List<TwinAttachmentEntity> attachmentList) {
         if (CollectionUtils.isEmpty(attachmentList))
             return;
         attachmentList.forEach(attachment -> {
-            attachment.setTwinId(twinId);
-            attachment.setCreatedByUserId(userId);
             attachment.setTwinCommentId(commentId);
         });
     }
@@ -118,17 +120,17 @@ public class CommentService extends EntitySecureFindServiceImpl {
     }
 
     @Override
-    public CrudRepository entityRepository() {
+    public CrudRepository<CommentService, UUID> entityRepository() {
         return null;
     }
 
     @Override
-    public boolean isEntityReadDenied(Object entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(CommentService entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }
 
     @Override
-    public boolean validateEntity(Object entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(CommentService entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return false;
     }
 }

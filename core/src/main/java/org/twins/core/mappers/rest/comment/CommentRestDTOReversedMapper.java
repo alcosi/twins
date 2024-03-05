@@ -13,6 +13,7 @@ public class CommentRestDTOReversedMapper extends RestSimpleDTOMapper<CommentBas
     @Override
     public void map(CommentBaseDTOv1 src, TwinCommentEntity dst, MapperContext mapperContext) throws Exception {
                 dst
-                        .setText(src.getText());
+                        .setText(src.getText())
+                        .setTwinId(src.getTwinId());
     }
 }
