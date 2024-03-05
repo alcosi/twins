@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.PublicCloneable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -51,8 +52,13 @@ public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicClon
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @Column(name = "twin_comment_id")
+    private UUID twinCommentId;
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
@@ -81,6 +87,7 @@ public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicClon
                 .setDescription(description)
                 .setStorageLink(storageLink)
                 .setCreatedAt(createdAt)
+                .setTwinCommentId(twinCommentId)
                 .setTwinflowTransition(twinflowTransition)
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setViewPermission(viewPermission)

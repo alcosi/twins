@@ -32,7 +32,6 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_FIELD_VALUE_INCORRECT(10406, "twin class field value incorrect"),
     TWIN_CLASS_FIELD_INCORRECT_TYPE(10407, "twin class field type incorrect"),
     TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE(10408, "twin class field value is already in use"),
-    TWIN_CLASS_TAGS_NOT_ALLOWED(10409, "tags are not allowed for given class"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
@@ -50,7 +49,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
-    PAGINATION_ERROR(11201, "the offset must be a multiple of the size");
+    PAGINATION_ERROR(11201, "the offset must be a multiple of the size"),
+    TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
+    TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
+    TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
+    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter");
+
 
     private final int code;
     private final String message;

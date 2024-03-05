@@ -7,6 +7,10 @@ public class ChangesHelper {
     List<String> changes;
     boolean hasChanges = false;
 
+    public ChangesHelper() {
+        changes = new ArrayList<>();
+    }
+
     public ChangesHelper add(String field, String oldValue, String newValue) {
         if (changes == null)
             changes = new ArrayList<>();
