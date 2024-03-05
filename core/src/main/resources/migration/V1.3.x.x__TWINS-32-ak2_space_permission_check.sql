@@ -85,7 +85,7 @@ DECLARE
     parent_id UUID;
     visited_ids UUID[] := ARRAY[twin_id];
 
-    local_permission_schema_space_enbled BOOLEAN;
+    local_permission_schema_space_enabled BOOLEAN;
     local_twinflow_schema_space_enabled BOOLEAN;
     local_twin_class_schema_space_enabled BOOLEAN;
     local_alias_space_enabled BOOLEAN;
@@ -111,7 +111,7 @@ BEGIN
                tc.permission_schema_space, tc.twinflow_schema_space, tc.twin_class_schema_space, tc.alias_space,
                s.permission_schema_id, s.twinflow_schema_id, s.twin_class_schema_id, s.twin_id --TODO alias
         INTO parent_id,
-            local_permission_schema_space_enbled, local_twinflow_schema_space_enabled, local_twin_class_schema_space_enabled, local_alias_space_enabled,
+            local_permission_schema_space_enabled, local_twinflow_schema_space_enabled, local_twin_class_schema_space_enabled, local_alias_space_enabled,
             space_permission_schema_id, space_twinflow_schema_id, space_twin_class_schema_id, space_alias --TODO alias
         FROM public.twin t
         LEFT JOIN public.twin_class tc ON t.twin_class_id = tc.id
@@ -124,7 +124,7 @@ BEGIN
         END IF;
 
         -- update schema ids, if it is enabled on class and return value not null
-        IF permission_schema_space_id IS NULL AND local_permission_schema_space_enbled IS TRUE AND space_permission_schema_id IS NOT NULL
+        IF permission_schema_space_id IS NULL AND local_permission_schema_space_enabled IS TRUE AND space_permission_schema_id IS NOT NULL
             THEN permission_schema_space_id := current_id;
         END IF;
         IF twinflow_schema_space_id IS NULL AND local_twinflow_schema_space_enabled IS TRUE AND space_twinflow_schema_id IS NOT NULL
