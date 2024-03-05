@@ -21,7 +21,6 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -33,7 +32,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CommentService extends EntitySecureFindServiceImpl<CommentService> {
     final AuthService authService;
-    final UserService userService;
     final EntitySmartService entitySmartService;
     final AttachmentService attachmentService;
     final TwinRepository twinRepository;
@@ -66,6 +64,7 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
                     .setChangedAt(Timestamp.from(Instant.now()));
         }
         addCommentIdInAttachments(commentId, attachmentUpdate.getCreateList());
+        addCommentIdInAttachments(commentId, attachmentUpdate.getUpdateList());
         TwinEntity twinEntity = entitySmartService.findById(currentComment.getTwinId(), twinRepository, EntitySmartService.FindMode.ifEmptyThrows);
         attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentUpdate.getCreateList());
         attachmentService.updateAttachments(attachmentUpdate.getUpdateList());
@@ -95,6 +94,15 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
         attachmentList.forEach(attachment -> {
             attachment.setTwinCommentId(commentId);
         });
+    }
+
+    public Kit<TwinAttachmentEntity> loadAttachments(TwinCommentEntity twinComment) {
+        if (twinComment.getAttachmentKit() != null)
+            return twinComment.getAttachmentKit();
+        List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinId(twinComment.getId());
+        if (attachmentEntityList != null)
+            twinComment.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
+        return twinComment.getAttachmentKit();
     }
 
     public void loadAttachments(Collection<TwinCommentEntity> twinCommentList) {

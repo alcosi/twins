@@ -11,7 +11,6 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.comment.CommentService;
 
 import java.util.Collection;
@@ -22,7 +21,6 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
     final UserRestDTOMapper userDTOMapper;
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final CommentService commentService;
-    final AttachmentService attachmentService;
 
     @Override
     public void map(TwinCommentEntity src, CommentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -40,8 +38,8 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setCreatedAt(src.getCreatedAt())
                         .setChangedAt(src.getChangedAt())
                         .setText(src.getText());
-                if (!attachmentRestDTOMapper.hideMode(mapperContext)){
-                    dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
+                if (!attachmentRestDTOMapper.hideMode(mapperContext)) {
+                    dst.setAttachments(attachmentRestDTOMapper.convertList(commentService.loadAttachments(src).getList(), mapperContext));
                 }
                 break;
         }

@@ -14,7 +14,6 @@ import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
-import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -24,7 +23,6 @@ import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -36,7 +34,6 @@ import java.util.*;
 public class AttachmentService {
     final EntitySmartService entitySmartService;
     final TwinAttachmentRepository twinAttachmentRepository;
-    final UserService userService;
     final HistoryService historyService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -76,15 +73,6 @@ public class AttachmentService {
         if (attachmentEntityList != null)
             twinEntity.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
         return twinEntity.getAttachmentKit();
-    }
-
-    public Kit<TwinAttachmentEntity> loadAttachments(TwinCommentEntity twinComment) {
-        if (twinComment.getAttachmentKit() != null)
-            return twinComment.getAttachmentKit();
-        List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinId(twinComment.getId());
-        if (attachmentEntityList != null)
-            twinComment.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
-        return twinComment.getAttachmentKit();
     }
 
     public void loadAttachments(Collection<TwinEntity> twinEntityList) {
