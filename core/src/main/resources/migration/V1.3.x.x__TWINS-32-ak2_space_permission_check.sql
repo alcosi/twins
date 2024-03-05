@@ -14,31 +14,32 @@ DO $$
         END IF;
         IF NOT EXISTS (SELECT FROM pg_attribute WHERE attrelid = 'twin_class'::regclass AND attname = 'view_permission_id' AND attnum > 0 AND NOT attisdropped) THEN
             ALTER TABLE twin_class ADD COLUMN view_permission_id UUID;
+            ALTER TABLE twin_class ADD CONSTRAINT fk_twinclass_view_permission_id FOREIGN KEY (view_permission_id) REFERENCES permission(id);
         END IF;
 
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'twin' AND column_name = 'view_permission_id') THEN
             ALTER TABLE twin ADD COLUMN view_permission_id UUID;
---              ALTER TABLE twin ADD CONSTRAINT fk_twin_view_permission_id FOREIGN KEY (view_permission_id) REFERENCES space(twin_id);
+            ALTER TABLE twin ADD CONSTRAINT fk_twin_view_permission_id FOREIGN KEY (view_permission_id) REFERENCES permission(id);
         END IF;
 
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'twin' AND column_name = 'permission_schema_space_id') THEN
             ALTER TABLE twin ADD COLUMN permission_schema_space_id UUID;
-            ALTER TABLE twin ADD CONSTRAINT fk_twin_permission_schema_space_id FOREIGN KEY (permission_schema_space_id) REFERENCES space(twin_id);
+            ALTER TABLE twin ADD CONSTRAINT fk_twin_permission_schema_space_id FOREIGN KEY (permission_schema_space_id) REFERENCES twin(id);
         END IF;
 
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'twin' AND column_name = 'twinflow_schema_space_id') THEN
             ALTER TABLE twin ADD COLUMN twinflow_schema_space_id UUID;
-            ALTER TABLE twin ADD CONSTRAINT fk_twin_twinflow_schema_space_id FOREIGN KEY (twinflow_schema_space_id) REFERENCES space(twin_id);
+            ALTER TABLE twin ADD CONSTRAINT fk_twin_twinflow_schema_space_id FOREIGN KEY (twinflow_schema_space_id) REFERENCES twin(id);
         END IF;
 
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'twin' AND column_name = 'twin_class_schema_space_id') THEN
             ALTER TABLE twin ADD COLUMN twin_class_schema_space_id UUID;
-            ALTER TABLE twin ADD CONSTRAINT fk_twin_twin_class_schema_space_id FOREIGN KEY (twin_class_schema_space_id) REFERENCES space(twin_id);
+            ALTER TABLE twin ADD CONSTRAINT fk_twin_twin_class_schema_space_id FOREIGN KEY (twin_class_schema_space_id) REFERENCES twin(id);
         END IF;
 
         IF NOT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'twin' AND column_name = 'alias_space_id') THEN
             ALTER TABLE twin ADD COLUMN alias_space_id UUID;
-            ALTER TABLE twin ADD CONSTRAINT fk_twin_alias_space_id FOREIGN KEY (alias_space_id) REFERENCES space(twin_id);
+            ALTER TABLE twin ADD CONSTRAINT fk_twin_alias_space_id FOREIGN KEY (alias_space_id) REFERENCES twin(id);
         END IF;
     END $$;
 ALTER TABLE twin_class ALTER COLUMN permission_schema_space SET DEFAULT FALSE;
@@ -83,14 +84,17 @@ DECLARE
     current_id UUID := twin_id;
     parent_id UUID;
     visited_ids UUID[] := ARRAY[twin_id];
-    local_permission_schema_space_id UUID;
-    local_twinflow_schema_space_id UUID;
-    local_twin_class_schema_space_id UUID;
-    local_alias_space_id UUID;
-    local_permission_schema_space BOOLEAN;
-    local_twinflow_schema_space BOOLEAN;
-    local_twin_class_schema_space BOOLEAN;
-    local_alias_space BOOLEAN;
+
+    local_permission_schema_space_enbled BOOLEAN;
+    local_twinflow_schema_space_enabled BOOLEAN;
+    local_twin_class_schema_space_enabled BOOLEAN;
+    local_alias_space_enabled BOOLEAN;
+
+    space_permission_schema_id UUID;
+    space_twinflow_schema_id UUID;
+    space_twin_class_schema_id UUID;
+    space_alias UUID;
+
 BEGIN
     RAISE NOTICE 'Detected hier. for id: %', twin_id;
     -- return values init
@@ -102,13 +106,17 @@ BEGIN
 
     -- cycle for build hierarchy form twin-in to twin-root
     LOOP
-        -- get parent_id and shema flags for twin-in
-        SELECT t.head_twin_id, t.permission_schema_space_id, t.twinflow_schema_space_id, t.twin_class_schema_space_id, t.alias_space_id,
-               tc.permission_schema_space, tc.twinflow_schema_space, tc.twin_class_schema_space, tc.alias_space
+        -- get parent_id and shema flags and check space_schema_id is present for twin-in
+        SELECT t.head_twin_id,
+               tc.permission_schema_space, tc.twinflow_schema_space, tc.twin_class_schema_space, tc.alias_space,
+               s.permission_schema_id, s.twinflow_schema_id, s.twin_class_schema_id, s.twin_id --TODO alias
         INTO parent_id,
-            local_permission_schema_space_id, local_twinflow_schema_space_id, local_twin_class_schema_space_id, local_alias_space_id,
-            local_permission_schema_space, local_twinflow_schema_space, local_twin_class_schema_space, local_alias_space
-        FROM public.twin t LEFT JOIN public.twin_class tc ON t.twin_class_id = tc.id WHERE t.id = current_id;
+            local_permission_schema_space_enbled, local_twinflow_schema_space_enabled, local_twin_class_schema_space_enabled, local_alias_space_enabled,
+            space_permission_schema_id, space_twinflow_schema_id, space_twin_class_schema_id, space_alias --TODO alias
+        FROM public.twin t
+        LEFT JOIN public.twin_class tc ON t.twin_class_id = tc.id
+        LEFT JOIN public.space s ON t.id = s.twin_id
+        WHERE t.id = current_id;
 
         -- check for cycle
         IF parent_id = ANY(visited_ids) THEN
@@ -116,18 +124,18 @@ BEGIN
         END IF;
 
         -- update schema ids, if it is enabled on class and return value not null
-        IF permission_schema_space_id IS NULL AND local_permission_schema_space IS TRUE
-            THEN permission_schema_space_id := local_permission_schema_space_id;
+        IF permission_schema_space_id IS NULL AND local_permission_schema_space_enbled IS TRUE AND space_permission_schema_id IS NOT NULL
+            THEN permission_schema_space_id := current_id;
         END IF;
-        IF twinflow_schema_space_id IS NULL AND local_twinflow_schema_space IS TRUE
-            THEN twinflow_schema_space_id := local_twinflow_schema_space_id;
+        IF twinflow_schema_space_id IS NULL AND local_twinflow_schema_space_enabled IS TRUE AND space_twinflow_schema_id IS NOT NULL
+            THEN twinflow_schema_space_id := current_id;
         END IF;
-        IF twin_class_schema_space_id IS NULL AND local_twin_class_schema_space IS TRUE
-            THEN twin_class_schema_space_id := local_twin_class_schema_space_id;
+        IF twin_class_schema_space_id IS NULL AND local_twin_class_schema_space_enabled IS TRUE AND space_twin_class_schema_id IS NOT NULL
+            THEN twin_class_schema_space_id := current_id;
         END IF;
-        IF alias_space_id IS NULL AND local_alias_space IS TRUE
-            THEN alias_space_id := local_alias_space_id;
-        END IF;
+--         IF alias_space_id IS NULL AND local_alias_space IS TRUE AND space_alias IS NOT NULL --TODO alias
+--             THEN alias_space_id := current_id;
+--         END IF;
 
         -- replace - to _ for compatibility with ltree
         hierarchy := replace(current_id::text, '-', '_') || (CASE WHEN hierarchy = '' THEN '' ELSE '.' END) || hierarchy;
@@ -162,7 +170,7 @@ BEGIN
     END IF;
     RAISE NOTICE 'Update detected hier. for: %', data_to_use.hierarchy;
 
-    -- update hier. for twin-in
+    -- update hier. and schemas for twin-in
     UPDATE public.twin
     SET hierarchy_tree = text2ltree(data_to_use.hierarchy),
         permission_schema_space_id = data_to_use.permission_schema_space_id,
@@ -171,7 +179,7 @@ BEGIN
         alias_space_id = data_to_use.alias_space_id
     WHERE id = twin_id;
 
-    -- update hier. for twin-in children and their children, recursively
+    -- update hier. and schemas for twin-in children and their children, recursively
     WITH RECURSIVE descendants AS (
         SELECT id, 1 AS depth
         FROM public.twin
@@ -279,6 +287,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- we must create space appearance for twin before any of this flags switch on
 CREATE TRIGGER hierarchyRecalculateTrigger
     AFTER UPDATE OF permission_schema_space, twinflow_schema_space, twin_class_schema_space, alias_space ON public.twin_class
     FOR EACH ROW
@@ -386,6 +395,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+
 CREATE OR REPLACE FUNCTION permissionCheck(
     domainId UUID,
     businessAccountId UUID,
@@ -423,22 +433,22 @@ BEGIN
     END IF;
 
     -- Check if any space role assigned to the user has the given permission
-    SELECT COUNT(spru.id) INTO userAssignedToRoleExists
-    FROM space_role_user spru
-    WHERE spru.twin_id = spaceId
-      AND spru.user_id = userId
-      AND spru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+    SELECT COUNT(sru.id) INTO userAssignedToRoleExists
+    FROM space_role_user sru
+    WHERE sru.twin_id = spaceId
+      AND sru.user_id = userId
+      AND sru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
 
     IF userAssignedToRoleExists > 0 THEN
         RETURN TRUE;
     END IF;
 
     -- Check if any space role assigned to the user's group has the given permission
-    SELECT COUNT(sprug.id) INTO groupAssignedToRoleExists
-    FROM space_role_user_group sprug
-    WHERE sprug.twin_id = spaceId
-      AND sprug.user_group_id = ANY(userGroupIdList)
-      AND sprug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+    SELECT COUNT(srug.id) INTO groupAssignedToRoleExists
+    FROM space_role_user_group srug
+    WHERE srug.twin_id = spaceId
+      AND srug.user_group_id = ANY(userGroupIdList)
+      AND srug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
 
     RETURN groupAssignedToRoleExists > 0;
 END;
