@@ -745,4 +745,12 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return this;
         }
     }
+
+    public static boolean isAssignee(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        return apiUser.getUserId().equals(twinEntity.getAssignerUserId());
+    }
+
+    public static boolean isCreator(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        return apiUser.getUserId().equals(twinEntity.getCreatedByUserId());
+    }
 }
