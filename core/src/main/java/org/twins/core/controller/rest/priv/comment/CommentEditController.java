@@ -51,8 +51,8 @@ public class CommentEditController extends ApiController {
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {
-            EntityCUD<TwinAttachmentEntity> attachmentUpdate = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
-            TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getText(), attachmentUpdate);
+            EntityCUD<TwinAttachmentEntity> attachmentCUD = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
+            TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getText(), attachmentCUD);
             rs
                     .setComment(commentViewRestDTOMapper.
                             convert(twinComment,

@@ -60,7 +60,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     @Transactional
-    public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentUpdate) throws ServiceException {
+    public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         if (!apiUser.getUser().getId().equals(currentComment.getCreatedByUserId()))
@@ -70,14 +70,14 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
                     .setText(commentText)
                     .setChangedAt(Timestamp.from(Instant.now()));
         }
-        if (attachmentUpdate == null)
+        if (attachmentCUD == null)
             return currentComment;
-        addCommentIdInAttachments(commentId, attachmentUpdate.getCreateList());
-        addCommentIdInAttachments(commentId, attachmentUpdate.getUpdateList());
+        addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
+        addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
         TwinEntity twinEntity = twinService.findEntitySafe(currentComment.getTwinId());
-        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentUpdate.getCreateList());
-        attachmentService.updateAttachments(attachmentUpdate.getUpdateList());
-        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentUpdate.getDeleteUUIDList());
+        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentCUD.getCreateList());
+        attachmentService.updateAttachments(attachmentCUD.getUpdateList());
+        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteUUIDList());
         return currentComment;
     }
 
