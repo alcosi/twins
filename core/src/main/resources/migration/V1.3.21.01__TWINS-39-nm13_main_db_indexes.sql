@@ -79,7 +79,7 @@ create index if not exists twinflow_transition_permission_id_index
 create index if not exists twinflow_transition_twinflow_id_index
     on twinflow_transition (twinflow_id);
 
-create unique index twinflow_transition_twinflow_transition_alias_id_twinflow_id_sr
+create unique index if not exists  twinflow_transition_twinflow_transition_alias_id_twinflow_id_sr
     on twinflow_transition (twinflow_transition_alias_id, twinflow_id, src_twin_status_id);
 
 create index if not exists twinflow_schema_domain_id_business_account_id_index
@@ -117,7 +117,7 @@ create index if not exists twinflow_transition_trigger_transition_trigger_featur
 
 drop index twin_status_group_map_twin_status_id_twin_status_group_id_uinde;
 
-create unique index twin_status_group_map_twin_status_id_twin_status_group_id_uinde
+create unique index if not exists  twin_status_group_map_twin_status_id_twin_status_group_id_uinde
     on twin_status_group_map (twin_status_group_id, twin_status_id);
 
 create index if not exists data_list_option_data_list_id_business_account_id_index
