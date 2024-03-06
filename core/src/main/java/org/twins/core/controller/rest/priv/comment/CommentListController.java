@@ -64,7 +64,7 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            CommentListResult commentListResult = commentService.findCommentList(twinId, sortDirection, offset, limit);
+            CommentListResult commentListResult = commentService.findComment(twinId, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showCommentMode)
@@ -95,7 +95,7 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {
-            TwinCommentEntity comment = commentService.findComment(commentId);
+            TwinCommentEntity comment = commentService.findEntitySafe(commentId);
             MapperContext mapperContext = new MapperContext()
                     .setMode(showCommentMode)
                     .setMode(showAttachmentMode);
