@@ -17,9 +17,11 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.domain.comment.CommentListResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
+import org.twins.core.dto.rest.comment.CommentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
@@ -51,18 +53,18 @@ public class CommentListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/comment/v1", method = RequestMethod.GET)
+    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinCommentListV1(
-            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
             @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._SHORT) CommentViewRestDTOMapper.Mode showCommentMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            CommentListResult commentListResult = commentService.findComment(twinId, sortDirection, offset, limit);
+            CommentListResult commentListResult = commentService.findCommentList(twinId, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showCommentMode)
@@ -71,6 +73,34 @@ public class CommentListController extends ApiController {
                     .setComments(commentViewRestDTOMapper.convertList(commentListResult.getCommentList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentListResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinCommentV1", summary = "Returns comment by comment id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = CommentViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/comment/{commentId}/v1", method = RequestMethod.GET)
+    public ResponseEntity<?> twinCommentV1(
+            @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._DETAILED) CommentViewRestDTOMapper.Mode showCommentMode,
+            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
+            @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
+        CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
+        try {
+            TwinCommentEntity comment = commentService.findComment(commentId);
+            MapperContext mapperContext = new MapperContext()
+                    .setMode(showCommentMode)
+                    .setMode(showAttachmentMode);
+            rs
+                    .setComment(commentViewRestDTOMapper.convert(comment, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

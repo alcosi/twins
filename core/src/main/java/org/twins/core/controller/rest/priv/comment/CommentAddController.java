@@ -18,8 +18,9 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentCreateRqDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
+import org.twins.core.dto.rest.comment.CommentCreateRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
+import org.twins.core.mappers.rest.comment.CommentCreateRsRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentRestDTOReversedMapper;
 import org.twins.core.service.comment.CommentService;
 
@@ -31,24 +32,27 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CommentAddController extends ApiController {
     final CommentService commentService;
+    final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
     final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
     final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinCommentAddV1", summary = "Add comment to twin")
+    @Operation(operationId = "twinCommentAddV1", summary = "Add comment and it's attachments by twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin comment", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = CommentCreateRqDTOv1.class))}),
+                    @Schema(implementation = CommentCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/comment/v1", method = RequestMethod.POST)
+    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinCommentAddV1(
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID twinId,
             @RequestBody CommentCreateRqDTOv1 request) {
-        TwinLinkAddRsDTOv1 rs = new TwinLinkAddRsDTOv1();
+        CommentCreateRsDTOv1 rs = new CommentCreateRsDTOv1();
         try {
             TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
-            commentService.createComment(comment, attachmentAddRestDTOReverseMapper.convertList(request.attachments));
+            rs = commentCreateRsRestDTOMapper.convert(commentService
+                    .createComment(comment, attachmentAddRestDTOReverseMapper.
+                            convertList(request.attachments)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

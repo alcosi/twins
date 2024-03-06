@@ -1,6 +1,8 @@
 package org.twins.core.service.comment;
 
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.Kit;
@@ -39,7 +41,7 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
     final TwinAttachmentRepository attachmentRepository;
 
     @Transactional
-    public void createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
+    public CommentCreateResult createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
         if (comment.getText() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
         ApiUser apiUser = authService.getApiUser();
@@ -50,10 +52,13 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
         addCommentIdInAttachments(comment.getId(), attachmentList);
         attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentList);
+        return new CommentCreateResult()
+                .setCommentId(comment.getId())
+                .setAttachments(attachmentList.stream().map(TwinAttachmentEntity::getId).toList());
     }
 
     @Transactional
-    public void updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentUpdate) throws ServiceException {
+    public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentUpdate) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinCommentEntity currentComment = entitySmartService.findById(commentId, commentRepository, EntitySmartService.FindMode.ifEmptyThrows);
         if (!apiUser.getUser().getId().equals(currentComment.getCreatedByUserId()))
@@ -69,9 +74,14 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
         attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentUpdate.getCreateList());
         attachmentService.updateAttachments(attachmentUpdate.getUpdateList());
         attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentUpdate.getDeleteUUIDList());
+        return currentComment;
     }
 
-    public CommentListResult findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
+    public TwinCommentEntity findComment(UUID commentId) throws ServiceException {
+        return entitySmartService.findById(commentId, commentRepository, EntitySmartService.FindMode.ifEmptyLogAndNull);
+    }
+
+    public CommentListResult findCommentList(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
         Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, TwinCommentEntity.Fields.createdAt));
         List<TwinCommentEntity> commentListByTwinId = commentRepository.findAllByTwinId(twinId, pageable);
         long totalElement = commentRepository.countByTwinId(twinId);
@@ -82,10 +92,9 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
                 .setTotal(totalElement);
     }
 
-    public void deleteComment(UUID commentId, UUID twinId) throws ServiceException {
+    public void deleteComment(UUID commentId) throws ServiceException {
         // attachments will be deleted by cascade by fk
-        commentRepository.deleteByIdAndTwinId(commentId, twinId);
-        log.info("comment[" + commentId + "] perhaps was deleted by twin id[" + twinId + "]");
+        entitySmartService.deleteAndLog(commentId, commentRepository);
     }
 
     private void addCommentIdInAttachments(UUID commentId, List<TwinAttachmentEntity> attachmentList) {
@@ -99,7 +108,7 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
     public Kit<TwinAttachmentEntity> loadAttachments(TwinCommentEntity twinComment) {
         if (twinComment.getAttachmentKit() != null)
             return twinComment.getAttachmentKit();
-        List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinId(twinComment.getId());
+        List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinCommentId(twinComment.getId());
         if (attachmentEntityList != null)
             twinComment.setAttachmentKit(new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId));
         return twinComment.getAttachmentKit();
@@ -125,6 +134,13 @@ public class CommentService extends EntitySecureFindServiceImpl<CommentService> 
             twinComment = needLoad.get(entry.getKey());
             twinComment.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
         }
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class CommentCreateResult{
+        private UUID commentId;
+        private List<UUID> attachments;
     }
 
     @Override
