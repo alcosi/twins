@@ -24,10 +24,14 @@ DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
 
 DROP FUNCTION IF EXISTS public.permissionCheckAssigneAndCreator(UUID, UUID, BOOLEAN, BOOLEAN, UUID);
 
+DROP FUNCTION IF EXISTS public.permissionCheckSpaceRolePermissions(UUID, UUID, UUID, UUID, UUID[]);
+
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[], UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[], UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[], UUID, BOOLEAN, BOOLEAN);
+DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[], UUID, BOOLEAN, BOOLEAN);
 
 CREATE OR REPLACE FUNCTION public.hierarchyDetectTree(twin_id UUID)
     RETURNS TABLE
@@ -177,6 +181,46 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
+
+CREATE OR REPLACE FUNCTION permissionCheckSpaceRolePermissions(
+    permissionSchemaId UUID,
+    permissionId UUID,
+    spaceId UUID,
+    userId UUID,
+    userGroupIdList UUID[]
+)
+    RETURNS BOOLEAN AS
+$$
+DECLARE
+    userAssignedToRoleExists INT;
+    groupAssignedToRoleExists INT;
+BEGIN
+    -- Check if any space role assigned to the user has the given permission
+    SELECT COUNT(sru.id)
+    INTO userAssignedToRoleExists
+    FROM space_role_user sru
+    WHERE sru.twin_id = spaceId
+      AND sru.user_id = userId
+      AND sru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+
+    IF userAssignedToRoleExists > 0 THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Check if any space role assigned to the user's group has the given permission
+    SELECT COUNT(srug.id)
+    INTO groupAssignedToRoleExists
+    FROM space_role_user_group srug
+    WHERE srug.twin_id = spaceId
+      AND srug.user_group_id = ANY (userGroupIdList)
+      AND srug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
+
+    RETURN groupAssignedToRoleExists > 0;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+
 CREATE OR REPLACE FUNCTION permissionCheck(
     domainId UUID,
     businessAccountId UUID,
@@ -185,9 +229,9 @@ CREATE OR REPLACE FUNCTION permissionCheck(
     permissionIdTwinClass UUID,
     userId UUID,
     userGroupIdList UUID[],
+    twinClassId UUID,
     isAssignee BOOLEAN DEFAULT FALSE,
-    isCreator BOOLEAN DEFAULT FALSE,
-    twinClassId UUID
+    isCreator BOOLEAN DEFAULT FALSE
 )
     RETURNS BOOLEAN AS
 $$
@@ -197,7 +241,7 @@ BEGIN
     IF permissionIdForUse IS NULL THEN
         permissionIdForUse = permissionIdTwinClass;
     END IF;
-    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, isAssignee, isCreator, twinClassId);
+    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
@@ -209,16 +253,14 @@ CREATE OR REPLACE FUNCTION permissionCheck(
     permissionId UUID,
     userId UUID,
     userGroupIdList UUID[],
+    twinClassId UUID,
     isAssignee BOOLEAN DEFAULT FALSE,
-    isCreator BOOLEAN DEFAULT FALSE,
-    twinClassId UUID
+    isCreator BOOLEAN DEFAULT FALSE
 )
     RETURNS BOOLEAN AS
 $$
 DECLARE
     permissionSchemaId        UUID;
-    userAssignedToRoleExists  INT;
-    groupAssignedToRoleExists INT;
 BEGIN
     IF permissionId IS NULL THEN
         RETURN TRUE;
@@ -247,27 +289,8 @@ BEGIN
         RETURN FALSE;
     END IF;
 
-    -- Check if any space role assigned to the user has the given permission
-    SELECT COUNT(sru.id)
-    INTO userAssignedToRoleExists
-    FROM space_role_user sru
-    WHERE sru.twin_id = spaceId
-      AND sru.user_id = userId
-      AND sru.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
-
-    IF userAssignedToRoleExists > 0 THEN
-        RETURN TRUE;
-    END IF;
-
-    -- Check if any space role assigned to the user's group has the given permission
-    SELECT COUNT(srug.id)
-    INTO groupAssignedToRoleExists
-    FROM space_role_user_group srug
-    WHERE srug.twin_id = spaceId
-      AND srug.user_group_id = ANY (userGroupIdList)
-      AND srug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
-
-    RETURN groupAssignedToRoleExists > 0;
+    -- Check space-role and space-role-group permissions
+    RETURN permissionCheckSpaceRolePermissions(permissionSchemaId, permissionId, spaceId, userId, userGroupIdList);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
