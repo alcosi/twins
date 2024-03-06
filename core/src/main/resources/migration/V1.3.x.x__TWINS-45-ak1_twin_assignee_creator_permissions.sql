@@ -173,7 +173,6 @@ BEGIN
         END IF;
     END IF;
 
-    -- Возврат FALSE, если не найдены разрешения для заданных ролей
     RETURN FALSE;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
