@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DataListRsV1")
+@Schema(name = "DataListSearchRsV1")
 public class DataListSearchRsDTOv1 extends Response {
     @Schema(description = "results - data lists list")
     public List<DataListDTOv1> dataListList;
