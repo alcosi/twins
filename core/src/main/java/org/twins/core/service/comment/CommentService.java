@@ -52,6 +52,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         comment.setCreatedByUser(apiUser.getUser());
         TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+        if (CollectionUtils.isEmpty(attachmentList))
+            return comment;
         addCommentIdInAttachments(comment.getId(), attachmentList);
         attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentList);
         return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
@@ -68,6 +70,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
                     .setText(commentText)
                     .setChangedAt(Timestamp.from(Instant.now()));
         }
+        if (attachmentUpdate == null)
+            return currentComment;
         addCommentIdInAttachments(commentId, attachmentUpdate.getCreateList());
         addCommentIdInAttachments(commentId, attachmentUpdate.getUpdateList());
         TwinEntity twinEntity = twinService.findEntitySafe(currentComment.getTwinId());
@@ -141,7 +145,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     @Override
     public CrudRepository<TwinCommentEntity, UUID> entityRepository() {
-        return null;
+        return commentRepository;
     }
 
     @Override
@@ -151,7 +155,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     @Override
     public boolean validateEntity(TwinCommentEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return false;
+        //todo validate
+        return true;
     }
 
 }

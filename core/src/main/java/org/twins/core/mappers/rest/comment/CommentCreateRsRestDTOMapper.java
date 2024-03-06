@@ -14,7 +14,10 @@ public class CommentCreateRsRestDTOMapper extends RestSimpleDTOMapper<TwinCommen
     @Override
     public void map(TwinCommentEntity src, CommentCreateRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setCommentId(src.getId())
-                .setAttachmentListId(src.getAttachmentKit().getList().stream().map(TwinAttachmentEntity::getId).toList());
+                .setCommentId(src.getId());
+        if (src.getAttachmentKit() != null){
+            dst
+                    .setAttachmentListId(src.getAttachmentKit().getList().stream().map(TwinAttachmentEntity::getId).toList());
+        }
     }
 }
