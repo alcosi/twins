@@ -9,6 +9,7 @@ public interface RestRequestParam {
     String showUserGroupMode = "showUserGroupMode";
     String showCardMode = "showCardMode";
     String showCardWidgetMode = "showCardWidgetMode";
+    String showCommentMode = "showCommentMode";
     String showClassMode = "showClassMode";
     String showClassFieldMode = "showClassFieldMode";
     String showClassHeadMode = "showClassHeadMode";

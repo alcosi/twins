@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -42,6 +43,7 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     private UUID headTwinId;
 
     @Column(name = "hierarchy_tree", columnDefinition = "ltree")
+    @Type(value = LtreeUserType.class)
     private String hierarchyTree;
 
     @Column(name = "external_id")

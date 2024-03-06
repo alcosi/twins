@@ -50,7 +50,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
-    PAGINATION_ERROR(11201, "the offset must be a multiple of the size");
+    PAGINATION_ERROR(11201, "the offset must be a multiple of the size"),
+    TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
+    TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
+    TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
+    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter");
+
 
     private final int code;
     private final String message;

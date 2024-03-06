@@ -14,6 +14,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.BasicSearch;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserGroupService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,11 +33,13 @@ public class TwinSearchService {
     final EntityManager entityManager;
     final TwinRepository twinRepository;
     final TwinService twinService;
+    final UserGroupService userGroupService;
     @Lazy
     final AuthService authService;
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        userGroupService.loadGroups(apiUser);
         UUID domainId = apiUser.getDomain().getId();
         UUID businesAccountId = apiUser.getBusinessAccount().getId();
         UUID userId = apiUser.getUser().getId();
