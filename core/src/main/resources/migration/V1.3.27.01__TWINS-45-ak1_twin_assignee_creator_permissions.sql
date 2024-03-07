@@ -18,16 +18,21 @@ CREATE TABLE IF NOT EXISTS permission_schema_twin_role
     granted_by_user_id   UUID REFERENCES "user" (id),
     granted_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON permission_schema_twin_role TO elp_user; ---TODO?????
 
 DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
 
 DROP FUNCTION IF EXISTS public.permissionCheckAssigneAndCreator(UUID, UUID, BOOLEAN, BOOLEAN, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheckAssigneeAndCreator(UUID, UUID, BOOLEAN, BOOLEAN, UUID);
+
+DROP FUNCTION IF EXISTS public.permissionCheckSpaceRolePermissions(UUID, UUID, UUID, UUID, UUID[]);
 
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[]);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[], UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[], UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[], UUID, BOOLEAN, BOOLEAN);
+DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID, UUID[], UUID, BOOLEAN, BOOLEAN);
 
 CREATE OR REPLACE FUNCTION public.hierarchyDetectTree(twin_id UUID)
     RETURNS TABLE
@@ -131,7 +136,7 @@ $$
 $$;
 
 
-CREATE OR REPLACE FUNCTION permissionCheckAssigneAndCreator(
+CREATE OR REPLACE FUNCTION permissionCheckAssigneeAndCreator(
     permissionSchemaId UUID,
     permissionId UUID,
     isAssignee BOOLEAN,
@@ -177,76 +182,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION permissionCheck(
-    domainId UUID,
-    businessAccountId UUID,
-    spaceId UUID,
-    permissionIdTwin UUID,
-    permissionIdTwinClass UUID,
-    userId UUID,
-    userGroupIdList UUID[],
-    isAssignee BOOLEAN DEFAULT FALSE,
-    isCreator BOOLEAN DEFAULT FALSE,
-    twinClassId UUID
-)
-    RETURNS BOOLEAN AS
-$$
-DECLARE
-    permissionIdForUse UUID := permissionIdTwin;
-BEGIN
-    IF permissionIdForUse IS NULL THEN
-        permissionIdForUse = permissionIdTwinClass;
-    END IF;
-    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, isAssignee, isCreator, twinClassId);
-END;
-$$ LANGUAGE plpgsql IMMUTABLE;
 
-
-CREATE OR REPLACE FUNCTION permissionCheck(
-    domainId UUID,
-    businessAccountId UUID,
-    spaceId UUID,
+CREATE OR REPLACE FUNCTION permissionCheckSpaceRolePermissions(
+    permissionSchemaId UUID,
     permissionId UUID,
+    spaceId UUID,
     userId UUID,
-    userGroupIdList UUID[],
-    isAssignee BOOLEAN DEFAULT FALSE,
-    isCreator BOOLEAN DEFAULT FALSE,
-    twinClassId UUID
+    userGroupIdList UUID[]
 )
     RETURNS BOOLEAN AS
 $$
 DECLARE
-    permissionSchemaId        UUID;
-    userAssignedToRoleExists  INT;
+    userAssignedToRoleExists INT;
     groupAssignedToRoleExists INT;
 BEGIN
-    IF permissionId IS NULL THEN
-        RETURN TRUE;
-    END IF;
-
-    -- Detect permission schema
-    permissionSchemaId := permissionDetectSchema(domainId, businessAccountId, spaceId);
-
-    -- Exit if no permission schema found
-    IF permissionSchemaId IS NULL THEN
-        RETURN FALSE;
-    END IF;
-
-    -- Check assigne or creator permissions
-    IF permissionCheckAssigneAndCreator(permissionSchemaId, permissionId, isAssignee, isCreator, twinClassId) THEN
-        RETURN TRUE;
-    END IF;
-
-    -- Check direct user or user group permissions
-    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
-        RETURN TRUE;
-    END IF;
-
-    -- Exit if spaceId is NULL, indicating no further hierarchy to check
-    IF spaceId IS NULL THEN
-        RETURN FALSE;
-    END IF;
-
     -- Check if any space role assigned to the user has the given permission
     SELECT COUNT(sru.id)
     INTO userAssignedToRoleExists
@@ -268,6 +217,81 @@ BEGIN
       AND srug.space_role_id IN (SELECT space_role_id FROM permissionGetRoles(permissionSchemaId, permissionId));
 
     RETURN groupAssignedToRoleExists > 0;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+
+CREATE OR REPLACE FUNCTION permissionCheck(
+    domainId UUID,
+    businessAccountId UUID,
+    spaceId UUID,
+    permissionIdTwin UUID,
+    permissionIdTwinClass UUID,
+    userId UUID,
+    userGroupIdList UUID[],
+    twinClassId UUID,
+    isAssignee BOOLEAN DEFAULT FALSE,
+    isCreator BOOLEAN DEFAULT FALSE
+)
+    RETURNS BOOLEAN AS
+$$
+DECLARE
+    permissionIdForUse UUID := permissionIdTwin;
+BEGIN
+    IF permissionIdForUse IS NULL THEN
+        permissionIdForUse = permissionIdTwinClass;
+    END IF;
+    RETURN permissionCheck(domainId, businessAccountId, spaceId, permissionIdForUse, userId, userGroupIdList, twinClassId, isAssignee, isCreator);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+CREATE OR REPLACE FUNCTION permissionCheck(
+    domainId UUID,
+    businessAccountId UUID,
+    spaceId UUID,
+    permissionId UUID,
+    userId UUID,
+    userGroupIdList UUID[],
+    twinClassId UUID,
+    isAssignee BOOLEAN DEFAULT FALSE,
+    isCreator BOOLEAN DEFAULT FALSE
+)
+    RETURNS BOOLEAN AS
+$$
+DECLARE
+    permissionSchemaId        UUID;
+BEGIN
+    IF permissionId IS NULL THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Detect permission schema
+    permissionSchemaId := permissionDetectSchema(domainId, businessAccountId, spaceId);
+
+    -- Exit if no permission schema found
+    IF permissionSchemaId IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Check assigne or creator permissions
+    IF permissionCheckAssigneeAndCreator(permissionSchemaId, permissionId, isAssignee, isCreator, twinClassId) THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Check direct user or user group permissions
+    IF permissionCheckBySchema(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
+        RETURN TRUE;
+    END IF;
+
+    -- Exit if spaceId is NULL, indicating no further hierarchy to check
+    IF spaceId IS NULL THEN
+        RETURN FALSE;
+    END IF;
+
+    -- Check space-role and space-role-group permissions
+    RETURN permissionCheckSpaceRolePermissions(permissionSchemaId, permissionId, spaceId, userId, userGroupIdList);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 

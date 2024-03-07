@@ -35,10 +35,10 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setId(src.getId())
                         .setAuthorUserId(src.getCreatedByUserId())
                         .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime().withNano(0))
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setText(src.getText());
                 if (src.getCreatedAt().toLocalDateTime() != null)
-                    src.getCreatedAt().toLocalDateTime().withNano(0);
+                    src.getCreatedAt().toLocalDateTime();
                 if (!attachmentRestDTOMapper.hideMode(mapperContext))
                     dst.setAttachments(attachmentRestDTOMapper.convertList(commentService.loadAttachments(src).getList(), mapperContext));
                 break;

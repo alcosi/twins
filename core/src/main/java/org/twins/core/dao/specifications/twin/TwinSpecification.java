@@ -42,9 +42,9 @@ public class TwinSpecification {
                     permissionIdTwinClass,
                     cb.literal(userId),
                     cb.literal(userGroupIdsStr),
+                    twinClassId,
                     cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
-                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false)),
-                    twinClassId
+                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
             ));
         };
     }
