@@ -18,7 +18,6 @@ CREATE TABLE IF NOT EXISTS permission_schema_twin_role
     granted_by_user_id   UUID REFERENCES "user" (id),
     granted_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
--- GRANT SELECT, INSERT, UPDATE, DELETE ON permission_schema_twin_role TO elp_user; ---TODO?????
 
 DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
 
