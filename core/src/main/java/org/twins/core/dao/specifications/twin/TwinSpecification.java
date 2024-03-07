@@ -29,6 +29,11 @@ public class TwinSpecification {
             Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
             Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
             Expression<UUID> permissionIdTwinClass = root.join("twinClass").get("viewPermissionId");
+            Expression<UUID> twinClassId = root.join("twinClass").get("id");
+
+            Predicate isAssigneePredicate = cb.equal(root.get("assignerUserId"), cb.literal(userId));
+            Predicate isCreatorPredicate = cb.equal(root.get("createdByUserId"), cb.literal(userId));
+
             return cb.isTrue(cb.function("permissionCheck", Boolean.class,
                     cb.literal(domainId),
                     cb.literal(businesAccountId),
@@ -36,7 +41,10 @@ public class TwinSpecification {
                     permissionIdTwin,
                     permissionIdTwinClass,
                     cb.literal(userId),
-                    cb.literal(userGroupIdsStr)
+                    cb.literal(userGroupIdsStr),
+                    twinClassId,
+                    cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
+                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
             ));
         };
     }
