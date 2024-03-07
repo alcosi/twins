@@ -34,6 +34,15 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and user.id = :userId")
     UserEntity findUserByUserIdAndBusinessAccountIdAndDomainId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
+    @Query(value = "select dba.domain, dba.businessAccount, user from UserEntity user " +
+            "join DomainUserEntity domainUser on user.id = domainUser.userId " +
+            "join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
+            "join DomainBusinessAccountEntity dba on dba.domainId = domainUser.domainId and dba.businessAccountId = businessAccountUser.businessAccountId " +
+            "where businessAccountUser.businessAccountId = :businessAccountId " +
+            "and domainUser.domainId = :domainId " +
+            "and user.id = :userId")
+    List<Object[]> findDBU_ByUserIdAndBusinessAccountIdAndDomainId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
     @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId " +
             "where domainUser.domainId = :domainId " +
             "and user.id = :userId")

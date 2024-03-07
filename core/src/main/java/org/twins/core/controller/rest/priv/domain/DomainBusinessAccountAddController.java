@@ -53,7 +53,8 @@ public class DomainBusinessAccountAddController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
-                    .setUserResolver(userResolverSystem);
+                    .setUserResolver(userResolverSystem)
+                    .setCheckMembershipMode(false);
             domainService.addBusinessAccount(
                     domainId,
                     request.businessAccountId,
