@@ -18,11 +18,12 @@ CREATE TABLE IF NOT EXISTS permission_schema_twin_role
     granted_by_user_id   UUID REFERENCES "user" (id),
     granted_at           TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+-- GRANT SELECT, INSERT, UPDATE, DELETE ON permission_schema_twin_role TO elp_user; ---TODO?????
 
 DROP FUNCTION IF EXISTS public.hierarchyDetectTree(UUID);
 
 DROP FUNCTION IF EXISTS public.permissionCheckAssigneAndCreator(UUID, UUID, BOOLEAN, BOOLEAN, UUID);
+DROP FUNCTION IF EXISTS public.permissionCheckAssigneeAndCreator(UUID, UUID, BOOLEAN, BOOLEAN, UUID);
 
 DROP FUNCTION IF EXISTS public.permissionCheckSpaceRolePermissions(UUID, UUID, UUID, UUID, UUID[]);
 
@@ -135,7 +136,7 @@ $$
 $$;
 
 
-CREATE OR REPLACE FUNCTION permissionCheckAssigneAndCreator(
+CREATE OR REPLACE FUNCTION permissionCheckAssigneeAndCreator(
     permissionSchemaId UUID,
     permissionId UUID,
     isAssignee BOOLEAN,
@@ -275,7 +276,7 @@ BEGIN
     END IF;
 
     -- Check assigne or creator permissions
-    IF permissionCheckAssigneAndCreator(permissionSchemaId, permissionId, isAssignee, isCreator, twinClassId) THEN
+    IF permissionCheckAssigneeAndCreator(permissionSchemaId, permissionId, isAssignee, isCreator, twinClassId) THEN
         RETURN TRUE;
     END IF;
 
