@@ -110,11 +110,17 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         ApiUser apiUser = authService.getApiUser();
         UserEntity userEntity = null;
         if (apiUser.isDomainSpecified() && apiUser.isBusinessAccountSpecified()) {
-            userEntity = userRepository.findUserByUserIdAndBusinessAccountIdAndDomainId(userId, apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
+            userEntity = userRepository.findUserByUserIdAndBusinessAccountIdAndDomainId(userId, apiUser.getBusinessAccountId(), apiUser.getDomainId());
+            if (userEntity == null)
+                throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + apiUser.getDomainId() + "] or business account[" + apiUser.getBusinessAccountId() + "]");
         } else if (apiUser.isDomainSpecified()) {
             userEntity = userRepository.findUserByUserIdAndDomainId(userId, apiUser.getDomain().getId());
+            if (userEntity == null)
+                throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + apiUser.getDomainId() + "]");
         } else if (apiUser.isBusinessAccountSpecified()) {
             userEntity = userRepository.findUserByUserIdAndBusinessAccountId(userId, apiUser.getBusinessAccount().getId());
+            if (userEntity == null)
+                throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in business account[" + apiUser.getBusinessAccountId() + "]");
         }
         if (userEntity == null)
             throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is unknown");

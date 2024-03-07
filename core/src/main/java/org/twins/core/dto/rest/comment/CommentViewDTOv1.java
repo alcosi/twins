@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,9 +22,9 @@ public class CommentViewDTOv1 extends CommentBaseDTOv1{
 
     private UserDTOv1 authorUser;
 
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
-    private Timestamp changedAt;
+    private LocalDateTime changedAt;
 
     private List<AttachmentViewDTOv1> attachments;
 }
