@@ -53,7 +53,8 @@ public class UserAddController extends ApiController {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.user.id))
-                    .setDomainResolver(new DomainResolverGivenId(request.domainId));
+                    .setDomainResolver(new DomainResolverGivenId(request.domainId))
+                    .setCheckMembershipMode(false);
             userService.addUser(new UserEntity()
                     .setId(request.user.id)
                     .setName(request.user.name)

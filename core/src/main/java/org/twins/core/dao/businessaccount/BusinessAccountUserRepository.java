@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface BusinessAccountUserRepository extends CrudRepository<BusinessAccountUserEntity, UUID>, JpaSpecificationExecutor<BusinessAccountUserEntity> {
-    BusinessAccountUserEntity findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId);
+    <T> T findByBusinessAccountIdAndUserId(UUID businessAccountId, UUID userId, Class<T> type);
 }

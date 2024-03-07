@@ -52,7 +52,8 @@ public class BusinessAccountUserAddController extends ApiController {
         try {
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
-                    .setUserResolver(new UserResolverGivenId(request.userId));
+                    .setUserResolver(new UserResolverGivenId(request.userId))
+                    .setCheckMembershipMode(false);
             businessAccountService.addUser(
                     businessAccountId,
                     request.userId,

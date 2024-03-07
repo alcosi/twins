@@ -5,10 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.businessaccount.BusinessAccountRepository;
-import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
-import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
+import org.twins.core.dao.businessaccount.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -49,14 +46,14 @@ public class BusinessAccountService {
     public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
         addBusinessAccount(businessAccountId, businessAccountEntityCreateMode);
-        BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId);
-        if (businessAccountUserEntity != null) {
+        BusinessAccountUserNoRelationProjection existed = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserNoRelationProjection.class);
+        if (existed != null) {
             if (ignoreAlreadyExists)
                 return;
             else
                 throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in businessAccount[" + businessAccountId + "]");
         }
-        businessAccountUserEntity = new BusinessAccountUserEntity()
+        BusinessAccountUserEntity businessAccountUserEntity = new BusinessAccountUserEntity()
                 .setBusinessAccountId(businessAccountId)
                 .setUserId(userId);
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
@@ -83,10 +80,10 @@ public class BusinessAccountService {
     }
 
     public void deleteUser(UUID businessAccountId, UUID userId) throws ServiceException {
-        BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId);
+        BusinessAccountUserNoRelationProjection businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserNoRelationProjection.class);
         if (businessAccountUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "user[" + userId + "] is not registered in businessAccount[" + businessAccountId + "] ");
-        entitySmartService.deleteAndLog(businessAccountUserEntity.getId(), businessAccountRepository);
+        entitySmartService.deleteAndLog(businessAccountUserEntity.id(), businessAccountUserRepository);
     }
 
     public Set<UUID> getValidBusinessAccountIdSetByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
