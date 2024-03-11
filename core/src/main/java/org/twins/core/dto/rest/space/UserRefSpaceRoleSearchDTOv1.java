@@ -20,6 +20,6 @@ public class UserRefSpaceRoleSearchDTOv1 extends Request {
     @Schema(description = "Filter by specific roles(uuids)", example = "[\"793e3120-e14a-4a22-ab09-060b9fedee35\"]")
     public List<UUID> spaceRolesList;
 
-    @Schema(description = "Filter users from specific group", example = "[\"793e3120-e14a-4a22-ab09-060b9fedee35\"]")
+    @Schema(description = "Filter users from specific group", example = "[\"e155e05b-f353-49ff-9869-da1e62aab179\"]")
     public List<UUID> userGroupIdList;
 }
