@@ -154,17 +154,20 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         filteredExistingTags.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), null)));
 
         // remove duplicates if any
-        List<TwinTagEntity> distinctTags = tagsToSave.stream()
+        List<TwinTagEntity> distinctTags = new ArrayList<>(tagsToSave.stream()
                 .collect(Collectors.toMap(TwinTagEntity::getTagDataListOptionId,
                         Function.identity(),
                         (first, second) -> first))
-                .values()
-                .stream()
-                .collect(Collectors.toList());
+                .values());
 
+        List<UUID> tagListOptionIds = new ArrayList<>();
         for (TwinTagEntity tag : distinctTags) {
             validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
+            tagListOptionIds.add(tag.getTagDataListOptionId());
         }
+        //  Checking for duplicate tags by twin
+        List<TwinTagEntity> existingTagsOption = twinTagRepository.findAllByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagListOptionIds);
+        distinctTags.removeIf(distinctTag -> existingTagsOption.stream().anyMatch(existTag -> distinctTag.getTagDataListOptionId().equals(existTag.getTagDataListOptionId())));
 
         entitySmartService.saveAllAndLog(distinctTags, twinTagRepository);
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
@@ -176,9 +179,9 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
                 List<DataListOptionEntity> foundOption;
                 if (businessAccountId != null)
-                    foundOption = twinTagRepository.findOptionForBusinessAccount(option.trim(), businessAccountId, PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionForBusinessAccount(dataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
                 else
-                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(option.trim(), PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(dataListId, option.trim(), PageRequest.of(0, 1));
 
                 if (CollectionUtils.isNotEmpty(foundOption)) {
                     tagOptions.add(foundOption.get(0));

@@ -14,7 +14,9 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Table(name = "twin_tag")
+@Table(name = "twin_tag", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"twin_id", "tag_data_list_option_id"}, name = "idx_twin_tag_unique")
+})
 public class TwinTagEntity extends EasyLoggableImpl {
     @Id
     private UUID id;

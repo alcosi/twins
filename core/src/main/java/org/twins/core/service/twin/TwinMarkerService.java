@@ -16,15 +16,18 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEntity> {
+    final AuthService authService;
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final DataListService dataListService;
@@ -108,15 +111,22 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     public void addMarkers(TwinEntity twinEntity, Set<UUID> markersAdd) throws ServiceException {
         if (CollectionUtils.isEmpty(markersAdd))
             return;
+
+        List<TwinMarkerEntity> existingMarkers = twinMarkerRepository.findByTwinId(twinEntity.getId());
+        Set<UUID> existingMarkerIds = existingMarkers.stream()
+                .map(TwinMarkerEntity::getMarkerDataListOptionId)
+                .collect(Collectors.toSet());
+
         List<TwinMarkerEntity> list = new ArrayList<>();
-        TwinMarkerEntity twinMarkerEntity;
         for (UUID marker : markersAdd) {
-            twinMarkerEntity = new TwinMarkerEntity()
-                    .setTwinId(twinEntity.getId())
-                    .setTwin(twinEntity)
-                    .setMarkerDataListOptionId(marker);
-            validateEntityAndThrow(twinMarkerEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            list.add(twinMarkerEntity);
+            if (!existingMarkerIds.contains(marker)) {
+                TwinMarkerEntity twinMarkerEntity = new TwinMarkerEntity()
+                        .setTwinId(twinEntity.getId())
+                        .setTwin(twinEntity)
+                        .setMarkerDataListOptionId(marker);
+                validateEntityAndThrow(twinMarkerEntity, EntitySmartService.EntityValidateMode.beforeSave);
+                list.add(twinMarkerEntity);
+            }
         }
         entitySmartService.saveAllAndLog(list, twinMarkerRepository);
         twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
