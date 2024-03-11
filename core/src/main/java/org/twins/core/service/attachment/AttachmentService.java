@@ -17,12 +17,12 @@ import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -34,7 +34,6 @@ import java.util.*;
 public class AttachmentService {
     final EntitySmartService entitySmartService;
     final TwinAttachmentRepository twinAttachmentRepository;
-    final UserService userService;
     final HistoryService historyService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
@@ -81,7 +80,7 @@ public class AttachmentService {
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getAttachmentKit() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.size() == 0)
+        if (needLoad.isEmpty())
             return;
         List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(attachmentEntityList))
@@ -92,9 +91,11 @@ public class AttachmentService {
             attachmentMap.get(attachmentEntity.getTwinId()).add(attachmentEntity);
         }
         TwinEntity twinEntity;
-        for (Map.Entry<UUID, List<TwinAttachmentEntity>> entry : attachmentMap.entrySet()) {
-            twinEntity = needLoad.get(entry.getKey());
-            twinEntity.setAttachmentKit(new Kit<>(entry.getValue(), TwinAttachmentEntity::getId));
+        List<TwinAttachmentEntity> twinAttachmentList;
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            twinEntity = entry.getValue();
+            twinAttachmentList = attachmentMap.get(entry.getKey());
+            twinEntity.setAttachmentKit(new Kit<>(twinAttachmentList, TwinAttachmentEntity::getId));
         }
     }
 
@@ -111,6 +112,11 @@ public class AttachmentService {
 
     @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
+        updateAttachments(attachmentEntityList, CommentRelinkMode.denied);
+    }
+
+    @Transactional
+    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, CommentRelinkMode commentRelinkMode) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
         ChangesHelper changesHelper = new ChangesHelper();
@@ -121,6 +127,12 @@ public class AttachmentService {
             changesHelper.flush();
             dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
+            if (changesHelper.isChanged("commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
+                if (CommentRelinkMode.denied.equals(commentRelinkMode))
+                    throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
+                //todo add history context
+                dbAttachmentEntity.setTwinCommentId(attachmentEntity.getTwinCommentId());
+            }
             if (changesHelper.isChanged("description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
@@ -169,5 +181,10 @@ public class AttachmentService {
         }
         twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
         historyService.saveHistory(twinEntity, historyCollector);
+    }
+
+    public enum CommentRelinkMode {
+        denied,
+        allowed
     }
 }

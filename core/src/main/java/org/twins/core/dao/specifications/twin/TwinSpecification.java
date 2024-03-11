@@ -12,12 +12,54 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification {
-    private TwinSpecification() {
+
+    public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
+        return (root, query, cb) -> {
+            // transform Set<UUID> to string (PostgreSQL array format);
+            String userGroupIdsStr = null == userGroups || userGroups.isEmpty() ? "{}" :
+                    "{" + userGroups.stream().map(UUID::toString).collect(Collectors.joining(",")) + "}";
+
+
+            Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
+            Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
+            Expression<UUID> permissionIdTwinClass = root.join("twinClass").get("viewPermissionId");
+            Expression<UUID> twinClassId = root.join("twinClass").get("id");
+
+            Predicate isAssigneePredicate = cb.equal(root.get("assignerUserId"), cb.literal(userId));
+            Predicate isCreatorPredicate = cb.equal(root.get("createdByUserId"), cb.literal(userId));
+
+            return cb.isTrue(cb.function("permissionCheck", Boolean.class,
+                    cb.literal(domainId),
+                    cb.literal(businesAccountId),
+                    spaceId,
+                    permissionIdTwin,
+                    permissionIdTwinClass,
+                    cb.literal(userId),
+                    cb.literal(userGroupIdsStr),
+                    twinClassId,
+                    cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
+                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
+            ));
+        };
+    }
+
+    public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
+            List<Predicate> predicates = new ArrayList<>();
+            for (UUID id : hierarchyTreeContainsIdList) {
+                String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
+                Expression<String> hierarchyTreeExpression = root.get(field);
+                predicates.add(cb.isTrue(cb.function("hierarchyCheck", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
+            }
+            return getPredicate(cb, predicates, true);
+        };
     }
 
     public static Specification<TwinEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {

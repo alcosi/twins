@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.LoggerUtils;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -58,12 +59,21 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
     public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
-        TwinFactoryEntity factoryEntity = findEntitySafe(factoryId);
-        return runFactory(factoryEntity, factoryContext);
+        return runFactory(factoryId, factoryContext, null);
     }
 
-    public List<TwinOperation> runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
-        log.info("Running " + factoryEntity.logNormal());
+    public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+        TwinFactoryEntity factoryEntity = findEntitySafe(factoryId);
+        return runFactory(factoryEntity, factoryContext, factoryRunTrace);
+    }
+
+    public List<TwinOperation> runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+        log.info("Running " + factoryEntity.logNormal() + " current trace[" + factoryRunTrace + "]");
+        if (factoryRunTrace == null) factoryRunTrace = "";
+        if (factoryRunTrace.contains(factoryEntity.getId().toString()))
+            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current run trace[" + factoryRunTrace + "]");
+        else
+            factoryRunTrace += StringUtils.isBlank(factoryRunTrace) ? factoryEntity.getId().toString() : " > " + factoryEntity.getId().toString();
         List<TwinFactoryMultiplierEntity> factoryMultiplierEntityList = twinFactoryMultiplierRepository.findByTwinFactoryId(factoryEntity.getId()); //few multipliers can be attached to one factory, because one can be used to create on grouped twin, other for create isolated new twin and so on
         log.info("Loaded " + factoryMultiplierEntityList.size() + " multipliers");
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
@@ -147,7 +157,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info(factoryPipelineEntity.logShort() + " has nextFactoryId configured");
                 LoggerUtils.traceTreeLevelDown();
-                runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext); //todo endless recursion risk
+                runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext, factoryRunTrace);
                 LoggerUtils.traceTreeLevelUp();
             }
         }

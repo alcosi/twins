@@ -8,5 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface DomainUserRepository extends CrudRepository<DomainUserEntity, UUID>, JpaSpecificationExecutor<DomainUserEntity> {
-    DomainUserEntity findByDomainIdAndUserId(UUID domainId, UUID userId);
+    <T> T findByDomainIdAndUserId(UUID domainId, UUID userId, Class<T> type);
 }

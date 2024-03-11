@@ -70,13 +70,13 @@ public class DomainService {
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
-        DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId);
-        if (domainUserEntity != null)
+        DomainUserNoRelationProjection existed = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
+        if (existed != null)
             if (ignoreAlreadyExists)
                 return;
             else
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
-        domainUserEntity = new DomainUserEntity()
+        DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
                 .setUserId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
@@ -84,10 +84,10 @@ public class DomainService {
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
-        DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId);
+        DomainUserNoRelationProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
         if (domainUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "domain[" + domainId + "] user[" + userId + "] is not registered");
-        entitySmartService.deleteAndLog(domainUserEntity.getId(), domainUserRepository);
+        entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
     }
 
     public void addBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {

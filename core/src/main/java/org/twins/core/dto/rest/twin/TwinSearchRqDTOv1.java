@@ -46,4 +46,7 @@ public class TwinSearchRqDTOv1 extends Request {
 
     @Schema(description = "Exclude dst twins with given links")
     public List<TwinSearchByLinkDTOv1> noLinksList;
+
+    @Schema(description = "Hierarchy ids filter")
+    public List<UUID>  hierarchyTreeContainsIdList;
 }

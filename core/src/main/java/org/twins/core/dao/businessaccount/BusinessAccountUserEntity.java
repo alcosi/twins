@@ -23,13 +23,13 @@ public class BusinessAccountUserEntity implements EasyLoggable {
     @Column(name = "user_id")
     private UUID userId;
 
-//    @ManyToOne
-//    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-//    private BusinessAccountEntity businessAccount;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "user_id", insertable = false, updatable = false)
-//    private UserEntity user;
+    @ManyToOne
+    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
+    private BusinessAccountEntity businessAccount;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private UserEntity user;
 
     public String easyLog(Level level) {
         return "businessAccountUser[id:" + id + ", businessAccount:" + businessAccountId + ", user:" + userId;

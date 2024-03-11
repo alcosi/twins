@@ -10,7 +10,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -18,6 +17,7 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -89,30 +89,35 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getTwinTagKit() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.size() == 0)
+        if (needLoad.isEmpty())
             return;
         List<TwinTagEntity> twinTagEntityList = twinTagRepository.findByTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(twinTagEntityList))
             return;
-        Map<UUID, List<DataListOptionEntity>> fieldsMap = new HashMap<>(); // key - twinId
+        Map<UUID, List<DataListOptionEntity>> tagsMap = new HashMap<>(); // key - twinId
         for (TwinTagEntity twinTagEntity : twinTagEntityList) { //grouping by twin
-            fieldsMap.computeIfAbsent(twinTagEntity.getTwinId(), k -> new ArrayList<>());
-            fieldsMap.get(twinTagEntity.getTwinId()).add(twinTagEntity.getTagDataListOption());
+            tagsMap.computeIfAbsent(twinTagEntity.getTwinId(), k -> new ArrayList<>());
+            tagsMap.get(twinTagEntity.getTwinId()).add(twinTagEntity.getTagDataListOption());
         }
         TwinEntity twinEntity;
-        for (Map.Entry<UUID, List<DataListOptionEntity>> entry : fieldsMap.entrySet()) {
-            twinEntity = needLoad.get(entry.getKey());
-            twinEntity.setTwinTagKit(new Kit<>(entry.getValue(), DataListOptionEntity::getId));
+        List<DataListOptionEntity> twinTags;
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            twinEntity = entry.getValue();
+            twinTags = tagsMap.get(entry.getKey());
+            twinEntity.setTwinTagKit(new Kit<>(twinTags, DataListOptionEntity::getId));
         }
     }
 
     public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+        if (CollectionUtils.isEmpty(newTags) && CollectionUtils.isEmpty(existingTags))
+            return null;
+        if (twinEntity.getTwinClass().getTagDataListId() == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "tags are not allowed for " + twinEntity.logNormal());
         Kit<DataListOptionEntity> savedTags = saveTags(twinEntity,
                 Optional.ofNullable(newTags)
                         .orElse(new HashSet<>()),
                 Optional.ofNullable(existingTags)
                         .orElse(new HashSet<>()));
-
         twinEntity.setTwinTagKit(null);
         return savedTags;
     }
@@ -138,7 +143,6 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
 
         List<DataListOptionEntity> tagOptions = processNewTags(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
-
         List<DataListOptionEntity> filteredExistingTags;
         if (businessAccountId != null)
             filteredExistingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTags);
@@ -146,7 +150,6 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             filteredExistingTags = twinTagRepository.findTagsOutOfBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), existingTags);
 
         List<TwinTagEntity> tagsToSave = new ArrayList<>();
-
         tagOptions.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), option)));
         filteredExistingTags.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), null)));
 
@@ -162,7 +165,6 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
 
         entitySmartService.saveAllAndLog(distinctTags, twinTagRepository);
-
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
     }
 

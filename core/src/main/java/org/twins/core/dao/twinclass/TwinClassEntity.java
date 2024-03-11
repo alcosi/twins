@@ -41,8 +41,20 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Column(name = "key")
     private String key;
 
-    @Column(name = "space")
-    private boolean space;
+    @Column(name = "permission_schema_space")
+    private boolean permissionSchemaSpace;
+
+    @Column(name = "twinflow_schema_space ")
+    private boolean twinflowSchemaSpace ;
+
+    @Column(name = "twin_class_schema_space")
+    private boolean twinClassSchemaSpace;
+
+    @Column(name = "alias_space")
+    private boolean aliasSpace;
+
+    @Column(name = "view_permission_id")
+    private UUID viewPermissionId;
 
     @Column(name = "abstract")
     private boolean abstractt;
@@ -133,6 +145,10 @@ public class TwinClassEntity extends EasyLoggableImpl {
                 return "twinClass[id:" + id + ", key:" + key + "]";
         }
 
+    }
+
+    public boolean isSpace() {
+        return permissionSchemaSpace || twinflowSchemaSpace || twinClassSchemaSpace || aliasSpace;
     }
 
     @Getter

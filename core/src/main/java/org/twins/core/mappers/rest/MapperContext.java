@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -31,6 +32,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinflowTransitionEntity>> relatedTwinflowTransitionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<DataListEntity>> relatedDataListMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<SpaceRoleUserEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
     private MapperModeMap modes = new MapperModeMap();
@@ -104,6 +107,8 @@ public class MapperContext {
             smartPut(relatedTwinflowTransitionMap, twinflowTransition, twinflowTransition.getId());
         else if (relatedObject instanceof DataListEntity dataList)
             smartPut(relatedDataListMap, dataList, dataList.getId());
+        else if (relatedObject instanceof DataListOptionEntity dataListOption)
+            smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
         else if (relatedObject instanceof SpaceRoleUserEntity spaceRole)
             smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
         else {
@@ -246,6 +251,7 @@ public class MapperContext {
         mapperContext.relatedTwinMap = this.relatedTwinMap;
         mapperContext.relatedTwinflowTransitionMap = this.relatedTwinflowTransitionMap;
         mapperContext.relatedDataListMap = this.relatedDataListMap;
+        mapperContext.relatedDataListOptionMap = this.relatedDataListOptionMap;
         mapperContext.relatedSpaceRoleMap = this.relatedSpaceRoleMap;
         return mapperContext;
     }

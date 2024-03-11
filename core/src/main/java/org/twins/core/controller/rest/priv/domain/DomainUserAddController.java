@@ -50,7 +50,8 @@ public class DomainUserAddController extends ApiController {
         try {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
-                    .setUserResolver(new UserResolverGivenId(request.userId));
+                    .setUserResolver(new UserResolverGivenId(request.userId))
+                    .setCheckMembershipMode(false);
             domainService.addUser(
                     domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     request.userId,

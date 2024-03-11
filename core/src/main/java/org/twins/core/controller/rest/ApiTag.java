@@ -12,6 +12,7 @@ public class ApiTag {
     public static final String LINK = "link";
     public static final String TRANSITION = "transition";
     public static final String ATTACHMENT = "attachment";
+    public static final String COMMENT = "comment";
     public static final String DATA_LIST = "dataList";
     public static final String BUSINESS_ACCOUNT = "businessAccount";
     public static final String DOMAIN = "domain";
