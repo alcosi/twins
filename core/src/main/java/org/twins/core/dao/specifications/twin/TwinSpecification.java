@@ -81,17 +81,19 @@ public class TwinSpecification {
         };
     }
 
-    public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) {
-        UUID userId = null;
-        UUID businessAccountId = null;
-        try {
-            userId = apiUser.getUser().getId();
-            businessAccountId = apiUser.getBusinessAccount().getId();
-        } catch (ServiceException e) {
-            log.error(e.getMessage());
+    public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
+        UUID finalUserId;
+        UUID finalBusinessAccountId;
+        if (apiUser.isBusinessAccountSpecified())
+            finalBusinessAccountId = apiUser.getBusinessAccountId();
+        else {
+            finalBusinessAccountId = null;
         }
-        UUID finalUserId = userId;
-        UUID finalBusinessAccountId = businessAccountId;
+        if (apiUser.isUserSpecified())
+            finalUserId = apiUser.getUserId();
+        else {
+            finalUserId = null;
+        }
         return (twin, query, cb) -> {
             if (!CollectionUtils.isEmpty(twinClassUuids)) {
                 List<Predicate> predicates = new ArrayList<>();

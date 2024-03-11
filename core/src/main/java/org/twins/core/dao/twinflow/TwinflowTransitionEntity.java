@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinStatusEntity;
 
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition")
+@FieldNameConstants
 public class TwinflowTransitionEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")

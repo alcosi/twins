@@ -46,7 +46,7 @@ public class LogSupportService {
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinksForTwinClasses(twinClasses);
         twinflowService.loadTwinflowsForTwinClasses(twinClasses);
-        twinflowTransitionService.loadTransitionsForTwinClasses(twinClasses);
+        twinflowTransitionService.loadAllTransitions(twinClasses);
 
         StringBuilder sb = new StringBuilder();
 
@@ -68,11 +68,12 @@ public class LogSupportService {
                 sb.append(item.getId()).append(linkReadable(item, false)).append("].id\n");
 
         for (var twinClass : twinClasses)
-            if (null != twinClass.getTwinflow())
-                sb.append(twinClass.getTwinflow().getId()).append(twinflowReadable(twinClass.getTwinflow(), false)).append("].id\n");
+            if (null != twinClass.getTwinflowKit() && twinClass.getTwinflowKit().isNotEmpty())
+                for (var item : twinClass.getTwinflowKit().getList())
+                    sb.append(item.getId()).append(twinflowReadable(item, false)).append("].id\n");
 
         for (var twinClass : twinClasses)
-            if (null != twinClass.getTransitionsKit())
+            if (null != twinClass.getTransitionsKit() && twinClass.getTransitionsKit().isNotEmpty())
                 for (var item : twinClass.getTransitionsKit().getList())
                     sb.append(item.getId()).append(transitionReadable(item, false)).append("].id\n");
 

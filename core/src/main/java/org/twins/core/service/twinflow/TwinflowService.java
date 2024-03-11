@@ -4,12 +4,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -23,12 +24,11 @@ import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -48,6 +48,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final TwinService twinService;
 
     @Override
     public CrudRepository<TwinflowEntity, UUID> entityRepository() {
@@ -94,58 +96,61 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return twinFlowsSchemaId;
     }
 
-    //todo support space
-    public TwinflowEntity loadTwinflowsForTwinClass(TwinClassEntity twinClass) throws ServiceException {
-        if (twinClass.getTwinflow() != null)
-            return twinClass.getTwinflow();
-        TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
-        twinClass.setTwinflow(twinflowEntity);
+    public TwinflowEntity loadTwinflow(TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getTwinflow() != null)
+            return twinEntity.getTwinflow();
+        ApiUser apiUser = authService.getApiUser();
+        TwinflowEntity twinflowEntity = twinflowRepository.twinflowDetect(apiUser.getDomainId(), apiUser.getBusinessAccountId(), getTwinflowSchemaSpaceId(twinEntity), twinEntity.getTwinClassId());
+        if (twinflowEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, "Twinflow is not configured for twinClass[" + twinEntity.getTwinClassId() + "]");
+        twinEntity.setTwinflow(twinflowEntity);
         return twinflowEntity;
     }
 
-    public void loadTwinflowsForTwinClasses(List<TwinClassEntity> twinClasses) throws ServiceException {
-        for(TwinClassEntity twinClass : twinClasses) {
-            if (twinClass.getTwinflow() == null) {
-                try {
-                    TwinflowEntity twinflowEntity = getTwinflow(twinClass.getId());
-                    twinClass.setTwinflow(twinflowEntity);
-                } catch (ServiceException e) {
-                    System.out.println(e.getMessage());
-                }
-            }
-        }
+    private UUID getTwinflowSchemaSpaceId(TwinEntity twinEntity) {
+        if (twinEntity.getTwinflowSchemaSpaceId() != null)
+            return twinEntity.getTwinflowSchemaSpaceId();
+        //looks like new twin creation
+        twinService.loadHeadForTwin(twinEntity);
+        if (twinEntity.getHeadTwin() != null)
+            return  twinEntity.getHeadTwin().getTwinflowSchemaSpaceId();
+        return null;
     }
 
-    public TwinflowEntity getTwinflow(UUID twinClassId) throws ServiceException {
+    public void loadTwinflow(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList) {
+            if (twinEntity.getTwinflow() != null)
+                continue;
+            needLoad.put(twinEntity.getId(), twinEntity);
+        }
+        if (MapUtils.isEmpty(needLoad))
+            return;
         ApiUser apiUser = authService.getApiUser();
-        if (apiUser.getBusinessAccount() != null) {
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId()); //todo store in apiUser
-            return getTwinflow(domainBusinessAccountEntity.getTwinflowSchemaId(), twinClassId);
+        List<Object[]> twinflowList = twinflowRepository.twinflowsDetect(apiUser.getDomainId(), apiUser.getBusinessAccountId(), needLoad.keySet());
+        Map<String, TwinflowEntity> twinflowMap = new HashMap<>();
+        for (Object[] dbRow : twinflowList) {
+            twinflowMap.put((String) dbRow[0], (TwinflowEntity) dbRow[1]);
         }
-        return getTwinflow(apiUser.getDomain().getTwinflowSchemaId(), twinClassId);
+        TwinflowEntity twinflowEntity = null;
+        for (TwinEntity twinEntity : needLoad.values()) {
+            twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
+            if (twinflowEntity == null)
+                throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, twinEntity.logNormal() + " can not detect twinflow");
+            twinEntity.setTwinflow(twinflowEntity);
+        }
     }
 
-    public TwinflowEntity getTwinflow(UUID twinflowSchemaId, UUID twinClassId) throws ServiceException {
-        TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowSchemaMapRepository.findByTwinflowSchemaIdAndTwinClassId(twinflowSchemaId, twinClassId);
-        if (twinflowSchemaMapEntity == null) {
-            Set<UUID> extendedClasses = twinClassService.findExtendedClasses(twinClassId, false);
-            if (CollectionUtils.isEmpty(extendedClasses))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, "Twinflow is not configured for twinClass[" + twinClassId + "] in twinflowSchema[" + twinflowSchemaId + "]");
-            List<TwinflowSchemaMapEntity> parentClassTwinflowSchemaMapEntityList = twinflowSchemaMapRepository.findByTwinflowSchemaIdAndTwinClassIdIn(twinflowSchemaId, extendedClasses);
-            if (CollectionUtils.isEmpty(parentClassTwinflowSchemaMapEntityList))
-                throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, "Twinflow is not configured for any parent of twinClass[" + twinClassId + "] in twinflowSchema[" + twinflowSchemaId + "]");
-            Map<UUID, TwinflowSchemaMapEntity> parentClassTwinflowSchemaMapEntityMap = parentClassTwinflowSchemaMapEntityList.stream().collect(Collectors.toMap(TwinflowSchemaMapEntity::getTwinClassId, Function.identity()));
-            for (UUID extendedClassId : extendedClasses) { //set must be sorter
-                twinflowSchemaMapEntity = parentClassTwinflowSchemaMapEntityMap.get(extendedClassId);
-                if (twinflowSchemaMapEntity != null) {
-                    log.info("Twinflow was detected for parent class[" + extendedClassId + "]");
-                    return twinflowSchemaMapEntity.getTwinflow();
-                }
-            }
+    public void loadTwinflowsForTwinClasses(List<TwinClassEntity> twinClasses) {
+        for (TwinClassEntity twinClass : twinClasses) {
+            loadTwinflows(twinClass);
         }
-        if (twinflowSchemaMapEntity == null)
-            throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, "Twinflow is not configured for twinClass[" + twinClassId + "] in twinflowSchema[" + twinflowSchemaId + "]");
-        return twinflowSchemaMapEntity.getTwinflow();
+    }
+
+    public void loadTwinflows(TwinClassEntity twinClass) {
+        if (twinClass.getTwinflowKit() == null) {
+            twinClass.setTwinflowKit(new Kit<>(twinflowRepository.findByTwinClassId(twinClass.getId()), TwinflowEntity::getId));
+        }
     }
 
     public void runTwinStatusTransitionTriggers(TwinEntity twinEntity, TwinStatusEntity srcStatusEntity, TwinStatusEntity dstStatusEntity) throws ServiceException {

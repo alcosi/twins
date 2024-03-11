@@ -119,7 +119,7 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private TwinflowEntity twinflow;
+    private Kit<TwinflowEntity> twinflowKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -132,6 +132,7 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<LinkEntity> linksKit;
+
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude

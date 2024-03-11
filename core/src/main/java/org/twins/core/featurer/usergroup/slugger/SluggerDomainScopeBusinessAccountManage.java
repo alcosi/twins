@@ -32,7 +32,7 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (apiUser.getBusinessAccount() == null) {
+        if (!apiUser.isBusinessAccountSpecified()) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]. Business account is unknown");
             return null;
         }
@@ -40,7 +40,7 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
                 .setUserId(userId)
-                .setBusinessAccountId(apiUser.getBusinessAccount().getId())
+                .setBusinessAccountId(apiUser.getBusinessAccountId())
                 .setBusinessAccount(apiUser.getBusinessAccount())
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())

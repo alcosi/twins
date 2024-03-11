@@ -47,9 +47,9 @@ public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
 
     public UUID getBusinessAccountId(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (apiUser.getBusinessAccount() == null)
+        if (!apiUser.isBusinessAccountSpecified())
             throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be processed without businessAccount");
-        return apiUser.getBusinessAccount().getId();
+        return apiUser.getBusinessAccountId();
     }
 
     @Override
