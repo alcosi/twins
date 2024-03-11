@@ -16,6 +16,7 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.*;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEntity> {
+    final AuthService authService;
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final DataListService dataListService;
@@ -110,7 +112,6 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         if (CollectionUtils.isEmpty(markersAdd))
             return;
 
-        //TODO business account check
         List<TwinMarkerEntity> existingMarkers = twinMarkerRepository.findByTwinId(twinEntity.getId());
         Set<UUID> existingMarkerIds = existingMarkers.stream()
                 .map(TwinMarkerEntity::getMarkerDataListOptionId)
