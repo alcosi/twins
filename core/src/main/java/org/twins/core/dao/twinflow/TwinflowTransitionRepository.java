@@ -19,11 +19,11 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("domainId") UUID domainId,
-            @Param("businessAccountId") UUID businessAccountId,
-            @Param("permissionSpaceId") UUID permissionSpaceId,
+            @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
+            @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,
             @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
-            @Param("twinClassId") UUID twinClassId,
+            @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
@@ -32,11 +32,11 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
     TwinflowTransitionEntity findTransition(
             @Param("transitionId") UUID transitionId,
             @Param("domainId") UUID domainId,
-            @Param("businessAccountId") UUID businessAccountId,
-            @Param("permissionSpaceId") UUID permissionSpaceId,
+            @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
+            @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,
             @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
-            @Param("twinClassId") UUID twinClassId,
+            @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
@@ -47,11 +47,11 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
             @Param("aliasId") String alias,
             @Param("domainId") UUID domainId,
-            @Param("businessAccountId") UUID businessAccountId,
-            @Param("permissionSpaceId") UUID permissionSpaceId,
+            @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
+            @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
             @Param("userId") UUID userId,
             @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
-            @Param("twinClassId") UUID twinClassId,
+            @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 

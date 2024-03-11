@@ -11,6 +11,7 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -100,7 +101,11 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (twinEntity.getTwinflow() != null)
             return twinEntity.getTwinflow();
         ApiUser apiUser = authService.getApiUser();
-        TwinflowEntity twinflowEntity = twinflowRepository.twinflowDetect(apiUser.getDomainId(), apiUser.getBusinessAccountId(), getTwinflowSchemaSpaceId(twinEntity), twinEntity.getTwinClassId());
+        TwinflowEntity twinflowEntity = twinflowRepository.twinflowDetect(
+                apiUser.getDomainId(),
+                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                TypedParameterTwins.uuidNullable(getTwinflowSchemaSpaceId(twinEntity)),
+                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
         if (twinflowEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, "Twinflow is not configured for twinClass[" + twinEntity.getTwinClassId() + "]");
         twinEntity.setTwinflow(twinflowEntity);
@@ -127,7 +132,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (MapUtils.isEmpty(needLoad))
             return;
         ApiUser apiUser = authService.getApiUser();
-        List<Object[]> twinflowList = twinflowRepository.twinflowsDetect(apiUser.getDomainId(), apiUser.getBusinessAccountId(), needLoad.keySet());
+        List<Object[]> twinflowList = twinflowRepository.twinflowsDetect(apiUser.getDomainId(), TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()), needLoad.keySet());
         Map<String, TwinflowEntity> twinflowMap = new HashMap<>();
         for (Object[] dbRow : twinflowList) {
             twinflowMap.put((String) dbRow[0], (TwinflowEntity) dbRow[1]);
