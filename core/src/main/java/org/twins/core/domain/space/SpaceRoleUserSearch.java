@@ -11,12 +11,12 @@ import java.util.*;
 public class SpaceRoleUserSearch {
 
     String userNameLike;
-    Set<UUID> spaceRolesList;
+    Set<UUID> spaceRolesIdList;
     Set<UUID> userGroupIdList;
 
 
     public SpaceRoleUserSearch addRoleId(UUID roleId) {
-        spaceRolesList = CollectionUtils.safeAdd(spaceRolesList, roleId);
+        spaceRolesIdList = CollectionUtils.safeAdd(spaceRolesIdList, roleId);
         return this;
     }
 
