@@ -14,6 +14,7 @@ import org.twins.core.domain.ApiUser;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
@@ -182,14 +183,5 @@ public class TwinSpecification {
 
             return cb.and(include, exclude);
         };
-    }
-
-    public static Predicate getPredicate(CriteriaBuilder cb, List<Predicate> predicates, boolean or) {
-        if (predicates.isEmpty()) return cb.conjunction();
-        else {
-            Predicate[] stockArr = new Predicate[predicates.size()];
-            stockArr = predicates.toArray(stockArr);
-            return or ? cb.or(stockArr) : cb.and(stockArr);
-        }
     }
 }

@@ -18,8 +18,10 @@ public class SpaceRoleUserSearchRqDTOReverseMapper extends RestSimpleDTOMapper<U
     @Override
     public void map(UserRefSpaceRoleSearchDTOv1 src, SpaceRoleUserSearch dst, MapperContext mapperContext) throws Exception {
         dst
-                .setNameLike(src.getNameLike())
-                .setRolesList(convertSafe(src.getRolesList()));
+                .setUserNameLike(src.getUserNameLike())
+                .setSpaceRolesList(convertSafe(src.getSpaceRolesList()))
+                .setUserGroupIdList(convertSafe(src.getUserGroupIdList()));
+
     }
 
     private <T> Set<T> convertSafe(List<T> list) {

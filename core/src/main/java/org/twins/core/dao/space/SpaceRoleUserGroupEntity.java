@@ -2,6 +2,7 @@ package org.twins.core.dao.space;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "space_role_user_group")
+@FieldNameConstants
 public class SpaceRoleUserGroupEntity {
     @Id
     @GeneratedValue(generator = "uuid")

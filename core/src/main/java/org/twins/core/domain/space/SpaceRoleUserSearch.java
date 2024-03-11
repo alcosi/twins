@@ -10,12 +10,18 @@ import java.util.*;
 @Accessors(chain = true)
 public class SpaceRoleUserSearch {
 
-    String nameLike;
-    Set<UUID> rolesList;
+    String userNameLike;
+    Set<UUID> spaceRolesList;
+    Set<UUID> userGroupIdList;
 
 
     public SpaceRoleUserSearch addRoleId(UUID roleId) {
-        rolesList = CollectionUtils.safeAdd(rolesList, roleId);
+        spaceRolesList = CollectionUtils.safeAdd(spaceRolesList, roleId);
+        return this;
+    }
+
+    public SpaceRoleUserSearch addGroupId(UUID roleId) {
+        userGroupIdList = CollectionUtils.safeAdd(userGroupIdList, roleId);
         return this;
     }
 }
