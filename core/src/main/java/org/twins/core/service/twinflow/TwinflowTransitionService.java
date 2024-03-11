@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -118,10 +119,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 apiUser.getBusinessAccountId(),
                 twinEntity.getPermissionSchemaSpaceId(),
                 apiUser.getUser().getId(),
-                apiUser.getUserGroups(),
+                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                twinEntity.getTwinClassId(),
                 TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser),
-                twinEntity.getTwinClassId());
+                TwinService.isCreator(twinEntity, apiUser));
         filterTransitions(twinEntity, twinflowTransitionEntityList);
         return twinEntity.getValidTransitionsKit();
     }
@@ -161,10 +162,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     apiUser.getBusinessAccountId(),
                     detectKey.permissionSpaceId,
                     apiUser.getUser().getId(),
-                    apiUser.getUserGroups(),
+                    TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+//                    StringUtils.join(apiUser.getUserGroups(), ","),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
-                    detectKey.isCreator,
-                    detectKey.twinClassId);
+                    detectKey.isCreator);
             for (TwinEntity twinEntity : entry.getValue()) {
                 filterTransitions(twinEntity, twinflowTransitionEntityList);
             }
@@ -215,10 +217,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 apiUser.getBusinessAccountId(),
                 twinEntity.getPermissionSchemaSpaceId(),
                 apiUser.getUserId(),
-                apiUser.getUserGroups(),
+                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                twinEntity.getTwinClassId(),
                 TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser),
-                twinEntity.getTwinClassId());
+                TwinService.isCreator(twinEntity, apiUser));
         if (transition == null)
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be found or denied  for " + twinEntity.logDetailed());
         if (!transition.getTwinflowId().equals(twinEntity.getTwinflow().getId()))
@@ -249,10 +251,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     apiUser.getBusinessAccountId(),
                     detectKey.permissionSpaceId,
                     apiUser.getUserId(),
-                    apiUser.getUserGroups(),
+                    TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
-                    detectKey.isCreator,
-                    detectKey.twinClassId);
+                    detectKey.isCreator);
             if (transition == null)
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionId + "] can not be found or denied for [" + entry.getValue().size() + "] twins");
             if (!transition.getTwinflowId().equals(entry.getKey().twinflowId))
@@ -283,10 +285,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 apiUser.getBusinessAccountId(),
                 twinEntity.getPermissionSchemaSpaceId(),
                 apiUser.getUserId(),
-                apiUser.getUserGroups(),
+                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                twinEntity.getTwinClassId(),
                 TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser),
-                twinEntity.getTwinClassId()
+                TwinService.isCreator(twinEntity, apiUser)
         );
         if (transition == null)
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Not transitions for alias[" + transitionAlias + "] can not be performed for " + twinEntity.logDetailed());
@@ -315,10 +317,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     apiUser.getBusinessAccountId(),
                     detectKey.permissionSpaceId,
                     apiUser.getUserId(),
-                    apiUser.getUserGroups(),
+                    TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                    detectKey.twinClassId,
                     detectKey.isAssignee,
-                    detectKey.isCreator,
-                    detectKey.twinClassId);
+                    detectKey.isCreator);
             if (transition == null)
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_INCORRECT, "Transition[" + transitionAlias + "] can not be found or denied for [" + entry.getValue().size() + "] twins");
             if (!transition.getTwinflowId().equals(entry.getKey().twinflowId))

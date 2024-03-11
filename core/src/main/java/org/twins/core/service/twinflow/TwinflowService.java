@@ -132,8 +132,12 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         for (Object[] dbRow : twinflowList) {
             twinflowMap.put((String) dbRow[0], (TwinflowEntity) dbRow[1]);
         }
+        TwinflowEntity twinflowEntity = null;
         for (TwinEntity twinEntity : needLoad.values()) {
-            twinEntity.setTwinflow(twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : "")));
+            twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
+            if (twinflowEntity == null)
+                throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, twinEntity.logNormal() + " can not detect twinflow");
+            twinEntity.setTwinflow(twinflowEntity);
         }
     }
 

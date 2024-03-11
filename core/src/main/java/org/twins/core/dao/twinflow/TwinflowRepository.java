@@ -22,8 +22,8 @@ public interface TwinflowRepository extends CrudRepository<TwinflowEntity, UUID>
             @Param("twinClassId") UUID twinClassId
     );
 
-    @Query(value = "select distinct concat(te.twinClassId, te.twinflowSchemaSpaceId) as key, tw from TwinEntity te, TwinflowEntity tw " +
-            " where tw in (:twinIds) and tw.id = function('twinflowDetect', :domainId, :businessAccountId, te.twinflowSchemaSpaceId, te.twinClassId)")
+    @Query(value = "select distinct concat(coalesce(cast(te.twinClassId as string), ''), coalesce(cast(te.twinflowSchemaSpaceId as string), '')) as key, tw from TwinEntity te, TwinflowEntity tw " +
+            " where te.id in (:twinIds) and tw.id = function('twinflowDetect', :domainId, :businessAccountId, te.twinflowSchemaSpaceId, te.twinClassId)")
     List<Object[]> twinflowsDetect(
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") UUID businessAccountId,

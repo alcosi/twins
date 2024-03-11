@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinflow;
 
+import org.hibernate.query.TypedParameterValue;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -8,13 +9,12 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTransitionEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionEntity> {
-    @Query(value = "from TwinflowTransitionEntity where twinflowId = :twinflowId and srcTwinStatusId = :srcTwinStatusId " +
-            " and function('permissionCheck', :domainId, :businessAccountId, permissionId, :permissionSpaceId, :userId, :userGroupId, :isAssignee, :isCreator, :twinClassId)")
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and tt.srcTwinStatusId = :srcTwinStatusId " +
+            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
@@ -22,26 +22,26 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("businessAccountId") UUID businessAccountId,
             @Param("permissionSpaceId") UUID permissionSpaceId,
             @Param("userId") UUID userId,
-            @Param("userGroupId") Set<UUID> userGroupIds,
-            @Param("isAssignee") Boolean isAssignee,
-            @Param("isCreator") Boolean isCreator,
-            @Param("twinClassId") UUID twinClassId);
+            @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
+            @Param("twinClassId") UUID twinClassId,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("isCreator") boolean isCreator);
 
-    @Query(value = "from TwinflowTransitionEntity where id = :transitionId " +
-            " and function('permissionCheck', :domainId, :businessAccountId, permissionId, :permissionSpaceId, :userId, :userGroupId, :isAssignee, :isCreator, :twinClassId)")
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.id = :transitionId " +
+            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransition(
             @Param("transitionId") UUID transitionId,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") UUID businessAccountId,
             @Param("permissionSpaceId") UUID permissionSpaceId,
             @Param("userId") UUID userId,
-            @Param("userGroupId") Set<UUID> userGroupIds,
-            @Param("isAssignee") Boolean isAssignee,
-            @Param("isCreator") Boolean isCreator,
-            @Param("twinClassId") UUID twinClassId);
+            @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
+            @Param("twinClassId") UUID twinClassId,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("isCreator") boolean isCreator);
 
-    @Query(value = "from TwinflowTransitionEntity where twinflowId = :twinflowId and srcTwinStatusId = :srcTwinStatusId and twinflowTransitionAliasId = :aliasId " +
-            " and function('permissionCheck', :domainId, :businessAccountId, permissionId, :permissionSpaceId, :userId, :userGroupId, :isAssignee, :isCreator, :twinClassId)")
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and tt.srcTwinStatusId = :srcTwinStatusId and tt.twinflowTransitionAliasId = :aliasId " +
+            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
@@ -50,11 +50,12 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("businessAccountId") UUID businessAccountId,
             @Param("permissionSpaceId") UUID permissionSpaceId,
             @Param("userId") UUID userId,
-            @Param("userGroupId") Set<UUID> userGroupIds,
-            @Param("isAssignee") Boolean isAssignee,
-            @Param("isCreator") Boolean isCreator,
-            @Param("twinClassId") UUID twinClassId);
+            @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
+            @Param("twinClassId") UUID twinClassId,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("isCreator") boolean isCreator);
 
     List<TwinflowTransitionEntity> findByTwinflowId(UUID twinflowId);
+
     List<TwinflowTransitionEntity> findByTwinflowIdIn(Collection<UUID> twinflowIds);
 }

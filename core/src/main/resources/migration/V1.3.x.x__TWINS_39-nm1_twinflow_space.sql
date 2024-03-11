@@ -71,7 +71,7 @@ DECLARE
     detectedTwinflow UUID;
     currentTwinClassId uuid := twinClassId;
     extendsTwinClassId UUID;
-    visitedClassIds UUID[] := ARRAY[];
+    visitedClassIds UUID[] := '{}';
 BEGIN
     IF twinClassId IS NULL OR twinflowSchemaId IS NULL THEN
         RETURN NULL;
