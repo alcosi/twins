@@ -6,6 +6,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
@@ -15,6 +16,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user")
+@FieldNameConstants
 public class UserEntity implements EasyLoggable {
     @Id
     private UUID id;

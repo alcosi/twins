@@ -55,13 +55,4 @@ public class TwinFieldSpecification {
             return not ? twinJoin.get(uuidField).in(uuids).not() : twinJoin.get(uuidField).in(uuids);
         };
     }
-
-    public static Predicate getPredicate(CriteriaBuilder cb, List<Predicate> predicates, boolean or) {
-        if (predicates.isEmpty()) return cb.conjunction();
-        else {
-            Predicate[] stockArr = new Predicate[predicates.size()];
-            stockArr = predicates.toArray(stockArr);
-            return or ? cb.or(stockArr) : cb.and(stockArr);
-        }
-    }
 }

@@ -15,8 +15,11 @@ import java.util.UUID;
 @Schema(name =  "UserRefSpaceRoleSearchV1")
 public class UserRefSpaceRoleSearchDTOv1 extends Request {
     @Schema(description = "Filter by user name, case ignore", example = "st Us")
-    public String nameLike;
+    public String userNameLike;
 
     @Schema(description = "Filter by specific roles(uuids)", example = "[\"793e3120-e14a-4a22-ab09-060b9fedee35\"]")
-    public List<UUID> rolesList;
+    public List<UUID> spaceRolesIdList;
+
+    @Schema(description = "Filter users from specific group", example = "[\"e155e05b-f353-49ff-9869-da1e62aab179\"]")
+    public List<UUID> userGroupIdList;
 }
