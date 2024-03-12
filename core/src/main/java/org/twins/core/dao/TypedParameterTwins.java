@@ -2,7 +2,6 @@ package org.twins.core.dao;
 
 import io.hypersistence.utils.hibernate.type.array.UUIDArrayType;
 import org.hibernate.query.TypedParameterValue;
-import org.hibernate.type.NullType;
 import org.hibernate.type.descriptor.java.UUIDJavaType;
 import org.hibernate.type.descriptor.jdbc.UUIDJdbcType;
 import org.hibernate.type.internal.BasicTypeImpl;
@@ -19,17 +18,11 @@ public class TypedParameterTwins {
     }
 
     public static TypedParameterValue<UUID> uuidNullable(UUID uuid) {
-        if (uuid != null)
-            return new TypedParameterValue(
-                    new BasicTypeImpl<>(
-                    UUIDJavaType.INSTANCE,
-                    UUIDJdbcType.INSTANCE),
-                    uuid
-            );
-        else //otherwise Nullable UUID is converted to bytea datatype and postgress can not detect correct function by given params
-            return new TypedParameterValue(
-                    NullType.INSTANCE,
-                    null
-            );
+        return new TypedParameterValue(
+                new BasicTypeImpl<>(
+                        UUIDJavaType.INSTANCE,
+                        UUIDJdbcType.INSTANCE),
+                uuid
+        );
     }
 }

@@ -163,7 +163,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     TypedParameterTwins.uuidNullable(detectKey.permissionSpaceId),
                     apiUser.getUser().getId(),
                     TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
-//                    StringUtils.join(apiUser.getUserGroups(), ","),
                     TypedParameterTwins.uuidNullable(detectKey.twinClassId),
                     detectKey.isAssignee,
                     detectKey.isCreator);
