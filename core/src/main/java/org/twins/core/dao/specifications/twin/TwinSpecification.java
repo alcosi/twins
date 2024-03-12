@@ -14,6 +14,7 @@ import org.twins.core.domain.ApiUser;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
@@ -22,10 +23,6 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
-            // transform Set<UUID> to string (PostgreSQL array format);
-            String userGroupIdsStr = null == userGroups || userGroups.isEmpty() ? "{}" :
-                    "{" + userGroups.stream().map(UUID::toString).collect(Collectors.joining(",")) + "}";
-
 
             Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
             Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
@@ -42,7 +39,7 @@ public class TwinSpecification {
                     permissionIdTwin,
                     permissionIdTwinClass,
                     cb.literal(userId),
-                    cb.literal(userGroupIdsStr),
+                    cb.literal(collectionUuidsToSqlArray(userGroups)),
                     twinClassId,
                     cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
                     cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
