@@ -23,13 +23,13 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
 
-            Expression<UUID> spaceId = root.get("permissionSchemaSpaceId");
-            Expression<UUID> permissionIdTwin = root.get("viewPermissionId");
-            Expression<UUID> permissionIdTwinClass = root.join("twinClass").get("viewPermissionId");
-            Expression<UUID> twinClassId = root.join("twinClass").get("id");
+            Expression<UUID> spaceId = root.get(TwinEntity.Fields.permissionSchemaSpaceId);
+            Expression<UUID> permissionIdTwin = root.get(TwinEntity.Fields.viewPermissionId);
+            Expression<UUID> permissionIdTwinClass = root.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
+            Expression<UUID> twinClassId = root.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
 
-            Predicate isAssigneePredicate = cb.equal(root.get("assignerUserId"), cb.literal(userId));
-            Predicate isCreatorPredicate = cb.equal(root.get("createdByUserId"), cb.literal(userId));
+            Predicate isAssigneePredicate = cb.equal(root.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
+            Predicate isCreatorPredicate = cb.equal(root.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
 
             return cb.isTrue(cb.function("permissionCheck", Boolean.class,
                     cb.literal(domainId),
