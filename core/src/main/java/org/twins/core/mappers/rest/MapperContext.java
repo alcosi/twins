@@ -60,6 +60,16 @@ public class MapperContext {
         return this;
     }
 
+    /**
+     * we will set given mode only if no mode is set or if already existed mode has lower priority
+     */
+    public MapperContext setPriorityMinMode(MapperMode mode) {
+        MapperMode configuredMode = modes.get(mode.getClass());
+        if (configuredMode == null || configuredMode.getPriority() < mode.getPriority())
+            setMode(mode);
+        return this;
+    }
+
     public boolean isLazyRelations() {
         return lazyRelations;
     }
