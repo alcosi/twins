@@ -12,7 +12,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
