@@ -41,12 +41,18 @@ public class SpaceRoleUserSpecification {
     public static Specification<SpaceRoleUserEntity> checkUserInGroups(final Collection<UUID> groupIds, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(groupIds)) return cb.conjunction();
-            Join<SpaceRoleUserEntity, UserEntity> userJoin = root.join("user");
-            Join<UserEntity, UserGroupMapEntity> groupMapJoin = userJoin.join("userGroupMaps");
-            Join<UserGroupMapEntity, UserGroupEntity> groupJoin = groupMapJoin.join("userGroup");
-            Predicate groupCondition = groupJoin.get("id").in(groupIds);
-            if (not) return cb.not(groupCondition);
-            else return groupCondition;
+            Subquery<UserGroupMapEntity> subquery = query.subquery(UserGroupMapEntity.class);
+            Root<UserGroupMapEntity> subqueryRoot = subquery.from(UserGroupMapEntity.class);
+            Join<UserGroupMapEntity, UserGroupEntity> subqueryGroupJoin = subqueryRoot.join(UserGroupMapEntity.Fields.userGroup);
+            subquery.select(subqueryRoot);
+            subquery.where(subqueryGroupJoin.get(UserGroupEntity.Fields.id).in(groupIds));
+            Join<SpaceRoleUserEntity, UserEntity> userJoin = root.join(SpaceRoleUserEntity.Fields.user);
+            Predicate userInGroupPredicate = cb.exists(subquery.where(cb.equal(subqueryRoot.get(UserGroupMapEntity.Fields.user), userJoin)));
+            if (not) {
+                return cb.not(userInGroupPredicate);
+            } else {
+                return userInGroupPredicate;
+            }
         };
     }
 

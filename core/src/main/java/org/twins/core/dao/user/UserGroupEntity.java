@@ -3,6 +3,7 @@ package org.twins.core.dao.user;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "user_group")
+@FieldNameConstants
 public class UserGroupEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
