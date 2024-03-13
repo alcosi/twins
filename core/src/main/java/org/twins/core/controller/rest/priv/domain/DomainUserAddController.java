@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
@@ -51,6 +52,7 @@ public class DomainUserAddController extends ApiController {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setUserResolver(new UserResolverGivenId(request.userId))
+                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setCheckMembershipMode(false);
             domainService.addUser(
                     domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
