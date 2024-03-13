@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.KitUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -99,13 +100,13 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
             twinEntity = entry.getValue();
             twinMarkers = markersMap.get(entry.getKey());
-            twinEntity.setTwinTagKit(new Kit<>(twinMarkers, DataListOptionEntity::getId));
+            twinEntity.setTwinMarkerKit(new Kit<>(twinMarkers, DataListOptionEntity::getId));
         }
     }
 
     public boolean hasMarker(TwinEntity twinEntity, UUID marker) {
         Kit<DataListOptionEntity> markers = loadMarkers(twinEntity);
-        return markers != null && markers.getIdSet().contains(marker);
+        return KitUtils.isNotEmpty(markers) && markers.getIdSet().contains(marker);
     }
 
     public void addMarkers(TwinEntity twinEntity, Set<UUID> markersAdd) throws ServiceException {

@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -188,11 +189,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             if (twinLinkEntity.getSrcTwinId().equals(twinId)) {
                 if (twinService.isEntityReadDenied(twinLinkEntity.getDstTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
-                linksResult.forwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+                linksResult.forwardLinks.add(twinLinkEntity);
             } else if (twinLinkEntity.getDstTwinId().equals(twinId)) {
                 if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
-                linksResult.backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+                linksResult.backwardLinks.add(twinLinkEntity);
             } else
                 log.warn(twinLinkEntity.logShort() + " is incorrect");
         }
@@ -226,13 +227,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 if (twinService.isEntityReadDenied(twinLinkEntity.getDstTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 twinEntity = needLoad.get(twinLinkEntity.getSrcTwinId());
-                twinEntity.getTwinLinks().forwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+                twinEntity.getTwinLinks().forwardLinks.add(twinLinkEntity);
             }
             if (needLoad.get(twinLinkEntity.getDstTwinId()) != null) {
                 if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
                     continue;
                 twinEntity = needLoad.get(twinLinkEntity.getDstTwinId());
-                twinEntity.getTwinLinks().backwardLinks.put(twinLinkEntity.getId(), twinLinkEntity);
+                twinEntity.getTwinLinks().backwardLinks.add(twinLinkEntity);
             }
         }
     }
@@ -307,9 +308,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             linkDirection = linkService.detectLinkDirection(linkEntity, twinEntity.getTwinClass());
         switch (linkDirection) {
             case forward:
-                List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
-                return twinLinkEntityList;
+                if (twinEntity.getTwinLinks() != null)
+                    return twinEntity.getTwinLinks().forwardLinks.getList();
+                return twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             case backward:
+                if (twinEntity.getTwinLinks() != null)
+                    return twinEntity.getTwinLinks().backwardLinks.getList();
                 return twinLinkRepository.findByDstTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             default:
                 return null;
@@ -320,8 +324,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
         UUID twinId;
-        Map<UUID, TwinLinkEntity> forwardLinks = new LinkedHashMap<>();
-        Map<UUID, TwinLinkEntity> backwardLinks = new LinkedHashMap<>();
+        Kit<TwinLinkEntity> forwardLinks = new Kit<>(TwinLinkEntity::getId);
+        Kit<TwinLinkEntity> backwardLinks = new Kit<>(TwinLinkEntity::getId);
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {

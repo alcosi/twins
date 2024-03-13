@@ -116,10 +116,12 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assignerUser;
 
+    //needed for specification
     @OneToMany
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
     private Collection<TwinLinkEntity> linksBySrcTwinId;
 
+    //needed for specification
     @OneToMany
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
     private Collection<TwinLinkEntity> linksByDstTwinId;

@@ -186,8 +186,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void loadTwinFields(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinFieldKit() == null)
+            if (twinEntity.getTwinFieldKit() == null) {
+                twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
                 needLoad.put(twinEntity.getId(), twinEntity);
+            }
         if (needLoad.isEmpty())
             return;
         List<TwinFieldEntity> fieldEntityList = twinFieldRepository.findByTwinIdIn(needLoad.keySet());
@@ -208,7 +210,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinEntity = entry.getValue();
             twinFieldList = fieldsMap.get(entry.getKey()); // can be null if entity has no fields
             twinFieldMap = fieldsMap2.get(entry.getKey()); // can be null if entity has no fields
-            twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
             for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getList()) { // adding missing fields
                 if (twinFieldMap == null || !twinFieldMap.containsKey(twinClassField.getId())) {
                     if (twinFieldList == null) twinFieldList = new ArrayList<>();

@@ -41,6 +41,9 @@ public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUI
 
     List<TwinFieldEntity> findByTwinIdIn(Collection<UUID> twinIdList);
 
+//    @Query(value = "select tfe from TwinFieldEntity tfe join fetch tfe.twinClassField where tfe.twinId in (:twinIds)")
+//    List<TwinFieldEntity> findByTwinIdIn(@Param("twinIds") Collection<UUID> twinIdList);
+
     TwinFieldEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
 
     TwinFieldEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);

@@ -152,6 +152,31 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return extendedClassIdSet;
     }
 
+    public void loadExtendedClasses(Collection<TwinClassEntity> twinClassEntityList) {
+        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
+        for (TwinClassEntity twinClassEntity : twinClassEntityList)
+            if (twinClassEntity.getExtendedClassIdSet() == null)
+                needLoad.put(twinClassEntity.getId(), twinClassEntity);
+        if (needLoad.isEmpty())
+            return;
+
+        List<TwinClassExtendsMapEntity> twinClassExtendsMapEntityList = twinClassExtendsMapRepository.findAllByTwinClassIdIn(needLoad.keySet());
+        if (CollectionUtils.isEmpty(twinClassExtendsMapEntityList))
+            return;
+        Map<UUID, Set<UUID>> extendsMap = new HashMap<>(); // key - twinClassId
+        for (TwinClassExtendsMapEntity twinClassExtendsMapEntity : twinClassExtendsMapEntityList) { //grouping by twinClassId
+            extendsMap.computeIfAbsent(twinClassExtendsMapEntity.getTwinClassId(), k -> new HashSet<>());
+            extendsMap.get(twinClassExtendsMapEntity.getTwinClassId()).add(twinClassExtendsMapEntity.getExtendsTwinClassId());
+        }
+        TwinClassEntity twinClassEntity;
+        Set<UUID> extendsClasses;
+        for (Map.Entry<UUID, TwinClassEntity> entry : needLoad.entrySet()) {
+            twinClassEntity = entry.getValue();
+            extendsClasses = extendsMap.get(entry.getKey());
+            twinClassEntity.setExtendedClassIdSet(extendsClasses);
+        }
+    }
+
     public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getChildClassIdSet() != null)
             return twinClassEntity.getChildClassIdSet();

@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,4 +21,6 @@ public interface TwinClassExtendsMapRepository extends CrudRepository<TwinClassE
     @Query(value = "TRUNCATE TABLE twin_class_extends_map", nativeQuery = true)
     void truncateTable();
     List<TwinClassExtendsMapEntity> findAllByTwinClassId(UUID twinClassId);
+
+    List<TwinClassExtendsMapEntity> findAllByTwinClassIdIn(Collection<UUID> twinClassIds);
 }

@@ -8,13 +8,25 @@ import java.util.stream.Collectors;
 
 public class Kit<E> {
     @Getter
-    private final List<E> list;
+    private List<E> list;
     private Map<UUID, E> map;
     private final Function<? super E, ? extends UUID> functionGetId;
 
     public Kit(List<E> list, Function<? super E, ? extends UUID> functionGetId) {
         this.list = list;
         this.functionGetId = functionGetId;
+    }
+
+    public Kit(Function<? super E, ? extends UUID> functionGetId) {
+        this.functionGetId = functionGetId;
+    }
+
+    public Kit<E> add(E e) {
+        if (list == null)
+            list = new ArrayList<>();
+        list.add(e);
+        map = null; //invalidate
+        return this;
     }
 
     public Map<UUID, E> getMap() {

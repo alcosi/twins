@@ -72,15 +72,14 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         super.beforeListConversion(srcCollection, mapperContext);
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             attachmentService.loadAttachments(srcCollection);
+        if (showMarkers(mapperContext))
+            twinMarkerService.loadMarkers(srcCollection);
+        if (showTags(mapperContext))
+            twinTagService.loadTags(srcCollection);
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             twinLinkService.loadTwinLinks(srcCollection);
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
-        if (showMarkers(mapperContext))
-            twinMarkerService.loadMarkers(srcCollection);
-        if (showTags(mapperContext)) {
-            twinTagService.loadTags(srcCollection);
-        }
     }
 
     @Override

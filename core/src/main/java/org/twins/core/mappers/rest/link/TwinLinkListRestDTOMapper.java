@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.commons.collections.MapUtils;
+import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
@@ -10,8 +10,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
 
 
 @Component
@@ -27,16 +25,16 @@ public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkServi
 
     @Override
     public void map(TwinLinkService.FindTwinLinksResult src, TwinLinkListDTOv1 dst, MapperContext mapperContext) throws Exception {
-        if (MapUtils.isNotEmpty(src.getForwardLinks())) {
+        if (KitUtils.isNotEmpty(src.getForwardLinks())) {
             dst.forwardLinks = new LinkedHashMap<>();
-            for (Map.Entry<UUID, TwinLinkEntity> entry : src.getForwardLinks().entrySet()) {
-                dst.forwardLinks.put(entry.getKey(), twinLinkForwardRestDTOMapper.convert(entry.getValue(), mapperContext));
+            for (TwinLinkEntity link : src.getForwardLinks().getList()) {
+                dst.forwardLinks.put(link.getId(), twinLinkForwardRestDTOMapper.convert(link, mapperContext));
             }
         }
-        if (MapUtils.isNotEmpty(src.getBackwardLinks())) {
+        if (KitUtils.isNotEmpty(src.getBackwardLinks())) {
             dst.backwardLinks = new LinkedHashMap<>();
-            for (Map.Entry<UUID, TwinLinkEntity> entry : src.getBackwardLinks().entrySet()) {
-                dst.backwardLinks.put(entry.getKey(), twinLinkBackwardRestDTOMapper.convert(entry.getValue(), mapperContext));
+            for (TwinLinkEntity link : src.getBackwardLinks().getList()) {
+                dst.backwardLinks.put(link.getId(), twinLinkBackwardRestDTOMapper.convert(link, mapperContext));
             }
         }
     }

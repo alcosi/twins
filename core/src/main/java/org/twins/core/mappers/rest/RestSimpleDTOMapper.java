@@ -86,7 +86,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     }
 
     public <F, Y> void convertMapOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
-        if (kit != null) {
+        if (kit != null && kit.isNotEmpty()) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertMap(kit.getMap(), mapperContext));
             else {

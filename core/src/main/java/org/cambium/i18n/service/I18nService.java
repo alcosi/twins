@@ -75,10 +75,10 @@ public class I18nService {
         I18nTranslationEntity ret = null;
         if (locale == null)
             locale = i18nProperties.defaultLocale();
-        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nAndLocale(i18NEntity, locale);
+        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18NEntity.getId(), locale);
         if (i18nTranslationEntity.isEmpty() || StringUtils.isBlank(i18nTranslationEntity.get().getTranslation())) {
             i18nTranslationRepository.incrementUsageCounter(i18NEntity.getId(), locale.getLanguage());
-            i18nTranslationEntity = i18nTranslationRepository.findByI18nAndLocale(i18NEntity, i18nProperties.defaultLocale());
+            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18NEntity.getId(), i18nProperties.defaultLocale());
         }
         if (i18nTranslationEntity.isEmpty())
             return null;

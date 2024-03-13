@@ -27,6 +27,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.UUID;
 
@@ -72,7 +73,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
         if (mapperContext.hasMode(StatusMode.SHOW)) {
-            Kit<TwinStatusEntity> statusKit = twinStatusService.findByTwinClassAsMap(src);
+            Kit<TwinStatusEntity> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
             if (statusKit != null) {
                 if (mapperContext.isLazyRelations())
                     dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), mapperContext));
@@ -107,6 +108,14 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     dataListMapperContext.addRelatedObject(tagDataListEntity);
                 }
             }
+        }
+    }
+
+    @Override
+    public void beforeListConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeListConversion(srcCollection, mapperContext);
+        if (mapperContext.hasMode(StatusMode.SHOW)) {
+            twinStatusService.loadStatusesForTwinClasses(srcCollection);
         }
     }
 
