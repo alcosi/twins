@@ -15,6 +15,7 @@ public class AttachmentAddRestDTOReverseMapper extends RestSimpleDTOMapper<Attac
     @Override
     public void map(AttachmentAddDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         attachmentBaseRestDTOReverseMapper.map(src, dst, mapperContext);
-        dst.setTwinClassFieldId(src.getTwinClassFieldId());
+        dst.setTwinClassFieldId(src.getTwinClassFieldId())
+                .setTwinCommentId(src.getCommentId());
     }
 }

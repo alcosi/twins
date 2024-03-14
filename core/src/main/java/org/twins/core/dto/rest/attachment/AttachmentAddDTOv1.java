@@ -15,5 +15,7 @@ public class AttachmentAddDTOv1 extends AttachmentBaseDTOv1 {
 
     @Schema(name = "UUID twinClassFieldId", description = "link to the field to which attachment was added (if any)")
     public UUID twinClassFieldId;
+    @Schema(description = "link to the comment to which attachment was added (if any)")
+    public UUID commentId;
 
 }
