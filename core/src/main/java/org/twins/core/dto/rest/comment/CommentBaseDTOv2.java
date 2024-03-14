@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "CommentBaseDTOv1")
+@Schema(name = "CommentBaseDTOv2")
 public class CommentBaseDTOv2 extends CommentBaseDTOv1 {
 
     @Schema(description = "id", example = DTOExamples.TWIN_COMMENT)
