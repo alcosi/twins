@@ -34,7 +34,6 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
-//    TODO ACHTUNG!!! BREAK GATEWAY
     @Schema(description = "Attachments add/update/delete operations")
     public AttachmentCudDTOv1 attachments;
 

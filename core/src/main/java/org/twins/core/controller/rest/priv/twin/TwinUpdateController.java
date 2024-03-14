@@ -62,7 +62,7 @@ public class TwinUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.PUT)
+    @PutMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinUpdateV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,

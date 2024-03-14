@@ -7,12 +7,15 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueAttachment;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Properties;
 
 @Component
@@ -32,8 +35,12 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
 
     @Override
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
+        String extensions = fileExtensionList.extract(properties);
         return new FieldDescriptorAttachment()
-                .multiple(multiple.extract(properties));
+                .multiple(multiple.extract(properties))
+                .fileSizeMbLimit(fileSizeMbLimit.extract(properties))
+                .filenameRegExp(fileNameRegexp.extract(properties))
+                .extensions(ObjectUtils.isEmpty(extensions) ? new ArrayList<>() : Arrays.asList(extensions.split(",")));
     }
 
     @Deprecated
@@ -41,6 +48,7 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueAttachment value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
+    @Deprecated
     @Override
     protected FieldValueAttachment deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
         return null;

@@ -6,8 +6,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinUpdate;
-import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
-import org.twins.core.dto.rest.twin.TwinTagManageDTOv1;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -15,10 +13,6 @@ import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
-
-import java.util.HashSet;
-import java.util.Optional;
-
 
 @Component
 @RequiredArgsConstructor

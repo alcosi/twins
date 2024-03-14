@@ -59,7 +59,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .multiple(userDescriptor.multiple())
                         .userFilterId(userDescriptor.userFilterId());
             } else {
-                TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor =  new TwinClassFieldDescriptorUserDTOv1()
+                TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor = new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
                         .users(userRestDTOMapper.convertListPostpone(userDescriptor.validUsers(), mapperContext
                                 .setMode(UserRestDTOMapper.Mode.SHORT)
@@ -68,6 +68,12 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                     userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());
                 return userFieldDescriptor;
             }
+        else if (fieldDescriptor instanceof FieldDescriptorAttachment attachmentDescriptor)
+                return new TwinClassFieldDescriptorAttachmentDTOv1()
+                        .multiple(attachmentDescriptor.multiple())
+                        .extensions(attachmentDescriptor.extensions())
+                        .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
+                        .filenameRegExp(attachmentDescriptor.filenameRegExp());
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
                     .multiple(listSharedDescriptor.isMultiple());
