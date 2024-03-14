@@ -1,14 +1,12 @@
 package org.twins.core.dto.rest.twin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentUpdateDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
@@ -36,14 +34,9 @@ public class TwinUpdateDTOv1 extends Request {
     @Schema(description = "fields")
     public Map<String, String> fields;
 
-    @Schema(description = "Attachments for adding")
-    public List<AttachmentAddDTOv1> attachmentsAdd;
-
-    @Schema(description = "Attachments id list for deleting")
-    public List<UUID> attachmentsDelete;
-
-    @Schema(description = "Attachments for updating")
-    public List<AttachmentUpdateDTOv1> attachmentsUpdate;
+//    TODO ACHTUNG!!! BREAK GATEWAY
+    @Schema(description = "Attachments add/update/delete operations")
+    public AttachmentCudDTOv1 attachments;
 
     @Schema(description = "TwinLinks for adding")
     public List<TwinLinkAddDTOv1> twinLinksAdd;

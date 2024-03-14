@@ -15,6 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentBaseV1")
 public class AttachmentBaseDTOv1 extends Request {
+
     @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
     public String storageLink;
 
@@ -29,4 +30,5 @@ public class AttachmentBaseDTOv1 extends Request {
 
     @JsonIgnore
     public UUID twinId;
+
 }

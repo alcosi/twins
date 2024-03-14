@@ -60,6 +60,9 @@ public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicClon
     @Column(name = "twin_comment_id")
     private UUID twinCommentId;
 
+    @Column(name = "twin_class_field_id")
+    private UUID twinClassFieldId;
+
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
     private TwinEntity twin;

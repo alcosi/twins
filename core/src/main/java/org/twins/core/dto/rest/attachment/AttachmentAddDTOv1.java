@@ -10,4 +10,8 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentAddV1")
 public class AttachmentAddDTOv1 extends AttachmentBaseDTOv1 {
+
+    @Schema(name = "fieldKey", description = "key link to the field to which attachment was added (if any)")
+    public String fieldKey;
+
 }
