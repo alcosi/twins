@@ -30,7 +30,8 @@ public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFieldEntit
         } else if (fieldValue instanceof FieldValueColorHEX color) {
             dst.setValue(color.getHex());
         } else if (fieldValue instanceof FieldValueDate date) {
-            dst.setValue(date.getDate());
+        } else if (fieldValue instanceof FieldValueAttachment attachment) {
+            dst.setValue("");
         } else if (fieldValue instanceof FieldValueSelect select) {
             dst.setValue(String.join(",", select.getOptions().stream().map(o -> o.getId().toString()).toList()));
         } else if (fieldValue instanceof FieldValueUser userField) {
