@@ -74,7 +74,7 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 //    private I18nEntity nameI18n;
 
     @ManyToOne
-    @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity srcTwinStatus;
 
     @ManyToOne

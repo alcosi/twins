@@ -80,19 +80,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public boolean validateEntity(TwinflowTransitionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinflowId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowId");
-        if (entity.getSrcTwinStatusId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty srcTwinStatusId");
         if (entity.getDstTwinStatusId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinStatusId");
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getSrcTwinStatus() == null)
+                if (entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null)
                     entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
                 if (entity.getDstTwinStatus() == null)
                     entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));
             default:
-                if (!entity.getSrcTwinStatus().getTwinClassId().equals(entity.getDstTwinStatus().getTwinClassId()))
+                if (entity.getSrcTwinStatusId() != null && !entity.getSrcTwinStatus().getTwinClassId().equals(entity.getDstTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect src/dst status[" + entity.getSrcTwinStatusId() + " > " + entity.getDstTwinStatusId() + "]");
         }
         return true;
