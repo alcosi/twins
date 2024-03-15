@@ -12,7 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinSearchRqV1", example = "{ \"twinClassIdList\": [ \"ab750e98-70dd-404e-8164-4e0daa187164\" ] } ")
+@Schema(name = "TwinSearchRqV1")
 public class TwinSearchRqDTOv1 extends Request {
     @Schema(description = "Twin class id list")
     public List<UUID> twinClassIdList;

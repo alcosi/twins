@@ -8,6 +8,7 @@ import java.util.Arrays;
 
 @RequiredArgsConstructor
 public enum ErrorCodeTwins implements ErrorCode {
+    NEED_IMPLEMENTED(1, "Needs to be implemented"),
     UUID_UNKNOWN(10000, "uuid is unknown"),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
 

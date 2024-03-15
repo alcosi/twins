@@ -27,6 +27,7 @@ import java.util.Collection;
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    final TwinAttachmentMapper twinAttachmentMapper;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
     final TwinflowTransitionService twinflowTransitionService;
@@ -39,6 +40,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
+        if (!twinAttachmentMapper.noneMode(mapperContext)){
+            dst.setAttachments(attachmentRestDTOMapper.convertList(twinAttachmentMapper.map(attachmentService.loadAttachments(src).getList(), mapperContext), mapperContext));
+            mapperContext.setMode(AttachmentViewRestDTOMapper.Mode.HIDE);
+        }
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
