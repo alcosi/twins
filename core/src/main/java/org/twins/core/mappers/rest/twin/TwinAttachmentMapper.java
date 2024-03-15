@@ -3,10 +3,8 @@ package org.twins.core.mappers.rest.twin;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
@@ -32,8 +30,7 @@ public class TwinAttachmentMapper {
                 srcCollection.removeIf(el -> el.getTwinCommentId() == null);
                 break;
             case FROM_FIELDS:
-                //todo add specific fields
-                throw new ServiceException(ErrorCodeTwins.NEED_IMPLEMENTED);
+                srcCollection.removeIf(el -> el.getTwinClassFieldId() == null);
         }
         return srcCollection;
     }
@@ -43,8 +40,6 @@ public class TwinAttachmentMapper {
     }
 
     public boolean noneMode(MapperContext mapperContext) {
-        // проверяем что наш TwinAttachmentMode не NONE, иначе устанавливаем AttachmentMode HIDE,
-        // чтоб в TwinBaseV3RestDTOMapper не загружать атачменты, и не важно что передали из контроллера в AttachmentMode
         boolean resultCheckOnNone = mapperContext.hasModeOrEmpty(Mode.NONE);
         if (resultCheckOnNone)
             mapperContext.setMode(AttachmentViewRestDTOMapper.Mode.HIDE);
