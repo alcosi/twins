@@ -39,7 +39,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        if ((!attachmentRestDTOMapper.hideMode(mapperContext)))
+        if (!attachmentRestDTOMapper.hideMode(mapperContext))
             dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
