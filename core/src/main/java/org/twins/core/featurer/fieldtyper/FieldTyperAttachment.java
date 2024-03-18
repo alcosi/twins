@@ -33,6 +33,8 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     @FeaturerParam(name = "fileNameRegexp", description = "File name must match this pattern")
     public static final FeaturerParamString fileNameRegexp = new FeaturerParamString("fileNameRegexp");
 
+
+
     @Override
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         String extensions = fileExtensionList.extract(properties);
@@ -51,6 +53,6 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     @Deprecated
     @Override
     protected FieldValueAttachment deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return null;
+        return new FieldValueAttachment();
     }
 }
