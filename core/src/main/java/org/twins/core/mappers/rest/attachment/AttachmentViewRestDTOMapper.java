@@ -15,7 +15,12 @@ import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Component
@@ -28,6 +33,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
     final TwinService twinService;
+    final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -47,6 +53,29 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
         }
+    }
+
+    @Override
+    public List<AttachmentViewDTOv1> convertList(List<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
+        List<TwinAttachmentEntity> newList = new ArrayList<>();
+        switch (mapperContext.getModeOrUse(TwinAttachmentMode.ALL)) {
+            case DIRECT:
+                newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());
+                break;
+            case FROM_TRANSITIONS:
+                newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());
+                break;
+            case FROM_COMMENTS:
+                newList = srcList.stream().filter(el -> el.getTwinCommentId() != null).collect(Collectors.toList());
+                break;
+            case FROM_FIELDS:
+                newList = srcList.stream().filter(el -> el.getTwinClassFieldId() != null).collect(Collectors.toList());
+                break;
+            case ALL:
+                newList = srcList;
+                break;
+        }
+        return super.convertList(newList, mapperContext);
     }
 
     @Override
@@ -72,4 +101,23 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         @Getter
         final int priority;
     }
+
+    @AllArgsConstructor
+    public enum TwinAttachmentMode implements MapperMode {
+        DIRECT(0),
+        FROM_TRANSITIONS(1),
+        FROM_COMMENTS(1),
+        FROM_FIELDS(1),
+        ALL(2);
+
+        public static final String _ALL = "ALL";
+        public static final String _DIRECT = "DIRECT";
+        public static final String _FROM_TRANSITIONS = "FROM_TRANSITIONS";
+        public static final String _FROM_COMMENTS = "FROM_COMMENTS";
+        public static final String _FROM_FIELDS = "FROM_FIELDS";
+
+        @Getter
+        final int priority;
+    }
+
 }

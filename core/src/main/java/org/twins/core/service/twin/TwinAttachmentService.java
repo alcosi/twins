@@ -18,9 +18,9 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinAttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
-        return twinAttachmentEntity.getTwinflowTransitionId() != null
-                || twinAttachmentEntity.getTwinCommentId() != null
-                || twinAttachmentEntity.getTwinClassFieldId() != null;
+        return twinAttachmentEntity.getTwinflowTransitionId() == null
+                && twinAttachmentEntity.getTwinCommentId() == null
+                && twinAttachmentEntity.getTwinClassFieldId() == null;
     }
 
     @Override

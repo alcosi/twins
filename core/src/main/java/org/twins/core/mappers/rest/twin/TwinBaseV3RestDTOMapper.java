@@ -10,7 +10,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
@@ -28,8 +27,6 @@ import java.util.Collection;
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
-    final TwinAttachmentMapper twinAttachmentMapper;
-    final AttachmentViewRestDTOMapperV2 attachmentViewRestDTOMapperV2;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
     final TwinflowTransitionService twinflowTransitionService;
@@ -43,7 +40,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
-            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentViewRestDTOMapperV2.filterAttachment(attachmentService.loadAttachments(src).getList(), mapperContext), mapperContext));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
