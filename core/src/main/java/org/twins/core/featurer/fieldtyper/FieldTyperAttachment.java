@@ -12,7 +12,7 @@ import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
-import org.twins.core.featurer.fieldtyper.value.FieldValueAttachment;
+import org.twins.core.featurer.fieldtyper.value.FieldValueEmpty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +22,7 @@ import java.util.Properties;
 @Featurer(id = 1316,
         name = "FieldTyperAttachment",
         description = "Allow the field to have an attachment")
-public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueAttachment> {
+public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueEmpty> {
 
     @FeaturerParam(name = "multiple", description = "Allow add multiple attachments to field")
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
@@ -47,12 +47,12 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
 
     @Deprecated
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueAttachment value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueEmpty value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
     @Deprecated
     @Override
-    protected FieldValueAttachment deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueAttachment();
+    protected FieldValueEmpty deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+        return new FieldValueEmpty();
     }
 }
