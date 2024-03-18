@@ -7,10 +7,10 @@ import lombok.experimental.Accessors;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueAttachment extends FieldValue {
+public class FieldValueEmpty extends FieldValue {
     @Override
     public FieldValue clone() {
-        FieldValueAttachment clone = new FieldValueAttachment();
+        FieldValueEmpty clone = new FieldValueEmpty();
         clone.setTwinClassField(this.getTwinClassField());
         return clone;
     }

@@ -10,6 +10,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
@@ -28,6 +29,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final TwinAttachmentMapper twinAttachmentMapper;
+    final AttachmentViewRestDTOMapperV2 attachmentViewRestDTOMapperV2;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
     final TwinflowTransitionService twinflowTransitionService;
@@ -40,12 +42,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        if (!twinAttachmentMapper.noneMode(mapperContext)){
-            dst.setAttachments(attachmentRestDTOMapper.convertList(twinAttachmentMapper.map(attachmentService.loadAttachments(src).getList(), mapperContext), mapperContext));
-            mapperContext.setMode(AttachmentViewRestDTOMapper.Mode.HIDE);
-        }
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
-            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentViewRestDTOMapperV2.filterAttachment(attachmentService.loadAttachments(src).getList(), mapperContext), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
