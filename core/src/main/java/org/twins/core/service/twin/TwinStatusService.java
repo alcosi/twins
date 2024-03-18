@@ -45,7 +45,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         if (twinClassEntity.getTwinStatusKit() != null)
             return twinClassEntity.getTwinStatusKit();
         twinClassService.loadExtendedClasses(twinClassEntity);
-        twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getTwinClassId));
+        twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));
         return twinClassEntity.getTwinStatusKit();
     }
 
@@ -83,7 +83,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                         statusList.addAll(statussMap.get(twinClassId));
                 }
             }
-            twinClassEntity.setTwinStatusKit(new Kit<>(statusList, TwinStatusEntity::getTwinClassId));
+            twinClassEntity.setTwinStatusKit(new Kit<>(statusList, TwinStatusEntity::getId));
         }
     }
 
