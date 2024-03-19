@@ -1,7 +1,4 @@
 alter table if exists twin_attachment
-    drop column if exists twin_comment_id;
-
-alter table twin_attachment
     add if not exists twin_comment_id uuid;
 
 alter table twin_attachment
