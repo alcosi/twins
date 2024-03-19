@@ -31,19 +31,11 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         switch (mapperContext.getModeOrUse(FieldsMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
-            case ALL_FIELDS:
+            case ALL_FIELDS, ALL_FIELDS_WITH_ATTACHMENTS:
                 twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
                 break;
-            case NOT_EMPTY_FIELDS:
-                twinFieldEntityList = twinService.findTwinFields(src.getId());
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
-                break;
-            case ALL_FIELDS_WITH_ATTACHMENTS:
-                twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
-                break;
-            case NOT_EMPTY_FIELDS_WITH_ATTACHMENTS:
+            case NOT_EMPTY_FIELDS, NOT_EMPTY_FIELDS_WITH_ATTACHMENTS:
                 twinFieldEntityList = twinService.findTwinFields(src.getId());
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
                 break;
