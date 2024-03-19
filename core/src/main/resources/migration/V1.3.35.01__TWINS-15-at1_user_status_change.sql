@@ -8,9 +8,9 @@ DROP TABLE if exists user_status;
 
 CREATE TABLE if not exists user_status (
     id varchar(50)
+        constraint table_name_pk
+            primary key
 );
-
-CREATE UNIQUE INDEX IF NOT EXISTS user_status_id_uindex ON user_status (id);
 
 INSERT INTO user_status (id) VALUES ('ACTIVE');
 INSERT INTO user_status (id) VALUES ('DELETED');
