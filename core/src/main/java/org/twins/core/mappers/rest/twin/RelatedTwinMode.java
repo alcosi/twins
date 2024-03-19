@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 
-@Getter
+@Getter  //TODO
 public enum RelatedTwinMode implements MapperModeCollection {
     GREEN(0,
             TwinBaseRestDTOMapper.TwinMode.SHORT,

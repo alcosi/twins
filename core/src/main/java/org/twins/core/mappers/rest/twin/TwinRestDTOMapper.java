@@ -39,6 +39,14 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
                 twinFieldEntityList = twinService.findTwinFields(src.getId());
                 dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
                 break;
+            case ALL_FIELDS_WITH_ATTACHMENTS:
+                twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
+                break;
+            case NOT_EMPTY_FIELDS_WITH_ATTACHMENTS:
+                twinFieldEntityList = twinService.findTwinFields(src.getId());
+                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
+                break;
         }
     }
 
@@ -51,11 +59,15 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     public enum FieldsMode implements MapperMode {
         NO_FIELDS(0),
         NOT_EMPTY_FIELDS(1),
-        ALL_FIELDS(2);
+        ALL_FIELDS(2),
+        NOT_EMPTY_FIELDS_WITH_ATTACHMENTS(3),
+        ALL_FIELDS_WITH_ATTACHMENTS(4);
 
         public static final String _NO_FIELDS = "NO_FIELDS";
         public static final String _ALL_FIELDS = "ALL_FIELDS";
         public static final String _NOT_EMPTY_FIELDS = "NOT_EMPTY_FIELDS";
+        public static final String _ALL_FIELDS_WITH_ATTACHMENTS = "ALL_FIELDS_WITH_ATTACHMENTS";
+        public static final String _NOT_EMPTY_FIELDS_WITH_ATTACHMENTS = "NOT_EMPTY_FIELDS_WITH_ATTACHMENTS";
 
         @Getter
         final int priority;
