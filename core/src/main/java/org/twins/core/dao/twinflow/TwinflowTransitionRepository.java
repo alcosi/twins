@@ -13,8 +13,14 @@ import java.util.UUID;
 
 @Repository
 public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTransitionEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionEntity> {
-    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and tt.srcTwinStatusId = :srcTwinStatusId " +
-            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    /* we can have 2 concurrent transitions to same dst_status_id:
+        1. with src_status_id = null - case of "from any" transition
+        2. with specific src_status_id
+        Second case has more priority
+        This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
+        */
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) " +
+            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.dstTwinStatusId, tt.srcTwinStatusId")
     List<TwinflowTransitionEntity> findValidTransitions(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
@@ -40,8 +46,8 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
-    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and tt.srcTwinStatusId = :srcTwinStatusId and tt.twinflowTransitionAliasId = :aliasId " +
-            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) and tt.twinflowTransitionAliasId = :aliasId " +
+            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.srcTwinStatusId limit 1")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,

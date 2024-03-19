@@ -80,19 +80,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public boolean validateEntity(TwinflowTransitionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getTwinflowId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty twinFlowId");
-        if (entity.getSrcTwinStatusId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty srcTwinStatusId");
         if (entity.getDstTwinStatusId() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty dstTwinStatusId");
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getSrcTwinStatus() == null)
+                if (entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null)
                     entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
                 if (entity.getDstTwinStatus() == null)
                     entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));
             default:
-                if (!entity.getSrcTwinStatus().getTwinClassId().equals(entity.getDstTwinStatus().getTwinClassId()))
+                if (entity.getSrcTwinStatusId() != null && !entity.getSrcTwinStatus().getTwinClassId().equals(entity.getDstTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect src/dst status[" + entity.getSrcTwinStatusId() + " > " + entity.getDstTwinStatusId() + "]");
         }
         return true;
@@ -132,10 +130,21 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             twinEntity.setValidTransitionsKit(new Kit<>(twinflowTransitionEntityList, TwinflowTransitionEntity::getId)); // this will help to avoid loading one more time
             return;
         }
+        /* we can have 2 concurrent transitions to same dst_status_id:
+        1. with src_status_id = null - case of "from any" transition
+        2. with specific src_status_id
+        Second case has more priority
+        This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
+        */
+        HashMap<UUID, UUID> alreadyAdded = new HashMap<>(); // key = dst_status, value = src_status
         List<TwinflowTransitionEntity> validTransitionEntityList = new ArrayList<>();
-        for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList)
+        for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
+            if (alreadyAdded.containsKey(transitionEntity.getDstTwinStatusId()) && alreadyAdded.get(transitionEntity.getDstTwinStatusId()) != null)
+                continue; //skipping current transition because we already have one with specific src_status
+            alreadyAdded.put(transitionEntity.getDstTwinStatusId(), transitionEntity.getSrcTwinStatusId());
             if (runTransitionValidators(transitionEntity, twinEntity))
                 validTransitionEntityList.add(transitionEntity);
+        }
         twinEntity.setValidTransitionsKit(new Kit<>(validTransitionEntityList, TwinflowTransitionEntity::getId));
     }
 

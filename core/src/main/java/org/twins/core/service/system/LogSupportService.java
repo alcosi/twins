@@ -109,6 +109,6 @@ public class LogSupportService {
     }
 
     private String transitionReadable(TwinflowTransitionEntity item, boolean next) {
-        return (next ? "." : "=") + "transition[" + item.getTwinflow().getTwinClass().getKey() + "][" + item.getSrcTwinStatus().getKey() + " -> " + item.getDstTwinStatus().getKey() + "]";
+        return (next ? "." : "=") + "transition[" + item.getTwinflow().getTwinClass().getKey() + "][" + (item.getSrcTwinStatus() != null ? item.getSrcTwinStatus().getKey() : "~any~") + " -> " + item.getDstTwinStatus().getKey() + "]";
     }
 }
