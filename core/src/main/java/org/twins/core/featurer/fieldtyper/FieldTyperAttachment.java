@@ -24,8 +24,10 @@ import java.util.Properties;
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueAttachment> {
 
-    @FeaturerParam(name = "multiple", description = "Allow add multiple attachments to field")
-    public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
+    @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
+    public static final FeaturerParamInt minCount = new FeaturerParamInt("multiple");
+    @FeaturerParam(name = "maxCount", description = "Max count of attachments to field")
+    public static final FeaturerParamInt maxCount = new FeaturerParamInt("multiple");
     @FeaturerParam(name = "fileSizeMbLimit", description = "Max size per file for attachment")
     public static final FeaturerParamInt fileSizeMbLimit = new FeaturerParamInt("fileSizeMbLimit");
     @FeaturerParam(name = "fileExtensionList", description = "Allowed extensions for attachment(ex: jpg,jpeg,png)")
@@ -39,7 +41,8 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         String extensions = fileExtensionList.extract(properties);
         return new FieldDescriptorAttachment()
-                .multiple(multiple.extract(properties))
+                .minCount(minCount.extract(properties))
+                .maxCount(maxCount.extract(properties))
                 .fileSizeMbLimit(fileSizeMbLimit.extract(properties))
                 .filenameRegExp(fileNameRegexp.extract(properties))
                 .extensions(ObjectUtils.isEmpty(extensions) ? new ArrayList<>() : Arrays.asList(extensions.split(",")));
