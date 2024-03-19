@@ -44,6 +44,9 @@ $$
 DECLARE
     result space_permissions := (FALSE, FALSE);
 BEGIN
+    IF spaceId IS NULL THEN
+        RETURN result;
+    END IF;
     SELECT
         (t.assigner_user_id = userId) AS isSpaceAssignee,
         (t.created_by_user_id = userId) AS isSpaceCreator
