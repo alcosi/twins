@@ -41,15 +41,9 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        // modify blockers for view attachment for field, if field with attachment was requested.
-        if (!ALL_FIELDS.equals(mapperContext.getPriorityModeOrUse(TwinRestDTOMapper.FieldsMode.ALL_FIELDS))) { // passed when selected field mode with attachment
-            // check that field attachment mode disabled and turn on all attachment mode
-            // TODO избыточность данных возможна!!!.
-            if (!mapperContext.hasMode(AttachmentViewRestDTOMapper.TwinAttachmentMode.FROM_FIELDS))
-                mapperContext.setMode(AttachmentViewRestDTOMapper.TwinAttachmentMode.ALL);
-            // set short view mode for attachment if it's hide,
-            if (attachmentRestDTOMapper.hideMode(mapperContext))
-                mapperContext.setMode(AttachmentViewRestDTOMapper.Mode.SHORT);
+        if (mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.ALL_FIELDS_WITH_ATTACHMENTS) || mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS_WITH_ATTACHMENTS)) {
+            mapperContext.setPriorityMinMode(AttachmentViewRestDTOMapper.TwinAttachmentMode.FROM_FIELDS);
+            mapperContext.setPriorityMinMode(AttachmentViewRestDTOMapper.Mode.SHORT);
         }
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));

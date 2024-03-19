@@ -67,9 +67,34 @@ public class MapperContext {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode == null || configuredMode.getPriority() < mode.getPriority())
             setMode(mode);
+        else if (!configuredMode.equals(mode) && configuredMode.getPriority() == mode.getPriority()) {
+            setMode(getUpperModeByPriorityOrUse(mode, configuredMode));
+        }
         return this;
     }
 
+    private MapperMode getUpperModeByPriorityOrUse(MapperMode checkForUpperMode, MapperMode forUseModeIfUpperIsAbsent) {
+        Class<? extends MapperMode> modeClass = checkForUpperMode.getClass();
+        try {
+            Object[] enumConstants = modeClass.getEnumConstants();
+            MapperMode upperMode = null;
+            for (Object enumConstant : enumConstants) {
+                MapperMode upper = (MapperMode) enumConstant;
+                if (upper.getPriority() == checkForUpperMode.getPriority() + 1) {
+                    upperMode = upper;
+                    break;
+                }
+            }
+            if (upperMode != null) {
+                return upperMode;
+            } else {
+                return forUseModeIfUpperIsAbsent;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return forUseModeIfUpperIsAbsent;
+        }
+    }
     public boolean isLazyRelations() {
         return lazyRelations;
     }

@@ -2,7 +2,7 @@ package org.twins.core.controller.rest;
 
 public interface RestRequestParam {
     String showAttachmentMode = "showAttachmentMode";
-    String showTwinAttachmentMode = "showTwinAttachmentMode"; //TODO target/holder/keeper AttachmentMode
+    String showTwinAttachmentMode = "showTwinAttachmentMode";
     String showDataListMode = "showDataListMode";
     String showDataListOptionMode = "showDataListOptionMode";
     String showUserMode = "showUserMode";
