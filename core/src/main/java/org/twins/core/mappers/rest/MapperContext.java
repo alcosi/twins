@@ -69,6 +69,7 @@ public class MapperContext {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode == null || configuredMode.getPriority() < mode.getPriority())
             setMode(mode);
+        //case: several modes with identical priorities in the MapperMode implementer
         else if (!configuredMode.equals(mode) && configuredMode.getPriority() == mode.getPriority()) {
             setMode(getUpperModeByPriorityOrUse(mode, configuredMode));
         }
