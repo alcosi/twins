@@ -17,6 +17,8 @@ import java.util.*;
 
 @Slf4j
 public class MapperContext {
+
+    @Getter
     private boolean lazyRelations = true;
     private Hashtable<String, Object> properties = new Hashtable<>();
 
@@ -67,11 +69,29 @@ public class MapperContext {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode == null || configuredMode.getPriority() < mode.getPriority())
             setMode(mode);
+        //case: several modes with identical priorities in the MapperMode implementer
+        else if (!configuredMode.equals(mode) && configuredMode.getPriority() == mode.getPriority()) {
+            setMode(getUpperModeByPriorityOrUse(mode, configuredMode));
+        }
         return this;
     }
 
-    public boolean isLazyRelations() {
-        return lazyRelations;
+    private static MapperMode getUpperModeByPriorityOrUse(MapperMode checkForUpperMode, MapperMode forUseModeIfUpperIsAbsent) {
+        Class<? extends MapperMode> modeClass = checkForUpperMode.getClass();
+        try {
+            MapperMode[] enumConstants = modeClass.getEnumConstants();
+            MapperMode upperMode = null;
+
+            for (MapperMode mode : enumConstants)
+                if (mode.getPriority() > checkForUpperMode.getPriority() && (upperMode == null || upperMode.getPriority() > mode.getPriority()))
+                    upperMode = mode;
+
+            if (upperMode != null) return upperMode;
+            else return forUseModeIfUpperIsAbsent;
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return forUseModeIfUpperIsAbsent;
+        }
     }
 
     public MapperContext setLazyRelations(boolean lazyRelations) {

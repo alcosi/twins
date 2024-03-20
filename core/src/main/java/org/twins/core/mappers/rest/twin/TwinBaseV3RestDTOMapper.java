@@ -21,6 +21,8 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.Collection;
 
+import static org.twins.core.mappers.rest.twin.TwinRestDTOMapper.FieldsMode.ALL_FIELDS;
+
 
 @Component
 @RequiredArgsConstructor
@@ -39,6 +41,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
+        if (mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.ALL_FIELDS_WITH_ATTACHMENTS) || mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS_WITH_ATTACHMENTS)) {
+            mapperContext.setPriorityMinMode(AttachmentViewRestDTOMapper.TwinAttachmentMode.FROM_FIELDS);
+            mapperContext.setPriorityMinMode(AttachmentViewRestDTOMapper.Mode.SHORT);
+        }
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
