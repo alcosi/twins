@@ -9,6 +9,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.service.HttpRequestService;
@@ -50,6 +51,15 @@ public class OpenApiConfig {
                             parameters.addAll(operation.getParameters());
                         operation.setParameters(parameters);
                     }
+                    if (handlerMethod.hasMethodAnnotation(ParametersApiUserAnonymousHeaders.class)) {
+                        List<Parameter> parameters = new ArrayList<>();
+                        parameters.add(headerParameterDomainId());
+                        parameters.add(headerParameterChannelId());
+                        parameters.add(headerParameterLocale());
+                        if (operation.getParameters() != null)
+                            parameters.addAll(operation.getParameters());
+                        operation.setParameters(parameters);
+                    }
                     if (handlerMethod.hasMethodAnnotation(ParameterChannelHeader.class)) {
                         List<Parameter> parameters = new ArrayList<>();
                         parameters.add(headerParameterChannel());
@@ -82,6 +92,20 @@ public class OpenApiConfig {
                 .name(HttpRequestService.HEADER_DOMAIN_ID)
                 .required(true)
                 .example(DTOExamples.DOMAIN_ID);
+    }
+
+    private Parameter headerParameterLocale() {
+        return new HeaderParameter()
+                .name(HttpRequestService.HEADER_LOCALE)
+                .required(true)
+                .example(DTOExamples.LOCALE);
+    }
+
+    private Parameter headerParameterChannelId() {
+        return new HeaderParameter()
+                .name(HttpRequestService.HEADER_CHANNEL_ID)
+                .required(true)
+                .example(DTOExamples.CHANNEL);
     }
 
     private Parameter headerParameterBusinessAccountId() {
