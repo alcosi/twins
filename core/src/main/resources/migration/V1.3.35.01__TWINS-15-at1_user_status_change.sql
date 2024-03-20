@@ -8,7 +8,7 @@ DROP TABLE if exists user_status;
 
 CREATE TABLE if not exists user_status (
     id varchar(50)
-        constraint table_name_pk
+        constraint user_status_pk
             primary key
 );
 
