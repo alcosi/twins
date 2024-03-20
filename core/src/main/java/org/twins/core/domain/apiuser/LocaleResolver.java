@@ -1,5 +1,7 @@
 package org.twins.core.domain.apiuser;
 
+import java.util.Locale;
+
 public interface LocaleResolver {
-    LocaleResolver resolveCurrentLocale();
+    Locale resolveCurrentLocale();
 }

@@ -12,16 +12,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.LocaleRsDTOv1;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
-import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
 
+import java.util.Locale;
 import java.util.UUID;
 
-@Tag(description = "Get data lists", name = ApiTag.DATA_LIST)
+@Tag(description = "Get data lists", name = ApiTag.LOCALE)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -33,13 +31,11 @@ public class DomainUserLocaleController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/user/{userId}/locale/{localeName}/v1", method = RequestMethod.PUT)
+    @PutMapping(value = "/private/domain/{domainId}/user/{userId}/locale/{localeName}/v1")
     public ResponseEntity<?> domainUserLocaleUpdateV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @Parameter(example = DTOExamples.LOCALE) @PathVariable String localeName,
-            @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._DETAILED) CommentViewRestDTOMapper.Mode showCommentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode) {
+            @Parameter(example = DTOExamples.LOCALE) @PathVariable Locale localeName) {
         Response rs = new Response();
 //        try {
 //
@@ -57,7 +53,7 @@ public class DomainUserLocaleController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = LocaleRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/user/{userId}/locale/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/domain/{domainId}/user/{userId}/locale/v1")
     public ResponseEntity<?> domainUserLocaleViewV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
