@@ -10,7 +10,8 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
 public class FieldDescriptorAttachment extends FieldDescriptor {
-    private boolean multiple;
+    private int minCount;
+    private int maxCount;
     private List<String> extensions;
     private String filenameRegExp;
     private Integer fileSizeMbLimit;

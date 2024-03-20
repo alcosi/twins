@@ -14,8 +14,11 @@ public class TwinClassFieldDescriptorAttachmentDTOv1 implements TwinClassFieldDe
     public static final String KEY = "attachmentFieldDescriptorV1";
     public String fieldType = KEY;
 
-    @Schema(description = "Multiple file-choice support", example = "true")
-    public Boolean multiple;
+    @Schema(description = "Min count of files to upload", example = "1")
+    public Integer minCount;
+
+    @Schema(description = "Max count of files to upload", example = "1")
+    public Integer maxCount;
 
     @Schema(description = "Allowed extensions", example = "[\"jpg\", \"jpeg\", \"png\"]")
     public List<String> extensions = new ArrayList<>();
