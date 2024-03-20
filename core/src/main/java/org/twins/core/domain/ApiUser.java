@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
-import org.springframework.web.servlet.LocaleResolver;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -257,8 +256,14 @@ public class ApiUser {
         return Channel.WEB; //todo fix
     }
 
-    public ApiUser getAnonymous(UUID domainId) {
+    public ApiUser setAnonymous(UUID domainId) {
         return setDomainResolver(new DomainResolverGivenId(domainId))
+                .setUserResolver(new UserResolverNotSpecified())
+                .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+    }
+
+    public ApiUser setAnonymous() {
+        return setDomainResolver(domainResolverHeaders)
                 .setUserResolver(new UserResolverNotSpecified())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }

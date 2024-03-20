@@ -54,7 +54,7 @@ public class OpenApiConfig {
                     if (handlerMethod.hasMethodAnnotation(ParametersApiUserAnonymousHeaders.class)) {
                         List<Parameter> parameters = new ArrayList<>();
                         parameters.add(headerParameterDomainId());
-                        parameters.add(headerParameterChannelId());
+                        parameters.add(headerParameterChannel());
                         parameters.add(headerParameterLocale());
                         if (operation.getParameters() != null)
                             parameters.addAll(operation.getParameters());
@@ -99,13 +99,6 @@ public class OpenApiConfig {
                 .name(HttpRequestService.HEADER_LOCALE)
                 .required(true)
                 .example(DTOExamples.LOCALE);
-    }
-
-    private Parameter headerParameterChannelId() {
-        return new HeaderParameter()
-                .name(HttpRequestService.HEADER_CHANNEL_ID)
-                .required(true)
-                .example(DTOExamples.CHANNEL);
     }
 
     private Parameter headerParameterBusinessAccountId() {

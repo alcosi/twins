@@ -18,8 +18,6 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
-import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
@@ -32,36 +30,33 @@ import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
 
-@Tag(description = "Get data lists", name = ApiTag.DATA_LIST)
+@Tag(description = "Get public data lists", name = ApiTag.DATA_LIST)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class DataPublicListController extends ApiController {
+public class DataListPublicController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
     private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserAnonymousHeaders
-    @Operation(operationId = "dataListViewV1", summary = "Returns public list data")
+    @Operation(operationId = "dataListPublicViewV1", summary = "Returns public data list")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List details prepared", content = {
+            @ApiResponse(responseCode = "200", description = "Public list details prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/public/data_list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/public/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
-    public ResponseEntity<?> dataListViewV1(
+    public ResponseEntity<?> dataListPublicViewV1(
+            @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-//            authService.getApiUser().getAnonymous();
-            authService.getApiUser()
-                    .setDomainResolver(new DomainResolverGivenId(UUID.fromString("f67ad556-dd27-4871-9a00-16fb0e8a4102")))
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
-
+            authService.getApiUser().setAnonymous();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(UUID.fromString("e844a4e5-1c09-474e-816f-05cdb1f093ed")), new MapperContext()
+                    dataListService.findEntitySafe(dataListId), new MapperContext()
                             .setMode(showDataListMode)
                             .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
@@ -73,24 +68,21 @@ public class DataPublicListController extends ApiController {
     }
 
     @ParametersApiUserAnonymousHeaders
-    @Operation(operationId = "dataListByKeyViewV1", summary = "Returns public list data")
+    @Operation(operationId = "dataListPublicByKeyViewV1", summary = "Returns public data list")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List details prepared", content = {
+            @ApiResponse(responseCode = "200", description = "Public list details prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/public/data_list_by_key/{dataListKey}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/public/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
-    public ResponseEntity<?> dataListByKeyViewV1(
+    public ResponseEntity<?> dataListPublicByKeyViewV1(
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            apiUser
-                    .setDomainResolver(new DomainResolverGivenId(UUID.fromString("f67ad556-dd27-4871-9a00-16fb0e8a4102")))
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+            ApiUser apiUser = authService.getApiUser().setAnonymous();
             rs.dataList = dataListRestDTOMapper.convert(
                     dataListService.findDataListByKey(apiUser, dataListKey), new MapperContext()
                             .setMode(showDataListMode)
@@ -104,24 +96,21 @@ public class DataPublicListController extends ApiController {
     }
 
     @ParametersApiUserAnonymousHeaders
-    @Operation(operationId = "dataListSearchV1", summary = "Returns public lists details")
+    @Operation(operationId = "dataListPublicSearchV1", summary = "Returns public details lists")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List details prepared", content = {
+            @ApiResponse(responseCode = "200", description = "Public list details prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListSearchRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/public/data_list/search/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/public/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
-    public ResponseEntity<?> dataListSearchV1(
+    public ResponseEntity<?> dataListPublicSearchV1(
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._HIDE) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            apiUser
-                    .setDomainResolver(new DomainResolverGivenId(UUID.fromString("f67ad556-dd27-4871-9a00-16fb0e8a4102")))
-                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
+            authService.getApiUser().setAnonymous();
             rs.dataListList(
                     dataListRestDTOMapper.convertList(
                             dataListService.findDataLists(request.dataListIdList()), new MapperContext()
