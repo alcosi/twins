@@ -9,6 +9,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
+import org.springframework.web.servlet.LocaleResolver;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountRepository;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
@@ -21,6 +22,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -39,6 +41,8 @@ public class ApiUser {
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private Channel channel;
+    private Locale locale;
+    private LocaleResolver localeResolver;
     public static final UUID NOT_SPECIFIED = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
     @Getter
@@ -78,6 +82,11 @@ public class ApiUser {
 
     public ApiUser setUserResolver(UserResolver userResolver) {
         this.userResolver = userResolver;
+        return this;
+    }
+
+    public ApiUser setLocaleResolver(LocaleResolver localeResolver) {
+        this.localeResolver = localeResolver;
         return this;
     }
 
@@ -246,5 +255,11 @@ public class ApiUser {
 
     public Channel getChannel() {
         return Channel.WEB; //todo fix
+    }
+
+    public ApiUser getAnonymous(UUID domainId) {
+        return setDomainResolver(new DomainResolverGivenId(domainId))
+                .setUserResolver(new UserResolverNotSpecified())
+                .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 }

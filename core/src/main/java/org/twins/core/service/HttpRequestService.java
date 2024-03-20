@@ -18,6 +18,7 @@ import java.util.Optional;
 public class HttpRequestService extends SessionLocaleResolver {
     public static final String HEADER_LOCALE = "Lang";
     public static final String HEADER_USER_ID = "UserId";
+    public static final String HEADER_CHANNEL_ID = "ChannelId";
     public static final String HEADER_AUTH_TOKEN = "AuthToken";
     public static final String HEADER_DOMAIN_ID = "DomainId";
     public static final String HEADER_BUSINESS_ACCOUNT_ID = "BusinessAccountId";

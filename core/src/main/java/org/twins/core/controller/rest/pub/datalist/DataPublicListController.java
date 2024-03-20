@@ -55,14 +55,14 @@ public class DataPublicListController extends ApiController {
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-//            authService.getApiUser()
-//                    .getAnonymous(domainId);
+//            authService.getApiUser().getAnonymous();
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(UUID.fromString("f67ad556-dd27-4871-9a00-16fb0e8a4102")))
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
 
             rs.dataList = dataListRestDTOMapper.convert(
                     dataListService.findEntitySafe(UUID.fromString("e844a4e5-1c09-474e-816f-05cdb1f093ed")), new MapperContext()
+                            .setMode(showDataListMode)
                             .setMode(showDataListOptionMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
