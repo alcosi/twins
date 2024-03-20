@@ -76,7 +76,7 @@ public class MapperContext {
         return this;
     }
 
-    private MapperMode getUpperModeByPriorityOrUse(MapperMode checkForUpperMode, MapperMode forUseModeIfUpperIsAbsent) {
+    private static MapperMode getUpperModeByPriorityOrUse(MapperMode checkForUpperMode, MapperMode forUseModeIfUpperIsAbsent) {
         Class<? extends MapperMode> modeClass = checkForUpperMode.getClass();
         try {
             MapperMode[] enumConstants = modeClass.getEnumConstants();
