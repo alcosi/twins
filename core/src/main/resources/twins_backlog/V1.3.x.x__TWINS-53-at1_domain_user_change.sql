@@ -12,9 +12,9 @@ alter table domain
     add column if not exists default_i18n_locale_id varchar;
 
 alter table domain
-    drop constraint if exists domain_i18n_locale_id_fk;
+    drop constraint if exists domain_default_i18n_locale_id_fk;
 
 alter table domain
-    add constraint domain_i18n_locale_id_fk
+    add constraint domain_default_i18n_locale_id_fk
         foreign key (default_i18n_locale_id) references i18n_locale;
 
