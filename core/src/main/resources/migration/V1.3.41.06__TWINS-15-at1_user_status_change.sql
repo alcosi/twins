@@ -1,9 +1,5 @@
 ALTER TABLE "user" DROP CONSTRAINT IF EXISTS user_user_status_id_fk;
 
-ALTER TABLE "user" ALTER COLUMN user_status_id SET DEFAULT 'ACTIVE';
-
-UPDATE "user" SET user_status_id='ACTIVE' WHERE user_status_id='active';
-
 DROP TABLE if exists user_status;
 
 CREATE TABLE if not exists user_status (

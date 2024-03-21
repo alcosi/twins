@@ -25,9 +25,9 @@ import java.util.Properties;
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueEmpty> {
 
     @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
-    public static final FeaturerParamInt minCount = new FeaturerParamInt("multiple");
+    public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");
     @FeaturerParam(name = "maxCount", description = "Max count of attachments to field")
-    public static final FeaturerParamInt maxCount = new FeaturerParamInt("multiple");
+    public static final FeaturerParamInt maxCount = new FeaturerParamInt("maxCount");
     @FeaturerParam(name = "fileSizeMbLimit", description = "Max size per file for attachment")
     public static final FeaturerParamInt fileSizeMbLimit = new FeaturerParamInt("fileSizeMbLimit");
     @FeaturerParam(name = "fileExtensionList", description = "Allowed extensions for attachment(ex: jpg,jpeg,png)")
