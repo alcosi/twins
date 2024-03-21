@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,13 +42,13 @@ public class UserLocaleController extends ApiController {
     public ResponseEntity<?> userLocaleUpdateV1(
             @Parameter(example = DTOExamples.LOCALE) @PathVariable Locale localeName) {
         Response rs = new Response();
-//        try {
-//            domainService.updateLocaleByDomainUser(localeName);
-//        } catch (ServiceException se) {
-//            return createErrorRs(se, rs);
-//        } catch (Exception e) {
-//            return createErrorRs(e, rs);
-//        }
+        try {
+            domainService.updateLocaleByDomainUser(localeName);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
@@ -61,13 +62,13 @@ public class UserLocaleController extends ApiController {
     @GetMapping(value = "/private/user/locale/v1")
     public ResponseEntity<?> userLocaleViewV1() {
         LocaleRsDTOv1 rs = new LocaleRsDTOv1();
-//        try {
-        rs.setLocale(Locale.ENGLISH);
-//        } catch (ServiceException se) {
-//            return createErrorRs(se, rs);
-//        } catch (Exception e) {
-//            return createErrorRs(e, rs);
-//        }
+        try {
+            rs.setLocale(authService.getApiUser().getLocale().toString());
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

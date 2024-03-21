@@ -37,11 +37,11 @@ public class ApiUser {
     private UUID businessAccountId;
     private UUID userId;
     private DomainResolver domainResolver;
+    private Locale locale;
+    private LocaleResolver localeResolver;
     private BusinessAccountResolver businessAccountResolver;
     private UserResolver userResolver;
     private Channel channel;
-    private Locale locale;
-    private LocaleResolver localeResolver;
     public static final UUID NOT_SPECIFIED = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
 
     @Getter
@@ -67,6 +67,7 @@ public class ApiUser {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final UserRepository userRepository;
     final DomainResolverHeaders domainResolverHeaders;
+    final LocaleResolverDomainUser localeResolverDomainUser;
     final UserBusinessAccountResolverAuthToken userBusinessAccountResolverAuthToken;
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
@@ -101,6 +102,16 @@ public class ApiUser {
         return domain;
     }
 
+
+    public Locale getLocale() throws ServiceException {
+        if (locale != null)
+            return locale;
+        resolveLocale();
+//        if (locale == null)
+//            throw new ServiceException(ErrorCodeTwins.LOCALE_UNKNOWN);
+        return locale;
+    }
+
     public BusinessAccountEntity getBusinessAccount() throws ServiceException {
         if (businessAccount != null)
             return businessAccount;
@@ -117,6 +128,18 @@ public class ApiUser {
         if (user == null)
             throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN);
         return user;
+    }
+
+    private void resolveLocale() {
+        if (locale != null)
+            return;
+        if (localeResolver == null)
+            localeResolver = localeResolverDomainUser;
+        try {
+            locale = localeResolver.resolveCurrentLocale();
+        } catch (ServiceException e) {
+            log.error("Resolve locale exception:", e);
+        }
     }
 
     private void resolveDomainId() {

@@ -13,7 +13,7 @@ import org.cambium.i18n.dao.*;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.service.HttpRequestService;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 
@@ -26,8 +26,8 @@ public class I18nService {
     final I18nTranslationBinRepository i18nTranslationBinRepository;
     final I18nTranslationStyleRepository i18nTranslationStyleRepository;
     final I18nLocaleRepository i18nLocaleRepository;
+    final AuthService authService;
     final I18nProperties i18nProperties;
-    final HttpRequestService httpRequestService;//todo delete @Aleksey Turkov
     final EntityManager entityManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
@@ -141,19 +141,35 @@ public class I18nService {
     }
 
     public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) {
-        return translateToLocale(i18NEntity, httpRequestService.getLocale(), context);
+        try {
+            return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), context);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String translateToLocale(UUID i18nId, Map<String, String> context) {
-        return translateToLocale(i18nId, httpRequestService.getLocale(), context);
+        try {
+            return translateToLocale(i18nId, authService.getApiUser().getLocale(), context);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String translateToLocale(I18nEntity i18NEntity) {
-        return translateToLocale(i18NEntity, httpRequestService.getLocale(), null);
+        try {
+            return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), null);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public String translateToLocale(UUID i18nId) {
-        return translateToLocale(i18nId, httpRequestService.getLocale(), null);
+        try {
+            return translateToLocale(i18nId, authService.getApiUser().getLocale(), null);
+        } catch (ServiceException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public I18nEntity duplicateI18n(UUID srcI18nId) {

@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
@@ -151,6 +152,7 @@ public class DomainService {
     }
 
     public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
-
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
     }
 }
