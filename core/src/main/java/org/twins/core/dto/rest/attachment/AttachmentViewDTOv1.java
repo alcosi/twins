@@ -26,7 +26,7 @@ public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
     @Schema(description = "created at", example = "1549632759")
     public LocalDateTime createdAt;
 
-    @Schema(description = "author")
+    @Schema(description = "author id")
     public UUID authorUserId;
 
     @Schema(description = "author")
