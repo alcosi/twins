@@ -7,14 +7,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
-import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -34,7 +31,7 @@ import java.util.UUID;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class DomainService extends EntitySecureFindServiceImpl<DomainService> {
+public class DomainService {
     final FeaturerService featurerService;
     final UserService userService;
     final BusinessAccountService businessAccountService;
@@ -154,34 +151,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainService> {
     }
 
     public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(apiUser.getDomainId(), apiUser.getUserId(), DomainUserNoRelationProjection.class);
-        if (domainUserEntity != null)
-            if (localeName == null)
-                throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_LOCALE_IS_NULL);
-            else if (domainUserEntity.i18nLocaleId() != null && domainUserEntity.i18nLocaleId().equals(localeName))
-                return;
-        DomainUserEntity updatedDomainUserEntity = new DomainUserEntity()
-                .setId(domainUserEntity.id())
-                .setDomainId(apiUser.getDomainId())
-                .setUserId(apiUser.getUserId())
-                .setCreatedAt(domainUserEntity.createdAt())
-                .setI18nLocaleId(localeName);
-        entitySmartService.save(updatedDomainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-    }
 
-    @Override
-    public CrudRepository<DomainService, UUID> entityRepository() {
-        return null;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(DomainService entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(DomainService entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return false;
     }
 }
