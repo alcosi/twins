@@ -11,6 +11,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -152,8 +153,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainService> {
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
-    public void updateLocaleByDomainUser(UUID domainId, UUID userId, Locale localeName) throws ServiceException {
-        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
+    public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(apiUser.getDomainId(), apiUser.getUserId(), DomainUserNoRelationProjection.class);
         if (domainUserEntity != null)
             if (localeName == null)
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_LOCALE_IS_NULL);
@@ -161,8 +163,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainService> {
                 return;
         DomainUserEntity updatedDomainUserEntity = new DomainUserEntity()
                 .setId(domainUserEntity.id())
-                .setDomainId(domainId)
-                .setUserId(userId)
+                .setDomainId(apiUser.getDomainId())
+                .setUserId(apiUser.getUserId())
                 .setCreatedAt(domainUserEntity.createdAt())
                 .setI18nLocaleId(localeName);
         entitySmartService.save(updatedDomainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
