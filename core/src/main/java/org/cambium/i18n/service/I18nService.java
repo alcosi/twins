@@ -27,7 +27,7 @@ public class I18nService {
     final I18nTranslationStyleRepository i18nTranslationStyleRepository;
     final I18nLocaleRepository i18nLocaleRepository;
     final I18nProperties i18nProperties;
-    final HttpRequestService httpRequestService;
+    final HttpRequestService httpRequestService;//todo delete @Aleksey Turkov
     final EntityManager entityManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {

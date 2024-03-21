@@ -8,13 +8,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.dao.domain.DomainUserNoRelationProjection;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.domain.LocaleRsDTOv1;
+import org.twins.core.service.domain.DomainService;
 
 import java.util.Locale;
 import java.util.UUID;
@@ -23,7 +27,9 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class DomainUserLocaleController {
+public class DomainUserLocaleController extends ApiController {
+
+    final DomainService domainService;
 
     @Operation(operationId = "domainUserLocaleUpdateV1", summary = "Update user locale in domain")
     @ApiResponses(value = {
@@ -37,13 +43,13 @@ public class DomainUserLocaleController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @Parameter(example = DTOExamples.LOCALE) @PathVariable Locale localeName) {
         Response rs = new Response();
-//        try {
-//
-//        } catch (ServiceException se) {
-//            return createErrorRs(se, rs);
-//        } catch (Exception e) {
-//            return createErrorRs(e, rs);
-//        }
+        try {
+            domainService.updateLocaleByDomainUser(domainId, userId, localeName);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 
@@ -58,13 +64,13 @@ public class DomainUserLocaleController {
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         LocaleRsDTOv1 rs = new LocaleRsDTOv1();
-        rs.setLocale("en");
-//        try {
-//        } catch (ServiceException se) {
-//            return createErrorRs(se, rs);
-//        } catch (Exception e) {
-//            return createErrorRs(e, rs);
-//        }
+        try {
+            rs.setLocale(domainService.getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class).i18nLocaleId());
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

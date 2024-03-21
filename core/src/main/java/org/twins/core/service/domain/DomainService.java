@@ -7,11 +7,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -23,6 +25,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -30,7 +33,7 @@ import java.util.UUID;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class DomainService {
+public class DomainService extends EntitySecureFindServiceImpl<DomainService> {
     final FeaturerService featurerService;
     final UserService userService;
     final BusinessAccountService businessAccountService;
@@ -48,6 +51,10 @@ public class DomainService {
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
+    }
+
+    public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID domainId, UUID userId, Class<DomainUserNoRelationProjection> clazz) throws ServiceException {
+        return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }
 //todo
 
@@ -70,7 +77,7 @@ public class DomainService {
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
-        DomainUserNoRelationProjection existed = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
+        DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (existed != null)
             if (ignoreAlreadyExists)
                 return;
@@ -84,7 +91,7 @@ public class DomainService {
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
-        DomainUserNoRelationProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
+        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (domainUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "domain[" + domainId + "] user[" + userId + "] is not registered");
         entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
@@ -143,5 +150,36 @@ public class DomainService {
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
+    }
+
+    public void updateLocaleByDomainUser(UUID domainId, UUID userId, Locale localeName) throws ServiceException {
+        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
+        if (domainUserEntity != null)
+            if (localeName == null)
+                throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_LOCALE_IS_NULL);
+            else if (domainUserEntity.i18nLocaleId() != null && domainUserEntity.i18nLocaleId().equals(localeName))
+                return;
+        DomainUserEntity updatedDomainUserEntity = new DomainUserEntity()
+                .setId(domainUserEntity.id())
+                .setDomainId(domainId)
+                .setUserId(userId)
+                .setCreatedAt(domainUserEntity.createdAt())
+                .setI18nLocaleId(localeName);
+        entitySmartService.save(updatedDomainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    @Override
+    public CrudRepository<DomainService, UUID> entityRepository() {
+        return null;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(DomainService entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(DomainService entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return false;
     }
 }
