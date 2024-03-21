@@ -23,6 +23,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -49,6 +50,10 @@ public class DomainService {
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
     }
+
+    public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID domainId, UUID userId, Class<DomainUserNoRelationProjection> clazz) throws ServiceException {
+        return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
+    }
 //todo
 
 //    public DomainEntity addDomain(DomainEntity domainEntity, EntitySmartService.SaveMode domainSaveMode) throws ServiceException {
@@ -70,7 +75,7 @@ public class DomainService {
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
-        DomainUserNoRelationProjection existed = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
+        DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (existed != null)
             if (ignoreAlreadyExists)
                 return;
@@ -84,7 +89,7 @@ public class DomainService {
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
-        DomainUserNoRelationProjection domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserNoRelationProjection.class);
+        DomainUserNoRelationProjection domainUserEntity = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (domainUserEntity == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "domain[" + domainId + "] user[" + userId + "] is not registered");
         entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
@@ -143,5 +148,9 @@ public class DomainService {
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
+    }
+
+    public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
+
     }
 }

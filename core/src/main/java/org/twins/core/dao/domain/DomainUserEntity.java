@@ -7,6 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -26,6 +27,9 @@ public class DomainUserEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @Column(name = "i18n_locale_id")
+    private Locale i18nLocaleId;
 
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
