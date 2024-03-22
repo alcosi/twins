@@ -68,6 +68,7 @@ public class ApiUser {
     final UserRepository userRepository;
     final DomainResolverHeaders domainResolverHeaders;
     final LocaleResolverDomainUser localeResolverDomainUser;
+    final LocaleResolverHeader localeResolverHeader;
     final UserBusinessAccountResolverAuthToken userBusinessAccountResolverAuthToken;
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
@@ -107,8 +108,8 @@ public class ApiUser {
         if (locale != null)
             return locale;
         resolveLocale();
-//        if (locale == null)
-//            throw new ServiceException(ErrorCodeTwins.LOCALE_UNKNOWN);
+        if (locale == null)
+            throw new ServiceException(ErrorCodeTwins.USER_LOCALE_UNKNOWN);
         return locale;
     }
 
@@ -130,11 +131,14 @@ public class ApiUser {
         return user;
     }
 
-    private void resolveLocale() {
+    private void resolveLocale() throws ServiceException {
         if (locale != null)
             return;
         if (localeResolver == null)
-            localeResolver = localeResolverDomainUser;
+            if (getUserId() != null)
+                localeResolver = localeResolverDomainUser;
+            else
+                localeResolver = localeResolverHeader;
         try {
             locale = localeResolver.resolveCurrentLocale();
         } catch (ServiceException e) {

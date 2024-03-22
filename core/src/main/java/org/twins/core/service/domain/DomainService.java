@@ -1,5 +1,6 @@
 package org.twins.core.service.domain;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -24,7 +25,6 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -151,8 +151,9 @@ public class DomainService {
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
-    public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
+    @Transactional
+    public void updateLocaleByDomainUser(String localeName) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
+        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), localeName);
     }
 }

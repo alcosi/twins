@@ -57,9 +57,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
     public Locale getUserLocale(UUID domainId, UUID userId){
-        UserLocaleProjection byDomainIdAndUserId = domainUserRepository.findByDomainIdAndUserId(domainId, userId, UserLocaleProjection.class);
-        return byDomainIdAndUserId.i18nLocaleId();
-
+        return domainUserRepository.findByDomainIdAndUserId(domainId, userId, UserLocaleProjection.class).i18nLocaleId();
     }
 
 

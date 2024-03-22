@@ -21,8 +21,6 @@ import org.twins.core.dto.rest.domain.LocaleRsDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
-import java.util.Locale;
-
 @Tag(description = "Get data lists", name = ApiTag.USER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -40,7 +38,7 @@ public class UserLocaleController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/user/locale/{localeName}/v1")
     public ResponseEntity<?> userLocaleUpdateV1(
-            @Parameter(example = DTOExamples.LOCALE) @PathVariable Locale localeName) {
+            @Parameter(example = DTOExamples.LOCALE) @PathVariable String localeName) {
         Response rs = new Response();
         try {
             domainService.updateLocaleByDomainUser(localeName);

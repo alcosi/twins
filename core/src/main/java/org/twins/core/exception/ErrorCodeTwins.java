@@ -13,6 +13,7 @@ public enum ErrorCodeTwins implements ErrorCode {
 
     ENTITY_INVALID(10002, "entity invalid"),
     USER_UNKNOWN(10001, "unknown user"),
+    USER_LOCALE_UNKNOWN(10101, "unknown locale"),
     USER_GROUP_UNKNOWN(10901, "user group is unknown"),
     USER_GROUP_ENTER_ERROR(10902, "user group can not be entered"),
     USER_GROUP_IS_MANDATORY(10903, "user group is mandatory"),
