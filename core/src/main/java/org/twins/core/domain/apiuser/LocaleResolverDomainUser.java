@@ -17,6 +17,7 @@ public class LocaleResolverDomainUser implements LocaleResolver {
 
     @Override
     public Locale resolveCurrentLocale() throws ServiceException {
+        //todo call ApiUser
         ApiUser apiUser = authService.getApiUser();
         return userService.getUserLocale(apiUser.getDomainId(), apiUser.getUserId());
     }

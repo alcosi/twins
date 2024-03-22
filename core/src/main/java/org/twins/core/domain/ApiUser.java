@@ -131,14 +131,11 @@ public class ApiUser {
         return user;
     }
 
-    private void resolveLocale() throws ServiceException {
+    private void resolveLocale() {
         if (locale != null)
             return;
         if (localeResolver == null)
-            if (getUserId() != null)
-                localeResolver = localeResolverDomainUser;
-            else
-                localeResolver = localeResolverHeader;
+            localeResolver = localeResolverDomainUser;
         try {
             locale = localeResolver.resolveCurrentLocale();
         } catch (ServiceException e) {
@@ -286,12 +283,14 @@ public class ApiUser {
     public ApiUser setAnonymous(UUID domainId) {
         return setDomainResolver(new DomainResolverGivenId(domainId))
                 .setUserResolver(new UserResolverNotSpecified())
+                .setLocaleResolver(localeResolver)
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 
     public ApiUser setAnonymous() {
         return setDomainResolver(domainResolverHeaders)
                 .setUserResolver(new UserResolverNotSpecified())
+                .setLocaleResolver(localeResolver)
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 }

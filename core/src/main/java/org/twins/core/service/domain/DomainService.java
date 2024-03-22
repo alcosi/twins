@@ -25,6 +25,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -154,6 +155,6 @@ public class DomainService {
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), localeName);
+        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
     }
 }
