@@ -364,6 +364,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
         for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
+            if (!transitionValidatorEntity.isActive()) {
+                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                return true;
+            }
+
             TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
             TransitionValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity);
             if (transitionValidatorEntity.isInvert())
@@ -440,6 +445,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         //todo run status input/output triggers
         for (TwinEntity targetTwin : transitionContext.getTargetTwinList().values())
             for (TwinflowTransitionTriggerEntity triggerEntity : transitionTriggerEntityList) {
+                if (!triggerEntity.isActive()) {
+                    log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will not be triggered, since it is inactive");
+                    continue;
+                }
+
                 log.info(triggerEntity.easyLog(EasyLoggable.Level.DETAILED) + " will be triggered");
                 TransitionTrigger transitionTrigger = featurerService.getFeaturer(triggerEntity.getTransitionTriggerFeaturer(), TransitionTrigger.class);
                 transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), targetTwin, transitionEntity.getSrcTwinStatus(), transitionEntity.getDstTwinStatus());
