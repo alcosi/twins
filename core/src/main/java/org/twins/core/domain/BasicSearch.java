@@ -14,7 +14,7 @@ public class BasicSearch {
     Set<String> twinNameLikeList;
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
-    Set<UUID> extendsTwinClassIdList;
+    Set<UUID> twinClassIdExcludeList;
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
     Set<UUID> assignerUserIdList;

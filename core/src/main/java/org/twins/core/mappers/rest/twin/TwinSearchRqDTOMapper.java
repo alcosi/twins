@@ -20,7 +20,7 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
     public void map(TwinSearchRqDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassIdList(convertSafe(src.getTwinClassIdList()))
-                .setExtendsTwinClassIdList(convertSafe(src.getExtendsTwinClassIdList()))
+                .setTwinClassIdExcludeList(convertSafe(src.getTwinClassIdExcludeList()))
                 .setStatusIdList(convertSafe(src.getStatusIdList()))
                 .setAssignerUserIdList(convertSafe(src.getAssignerUserIdList()))
                 .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))
@@ -28,7 +28,8 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
                 .setTwinIdExcludeList(convertSafe(src.getTwinIdExcludeList()))
                 .setTwinNameLikeList(convertSafe(src.getTwinNameLikeList()))
                 .setCreatedByUserIdList(convertSafe(src.getCreatedByUserIdList()))
-                .setHierarchyTreeContainsIdList(convertSafe(src.getHierarchyTreeContainsIdList()));
+                .setHierarchyTreeContainsIdList(convertSafe(src.getHierarchyTreeContainsIdList()))
+                .setStatusIdExcludeList(convertSafe(src.getStatusIdExcludeList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList());

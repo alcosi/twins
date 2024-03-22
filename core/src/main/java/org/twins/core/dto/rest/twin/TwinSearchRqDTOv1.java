@@ -17,8 +17,8 @@ public class TwinSearchRqDTOv1 extends Request {
     @Schema(description = "Twin class id list")
     public List<UUID> twinClassIdList;
 
-    @Schema(description = "Twin class extends id list")
-    public List<UUID> extendsTwinClassIdList;
+    @Schema(description = "Twin class exclude list")
+    public List<UUID> twinClassIdExcludeList;
 
     @Schema(description = "Twin name like list")
     public List<String> twinNameLikeList;
@@ -49,4 +49,7 @@ public class TwinSearchRqDTOv1 extends Request {
 
     @Schema(description = "Hierarchy ids filter")
     public List<UUID>  hierarchyTreeContainsIdList;
+
+    @Schema(description = "Twin status exclude list")
+    public List<UUID>  statusIdExcludeList;
 }
