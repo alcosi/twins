@@ -40,10 +40,10 @@ public class TransitionValidatorTwinAllChildrenInStatuses extends TransitionVali
         long count = twinSearchService.count(new BasicSearch()
                 .addHeaderTwinId(twinEntity.getId())
                 .addTwinClassId(classId)
-                .addStatusId(statusId)
+                .addStatusIdExclude(statusId)
         );
 
-        boolean isValid = count > 0;
+        boolean isValid = count == 0;
 
         return new ValidationResult()
                 .setValid(isValid)

@@ -57,6 +57,7 @@ public class TwinSearchService {
                         .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
                         .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, basicSearch.getHierarchyTreeContainsIdList()))
                         .and(checkPermissions(domainId, businesAccountId, userId, userGroups))
+                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdExcludeList(), true))
         );
     }
 

@@ -24,6 +24,7 @@ public class BasicSearch {
     Map<UUID, Set<UUID>> twinLinksMap;
     Map<UUID, Set<UUID>> twinNoLinksMap;
     Set<UUID> hierarchyTreeContainsIdList;
+    Set<UUID> statusIdExcludeList;
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
@@ -101,6 +102,11 @@ public class BasicSearch {
 
     public BasicSearch addHierarchyTreeContainsId(UUID twinId) {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
+        return this;
+    }
+
+    public BasicSearch addStatusIdExclude(UUID statusId) {
+        statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
         return this;
     }
 
