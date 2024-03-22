@@ -39,4 +39,7 @@ public class TwinflowTransitionValidatorEntity {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "transition_validator_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionValidatorParams;
+
+    @Column(name = "active")
+    private boolean isActive;
 }
