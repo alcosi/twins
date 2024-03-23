@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
@@ -23,7 +24,7 @@ import java.util.Properties;
 @Featurer(id = 1302,
         name = "FieldTyperDateScroll",
         description = "")
-public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldValueDate> {
+public class FieldTyperDateScroll extends FieldTyperBasic<FieldDescriptorDate, FieldValueDate> {
     @FeaturerParam(name = "pattern", description = "")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
@@ -44,7 +45,7 @@ public class FieldTyperDateScroll extends FieldTyper<FieldDescriptorDate, FieldV
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
         return new FieldValueDate().setDate(twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : "");
     }
 

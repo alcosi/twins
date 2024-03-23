@@ -12,7 +12,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
@@ -202,7 +201,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = null;
         TwinEntity contextTwin;
-        TwinFieldEntity twinFieldEntity;
         switch (fieldLookupMode) {
             case fromContextFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
@@ -211,10 +209,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 break;
             case fromContextTwinFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
-                twinFieldEntity = twinService.findTwinField(contextTwin.getId(), twinClassFieldId);
-                if (twinFieldEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present for context " + contextTwin.logShort());
-                fieldValue = twinService.getTwinFieldValue(twinFieldEntity);
+                fieldValue = twinService.getTwinFieldValue(twinService.wrapField(contextTwin, twinClassFieldId));
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
                 break;

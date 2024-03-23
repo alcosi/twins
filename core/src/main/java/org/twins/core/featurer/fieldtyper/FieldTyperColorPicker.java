@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorColorPicker;
 import org.twins.core.featurer.fieldtyper.value.FieldValueColorHEX;
@@ -18,7 +19,7 @@ import java.util.Properties;
 @Featurer(id = 1304,
         name = "FieldTyperColorPicker",
         description = "")
-public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker, FieldValueColorHEX> {
+public class FieldTyperColorPicker extends FieldTyperBasic<FieldDescriptorColorPicker, FieldValueColorHEX> {
     private static final String HEX_PATTERN
             = "^#([a-fA-F0-9]{6})$";
     @Override
@@ -36,7 +37,7 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     }
 
     @Override
-    protected FieldValueColorHEX deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+    protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
         return new FieldValueColorHEX().setHex(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
     }
 }

@@ -8,9 +8,9 @@ import java.util.stream.Collectors;
 
 public class Kit<E> {
     @Getter
-    private List<E> list;
-    private Map<UUID, E> map;
-    private final Function<? super E, ? extends UUID> functionGetId;
+    protected List<E> list;
+    protected Map<UUID, E> map;
+    protected final Function<? super E, ? extends UUID> functionGetId;
 
     public Kit(List<E> list, Function<? super E, ? extends UUID> functionGetId) {
         this.list = list;
@@ -37,6 +37,20 @@ public class Kit<E> {
         map = list
                 .stream().collect(Collectors.toMap(functionGetId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         return map;
+    }
+
+    public boolean containsKey(UUID key) {
+        getMap();
+        if (map == null)
+            return false;
+        return map.containsKey(key);
+    }
+
+    public E get(UUID key) {
+        getMap();
+        if (map == null)
+            return null;
+        return map.get(key);
     }
 
     public Set<UUID> getIdSet() {

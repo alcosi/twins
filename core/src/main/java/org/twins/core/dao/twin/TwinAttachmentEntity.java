@@ -9,6 +9,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicCloneable<TwinAttachmentEntity> {
+public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicCloneable<TwinAttachmentEntity>, TwinFieldStorage {
     @Id
     private UUID id;
 

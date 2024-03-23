@@ -7,12 +7,14 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
+import org.cambium.common.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
@@ -117,11 +119,13 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     private UserEntity assignerUser;
 
     //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
     private Collection<TwinLinkEntity> linksBySrcTwinId;
 
     //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
     private Collection<TwinLinkEntity> linksByDstTwinId;
@@ -146,6 +150,21 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinFieldEntity> twinFieldKit;
 
+    /*
+     we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
+     */
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldDataListEntity> twinFieldDatalistKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinFieldUserEntity> twinFieldUserKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<FieldValue> fieldValuesKit;
+
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinLinkService.FindTwinLinksResult twinLinks;
@@ -165,6 +184,7 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<DataListOptionEntity> twinTagKit;
+
 
     @Override
     public String toString() {

@@ -21,6 +21,11 @@ public class FieldValueColorHEX extends FieldValue {
     }
 
     @Override
+    public boolean isFilled() {
+        return hex != null;
+    }
+
+    @Override
     public boolean hasValue(String value) {
         return StringUtils.equals(hex, value);
     }

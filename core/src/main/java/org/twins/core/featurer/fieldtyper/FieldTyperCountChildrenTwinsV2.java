@@ -8,6 +8,7 @@ import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinFieldRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
@@ -17,7 +18,7 @@ import java.util.Properties;
 @Featurer(id = 1315,
         name = "FieldTyperCountChildrenTwinsV2",
         description = "Save count of child-twin by child-status(exl/inc) on serializeValue, and return saved total from database")
-public class FieldTyperCountChildrenTwinsV2 extends FieldTyper<FieldDescriptorText, FieldValueText> implements FieldTyperCountChildrenTwins {
+public class FieldTyperCountChildrenTwinsV2 extends FieldTyperBasic<FieldDescriptorText, FieldValueText> implements FieldTyperCountChildrenTwins {
     public static final Integer ID = 1315;
 
     @Autowired
@@ -30,11 +31,11 @@ public class FieldTyperCountChildrenTwinsV2 extends FieldTyper<FieldDescriptorTe
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity, twinFieldRepository).toString());
+        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity.getTwin(), twinFieldRepository).toString());
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) throws ServiceException {
         return new FieldValueText().setValue(parseTwinFieldValue(twinFieldEntity).toString());
     }
 }

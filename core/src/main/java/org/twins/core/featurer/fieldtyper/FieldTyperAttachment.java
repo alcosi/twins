@@ -3,16 +3,17 @@ package org.twins.core.featurer.fieldtyper;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
-import org.twins.core.featurer.fieldtyper.value.FieldValueEmpty;
+import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,7 +23,7 @@ import java.util.Properties;
 @Featurer(id = 1316,
         name = "FieldTyperAttachment",
         description = "Allow the field to have an attachment")
-public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueEmpty> {
+public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity> {
 
     @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
     public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");
@@ -50,12 +51,12 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
 
     @Deprecated
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueEmpty value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueInvisible value, TwinChangesCollector twinChangesCollector) throws ServiceException {
     }
 
     @Deprecated
     @Override
-    protected FieldValueEmpty deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueEmpty();
+    protected FieldValueInvisible deserializeValue(Properties properties, TwinField twinField) {
+        return new FieldValueInvisible();
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -20,7 +21,7 @@ import java.util.Properties;
 @Featurer(id = 1301,
         name = "FieldTyperTextField",
         description = "")
-public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldValueText> {
+public class FieldTyperTextField extends FieldTyperBasic<FieldDescriptorText, FieldValueText> {
     @FeaturerParam(name = "regexp", description = "")
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
@@ -41,7 +42,7 @@ public class FieldTyperTextField extends FieldTyper<FieldDescriptorText, FieldVa
     }
 
     @Override
-    protected FieldValueText deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+    protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
         return new FieldValueText().setValue(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
     }
 }

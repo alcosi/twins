@@ -99,8 +99,8 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         .setDstTwinId(dstTwinUUID));
             }
         }
-        if (fieldTyper.getValueType() == FieldValueEmpty.class)
-            fieldValue = new FieldValueEmpty();
+        if (fieldTyper.getValueType() == FieldValueInvisible.class)
+            fieldValue = new FieldValueInvisible();
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
         return fieldValue.setTwinClassField(fieldValueText.getTwinClassField());
