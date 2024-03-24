@@ -74,7 +74,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             UserEntity userEntity = selectedUserEntityList.get(0);
             twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), null, userEntity));
             twinChangesCollector.add(new TwinFieldUserEntity()
-                    .setTwinFieldId(twin.getId())
+                    .setTwinClassFieldId(twin.getId())
                     .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                     .setUser(userEntity));
             return;
@@ -97,7 +97,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before
                 historyItem.getContext().shotAddedUserId(userEntity.getId());
                 twinChangesCollector.add(new TwinFieldUserEntity()
-                        .setTwinFieldId(twin.getId())
+                        .setTwinClassFieldId(twin.getId())
                         .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                         .setUser(userEntity));
             } else {
@@ -140,10 +140,10 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @Override
     protected FieldValueUser deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        FieldValueUser ret = new FieldValueUser();
         TwinEntity twinEntity = twinField.getTwin();
         twinService.loadTwinFields(twinEntity);
         List<TwinFieldUserEntity> twinFieldUserEntityList = twinEntity.getTwinFieldUserKit().getGrouped(twinField.getTwinClassField().getId());
+        FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField(), CollectionUtils.isNotEmpty(twinFieldUserEntityList));
         for (TwinFieldUserEntity twinFieldDataListEntity : twinFieldUserEntityList) {
             ret.add(twinFieldDataListEntity.getUser());
         }

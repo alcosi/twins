@@ -17,6 +17,7 @@ import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -40,6 +41,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Lazy
     @Autowired
     TwinService twinService;
+
+    @Lazy
+    @Autowired
+    TwinClassService twinClassService;
 
     private final Class<T> valuetype;
     private final Class<T> descriptorType;
@@ -79,6 +84,8 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!valuetype.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT);
         }
+        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassFieldId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
         serializeValue(properties, twin, value, twinChangesCollector);
     }
@@ -88,7 +95,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public T deserializeValue(TwinField twinField) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, twinField.getTwinClassField().getFieldTyperParams(), new HashMap<>());
-        return (T) deserializeValue(properties, twinField).setTwinClassField(twinField.getTwinClassField());
+        return deserializeValue(properties, twinField);
     }
 
     protected abstract T deserializeValue(Properties properties, TwinField twinField) throws ServiceException;

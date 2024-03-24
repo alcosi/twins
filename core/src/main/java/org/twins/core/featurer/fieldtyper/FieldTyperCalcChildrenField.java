@@ -26,7 +26,7 @@ public interface FieldTyperCalcChildrenField {
 
     default Double parseTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
         double result = 0d;
-        if(null != twinFieldEntity.getValue()){
+        if(twinFieldEntity != null && null != twinFieldEntity.getValue()){
             try {
                 if(!ObjectUtils.isEmpty(twinFieldEntity.getValue())) result = Double.parseDouble(twinFieldEntity.getValue());
             } catch (NumberFormatException e) {

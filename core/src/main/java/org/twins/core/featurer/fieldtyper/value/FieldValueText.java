@@ -18,17 +18,11 @@ public class FieldValueText extends FieldValue {
         super(twinClassField, filled);
     }
 
-
     @Override
     public FieldValue clone() {
         FieldValueText clone = new FieldValueText(twinClassField, filled);
         clone.setValue(this.value);
         return clone;
-    }
-
-    @Override
-    public boolean isFilled() {
-        return value != null;
     }
 
     @Override

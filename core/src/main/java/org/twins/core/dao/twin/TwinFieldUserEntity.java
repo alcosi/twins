@@ -22,7 +22,7 @@ public class TwinFieldUserEntity implements EasyLoggable, TwinFieldStorage {
     private UUID twinId;
 
     @Column(name = "twin_class_field_id")
-    private UUID twinFieldId;
+    private UUID twinClassFieldId;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -38,5 +38,13 @@ public class TwinFieldUserEntity implements EasyLoggable, TwinFieldStorage {
     @Override
     public String easyLog(Level level) {
         return "twinFieldUser[id:" + id + "]";
+    }
+
+    public TwinFieldUserEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldUserEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassFieldId(twinClassFieldId)
+                .setUserId(userId);
     }
 }

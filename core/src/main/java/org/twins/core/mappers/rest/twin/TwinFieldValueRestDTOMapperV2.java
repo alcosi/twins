@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserEntity;
@@ -21,8 +22,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     final TwinService twinService;
 
     @Override
-    public void map(FieldValue src, FieldValueText dst, MapperContext mapperContext) throws Exception {
-        dst.setTwinClassField(src.getTwinClassField());
+    public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
+        FieldValueText dst = new FieldValueText(src.getTwinClassField(), true);
         if (!src.isFilled()) {
             dst.setValue("");
         } else if (src instanceof FieldValueText text) {
@@ -49,11 +50,17 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 dst.setValue(String.join(",", link.getTwinLinks().stream().map(l -> l.getSrcTwinId().toString()).toList()));
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
+        return super.convert(src, mapperContext);
     }
 
     @Override
     public List<FieldValueText> convertList(List<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertList(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
+    }
+
+    @Override
+    public void map(FieldValue src, FieldValueText dst, MapperContext mapperContext) throws Exception {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 }

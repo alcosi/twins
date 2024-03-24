@@ -1,22 +1,27 @@
 package org.twins.core.featurer.fieldtyper.value;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.StringUtils;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueDate extends FieldValue {
     private String date;
 
+    public FieldValueDate(TwinClassFieldEntity twinClassField, boolean filled) {
+        super(twinClassField, filled);
+    }
+
     @Override
     public FieldValueDate clone() {
-        FieldValueDate clone = new FieldValueDate();
-        clone
-                .setDate(this.date)
-                .setTwinClassField(this.getTwinClassField());
+        FieldValueDate clone = new FieldValueDate(twinClassField, filled);
+        clone.setDate(this.date);
         return clone;
     }
 

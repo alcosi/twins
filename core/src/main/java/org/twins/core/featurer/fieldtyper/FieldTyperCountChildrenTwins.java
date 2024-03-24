@@ -23,7 +23,7 @@ public interface FieldTyperCountChildrenTwins {
 
     default Long parseTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
         long result = 0;
-        if(null != twinFieldEntity.getValue()){
+        if(twinFieldEntity != null && null != twinFieldEntity.getValue()){
             try {
                 if(!ObjectUtils.isEmpty(twinFieldEntity.getValue())) result = Long.parseLong(twinFieldEntity.getValue());
             } catch (NumberFormatException e) {

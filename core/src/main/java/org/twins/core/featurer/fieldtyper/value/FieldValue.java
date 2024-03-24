@@ -6,6 +6,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.UUID;
 
+/**
+ * FieldValue class is not combined with TwinField class, because ins some cases
+ * we need to have values out of twin (for example, in transition context)
+ */
 @Data
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {

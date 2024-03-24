@@ -183,7 +183,6 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 
     @Override
     protected FieldValueLink deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
-        FieldValueLink ret = new FieldValueLink();
         TwinEntity twinEntity = twinField.getTwin();
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinField.getTwin().getTwinClass());
@@ -193,9 +192,8 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             twinLinkEntityList = twinEntity.getTwinLinks().getForwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
         else
             twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
-        if (twinLinkEntityList != null)
-            ret.setTwinLinks(twinLinkEntityList);
-        return ret
+        return new FieldValueLink(twinField.getTwinClassField(), CollectionUtils.isNotEmpty(twinLinkEntityList))
+                .setTwinLinks(twinLinkEntityList)
                 .setForwardLink(linkDirection == LinkService.LinkDirection.forward);
     }
 }

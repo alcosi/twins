@@ -61,4 +61,13 @@ public class TwinFieldEntity extends EasyLoggableImpl implements TwinFieldStorag
                 return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
         }
     }
+
+    public TwinFieldEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassField(twinClassField)
+                .setTwinClassFieldId(twinClassFieldId)
+                .setValue(value);
+    }
 }

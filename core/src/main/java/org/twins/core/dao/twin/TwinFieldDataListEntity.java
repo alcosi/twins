@@ -39,4 +39,13 @@ public class TwinFieldDataListEntity implements EasyLoggable, TwinFieldStorage {
     public String easyLog(Level level) {
         return "twinFieldDataList[id:" + id + "]";
     }
+
+    public TwinFieldDataListEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldDataListEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassFieldId(twinClassFieldId)
+                .setDataListOption(dataListOption)
+                .setDataListOptionId(dataListOptionId);
+    }
 }

@@ -57,6 +57,6 @@ public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, 
     @Deprecated
     @Override
     protected FieldValueInvisible deserializeValue(Properties properties, TwinField twinField) {
-        return new FieldValueInvisible();
+        return new FieldValueInvisible(twinField.getTwinClassField());
     }
 }

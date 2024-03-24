@@ -9,7 +9,7 @@ import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -49,13 +49,13 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         if (fieldTyper.getValueType() == FieldValueText.class)
             fieldValue = fieldValueText;
         if (fieldTyper.getValueType() == FieldValueColorHEX.class)
-            fieldValue = new FieldValueColorHEX()
+            fieldValue = new FieldValueColorHEX(fieldValueText.getTwinClassField(), true)
                     .setHex(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueDate.class)
-            fieldValue = new FieldValueDate()
+            fieldValue = new FieldValueDate(fieldValueText.getTwinClassField(), true)
                     .setDate(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
-            fieldValue = new FieldValueSelect();
+            fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField(), true);
             for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOptionId))
                     continue;
@@ -70,7 +70,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             }
         }
         if (fieldTyper.getValueType() == FieldValueUser.class) {
-            fieldValue = new FieldValueUser();
+            fieldValue = new FieldValueUser(fieldValueText.getTwinClassField(), true);
             for (String userId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(userId))
                     continue;
@@ -85,7 +85,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             }
         }
         if (fieldTyper.getValueType() == FieldValueLink.class) {
-            fieldValue = new FieldValueLink();
+            fieldValue = new FieldValueLink(fieldValueText.getTwinClassField(), true);
             for (String dstTwinId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
                     continue;
@@ -100,54 +100,35 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             }
         }
         if (fieldTyper.getValueType() == FieldValueInvisible.class)
-            fieldValue = new FieldValueInvisible();
+            fieldValue = new FieldValueInvisible(fieldValueText.getTwinClassField());
         if (fieldValue == null)
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
-        return fieldValue.setTwinClassField(fieldValueText.getTwinClassField());
+        return fieldValue;
     }
 
     public FieldValueText createValueByClassIdAndFieldKey(UUID twinClassId, String fieldKey, String fieldValue) {
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinClassId, fieldKey);
         if (twinClassFieldEntity == null)
             return null;
-        return (FieldValueText) new FieldValueText()
-                .setValue(fieldValue)
-                .setTwinClassField(twinClassFieldEntity);
+        return new FieldValueText(twinClassFieldEntity, true)
+                .setValue(fieldValue);
     }
 
     public FieldValueText createValueByTwinClassFieldId(UUID twinClassFieldId, String fieldValue) throws ServiceException {
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
         if (twinClassFieldEntity == null)
             return null;
-        return (FieldValueText) new FieldValueText()
-                .setValue(fieldValue)
-                .setTwinClassField(twinClassFieldEntity);
-    }
-
-    public FieldValueText createValueByTwinFieldId(UUID twinFieldId, String fieldValue) throws ServiceException {
-        TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
-        if (twinFieldEntity == null)
-            return null;
-        return (FieldValueText) new FieldValueText()
-                .setValue(fieldValue)
-                .setTwinClassField(twinFieldEntity.getTwinClassField());
-    }
-
-    public FieldValueText createValueByTwinField(TwinFieldEntity twinFieldEntity, String fieldValue) throws ServiceException {
-        if (twinFieldEntity == null)
-            return null;
-        return (FieldValueText) new FieldValueText()
-                .setValue(fieldValue)
-                .setTwinClassField(twinFieldEntity.getTwinClassField());
+        return new FieldValueText(twinClassFieldEntity, true)
+                .setValue(fieldValue);
     }
 
     public FieldValueText createByTwinIdAndFieldKey(UUID twinId, String fieldKey, String fieldValue) throws ServiceException {
-        TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
-        if (twinFieldEntity == null)
-            return null;
-        return (FieldValueText) new FieldValueText()
-                .setValue(fieldValue)
-                .setTwinClassField(twinFieldEntity.getTwinClassField());
+        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinEntity.getTwinClassId(), fieldKey);
+        if (twinClassFieldEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN);
+        return new FieldValueText(twinClassFieldEntity, true)
+                .setValue(fieldValue);
     }
 
     public List<FieldValue> mapFields(UUID twinClassId, Map<String, String> fieldsMap) throws Exception {

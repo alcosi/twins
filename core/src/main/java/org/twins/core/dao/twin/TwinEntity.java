@@ -148,7 +148,7 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
      */
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinFieldEntity> twinFieldKit;
+    private Kit<TwinFieldEntity> twinFieldBasicKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki

@@ -6,8 +6,10 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.twin.*;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -29,25 +31,27 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
     @Override
     public FieldValue convert(TwinFieldValueDTO fieldValueDTO, MapperContext mapperContext) throws Exception {
         FieldValue fieldValue = null;
+        if (fieldValueDTO.twinClassId == null || StringUtils.isNoneBlank(fieldValueDTO.fieldKey))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN);
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey);
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
-            fieldValue =  new FieldValueText()
+            fieldValue =  new FieldValueText(twinClassFieldEntity, true)
                     .setValue(text.text());
         if (fieldValueDTO instanceof TwinFieldValueColorHexDTOv1 color)
-            fieldValue =  new FieldValueColorHEX()
+            fieldValue =  new FieldValueColorHEX(twinClassFieldEntity, true)
                     .setHex(color.hex());
         if (fieldValueDTO instanceof TwinFieldValueDateDTOv1 date)
-            fieldValue = new FieldValueDate()
+            fieldValue = new FieldValueDate(twinClassFieldEntity, true)
                     .setDate(date.date());
         if (fieldValueDTO instanceof TwinFieldValueListDTOv1 select) {
-            fieldValue = new FieldValueSelect();
+            fieldValue = new FieldValueSelect(twinClassFieldEntity, true);
             for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
                 ((FieldValueSelect)fieldValue).add(new DataListOptionEntity()
                         .setId(dataListOptionDTO.id())
                         .setOption(dataListOptionDTO.name));
             }
         }
-        if (fieldValue != null && fieldValueDTO.twinClassId != null && StringUtils.isNoneBlank(fieldValueDTO.fieldKey))
-            fieldValue.setTwinClassField(twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey));
+
         return fieldValue;
     }
 }

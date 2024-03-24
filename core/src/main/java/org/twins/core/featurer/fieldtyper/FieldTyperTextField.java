@@ -43,6 +43,7 @@ public class FieldTyperTextField extends FieldTyperBasic<FieldDescriptorText, Fi
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueText().setValue(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
+        return new FieldValueText(twinField.getTwinClassField(), twinFieldEntity != null)
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
     }
 }

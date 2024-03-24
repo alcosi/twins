@@ -131,4 +131,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
     }
+
+    public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
+        loadTwinClassFields(twinClass);
+        return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
+    }
 }
