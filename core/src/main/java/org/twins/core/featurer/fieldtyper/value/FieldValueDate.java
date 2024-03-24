@@ -24,8 +24,8 @@ public class FieldValueDate extends FieldValue {
     }
 
     @Override
-    public FieldValueDate clone() {
-        FieldValueDate clone = new FieldValueDate(twinClassField);
+    public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
         clone.setDate(this.date);
         return clone;
     }

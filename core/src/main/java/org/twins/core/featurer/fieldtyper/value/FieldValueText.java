@@ -24,8 +24,8 @@ public class FieldValueText extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueText clone = new FieldValueText(twinClassField);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueText clone = new FieldValueText(newTwinClassFieldEntity);
         clone.setValue(this.value);
         return clone;
     }

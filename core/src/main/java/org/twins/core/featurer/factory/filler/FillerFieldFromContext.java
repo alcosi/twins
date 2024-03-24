@@ -9,10 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 
@@ -30,7 +29,7 @@ public class FillerFieldFromContext extends Filler {
 
     @Lazy
     @Autowired
-    TwinClassFieldService twinClassFieldService;
+    TwinService twinService;
 
 
     @Override
@@ -40,9 +39,7 @@ public class FillerFieldFromContext extends Filler {
 
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, srcTwinClassFieldId.extract(properties), fieldLookupMode);
-        TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId.extract(properties));
-        FieldValue clone = fieldValue.clone();
-        clone.setTwinClassField(dstTwinClassField); //value will be copied to dst
+        FieldValue clone = twinService.copyToField(fieldValue, dstTwinClassFieldId.extract(properties));
         factoryItem.getOutput().addField(clone);
     }
 }

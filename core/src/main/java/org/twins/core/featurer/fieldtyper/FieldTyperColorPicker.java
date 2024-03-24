@@ -39,6 +39,6 @@ public class FieldTyperColorPicker extends FieldTyperBasic<FieldDescriptorColorP
     @Override
     protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
         return new FieldValueColorHEX(twinField.getTwinClassField())
-                .setHex(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+                .setHex(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
     }
 }

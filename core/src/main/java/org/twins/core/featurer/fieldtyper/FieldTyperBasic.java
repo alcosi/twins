@@ -22,7 +22,7 @@ public abstract class FieldTyperBasic<D extends FieldDescriptor, T extends Field
 
     public TwinFieldEntity convertToTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         twinService.loadTwinFields(twinEntity); // loading field kits
-        return twinEntity.getTwinFieldBasicKit().getMap().get(twinClassFieldEntity.getId());
+        return twinEntity.getTwinFieldBasicKit().get(twinClassFieldEntity.getId());
     }
 
     @Override

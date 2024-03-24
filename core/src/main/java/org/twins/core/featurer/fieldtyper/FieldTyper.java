@@ -21,8 +21,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 
 
 @FeaturerType(id = 13,
@@ -46,31 +45,42 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     @Autowired
     TwinClassService twinClassService;
 
-    private final Class<T> valuetype;
-    private final Class<T> descriptorType;
-    private final Class<T> storageType;
+    private Class<T> valuetype = null;
+    private Class<D> descriptorType = null;
+    private Class<S> storageType = null;
 
     public FieldTyper() {
-        ParameterizedType pt = getParameterizedType(getClass());
-        descriptorType = (Class) pt.getActualTypeArguments()[0];
-        valuetype = (Class) pt.getActualTypeArguments()[1];
-        storageType = (Class) pt.getActualTypeArguments()[2];
+        List<Type> collected = collectParameterizedTypes(getClass(), new ArrayList<>());
+        for (Type ptType : collected) {
+            if (!(ptType instanceof Class<?> cl))
+                continue;
+            if (FieldDescriptor.class.isAssignableFrom(cl) && descriptorType == null)
+                descriptorType = (Class<D>) cl;
+            if (FieldValue.class.isAssignableFrom(cl) && valuetype == null)
+                valuetype = (Class<T>) cl;
+            if (TwinFieldStorage.class.isAssignableFrom(cl) && storageType == null)
+                storageType = (Class<S>) cl;
+        }
+        if (descriptorType == null || valuetype == null || storageType == null)
+            throw new RuntimeException("Can not initialize ");
     }
 
     public Class<T> getValueType() {
         return valuetype;
     }
 
-    public Class<T> getStorageType() {
+    public Class<S> getStorageType() {
         return storageType;
     }
 
-    private static ParameterizedType getParameterizedType(Class<?> _class) {
+    private static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
         Type t = _class.getGenericSuperclass();
-        if (!(t instanceof ParameterizedType))
-            return getParameterizedType((Class<?>) t);
-        else
-            return (ParameterizedType) t;
+        if (t instanceof ParameterizedType pt) {
+            collected.addAll(Arrays.asList(pt.getActualTypeArguments()));
+        }
+        if (_class.getSuperclass() == null)
+            return collected;
+        return collectParameterizedTypes(_class.getSuperclass(), collected);
     }
 
     public D getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {

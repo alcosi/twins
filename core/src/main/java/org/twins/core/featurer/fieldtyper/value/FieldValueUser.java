@@ -34,8 +34,8 @@ public class FieldValueUser extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueUser clone = new FieldValueUser(twinClassField);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueUser clone = new FieldValueUser(newTwinClassFieldEntity);
         clone.getUsers().addAll(this.getUsers()); // we have to copy list
         return clone;
     }

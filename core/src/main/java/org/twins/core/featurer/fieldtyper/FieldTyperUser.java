@@ -144,9 +144,10 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         twinService.loadTwinFields(twinEntity);
         List<TwinFieldUserEntity> twinFieldUserEntityList = twinEntity.getTwinFieldUserKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueUser ret = new FieldValueUser(twinField.getTwinClassField());
-        for (TwinFieldUserEntity twinFieldDataListEntity : twinFieldUserEntityList) {
-            ret.add(twinFieldDataListEntity.getUser());
-        }
+        if (twinFieldUserEntityList != null)
+            for (TwinFieldUserEntity twinFieldDataListEntity : twinFieldUserEntityList) {
+                ret.add(twinFieldDataListEntity.getUser());
+            }
         return ret;
     }
 

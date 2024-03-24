@@ -119,9 +119,10 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         twinService.loadTwinFields(twinEntity);
         List<TwinFieldDataListEntity> twinFieldDataListEntityList = twinEntity.getTwinFieldDatalistKit().getGrouped(twinField.getTwinClassField().getId());
         FieldValueSelect ret = new FieldValueSelect(twinField.getTwinClassField());
-        for (TwinFieldDataListEntity twinFieldDataListEntity : twinFieldDataListEntityList) {
-            ret.add(twinFieldDataListEntity.getDataListOption());
-        }
+        if (twinFieldDataListEntityList != null)
+            for (TwinFieldDataListEntity twinFieldDataListEntity : twinFieldDataListEntityList) {
+                ret.add(twinFieldDataListEntity.getDataListOption());
+            }
         return ret;
     }
 }

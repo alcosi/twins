@@ -34,8 +34,8 @@ public class FieldValueSelect extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueSelect clone = new FieldValueSelect(twinClassField);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueSelect clone = new FieldValueSelect(newTwinClassFieldEntity);
         clone.getOptions().addAll(this.options);
         return clone;
     }

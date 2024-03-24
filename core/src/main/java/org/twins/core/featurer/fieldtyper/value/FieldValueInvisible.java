@@ -22,8 +22,8 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueInvisible clone = new FieldValueInvisible(twinClassField);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueInvisible clone = new FieldValueInvisible(newTwinClassFieldEntity);
         return clone;
     }
 

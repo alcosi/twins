@@ -673,6 +673,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public FieldValue copyToField(FieldValue src, UUID dstTwinClassFieldId) throws ServiceException {
+        TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId);
+        if (!isCopyable(src.getTwinClassField(), dstTwinClassField))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, src.getTwinClassField().logShort()
+                    + " value can not be copied to " + dstTwinClassField.logShort());
+        return src.clone(dstTwinClassField);
+    }
+
+    public boolean isCopyable(TwinClassFieldEntity src, TwinClassFieldEntity dst) throws ServiceException {
+        FieldTyper srcFieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+        FieldTyper dstFieldTyper = featurerService.getFeaturer(dst.getFieldTyperFeaturer(), FieldTyper.class);
+        return srcFieldTyper.getStorageType().equals(dstFieldTyper.getStorageType());
+    }
+
     public TwinField getTwinFieldOrNull(TwinEntity twinEntity, UUID twinClassFieldId) throws ServiceException {
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.getTwinClassFieldOrNull(twinEntity.getTwinClass(), twinClassFieldId);
         if (twinClassFieldEntity == null)

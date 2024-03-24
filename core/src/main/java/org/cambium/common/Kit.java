@@ -21,6 +21,12 @@ public class Kit<E> {
         this.functionGetId = functionGetId;
     }
 
+    public List<E> getList() {
+        if (list != null)
+            return list;
+        return Collections.EMPTY_LIST;
+    }
+
     public Kit<E> add(E e) {
         if (list == null)
             list = new ArrayList<>();
@@ -33,7 +39,7 @@ public class Kit<E> {
         if (map != null)
             return map;
         if (list == null)
-            return null;
+            return Collections.EMPTY_MAP;
         map = list
                 .stream().collect(Collectors.toMap(functionGetId, Function.identity(), (left, right) -> left, LinkedHashMap::new));
         return map;

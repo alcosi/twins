@@ -24,8 +24,8 @@ public class FieldValueColorHEX extends FieldValue {
     }
 
     @Override
-    public FieldValueColorHEX clone() {
-        FieldValueColorHEX clone = new FieldValueColorHEX(twinClassField);
+    public FieldValueColorHEX clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueColorHEX clone = new FieldValueColorHEX(newTwinClassFieldEntity);
         clone.setHex(this.hex);
         return clone;
     }

@@ -50,7 +50,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
                 dst.setValue(String.join(",", link.getTwinLinks().stream().map(l -> l.getSrcTwinId().toString()).toList()));
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
-        return super.convert(src, mapperContext);
+        return dst;
     }
 
     @Override
