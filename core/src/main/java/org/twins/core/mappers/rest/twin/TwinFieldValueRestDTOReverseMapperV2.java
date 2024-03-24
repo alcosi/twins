@@ -49,13 +49,13 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         if (fieldTyper.getValueType() == FieldValueText.class)
             fieldValue = fieldValueText;
         if (fieldTyper.getValueType() == FieldValueColorHEX.class)
-            fieldValue = new FieldValueColorHEX(fieldValueText.getTwinClassField(), true)
+            fieldValue = new FieldValueColorHEX(fieldValueText.getTwinClassField())
                     .setHex(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueDate.class)
-            fieldValue = new FieldValueDate(fieldValueText.getTwinClassField(), true)
+            fieldValue = new FieldValueDate(fieldValueText.getTwinClassField())
                     .setDate(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
-            fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField(), true);
+            fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField());
             for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOptionId))
                     continue;
@@ -70,7 +70,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             }
         }
         if (fieldTyper.getValueType() == FieldValueUser.class) {
-            fieldValue = new FieldValueUser(fieldValueText.getTwinClassField(), true);
+            fieldValue = new FieldValueUser(fieldValueText.getTwinClassField());
             for (String userId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(userId))
                     continue;
@@ -85,7 +85,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             }
         }
         if (fieldTyper.getValueType() == FieldValueLink.class) {
-            fieldValue = new FieldValueLink(fieldValueText.getTwinClassField(), true);
+            fieldValue = new FieldValueLink(fieldValueText.getTwinClassField());
             for (String dstTwinId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
                     continue;
@@ -110,7 +110,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinClassId, fieldKey);
         if (twinClassFieldEntity == null)
             return null;
-        return new FieldValueText(twinClassFieldEntity, true)
+        return new FieldValueText(twinClassFieldEntity)
                 .setValue(fieldValue);
     }
 
@@ -118,7 +118,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findEntitySafe(twinClassFieldId);
         if (twinClassFieldEntity == null)
             return null;
-        return new FieldValueText(twinClassFieldEntity, true)
+        return new FieldValueText(twinClassFieldEntity)
                 .setValue(fieldValue);
     }
 
@@ -127,7 +127,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(twinEntity.getTwinClassId(), fieldKey);
         if (twinClassFieldEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN);
-        return new FieldValueText(twinClassFieldEntity, true)
+        return new FieldValueText(twinClassFieldEntity)
                 .setValue(fieldValue);
     }
 

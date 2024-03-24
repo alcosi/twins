@@ -710,7 +710,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
 
         public CloneFieldsResult add(TwinFieldDataListEntity cloneTwinFieldDataListEntity) {
-            fieldDataListEntityList = CollectionUtils.safeAdd(fieldDataListEntityList, cloneTwinFieldDataListEntity)
+            fieldDataListEntityList = CollectionUtils.safeAdd(fieldDataListEntityList, cloneTwinFieldDataListEntity);
             return this;
         }
 

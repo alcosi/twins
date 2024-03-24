@@ -14,12 +14,12 @@ import java.util.UUID;
 @Accessors(chain = true)
 public abstract class FieldValue implements Cloneable {
     protected final TwinClassFieldEntity twinClassField;
-    protected final boolean filled;
 
-    public FieldValue(TwinClassFieldEntity twinClassField, boolean filled) {
+    public FieldValue(TwinClassFieldEntity twinClassField) {
         this.twinClassField = twinClassField;
-        this.filled = filled;
     }
+
+    public abstract boolean isFilled();
 
     public UUID getTwinClassFieldId() {
         return twinClassField.getId();

@@ -14,13 +14,18 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public class FieldValueColorHEX extends FieldValue {
     private String hex;
 
-    public FieldValueColorHEX(TwinClassFieldEntity twinClassField, boolean filled) {
-        super(twinClassField, filled);
+    public FieldValueColorHEX(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return hex != null;
     }
 
     @Override
     public FieldValueColorHEX clone() {
-        FieldValueColorHEX clone = new FieldValueColorHEX(twinClassField, filled);
+        FieldValueColorHEX clone = new FieldValueColorHEX(twinClassField);
         clone.setHex(this.hex);
         return clone;
     }

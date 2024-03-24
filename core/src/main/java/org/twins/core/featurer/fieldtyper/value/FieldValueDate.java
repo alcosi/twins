@@ -14,13 +14,18 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public class FieldValueDate extends FieldValue {
     private String date;
 
-    public FieldValueDate(TwinClassFieldEntity twinClassField, boolean filled) {
-        super(twinClassField, filled);
+    public FieldValueDate(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return date != null;
     }
 
     @Override
     public FieldValueDate clone() {
-        FieldValueDate clone = new FieldValueDate(twinClassField, filled);
+        FieldValueDate clone = new FieldValueDate(twinClassField);
         clone.setDate(this.date);
         return clone;
     }

@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
@@ -19,8 +20,13 @@ public class FieldValueLink extends FieldValue {
     private boolean forwardLink;
     private List<TwinLinkEntity> twinLinks = new ArrayList<>();
 
-    public FieldValueLink(TwinClassFieldEntity twinClassField, boolean filled) {
-        super(twinClassField, filled);
+    public FieldValueLink(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return CollectionUtils.isNotEmpty(twinLinks);
     }
 
     public FieldValueLink add(TwinLinkEntity twinLinkEntity) {
@@ -30,7 +36,7 @@ public class FieldValueLink extends FieldValue {
 
     @Override
     public FieldValue clone() {
-        FieldValueLink clone = new FieldValueLink(twinClassField, filled);
+        FieldValueLink clone = new FieldValueLink(twinClassField);
         clone.setForwardLink(this.forwardLink);
         for (TwinLinkEntity twinLinkEntity : twinLinks) {
             clone.getTwinLinks().add(twinLinkEntity.clone());

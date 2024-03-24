@@ -40,7 +40,7 @@ public class FieldTyperCalcChildrenFieldV2 extends FieldTyperBasic<FieldDescript
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        return new FieldValueText(twinField.getTwinClassField(), twinFieldEntity != null)
+        return new FieldValueText(twinField.getTwinClassField())
                 .setValue(fmt(parseTwinFieldValue(twinFieldEntity)));
     }
 }

@@ -4,6 +4,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -18,8 +19,13 @@ import java.util.UUID;
 public class FieldValueUser extends FieldValue {
     private List<UserEntity> users = new ArrayList<>();
 
-    public FieldValueUser(TwinClassFieldEntity twinClassField, boolean filled) {
-        super(twinClassField, filled);
+    public FieldValueUser(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return CollectionUtils.isNotEmpty(users);
     }
 
     public FieldValueUser add(UserEntity user) {
@@ -29,7 +35,7 @@ public class FieldValueUser extends FieldValue {
 
     @Override
     public FieldValue clone() {
-        FieldValueUser clone = new FieldValueUser(twinClassField, filled);
+        FieldValueUser clone = new FieldValueUser(twinClassField);
         clone.getUsers().addAll(this.getUsers()); // we have to copy list
         return clone;
     }

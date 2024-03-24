@@ -14,13 +14,18 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public class FieldValueText extends FieldValue {
     private String value;
 
-    public FieldValueText(TwinClassFieldEntity twinClassField, boolean filled) {
-        super(twinClassField, filled);
+    public FieldValueText(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return value != null;
     }
 
     @Override
     public FieldValue clone() {
-        FieldValueText clone = new FieldValueText(twinClassField, filled);
+        FieldValueText clone = new FieldValueText(twinClassField);
         clone.setValue(this.value);
         return clone;
     }

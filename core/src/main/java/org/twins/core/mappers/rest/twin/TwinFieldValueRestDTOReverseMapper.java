@@ -35,16 +35,16 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_UNKNOWN);
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldService.findByTwinClassIdAndKeyIncludeParent(fieldValueDTO.twinClassId, fieldValueDTO.fieldKey);
         if (fieldValueDTO instanceof TwinFieldValueTextDTOv1 text)
-            fieldValue =  new FieldValueText(twinClassFieldEntity, true)
+            fieldValue =  new FieldValueText(twinClassFieldEntity)
                     .setValue(text.text());
         if (fieldValueDTO instanceof TwinFieldValueColorHexDTOv1 color)
-            fieldValue =  new FieldValueColorHEX(twinClassFieldEntity, true)
+            fieldValue =  new FieldValueColorHEX(twinClassFieldEntity)
                     .setHex(color.hex());
         if (fieldValueDTO instanceof TwinFieldValueDateDTOv1 date)
-            fieldValue = new FieldValueDate(twinClassFieldEntity, true)
+            fieldValue = new FieldValueDate(twinClassFieldEntity)
                     .setDate(date.date());
         if (fieldValueDTO instanceof TwinFieldValueListDTOv1 select) {
-            fieldValue = new FieldValueSelect(twinClassFieldEntity, true);
+            fieldValue = new FieldValueSelect(twinClassFieldEntity);
             for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
                 ((FieldValueSelect)fieldValue).add(new DataListOptionEntity()
                         .setId(dataListOptionDTO.id())

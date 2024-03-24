@@ -36,7 +36,7 @@ public class FieldTyperCountChildrenTwinsV2 extends FieldTyperBasic<FieldDescrip
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        return new FieldValueText(twinField.getTwinClassField(), twinFieldEntity != null)
+        return new FieldValueText(twinField.getTwinClassField())
                 .setValue(parseTwinFieldValue(twinFieldEntity).toString());
     }
 }

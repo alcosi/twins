@@ -13,8 +13,14 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 public class FieldValueInvisible extends FieldValue {
 
     public FieldValueInvisible(TwinClassFieldEntity twinClassField) {
-        super(twinClassField, true);
+        super(twinClassField);
     }
+
+    @Override
+    public boolean isFilled() {
+        return false;
+    }
+
     @Override
     public FieldValue clone() {
         FieldValueInvisible clone = new FieldValueInvisible(twinClassField);

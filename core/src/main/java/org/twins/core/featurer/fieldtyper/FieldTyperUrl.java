@@ -37,7 +37,7 @@ public class FieldTyperUrl extends FieldTyperBasic<FieldDescriptorUrl, FieldValu
 
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueText(twinField.getTwinClassField(), twinFieldEntity != null)
-                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
+        return new FieldValueText(twinField.getTwinClassField())
+                .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
     }
 }

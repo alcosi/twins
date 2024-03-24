@@ -23,7 +23,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
-        FieldValueText dst = new FieldValueText(src.getTwinClassField(), true);
+        FieldValueText dst = new FieldValueText(src.getTwinClassField());
         if (!src.isFilled()) {
             dst.setValue("");
         } else if (src instanceof FieldValueText text) {
