@@ -140,35 +140,35 @@ public class I18nService {
         return new ArrayList<>();
     }
 
-    public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) {
+    public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) throws ServiceException {
         try {
             return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), context);
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            return "";
         }
     }
 
-    public String translateToLocale(UUID i18nId, Map<String, String> context) {
+    public String translateToLocale(UUID i18nId, Map<String, String> context) throws ServiceException {
         try {
             return translateToLocale(i18nId, authService.getApiUser().getLocale(), context);
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            return "";
         }
     }
 
-    public String translateToLocale(I18nEntity i18NEntity) {
+    public String translateToLocale(I18nEntity i18NEntity) throws ServiceException {
         try {
             return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), null);
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            return "";
         }
     }
 
     public String translateToLocale(UUID i18nId) {
         try {
             return translateToLocale(i18nId, authService.getApiUser().getLocale(), null);
-        } catch (ServiceException e) {
-            throw new RuntimeException(e);
+        } catch (Exception e) {
+            return "";
         }
     }
 
