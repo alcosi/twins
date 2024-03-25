@@ -16,8 +16,6 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     @Override
     @Cacheable(value = "TwinClassRepository.findById", key = "{#uuid}")
     Optional<TwinClassEntity> findById(UUID uuid);
-
-    <T> List<T> findAllProjectedBy(Class<T> type); //not working
     List<TwinClassEntity> findByDomainId(UUID domainId);
     List<TwinClassEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
     TwinClassEntity findByDomainIdAndId(UUID domainId, UUID id);

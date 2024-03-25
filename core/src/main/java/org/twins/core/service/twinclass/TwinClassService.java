@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.*;
 import org.twins.core.domain.ApiUser;
@@ -32,8 +33,6 @@ import java.util.stream.Collectors;
 public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntity> {
     final TwinRepository twinRepository;
     final TwinClassRepository twinClassRepository;
-    final TwinClassExtendsMapRepository twinClassExtendsMapRepository;
-    final TwinClassChildMapRepository twinClassChildMapRepository;
     final TwinClassSchemaRepository twinClassSchemaRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntitySmartService entitySmartService;
@@ -148,6 +147,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return twinClassEntity.getExtendedClassIdSet();
         Set<UUID> extendedClassIdSet = twinClassExtendsMapRepository.findAllByTwinClassId(twinClassEntity.getId())
                 .stream().map(TwinClassExtendsMapEntity::getExtendsTwinClassId).collect(Collectors.toSet());
+
+//        Set<UUID> extendedClassIdSet = twinClassRepository.findAll(
+//                        TwinClassSpecification.checkHierarchyForChildren(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
+//                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
+
         twinClassEntity.setExtendedClassIdSet(extendedClassIdSet);
         return extendedClassIdSet;
     }
@@ -180,8 +184,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getChildClassIdSet() != null)
             return twinClassEntity.getChildClassIdSet();
-        Set<UUID> childClassIdSet = twinClassChildMapRepository.findAllByTwinClassId(twinClassEntity.getId())
-                .stream().map(TwinClassChildMapEntity::getChildTwinClassId).collect(Collectors.toSet());
+
+        Set<UUID> childClassIdSet = twinClassRepository.findAll(
+                TwinClassSpecification.checkHierarchyForChildren(TwinClassEntity.Fields.headHierarchyTree, twinClassEntity.getId()))
+                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
         twinClassEntity.setChildClassIdSet(childClassIdSet);
         return childClassIdSet;
     }

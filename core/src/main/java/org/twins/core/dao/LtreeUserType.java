@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao;
 
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.usertype.UserType;

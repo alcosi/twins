@@ -8,7 +8,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -79,6 +81,14 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Column(name = "extends_twin_class_id")
     private UUID extendsTwinClassId;
+
+    @Column(name = "head_hierarchy_tree", columnDefinition = "ltree")
+    @Type(value = LtreeUserType.class)
+    private String headHierarchyTree;
+
+    @Column(name = "extends_hierarchy_tree", columnDefinition = "ltree")
+    @Type(value = LtreeUserType.class)
+    private String extendsHierarchyTree;
 
     @Column(name = "domain_alias_counter")
     private int domainAliasCounter;
