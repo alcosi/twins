@@ -53,7 +53,7 @@ public class TwinSpecification {
             for (UUID id : hierarchyTreeContainsIdList) {
                 String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
                 Expression<String> hierarchyTreeExpression = root.get(field);
-                predicates.add(cb.isTrue(cb.function("hierarchyCheck", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
+                predicates.add(cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
             }
             return getPredicate(cb, predicates, true);
         };

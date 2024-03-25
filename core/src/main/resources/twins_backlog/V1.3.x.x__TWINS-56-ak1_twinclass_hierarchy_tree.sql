@@ -15,8 +15,31 @@ DROP FUNCTION IF EXISTS public.hierarchy_twin_class_extends_detect_tree(UUID);
 DROP FUNCTION IF EXISTS public.hierarchy_twin_class_extends_update_tree_hard(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.hierarchy_twin_class_extends_update_tree_soft(UUID, TEXT);
 DROP FUNCTION IF EXISTS public.hierarchy_twin_class_extends_process_tree_update();
+DROP FUNCTION IF EXISTS public.hierarchyCheck(ltree, text);
+DROP FUNCTION IF EXISTS public.hierarchy_check_lquery(ltree, text);
+DROP FUNCTION IF EXISTS public.hierarchy_check_is_child(ltree, text);
+DROP FUNCTION IF EXISTS public.hierarchy_check_is_parent(ltree, text);
 
+CREATE OR REPLACE FUNCTION hierarchy_check_lquery(hierarchy_tree ltree, ltree_value text)
+    RETURNS boolean AS $$
+BEGIN
+    RETURN hierarchy_tree ~ ltree_value::lquery;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
 
+CREATE OR REPLACE FUNCTION hierarchy_check_is_child(hierarchy_tree ltree, ltree_value text)
+    RETURNS boolean AS $$
+BEGIN
+    RETURN hierarchy_tree <@ text2ltree(ltree_value);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+CREATE OR REPLACE FUNCTION hierarchy_check_is_parent(hierarchy_tree ltree, ltree_value text)
+    RETURNS boolean AS $$
+BEGIN
+    RETURN hierarchy_tree @> text2ltree(ltree_value);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
 
 --
 -- EXTENDS SECTION

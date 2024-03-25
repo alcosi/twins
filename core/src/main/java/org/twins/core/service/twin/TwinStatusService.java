@@ -44,7 +44,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public Kit<TwinStatusEntity> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinStatusKit() != null)
             return twinClassEntity.getTwinStatusKit();
-        twinClassService.loadExtendedClasses(twinClassEntity);
         twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));
         return twinClassEntity.getTwinStatusKit();
     }
@@ -56,7 +55,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 needLoad.put(twinClassEntity.getId(), twinClassEntity);
         if (needLoad.isEmpty())
             return;
-        twinClassService.loadExtendedClasses(needLoad.values());
         Set<UUID> allClassesSet = new HashSet<>();
         for (TwinClassEntity twinClassEntity : needLoad.values())
             if (twinClassEntity.getExtendedClassIdSet() != null)
@@ -91,7 +89,6 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         if (twinStatusEntity.getTwinClassId() == twinEntity.getTwinClassId()) {
             return true;
         }
-        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinEntity.getTwinClass());
-        return extendedTwinClasses.contains(twinStatusEntity.getTwinClassId());
+        return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
     }
 }

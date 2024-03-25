@@ -10,11 +10,11 @@ import java.util.*;
 @Slf4j
 public class TwinClassSpecification {
 
-    public static Specification<TwinClassEntity> checkHierarchyForChildren(String field, final UUID id) {
+    public static Specification<TwinClassEntity> checkHierarchyIsChild(String field, final UUID id) {
         return (root, query, cb) -> {
-            String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
+            String ltreeId = id.toString().replace("-", "_");
             Expression<String> hierarchyTreeExpression = root.get(field);
-            return cb.isTrue(cb.function("hierarchyCheck", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId)));
+            return cb.isTrue(cb.function("hierarchy_check_is_child", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId)));
         };
     }
 }

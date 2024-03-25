@@ -16,9 +16,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -147,6 +145,16 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity> transitionsKit;
+
+    public Set<UUID> getExtendedClassIdSet() {
+        Set<UUID> result = null;
+        if(null != getExtendsHierarchyTree()) {
+            result = new HashSet<>();
+            for(String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
+                result.add(UUID.fromString(hierarchyItem));
+        }
+        return result;
+    }
 
     public String easyLog(Level level) {
         switch (level) {

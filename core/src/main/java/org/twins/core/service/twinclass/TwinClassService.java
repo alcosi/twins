@@ -142,51 +142,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return ret;
     }
 
-    public Set<UUID> loadExtendedClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getExtendedClassIdSet() != null)
-            return twinClassEntity.getExtendedClassIdSet();
-        Set<UUID> extendedClassIdSet = twinClassExtendsMapRepository.findAllByTwinClassId(twinClassEntity.getId())
-                .stream().map(TwinClassExtendsMapEntity::getExtendsTwinClassId).collect(Collectors.toSet());
-
-//        Set<UUID> extendedClassIdSet = twinClassRepository.findAll(
-//                        TwinClassSpecification.checkHierarchyForChildren(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
-//                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
-
-        twinClassEntity.setExtendedClassIdSet(extendedClassIdSet);
-        return extendedClassIdSet;
-    }
-
-    public void loadExtendedClasses(Collection<TwinClassEntity> twinClassEntityList) {
-        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClassEntity : twinClassEntityList)
-            if (twinClassEntity.getExtendedClassIdSet() == null)
-                needLoad.put(twinClassEntity.getId(), twinClassEntity);
-        if (needLoad.isEmpty())
-            return;
-
-        List<TwinClassExtendsMapEntity> twinClassExtendsMapEntityList = twinClassExtendsMapRepository.findAllByTwinClassIdIn(needLoad.keySet());
-        if (CollectionUtils.isEmpty(twinClassExtendsMapEntityList))
-            return;
-        Map<UUID, Set<UUID>> extendsMap = new HashMap<>(); // key - twinClassId
-        for (TwinClassExtendsMapEntity twinClassExtendsMapEntity : twinClassExtendsMapEntityList) { //grouping by twinClassId
-            extendsMap.computeIfAbsent(twinClassExtendsMapEntity.getTwinClassId(), k -> new HashSet<>());
-            extendsMap.get(twinClassExtendsMapEntity.getTwinClassId()).add(twinClassExtendsMapEntity.getExtendsTwinClassId());
-        }
-        TwinClassEntity twinClassEntity;
-        Set<UUID> extendsClasses;
-        for (Map.Entry<UUID, TwinClassEntity> entry : needLoad.entrySet()) {
-            twinClassEntity = entry.getValue();
-            extendsClasses = extendsMap.get(entry.getKey());
-            twinClassEntity.setExtendedClassIdSet(extendsClasses);
-        }
-    }
-
     public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getChildClassIdSet() != null)
             return twinClassEntity.getChildClassIdSet();
 
         Set<UUID> childClassIdSet = twinClassRepository.findAll(
-                TwinClassSpecification.checkHierarchyForChildren(TwinClassEntity.Fields.headHierarchyTree, twinClassEntity.getId()))
+                        TwinClassSpecification.checkHierarchyIsChild(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
                 .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
         twinClassEntity.setChildClassIdSet(childClassIdSet);
         return childClassIdSet;
@@ -204,7 +165,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
         Set<UUID> parentClasses;
         if (!instanceClass.getId().equals(ofClass)) {
-            loadExtendedClasses(instanceClass);
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
         return true;
