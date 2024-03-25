@@ -305,12 +305,21 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(twinCreate.getNewTags()) || CollectionUtils.isNotEmpty(twinCreate.getExistingTags())) {
             twinTagService.createTags(twinEntity, twinCreate.getNewTags(), twinCreate.getExistingTags());
         }
-
+        invalidateFields(twinEntity);
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
                 .setBusinessAccountAliasEntityList(createTwinBusinessAccountAliases(twinEntity))
                 .setDomainAliasEntityList(createTwinDomainAliases(twinEntity));
+    }
+
+    public void invalidateFields(TwinEntity twinEntity) {
+        twinEntity
+                .setTwinFieldBasicKit(null)
+                .setTwinFieldUserKit(null)
+                .setTwinFieldDatalistKit(null)
+                .setFieldValuesKit(null)
+                .setTwinLinks(null);
     }
 
     public TwinEntity fillOwner(TwinEntity twinEntity, BusinessAccountEntity businessAccountEntity, UserEntity userEntity) throws ServiceException {
@@ -632,6 +641,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 cloneFieldsResult.add(duplicateTwinFieldUserEntity);
             }
         return cloneFieldsResult;
+    }
+
+    public TwinFieldEntity createTwinFieldEntity(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, String value) {
+        return new TwinFieldEntity()
+                .setTwinClassField(twinClassFieldEntity)
+                .setTwinClassFieldId(twinClassFieldEntity.getId())
+                .setTwin(twinEntity)
+                .setTwinId(twinEntity.getId())
+                .setValue(value);
     }
 
     public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {

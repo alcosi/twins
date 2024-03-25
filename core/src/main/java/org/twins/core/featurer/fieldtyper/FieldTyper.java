@@ -94,7 +94,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
         if (!valuetype.isInstance(value)) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT);
         }
-        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassFieldId()))
+        if (!twinClassService.isInstanceOf(twin.getTwinClass(), value.getTwinClassField().getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, value.getTwinClassField().logShort() + " is not suitable for " + twin.logNormal());
         Properties properties = featurerService.extractProperties(this, value.getTwinClassField().getFieldTyperParams(), new HashMap<>());
         serializeValue(properties, twin, value, twinChangesCollector);

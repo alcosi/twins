@@ -28,8 +28,10 @@ public abstract class FieldTyperBasic<D extends FieldDescriptor, T extends Field
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, T value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinFieldEntity twinFieldEntity = convertToTwinFieldEntity(twin, value.getTwinClassField());
-        if (twinFieldEntity.getId() == null)
+        if (twinFieldEntity == null) {
+            twinFieldEntity = twinService.createTwinFieldEntity(twin, value.getTwinClassField(), null);
             twinChangesCollector.add(twinFieldEntity);
+        }
         serializeValue(properties, twinFieldEntity, value, twinChangesCollector);
     }
 
