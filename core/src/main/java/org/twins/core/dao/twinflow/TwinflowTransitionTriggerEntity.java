@@ -46,7 +46,7 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable {
     public String easyLog(EasyLoggable.Level level) {
         switch (level) {
             case SHORT:
-                return "twinflowTransitionTrigger[" + id + ", isActive: " + isActive + "]";
+                return "twinflowTransitionTrigger[" + id + "]";
             case NORMAL:
                 return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive +  "]";
             default:
