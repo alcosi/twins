@@ -283,14 +283,14 @@ public class ApiUser {
     public ApiUser setAnonymous(UUID domainId) {
         return setDomainResolver(new DomainResolverGivenId(domainId))
                 .setUserResolver(new UserResolverNotSpecified())
-                .setLocaleResolver(localeResolver)
+                .setLocaleResolver(localeResolverHeader)
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 
     public ApiUser setAnonymous() {
         return setDomainResolver(domainResolverHeaders)
                 .setUserResolver(new UserResolverNotSpecified())
-                .setLocaleResolver(localeResolver)
+                .setLocaleResolver(localeResolverHeader)
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 }
