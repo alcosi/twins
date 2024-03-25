@@ -40,14 +40,17 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable {
     @Column(name = "transition_trigger_params", columnDefinition = "hstore")
     private HashMap<String, String> transitionTriggerParams;
 
+    @Column(name = "active")
+    private boolean isActive;
+
     public String easyLog(EasyLoggable.Level level) {
         switch (level) {
             case SHORT:
                 return "twinflowTransitionTrigger[" + id + "]";
             case NORMAL:
-                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  "]";
+                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive +  "]";
             default:
-                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + "]";
+                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
         }
     }
 }
