@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface DomainUserRepository extends CrudRepository<DomainUserEntity, UUID>, JpaSpecificationExecutor<DomainUserEntity> {
     <T> T findByDomainIdAndUserId(UUID domainId, UUID userId, Class<T> type);
 
+    DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
+
     @Modifying
     @Query("UPDATE DomainUserEntity e SET e.i18nLocaleId = :locale WHERE e.domainId = :domainId AND e.userId = :userId")
     void updateLocale(@Param("domainId") UUID domainId, @Param("userId") UUID userId, @Param("locale") Locale locale);

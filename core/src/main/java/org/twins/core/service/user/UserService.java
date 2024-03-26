@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserLocaleProjection;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -23,7 +22,6 @@ import org.twins.core.service.twin.TwinService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
@@ -55,11 +53,6 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public boolean validateEntity(UserEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
-
-    public Locale getUserLocale(UUID domainId, UUID userId){
-        return domainUserRepository.findByDomainIdAndUserId(domainId, userId, UserLocaleProjection.class).i18nLocaleId();
-    }
-
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));

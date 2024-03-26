@@ -140,7 +140,7 @@ public class I18nService {
         return new ArrayList<>();
     }
 
-    public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) throws ServiceException {
+    public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) {
         try {
             return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), context);
         } catch (Exception e) {
@@ -148,7 +148,7 @@ public class I18nService {
         }
     }
 
-    public String translateToLocale(UUID i18nId, Map<String, String> context) throws ServiceException {
+    public String translateToLocale(UUID i18nId, Map<String, String> context) {
         try {
             return translateToLocale(i18nId, authService.getApiUser().getLocale(), context);
         } catch (Exception e) {
@@ -156,7 +156,7 @@ public class I18nService {
         }
     }
 
-    public String translateToLocale(I18nEntity i18NEntity) throws ServiceException {
+    public String translateToLocale(I18nEntity i18NEntity) {
         try {
             return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), null);
         } catch (Exception e) {

@@ -53,6 +53,15 @@ public class DomainService {
         return entitySmartService.check(domainId, domainRepository, checkMode);
     }
 
+    public DomainUserEntity getDomainUser() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
+    }
+
+    public Locale getDefaultDomainLocale(UUID domainId){
+        return domainRepository.findById(domainId, DomainLocaleProjection.class).defaultI18nLocaleId();
+    }
+
     public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID domainId, UUID userId, Class<DomainUserNoRelationProjection> clazz) throws ServiceException {
         return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }

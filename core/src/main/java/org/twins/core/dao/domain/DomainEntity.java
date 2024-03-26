@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.i18n.dao.LocaleConverter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -15,6 +16,7 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -47,6 +49,13 @@ public class DomainEntity implements EasyLoggable {
 
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @Column(name = "default_i18n_locale_id")
+    @Convert(converter = LocaleConverter.class)
+    private Locale defaultI18nLocaleId;
+
+    @Column(name = "ancestor_twin_class_id")
+    private UUID ancestorTwinClassId;
 
     @FeaturerList(type = BusinessAccountInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)
