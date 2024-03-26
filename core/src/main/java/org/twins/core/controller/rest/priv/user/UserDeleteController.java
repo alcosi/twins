@@ -8,16 +8,19 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -26,7 +29,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserDeleteController extends ApiController {
-    private final BusinessAccountService businessAccountService;
+    private final UserService userService;
 
     @ParameterChannelHeader
     @Operation(operationId = "userDeleteV1", summary = "Delete user")
@@ -35,17 +38,17 @@ public class UserDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/user/{userId}/v1")
     public ResponseEntity<?> userDeleteV1(
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         Response rs = new Response();
         try {
-            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
+            userService.deleteUser(userId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
-//        return new ResponseEntity<>(rs, HttpStatus.OK);
+        return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

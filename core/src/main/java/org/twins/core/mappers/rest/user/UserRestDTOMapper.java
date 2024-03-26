@@ -17,12 +17,12 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
             case SHORT:
                 dst
                         .id(src.getId())
-                        .name(src.getName());
+                        .fullName(src.getName());
                 break;
             case DETAILED:
                 dst
                         .id(src.getId())
-                        .name(src.getName())
+                        .fullName(src.getName())
                         .email(src.getEmail())
                         .avatar(src.getAvatar());
                 break;

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
+import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -71,16 +72,30 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public void updateUser(UserEntity updateEntity) throws ServiceException {
         UserEntity dbEntity = entitySmartService.findById(updateEntity.getId(), userRepository, EntitySmartService.FindMode.ifEmptyThrows);
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("name", dbEntity.getName(), updateEntity.getName()))
+        if (changesHelper.isChanged("name", dbEntity.getName(), updateEntity.getName(), maskName(dbEntity.getName()), maskName(updateEntity.getName())))
             dbEntity.setName(updateEntity.getName());
-        if (changesHelper.isChanged("email", dbEntity.getEmail(), updateEntity.getEmail()))
+        if (changesHelper.isChanged("email", dbEntity.getEmail(), updateEntity.getEmail(), maskEmail(dbEntity.getEmail()), maskEmail(updateEntity.getEmail())))
             dbEntity.setEmail(updateEntity.getEmail());
         if (changesHelper.isChanged("avatar", dbEntity.getAvatar(), updateEntity.getAvatar()))
             dbEntity.setAvatar(updateEntity.getAvatar());
+        if (changesHelper.isChanged("user_status_id", dbEntity.getUserStatusId(), updateEntity.getUserStatusId()))
+            dbEntity.setUserStatusId(updateEntity.getUserStatusId());
         if (changesHelper.hasChanges())
             entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
     }
 
+    public void deleteUser(UUID userId) throws ServiceException {
+        UserEntity userFromDB = findEntitySafe(userId);
+        deleteUser(userFromDB);
+    }
+
+    public void deleteUser(UserEntity userEntity) throws ServiceException {
+        userEntity
+                .setUserStatusId(UserStatus.DELETED)
+                .setName(maskName(userEntity.getName()))
+                .setEmail(maskEmail(userEntity.getEmail()));
+        userRepository.save(userEntity);
+    }
 
     public Set<UUID> getValidUserIdSetByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -125,5 +140,24 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         if (userEntity == null)
             throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is unknown");
         return userEntity;
+    }
+
+    public static String maskName(String name) {
+        if (name == null)
+            return "";
+        return maskData(name);
+    }
+
+    public static String maskEmail(String email) {
+        if (email == null || !email.contains("@"))
+            return "";
+        String[] parts = email.split("@");
+        return maskData(parts[0]) + "@" + maskData(parts[1]);
+    }
+
+    public static String maskData(String data) {
+        if (data.length() < 2)
+            return data;
+        return data.charAt(0) + "***" + data.charAt(data.length() - 1);
     }
 }

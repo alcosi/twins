@@ -14,8 +14,8 @@ public class UserDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_ID)
     public UUID id;
 
-    @Schema(description = "name", example = "John Doe")
-    public String name;
+    @Schema(description = "fullName", example = "John Doe")
+    public String fullName;
 
     @Schema(description = "email", example = "some@email.com")
     public String email;
