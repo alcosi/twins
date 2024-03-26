@@ -1,5 +1,6 @@
 package org.twins.core.service.domain;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -10,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.service.EntitySmartService;
@@ -49,6 +51,15 @@ public class DomainService {
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
+    }
+
+    public DomainUserEntity getDomainUser() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
+    }
+
+    public Locale getDefaultDomainLocale(UUID domainId){
+        return domainRepository.findById(domainId, DomainLocaleProjection.class).defaultI18nLocaleId();
     }
 
     public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID domainId, UUID userId, Class<DomainUserNoRelationProjection> clazz) throws ServiceException {
@@ -150,7 +161,9 @@ public class DomainService {
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
-    public void updateLocaleByDomainUser(Locale localeName) throws ServiceException {
-
+    @Transactional
+    public void updateLocaleByDomainUser(String localeName) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
     }
 }
