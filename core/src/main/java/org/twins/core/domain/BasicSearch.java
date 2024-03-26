@@ -25,6 +25,10 @@ public class BasicSearch {
     Map<UUID, Set<UUID>> twinNoLinksMap;
     Set<UUID> hierarchyTreeContainsIdList;
     Set<UUID> statusIdExcludeList;
+    Set<UUID> tagDataListOptionIdList;
+    Set<UUID> tagDataListOptionIdExcludeList;
+    Set<UUID> markerDataListOptionIdList;
+    Set<UUID> markerDataListOptionIdExcludeList;
 
     public BasicSearch addTwinId(UUID twinId) {
         twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);

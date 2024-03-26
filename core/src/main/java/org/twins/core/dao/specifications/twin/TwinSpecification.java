@@ -8,6 +8,8 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinMarkerEntity;
+import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 
@@ -19,6 +21,43 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification {
+
+    public static Specification<TwinEntity> checkTagIds(final Collection<UUID> tagIds, final boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(tagIds)) return cb.conjunction();
+            Subquery<TwinTagEntity> tagSubquery = query.subquery(TwinTagEntity.class);
+            Root<TwinTagEntity> tagRoot = tagSubquery.from(TwinTagEntity.class);
+            tagSubquery.select(tagRoot);
+            Predicate tagIdIn;
+            tagIdIn = tagRoot.get(TwinTagEntity.Fields.tagDataListOptionId).in(tagIds);
+            tagSubquery.where(
+                    cb.and(
+                            tagIdIn,
+                            cb.equal(tagRoot.get(TwinTagEntity.Fields.twinId), root.get(TwinEntity.Fields.id))
+                    )
+            );
+            return exclude ? cb.not(cb.exists(tagSubquery)) : cb.exists(tagSubquery);
+        };
+    }
+
+    public static Specification<TwinEntity> checkMarkerIds(final Collection<UUID> markerIds, final boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(markerIds)) return cb.conjunction();
+            Subquery<TwinMarkerEntity> markerSubquery = query.subquery(TwinMarkerEntity.class);
+            Root<TwinMarkerEntity> markerRoot = markerSubquery.from(TwinMarkerEntity.class);
+            markerSubquery.select(markerRoot);
+            Predicate markerIdIn;
+            markerIdIn = markerRoot.get(TwinMarkerEntity.Fields.markerDataListOptionId).in(markerIds);
+            markerSubquery.where(
+                    cb.and(
+                            markerIdIn,
+                            cb.equal(markerRoot.get(TwinMarkerEntity.Fields.twinId), root.get(TwinEntity.Fields.id))
+                    )
+            );
+            return exclude ? cb.not(cb.exists(markerSubquery)) : cb.exists(markerSubquery);
+        };
+    }
+
 
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
