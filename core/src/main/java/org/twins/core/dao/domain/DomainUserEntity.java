@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -29,6 +30,7 @@ public class DomainUserEntity implements EasyLoggable {
     private Timestamp createdAt;
 
     @Column(name = "i18n_locale_id")
+    @Convert(converter = LocaleConverter.class)
     private Locale i18nLocaleId;
 
     @ManyToOne
