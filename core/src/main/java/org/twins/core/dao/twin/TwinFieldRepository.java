@@ -21,18 +21,31 @@ public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUI
 
 
     @Query(value = """
-            select coalesce(sum(cast(field.value as double)), 0)
-            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
-            where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
-             """)
+            select coalesce(sum(
+                case when field.value ~ '^\\s*[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)\\s*$'
+                    then CAST(field.value as double precision)
+                    else 0
+                end
+            ), 0)
+            from twin_field field inner join twin on field.twin_id = twin.id
+            where twin.head_twin_id = :headTwinId and field.twin_class_field_id = :twinClassFieldId and twin.twin_status_id in :childrenTwinStatusIdList
+            """
+            , nativeQuery = true)
     double sumChildrenTwinFieldValuesWithStatusIn(
-            @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
+            @Param("headTwinId") UUID headTwinId,
+            @Param("twinClassFieldId") UUID twinClassFieldId,
+            @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
     @Query(value = """
-            select coalesce(sum(cast(field.value as double)), 0)
-            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
-            where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
-             """)
+            select coalesce(sum(
+                case when field.value ~ '^\\s*[+-]?([0-9]+(\\.[0-9]*)?|\\.[0-9]+)\\s*$'
+                    then CAST(field.value as double precision)
+                    else 0
+                end
+            ), 0)
+            from twin_field field inner join twin on field.twin_id = twin.id
+            where twin.head_twin_id = :headTwinId and field.twin_class_field_id = :twinClassFieldId and not twin.twin_status_id in :childrenTwinStatusIdList
+                     """, nativeQuery = true)
     double sumChildrenTwinFieldValuesWithStatusNotIn(
             @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 

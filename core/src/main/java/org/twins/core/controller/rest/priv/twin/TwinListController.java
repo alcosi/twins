@@ -181,8 +181,10 @@ public class TwinListController extends ApiController {
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
+            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
+            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
