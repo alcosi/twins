@@ -1,61 +1,28 @@
 package org.cambium.common.util;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static org.twins.core.service.user.UserService.maskEmail;
+import static org.twins.core.service.user.UserService.maskName;
+
 public class JsonUtils {
-//    public static void mask(String[] nameList, String[] emailList, String message) {
-//        message = "  \"name\": \"Ivan Sokolov\",\n" +
-//                "  \"fullName\": \"Ivan Sokolov\",\n" +
-//                "  \"email\": \"solol@email.com\",\n" +
-//                "  \"avatar\": \"http://twins.org/a/avatar/carkikrefmkawfwfwg.png\"";
-//        for (String s : nameList) {
-//            Pattern namePattern = Pattern.compile("\"" + s + "\"\\s*:\\s*\"[^\"]+\"");
-//            Matcher nameMatcher = namePattern.matcher(message);
-//            if (nameMatcher.find()) {
-//                String name = nameMatcher.group(1);
-//
-//                    message.replaceAll(namePattern, nameMatcher);
-//            }
-//
-//            //            Pattern pattern = Pattern.compile("\"name\":\"" + maskName(s) + "\"");
-//        }
-//
-//    }
-
-    public static String mask(String jsonMessage, String[] keysToMask) {
-        // Парсинг JSON-строки в HashMap
-        HashMap<String, String> jsonMap = parseJson(jsonMessage);
-
-        // Замена значений для указанных ключей
-        for (String key : keysToMask) {
-            if (jsonMap.containsKey(key)) {
-                jsonMap.put(key, "MASKED");
+    public static String mask(String[] nameList, String[] emailList, String message) {
+        for (String name : nameList) {
+            String regex = "(\"" + name + "\":\\s*\")([^\"]+)(\")";
+            Matcher matcher = Pattern.compile("(\"" + name + "\":\\s*\")([^\"]+)(\")").matcher(message);
+            while (matcher.find()) {
+                message = message.replaceAll(regex, "$1"+ maskName(matcher.group(2)) +"$3");
             }
         }
-
-        // Преобразование обновленной HashMap обратно в JSON-строку
-        return mapToJson(jsonMap);
-    }
-
-    private static HashMap<String, String> parseJson(String jsonMessage) {
-        HashMap<String, String> jsonMap = new HashMap<>();
-        String[] pairs = jsonMessage.substring(1, jsonMessage.length() - 1).split(",");
-        for (String pair : pairs) {
-            String[] keyValue = pair.split(":");
-            String key = keyValue[0].trim().replaceAll("\"", "");
-            String value = keyValue[1].trim().replaceAll("\"", "");
-            jsonMap.put(key, value);
+        for (String email : emailList) {
+            String regex = "(\"" + email + "\":\\s*\")([^\"]+)(\")";
+            Pattern pattern = Pattern.compile(regex);
+            Matcher matcher = pattern.matcher(message);
+            while (matcher.find()) {
+                message = message.replaceAll(regex, "$1"+ maskEmail(matcher.group(2)) +"$3");
+            }
         }
-        return jsonMap;
-    }
-
-    private static String mapToJson(HashMap<String, String> jsonMap) {
-        StringBuilder jsonBuilder = new StringBuilder("{");
-        for (String key : jsonMap.keySet()) {
-            jsonBuilder.append("\"").append(key).append("\": \"").append(jsonMap.get(key)).append("\", ");
-        }
-        if (jsonBuilder.length() > 1) {
-            jsonBuilder.setLength(jsonBuilder.length() - 2); // Удаление лишних запятых и пробелов в конце
-        }
-        jsonBuilder.append("}");
-        return jsonBuilder.toString();
+        return message;
     }
 }

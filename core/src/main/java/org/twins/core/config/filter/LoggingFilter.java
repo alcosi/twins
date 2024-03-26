@@ -76,7 +76,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId, int logShortThreshold) {
             try {
                 String message = new String(content, contentEncoding);
-                JsonUtils.mask(new String[]{"fullName", "name"}, new String[]{"email"}, message);
+                message = JsonUtils.mask(new String[]{"fullName", "name"}, new String[]{"email"}, message);
                 log.info("{}_BODY: {}", prfx, message);
                 if (message.length() > 2000 && message.indexOf("openapi") > 0) { // swagger output is too big
                     logShort.info("{}_BODY: <content> is longer then 2000 symbols. Please see other log file", prfx);
