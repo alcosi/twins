@@ -19,9 +19,8 @@ public class LocaleResolverDomainUser implements LocaleResolver {
         DomainUserEntity domainUser = domainService.getDomainUser();
         if (domainUser.getI18nLocaleId() != null)
             locale = domainUser.getI18nLocaleId();
-        else {
+        else
             locale = domainService.getDefaultDomainLocale(domainUser.getDomainId());
-        }
         return locale;
     }
 }
