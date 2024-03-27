@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverSystem;
@@ -35,26 +37,22 @@ public class DomainBusinessAccountDeleteController extends ApiController {
     final AuthService authService;
     final UserResolverSystem userResolverSystem;
 
-    @ParameterChannelHeader
+    @ParametersApiUserHeaders
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "BusinessAccount was added", content = {
+            @ApiResponse(responseCode = "200", description = "BusinessAccount was deleted", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/business_account/{businessAccountId}/v1", method = RequestMethod.DELETE)
-    public ResponseEntity<?> domainBusinessAccountDeleteV1(
-            @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
-            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
+    @RequestMapping(value = "/private/domain/business_account/v1", method = RequestMethod.DELETE)
+    public ResponseEntity<?> domainBusinessAccountDeleteV1() {
         Response rs = new Response();
         try {
-            authService.getApiUser()
-                    .setDomainResolver(new DomainResolverGivenId(domainId))
-                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId))
-                    .setUserResolver(userResolverSystem);
+            ApiUser apiUser = authService.getApiUser();
+
             domainService.deleteBusinessAccount(
-                    domainService.checkDomainId(domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
-                    businessAccountId);
+                    domainService.checkDomainId(apiUser.getDomainId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
+                    apiUser.getBusinessAccountId());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -168,6 +168,7 @@ public class DomainService {
         return domainBusinessAccountEntity;
     }
 
+    @Transactional
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
 
