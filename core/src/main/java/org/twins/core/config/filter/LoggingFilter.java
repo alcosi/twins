@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.util.JsonUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +76,7 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logContent(byte[] content, String contentType, String contentEncoding, String prfx, String rqId, int logShortThreshold) {
             try {
                 String message = new String(content, contentEncoding);
+                message = JsonUtils.mask(new String[]{"fullName"}, new String[]{"email"}, message);
                 log.info("{}_BODY: {}", prfx, message);
                 if (message.length() > 2000 && message.indexOf("openapi") > 0) { // swagger output is too big
                     logShort.info("{}_BODY: <content> is longer then 2000 symbols. Please see other log file", prfx);

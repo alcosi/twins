@@ -61,7 +61,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     }
 
     public FindTwinClassLinksResult findLinks(TwinClassEntity twinClassEntity) throws ServiceException {
-        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClassEntity);
+        Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();
         List<LinkEntity> linksEntityList = linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses);
         FindTwinClassLinksResult linksResult = new FindTwinClassLinksResult();
         for (LinkEntity linkEntity : linksEntityList) {
@@ -87,7 +87,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     public Kit<LinkEntity> loadLinks(TwinClassEntity twinClassEntity){
         if (twinClassEntity.getLinksKit() != null)
             return twinClassEntity.getLinksKit();
-        Set<UUID> extendedTwinClasses = twinClassService.loadExtendedClasses(twinClassEntity);
+        Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();
         twinClassEntity.setLinksKit(new Kit<>(linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedTwinClasses, extendedTwinClasses), LinkEntity::getId));
         return twinClassEntity.getLinksKit();
     }
@@ -110,9 +110,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     }
 
     public List<LinkEntity> findLinks(TwinClassEntity srcTwinClass, TwinClassEntity dstTwinClass) {
-        Set<UUID> extendedSrcTwinClasses = twinClassService.loadExtendedClasses(srcTwinClass);
-        Set<UUID> extendedDstTwinClasses = twinClassService.loadExtendedClasses(dstTwinClass);
-        return linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(extendedSrcTwinClasses, extendedDstTwinClasses);
+        return linkRepository.findBySrcTwinClassIdInOrDstTwinClassIdIn(srcTwinClass.getExtendedClassIdSet(), dstTwinClass.getExtendedClassIdSet());
     }
 
     public enum LinkDirection {

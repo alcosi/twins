@@ -8,6 +8,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -25,6 +26,10 @@ public abstract class TransitionValidator extends Featurer {
     }
 
     protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException;
+
+    public void beforeListValidation(Collection<TwinEntity> twinEntities) {
+
+    }
 
     @Data
     @Accessors(chain = true)

@@ -31,17 +31,17 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
-            "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId )")
+            "and option.id not in (select cast(field.value as uuid) from TwinFieldSimpleEntity field where field.twinClassFieldId = :twinClassFieldId )")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId); //todo make it businessAccount safe
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
-            "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.ownerBusinessAccountId = :businessAccountId )")
+            "and option.id not in (select cast(field.value as uuid) from TwinFieldSimpleEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.ownerBusinessAccountId = :businessAccountId )")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("businessAccountId") UUID businessAccountId); //todo make it businessAccount safe
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
-            "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.headTwinId = :headTwinId )")
+            "and option.id not in (select cast(field.value as uuid) from TwinFieldSimpleEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.headTwinId = :headTwinId )")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId);
 
     // TODO: fix this query

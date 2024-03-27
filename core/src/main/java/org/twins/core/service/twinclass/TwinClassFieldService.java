@@ -68,10 +68,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public Kit<TwinClassFieldEntity> loadTwinClassFields(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinClassFieldKit() != null)
             return twinClassEntity.getTwinClassFieldKit();
-        Set<UUID> extendedClasses = twinClassService.loadExtendedClasses(twinClassEntity);
-        List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(extendedClasses);
+        List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
         ret = ret.stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
-        twinClassEntity.setTwinClassFieldKit(new Kit<>(ret, TwinClassFieldEntity::getTwinClassId));
+        twinClassEntity.setTwinClassFieldKit(new Kit<>(ret, TwinClassFieldEntity::getId));
         return twinClassEntity.getTwinClassFieldKit();
     }
 
@@ -130,5 +129,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public TwinClassFieldEntity getFieldIdConfiguredForLink(UUID twinClassId, UUID linkId) {
         return twinClassFieldRepository.findByTwinClassIdAndFieldTyperIdInAndFieldTyperParamsLike(twinClassId, Set.of(FieldTyperLink.ID), "%" + linkId + "%");
+    }
+
+    public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
+        loadTwinClassFields(twinClass);
+        return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
     }
 }

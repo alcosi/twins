@@ -7,7 +7,6 @@ import org.twins.core.dto.rest.history.HistoryDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
@@ -19,7 +18,6 @@ import org.twins.core.service.twin.TwinService;
 public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, HistoryDTOv1> {
     final UserRestDTOMapper userRestDTOMapper;
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
-    final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
     final TwinService twinService;
     final AuthService authService;
     final HistoryService historyService;

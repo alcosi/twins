@@ -11,14 +11,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.domain.TwinCreate;
+import org.twins.core.domain.TwinField;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -52,10 +51,6 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     @Autowired
     TwinClassFieldService twinClassFieldService;
 
-    @Lazy
-    @Autowired
-    TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
-
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
@@ -69,10 +64,10 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
         if (minuendFieldValue == null && factoryItem.getOutput() instanceof TwinCreate)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Factory item is under creation and has no created field[" + paramMinuendTwinClassFieldId + "]");
         if (factoryItem.getOutput() instanceof TwinUpdate) { //perhaps we can get field value from database
-            TwinFieldEntity twinFieldEntity = twinService.findTwinField(factoryItem.getOutput().getTwinEntity().getId(), paramMinuendTwinClassFieldId);
-            if (twinFieldEntity == null)
+            TwinField twinField = twinService.wrapField(factoryItem.getOutput().getTwinEntity(), paramMinuendTwinClassFieldId);
+            if (twinField == null)
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not present in " + factoryItem.getOutput().getTwinEntity().getId());
-            minuendFieldValue = twinService.getTwinFieldValue(twinFieldEntity);
+            minuendFieldValue = twinService.getTwinFieldValue(twinField);
         }
         if (minuendFieldValue == null)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] can not be detected");

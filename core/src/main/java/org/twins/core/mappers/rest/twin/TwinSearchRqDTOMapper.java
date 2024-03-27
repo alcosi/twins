@@ -29,7 +29,11 @@ public class TwinSearchRqDTOMapper extends RestSimpleDTOMapper<TwinSearchRqDTOv1
                 .setTwinNameLikeList(convertSafe(src.getTwinNameLikeList()))
                 .setCreatedByUserIdList(convertSafe(src.getCreatedByUserIdList()))
                 .setHierarchyTreeContainsIdList(convertSafe(src.getHierarchyTreeContainsIdList()))
-                .setStatusIdExcludeList(convertSafe(src.getStatusIdExcludeList()));
+                .setStatusIdExcludeList(convertSafe(src.getStatusIdExcludeList()))
+                .setTagDataListOptionIdList(convertSafe(src.getTagDataListOptionIdList()))
+                .setTagDataListOptionIdExcludeList(convertSafe(src.getTagDataListOptionIdExcludeList()))
+                .setMarkerDataListOptionIdList(convertSafe(src.getMarkerDataListOptionIdList()))
+                .setMarkerDataListOptionIdExcludeList(convertSafe(src.getMarkerDataListOptionIdExcludeList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList());

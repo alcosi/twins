@@ -52,4 +52,17 @@ public class TwinSearchRqDTOv1 extends Request {
 
     @Schema(description = "Twin status exclude list")
     public List<UUID>  statusIdExcludeList;
+
+    @Schema(description = "Twin tag list(data list options ids)")
+    public List<UUID> tagDataListOptionIdList;
+
+    @Schema(description = "Twin tag exclude list(data list options ids)")
+    public List<UUID> tagDataListOptionIdExcludeList;
+
+    @Schema(description = "Twin marker list(data list options ids)")
+    public List<UUID> markerDataListOptionIdList;
+
+    @Schema(description = "Twin marker exclude list(data list options ids)")
+    public List<UUID> markerDataListOptionIdExcludeList;
+
 }

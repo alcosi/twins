@@ -31,6 +31,14 @@ public class ChangesHelper {
         return false;
     }
 
+    public boolean isChanged(String field, Object oldValue, Object newValue, String oldMaskedValue, String newMaskedValue) {
+        if (newValue != null && !newValue.equals(oldValue)) {
+            add(field, oldMaskedValue, newMaskedValue);
+            return true;
+        }
+        return false;
+    }
+
     public void flush() {
         hasChanges = false;
         changes.clear();

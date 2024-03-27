@@ -15,6 +15,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
@@ -57,9 +58,10 @@ public class UserAddController extends ApiController {
                     .setCheckMembershipMode(false);
             userService.addUser(new UserEntity()
                     .setId(request.user.id)
-                    .setName(request.user.name)
+                    .setName(request.user.fullName)
                     .setEmail(request.user.email)
-                    .setAvatar(request.user.avatar),
+                    .setAvatar(request.user.avatar)
+                    .setUserStatusId(UserStatus.ACTIVE),
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate
             );
             if (request.businessAccountId != null) {

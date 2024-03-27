@@ -11,8 +11,8 @@ import org.twins.core.dto.rest.Request;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "UserUpdateRqV1")
 public class UserUpdateRqDTOv1 extends Request {
-    @Schema(description = "name", example = "John Doe")
-    public String name;
+    @Schema(description = "fullName", example = "John Doe")
+    public String fullName;
 
     @Schema(description = "email", example = "some@email.com")
     public String email;
