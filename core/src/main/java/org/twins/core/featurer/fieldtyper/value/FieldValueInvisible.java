@@ -4,34 +4,31 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-import org.apache.commons.lang3.StringUtils;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class FieldValueDate extends FieldValue {
-    private String date;
+public class FieldValueInvisible extends FieldValue {
 
-    public FieldValueDate(TwinClassFieldEntity twinClassField) {
+    public FieldValueInvisible(TwinClassFieldEntity twinClassField) {
         super(twinClassField);
     }
 
     @Override
     public boolean isFilled() {
-        return date != null;
+        return false;
     }
 
     @Override
-    public FieldValueDate clone(TwinClassFieldEntity newTwinClassFieldEntity) {
-        FieldValueDate clone = new FieldValueDate(newTwinClassFieldEntity);
-        clone.setDate(this.date);
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueInvisible clone = new FieldValueInvisible(newTwinClassFieldEntity);
         return clone;
     }
 
     @Override
     public boolean hasValue(String value) {
-        return StringUtils.equals(date, value);
+        return false;
     }
 }

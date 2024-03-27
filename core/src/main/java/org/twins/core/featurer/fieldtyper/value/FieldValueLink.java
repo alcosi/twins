@@ -1,20 +1,33 @@
 package org.twins.core.featurer.fieldtyper.value;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueLink extends FieldValue {
     private boolean forwardLink;
     private List<TwinLinkEntity> twinLinks = new ArrayList<>();
+
+    public FieldValueLink(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return CollectionUtils.isNotEmpty(twinLinks);
+    }
 
     public FieldValueLink add(TwinLinkEntity twinLinkEntity) {
         twinLinks.add(twinLinkEntity);
@@ -22,11 +35,9 @@ public class FieldValueLink extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueLink clone = new FieldValueLink();
-        clone
-                .setForwardLink(this.forwardLink)
-                .setTwinClassField(this.getTwinClassField());
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueLink clone = new FieldValueLink(newTwinClassFieldEntity);
+        clone.setForwardLink(this.forwardLink);
         for (TwinLinkEntity twinLinkEntity : twinLinks) {
             clone.getTwinLinks().add(twinLinkEntity.clone());
         }
@@ -42,7 +53,7 @@ public class FieldValueLink extends FieldValue {
             return false;
         }
         for (TwinLinkEntity linkEntity : twinLinks) {
-            if (linkEntity.getDstTwinId() != null &&linkEntity.getDstTwinId().equals(valueUUID)) // only dst twin id is checking
+            if (linkEntity.getDstTwinId() != null && linkEntity.getDstTwinId().equals(valueUUID)) // only dst twin id is checking
                 return true;
         }
         return false;

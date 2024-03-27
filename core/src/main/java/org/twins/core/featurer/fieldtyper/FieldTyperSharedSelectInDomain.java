@@ -6,7 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
@@ -32,10 +32,10 @@ public class FieldTyperSharedSelectInDomain extends FieldTyperList {
     }
 
     @Override
-    public UUID checkOptionAllowed(TwinFieldEntity twinFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInDomain(dataListOptionEntity.getDataListId(), twinFieldEntity.getTwinClassFieldId()).stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in domain");
-        return super.checkOptionAllowed(twinFieldEntity, dataListOptionEntity);
+    public UUID checkOptionAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
+        if (dataListOptionRepository.findByDataListIdAndNotUsedInDomain(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId()).stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in domain");
+        return super.checkOptionAllowed(twinEntity, twinClassFieldEntity, dataListOptionEntity);
     }
 
     @Override

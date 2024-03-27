@@ -7,6 +7,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.util.UUID;
 
@@ -14,9 +15,9 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Table(name = "twin_field")
+@Table(name = "twin_field_simple")
 @FieldNameConstants
-public class TwinFieldEntity extends EasyLoggableImpl {
+public class TwinFieldSimpleEntity extends EasyLoggableImpl implements TwinFieldStorage {
     @Id
     private UUID id;
 
@@ -59,5 +60,14 @@ public class TwinFieldEntity extends EasyLoggableImpl {
             default:
                 return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
         }
+    }
+
+    public TwinFieldSimpleEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldSimpleEntity()
+                .setTwin(dstTwinEntity)
+                .setTwinId(dstTwinEntity.getId())
+                .setTwinClassField(twinClassField)
+                .setTwinClassFieldId(twinClassFieldId)
+                .setValue(value);
     }
 }

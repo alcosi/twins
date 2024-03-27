@@ -5,9 +5,10 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorColorPicker;
 import org.twins.core.featurer.fieldtyper.value.FieldValueColorHEX;
@@ -18,7 +19,7 @@ import java.util.Properties;
 @Featurer(id = 1304,
         name = "FieldTyperColorPicker",
         description = "")
-public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker, FieldValueColorHEX> {
+public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColorPicker, FieldValueColorHEX> {
     private static final String HEX_PATTERN
             = "^#([a-fA-F0-9]{6})$";
     @Override
@@ -27,7 +28,7 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueColorHEX value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueColorHEX value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getHex()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED,  twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (!value.getHex().matches(HEX_PATTERN))
@@ -36,7 +37,8 @@ public class FieldTyperColorPicker extends FieldTyper<FieldDescriptorColorPicker
     }
 
     @Override
-    protected FieldValueColorHEX deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
-        return new FieldValueColorHEX().setHex(twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : "");
+    protected FieldValueColorHEX deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
+        return new FieldValueColorHEX(twinField.getTwinClassField())
+                .setHex(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
     }
 }

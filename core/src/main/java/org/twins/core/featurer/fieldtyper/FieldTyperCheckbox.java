@@ -4,9 +4,10 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorChecks;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
@@ -30,12 +31,12 @@ public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, 
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueSelect value, TwinChangesCollector twinChangesCollector) {
-
+    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueSelect value, TwinChangesCollector twinChangesCollector) {
+        //todo implement me
     }
 
     @Override
-    protected FieldValueSelect deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) {
+    protected FieldValueSelect deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return null;
     }
 }

@@ -10,7 +10,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapperV2;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -29,10 +28,6 @@ public class FillerFieldsFromContextAll extends Filler {
     @Lazy
     @Autowired
     TwinService twinService;
-
-    @Lazy
-    @Autowired
-    TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
