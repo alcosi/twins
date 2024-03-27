@@ -45,7 +45,7 @@ public class TwinClassEntity extends EasyLoggableImpl {
     private boolean permissionSchemaSpace;
 
     @Column(name = "twinflow_schema_space ")
-    private boolean twinflowSchemaSpace ;
+    private boolean twinflowSchemaSpace;
 
     @Column(name = "twin_class_schema_space")
     private boolean twinClassSchemaSpace;
@@ -147,13 +147,12 @@ public class TwinClassEntity extends EasyLoggableImpl {
     private Kit<TwinflowTransitionEntity> transitionsKit;
 
     public Set<UUID> getExtendedClassIdSet() {
-        Set<UUID> result = null;
-        if(null != getExtendsHierarchyTree()) {
-            result = new HashSet<>();
-            for(String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
-                result.add(UUID.fromString(hierarchyItem));
+        if (null == extendedClassIdSet) {
+            extendedClassIdSet = new HashSet<>();
+            for (String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
+                extendedClassIdSet.add(UUID.fromString(hierarchyItem));
         }
-        return result;
+        return extendedClassIdSet;
     }
 
     public String easyLog(Level level) {
