@@ -9,7 +9,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -24,7 +24,7 @@ import java.util.Properties;
 @Featurer(id = 1302,
         name = "FieldTyperDateScroll",
         description = "")
-public class FieldTyperDateScroll extends FieldTyperBasic<FieldDescriptorDate, FieldValueDate> {
+public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate> {
     @FeaturerParam(name = "pattern", description = "")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
@@ -35,7 +35,7 @@ public class FieldTyperDateScroll extends FieldTyperBasic<FieldDescriptorDate, F
     }
 
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String datePatter = pattern.extract(properties);
@@ -45,7 +45,7 @@ public class FieldTyperDateScroll extends FieldTyperBasic<FieldDescriptorDate, F
     }
 
     @Override
-    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldEntity twinFieldEntity) {
+    protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueDate(twinField.getTwinClassField())
                 .setDate(twinFieldEntity != null && twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
     }

@@ -15,9 +15,9 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Table(name = "twin_field")
+@Table(name = "twin_field_simple")
 @FieldNameConstants
-public class TwinFieldEntity extends EasyLoggableImpl implements TwinFieldStorage {
+public class TwinFieldSimpleEntity extends EasyLoggableImpl implements TwinFieldStorage {
     @Id
     private UUID id;
 
@@ -62,8 +62,8 @@ public class TwinFieldEntity extends EasyLoggableImpl implements TwinFieldStorag
         }
     }
 
-    public TwinFieldEntity cloneFor(TwinEntity dstTwinEntity) {
-        return new TwinFieldEntity()
+    public TwinFieldSimpleEntity cloneFor(TwinEntity dstTwinEntity) {
+        return new TwinFieldSimpleEntity()
                 .setTwin(dstTwinEntity)
                 .setTwinId(dstTwinEntity.getId())
                 .setTwinClassField(twinClassField)

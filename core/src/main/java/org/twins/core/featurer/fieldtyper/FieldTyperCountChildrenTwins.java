@@ -7,8 +7,8 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dao.twin.TwinFieldRepository;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.Properties;
@@ -21,7 +21,7 @@ public interface FieldTyperCountChildrenTwins {
     @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
     FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
-    default Long parseTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
+    default Long parseTwinFieldValue(TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         long result = 0;
         if(twinFieldEntity != null && null != twinFieldEntity.getValue()){
             try {
