@@ -75,6 +75,12 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .extensions(attachmentDescriptor.extensions())
                         .fileSizeMbLimit(attachmentDescriptor.fileSizeMbLimit())
                         .filenameRegExp(attachmentDescriptor.filenameRegExp());
+        else if (fieldDescriptor instanceof FieldDescriptorNumeric numericDescriptor)
+                return new TwinClassFieldDescriptorNumericDTOv1()
+                        .min(numericDescriptor.min())
+                        .max(numericDescriptor.max())
+                        .step(numericDescriptor.step())
+                        .thousandSeparator(numericDescriptor.thousandSeparator());
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
                     .multiple(listSharedDescriptor.isMultiple());
