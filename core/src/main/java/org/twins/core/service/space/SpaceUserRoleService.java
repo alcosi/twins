@@ -13,7 +13,6 @@ import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
 import org.twins.core.domain.space.UsersRefSpaceRolePageable;
@@ -125,12 +124,5 @@ public class SpaceUserRoleService {
 
     private Boolean checkSeemEntityInDB(UUID spaceId, UUID roleId, UUID userId) {
         return spaceRoleUserRepository.existsByTwinIdAndSpaceRoleIdAndUserId(spaceId, roleId, userId);
-    }
-
-    public void forceDeleteSpaceRoleUsers(UUID businessAccountId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-
-        spaceRoleUserRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
     }
 }

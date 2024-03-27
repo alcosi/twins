@@ -19,8 +19,4 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     void deleteAllByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID spaceRoleId, UUID userId);
 
     boolean existsByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID roleId, UUID userId);
-
-    // TODO: fix this query
-    @Query("select t from SpaceRoleUserEntity t where t.createdByUserId = :businessAccountId")
-    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }
