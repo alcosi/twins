@@ -44,4 +44,8 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
             "and option.id not in (select cast(field.value as uuid) from TwinFieldEntity field where field.twinClassFieldId = :twinClassFieldId and field.twin.headTwinId = :headTwinId )")
     List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(@Param("dataListId") UUID dataListId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("headTwinId") UUID headTwinId);
 
+    // TODO: fix this query
+    @Query("select t from DataListOptionEntity t where t.businessAccountId = :businessAccountId")
+    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+
 }

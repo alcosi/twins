@@ -38,4 +38,8 @@ public interface TwinBusinessAccountAliasRepository extends CrudRepository<TwinB
             "where space.twin_id = :spaceTwinId and twin.id = :twinId ; " +
             "COMMIT;")
     void createAliasBySpace(UUID twinId, UUID spaceTwinId);
+
+    // TODO: fix this query
+    @Query("select t from TwinBusinessAccountAliasEntity t where t.businessAccountId = :businessAccountId")
+    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }

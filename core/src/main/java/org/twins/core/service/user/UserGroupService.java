@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
@@ -65,5 +66,21 @@ public class UserGroupService {
         DomainEntity domainEntity = apiUser.getDomain();
         UserGroupManager userGroupManager = featurerService.getFeaturer(domainEntity.getUserGroupManagerFeaturer(), UserGroupManager.class);
         userGroupManager.manageForUser(domainEntity.getUserGroupManagerParams(), userId, userGroupEnterList, userGroupExitList, apiUser);
+    }
+
+    public void forceDeleteUserGroups(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        // TODO: only of type businessAccountScopeBusinessAccountManage
+        userGroupRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
+
+    public void forceDeleteUsers(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        // TODO: from domainScopeBusinessAccountManage
+        userGroupMapRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
     }
 }

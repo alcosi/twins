@@ -181,5 +181,12 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             transitionTrigger.run(triggerEntity.getTransitionTriggerParams(), twinEntity, srcStatusEntity, dstStatusEntity);
         }
     }
+
+    public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        twinflowRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
 }
 

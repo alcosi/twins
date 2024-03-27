@@ -120,5 +120,12 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
             dataListOptionEntityList = dataListOptionRepository.findByIdIn(dataListOptionIdSet);
         return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
+
+    public void forceDeleteOptions(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        dataListOptionRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
 }
 

@@ -31,4 +31,8 @@ public interface TwinflowRepository extends CrudRepository<TwinflowEntity, UUID>
             @Param("twinIds") Collection<UUID> twinIds
     );
     List<TwinflowEntity> findByTwinClassIdIn(Collection<UUID> twinClassIds);
+
+    // TODO: fix this query
+    @Query("select t from TwinflowEntity t where t.createdByUserId = :businessAccountId")
+    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }

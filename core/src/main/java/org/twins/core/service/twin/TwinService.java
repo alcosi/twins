@@ -754,4 +754,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public static boolean isCreator(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
         return apiUser.getUserId().equals(twinEntity.getCreatedByUserId());
     }
+
+    public void forceDeleteTwins(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
+
+    public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        twinBusinessAccountAliasRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
+
 }

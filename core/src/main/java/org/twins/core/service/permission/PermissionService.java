@@ -139,5 +139,12 @@ public class PermissionService {
         }
     }
 
+    public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        permissionSchemaRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+    }
+
 }
 
