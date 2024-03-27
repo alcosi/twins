@@ -46,7 +46,7 @@ public class UserUpdateController extends ApiController {
         try {
             UserEntity userEntity = new UserEntity()
                     .setId(userId)
-                    .setName(request.name())
+                    .setName(request.fullName())
                     .setEmail(request.email())
                     .setAvatar(request.avatar())
                     .setUserStatusId(UserStatus.ACTIVE);
