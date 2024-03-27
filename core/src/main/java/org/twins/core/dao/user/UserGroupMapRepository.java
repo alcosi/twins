@@ -1,6 +1,7 @@
 package org.twins.core.dao.user;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,8 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
     int countByUserIdAndUserGroupIdNotIn(UUID userId, List<UUID> userGroupIdList);
 
     void deleteByUserIdAndUserGroupIdIn(UUID userId, List<UUID> userGroupIdList);
+
+    // TODO: fix this query
+    @Query("select t from UserGroupMapEntity t where t.businessAccountId = :businessAccountId")
+    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }
