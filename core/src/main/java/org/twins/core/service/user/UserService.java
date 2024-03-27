@@ -7,6 +7,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
@@ -30,6 +31,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     final UserRepository userRepository;
+    final DomainUserRepository domainUserRepository;
     final EntitySmartService entitySmartService;
     @Lazy
     final TwinService twinService;
@@ -51,7 +53,6 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public boolean validateEntity(UserEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
-
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));

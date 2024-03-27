@@ -9,4 +9,6 @@ import java.util.UUID;
 @Repository
 public interface DomainRepository extends CrudRepository<DomainEntity, UUID>, JpaSpecificationExecutor<DomainEntity> {
     DomainEntity findByKey(String key);
+
+    <T> T findById(UUID id, Class<T> type);
 }
