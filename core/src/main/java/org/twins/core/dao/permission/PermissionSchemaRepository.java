@@ -10,8 +10,7 @@ import java.util.UUID;
 @Repository
 public interface PermissionSchemaRepository extends CrudRepository<PermissionSchemaEntity, UUID>, JpaSpecificationExecutor<PermissionSchemaEntity> {
 
-    // TODO: fix this query
-    @Query("select t from PermissionSchemaEntity t where t.businessAccountId = :businessAccountId")
+    @Query("delete from PermissionSchemaEntity ps where ps.businessAccountId = :businessAccountId and ps.domainId = :domainId")
     void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
 }

@@ -72,7 +72,6 @@ public class UserGroupService {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        // TODO: only of type businessAccountScopeBusinessAccountManage
         userGroupRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
     }
 
@@ -80,7 +79,6 @@ public class UserGroupService {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        // TODO: from domainScopeBusinessAccountManage
         userGroupMapRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
     }
 }

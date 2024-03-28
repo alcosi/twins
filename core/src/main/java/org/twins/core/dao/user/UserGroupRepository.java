@@ -10,8 +10,7 @@ import java.util.UUID;
 @Repository
 public interface UserGroupRepository extends CrudRepository<UserGroupEntity, UUID>, JpaSpecificationExecutor<UserGroupEntity> {
 
-    // TODO: fix this query
-    @Query("select t from UserGroupEntity t where t.businessAccountId = :businessAccountId")
+    @Query("delete from UserGroupEntity ug where ug.businessAccountId = :businessAccountId and ug.domainId = :domainId and ug.userGroupTypeId = 'domainScopeBusinessAccountManage'")
     void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
 }
