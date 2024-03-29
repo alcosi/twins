@@ -76,7 +76,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             twinChangesCollector.add(new TwinFieldUserEntity()
                     .setTwin(twin)
                     .setTwinId(twin.getId())
-                    .setTwinClassFieldId(twin.getId())
+                    .setTwinClassFieldId(value.getTwinClassField().getId())
                     .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                     .setUser(userEntity));
             return;
@@ -101,7 +101,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
                 twinChangesCollector.add(new TwinFieldUserEntity()
                         .setTwin(twin)
                         .setTwinId(twin.getId())
-                        .setTwinClassFieldId(twin.getId())
+                        .setTwinClassFieldId(value.getTwinClassField().getId())
                         .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                         .setUser(userEntity));
             } else {
