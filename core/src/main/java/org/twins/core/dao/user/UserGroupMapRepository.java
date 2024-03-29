@@ -19,6 +19,6 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
     @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId in (:types)")
     List<UUID> findAllByBusinessAccountIdAndDomainIdAndTypes(UUID businessAccountId, UUID domainId, List<String> types);
 
-    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId is null and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId in (:types)")
-    List<UUID> findAllByDomainIdAndTypesWithoutBusinessAccount(UUID domainId, List<String> types);
+    @Query("select ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId is null and ugm.userGroup.domainId = :domainId and ugm.userGroup.businessAccountId = :businessAccountId and ugm.userGroup.userGroupTypeId in (:types)")
+    List<UUID> findAllByDomainIdAndTypesAndUserGroupBusinessAccount(UUID businessAccountId, UUID domainId, List<String> types);
 }
