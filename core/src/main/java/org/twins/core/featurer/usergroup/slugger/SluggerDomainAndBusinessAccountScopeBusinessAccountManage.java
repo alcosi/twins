@@ -29,10 +29,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
             return null;
         }
 
-        if (userGroupMapEntity.getBusinessAccountId() == null) {
-            log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group_map");
-            return null;
-        }
+        checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
 
         return userGroupMapEntity.getUserGroup();
     }
@@ -41,7 +38,7 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
         if (!apiUser.isBusinessAccountSpecified() ||
                 userGroup.getBusinessAccountId() == null ||
-                userGroup.getBusinessAccountId() != apiUser.getBusinessAccountId()) {
+                !userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId())) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
@@ -50,8 +47,6 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
                 .setUserId(userId)
-                .setBusinessAccountId(apiUser.getBusinessAccountId())
-                .setBusinessAccount(apiUser.getBusinessAccount())
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
