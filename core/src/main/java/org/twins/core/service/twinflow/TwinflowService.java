@@ -186,7 +186,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        twinflowRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        List<UUID> schemasToDelete = twinflowRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(schemasToDelete, twinflowRepository);
     }
 }
 

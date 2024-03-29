@@ -16,6 +16,6 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
 
     void deleteByUserIdAndUserGroupIdIn(UUID userId, List<UUID> userGroupIdList);
 
-    @Query("delete from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId = 'domainScopeBusinessAccountManage'")
-    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+    @Query("select distinct ugm.id from UserGroupMapEntity ugm where ugm.businessAccountId = :businessAccountId and ugm.userGroup.domainId = :domainId and ugm.userGroup.userGroupTypeId = :type")
+    List<UUID> findAllByBusinessAccountIdAndDomainIdAndType(UUID businessAccountId, UUID domainId, String type);
 }

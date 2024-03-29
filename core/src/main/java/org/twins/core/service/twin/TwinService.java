@@ -764,14 +764,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        List<UUID> twinsToDelete = twinRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(twinsToDelete, twinRepository);
     }
 
     public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        twinBusinessAccountAliasRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        List<UUID> aliasToDelete = twinBusinessAccountAliasRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(aliasToDelete, twinBusinessAccountAliasRepository);
     }
 
 }

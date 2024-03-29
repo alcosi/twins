@@ -5,12 +5,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
 public interface PermissionSchemaRepository extends CrudRepository<PermissionSchemaEntity, UUID>, JpaSpecificationExecutor<PermissionSchemaEntity> {
 
-    @Query("delete from PermissionSchemaEntity ps where ps.businessAccountId = :businessAccountId and ps.domainId = :domainId")
-    void deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+    @Query("select distinct ps.id from PermissionSchemaEntity ps where ps.businessAccountId = :businessAccountId and ps.domainId = :domainId")
+    List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
 }

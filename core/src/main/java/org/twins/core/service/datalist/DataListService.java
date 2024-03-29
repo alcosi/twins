@@ -125,7 +125,8 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        dataListOptionRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        List<UUID> optionsToDelete = dataListOptionRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(optionsToDelete, dataListOptionRepository);
     }
 }
 

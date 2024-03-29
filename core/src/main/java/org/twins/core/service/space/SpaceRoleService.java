@@ -10,6 +10,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -29,6 +30,7 @@ public class SpaceRoleService {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        spaceRoleRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        List<UUID> rolesToDelete = spaceRoleRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(rolesToDelete, spaceRoleRepository);
     }
 }
