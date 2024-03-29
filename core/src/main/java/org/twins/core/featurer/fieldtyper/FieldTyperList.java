@@ -60,6 +60,8 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             twinChangesCollector.getHistoryCollector(twin)
                     .add(historyService.fieldChangeDataList(value.getTwinClassField(), null, dataListOptionEntity));
             twinChangesCollector.add(new TwinFieldDataListEntity()
+                    .setTwin(twin)
+                    .setTwinId(twin.getId())
                     .setTwinClassFieldId(value.getTwinClassField().getId())
                     .setDataListOptionId(checkOptionAllowed(twin, value.getTwinClassField(), dataListOptionEntity))
                     .setDataListOption(dataListOptionEntity));
@@ -84,6 +86,8 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             if (FieldValueChangeHelper.notSaved(dataListOptionEntity.getId(), storedOptions)) { // no values were saved before
                 historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
                 twinChangesCollector.add(new TwinFieldDataListEntity()
+                        .setTwin(twin)
+                        .setTwinId(twin.getId())
                         .setTwinClassFieldId(value.getTwinClassField().getId())
                         .setDataListOptionId(checkOptionAllowed(twin, value.getTwinClassField(), dataListOptionEntity))
                         .setDataListOption(dataListOptionEntity));
