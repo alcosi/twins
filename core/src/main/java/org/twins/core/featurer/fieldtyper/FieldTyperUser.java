@@ -74,6 +74,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             UserEntity userEntity = selectedUserEntityList.get(0);
             twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), null, userEntity));
             twinChangesCollector.add(new TwinFieldUserEntity()
+                    .setTwin(twin)
+                    .setTwinId(twin.getId())
                     .setTwinClassFieldId(twin.getId())
                     .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                     .setUser(userEntity));
@@ -97,6 +99,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before
                 historyItem.getContext().shotAddedUserId(userEntity.getId());
                 twinChangesCollector.add(new TwinFieldUserEntity()
+                        .setTwin(twin)
+                        .setTwinId(twin.getId())
                         .setTwinClassFieldId(twin.getId())
                         .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                         .setUser(userEntity));
