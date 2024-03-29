@@ -23,7 +23,8 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
     @Query(value = "select t.assignerUser from TwinEntity t where t.id = :twinId")
     UserEntity getAssignee(@Param("twinId") UUID twinId);
 
-    @Query("select distinct te.id from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
-    List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+    @Modifying
+    @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
+    int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
 }

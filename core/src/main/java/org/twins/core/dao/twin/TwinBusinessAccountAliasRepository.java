@@ -39,6 +39,6 @@ public interface TwinBusinessAccountAliasRepository extends CrudRepository<TwinB
             "COMMIT;")
     void createAliasBySpace(UUID twinId, UUID spaceTwinId);
 
-    @Query("select distinct tb.id from TwinBusinessAccountAliasEntity tb where tb.businessAccountId = :businessAccountId and tb.twin.twinClass.domainId = :domainId")
+    @Query("select tb.id from TwinBusinessAccountAliasEntity tb where tb.businessAccountId = :businessAccountId and tb.twin.twinClass.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 }

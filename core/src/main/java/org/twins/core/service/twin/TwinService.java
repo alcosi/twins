@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.KitGrouped;
@@ -764,8 +765,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        List<UUID> twinsToDelete = twinRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
-        entitySmartService.deleteAllAndLog(twinsToDelete, twinRepository);
+        int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        log.info(deletedCount + " number of twins were deleted");
     }
 
     public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {

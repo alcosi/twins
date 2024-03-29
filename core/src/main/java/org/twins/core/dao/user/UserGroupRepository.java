@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface UserGroupRepository extends CrudRepository<UserGroupEntity, UUID>, JpaSpecificationExecutor<UserGroupEntity> {
 
-    @Query("select distinct ug.id from UserGroupEntity ug where ug.businessAccountId = :businessAccountId and ug.domainId = :domainId and ug.userGroupTypeId = :type")
+    @Query("select ug.id from UserGroupEntity ug where ug.businessAccountId = :businessAccountId and ug.domainId = :domainId and ug.userGroupTypeId = :type")
     List<UUID> findAllByBusinessAccountIdAndDomainIdAndType(UUID businessAccountId, UUID domainId, String type);
 
 }

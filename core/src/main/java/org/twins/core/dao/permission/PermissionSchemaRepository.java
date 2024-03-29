@@ -11,7 +11,7 @@ import java.util.UUID;
 @Repository
 public interface PermissionSchemaRepository extends CrudRepository<PermissionSchemaEntity, UUID>, JpaSpecificationExecutor<PermissionSchemaEntity> {
 
-    @Query("select distinct ps.id from PermissionSchemaEntity ps where ps.businessAccountId = :businessAccountId and ps.domainId = :domainId")
+    @Query("select ps.id from PermissionSchemaEntity ps where ps.businessAccountId = :businessAccountId and ps.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
 }

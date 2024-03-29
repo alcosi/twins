@@ -71,7 +71,7 @@ public class UserGroupService {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainScopeBusinessAccountManage");
+        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainAndBusinessAccountScopeBusinessAccountManage");
         entitySmartService.deleteAllAndLog(groupsToDelete, userGroupRepository);
     }
 
@@ -79,7 +79,7 @@ public class UserGroupService {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
 
-        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainScopeBusinessAccountManage");
+        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndTypes(businessAccountId, domainId, List.of("domainScopeBusinessAccountManage", "domainAndBusinessAccountScopeBusinessAccountManage"));
         entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
     }
 }
