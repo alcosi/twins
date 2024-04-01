@@ -18,9 +18,12 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.*;
+import org.twins.core.dto.rest.twin.TwinFieldListUpdateRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinFieldUpdateRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
@@ -46,59 +49,8 @@ public class TwinFieldSaveController extends ApiController {
     final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinFieldRestDTOMapperV2 twinFieldRestDTOMapperV2;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinFieldUpdateV1", summary = "Updates twin field data by id (only for existed fields)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinFieldUpdateRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_field/{twinFieldId}/v1", method = RequestMethod.PUT)
-    public ResponseEntity<?> twinFieldUpdateV1(
-            @Parameter(example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @RequestBody TwinFieldUpdateRqDTOv1 request) {
-        TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
-        try {
-            TwinFieldEntity twinFieldEntity = twinService.updateField(twinFieldId, twinFieldValueRestDTOReverseMapper.convert(request.value));
-            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinFieldUpdateV2", summary = "Updates twin field data by id (only for existed fields)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinFieldUpdateRsDTOv1.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_field/{twinFieldId}/v2", method = RequestMethod.PUT)
-    public ResponseEntity<?> twinFieldUpdateV2(
-            @Parameter(example = DTOExamples.TWIN_FIELD_ID) @PathVariable UUID twinFieldId,
-            @Parameter(example = DTOExamples.TWIN_FIELD_VALUE) @RequestParam(name = RestRequestParam.fieldValue) String fieldValue) {
-        TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
-        try {
-            TwinFieldEntity twinFieldEntity = twinService.findTwinField(twinFieldId);
-            twinFieldEntity = twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2
-                    .convert(
-                            twinFieldValueRestDTOReverseMapperV2.createValueByTwinField(twinFieldEntity, fieldValue)));
-            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
 
 
     @ParametersApiUserHeaders
@@ -115,9 +67,9 @@ public class TwinFieldSaveController extends ApiController {
             @RequestBody TwinFieldUpdateRqDTOv1 request) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
-            twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapper.convert(request.value));
-            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
+            TwinField twinField = twinService.wrapField(twinId, fieldKey);
+            twinService.updateField(twinField, twinFieldValueRestDTOReverseMapper.convert(request.value));
+            rs.field(twinFieldRestDTOMapper.convert(twinField));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -140,11 +92,11 @@ public class TwinFieldSaveController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_FIELD_VALUE) @RequestParam(name = RestRequestParam.fieldValue) String fieldValue) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
-            TwinFieldEntity twinFieldEntity = twinService.findTwinFieldIncludeMissing(twinId, fieldKey);
-            twinService.updateField(twinFieldEntity, twinFieldValueRestDTOReverseMapperV2.convert(
+            TwinField twinField = twinService.wrapField(twinId, fieldKey);
+            twinService.updateField(twinField, twinFieldValueRestDTOReverseMapperV2.convert(
                     twinFieldValueRestDTOReverseMapperV2.createByTwinIdAndFieldKey(twinId, fieldKey, fieldValue)
             ));
-            rs.field(twinFieldRestDTOMapper.convert(twinFieldEntity));
+            rs.field(twinFieldRestDTOMapper.convert(twinField));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

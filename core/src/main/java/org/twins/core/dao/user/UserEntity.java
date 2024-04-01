@@ -1,9 +1,6 @@
 package org.twins.core.dao.user;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
@@ -11,6 +8,8 @@ import org.cambium.common.EasyLoggable;
 
 import java.sql.Timestamp;
 import java.util.UUID;
+
+import static org.twins.core.service.user.UserService.maskEmail;
 
 @Entity
 @Data
@@ -33,8 +32,12 @@ public class UserEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "user_status_id")
+    @Enumerated(EnumType.STRING)
+    private UserStatus userStatusId;
+
     public String easyLog(Level level)  {
-        return "user[id:" + id + ", email:" + email + "]";
+        return "user[id:" + id + ", email:" + maskEmail(email) + "]";
     }
 }
 

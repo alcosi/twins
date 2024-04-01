@@ -8,15 +8,15 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -45,7 +45,7 @@ public class TwinClassEntity extends EasyLoggableImpl {
     private boolean permissionSchemaSpace;
 
     @Column(name = "twinflow_schema_space ")
-    private boolean twinflowSchemaSpace ;
+    private boolean twinflowSchemaSpace;
 
     @Column(name = "twin_class_schema_space")
     private boolean twinClassSchemaSpace;
@@ -79,6 +79,14 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Column(name = "extends_twin_class_id")
     private UUID extendsTwinClassId;
+
+    @Column(name = "head_hierarchy_tree", columnDefinition = "ltree")
+    @Type(value = LtreeUserType.class)
+    private String headHierarchyTree;
+
+    @Column(name = "extends_hierarchy_tree", columnDefinition = "ltree")
+    @Type(value = LtreeUserType.class)
+    private String extendsHierarchyTree;
 
     @Column(name = "domain_alias_counter")
     private int domainAliasCounter;
@@ -137,6 +145,15 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity> transitionsKit;
+
+    public Set<UUID> getExtendedClassIdSet() {
+        if (null == extendedClassIdSet) {
+            extendedClassIdSet = new HashSet<>();
+            for (String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
+                extendedClassIdSet.add(UUID.fromString(hierarchyItem));
+        }
+        return extendedClassIdSet;
+    }
 
     public String easyLog(Level level) {
         switch (level) {

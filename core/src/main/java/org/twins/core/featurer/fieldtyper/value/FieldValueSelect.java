@@ -1,19 +1,32 @@
 package org.twins.core.featurer.fieldtyper.value;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class FieldValueSelect extends FieldValue {
     private List<DataListOptionEntity> options = new ArrayList<>();
+
+    public FieldValueSelect(TwinClassFieldEntity twinClassField) {
+        super(twinClassField);
+    }
+
+    @Override
+    public boolean isFilled() {
+        return CollectionUtils.isNotEmpty(options);
+    }
 
     public FieldValueSelect add(DataListOptionEntity option) {
         options.add(option);
@@ -21,10 +34,8 @@ public class FieldValueSelect extends FieldValue {
     }
 
     @Override
-    public FieldValue clone() {
-        FieldValueSelect clone = new FieldValueSelect();
-        clone
-                .setTwinClassField(this.getTwinClassField());
+    public FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity) {
+        FieldValueSelect clone = new FieldValueSelect(newTwinClassFieldEntity);
         clone.getOptions().addAll(this.options);
         return clone;
     }

@@ -59,6 +59,10 @@ public class TwinSearchService {
                         .and(checkPermissions(domainId, businesAccountId, userId, userGroups))
                         .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdExcludeList(), true))
                         .and(checkUuidIn(TwinEntity.Fields.twinClassId, basicSearch.getTwinClassIdExcludeList(), true))
+                        .and(checkTagIds(basicSearch.getTagDataListOptionIdList(), false))
+                        .and(checkTagIds(basicSearch.getTagDataListOptionIdExcludeList(), true))
+                        .and(checkMarkerIds(basicSearch.getMarkerDataListOptionIdList(), false))
+                        .and(checkMarkerIds(basicSearch.getMarkerDataListOptionIdExcludeList(), true))
         );
     }
 

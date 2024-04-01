@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUID>, JpaSpecificationExecutor<TwinFieldEntity> {
+public interface TwinFieldRepository extends CrudRepository<TwinFieldSimpleEntity, UUID>, JpaSpecificationExecutor<TwinFieldSimpleEntity> {
 
     @Query(value = "select count(child) from TwinEntity child where child.headTwinId=:headTwinId and child.twinStatusId in :childrenTwinStatusIdList")
     long countChildrenTwinsWithStatusIn(@Param("headTwinId") UUID headTwinId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
@@ -22,7 +22,7 @@ public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUI
 
     @Query(value = """
             select coalesce(sum(cast(field.value as double)), 0)
-            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
+            from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
             where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and twin.twinStatusId in :childrenTwinStatusIdList
              """)
     double sumChildrenTwinFieldValuesWithStatusIn(
@@ -30,23 +30,23 @@ public interface TwinFieldRepository extends CrudRepository<TwinFieldEntity, UUI
 
     @Query(value = """
             select coalesce(sum(cast(field.value as double)), 0)
-            from TwinFieldEntity field inner join TwinEntity twin on field.twinId = twin.id
+            from TwinFieldSimpleEntity field inner join TwinEntity twin on field.twinId = twin.id
             where twin.headTwinId=:headTwinId and field.twinClassFieldId = :twinClassFieldId and not twin.twinStatusId in :childrenTwinStatusIdList
              """)
     double sumChildrenTwinFieldValuesWithStatusNotIn(
             @Param("headTwinId") UUID headTwinId, @Param("twinClassFieldId") UUID twinClassFieldId, @Param("childrenTwinStatusIdList") Collection<UUID> childrenTwinStatusIdList);
 
 
-    List<TwinFieldEntity> findByTwinId(UUID twinId);
+    List<TwinFieldSimpleEntity> findByTwinId(UUID twinId);
 
-    List<TwinFieldEntity> findByTwinIdIn(Collection<UUID> twinIdList);
+    List<TwinFieldSimpleEntity> findByTwinIdIn(Collection<UUID> twinIdList);
 
 //    @Query(value = "select tfe from TwinFieldEntity tfe join fetch tfe.twinClassField where tfe.twinId in (:twinIds)")
 //    List<TwinFieldEntity> findByTwinIdIn(@Param("twinIds") Collection<UUID> twinIdList);
 
-    TwinFieldEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
+    TwinFieldSimpleEntity findByTwinIdAndTwinClassField_Key(UUID twinId, String key);
 
-    TwinFieldEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
+    TwinFieldSimpleEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
 
     void deleteByTwinId(UUID twinId);
 }

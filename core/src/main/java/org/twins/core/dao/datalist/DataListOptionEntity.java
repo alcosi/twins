@@ -52,6 +52,9 @@ public class DataListOptionEntity extends EasyLoggableImpl {
     @Column(name = "attribute_4_value")
     private String attribute4value;
 
+    @Column(name = "order")
+    private Short order;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;

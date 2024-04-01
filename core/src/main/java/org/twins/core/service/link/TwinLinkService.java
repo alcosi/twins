@@ -94,8 +94,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 twinLinkEntity.setLink(linkService.findEntity(twinLinkEntity.getLinkId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
             if (twinLinkEntity.getDstTwin() == null)
                 twinLinkEntity.setDstTwin(twinService.findEntity(twinLinkEntity.getDstTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
-            Set<UUID> srcTwinExtendedClasses = twinClassService.loadExtendedClasses(srcTwinEntity.getTwinClass());
-            Set<UUID> dstTwinExtendedClasses = twinClassService.loadExtendedClasses(twinLinkEntity.getDstTwin().getTwinClass());
+            Set<UUID> srcTwinExtendedClasses = srcTwinEntity.getTwinClass().getExtendedClassIdSet();
+            Set<UUID> dstTwinExtendedClasses = twinLinkEntity.getDstTwin().getTwinClass().getExtendedClassIdSet();
             if (srcTwinExtendedClasses.contains(twinLinkEntity.getLink().getSrcTwinClassId())) { // forward link creation
                 log.info("Forward link creation");
                 twinLinkEntity

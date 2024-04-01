@@ -7,8 +7,9 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldRepository;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.Properties;
@@ -23,9 +24,9 @@ public interface FieldTyperCalcChildrenField {
     @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
     FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
-    default Double parseTwinFieldValue(TwinFieldEntity twinFieldEntity) throws ServiceException {
+    default Double parseTwinFieldValue(TwinFieldSimpleEntity twinFieldEntity) throws ServiceException {
         double result = 0d;
-        if(null != twinFieldEntity.getValue()){
+        if(twinFieldEntity != null && null != twinFieldEntity.getValue()){
             try {
                 if(!ObjectUtils.isEmpty(twinFieldEntity.getValue())) result = Double.parseDouble(twinFieldEntity.getValue());
             } catch (NumberFormatException e) {
@@ -35,10 +36,10 @@ public interface FieldTyperCalcChildrenField {
         return result;
     }
 
-    default Double getSumResult(Properties properties, TwinFieldEntity twinFieldEntity, TwinFieldRepository twinFieldRepository) throws ServiceException {
+    default Double getSumResult(Properties properties, TwinEntity twinEntity, TwinFieldRepository twinFieldRepository) throws ServiceException {
         return exclude.extract(properties) ?
-                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinFieldEntity.getTwin().getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
-                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(twinFieldEntity.getTwin().getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
+                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
     }
 
 }

@@ -48,7 +48,6 @@ public class TwinUpdateController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
     final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final UserService userService;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;

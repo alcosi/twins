@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserStatus;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserUpdateRqDTOv1;
@@ -45,9 +46,10 @@ public class UserUpdateController extends ApiController {
         try {
             UserEntity userEntity = new UserEntity()
                     .setId(userId)
-                    .setName(request.name())
+                    .setName(request.fullName())
                     .setEmail(request.email())
-                    .setAvatar(request.avatar());
+                    .setAvatar(request.avatar())
+                    .setUserStatusId(UserStatus.ACTIVE);
             userService.updateUser(userEntity);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

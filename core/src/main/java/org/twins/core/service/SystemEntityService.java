@@ -29,8 +29,6 @@ public class SystemEntityService {
     final TwinClassRepository twinClassRepository;
     final TwinStatusRepository twinStatusRepository;
     final UserRepository userRepository;
-    final TwinClassExtendsMapRepository twinClassExtendsMapRepository;
-    final TwinClassChildMapRepository twinClassChildMapRepository;
     final EntitySmartService entitySmartService;
 
     private static final UUID USER_SYSTEM = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -94,71 +92,6 @@ public class SystemEntityService {
                 .setCreatedByUserId(USER_SYSTEM)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinEntity.getId(), twinEntity, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
-        loadTwinClassInheritanceMaps();
-    }
-
-    private void loadTwinClassInheritanceMaps() {
-        Iterable<TwinClassNoRelationsProjection> allClasses = twinClassRepository.findAllProjectedBy(TwinClassNoRelationsProjection.class);
-        List<TwinClassChildMapEntity> twinClassChildMapEntityList = new ArrayList<>();
-        List<TwinClassExtendsMapEntity> twinClassExtendsMapEntityList = new ArrayList<>();
-        for (TwinClassNoRelationsProjection twinClassEntity : allClasses) {
-            for (UUID twinClassExtendsId : loadExtendedClasses(twinClassEntity)) {
-                twinClassExtendsMapEntityList.add(new TwinClassExtendsMapEntity()
-                        .setTwinClassId(twinClassEntity.id())
-                        .setExtendsTwinClassId(twinClassExtendsId));
-            }
-            for (UUID twinClassChildId : loadChildClasses(twinClassEntity.id())) {
-                twinClassChildMapEntityList.add(new TwinClassChildMapEntity()
-                        .setTwinClassId(twinClassEntity.id())
-                        .setChildTwinClassId(twinClassChildId));
-            }
-        }
-        twinClassExtendsMapRepository.truncateTable();
-        twinClassExtendsMapRepository.saveAll(twinClassExtendsMapEntityList);
-        twinClassChildMapRepository.truncateTable();
-        twinClassChildMapRepository.saveAll(twinClassChildMapEntityList);
-        //todo db trigger must be added on twin_class table
-    }
-
-    public Set<UUID> loadExtendedClasses(TwinClassNoRelationsProjection twinClassEntity) {
-        Set<UUID> extendedClassIdSet = new LinkedHashSet<>();
-        extendedClassIdSet.add(twinClassEntity.id());
-        if (twinClassEntity.extendsTwinClassId() == null)
-            return extendedClassIdSet;
-        UUID extendedTwinClassId = twinClassEntity.extendsTwinClassId();
-        extendedClassIdSet.add(extendedTwinClassId);
-        for (int i = 0; i <= 10; i++) {
-            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
-            if (extendedTwinClassId == null)
-                break;
-            if (extendedClassIdSet.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.easyLog(EasyLoggable.Level.NORMAL) + " inheritance recursion");
-                break;
-            }
-            extendedClassIdSet.add(extendedTwinClassId);
-        }
-        return extendedClassIdSet;
-    }
-
-    public Set<UUID> loadChildClasses(UUID twinClassId) {
-        Set<UUID> childClassIdSet = new LinkedHashSet<>();
-        childClassIdSet.add(twinClassId);
-        loadChildClasses(childClassIdSet, twinClassId, 10);
-        return childClassIdSet;
-    }
-
-    private void loadChildClasses(Set<UUID> childClassIdSet, UUID twinClassId, int recursionDepth) {
-        if (recursionDepth <= 0) {
-            log.warn("Load child classes recursion depth limit reached");
-            return;
-        }
-        List<UUID> childTwinClassIdList = twinClassRepository.findChildClassIdList(twinClassId);
-        if (CollectionUtils.isNotEmpty(childTwinClassIdList)) {
-            for (UUID childTwinClassId : childTwinClassIdList) {
-                childClassIdSet.add(childTwinClassId);
-                loadChildClasses(childClassIdSet, childTwinClassId, recursionDepth - 1);
-            }
-        }
     }
 
     public UUID getUserIdSystem() {

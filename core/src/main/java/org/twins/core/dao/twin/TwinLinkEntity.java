@@ -8,6 +8,7 @@ import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.PublicCloneable;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity extends EasyLoggableImpl implements PublicCloneable<TwinLinkEntity> {
+public class TwinLinkEntity extends EasyLoggableImpl implements PublicCloneable<TwinLinkEntity>, TwinFieldStorage {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

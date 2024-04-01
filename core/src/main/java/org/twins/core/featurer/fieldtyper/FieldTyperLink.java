@@ -13,11 +13,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
@@ -36,7 +37,7 @@ import java.util.stream.Collectors;
 @Featurer(id = 1310,
         name = "FieldTyperLink",
         description = "")
-public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink> {
+public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity> {
     public static final Integer ID = 1310;
 
     @Autowired
@@ -79,36 +80,35 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 
     //todo check if this method works correctly for fields that display backward links
     @Override
-    protected void serializeValue(Properties properties, TwinFieldEntity twinFieldEntity, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueLink value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
         List<TwinLinkEntity> newTwinLinks = value.getTwinLinks() != null ? value.getTwinLinks() : new ArrayList<>();
         for (TwinLinkEntity newTwinLinkEntity : newTwinLinks) //we have to set link, because it can be empty
             newTwinLinkEntity
                     .setLinkId(linkEntity.getId())
                     .setLink(linkEntity);
-        if (twinFieldEntity.getTwinClassField().isRequired() && CollectionUtils.isEmpty(newTwinLinks))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
-        if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, twinFieldEntity.getTwinClassField()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
-        twinLinkService.prepareTwinLinks(twinFieldEntity.getTwin(), newTwinLinks);
-//        if (twinFieldEntity.getId() == null) //not new field
-//            twinFieldEntity.setId(UUID.randomUUID()); // we have to generate id here, because TwinFieldDataListEntity is linked to TwinFieldEntity by FK
-        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinFieldEntity.getTwin().getTwinClass());
+        if (value.getTwinClassField().isRequired() && CollectionUtils.isEmpty(newTwinLinks))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
+        if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
+        twinLinkService.prepareTwinLinks(twin, newTwinLinks);
+        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
         List<TwinLinkEntity> storedLinksList;
+        twinLinkService.loadTwinLinks(twin); //todo optimize loading for backward links
         Map<UUID, TwinLinkEntity> storedLinksMap = null; // key is links dstTwinId
         switch (linkDirection) {
             case forward:
-                storedLinksList = twinLinkRepository.findBySrcTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkEntity.class);
+                storedLinksList = twin.getTwinLinks().getForwardLinks().getList();
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getDstTwinId, Function.identity()));
                 break;
             case backward:
-                storedLinksList = twinLinkRepository.findByDstTwinIdAndLinkId(twinFieldEntity.getTwinId(), linkEntity.getId(), TwinLinkEntity.class);
+                storedLinksList = twin.getTwinLinks().getBackwardLinks().getList();
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getSrcTwinId, Function.identity()));
                 break;
             default:
-                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twinFieldEntity.getTwin().getTwinClass().logShort());
+                throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, linkEntity.logShort() + " can not detect link direction for " + twin.getTwinClass().logShort());
         }
         if (FieldValueChangeHelper.isSingleValueAdd(newTwinLinks, storedLinksMap)) {
             TwinLinkEntity twinLinkEntity = newTwinLinks.get(0);
@@ -182,14 +182,18 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     }
 
     @Override
-    protected FieldValueLink deserializeValue(Properties properties, TwinFieldEntity twinFieldEntity) throws ServiceException {
-        FieldValueLink ret = new FieldValueLink();
+    protected FieldValueLink deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
+        TwinEntity twinEntity = twinField.getTwin();
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
-        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinFieldEntity.getTwin().getTwinClass());
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkService.findTwinLinks(linkEntity, twinFieldEntity.getTwin(), linkDirection);
-        if (twinLinkEntityList != null)
-            ret.setTwinLinks(twinLinkEntityList);
-        return ret
+        LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twinField.getTwin().getTwinClass());
+        twinLinkService.loadTwinLinks(twinEntity);
+        List<TwinLinkEntity> twinLinkEntityList;
+        if (linkDirection == LinkService.LinkDirection.forward)
+            twinLinkEntityList = twinEntity.getTwinLinks().getForwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
+        else
+            twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
+        return new FieldValueLink(twinField.getTwinClassField())
+                .setTwinLinks(twinLinkEntityList)
                 .setForwardLink(linkDirection == LinkService.LinkDirection.forward);
     }
 }

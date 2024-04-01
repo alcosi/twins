@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -19,7 +19,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
     final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
-    final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
+    final TwinFieldRestDTOMapperV3 twinFieldRestDTOMapperV3;
     final TwinService twinService;
 
 
@@ -27,17 +27,17 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     public void map(TwinEntity src, TwinDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
 
-        List<TwinFieldEntity> twinFieldEntityList;
         switch (mapperContext.getModeOrUse(FieldsMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS, ALL_FIELDS_WITH_ATTACHMENTS:
-                twinFieldEntityList = twinService.findTwinFieldsIncludeMissing(src);
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
+                twinService.loadFieldsValues(src);
+                dst.fields(twinFieldRestDTOMapperV3.convertList(src.getFieldValuesKit().getList(), mapperContext));
                 break;
             case NOT_EMPTY_FIELDS, NOT_EMPTY_FIELDS_WITH_ATTACHMENTS:
-                twinFieldEntityList = twinService.findTwinFields(src.getId());
-                dst.fields(twinFieldRestDTOMapper.convertList(twinFieldEntityList, mapperContext));
+                twinService.loadFieldsValues(src);
+                List<FieldValue> notEmptyFields = src.getFieldValuesKit().getList().stream().filter(FieldValue::isFilled).toList();
+                dst.fields(twinFieldRestDTOMapperV3.convertList(notEmptyFields, mapperContext));
                 break;
         }
     }
