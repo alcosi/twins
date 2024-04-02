@@ -83,7 +83,7 @@ public class UserGroupService {
         entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
 
         // delete users without business account, for type domainAndBusinessAccountScopeBusinessAccountManage
-        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypesWithoutBusinessAccount(domainId, List.of("domainAndBusinessAccountScopeBusinessAccountManage"));
+        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypesAndUserGroupBusinessAccount(businessAccountId, domainId, List.of("domainAndBusinessAccountScopeBusinessAccountManage"));
         entitySmartService.deleteAllAndLog(businessAccountUsersToDelete, userGroupMapRepository);
     }
 }
