@@ -2,12 +2,14 @@ package org.cambium.i18n.dao;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.Locale;
 
 @Entity
 @Data
 @Table(name = "i18n_locale")
+@FieldNameConstants
 public class I18nLocaleEntity {
     @Id
     @Column(name = "locale")
