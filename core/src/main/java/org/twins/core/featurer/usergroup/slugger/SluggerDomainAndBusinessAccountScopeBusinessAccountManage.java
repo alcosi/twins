@@ -17,27 +17,32 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Featurer(id = 2003,
-        name = "SluggerBusinessAccountScopeBusinessAccountManage",
+@Featurer(id = 2004,
+        name = "SluggerDomainAndBusinessAccountScopeBusinessAccountManage",
         description = "")
 @RequiredArgsConstructor
-public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
+public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends Slugger {
     @Override
-    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
-        checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
+    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) {
         if (userGroupMapEntity.getUserGroup().getBusinessAccountId() == null) {
-            log.warn(userGroupMapEntity.getUserGroup().easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
+            log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
             return null;
-        } else
-            return userGroupMapEntity.getUserGroup();
+        }
+
+        checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
+
+        return userGroupMapEntity.getUserGroup();
     }
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (!apiUser.isBusinessAccountSpecified() || !userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId())) {
+        if (!apiUser.isBusinessAccountSpecified() ||
+                userGroup.getBusinessAccountId() == null ||
+                !userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId())) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
+
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)

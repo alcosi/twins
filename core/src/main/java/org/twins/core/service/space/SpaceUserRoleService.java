@@ -125,5 +125,4 @@ public class SpaceUserRoleService {
     private Boolean checkSeemEntityInDB(UUID spaceId, UUID roleId, UUID userId) {
         return spaceRoleUserRepository.existsByTwinIdAndSpaceRoleIdAndUserId(spaceId, roleId, userId);
     }
-
 }

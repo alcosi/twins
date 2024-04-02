@@ -18,9 +18,14 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.space.SpaceUserRoleService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -41,13 +46,28 @@ public class DomainService {
     final DomainUserRepository domainUserRepository;
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
     final EntitySmartService entitySmartService;
+
     @Lazy
     final PermissionService permissionService;
+
     @Lazy
     final AuthService authService;
+
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
     final SystemEntityService systemEntityService;
+
+    @Lazy
+    final TwinService twinService;
+
+    @Lazy
+    final SpaceRoleService spaceRoleService;
+
+    @Lazy
+    final DataListService dataListService;
+
+    @Lazy
+    final UserGroupService userGroupService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -156,8 +176,19 @@ public class DomainService {
         return domainBusinessAccountEntity;
     }
 
+    @Transactional
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
+
+        twinService.forceDeleteTwins(businessAccountId);
+        twinService.forceDeleteAliasCounters(businessAccountId);
+        userGroupService.forceDeleteUserGroups(businessAccountId);
+        userGroupService.forceDeleteUsers(businessAccountId);
+        spaceRoleService.forceDeleteRoles(businessAccountId);
+        dataListService.forceDeleteOptions(businessAccountId);
+        twinflowService.forceDeleteSchemas(businessAccountId);
+        permissionService.forceDeleteSchemas(businessAccountId);
+
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
