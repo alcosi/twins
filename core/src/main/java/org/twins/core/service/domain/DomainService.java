@@ -1,7 +1,5 @@
 package org.twins.core.service.domain;
 
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,10 +58,6 @@ public class DomainService {
     final TwinflowService twinflowService;
     final SystemEntityService systemEntityService;
     final I18nLocaleRepository i18nLocaleRepository;
-
-    @PersistenceContext
-    private EntityManager entityManager;
-
     @Lazy
     final TwinService twinService;
 
@@ -201,7 +195,7 @@ public class DomainService {
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
-        if  (!i18nLocaleRepository.exists(I18nLocaleSpecification.findRecordLocale(localeName)))
+        if  (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
         ApiUser apiUser = authService.getApiUser();
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
