@@ -7,10 +7,12 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -21,7 +23,6 @@ import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
-import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -56,7 +57,7 @@ public class DomainService {
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
     final SystemEntityService systemEntityService;
-
+    final I18nLocaleRepository i18nLocaleRepository;
     @Lazy
     final TwinService twinService;
 
@@ -194,6 +195,8 @@ public class DomainService {
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
+        if  (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
         ApiUser apiUser = authService.getApiUser();
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
     }
