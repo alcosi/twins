@@ -80,7 +80,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                         .min(numericDescriptor.min())
                         .max(numericDescriptor.max())
                         .step(numericDescriptor.step())
-                        .thousandSeparator(numericDescriptor.thousandSeparator());
+                        .thousandSeparator(numericDescriptor.thousandSeparator())
+                        .decimalSeparator(numericDescriptor.decimalSeparator())
+                        .decimalPlaces(numericDescriptor.decimalPlaces());
         else if (fieldDescriptor instanceof FieldDescriptorListShared listSharedDescriptor)
             return new TwinClassFieldDescriptorListSharedInHeadDTOv1()
                     .multiple(listSharedDescriptor.isMultiple());

@@ -4,9 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldDescriptorNumericV1")
@@ -15,15 +12,22 @@ public class TwinClassFieldDescriptorNumericDTOv1 implements TwinClassFieldDescr
     public String fieldType = KEY;
 
     @Schema(description = "Min possible value", example = "1")
-    public Integer min;
+    public Double min;
 
     @Schema(description = "Max possible value", example = "10")
-    public Integer max;
+    public Double max;
 
     @Schema(description = "Step of value change", example = "1")
-    public Integer step;
+    public Double step;
 
-    @Schema(description = "Thousand separator", example = ",")
+    @Schema(description = "Thousand separator. Must not be equal to decimal separator.", example = ",")
     public String thousandSeparator;
+
+    @Schema(description = "Decimal separator. Must not be equal to thousand separator.", example = ".")
+    public String decimalSeparator;
+
+    @Schema(description = "Number of decimal places.", example = "0")
+    public Integer decimalPlaces;
+
 
 }
