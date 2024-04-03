@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.KitGrouped;
@@ -22,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -592,11 +592,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         Set<UUID> deletionSet = new HashSet<>();
         deletionSet.add(twinId);
         boolean deeperLinksFound;
+        final List<LinkStrength> strengthIds = LinkStrength.getForCascadeDeletion();
         do {
+            System.out.println("before");
+            System.out.println(deletionSet);
             deeperLinksFound = false;
-            List<TwinLinkEntity> links = twinLinkService.findTwinBackwardLinks(deletionSet);
+            List<TwinLinkEntity> links = twinLinkService.findTwinBackwardLinksAndLinkStrengthIds(deletionSet, strengthIds);
             for(TwinLinkEntity link : links)
                 if (deletionSet.add(link.getSrcTwinId())) deeperLinksFound = true;
+            System.out.println("after");
+            System.out.println(deletionSet);
         } while (deeperLinksFound);
         entitySmartService.deleteAllAndLog(deletionSet, twinRepository);// all linked data will be deleted by fk cascading
     }

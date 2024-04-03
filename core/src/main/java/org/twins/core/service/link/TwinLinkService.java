@@ -9,11 +9,13 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.dao.specifications.link.TwinLinkSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -244,11 +246,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return filterDenied(twinLinkEntityList);
     }
 
-    public List<TwinLinkEntity> findTwinForwardLinks(Collection<UUID> twinIds) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdIn(twinIds, TwinLinkEntity.class);
-        return filterDenied(twinLinkEntityList);
-    }
-
     public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId, Collection<UUID> linkIdCollection) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinId, linkIdCollection, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);
@@ -259,8 +256,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return filterDenied(twinLinkEntityList);
     }
 
-    public List<TwinLinkEntity> findTwinBackwardLinks(Collection<UUID> twinIds) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findByDstTwinIdIn(twinIds, TwinLinkEntity.class);
+    public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
+                Specification.where(
+                        TwinLinkSpecification.checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false)
+                                .and(TwinLinkSpecification.checkStrength(strengthIds))
+                )
+        );
         return filterDenied(twinLinkEntityList);
     }
 
