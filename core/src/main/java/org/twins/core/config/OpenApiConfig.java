@@ -9,6 +9,7 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
@@ -62,6 +63,14 @@ public class OpenApiConfig {
                     }
                     if (handlerMethod.hasMethodAnnotation(ParameterChannelHeader.class)) {
                         List<Parameter> parameters = new ArrayList<>();
+                        parameters.add(headerParameterChannel());
+                        if (operation.getParameters() != null)
+                            parameters.addAll(operation.getParameters());
+                        operation.setParameters(parameters);
+                    }
+                    if (handlerMethod.hasMethodAnnotation(ParameterDomainHeader.class)) {
+                        List<Parameter> parameters = new ArrayList<>();
+                        parameters.add(headerParameterDomainId());
                         parameters.add(headerParameterChannel());
                         if (operation.getParameters() != null)
                             parameters.addAll(operation.getParameters());

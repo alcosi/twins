@@ -23,4 +23,10 @@ public class I18nLocaleEntity {
     @Basic
     @Column(name = "active")
     private boolean active;
+
+    @Column(name = "native_name")
+    private String nativeName;
+
+    @Column(name = "icon")
+    private String icon;
 }
