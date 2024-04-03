@@ -13,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -243,6 +244,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return filterDenied(twinLinkEntityList);
     }
 
+    public List<TwinLinkEntity> findTwinForwardLinks(Collection<UUID> twinIds) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdIn(twinIds, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
     public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId, Collection<UUID> linkIdCollection) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinId, linkIdCollection, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);
@@ -250,6 +256,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public List<TwinLinkEntity> findTwinBackwardLinks(UUID twinId) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findByDstTwinId(twinId, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
+    public List<TwinLinkEntity> findTwinBackwardLinks(Collection<UUID> twinIds) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findByDstTwinIdIn(twinIds, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);
     }
 
@@ -277,7 +288,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 log.error(twinLinkEntity.logShort() + " can not be delete because it's from other twin");
                 continue;
             }
-            if (twinLinkEntity.getLink().isMandatory()) {
+            if (twinLinkEntity.getLink().getLinkStrengthId().equals(LinkStrength.MANDATORY)) {
                 log.error(twinLinkEntity.logShort() + " can not be deleted because link is mandatory");
                 continue;
             }

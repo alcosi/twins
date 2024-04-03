@@ -589,7 +589,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void deleteTwin(UUID twinId) throws ServiceException {
-        entitySmartService.deleteAndLog(twinId, twinRepository);// all linked data will be deleted by fk cascading
+        Set<UUID> deletionSet = new HashSet<>();
+        deletionSet.add(twinId);
+        boolean deeperLinksFound;
+        do {
+            deeperLinksFound = false;
+            List<TwinLinkEntity> links = twinLinkService.findTwinBackwardLinks(deletionSet);
+            for(TwinLinkEntity link : links)
+                if (deletionSet.add(link.getSrcTwinId())) deeperLinksFound = true;
+        } while (deeperLinksFound);
+        entitySmartService.deleteAllAndLog(deletionSet, twinRepository);// all linked data will be deleted by fk cascading
     }
 
     public TwinEntity cloneTwin(TwinEntity twinEntity) {

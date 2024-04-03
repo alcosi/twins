@@ -23,10 +23,12 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     void deleteNotMandatory(@Param("twinId") UUID twinId, @Param("linkIdList") List<UUID> twinLinksDeleteUUIDList);
 
     <T> List<T> findBySrcTwinId(UUID srcTwinId, Class<T> type);
+    <T> List<T> findBySrcTwinIdIn(Iterable<UUID> srcTwinId, Class<T> type);
 
     <T> List<T> findBySrcTwinIdAndLinkIdIn(UUID srcTwinId, Collection<UUID> linkIdList,  Class<T> type);
 
     <T> List<T> findByDstTwinId(UUID dstTwinId, Class<T> type);
+    <T> List<T> findByDstTwinIdIn(Iterable<UUID> dstTwinIds, Class<T> type);
 
     <T> List<T> findBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId, Class<T> type);
 
