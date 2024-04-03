@@ -130,22 +130,22 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             twinEntity.setValidTransitionsKit(new Kit<>(twinflowTransitionEntityList, TwinflowTransitionEntity::getId)); // this will help to avoid loading one more time
             return;
         }
-        /* we can have 2 concurrent transitions to same dst_status_id:
+        /* we can have 2 concurrent transitions to same dst_status_id and same alias:
         1. with src_status_id = null - case of "from any" transition
         2. with specific src_status_id
         Second case has more priority
         This logic can be done with postgres sql "distinct on" operator, but it's not supported in hibernate
         */
-        HashMap<UUID, UUID> alreadyAdded = new HashMap<>(); // key = dst_status, value = src_status
-        List<TwinflowTransitionEntity> validTransitionEntityList = new ArrayList<>();
+        Map<String, TwinflowTransitionEntity> alreadyAdded = new HashMap<>(); // key = alias_id + dst_status
         for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
-            if (alreadyAdded.containsKey(transitionEntity.getDstTwinStatusId()) && alreadyAdded.get(transitionEntity.getDstTwinStatusId()) != null)
+            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAliasId() + transitionEntity.getDstTwinStatusId();
+            if (alreadyAdded.containsKey(transitionDistinctKey)
+                    && alreadyAdded.get(transitionDistinctKey).getSrcTwinStatusId() != null)
                 continue; //skipping current transition because we already have one with specific src_status
-            alreadyAdded.put(transitionEntity.getDstTwinStatusId(), transitionEntity.getSrcTwinStatusId());
             if (runTransitionValidators(transitionEntity, twinEntity))
-                validTransitionEntityList.add(transitionEntity);
+                alreadyAdded.put(transitionDistinctKey, transitionEntity);
         }
-        twinEntity.setValidTransitionsKit(new Kit<>(validTransitionEntityList, TwinflowTransitionEntity::getId));
+        twinEntity.setValidTransitionsKit(new Kit<>(alreadyAdded.values().stream().toList(), TwinflowTransitionEntity::getId));
     }
 
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
