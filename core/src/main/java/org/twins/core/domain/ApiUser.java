@@ -294,9 +294,10 @@ public class ApiUser {
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 
-    public ApiUser setAnonymousWithoutLocale() {
+    public ApiUser setAnonymousWithDefaultLocale() {
         return setDomainResolver(domainResolverHeaders)
                 .setUserResolver(new UserResolverNotSpecified())
+                .setLocaleResolver(new LocaleResolverEnglish())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 }

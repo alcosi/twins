@@ -5,9 +5,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 @Data
-@Schema(name = "DomainLocaleV1")
 @Accessors(chain = true)
-public class DomainLocaleDTOv1 {
+@Schema(name = "LocaleV1")
+public class LocaleDTOv1 {
     @Schema(description = "id")
     public String id;
 

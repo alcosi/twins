@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.I18nLocaleEntity;
 
-import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -21,13 +21,17 @@ public class DomainLocaleEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "i18n_locale_id")
-    private Locale locale;
+    private String locale;
 
     @Column(name = "icon")
     private String icon;
 
     @Column(name = "active")
     private boolean active;
+
+    @ManyToOne
+    @JoinColumn(name = "i18n_locale_id", insertable = false, updatable = false, nullable = false)
+    private I18nLocaleEntity i18nLocaleEntity;
 
     @Override
     public String easyLog(Level level) {

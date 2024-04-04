@@ -9,10 +9,10 @@ import org.twins.core.dto.rest.Response;
 import java.util.List;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "LocaleViewV1")
 public class LocaleListRsDTOv1 extends Response {
     @Schema(description = "locales in domain")
-    public List<DomainLocaleDTOv1> localeList;
+    public List<LocaleDTOv1> localeList;
 }

@@ -14,7 +14,6 @@ import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainLocaleRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
@@ -205,10 +204,5 @@ public class I18nService {
         if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
             return originalStr;
         return originalStr + " [copy]";
-    }
-
-    public List<I18nLocaleEntity> getLocaleList() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return i18nLocaleRepository.findAllLocaleByDomainId(apiUser.getDomainId());
     }
 }

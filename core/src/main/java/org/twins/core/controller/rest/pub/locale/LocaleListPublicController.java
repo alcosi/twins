@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -21,6 +20,7 @@ import org.twins.core.controller.rest.annotation.ParameterDomainHeader;
 import org.twins.core.dto.rest.domain.LocaleListRsDTOv1;
 import org.twins.core.mappers.rest.locale.LocaleRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainService;
 
 @Tag(description = "Get domain locale lists", name = ApiTag.LOCALE)
 @RestController
@@ -29,7 +29,7 @@ import org.twins.core.service.auth.AuthService;
 public class LocaleListPublicController extends ApiController {
     final AuthService authService;
     final LocaleRestDTOMapper localeRestDTOMapper;
-    final I18nService i18nService;
+    final DomainService domainService;
 
     @ParameterDomainHeader
     @Operation(operationId = "localeListPublicViewV1", summary = "Return list of locales")
@@ -43,9 +43,9 @@ public class LocaleListPublicController extends ApiController {
     public ResponseEntity<?> localeListPublicViewV1() {
         LocaleListRsDTOv1 rs = new LocaleListRsDTOv1();
         try {
-            authService.getApiUser().setAnonymousWithoutLocale();
+            authService.getApiUser().setAnonymousWithDefaultLocale();
             rs
-                    .setLocaleList(localeRestDTOMapper.convertList(i18nService.getLocaleList()));
+                    .setLocaleList(localeRestDTOMapper.convertList(domainService.getLocaleList()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
