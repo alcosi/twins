@@ -70,6 +70,8 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             fieldDescriptorLink.linkId(linkEntity.getId());
         else {
             fieldDescriptorLink.dstTwins(twinLinkService.findValidDstTwins(linkEntity, twinClassFieldEntity.getTwinClass()));
+            if(listSize != fieldDescriptorLink.dstTwins().size())
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_HIERARCHY_ERROR, twinClassFieldEntity.getTwinClass().getId() + " / " + listSize + " / " + fieldDescriptorLink.dstTwins().size());
         }
         return fieldDescriptorLink;
     }
