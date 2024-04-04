@@ -66,16 +66,17 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
             finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
                     .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
             String[] parts = finalValue.split("\\.");
-            if(parts.length > 1 && parts[1].length() > decimalPlacesValue)
+            if((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
                 throw new Exception();
             double doubleValue = Double.parseDouble(finalValue);
-            if(doubleValue < minValue || doubleValue > maxValue)
+            if((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
                 throw new Exception();
         } catch (Exception e) {
+            e.printStackTrace();
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + value.getValue() + "] is not numeric format or does not match the field settings["+
-                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + "decPlaces" + decimalPlacesValue +
+                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
                             " decSeparator:" + decimalSeparatorValue + " thouSeparator:" + thousandSeparatorValue + "].");
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);

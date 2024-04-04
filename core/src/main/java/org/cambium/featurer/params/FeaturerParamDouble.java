@@ -16,6 +16,7 @@ public class FeaturerParamDouble extends FeaturerParam<Double> {
 
     @Override
     public Double extract(Properties properties) {
-        return Double.parseDouble(properties.get(key).toString());
+        final String value = properties.get(key).toString();
+        return value.isEmpty() ? null : Double.parseDouble(value);
     }
 }

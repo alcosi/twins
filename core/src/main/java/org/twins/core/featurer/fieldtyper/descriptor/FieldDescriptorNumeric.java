@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
 public class FieldDescriptorNumeric extends FieldDescriptor {
-    private double min;
-    private double max;
-    private double step;
+    private Double min;
+    private Double max;
+    private Double step;
     private String thousandSeparator;
     private String decimalSeparator;
-    private int decimalPlaces;
+    private Integer decimalPlaces;
 }
