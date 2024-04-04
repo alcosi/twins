@@ -594,14 +594,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         boolean deeperLinksFound;
         final List<LinkStrength> strengthIds = LinkStrength.getForCascadeDeletion();
         do {
-            System.out.println("before");
-            System.out.println(deletionSet);
             deeperLinksFound = false;
             List<TwinLinkEntity> links = twinLinkService.findTwinBackwardLinksAndLinkStrengthIds(deletionSet, strengthIds);
             for(TwinLinkEntity link : links)
                 if (deletionSet.add(link.getSrcTwinId())) deeperLinksFound = true;
-            System.out.println("after");
-            System.out.println(deletionSet);
         } while (deeperLinksFound);
         entitySmartService.deleteAllAndLog(deletionSet, twinRepository);// all linked data will be deleted by fk cascading
     }
