@@ -309,9 +309,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            return twinSearchService.count(new BasicSearch().addTwinClassId(linkEntity.getDstTwinClassId()));
+            return twinSearchService.count(new BasicSearch().addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass())));
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            return twinSearchService.count(new BasicSearch().addTwinClassId(linkEntity.getSrcTwinClassId()));
+            return twinSearchService.count(new BasicSearch().addTwinClassId(twinClassService.loadChildClasses(srcTwinClass)));
         } else
             return 0L;
     }
