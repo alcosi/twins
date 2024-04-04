@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
+import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -238,13 +238,13 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinId(twinId, TwinLinkEntity.class);
-        return filterDenied(twinLinkEntityList);
+    public KitGrouped<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
+        loadTwinLinks(twinEntity);
+        return twinEntity.getTwinLinks().getForwardLinks();
     }
 
-    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId, Collection<UUID> linkIdCollection) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinId, linkIdCollection, TwinLinkEntity.class);
+    public List<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity, Collection<UUID> linkIdCollection) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinEntity.getId(), linkIdCollection, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);
     }
 
@@ -324,8 +324,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
         UUID twinId;
-        Kit<TwinLinkEntity> forwardLinks = new Kit<>(TwinLinkEntity::getId);
-        Kit<TwinLinkEntity> backwardLinks = new Kit<>(TwinLinkEntity::getId);
+        KitGrouped<TwinLinkEntity> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {

@@ -189,9 +189,9 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
         twinLinkService.loadTwinLinks(twinEntity);
         List<TwinLinkEntity> twinLinkEntityList;
         if (linkDirection == LinkService.LinkDirection.forward)
-            twinLinkEntityList = twinEntity.getTwinLinks().getForwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
+            twinLinkEntityList = twinEntity.getTwinLinks().getForwardLinks().getGrouped(linkEntity.getId());
         else
-            twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getList().stream().filter(l -> l.getLinkId().equals(linkEntity.getId())).toList();
+            twinLinkEntityList = twinEntity.getTwinLinks().getBackwardLinks().getGrouped(linkEntity.getId());
         return new FieldValueLink(twinField.getTwinClassField())
                 .setTwinLinks(twinLinkEntityList)
                 .setForwardLink(linkDirection == LinkService.LinkDirection.forward);
