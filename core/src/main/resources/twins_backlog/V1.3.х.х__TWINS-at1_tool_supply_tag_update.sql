@@ -1,0 +1,1 @@
+update twin_class set tag_data_list_id = 'f64302c0-a324-4bc0-9b52-abdd362a036e' where twin_class.key like 'SUPPLY';
