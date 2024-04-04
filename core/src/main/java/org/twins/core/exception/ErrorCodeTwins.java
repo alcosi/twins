@@ -23,6 +23,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_USER_NOT_EXISTS(10203, "domain user is not registered"),
     DOMAIN_BUSINESS_ACCOUNT_ALREADY_EXISTS(10204, "domain business_account already exists"),
     DOMAIN_BUSINESS_ACCOUNT_NOT_EXISTS(10205, "domain business_account is not registered"),
+    DOMAIN_LOCALE_UNKNOWN(10206, "unknown locale"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),

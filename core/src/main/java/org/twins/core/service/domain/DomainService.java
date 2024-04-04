@@ -7,10 +7,12 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -18,9 +20,13 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
@@ -41,13 +47,28 @@ public class DomainService {
     final DomainUserRepository domainUserRepository;
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
     final EntitySmartService entitySmartService;
+
     @Lazy
     final PermissionService permissionService;
+
     @Lazy
     final AuthService authService;
+
     final TwinClassService twinClassService;
     final TwinflowService twinflowService;
     final SystemEntityService systemEntityService;
+    final I18nLocaleRepository i18nLocaleRepository;
+    @Lazy
+    final TwinService twinService;
+
+    @Lazy
+    final SpaceRoleService spaceRoleService;
+
+    @Lazy
+    final DataListService dataListService;
+
+    @Lazy
+    final UserGroupService userGroupService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -156,13 +177,26 @@ public class DomainService {
         return domainBusinessAccountEntity;
     }
 
+    @Transactional
     public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
+
+        twinService.forceDeleteTwins(businessAccountId);
+        twinService.forceDeleteAliasCounters(businessAccountId);
+        userGroupService.forceDeleteUserGroups(businessAccountId);
+        userGroupService.forceDeleteUsers(businessAccountId);
+        spaceRoleService.forceDeleteRoles(businessAccountId);
+        dataListService.forceDeleteOptions(businessAccountId);
+        twinflowService.forceDeleteSchemas(businessAccountId);
+        permissionService.forceDeleteSchemas(businessAccountId);
+
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
+        if  (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
         ApiUser apiUser = authService.getApiUser();
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
     }

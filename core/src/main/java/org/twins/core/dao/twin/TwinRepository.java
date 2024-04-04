@@ -1,6 +1,7 @@
 package org.twins.core.dao.twin;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -21,4 +22,9 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
 
     @Query(value = "select t.assignerUser from TwinEntity t where t.id = :twinId")
     UserEntity getAssignee(@Param("twinId") UUID twinId);
+
+    @Modifying
+    @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
+    int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+
 }

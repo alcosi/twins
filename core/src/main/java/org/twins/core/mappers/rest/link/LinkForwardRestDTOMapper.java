@@ -24,7 +24,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                         .dstTwinClassId(src.getDstTwinClassId())
                         .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext
                                 .cloneWithIsolatedModes(RelatedTwinMode.GREEN)))
-                        .mandatory(src.isMandatory())
+                        .linkStrengthId(src.getLinkStrengthId())
                         .type(src.getType());
             case SHORT:
                 dst

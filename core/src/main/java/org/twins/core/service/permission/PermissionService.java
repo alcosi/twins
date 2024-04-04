@@ -16,6 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.user.UserGroupService;
@@ -36,6 +37,8 @@ public class PermissionService {
     @Lazy
     final DomainService domainService;
     final UserGroupService userGroupService;
+    @Lazy
+    final EntitySmartService entitySmartService;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -137,6 +140,14 @@ public class PermissionService {
             }
             return ret;
         }
+    }
+
+    public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID domainId = apiUser.getDomainId();
+
+        List<UUID> schemasToDelete = permissionSchemaRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
+        entitySmartService.deleteAllAndLog(schemasToDelete, permissionSchemaRepository);
     }
 
 }
