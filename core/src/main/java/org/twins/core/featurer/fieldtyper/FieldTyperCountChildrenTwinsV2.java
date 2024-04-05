@@ -4,8 +4,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinFieldRepository;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -22,7 +22,7 @@ public class FieldTyperCountChildrenTwinsV2 extends FieldTyperSimple<FieldDescri
     public static final Integer ID = 1315;
 
     @Autowired
-    TwinFieldRepository twinFieldRepository;
+    TwinFieldSimpleRepository twinFieldSimpleRepository;
 
     @Override
     public FieldDescriptorText getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
@@ -31,7 +31,7 @@ public class FieldTyperCountChildrenTwinsV2 extends FieldTyperSimple<FieldDescri
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity.getTwin(), twinFieldRepository).toString());
+        detectValueChange(twinFieldEntity, twinChangesCollector, getCountResult(properties, twinFieldEntity.getTwin(), twinFieldSimpleRepository).toString());
     }
 
     @Override

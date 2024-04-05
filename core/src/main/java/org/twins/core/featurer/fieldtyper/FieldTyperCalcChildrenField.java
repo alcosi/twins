@@ -8,8 +8,8 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldRepository;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.Properties;
@@ -36,10 +36,10 @@ public interface FieldTyperCalcChildrenField {
         return result;
     }
 
-    default Double getSumResult(Properties properties, TwinEntity twinEntity, TwinFieldRepository twinFieldRepository) throws ServiceException {
+    default Double getSumResult(Properties properties, TwinEntity twinEntity, TwinFieldSimpleRepository twinFieldSimpleRepository) throws ServiceException {
         return exclude.extract(properties) ?
-                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
-                twinFieldRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusNotIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties)) :
+                twinFieldSimpleRepository.sumChildrenTwinFieldValuesWithStatusIn(twinEntity.getId(), childrenTwinClassFieldId.extract(properties), childrenTwinStatusIdList.extract(properties));
     }
 
 }

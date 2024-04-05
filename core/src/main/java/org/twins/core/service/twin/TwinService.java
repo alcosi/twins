@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.KitGrouped;
@@ -56,7 +55,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final TwinRepository twinRepository;
-    final TwinFieldRepository twinFieldRepository;
+    final TwinFieldSimpleRepository twinFieldSimpleRepository;
     final TwinFieldUserRepository twinFieldUserRepository;
     final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
@@ -205,7 +204,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         if (twinEntity.getTwinFieldSimpleKit() == null && hasBasicFields)
             twinEntity.setTwinFieldSimpleKit(
-                    new Kit<>(twinFieldRepository.findByTwinId(twinEntity.getId()), TwinFieldSimpleEntity::getTwinClassFieldId));
+                    new Kit<>(twinFieldSimpleRepository.findByTwinId(twinEntity.getId()), TwinFieldSimpleEntity::getTwinClassFieldId));
         if (twinEntity.getTwinFieldUserKit() == null && hasUserFields)
             twinEntity.setTwinFieldUserKit(
                     new KitGrouped<>(twinFieldUserRepository.findByTwinId(twinEntity.getId()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinClassFieldId));
@@ -229,7 +228,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         if (needLoad.isEmpty())
             return;
-        List<TwinFieldSimpleEntity> fieldEntityList = twinFieldRepository.findByTwinIdIn(needLoad.keySet());
+        List<TwinFieldSimpleEntity> fieldEntityList = twinFieldSimpleRepository.findByTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(fieldEntityList))
             return;
         Map<UUID, List<TwinFieldSimpleEntity>> fieldsMap = new HashMap<>(); // key - twinId
@@ -614,7 +613,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public CloneFieldsResult cloneTwinFieldListAndSave(TwinEntity srcTwin, TwinEntity dstTwinEntity) throws ServiceException {
         CloneFieldsResult cloneFieldsResult = cloneTwinFieldList(srcTwin, dstTwinEntity);
         if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldEntityList()))
-            entitySmartService.saveAllAndLog(cloneFieldsResult.getFieldEntityList(), twinFieldRepository);
+            entitySmartService.saveAllAndLog(cloneFieldsResult.getFieldEntityList(), twinFieldSimpleRepository);
         if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldDataListEntityList()))
             entitySmartService.saveAllAndLog(cloneFieldsResult.getFieldDataListEntityList(), twinFieldDataListRepository);
         if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldUserEntityList()))

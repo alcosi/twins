@@ -5,7 +5,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldRepository;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -23,7 +23,7 @@ public class FieldTyperCountChildrenTwinsV1 extends FieldTyper<FieldDescriptorTe
     public static final Integer ID = 1314;
 
     @Autowired
-    TwinFieldRepository twinFieldRepository;
+    TwinFieldSimpleRepository twinFieldSimpleRepository;
 
     @Deprecated
     @Override
@@ -39,6 +39,6 @@ public class FieldTyperCountChildrenTwinsV1 extends FieldTyper<FieldDescriptorTe
     @Override
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField) throws ServiceException {
         return new FieldValueText(twinField.getTwinClassField())
-                .setValue(getCountResult(properties, twinField.getTwin(), twinFieldRepository).toString());
+                .setValue(getCountResult(properties, twinField.getTwin(), twinFieldSimpleRepository).toString());
     }
 }
