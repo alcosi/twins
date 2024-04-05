@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class TwinChangesService {
-    final TwinFieldRepository twinFieldRepository;
+    final TwinFieldSimpleRepository twinFieldSimpleRepository;
     final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinLinkRepository twinLinkRepository;
     final TwinFieldUserRepository twinFieldUserRepository;
@@ -28,7 +28,7 @@ public class TwinChangesService {
     public void saveEntities(TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (!twinChangesCollector.hasChanges())
             return;
-        saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldRepository);
+        saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
         saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         saveEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         saveEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
@@ -38,7 +38,7 @@ public class TwinChangesService {
             }
         deleteEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
-        deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldRepository);
+        deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
         deleteEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
         if (!twinChangesCollector.getDeleteEntityIdMap().isEmpty())
             for (Map.Entry<Class<?>, List<UUID>> classChanges : twinChangesCollector.getDeleteEntityIdMap().entrySet()) {
