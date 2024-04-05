@@ -39,6 +39,19 @@ public abstract class FillerLinks extends Filler {
         addLinks(outputTwin, twinLinkEntityList);
     }
 
+    protected void addLink(TwinOperation outputTwin, TwinLinkEntity twinLinkEntity) {
+        if (outputTwin instanceof TwinCreate twinCreate) {
+            twinCreate.addLink(twinLinkEntity);
+        } else if (outputTwin instanceof TwinUpdate twinUpdate) {
+            if (twinUpdate.getTwinLinkCUD() == null)
+                twinUpdate.setTwinLinkCUD(new EntityCUD<>());
+            if (twinUpdate.getTwinLinkCUD().getCreateList() == null)
+                twinUpdate.getTwinLinkCUD().setCreateList(new ArrayList<>());
+            else
+                twinUpdate.getTwinLinkCUD().getCreateList().add(twinLinkEntity);
+        }
+    }
+
     protected void addLinks(TwinOperation outputTwin, List<TwinLinkEntity> twinLinkEntityList) {
         if (outputTwin instanceof TwinCreate twinCreate) {
             if (twinCreate.getLinksEntityList() == null)

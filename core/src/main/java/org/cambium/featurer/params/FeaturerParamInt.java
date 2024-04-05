@@ -16,6 +16,7 @@ public class FeaturerParamInt extends FeaturerParam<Integer> {
 
     @Override
     public Integer extract(Properties properties) {
-        return Integer.parseInt(properties.get(key).toString());
+        final String value = properties.get(key).toString();
+        return value.isEmpty() ? null : Integer.parseInt(value);
     }
 }
