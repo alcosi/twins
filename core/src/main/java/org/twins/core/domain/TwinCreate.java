@@ -3,6 +3,7 @@ package org.twins.core.domain;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 
@@ -16,6 +17,15 @@ public class TwinCreate extends TwinOperation {
     private List<TwinAttachmentEntity> attachmentEntityList;
     private List<TwinLinkEntity> linksEntityList;
 
+    public TwinCreate addLink(TwinLinkEntity link) {
+        linksEntityList = CollectionUtils.safeAdd(linksEntityList, link);
+        return this;
+    }
+
+    public TwinCreate addAttachment(TwinAttachmentEntity attachment) {
+        attachmentEntityList = CollectionUtils.safeAdd(attachmentEntityList, attachment);
+        return this;
+    }
     @Override
     public UUID nullifyUUID() {
         return null;

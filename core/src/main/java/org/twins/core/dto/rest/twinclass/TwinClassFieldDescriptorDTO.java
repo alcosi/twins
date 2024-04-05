@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUserDTOv1.class, name = TwinClassFieldDescriptorUserDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorUserLongDTOv1.class, name = TwinClassFieldDescriptorUserLongDTOv1.KEY),
         @JsonSubTypes.Type(value = TwinClassFieldDescriptorAttachmentDTOv1.class, name = TwinClassFieldDescriptorAttachmentDTOv1.KEY),
+        @JsonSubTypes.Type(value = TwinClassFieldDescriptorNumericDTOv1.class, name = TwinClassFieldDescriptorNumericDTOv1.KEY),
 })
 @Schema(description = "On of values", example = "", oneOf = {
         TwinClassFieldDescriptorTextDTOv1.class,
@@ -32,7 +33,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
         TwinClassFieldDescriptorLinkLongDTOv1.class,
         TwinClassFieldDescriptorUserDTOv1.class,
         TwinClassFieldDescriptorUserLongDTOv1.class,
-        TwinClassFieldDescriptorAttachmentDTOv1.class
+        TwinClassFieldDescriptorAttachmentDTOv1.class,
+        TwinClassFieldDescriptorNumericDTOv1.class
 }, discriminatorProperty = "fieldType", discriminatorMapping = {
         @DiscriminatorMapping(value = TwinClassFieldDescriptorTextDTOv1.KEY, schema = TwinClassFieldDescriptorTextDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorDateScrollDTOv1.KEY, schema = TwinClassFieldDescriptorDateScrollDTOv1.class),
@@ -46,6 +48,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUserDTOv1.KEY, schema = TwinClassFieldDescriptorUserDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorUserLongDTOv1.KEY, schema = TwinClassFieldDescriptorUserLongDTOv1.class),
         @DiscriminatorMapping(value = TwinClassFieldDescriptorAttachmentDTOv1.KEY, schema = TwinClassFieldDescriptorAttachmentDTOv1.class),
+        @DiscriminatorMapping(value = TwinClassFieldDescriptorNumericDTOv1.KEY, schema = TwinClassFieldDescriptorNumericDTOv1.class),
 })
 public interface TwinClassFieldDescriptorDTO {
     @Schema(description = "discriminator", requiredMode = Schema.RequiredMode.REQUIRED, examples = {
@@ -61,6 +64,7 @@ public interface TwinClassFieldDescriptorDTO {
             TwinClassFieldDescriptorUserDTOv1.KEY,
             TwinClassFieldDescriptorUserLongDTOv1.KEY,
             TwinClassFieldDescriptorAttachmentDTOv1.KEY,
+            TwinClassFieldDescriptorNumericDTOv1.KEY,
     })
     public String fieldType();
 }

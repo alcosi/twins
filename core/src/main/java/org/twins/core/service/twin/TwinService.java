@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
@@ -588,7 +589,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void deleteTwin(UUID twinId) throws ServiceException {
-        entitySmartService.deleteAndLog(twinId, twinRepository);// all linked data will be deleted by fk cascading
+        Set<UUID> deletionSet = new HashSet<>();
+        deletionSet.add(twinId);
+        boolean deeperLinksFound;
+        final List<LinkStrength> strengthIds = LinkStrength.getForCascadeDeletion();
+        do {
+            deeperLinksFound = false;
+            List<TwinLinkEntity> links = twinLinkService.findTwinBackwardLinksAndLinkStrengthIds(deletionSet, strengthIds);
+            for(TwinLinkEntity link : links)
+                if (deletionSet.add(link.getSrcTwinId())) deeperLinksFound = true;
+        } while (deeperLinksFound);
+        entitySmartService.deleteAllAndLog(deletionSet, twinRepository);// all linked data will be deleted by fk cascading
     }
 
     public TwinEntity cloneTwin(TwinEntity twinEntity) {

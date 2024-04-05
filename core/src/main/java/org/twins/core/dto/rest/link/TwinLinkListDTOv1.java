@@ -11,7 +11,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinLinkListV1")
 public class TwinLinkListDTOv1  {
-    @Schema(description = "links")
+    @Schema(description = "forward links from current twin to other twins")
     public Map<UUID, TwinLinkViewDTOv1> forwardLinks;
 
     @Schema(description = "links")

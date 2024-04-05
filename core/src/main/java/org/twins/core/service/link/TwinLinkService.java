@@ -6,13 +6,16 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
+import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.dao.specifications.link.TwinLinkSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -238,18 +241,28 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinId(twinId, TwinLinkEntity.class);
-        return filterDenied(twinLinkEntityList);
+    public KitGrouped<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
+        loadTwinLinks(twinEntity);
+        return twinEntity.getTwinLinks().getForwardLinks();
     }
 
-    public List<TwinLinkEntity> findTwinForwardLinks(UUID twinId, Collection<UUID> linkIdCollection) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinId, linkIdCollection, TwinLinkEntity.class);
+    public List<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity, Collection<UUID> linkIdCollection) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdAndLinkIdIn(twinEntity.getId(), linkIdCollection, TwinLinkEntity.class);
         return filterDenied(twinLinkEntityList);
     }
 
     public List<TwinLinkEntity> findTwinBackwardLinks(UUID twinId) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findByDstTwinId(twinId, TwinLinkEntity.class);
+        return filterDenied(twinLinkEntityList);
+    }
+
+    public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
+                Specification.where(
+                        TwinLinkSpecification.checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false)
+                                .and(TwinLinkSpecification.checkStrength(strengthIds))
+                )
+        );
         return filterDenied(twinLinkEntityList);
     }
 
@@ -277,7 +290,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 log.error(twinLinkEntity.logShort() + " can not be delete because it's from other twin");
                 continue;
             }
-            if (twinLinkEntity.getLink().isMandatory()) {
+            if (twinLinkEntity.getLink().getLinkStrengthId().equals(LinkStrength.MANDATORY)) {
                 log.error(twinLinkEntity.logShort() + " can not be deleted because link is mandatory");
                 continue;
             }
@@ -296,9 +309,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            return twinSearchService.count(new BasicSearch().addTwinClassId(linkEntity.getDstTwinClassId()));
+            return twinSearchService.count(new BasicSearch().addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass())));
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            return twinSearchService.count(new BasicSearch().addTwinClassId(linkEntity.getSrcTwinClassId()));
+            return twinSearchService.count(new BasicSearch().addTwinClassId(twinClassService.loadChildClasses(srcTwinClass)));
         } else
             return 0L;
     }
@@ -324,8 +337,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
         UUID twinId;
-        Kit<TwinLinkEntity> forwardLinks = new Kit<>(TwinLinkEntity::getId);
-        Kit<TwinLinkEntity> backwardLinks = new Kit<>(TwinLinkEntity::getId);
+        KitGrouped<TwinLinkEntity> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {

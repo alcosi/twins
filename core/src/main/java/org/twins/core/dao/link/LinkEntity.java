@@ -40,8 +40,9 @@ public class LinkEntity extends EasyLoggableImpl {
     @Enumerated(EnumType.STRING)
     private TwinlinkType type;
 
-    @Column(name = "mandatory")
-    private boolean mandatory;
+    @Column(name = "link_strength_id")
+    @Enumerated(EnumType.STRING)
+    private LinkStrength linkStrengthId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
