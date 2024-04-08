@@ -2,7 +2,7 @@ package org.cambium.i18n.service;
 
 
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
+import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -11,24 +11,27 @@ import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
 import org.cambium.i18n.exception.ErrorCodeI18n;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
-public class I18nService {
-    final I18nRepository i18nRepository;
-    final I18nTranslationRepository i18nTranslationRepository;
-    final I18nTranslationBinRepository i18nTranslationBinRepository;
-    final I18nTranslationStyleRepository i18nTranslationStyleRepository;
-    final I18nLocaleRepository i18nLocaleRepository;
-    final AuthService authService;
-    final I18nProperties i18nProperties;
-    final EntityManager entityManager;
+public abstract class I18nService {
+    @Autowired
+    private I18nRepository i18nRepository;
+    @Autowired
+    private I18nTranslationRepository i18nTranslationRepository;
+    @Autowired
+    private I18nTranslationBinRepository i18nTranslationBinRepository;
+    @Autowired
+    private I18nTranslationStyleRepository i18nTranslationStyleRepository;
+    @Autowired
+    private I18nProperties i18nProperties;
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -142,7 +145,7 @@ public class I18nService {
 
     public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) {
         try {
-            return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), context);
+            return translateToLocale(i18NEntity, resolveCurrentUserLocale(), context);
         } catch (Exception e) {
             return "";
         }
@@ -150,7 +153,7 @@ public class I18nService {
 
     public String translateToLocale(UUID i18nId, Map<String, String> context) {
         try {
-            return translateToLocale(i18nId, authService.getApiUser().getLocale(), context);
+            return translateToLocale(i18nId, resolveCurrentUserLocale(), context);
         } catch (Exception e) {
             return "";
         }
@@ -158,7 +161,7 @@ public class I18nService {
 
     public String translateToLocale(I18nEntity i18NEntity) {
         try {
-            return translateToLocale(i18NEntity, authService.getApiUser().getLocale(), null);
+            return translateToLocale(i18NEntity, resolveCurrentUserLocale(), null);
         } catch (Exception e) {
             return "";
         }
@@ -166,7 +169,7 @@ public class I18nService {
 
     public String translateToLocale(UUID i18nId) {
         try {
-            return translateToLocale(i18nId, authService.getApiUser().getLocale(), null);
+            return translateToLocale(i18nId, resolveCurrentUserLocale(), null);
         } catch (Exception e) {
             return "";
         }
@@ -203,4 +206,6 @@ public class I18nService {
             return originalStr;
         return originalStr + " [copy]";
     }
+
+    protected abstract Locale resolveCurrentUserLocale() throws ServiceException;
 }

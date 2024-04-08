@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 
-import java.util.Locale;
-
 @Entity
 @Data
 @Table(name = "i18n_locale")
@@ -13,8 +11,7 @@ import java.util.Locale;
 public class I18nLocaleEntity {
     @Id
     @Column(name = "locale")
-    @Convert(converter = LocaleConverter.class)
-    private Locale locale;
+    private String locale;
 
     @Basic
     @Column(name = "name")
@@ -23,4 +20,10 @@ public class I18nLocaleEntity {
     @Basic
     @Column(name = "active")
     private boolean active;
+
+    @Column(name = "native_name")
+    private String nativeName;
+
+    @Column(name = "icon")
+    private String icon;
 }

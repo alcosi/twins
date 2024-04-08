@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.springframework.context.annotation.Lazy;
@@ -31,9 +32,11 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -58,6 +61,7 @@ public class DomainService {
     final TwinflowService twinflowService;
     final SystemEntityService systemEntityService;
     final I18nLocaleRepository i18nLocaleRepository;
+    final DomainLocaleRepository domainLocaleRepository;
     @Lazy
     final TwinService twinService;
 
@@ -199,5 +203,17 @@ public class DomainService {
             throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
         ApiUser apiUser = authService.getApiUser();
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
+    }
+
+    public List<DomainLocaleEntity> getLocaleList() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        List<DomainLocaleEntity> domainLocales = domainLocaleRepository.findByDomainIdAndActiveTrueAndI18nLocaleActiveTrue(apiUser.getDomainId());
+        return domainLocales.stream()
+                .map(el -> {
+                    if (StringUtils.isEmpty(el.getIcon()))
+                        el.setIcon(el.getI18nLocale().getIcon());
+                    return el;
+                })
+                .collect(Collectors.toList());
     }
 }
