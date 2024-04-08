@@ -6,8 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.dao.I18nLocaleEntity;
 import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -205,18 +205,15 @@ public class DomainService {
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
     }
 
-    public List<I18nLocaleEntity> getLocaleList() throws ServiceException {
+    public List<DomainLocaleEntity> getLocaleList() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        List<DomainLocaleEntity> domainLocales = domainLocaleRepository.findByDomainIdAndI18nLocaleEntityActiveTrue(apiUser.getDomainId());
+        List<DomainLocaleEntity> domainLocales = domainLocaleRepository.findByDomainIdAndActiveTrueAndI18nLocaleActiveTrue(apiUser.getDomainId());
         return domainLocales.stream()
-                .filter(DomainLocaleEntity::isActive)
-                .map(DomainService::setPriorityIconAndMapping)
+                .map(el -> {
+                    if (StringUtils.isEmpty(el.getIcon()))
+                        el.setIcon(el.getI18nLocale().getIcon());
+                    return el;
+                })
                 .collect(Collectors.toList());
-    }
-
-    public static I18nLocaleEntity setPriorityIconAndMapping(DomainLocaleEntity domainLocale) {
-        if (domainLocale.getIcon() != null && !domainLocale.getIcon().equals(""))
-            domainLocale.getI18nLocaleEntity().setIcon(domainLocale.getIcon());
-        return domainLocale.getI18nLocaleEntity();
     }
 }

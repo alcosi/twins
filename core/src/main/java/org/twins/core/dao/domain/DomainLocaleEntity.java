@@ -31,7 +31,7 @@ public class DomainLocaleEntity implements EasyLoggable {
 
     @ManyToOne
     @JoinColumn(name = "i18n_locale_id", insertable = false, updatable = false, nullable = false)
-    private I18nLocaleEntity i18nLocaleEntity;
+    private I18nLocaleEntity i18nLocale;
 
     @Override
     public String easyLog(Level level) {

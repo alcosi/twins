@@ -6,5 +6,5 @@ import java.util.List;
 import java.util.UUID;
 
 public interface DomainLocaleRepository extends CrudRepository<DomainLocaleEntity, UUID> {
-    List<DomainLocaleEntity> findByDomainIdAndI18nLocaleEntityActiveTrue(UUID domainId);
+    List<DomainLocaleEntity> findByDomainIdAndActiveTrueAndI18nLocaleActiveTrue(UUID domainId);
 }
