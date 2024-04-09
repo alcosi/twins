@@ -44,8 +44,6 @@ subprojects {
 
     }
 
-//    createManifest {}
-
     processResources {
         /**
          * application.properties
