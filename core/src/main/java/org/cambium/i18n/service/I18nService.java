@@ -47,64 +47,61 @@ public abstract class I18nService {
         return translateToLocale(i18NEntity.getId(), locale, context);
     }
 
-    public String translateToLocale(UUID i18nId, Locale locale, Map<String, String> context) {
-        String ret = null;
-        if (locale == null)
-            locale = i18nProperties.defaultLocale();
-        if (i18nId == null) {
-            log.warn("I18n not configured");
-            return "";
-        }
-        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, locale);
-        if (i18nTranslationEntity.isPresent())
-            ret = i18nTranslationEntity.get().getTranslation();
-        if (StringUtils.isBlank(ret)) {
-            i18nTranslationRepository.incrementUsageCounter(i18nId, locale.getLanguage());
-            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, i18nProperties.defaultLocale());
-            if (i18nTranslationEntity.isPresent())
-                ret = i18nTranslationEntity.get().getTranslation();
-        }
-        if (MapUtils.isNotEmpty(context))
-            return StringUtils.replaceVariables(ret, context);
-        else
-            return ret;
-    }
-
-    public I18nTranslationEntity getTranslationEntity(I18nEntity i18NEntity, Locale locale) {
-        return getTranslationEntity(i18NEntity, locale, null);
-    }
-
-    public I18nTranslationEntity getTranslationEntity(I18nEntity i18NEntity, Locale locale, Map<String, String> context) {
-        I18nTranslationEntity ret = null;
-        if (locale == null)
-            locale = i18nProperties.defaultLocale();
-        Optional<I18nTranslationEntity> i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18NEntity.getId(), locale);
-        if (i18nTranslationEntity.isEmpty() || StringUtils.isBlank(i18nTranslationEntity.get().getTranslation())) {
-            i18nTranslationRepository.incrementUsageCounter(i18NEntity.getId(), locale.getLanguage());
-            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18NEntity.getId(), i18nProperties.defaultLocale());
-        }
-        if (i18nTranslationEntity.isEmpty())
-            return null;
-        loadStyles(i18nTranslationEntity.get());
-        return i18nTranslationEntity.get();
-    }
-
-    public String translateBase24ToLocale(I18nEntity i18NEntity, Locale locale) {
-        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, locale);
-        if (translationBinEntity.isEmpty() || translationBinEntity.get().getTranslation().length == 0)
-            translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, i18nProperties.defaultLocale());
-        if (translationBinEntity.isPresent() && translationBinEntity.get().getTranslation().length > 0)
-            return translationBinEntity.get().getBase64();
-        return null;
-    }
-
-
     public String translateToLocale(String i18nKey, Locale locale) throws ServiceException {
         I18nEntity i18NEntity = i18nRepository.findByKey(i18nKey);
         if (i18NEntity == null)
             throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "Wrong i18n key: " + i18nKey);
         return translateToLocale(i18NEntity, locale, null);
     }
+
+    public String translateToLocale(UUID i18nId, Locale locale, Map<String, String> context) {
+        I18nTranslationEntity i18nTranslationEntity = getTranslationEntity(i18nId, locale, context);
+        if (i18nTranslationEntity == null) {
+            return "";
+        }
+        String ret = i18nTranslationEntity.getTranslation();
+        if (StringUtils.isNotBlank(ret) && MapUtils.isNotEmpty(context))
+            return StringUtils.replaceVariables(ret, context);
+        else
+            return ret;
+    }
+
+    public I18nTranslationEntity getTranslationEntity(UUID i18nId, Locale locale) {
+        return getTranslationEntity(i18nId, locale, null);
+    }
+
+    public I18nTranslationEntity getTranslationEntity(UUID i18nId, Locale locale, Map<String, String> context) {
+        if (i18nId == null) {
+            log.warn("I18n not configured");
+            return null;
+        }
+        Locale defaultLocale = resolveDefaultLocale();
+        Optional<I18nTranslationEntity> i18nTranslationEntity;
+        if (locale != null) {
+            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, locale);
+            if (i18nTranslationEntity.isPresent() && StringUtils.isNotBlank(i18nTranslationEntity.get().getTranslation()))
+                return i18nTranslationEntity.get();
+            else
+                i18nTranslationRepository.incrementUsageCounter(i18nId, locale.getLanguage());
+        }
+        //if not translation was found for given locale we will load it for default
+        if (defaultLocale != null && !defaultLocale.equals(locale)) {
+            i18nTranslationEntity = i18nTranslationRepository.findByI18nIdAndLocale(i18nId, defaultLocale);
+            if (i18nTranslationEntity.isPresent())
+                return i18nTranslationEntity.get();
+        }
+        return null;
+    }
+
+    public String translateBase24ToLocale(I18nEntity i18NEntity, Locale locale) throws ServiceException {
+        Optional<I18nTranslationBinEntity> translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, locale);
+        if (translationBinEntity.isEmpty() || translationBinEntity.get().getTranslation().length == 0)
+            translationBinEntity = i18nTranslationBinRepository.findByI18nAndLocale(i18NEntity, resolveDefaultLocale());
+        if (translationBinEntity.isPresent() && translationBinEntity.get().getTranslation().length > 0)
+            return translationBinEntity.get().getBase64();
+        return null;
+    }
+
 
     public String translateToLocaleOrEmpty(String i18nKey, Locale locale) {
         try {
@@ -117,7 +114,7 @@ public abstract class I18nService {
     public void loadTranslations(I18nEntity i18nEntity, String locale) {
         if (i18nEntity == null)
             return;
-        List<Locale> locales = Arrays.asList(i18nProperties.defaultLocale(), Locale.forLanguageTag(locale));
+        List<Locale> locales = Arrays.asList(resolveDefaultLocale(), Locale.forLanguageTag(locale));
         if (i18nEntity.getType().isImage()) {
             i18nEntity.setTranslationsBin(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales));
         } else {
@@ -144,37 +141,22 @@ public abstract class I18nService {
     }
 
     public String translateToLocale(I18nEntity i18NEntity, Map<String, String> context) {
-        try {
-            return translateToLocale(i18NEntity, resolveCurrentUserLocale(), context);
-        } catch (Exception e) {
-            return "";
-        }
+        return translateToLocale(i18NEntity, resolveCurrentUserLocale(), context);
     }
 
     public String translateToLocale(UUID i18nId, Map<String, String> context) {
-        try {
-            return translateToLocale(i18nId, resolveCurrentUserLocale(), context);
-        } catch (Exception e) {
-            return "";
-        }
+        return translateToLocale(i18nId, resolveCurrentUserLocale(), context);
     }
 
     public String translateToLocale(I18nEntity i18NEntity) {
-        try {
-            return translateToLocale(i18NEntity, resolveCurrentUserLocale(), null);
-        } catch (Exception e) {
-            return "";
-        }
+        return translateToLocale(i18NEntity, resolveCurrentUserLocale(), null);
     }
 
     public String translateToLocale(UUID i18nId) {
-        try {
-            return translateToLocale(i18nId, resolveCurrentUserLocale(), null);
-        } catch (Exception e) {
-            return "";
-        }
+        return translateToLocale(i18nId, resolveCurrentUserLocale(), null);
     }
 
+    @Transactional
     public I18nEntity duplicateI18n(UUID srcI18nId) {
         return duplicateI18n(i18nRepository.findById(srcI18nId).get());
     }
@@ -207,5 +189,9 @@ public abstract class I18nService {
         return originalStr + " [copy]";
     }
 
-    protected abstract Locale resolveCurrentUserLocale() throws ServiceException;
+    protected abstract Locale resolveCurrentUserLocale();
+
+    protected Locale resolveDefaultLocale() {
+        return i18nProperties.defaultLocale();
+    }
 }

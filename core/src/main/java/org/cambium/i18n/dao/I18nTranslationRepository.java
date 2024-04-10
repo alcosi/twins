@@ -37,9 +37,8 @@ public interface I18nTranslationRepository extends CrudRepository<I18nTranslatio
 
     @Modifying
     @Transactional
-    @Query(nativeQuery = true, value = "update i18n_translations " +
-            "set usage_counter = usage_counter + 1 " +
-            "where locale = :localeCode " +
-            "and i18n_id = :i18nId")
+    @Query(nativeQuery = true, value = "insert into i18n_translation (i18n_id, locale, translation, usage_counter) " +
+            "values (:i18nId, :localeCode, '', 1) on conflict on constraint i18n_translation_uq do " +
+            "update set usage_counter = excluded.usage_counter + 1")
     void incrementUsageCounter(@Param("i18nId") UUID i18nId, @Param("localeCode") String localeCode);
 }
