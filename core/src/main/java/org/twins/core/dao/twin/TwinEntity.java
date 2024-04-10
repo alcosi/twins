@@ -136,8 +136,7 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     @EqualsAndHashCode.Exclude
     private TwinEntity spaceTwin;
 
-    @ManyToOne
-    @JoinColumn(name = "head_twin_id", insertable = false, updatable = false)
+    @Transient
     @EqualsAndHashCode.Exclude
     private TwinEntity headTwin;
 

@@ -5,12 +5,15 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
 import java.util.Properties;
@@ -23,6 +26,11 @@ import java.util.Properties;
                 "Get head of this dst twin. " +
                 "Create new link of given type from current twin pointing to this head")
 public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks {
+
+    @Lazy
+    @Autowired
+    TwinService twinService;
+
     @FeaturerParam(name = "headHunterLink", description = "")
     public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUID("headHunterLink");
 
@@ -37,16 +45,17 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
         if (contextTwinLinksList.size() != 1)
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "To many links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
-        TwinEntity detectedHead = contextTwinLinksList.get(0).getDstTwin().getHeadTwin();
+        TwinEntity detectedHead = twinService.loadHeadForTwin(contextTwinLinksList.get(0).getDstTwin());
         LinkEntity link = linkService.findEntitySafe(newLinksId.extract(properties));
         TwinLinkEntity newLink = new TwinLinkEntity()
                 .setLink(link)
                 .setLinkId(link.getId())
                 .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId()); //null
+                .setDstTwinId(detectedHead.getId());
         addLink(factoryItem.getOutput(), newLink);
     }
 
+    //todo optimize with hierarchy
     private List<TwinLinkEntity> lookupLink(Properties properties, FactoryItem factoryItem, int deep) throws ServiceException {
             TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
             List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin)
