@@ -35,6 +35,10 @@ public class I18nTranslationEntity {
     @Column(name = "translation", length = 255)
     private String translation;
 
+    /**
+     * this counter is used to indicate how many times this translation was requested, but it was missed.
+     * this can help to detect most awaited translations. must be incremented only if translation is empty
+     */
     @Basic
     @Column(name = "usage_counter")
     private Integer usageCounter = 0;

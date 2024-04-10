@@ -82,7 +82,7 @@ public class ApplicationConfig {
                         CacheBuilder.newBuilder()
                                 .expireAfterWrite(5, TimeUnit.MINUTES)
                                 .build().asMap(),
-                        false);
+                        true);
             }
         };
     }

@@ -18,8 +18,25 @@ public class I18nTwinsService extends I18nService {
 
     final AuthService authService;
     @Override
-    protected Locale resolveCurrentUserLocale() throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return apiUser.getLocale();
+    protected Locale resolveCurrentUserLocale() {
+        ApiUser apiUser;
+        try {
+            apiUser = authService.getApiUser();
+            return apiUser.getLocale();
+        } catch (ServiceException e) {
+            return null;
+        }
+    }
+
+    @Override
+    protected Locale resolveDefaultLocale() {
+        ApiUser apiUser;
+        try {
+            apiUser = authService.getApiUser();
+            Locale domainLocale = apiUser.getDomain().getDefaultI18nLocaleId();
+            return domainLocale != null ? domainLocale : super.resolveDefaultLocale();
+        } catch (ServiceException e) {
+            return super.resolveDefaultLocale();
+        }
     }
 }
