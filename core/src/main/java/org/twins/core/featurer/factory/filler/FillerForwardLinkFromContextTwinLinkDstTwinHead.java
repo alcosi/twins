@@ -31,9 +31,8 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity contextTwin = factoryItem.checkSingleContextTwin(); //todo support deep item search logic
-        List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin)
-                .getGrouped(headHunterLink.extract(properties));
+        TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
+        List<TwinLinkEntity> contextTwinLinksList = lookupLink(properties, factoryItem, 5);
         if (CollectionUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No links[" + headHunterLink.extract(properties) + "] configured from " + contextTwin.logShort());
         if (contextTwinLinksList.size() != 1)
@@ -44,7 +43,16 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
                 .setLink(link)
                 .setLinkId(link.getId())
                 .setDstTwin(detectedHead)
-                .setDstTwinId(detectedHead.getId());
+                .setDstTwinId(detectedHead.getId()); //null
         addLink(factoryItem.getOutput(), newLink);
+    }
+
+    private List<TwinLinkEntity> lookupLink(Properties properties, FactoryItem factoryItem, int deep) throws ServiceException {
+            TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
+            List<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin)
+                    .getGrouped(headHunterLink.extract(properties));
+            if (CollectionUtils.isEmpty(contextTwinLinksList) && deep > 0)
+                contextTwinLinksList = lookupLink(properties, factoryItem.checkSingleContextItem(), deep - 1);
+        return contextTwinLinksList;
     }
 }
