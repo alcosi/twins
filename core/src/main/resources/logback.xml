@@ -1,91 +1,13 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <property name="LOGS_DIR" value="./logs" />
-
-    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS_DIR}/twins-core.log</file>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOGS_DIR}/twins-core-%d{yyyy-MM-dd}.zip</fileNamePattern>
-            <maxHistory>360</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <charset>UTF-8</charset>
-            <immediateFlush>true</immediateFlush>
-            <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{traceTree}%replace(%replace(%msg){'"base64":".*"',
-                '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
-            </pattern>
-        </encoder>
-    </appender>
-
-    <appender name="RQ-RS-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOGS_DIR}/twins-RqRs.log</file>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
-        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOGS_DIR}/twins-RqRs-%d{yyyy-MM-dd}.zip</fileNamePattern>
-            <maxHistory>360</maxHistory>
-        </rollingPolicy>
-        <encoder>
-            <charset>UTF-8</charset>
-            <immediateFlush>true</immediateFlush>
-            <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{traceTree}%replace(%replace(%msg){'"base64":".*"',
-                '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
-            </pattern>
-        </encoder>
-    </appender>
-
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
-            <level>INFO</level>
-        </filter>
         <encoder>
             <charset>UTF-8</charset>
-            <pattern>
-                %date{ISO8601}|%-5level|%-20.20thread|%-40logger{40}|%-20.20X{session}|%-20.20X{controller}| %X{logPrefix}%X{traceTree}%replace(%replace(%msg){'"base64":".*"',
-                '"base64":"img"'}){'"password":".*"', '"password":"***"'}%n
-            </pattern>
+            <pattern>%date{ISO8601}|%-5level|%-20.20thread|%-40.20logger{40}|%msg%n</pattern>
         </encoder>
     </appender>
 
-
-    <appender name="ASYNC-FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>1000</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <appender-ref ref="FILE"/>
-    </appender>
-
-    <appender name="ASYNC-RQ-RS-FILE" class="ch.qos.logback.classic.AsyncAppender">
-        <queueSize>1000</queueSize>
-        <discardingThreshold>0</discardingThreshold>
-        <appender-ref ref="RQ-RS-FILE"/>
-    </appender>
-
-    <root level="INFO">
+    <root level="TRACE">
         <appender-ref ref="STDOUT"/>
     </root>
-    <logger name="org.twins.core" level="INFO" additivity="false">
-        <appender-ref ref="ASYNC-FILE"/>
-    </logger>
-    <logger name="org.cambium" level="INFO" additivity="false">
-        <appender-ref ref="ASYNC-FILE"/>
-    </logger>
-    <logger name="org.springframework" level="INFO" additivity="false">
-        <appender-ref ref="ASYNC-FILE"/>
-    </logger>
-    <logger name="RqRsLogger" level="INFO" additivity="false">
-        <appender-ref ref="ASYNC-RQ-RS-FILE"/>
-    </logger>
-    <logger name="RqRsLoggerShort" level="INFO" additivity="false">
-        <appender-ref ref="ASYNC-FILE"/>
-    </logger>
-    <logger name="org.twins.core.mappers.rest.MapperContext" level="DEBUG" additivity="false">
-        <appender-ref ref="ASYNC-FILE"/>
-    </logger>
-
 </configuration>
