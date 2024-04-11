@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverSystem;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
@@ -54,6 +55,7 @@ public class DomainBusinessAccountAddController extends ApiController {
                     .setDomainResolver(new DomainResolverGivenId(domainId))
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
                     .setUserResolver(userResolverSystem)
+                    .setLocaleResolver(new LocaleResolverEnglish())
                     .setCheckMembershipMode(false);
             domainService.addBusinessAccount(
                     domainId,
