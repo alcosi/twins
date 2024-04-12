@@ -70,4 +70,26 @@ subprojects {
             }
         }
     }
+
+    task selectLogbackConfig(type: Copy) {
+        from 'src/main/resources'
+        into "$buildDir/resources/main"
+        include 'logback*.xml'
+        rename { String fileName ->
+            if (fileName.contains("-$project.ext.profile")) {
+                return 'logback.xml'
+            } else {
+                return fileName
+            }
+        }
+        exclude 'logback.xml'
+    }
+
+    processResources.dependsOn selectLogbackConfig
+    processResources {
+        exclude 'logback*.xml'
+        from("$buildDir/resources/main/logback.xml") {
+            into 'logback'
+        }
+    }
 }
