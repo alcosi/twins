@@ -3,18 +3,19 @@ package org.twins.core.mappers.rest.domain;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dto.rest.domain.DomainViewRsDTOv1;
+import org.twins.core.dto.rest.domain.DomainViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
-public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, DomainViewRsDTOv1> {
+public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, DomainViewDTOv1> {
 
     @Override
-    public void map(DomainEntity src, DomainViewRsDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(DomainEntity src, DomainViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
+                .setId(src.getId())
                 .setKey(src.getKey())
                 .setDescription(src.getDescription())
                 .setType(src.getDomainType())
