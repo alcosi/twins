@@ -62,7 +62,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
                 else
                     leftGroups.add(currentlyEnteredGroup);
             }
-            if (leftGroups.size() == 0 && !allowEmpty.extract(properties))
+            if (leftGroups.isEmpty() && !allowEmpty.extract(properties))
                 throw new ServiceException(ErrorCodeTwins.USER_GROUP_IS_MANDATORY, "User can not be deleted from all groups");
             for (UserGroupMapEntity exitUserGroup : exitedGroups) {
                 Slugger slugger = featurerService.getFeaturer(exitUserGroup.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);

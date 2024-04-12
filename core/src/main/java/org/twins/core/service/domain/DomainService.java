@@ -17,6 +17,7 @@ import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
+import org.twins.core.featurer.domain.initiator.DomainInitiator;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -47,6 +48,7 @@ public class DomainService {
     final UserService userService;
     final BusinessAccountService businessAccountService;
     final DomainRepository domainRepository;
+    final DomainTypeRepository domainTypeRepository;
     final DomainUserRepository domainUserRepository;
     final DomainBusinessAccountRepository domainBusinessAccountRepository;
     final EntitySmartService entitySmartService;
@@ -90,24 +92,20 @@ public class DomainService {
     public DomainUserNoRelationProjection getDomainUserNoRelationProjection(UUID domainId, UUID userId, Class<DomainUserNoRelationProjection> clazz) throws ServiceException {
         return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }
-//todo
 
-//    public DomainEntity addDomain(DomainEntity domainEntity, EntitySmartService.SaveMode domainSaveMode) throws ServiceException {
-//        domainEntity
-//                .setCreatedAt(Timestamp.from(Instant.now()))
-//                .setTwinClassSchemaId()
-//                .setTwinflowSchemaId()
-//                .setPermissionSchemaId()
-//                .se;
-//        domainEntity = entitySmartService.save(domainEntity.getId(), domainEntity, domainRepository, domainSaveMode);
-//        if (EntitySmartService.SaveMode.ifNotPresentCreate == domainSaveMode
-//                || EntitySmartService.SaveMode.ifPresentThrowsElseCreate == domainSaveMode) {
-//            TwinEntity twinEntity = systemEntityService.createTwinTemplateDomainBusinessAccount(domainEntity.getId());
-//            domainEntity.setBusinessAccountTemplateTwinId(twinEntity.getId());
-//            entitySmartService.save(domainEntity, domainRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-//        }
-//        return domainEntity;
-//    }
+    public DomainEntity addDomain(DomainEntity domainEntity) throws ServiceException {
+        if (StringUtils.isBlank(domainEntity.getKey()))
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
+        domainEntity.setKey(domainEntity.getKey().toLowerCase()); //todo replace all unsupported chars
+        if (domainRepository.existsByKey(domainEntity.getKey()))
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
+        Optional<DomainTypeEntity> domainTypeEntity = domainTypeRepository.findById(domainEntity.getDomainType().getId());
+        if (domainTypeEntity.isEmpty())
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
+        DomainInitiator domainInitiator = featurerService.getFeaturer(domainTypeEntity.get().getDomainInitiatorFeaturer(), DomainInitiator.class);
+        domainInitiator.init(domainTypeEntity.get(), domainEntity);
+        return domainEntity;
+    }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);

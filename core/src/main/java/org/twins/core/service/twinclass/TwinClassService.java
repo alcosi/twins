@@ -14,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
@@ -78,7 +81,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         Optional<TwinClassSchemaEntity> twinClassSchemaEntity = twinClassSchemaRepository.findById(twinClassSchemaId);
         if (twinClassSchemaEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown twinClassSchemaId[" + twinClassSchemaId + "]");
-        if (twinClassSchemaEntity.get().domainId() != domainId)
+        if (twinClassSchemaEntity.get().getDomainId() != domainId)
             throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, "twinClassSchemaId[" + twinClassSchemaId + "] is not allows in domain[" + domainId + "]");
         return twinClassSchemaId;
     }
