@@ -15,8 +15,9 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
 import org.twins.core.domain.apiuser.LocaleResolverGivenOrSystemDefault;
-import org.twins.core.domain.apiuser.UserResolverSystem;
+import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.domain.DomainAddRqDTOv1;
 import org.twins.core.dto.rest.domain.DomainViewRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainAddRestDTOReverseMapper;
@@ -31,9 +32,9 @@ import org.twins.core.service.domain.DomainService;
 public class DomainAddController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
-    final UserResolverSystem userResolverSystem;
     final DomainAddRestDTOReverseMapper domainAddRestDTOReverseMapper;
     final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    final UserResolverAuthToken userResolverAuthToken;
 
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainAddV1", summary = "Add new domain.")
@@ -47,7 +48,10 @@ public class DomainAddController extends ApiController {
             @RequestBody DomainAddRqDTOv1 request) {
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();
         try {
-            authService.getApiUser().setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.defaultLocale));
+            authService.getApiUser()
+                    .setUserResolver(userResolverAuthToken)
+                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.defaultLocale));
             DomainEntity domainEntity = domainService.addDomain(domainAddRestDTOReverseMapper.convert(request));
             rs.setDomain(domainViewRestDTOMapper.convert(domainEntity));
         } catch (ServiceException se) {

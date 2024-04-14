@@ -194,7 +194,7 @@ public abstract class I18nService {
                 .setI18n(i18nEntity)
                 .setI18nId(i18nEntity.getId())
                 .setLocale(resolveDefaultLocale())
-                .setTranslation(defaultLocaleTranslation);
+                .setTranslation(defaultLocaleTranslation != null ? defaultLocaleTranslation : "");
         return i18nTranslationRepository.save(i18nTranslationEntity);
     }
 

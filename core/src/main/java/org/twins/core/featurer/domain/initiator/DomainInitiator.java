@@ -26,6 +26,7 @@ import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -76,10 +77,15 @@ public abstract class DomainInitiator extends Featurer {
 
     @Lazy
     @Autowired
+    DomainService domainService;
+
+    @Lazy
+    @Autowired
     SystemEntityService systemEntityService;
 
     @Transactional
-    public void init(DomainTypeEntity domainTypeEntity, DomainEntity domainEntity) throws ServiceException {
+    public DomainEntity init(DomainEntity domainEntity) throws ServiceException {
+        DomainTypeEntity domainTypeEntity = domainService.loadDomainType(domainEntity);
         Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
         domainEntity
                 .setCreatedAt(Timestamp.from(Instant.now()))
@@ -94,10 +100,13 @@ public abstract class DomainInitiator extends Featurer {
         init(properties, domainEntity);
         domainEntity = entitySmartService.save(domainEntity, domainRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         postInit(properties, domainEntity);
-        domainEntity = entitySmartService.save(domainEntity, domainRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return entitySmartService.save(domainEntity, domainRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     protected abstract void init(Properties properties, DomainEntity domainEntity) throws ServiceException;
+
+    public abstract TwinClassEntity.OwnerType getDefaultTwinClassOwnerType();
+    public abstract boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType);
 
     @Transactional
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {

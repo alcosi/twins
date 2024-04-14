@@ -32,6 +32,19 @@ public class DomainInitiatorB2B extends DomainInitiator {
 
     }
 
+    @Override
+    public TwinClassEntity.OwnerType getDefaultTwinClassOwnerType() {
+        return TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT;
+    }
+
+    @Override
+    public boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType) {
+        return switch (ownerType) {
+            case DOMAIN, DOMAIN_USER, DOMAIN_BUSINESS_ACCOUNT_USER -> true;
+            default -> false;
+        };
+    }
+
     @Transactional
     @Override
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {

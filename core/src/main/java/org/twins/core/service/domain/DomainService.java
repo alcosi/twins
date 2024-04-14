@@ -14,7 +14,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -85,7 +87,7 @@ public class DomainService {
         return domainUserRepository.findByDomainIdAndUserId(apiUser.getDomainId(), apiUser.getUserId());
     }
 
-    public Locale getDefaultDomainLocale(UUID domainId){
+    public Locale getDefaultDomainLocale(UUID domainId) {
         return domainRepository.findById(domainId, DomainLocaleProjection.class).defaultI18nLocaleId();
     }
 
@@ -93,17 +95,19 @@ public class DomainService {
         return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }
 
+    @Transactional
     public DomainEntity addDomain(DomainEntity domainEntity) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
-        domainEntity.setKey(domainEntity.getKey().toLowerCase()); //todo replace all unsupported chars
+        domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
         if (domainRepository.existsByKey(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
-        Optional<DomainTypeEntity> domainTypeEntity = domainTypeRepository.findById(domainEntity.getDomainType().getId());
-        if (domainTypeEntity.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED);
-        DomainInitiator domainInitiator = featurerService.getFeaturer(domainTypeEntity.get().getDomainInitiatorFeaturer(), DomainInitiator.class);
-        domainInitiator.init(domainTypeEntity.get(), domainEntity);
+        loadDomainType(domainEntity);
+        DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
+        domainEntity = domainInitiator.init(domainEntity);
+        ApiUser apiUser = authService.getApiUser()
+                .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
+        addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
         return domainEntity;
     }
 
@@ -197,7 +201,7 @@ public class DomainService {
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
-        if  (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
+        if (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
         ApiUser apiUser = authService.getApiUser();
         domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
@@ -213,5 +217,26 @@ public class DomainService {
                     return el;
                 })
                 .collect(Collectors.toList());
+    }
+
+    public DomainTypeEntity loadDomainType(DomainEntity domainEntity) throws ServiceException {
+        if (domainEntity.getDomainTypeEntity() != null)
+            return domainEntity.getDomainTypeEntity();
+        domainEntity.setDomainTypeEntity(
+                domainTypeRepository.findById(domainEntity.getDomainType().getId()).orElseThrow(() -> new ServiceException(ErrorCodeTwins.DOMAIN_TYPE_UNSUPPORTED)));
+        return domainEntity.getDomainTypeEntity();
+    }
+
+    public TwinClassEntity.OwnerType checkDomainSupportedTwinClassOwnerType(DomainEntity domainEntity, TwinClassEntity.OwnerType ownerType) throws ServiceException {
+        DomainTypeEntity domainTypeEntity = loadDomainType(domainEntity);
+        DomainInitiator domainInitiator = featurerService.getFeaturer(domainTypeEntity.getDomainInitiatorFeaturer(), DomainInitiator.class);
+        if (ownerType != null) {
+            if (!domainInitiator.isSupportedTwinClassOwnerType(ownerType)) {
+                log.warn(domainEntity.logNormal() + " Unsupported ownerType[" + ownerType + "]. Using default");
+                return domainInitiator.getDefaultTwinClassOwnerType();
+            } else
+                return ownerType;
+        } else
+            return domainInitiator.getDefaultTwinClassOwnerType();
     }
 }

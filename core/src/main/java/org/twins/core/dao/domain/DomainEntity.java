@@ -3,8 +3,9 @@ package org.twins.core.dao.domain;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Data
 @Accessors(chain = true)
-public class DomainEntity implements EasyLoggable {
+public class DomainEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -96,6 +97,10 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "domain_type_id")
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private DomainTypeEntity domainTypeEntity;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";
