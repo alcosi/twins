@@ -28,4 +28,8 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
 
 
     TwinClassEntity findByDomainIdAndKey(UUID domainId, String key);
+
+    boolean existsByDomainIdAndId(UUID domainId, UUID twinClassId);
+
+    boolean existsByDomainIdAndKey(UUID domainId, String key);
 }

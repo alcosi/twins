@@ -6,12 +6,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -23,6 +27,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -41,6 +46,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final EntitySmartService entitySmartService;
     final I18nService i18nService;
     final EntityManager entityManager;
+    final DataListRepository dataListRepository;
+    final PermissionRepository permissionRepository;
+    @Lazy
+    final DomainService domainService;
     @Lazy
     final AuthService authService;
 
@@ -171,6 +180,44 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
         return true;
+    }
+
+    @Transactional
+    public TwinClassEntity createClass(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (StringUtils.isBlank(twinClassEntity.getKey()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
+        twinClassEntity.setKey(twinClassEntity.getKey().trim().toUpperCase().replaceAll("\\s", "_"));
+        if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey())) {
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
+        }
+        if (twinClassEntity.getHeadTwinClassId() != null
+                && !twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
+        if (twinClassEntity.getExtendsTwinClassId() != null) {
+            if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getExtendsTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id");
+        } else {
+            twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
+        }
+        if (twinClassEntity.getMarkerDataListId() != null
+                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id");
+        if (twinClassEntity.getTagDataListId() != null
+                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id");
+        if (twinClassEntity.getViewPermissionId() != null
+        && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown tag data list id");
+        twinClassEntity
+                .setKey(twinClassEntity.getKey().toUpperCase())
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_NAME, name).getI18nId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_DESCRIPTION, description).getI18nId())
+                .setDomainId(apiUser.getDomainId())
+                .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(apiUser.getUserId());
+        return entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 }
 
