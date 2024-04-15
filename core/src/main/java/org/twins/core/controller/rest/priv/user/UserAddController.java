@@ -18,6 +18,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverGivenId;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.user.UserAddRqDTOv1;
@@ -55,6 +56,7 @@ public class UserAddController extends ApiController {
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.user.id))
                     .setDomainResolver(new DomainResolverGivenId(request.domainId))
+                    .setLocaleResolver(new LocaleResolverEnglish())
                     .setCheckMembershipMode(false);
             userService.addUser(new UserEntity()
                     .setId(request.user.id)
