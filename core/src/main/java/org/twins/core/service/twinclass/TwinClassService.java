@@ -18,16 +18,21 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
+import org.twins.core.dao.twinflow.TwinflowEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -48,6 +53,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final EntityManager entityManager;
     final DataListRepository dataListRepository;
     final PermissionRepository permissionRepository;
+    @Lazy
+    final TwinStatusService twinStatusService;
+    @Lazy
+    final TwinflowService twinflowService;
     @Lazy
     final DomainService domainService;
     @Lazy
@@ -183,7 +192,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     }
 
     @Transactional
-    public TwinClassEntity createClass(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
+    public TwinClassEntity createInDomainClassTransactional(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
@@ -217,7 +226,19 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-        return entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
+        TwinflowEntity twinflowEntity = twinflowService.createTwinflow(twinClassEntity, twinStatusEntity);
+        TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowService.registerTwinflow(twinflowEntity, apiUser.getDomain(), twinClassEntity);
+        return twinClassEntity;
+    }
+
+    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
+        twinClassEntity = createInDomainClassTransactional(twinClassEntity, name, description);
+        if (StringUtils.isBlank(twinClassEntity.getExtendsHierarchyTree())) // this field is filled by trigger only after transaction commit. So we have to reload entity from database
+            twinClassEntity.setExtendsHierarchyTree(twinClassRepository.getExtendsHierarchyTree(twinClassEntity.getId()));
+        return twinClassEntity;
     }
 }
 

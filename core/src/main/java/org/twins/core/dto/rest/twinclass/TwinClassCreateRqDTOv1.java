@@ -33,7 +33,7 @@ public class TwinClassCreateRqDTOv1 extends Request {
     @Schema(description = "[optional] if true, then not twin of given class can be created. Abstract classes must be extended", example = "false")
     public boolean abstractClass;
 
-    @Schema(description = "[optional] url for class UI logo", example = "")
+    @Schema(description = "[optional] url for class UI logo", example = "https://twins.org/img/twin_class_default.png")
     public String logo;
 
     @Schema(description = "[optional] if true then twins of current class can have own permission_schema and this schema will cover children twins", example = "false")

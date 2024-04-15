@@ -29,6 +29,9 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
 
     TwinClassEntity findByDomainIdAndKey(UUID domainId, String key);
 
+    @Query(value = "select extendsHierarchyTree from TwinClassEntity where id = :twinClassId")
+    String getExtendsHierarchyTree(@Param("twinClassId") UUID twinClassId);
+
     boolean existsByDomainIdAndId(UUID domainId, UUID twinClassId);
 
     boolean existsByDomainIdAndKey(UUID domainId, String key);

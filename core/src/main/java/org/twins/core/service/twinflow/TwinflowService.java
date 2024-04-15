@@ -11,7 +11,9 @@ import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerEntity;
@@ -23,12 +25,15 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 
 @Slf4j
@@ -188,6 +193,27 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
         List<UUID> schemasToDelete = twinflowRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(schemasToDelete, twinflowRepository);
+    }
+
+    @Transactional
+    public TwinflowEntity createTwinflow(TwinClassEntity twinClassEntity, TwinStatusEntity twinStatusEntity) throws ServiceException {
+        TwinflowEntity twinflowEntity = new TwinflowEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setName("Default " + twinClassEntity.getKey() + " twinflow")
+                .setInitialTwinStatusId(twinStatusEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
+        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    @Transactional
+    public TwinflowSchemaMapEntity registerTwinflow(TwinflowEntity twinflowEntity, DomainEntity domainEntity, TwinClassEntity twinClassEntity) throws ServiceException {
+        TwinflowSchemaMapEntity twinflowSchemaMapEntity = new TwinflowSchemaMapEntity()
+                .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
+                .setTwinClassId(twinClassEntity.getId())
+                .setTwinflowId(twinflowEntity.getId())
+                .setTwinflow(twinflowEntity);
+        return entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 }
 
