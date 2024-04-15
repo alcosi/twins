@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
@@ -25,6 +28,7 @@ import java.util.*;
 public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEntity> {
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
+    final I18nService i18nService;
 
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
@@ -90,5 +94,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             return true;
         }
         return twinEntity.getTwinClass().getExtendedClassIdSet().contains(twinStatusEntity.getTwinClassId());
+    }
+
+    @Transactional
+    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
+        TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setKey(key)
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId());
+        return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 }

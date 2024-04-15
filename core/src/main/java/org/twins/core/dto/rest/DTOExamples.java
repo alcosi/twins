@@ -3,6 +3,8 @@ package org.twins.core.dto.rest;
 public interface DTOExamples {
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String TWIN_CLASS_KEY = "TOOL";
+    String TWIN_CLASS_NAME = "Tool";
+    String TWIN_CLASS_DESCRIPTION = "Professional tool class";
     String TWIN_CLASS_HEAD_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
     String TWIN_CLASS_FIELD_KEY = "serialNumber";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";

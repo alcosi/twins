@@ -22,4 +22,6 @@ public interface PermissionRepository extends CrudRepository<PermissionEntity, U
             @Param("twinClassId") UUID twinClassId,
             @Param("isAssignee") Boolean isAssignee,
             @Param("isCreator") Boolean isCreator);
+
+    boolean existsByIdAndPermissionGroup_DomainId(UUID permissionId, UUID domainId);
 }
