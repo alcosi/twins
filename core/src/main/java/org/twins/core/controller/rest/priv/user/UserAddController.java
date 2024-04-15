@@ -51,7 +51,7 @@ public class UserAddController extends ApiController {
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();
         try {
-            domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
+            domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
             authService.getApiUser()
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.user.id))
