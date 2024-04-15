@@ -90,9 +90,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         Optional<TwinflowSchemaEntity> permissionSchemaEntity = twinflowSchemaRepository.findById(twinFlowsSchemaId);
         if (permissionSchemaEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown twinFlowsSchemaId[" + twinFlowsSchemaId + "]");
-        if (permissionSchemaEntity.get().domainId() != domainId)
+        if (!permissionSchemaEntity.get().getDomainId().equals(domainId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_ALLOWED, "twinFlowsSchemaId[" + twinFlowsSchemaId + "] is not allows in domain[" + domainId + "]");
-        if (permissionSchemaEntity.get().businessAccountId() != null && permissionSchemaEntity.get().businessAccountId() != businessAccountId)
+        if (permissionSchemaEntity.get().getBusinessAccountId() != null && !permissionSchemaEntity.get().getBusinessAccountId().equals(businessAccountId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_ALLOWED, "twinFlowsSchemaId[" + twinFlowsSchemaId + "] is not allows in businessAccount[" + businessAccountId + "]");
         return twinFlowsSchemaId;
     }

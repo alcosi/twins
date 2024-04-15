@@ -183,6 +183,21 @@ public abstract class I18nService {
         return entityManager.merge(duplicateI18nEntity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public I18nTranslationEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) {
+        I18nEntity i18nEntity = new I18nEntity()
+                .setKey(null)
+                .setName(null)
+                .setType(i18nType);
+        i18nEntity = i18nRepository.save(i18nEntity);
+        I18nTranslationEntity i18nTranslationEntity = new I18nTranslationEntity()
+                .setI18n(i18nEntity)
+                .setI18nId(i18nEntity.getId())
+                .setLocale(resolveDefaultLocale())
+                .setTranslation(defaultLocaleTranslation != null ? defaultLocaleTranslation : "");
+        return i18nTranslationRepository.save(i18nTranslationEntity);
+    }
+
     private String addCopyPostfix(String originalStr) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
             return originalStr;
@@ -193,5 +208,15 @@ public abstract class I18nService {
 
     protected Locale resolveDefaultLocale() {
         return i18nProperties.defaultLocale();
+    }
+
+    public Locale localeFromTagOrSystemDefault(String langTag) {
+        Locale locale;
+        try {
+            locale = Locale.forLanguageTag(langTag);
+        } catch (Exception e) {
+            locale = i18nProperties.defaultLocale();
+        }
+        return locale;
     }
 }

@@ -1,7 +1,6 @@
 package org.twins.core.controller.rest.priv.domain;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -11,22 +10,18 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
-import org.twins.core.domain.apiuser.DomainResolverGivenId;
-import org.twins.core.domain.apiuser.UserResolverSystem;
-import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-
-import java.util.UUID;
 
 @Tag(description = "", name = ApiTag.DOMAIN)
 @RestController
@@ -35,7 +30,6 @@ import java.util.UUID;
 public class DomainBusinessAccountDeleteController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
-    final UserResolverSystem userResolverSystem;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")

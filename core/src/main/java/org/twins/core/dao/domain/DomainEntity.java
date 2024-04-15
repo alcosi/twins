@@ -3,8 +3,9 @@ package org.twins.core.dao.domain;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggable;
+import org.cambium.common.EasyLoggableImpl;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Data
 @Accessors(chain = true)
-public class DomainEntity implements EasyLoggable {
+public class DomainEntity extends EasyLoggableImpl {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -57,6 +58,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "ancestor_twin_class_id")
     private UUID ancestorTwinClassId;
 
+    @Column(name = "business_account_initiator_featurer_id")
+    private Integer businessAccountInitiatorFeaturerId;
+
     @FeaturerList(type = BusinessAccountInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)
@@ -65,6 +69,9 @@ public class DomainEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "business_account_initiator_params", columnDefinition = "hstore")
     private HashMap<String, String> businessAccountInitiatorParams;
+
+    @Column(name = "token_handler_featurer_id")
+    private Integer tokenHandlerFeaturerId;
 
     @FeaturerList(type = TokenHandler.class)
     @ManyToOne(fetch = FetchType.EAGER)
@@ -75,6 +82,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "token_handler_params", columnDefinition = "hstore")
     private HashMap<String, String> tokenHandlerParams;
 
+    @Column(name = "user_group_manager_featurer_id")
+    private Integer userGroupManagerFeaturerId;
+
     @FeaturerList(type = UserGroupManager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_group_manager_featurer_id", insertable = false, updatable = false)
@@ -83,6 +93,14 @@ public class DomainEntity implements EasyLoggable {
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "user_group_manager_params", columnDefinition = "hstore")
     private HashMap<String, String> userGroupManagerParams;
+
+    @Column(name = "domain_type_id")
+    @Convert(converter = DomainTypeConverter.class)
+    private DomainType domainType;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private DomainTypeEntity domainTypeEntity;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";

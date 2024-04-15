@@ -11,4 +11,6 @@ public interface DomainRepository extends CrudRepository<DomainEntity, UUID>, Jp
     DomainEntity findByKey(String key);
 
     <T> T findById(UUID id, Class<T> type);
+
+    boolean existsByKey(String key);
 }

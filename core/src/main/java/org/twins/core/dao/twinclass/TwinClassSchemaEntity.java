@@ -3,15 +3,13 @@ package org.twins.core.dao.twinclass;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Table(name = "twin_class_schema")
 public class TwinClassSchemaEntity {
     @Id

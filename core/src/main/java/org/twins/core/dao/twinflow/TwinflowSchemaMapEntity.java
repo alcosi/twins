@@ -2,12 +2,14 @@ package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @Table(name = "twinflow_schema_map")
 public class TwinflowSchemaMapEntity {
     @Id
