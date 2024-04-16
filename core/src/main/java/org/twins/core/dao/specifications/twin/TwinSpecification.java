@@ -59,7 +59,7 @@ public class TwinSpecification {
     }
 
 
-    public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businesAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
+    public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
 
             Expression<UUID> spaceId = root.get(TwinEntity.Fields.permissionSchemaSpaceId);
@@ -72,7 +72,7 @@ public class TwinSpecification {
 
             return cb.isTrue(cb.function("permissionCheck", Boolean.class,
                     cb.literal(domainId),
-                    cb.literal(businesAccountId),
+                    cb.literal(businessAccountId),
                     spaceId,
                     permissionIdTwin,
                     permissionIdTwinClass,
