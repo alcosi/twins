@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.BasicSearch;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -35,7 +35,8 @@ public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        BasicSearch search = new BasicSearch()
+        BasicSearch search = new BasicSearch();
+        search
                 .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .addStatusId(statusIds.extract(properties));
         if (excludeFactoryInput.extract(properties))

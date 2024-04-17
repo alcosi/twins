@@ -12,7 +12,7 @@ import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.BasicSearch;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
@@ -45,7 +45,8 @@ public class TwinHeadService {
     public List<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null) //todo check parent
             return new ArrayList<>();
-        BasicSearch basicSearch = new BasicSearch()
+        BasicSearch search = new BasicSearch();
+        search
                 .addTwinClassId(twinClassEntity.getHeadTwinClassId());
         if (twinClassEntity.getDomainId() != null) {
             TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
@@ -59,7 +60,7 @@ public class TwinHeadService {
             }
         }
         // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)
-        return twinSearchService.findTwins(basicSearch);
+        return twinSearchService.findTwins(search);
     }
 
     //todo cache it

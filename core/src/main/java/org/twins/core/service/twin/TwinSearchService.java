@@ -12,15 +12,11 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.BasicSearch;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.Set;
+import java.util.*;
 
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.where;
