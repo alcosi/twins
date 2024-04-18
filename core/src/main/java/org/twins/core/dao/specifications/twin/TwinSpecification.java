@@ -202,11 +202,13 @@ public class TwinSpecification {
             if (MapUtils.isNotEmpty(noTwinLinksMap)) {
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinLeft = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
                 for (Map.Entry<UUID, Set<UUID>> entry : noTwinLinksMap.entrySet()) {
-                    Predicate linkCondition, dstTwinCondition, nullSrcTwin, unitedPredicate;
+                    Predicate linkCondition, dstTwinCondition, srcTwinCondition, nullSrcTwin, interimPredicate, unitedPredicate;
                     if (entry.getValue().isEmpty()) {
                         linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey()).not();
                         nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
-                        unitedPredicate = cb.or(linkCondition, nullSrcTwin);
+                        srcTwinCondition = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.srcTwinId));
+                        interimPredicate = cb.or(linkCondition, nullSrcTwin);
+                        unitedPredicate = cb.and(interimPredicate, srcTwinCondition);
                     } else {
                         linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey());
                         dstTwinCondition = linkSrcTwinLeft.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue()).not();
