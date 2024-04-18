@@ -8,6 +8,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
@@ -39,6 +41,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final EntitySmartService entitySmartService;
     final I18nService i18nService;
     final AuthService authService;
+    final CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -173,15 +176,15 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
     }
 
-    private List<DataListOptionEntity> processNewTags(UUID dataListId, Set<String> newTagOptions, UUID businessAccountId) {
+    private List<DataListOptionEntity> processNewTags(UUID tagsCloudDataListId, Set<String> newTagOptions, UUID businessAccountId) {
         List<DataListOptionEntity> tagOptions = new ArrayList<>();
 
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
                 List<DataListOptionEntity> foundOption;
                 if (businessAccountId != null)
-                    foundOption = twinTagRepository.findOptionForBusinessAccount(dataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionForBusinessAccount(tagsCloudDataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
                 else
-                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(dataListId, option.trim(), PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(tagsCloudDataListId, option.trim(), PageRequest.of(0, 1));
 
                 if (CollectionUtils.isNotEmpty(foundOption)) {
                     tagOptions.add(foundOption.get(0));
@@ -194,7 +197,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 option.setOption(tag);
                 option.setBusinessAccountId(businessAccountId);
                 option.setStatus(DataListOptionEntity.Status.active);
-                option.setDataListId(dataListId);
+                option.setDataListId(tagsCloudDataListId);
 
                 return option;
             })
@@ -204,8 +207,21 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
 
         Iterable<DataListOptionEntity> savedOptions = entitySmartService.saveAllAndLog(optionsToSave, dataListOptionRepository);
         savedOptions.forEach(tagOptions::add);
-
+        if (CollectionUtils.isNotEmpty(optionsToSave)) {
+            evictTagsCloudCache(tagsCloudDataListId, businessAccountId);
+        }
         return tagOptions;
+    }
+
+    private void evictTagsCloudCache(UUID tagsCloudDataListId, UUID businessAccountId) {
+        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
+        if (cache != null)
+            cache.evictIfPresent(tagsCloudDataListId);
+        if (businessAccountId != null) {
+            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
+            if (cache != null)
+                cache.evictIfPresent(tagsCloudDataListId + "" + businessAccountId);
+        }
     }
 
     private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) {
