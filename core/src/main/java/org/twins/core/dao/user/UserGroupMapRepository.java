@@ -12,7 +12,7 @@ import java.util.UUID;
 @Repository
 public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntity, UUID>, JpaSpecificationExecutor<UserGroupMapEntity> {
     List<UserGroupMapEntity> findByUserIdAndUserGroup_DomainId(UUID userId, UUID domainId);
-    @Query("select ugm.id from UserGroupMapEntity ugm where (ugm.businessAccountId = :businessAccountId or ugm.businessAccountId is null) " +
+    @Query("select ugm from UserGroupMapEntity ugm where (ugm.businessAccountId = :businessAccountId or ugm.businessAccountId is null) " +
             "and ugm.userGroup.domainId = :domainId and ugm.userId = :userId")
     List<UserGroupMapEntity> findByUserIdAndBusinessAccountSafe(@Param("userId") UUID userId, @Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId);
     UserGroupMapEntity findByUserIdAndUserGroupId(UUID userId, UUID userGroupId);
