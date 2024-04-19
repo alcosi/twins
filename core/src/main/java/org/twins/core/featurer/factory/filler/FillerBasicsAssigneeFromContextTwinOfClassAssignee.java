@@ -33,7 +33,7 @@ public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID id = twinClassId.extract(properties);
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        TwinEntity contextTwin = twinFactoryService.lookupTwinOfClass(factoryItem, id);
+        TwinEntity contextTwin = twinFactoryService.lookupTwinOfClass(factoryItem, id, 0);
         if(null != contextTwin)
         outputTwinEntity
                 .setAssignerUser(contextTwin.getAssignerUser())

@@ -2,8 +2,8 @@ package org.twins.core.service.factory;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
@@ -199,16 +199,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     }
 
 
-    public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId) {
-        if (factoryItem == null || twinClassId == null) return null;
+    public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId, int depth) {
+        if (factoryItem == null || twinClassId == null || depth > 5) return null;
 
         TwinEntity currentTwin = factoryItem.getTwin();
         if (currentTwin != null && twinClassId.equals(currentTwin.getTwinClassId())) return currentTwin;
 
         List<FactoryItem> contextItems = factoryItem.getContextFactoryItemList();
-        if (contextItems != null && !contextItems.isEmpty()) {
+        if (!CollectionUtils.isEmpty(contextItems)) {
             for (FactoryItem subItem : contextItems) {
-                TwinEntity foundTwin = lookupTwinOfClass(subItem, twinClassId);
+                TwinEntity foundTwin = lookupTwinOfClass(subItem, twinClassId, depth + 1);
                 if (foundTwin != null) return foundTwin;
             }
         }
