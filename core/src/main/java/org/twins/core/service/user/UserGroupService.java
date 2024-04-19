@@ -34,7 +34,11 @@ public class UserGroupService {
     public List<UserGroupEntity> findGroupsForUser(UUID userId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         List<UserGroupEntity> userGroupEntityList = new ArrayList<>();
-        List<UserGroupMapEntity> userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(userId, apiUser.getDomain().getId());
+        List<UserGroupMapEntity> userGroupMapEntityList;
+        if (apiUser.isBusinessAccountSpecified())
+            userGroupMapEntityList = userGroupMapRepository.findByUserIdAndBusinessAccountSafe(userId, apiUser.getDomain().getId(), apiUser.getBusinessAccountId());
+        else
+            userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(userId, apiUser.getDomain().getId());
         for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
             Slugger slugger = featurerService.getFeaturer(userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);
             UserGroupEntity userGroup = slugger.checkConfigAndGetGroup(userGroupMapEntity);
@@ -47,7 +51,11 @@ public class UserGroupService {
     public Set<UUID> loadGroups(ApiUser apiUser) throws ServiceException {
         if (apiUser.getUserGroups() != null)
             return apiUser.getUserGroups();
-        List<UserGroupMapEntity> userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+        List<UserGroupMapEntity> userGroupMapEntityList;
+        if (apiUser.isBusinessAccountSpecified())
+            userGroupMapEntityList = userGroupMapRepository.findByUserIdAndBusinessAccountSafe(apiUser.getUserId(), apiUser.getDomain().getId(), apiUser.getBusinessAccountId());
+        else
+            userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(apiUser.getUserId(), apiUser.getDomain().getId());
         if (CollectionUtils.isNotEmpty(userGroupMapEntityList))
             apiUser.setUserGroups(new HashSet<>());
         for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
