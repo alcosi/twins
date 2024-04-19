@@ -186,7 +186,6 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkTwinLinks(Map<UUID, Set<UUID>> twinLinksMap, Map<UUID, Set<UUID>> noTwinLinksMap) {
         return (root, query, cb) -> {
-
             List<Predicate> predicates = new ArrayList<>();
             if (MapUtils.isNotEmpty(twinLinksMap)) {
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinInner = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
@@ -198,26 +197,19 @@ public class TwinSpecification {
             }
             Predicate include = predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
 
-            predicates = new ArrayList<>();
+            List<Predicate> excludePredicates = new ArrayList<>();
             if (MapUtils.isNotEmpty(noTwinLinksMap)) {
-                Join<TwinEntity, TwinLinkEntity> linkSrcTwinLeft = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
                 for (Map.Entry<UUID, Set<UUID>> entry : noTwinLinksMap.entrySet()) {
-                    Predicate linkCondition, dstTwinCondition, nullSrcTwin, unitedPredicate;
-                    if (entry.getValue().isEmpty()) {
-                        linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey()).not();
-                        nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
-                        unitedPredicate = cb.or(linkCondition, nullSrcTwin);
-                    } else {
-                        linkCondition = cb.equal(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                        dstTwinCondition = linkSrcTwinLeft.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue()).not();
-                        nullSrcTwin = cb.isNull(linkSrcTwinLeft.get(TwinLinkEntity.Fields.linkId));
-                        unitedPredicate = cb.or(cb.and(linkCondition, dstTwinCondition), nullSrcTwin);
-                    }
-                    predicates.add(unitedPredicate);
+                    Subquery<UUID> subQuery = query.subquery(UUID.class);
+                    Root<TwinLinkEntity> subRoot = subQuery.from(TwinLinkEntity.class);
+                    subQuery.select(subRoot.get(TwinLinkEntity.Fields.srcTwinId));
+                    Predicate linkCondition = cb.equal(subRoot.get(TwinLinkEntity.Fields.linkId), entry.getKey());
+                    Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : subRoot.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
+                    subQuery.where(cb.and(linkCondition, dstTwinCondition));
+                    excludePredicates.add(cb.not(cb.in(root.get(TwinEntity.Fields.id)).value(subQuery)));
                 }
             }
-            Predicate exclude = predicates.isEmpty() ? cb.conjunction() : cb.or(predicates.toArray(new Predicate[0]));
-
+            Predicate exclude = excludePredicates.isEmpty() ? cb.conjunction() : cb.or(excludePredicates.toArray(new Predicate[0]));
             return cb.and(include, exclude);
         };
     }
