@@ -49,13 +49,13 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             UserGroupEntity userGroup = optionalUserGroup.get();
             Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
             slugger.enterGroup(userGroup, userId);
-            List<UserGroupMapEntity> allEnteredGroups = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(userId, apiUser.getDomain().getId());
+            List<UserGroupMapEntity> allEnteredGroups = userGroupService.getUserGroupsMap(userId);
             userGroupMapRepository.deleteAll(allEnteredGroups.stream().filter(m -> m.getUserGroupId() != enterUserGroupId).collect(Collectors.toList()));
         }
 
         if (CollectionUtils.isNotEmpty(userGroupExitList)) {
             List<UserGroupMapEntity> exitedGroups = new ArrayList<>(), leftGroups = new ArrayList<>();
-            List<UserGroupMapEntity> allEnteredGroups = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(userId, apiUser.getDomain().getId());
+            List<UserGroupMapEntity> allEnteredGroups = userGroupService.getUserGroupsMap(userId);
             for (UserGroupMapEntity currentlyEnteredGroup : allEnteredGroups) {
                 if (userGroupExitList.stream().anyMatch(id -> id.equals(currentlyEnteredGroup.getUserGroupId())))
                     exitedGroups.add(currentlyEnteredGroup);
