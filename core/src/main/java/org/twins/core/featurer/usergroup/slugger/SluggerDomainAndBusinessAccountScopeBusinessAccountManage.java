@@ -23,12 +23,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends Slugger {
     @Override
-    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) {
+    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         if (userGroupMapEntity.getUserGroup().getBusinessAccountId() == null) {
             log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
             return null;
+        } else if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(userGroupMapEntity.getBusinessAccountId())) {
+            return null;
         }
-
         checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
 
         return userGroupMapEntity.getUserGroup();
