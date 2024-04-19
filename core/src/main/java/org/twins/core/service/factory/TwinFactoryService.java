@@ -198,6 +198,24 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return true;
     }
 
+
+    public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId) {
+        if (factoryItem == null || twinClassId == null) return null;
+
+        TwinEntity currentTwin = factoryItem.getTwin();
+        if (currentTwin != null && twinClassId.equals(currentTwin.getTwinClassId())) return currentTwin;
+
+        List<FactoryItem> contextItems = factoryItem.getContextFactoryItemList();
+        if (contextItems != null && !contextItems.isEmpty()) {
+            for (FactoryItem subItem : contextItems) {
+                TwinEntity foundTwin = lookupTwinOfClass(subItem, twinClassId);
+                if (foundTwin != null) return foundTwin;
+            }
+        }
+
+        return null;
+    }
+
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = null;
         TwinEntity contextTwin;
