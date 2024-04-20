@@ -6,22 +6,29 @@ import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.StringUtils;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -37,6 +44,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     final TwinClassService twinClassService;
     final I18nService i18nService;
     final EntitySmartService entitySmartService;
+    final PermissionRepository permissionRepository;
+    final FeaturerRepository featurerRepository;
     @Lazy
     final AuthService authService;
 
@@ -75,7 +84,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public void loadTwinClassFields(List<TwinClassEntity> twinClassEntities) {
-        for(TwinClassEntity twinClassEntity : twinClassEntities)
+        for (TwinClassEntity twinClassEntity : twinClassEntities)
             loadTwinClassFields(twinClassEntity);
     }
 
@@ -134,5 +143,35 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public TwinClassFieldEntity getTwinClassFieldOrNull(TwinClassEntity twinClass, UUID twinClassFieldId) {
         loadTwinClassFields(twinClass);
         return twinClass.getTwinClassFieldKit().get(twinClassFieldId);
+    }
+
+
+    public static final HashMap<String, String> SIMPLE_FIELD_PARAMS = new HashMap<>() {{
+        put("regexp", ".*");
+    }};
+
+    @Transactional
+    public TwinClassFieldEntity createSimpleField(TwinClassFieldEntity twinClassFieldEntity, String name, String description) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (StringUtils.isBlank(twinClassFieldEntity.getKey()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT);
+        twinClassFieldEntity.setKey(twinClassFieldEntity.getKey().trim().replaceAll("\\s", ""));
+        if (twinClassFieldEntity.getTwinClassId() == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
+        if (twinClassFieldEntity.getViewPermissionId() != null
+                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
+        if (twinClassFieldEntity.getEditPermissionId() != null
+                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
+        FeaturerEntity fieldTyperSimple = featurerRepository.getById(1301);
+        twinClassFieldEntity
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_FIELD_NAME, name).getI18nId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, description).getI18nId())
+                .setFieldTyperFeaturerId(fieldTyperSimple.getId())
+                .setFieldTyperFeaturer(fieldTyperSimple)
+                .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
+        twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return twinClassFieldEntity;
     }
 }

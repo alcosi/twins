@@ -43,6 +43,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_CLASS_KEY_UNKNOWN(10412, "unknown twin class id"),
     TWIN_CLASS_KEY_ALREADY_IN_USE(10413, "twin class key is already in use"),
     TWIN_CLASS_KEY_INCORRECT(10414, "twin class key incorrect"),
+    TWIN_CLASS_FIELD_KEY_INCORRECT(10415, "twin class field key is incorrect"),
     TWINFLOW_SCHEMA_NOT_ALLOWED(10501, "twinflow schema is not allowed"),
     TWINFLOW_SCHEMA_NOT_CONFIGURED(10502, "twinflow schema is not configured"),
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
