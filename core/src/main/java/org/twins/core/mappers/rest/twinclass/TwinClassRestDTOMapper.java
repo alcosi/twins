@@ -117,6 +117,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasMode(StatusMode.SHOW)) {
             twinStatusService.loadStatusesForTwinClasses(srcCollection);
         }
+        if (!twinClassFieldRestDTOMapper.hideMode(mapperContext)) {
+            twinClassFieldService.loadTwinClassFields(srcCollection);
+        }
     }
 
     @Override

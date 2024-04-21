@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.Kit;
+import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -28,10 +29,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -83,9 +81,25 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassEntity.getTwinClassFieldKit();
     }
 
-    public void loadTwinClassFields(List<TwinClassEntity> twinClassEntities) {
+    public void loadTwinClassFields(Collection<TwinClassEntity> twinClassEntities) {
+        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
+        Set<UUID> forClasses = new HashSet<>();
         for (TwinClassEntity twinClassEntity : twinClassEntities)
-            loadTwinClassFields(twinClassEntity);
+            if (twinClassEntity.getTwinClassFieldKit() == null) {
+                needLoad.put(twinClassEntity.getId(), twinClassEntity);
+                forClasses.addAll(twinClassEntity.getExtendedClassIdSet());
+            }
+        if (needLoad.isEmpty())
+            return;
+        KitGrouped<TwinClassFieldEntity> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+        for (TwinClassEntity twinClassEntity : needLoad.values()) {
+            List<TwinClassFieldEntity> classFields = new ArrayList<>();
+            for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {
+                if (fields.containsGroupedKey(twinClassId))
+                    classFields.addAll(fields.getGrouped(twinClassId));
+            }
+            twinClassEntity.setTwinClassFieldKit(new Kit<>(classFields, TwinClassFieldEntity::getId));
+        }
     }
 
     public TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key) {
