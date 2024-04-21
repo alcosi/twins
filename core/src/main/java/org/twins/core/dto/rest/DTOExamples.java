@@ -6,13 +6,15 @@ public interface DTOExamples {
     String TWIN_CLASS_NAME = "Tool";
     String TWIN_CLASS_DESCRIPTION = "Professional tool class";
     String TWIN_CLASS_HEAD_CLASS_ID = "c2854a55-1dfe-41cd-bb36-f71eeaf16f81";
-    String TWIN_CLASS_FIELD_KEY = "serialNumber";
     String TWIN_STATUS_ID = "a1178c4a-b974-449b-b51b-9a2bc54c5ea5";
     String TWIN_STATUS_KEY = "toDo";
     String TWIN_STATUS_NAME = "To Do";
     String TWIN_STATUS_DESCRIPTION = "Need to be done";
     String HEAD_TWIN_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String TWIN_CLASS_FIELD_ID = "2fe95272-afcb-40ee-a6a8-87c5da4d5b8d";
+    String TWIN_CLASS_FIELD_KEY = "serialNumber";
+    String TWIN_CLASS_FIELD_NAME = "Serial number";
+    String TWIN_CLASS_FIELD_DESCRIPTION = "Manufacture serial number";
     String TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID = "2fe95272-afcb-40ee-a6a8-87c5da4d5b8d";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
