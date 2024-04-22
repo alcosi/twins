@@ -26,6 +26,10 @@ public class ConditionerContextValueExists extends Conditioner {
     }
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookupMode fieldLookupMode) throws ServiceException {
-        return null != factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), fieldLookupMode);
+        try {
+            return null != factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), fieldLookupMode);
+        } catch (ServiceException e) {
+            return false;
+        }
     }
 }
