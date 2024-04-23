@@ -12,10 +12,24 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 
 @Getter
-public enum RelatedTwinMode implements MapperModeCollection {
-    GREEN(0,
+public enum RelatedByHeadTwinMode implements MapperModeCollection {
+    WHITE(0,
+            TwinBaseRestDTOMapper.TwinMode.HIDE,
+            TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
+            TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
+            TwinRestDTOMapper.FieldsMode.NO_FIELDS,
+            AttachmentViewRestDTOMapper.Mode.HIDE,
+            TwinClassFieldRestDTOMapper.Mode.HIDE,
+            TwinClassBaseRestDTOMapper.ClassMode.HIDE,
+            TwinClassRestDTOMapper.HeadTwinMode.HIDE,
+            TwinClassRestDTOMapper.StatusMode.HIDE,
+            TwinClassRestDTOMapper.MarkerMode.HIDE,
+            TwinClassRestDTOMapper.TagMode.HIDE,
+            TwinLinkRestDTOMapper.Mode.HIDE,
+            LinkRestDTOMapper.Mode.HIDE,
+            TwinTransitionRestDTOMapper.Mode.HIDE),
+    GREEN(1,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
-            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
@@ -29,9 +43,23 @@ public enum RelatedTwinMode implements MapperModeCollection {
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE),
-    YELLOW(1,
+    FOREST_GREEN(1,
+            TwinBaseRestDTOMapper.TwinMode.SHORT,
+            TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
+            TwinBaseV3RestDTOMapper.TwinTagMode.DETAILED,
+            TwinRestDTOMapper.FieldsMode.NO_FIELDS,
+            AttachmentViewRestDTOMapper.Mode.HIDE,
+            TwinClassFieldRestDTOMapper.Mode.HIDE,
+            TwinClassBaseRestDTOMapper.ClassMode.SHORT,
+            TwinClassRestDTOMapper.HeadTwinMode.HIDE,
+            TwinClassRestDTOMapper.StatusMode.HIDE,
+            TwinClassRestDTOMapper.MarkerMode.HIDE,
+            TwinClassRestDTOMapper.TagMode.HIDE,
+            TwinLinkRestDTOMapper.Mode.HIDE,
+            LinkRestDTOMapper.Mode.HIDE,
+            TwinTransitionRestDTOMapper.Mode.HIDE),
+    YELLOW(2,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
@@ -45,9 +73,8 @@ public enum RelatedTwinMode implements MapperModeCollection {
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE),
-    BLUE(1,
+    BLUE(3,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
@@ -61,9 +88,8 @@ public enum RelatedTwinMode implements MapperModeCollection {
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE),
-    BLACK(1,
+    BLACK(4,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
@@ -77,9 +103,8 @@ public enum RelatedTwinMode implements MapperModeCollection {
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE),
-    ORANGE(1,
+    ORANGE(5,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            TwinBaseV2RestDTOMapper.TwinHeadMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
             TwinBaseV3RestDTOMapper.TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
@@ -94,13 +119,14 @@ public enum RelatedTwinMode implements MapperModeCollection {
             LinkRestDTOMapper.Mode.HIDE,
             TwinTransitionRestDTOMapper.Mode.HIDE);
 
+    public static final String _WHITE = "WHITE";
     public static final String _GREEN = "GREEN";
     public static final String _YELLOW = "YELLOW";
 
     final int priority;
     final MapperMode[] configuredModes;
 
-    RelatedTwinMode(int priority, MapperMode... configuredModes) {
+    RelatedByHeadTwinMode(int priority, MapperMode... configuredModes) {
         this.priority = priority;
         this.configuredModes = configuredModes;
     }
