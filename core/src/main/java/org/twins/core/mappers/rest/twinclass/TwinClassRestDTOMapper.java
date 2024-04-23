@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -28,8 +27,6 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
-import java.util.Map;
-import java.util.UUID;
 
 
 @Component
@@ -58,14 +55,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
                             twinClassFieldService.loadTwinClassFields(src).getList(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
-        if (mapperContext.hasMode(HeadTwinMode.SHOW) && src.getHeadTwinClassId() != null) {
-            Map<UUID, TwinEntity> validHeadsMap = twinHeadService.findValidHeadsAsMap(src);
-            if (mapperContext.isLazyRelations())
-                dst.validHeadsMap(twinBaseRestDTOMapper.convertMap(validHeadsMap, mapperContext.cloneWithIsolatedModes().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
-            else {
-                dst.validHeadsIds(mapperContext.addRelatedObjectMap(validHeadsMap));
-            }
-        }
         if (!linkForwardRestDTOMapper.hideMode(mapperContext)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
@@ -130,16 +119,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public String getObjectCacheId(TwinClassEntity src) {
         return src.getId().toString();
-    }
-
-    @AllArgsConstructor
-    public enum HeadTwinMode implements MapperMode {
-        HIDE(0),
-        SHOW(1);
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-        @Getter
-        final int priority;
     }
 
     @AllArgsConstructor
