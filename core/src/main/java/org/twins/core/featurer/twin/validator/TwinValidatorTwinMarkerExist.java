@@ -21,14 +21,17 @@ import java.util.Properties;
 public class TwinValidatorTwinMarkerExist extends TwinValidator {
     @FeaturerParam(name = "markerId", description = "")
     public static final FeaturerParamUUID markerId = new FeaturerParamUUID("markerId");
+
     @Lazy
     @Autowired
     TwinMarkerService twinMarkerService;
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         boolean isValid = twinMarkerService.hasMarker(twinEntity, markerId.extract(properties));
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " does not have marker[" + markerId.extract(properties) + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " does not have marker[" + markerId.extract(properties) + "]",
+                twinEntity.logShort() + " has marker[" + markerId.extract(properties) + "]");
     }
 }

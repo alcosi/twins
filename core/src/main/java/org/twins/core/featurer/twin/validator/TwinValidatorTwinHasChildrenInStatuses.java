@@ -31,14 +31,16 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         long count = twinSearchService.count(new BasicSearch()
                 .addHeaderTwinId(twinEntity.getId())
                 .addStatusId(statusIdSet));
         boolean isValid = count > 0;
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]",
+                twinEntity.logShort() + " has " + count + " children in statuses[" + StringUtils.join(statusIdSet, ",") + "]");
     }
 }

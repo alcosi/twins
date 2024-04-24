@@ -33,7 +33,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
 
@@ -45,9 +45,11 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
         boolean isValid = count == 0;
 
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " children [" + childrenTwinStatusId  + "] is not in status [" + childrenTwinStatusId + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " children of class[" + childrenTwinClassId + "] is not in status [" + childrenTwinStatusId + "]",
+                twinEntity.logShort() + " all children of class[" + childrenTwinClassId + "] are in status [" + childrenTwinStatusId + "]");
     }
 
 }

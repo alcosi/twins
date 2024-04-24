@@ -19,13 +19,13 @@ import java.util.Properties;
 @Slf4j
 public abstract class TwinValidator extends Featurer {
 
-    public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity) throws ServiceException {
+    public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());
-        log.info("Running validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        return isValid(properties, twinEntity);
+        log.info("Running " + (invert ? "inverted " : "") + " validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        return isValid(properties, twinEntity, invert);
     }
 
-    protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException;
+    protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException;
 
     public void beforeListValidation(Collection<TwinEntity> twinEntities) {
 
@@ -34,7 +34,21 @@ public abstract class TwinValidator extends Featurer {
     @Data
     @Accessors(chain = true)
     public static class ValidationResult {
+        boolean inverted = false;
         boolean valid = false;
         String message;
+    }
+
+    protected ValidationResult buildResult(boolean isValid, boolean invert, String invalidMessage, String invertedInvalidMessage) {
+        if (invert) {
+            isValid = !isValid;
+            return new ValidationResult()
+                    .setValid(isValid)
+                    .setMessage(isValid ? "" : invertedInvalidMessage);
+        }
+        return new ValidationResult()
+                .setValid(isValid)
+                .setMessage(isValid ? "" : invalidMessage);
+
     }
 }

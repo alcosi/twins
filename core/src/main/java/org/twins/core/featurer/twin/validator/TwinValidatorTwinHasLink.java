@@ -27,10 +27,12 @@ public class TwinValidatorTwinHasLink extends TwinValidator {
     TwinLinkService twinLinkService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         boolean isValid = twinLinkService.hasLink(twinEntity, linkId.extract(properties));
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " has no link[" + linkId.extract(properties) + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " has no link[" + linkId.extract(properties) + "]",
+                twinEntity.logShort() + " has some link[" + linkId.extract(properties) + "]");
     }
 }

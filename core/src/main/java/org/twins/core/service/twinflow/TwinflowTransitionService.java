@@ -370,9 +370,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             }
 
             TwinValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TwinValidator.class);
-            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTwinValidatorParams(), twinEntity);
-            if (transitionValidatorEntity.isInvert())
-                validationResult.setValid(!validationResult.isValid());
+            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTwinValidatorParams(), twinEntity, transitionValidatorEntity.isInvert());
             if (!validationResult.isValid()) {
                 log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
                 return false;

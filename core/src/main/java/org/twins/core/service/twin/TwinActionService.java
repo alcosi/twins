@@ -54,8 +54,9 @@ public class TwinActionService {
             boolean isValid = true;
             for (TwinClassActionValidatorEntity twinClassActionValidatorEntity : twinClassActionValidatorEntityList) {
                 TwinValidator twinValidator = featurerService.getFeaturer(twinClassActionValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-                TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinClassActionValidatorEntity.getTwinValidatorParams(), twinEntity);
+                TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinClassActionValidatorEntity.getTwinValidatorParams(), twinEntity, twinClassActionValidatorEntity.isInvert());
                 if (!validationResult.isValid()) {
+                    log.error(validationResult.getMessage());
                     isValid = false;
                     break;
                 }

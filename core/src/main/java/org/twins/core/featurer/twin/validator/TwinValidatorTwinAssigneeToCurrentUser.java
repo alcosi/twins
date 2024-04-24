@@ -22,11 +22,13 @@ public class TwinValidatorTwinAssigneeToCurrentUser extends TwinValidator {
     @Autowired
     AuthService authService;
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         boolean isValid = twinEntity.getAssignerUserId() != null && twinEntity.getAssignerUserId().equals(apiUser.getUser().getId());
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " is not assignee to current user[" + apiUser.getUser().getId() + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " is not assignee to current user[" + apiUser.getUser().getId() + "]",
+                twinEntity.logShort() + " is assignee to current user[" + apiUser.getUser().getId() + "]");
     }
 }
