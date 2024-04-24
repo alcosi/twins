@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = 1605,
         name = "TransitionValidatorTwinAllChildrenInStatuses",
         description = "")
-public class TransitionValidatorTwinAllChildrenInStatuses extends TransitionValidator {
+public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
     @FeaturerParam(name = "childrenTwinClassId", description = "")
     public static final FeaturerParamUUID childrenTwinClassId = new FeaturerParamUUID("childrenTwinClassId");

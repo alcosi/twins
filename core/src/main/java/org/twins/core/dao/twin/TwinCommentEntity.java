@@ -50,5 +50,5 @@ public class TwinCommentEntity {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAttachmentEntity> attachmentKit;
+    private Kit<TwinAttachmentEntity, UUID> attachmentKit;
 }

@@ -71,7 +71,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         return twinMarkerRepository.findDataListOptionByTwinId(twinId);
     }
 
-    public Kit<DataListOptionEntity> loadMarkers(TwinEntity twinEntity) {
+    public Kit<DataListOptionEntity, UUID> loadMarkers(TwinEntity twinEntity) {
         if (twinEntity.getTwinMarkerKit() != null)
             return twinEntity.getTwinMarkerKit();
         List<DataListOptionEntity> dataListOptionEntityList = findDataListOptionByTwinId(twinEntity.getId());
@@ -105,7 +105,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     public boolean hasMarker(TwinEntity twinEntity, UUID marker) {
-        Kit<DataListOptionEntity> markers = loadMarkers(twinEntity);
+        Kit<DataListOptionEntity, UUID> markers = loadMarkers(twinEntity);
         return KitUtils.isNotEmpty(markers) && markers.getIdSet().contains(marker);
     }
 

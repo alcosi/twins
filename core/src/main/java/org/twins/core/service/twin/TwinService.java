@@ -237,7 +237,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldSimpleLoad.isEmpty()) {
-            KitGrouped<TwinFieldSimpleEntity> allTwinsSimpleFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldSimpleEntity, UUID, UUID> allTwinsSimpleFieldsKit = new KitGrouped<>(
                     twinFieldSimpleRepository.findByTwinIdIn(needFieldSimpleLoad.keySet()), TwinFieldSimpleEntity::getId, TwinFieldSimpleEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsSimpleFieldsKit)) {
                 TwinEntity twinEntity;
@@ -248,7 +248,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldUserLoad.isEmpty()) {
-            KitGrouped<TwinFieldUserEntity> allTwinsUserFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldUserEntity, UUID, UUID> allTwinsUserFieldsKit = new KitGrouped<>(
                     twinFieldUserRepository.findByTwinIdIn(needFieldUserLoad.keySet()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsUserFieldsKit)) {
                 TwinEntity twinEntity;
@@ -259,7 +259,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldDatalistLoad.isEmpty()) {
-            KitGrouped<TwinFieldDataListEntity> allTwinsDatalistFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldDataListEntity, UUID, UUID> allTwinsDatalistFieldsKit = new KitGrouped<>(
                     twinFieldDataListRepository.findByTwinIdIn(needFieldDatalistLoad.keySet()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsDatalistFieldsKit)) {
                 TwinEntity twinEntity;

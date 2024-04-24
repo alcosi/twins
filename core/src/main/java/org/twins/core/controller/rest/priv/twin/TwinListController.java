@@ -88,6 +88,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -112,7 +113,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -155,6 +157,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -179,7 +182,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -220,6 +224,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
             @RequestBody List<TwinSearchRqDTOv1> request) {
@@ -247,7 +252,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))

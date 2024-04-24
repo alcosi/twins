@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -17,7 +17,7 @@ import java.util.Properties;
 @Featurer(id = 1602,
         name = "TransitionValidatorTwinCreatedByCurrentUser",
         description = "")
-public class TransitionValidatorTwinCreatedByCurrentUser extends TransitionValidator {
+public class TwinValidatorTwinCreatedByCurrentUser extends TwinValidator {
     @Lazy
     @Autowired
     AuthService authService;

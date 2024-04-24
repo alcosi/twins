@@ -84,7 +84,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             loadLinks(twinClass);
     }
 
-    public Kit<LinkEntity> loadLinks(TwinClassEntity twinClassEntity){
+    public Kit<LinkEntity, UUID> loadLinks(TwinClassEntity twinClassEntity){
         if (twinClassEntity.getLinksKit() != null)
             return twinClassEntity.getLinksKit();
         Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();

@@ -74,7 +74,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         return null;
     }
 
-    public <F, Y> void convertOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+    public <F, Y> void convertOrPostpone(Kit<F, UUID> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
         if (kit != null) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getList(), mapperContext));
@@ -85,7 +85,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         }
     }
 
-    public <F, Y> void convertMapOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+    public <F, Y> void convertMapOrPostpone(Kit<F, UUID> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
         if (kit != null && kit.isNotEmpty()) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertMap(kit.getMap(), mapperContext));

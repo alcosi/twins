@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinflow;
+package org.twins.core.dao.action;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
@@ -13,14 +13,14 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twinflow_transition_validator")
-public class TwinflowTransitionValidatorEntity {
+@Table(name = "twin_class_action_validator")
+public class TwinClassActionValidatorEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "twinflow_transition_id")
-    private UUID twinflowTransitionId;
+    @Column(name = "twin_class_action_id")
+    private UUID twinClassActionId;
 
     @Column(name = "order")
     private Integer order;
@@ -34,7 +34,7 @@ public class TwinflowTransitionValidatorEntity {
     @FeaturerList(type = TwinValidator.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity transitionValidatorFeaturer;
+    private FeaturerEntity twinValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "twin_validator_params", columnDefinition = "hstore")

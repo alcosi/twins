@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
@@ -42,4 +43,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
 
     @Schema(description = "Tag list." + DTOExamples.LAZY_RELATION_MODE_ON)
     public List<DataListOptionDTOv1> tags;
+
+    @Schema(description = "Suitable actions list")
+    public Set<TwinAction> actions;
 }

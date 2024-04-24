@@ -241,7 +241,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public KitGrouped<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
+    public KitGrouped<TwinLinkEntity, UUID, UUID> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
         loadTwinLinks(twinEntity);
         return twinEntity.getTwinLinks().getForwardLinks();
     }
@@ -337,11 +337,17 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
         UUID twinId;
-        KitGrouped<TwinLinkEntity> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
-        KitGrouped<TwinLinkEntity> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {
         return one.getSrcTwinId().equals(two.getSrcTwinId()) && one.getDstTwinId().equals(two.getDstTwinId());
+    }
+
+    public boolean hasLink(TwinEntity twinEntity, UUID linkId) {
+        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getForwardLinks() != null)
+            return twinEntity.getTwinLinks().getForwardLinks().containsGroupedKey(linkId);
+        return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 }

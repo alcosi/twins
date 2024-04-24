@@ -28,7 +28,9 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     <T> List<T> findByDstTwinId(UUID dstTwinId, Class<T> type);
     <T> List<T> findBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId, Class<T> type);
 
-    <T> List<T> findByDstTwinIdAndLinkId(UUID srcTwinId, UUID linkId, Class<T> type);
+    <T> List<T> findByDstTwinIdAndLinkId(UUID dstTwinId, UUID linkId, Class<T> type);
+
+    boolean existsBySrcTwinIdAndLinkId(UUID srcTwinId, UUID linkId);
 
     <T> T findBySrcTwinIdAndDstTwinIdAndLinkId(UUID srcTwinId, UUID dstTwinId, UUID linkId, Class<T> type);
 }

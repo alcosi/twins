@@ -10,8 +10,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StreamUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.permission.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
@@ -19,6 +22,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
@@ -32,6 +36,7 @@ public class PermissionService {
     final PermissionSchemaRepository permissionSchemaRepository;
     final PermissionSchemaUserRepository permissionSchemaUserRepository;
     final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
+    final TwinRepository twinRepository;
     @Lazy
     final AuthService authService;
     @Lazy
@@ -59,6 +64,21 @@ public class PermissionService {
 
     public UUID checkPermissionSchemaAllowed(DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
         return checkPermissionSchemaAllowed(domainBusinessAccountEntity.getDomainId(), domainBusinessAccountEntity.getBusinessAccountId(), domainBusinessAccountEntity.getPermissionSchema());
+    }
+
+    public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        userGroupService.loadGroups(apiUser);
+        return twinRepository.hasPermission(
+                permissionId,
+                apiUser.getDomainId(),
+                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
+                apiUser.getUser().getId(),
+                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
+                TwinService.isAssignee(twinEntity, apiUser),
+                TwinService.isCreator(twinEntity, apiUser));
     }
 
     public void checkTwinClassPermission(ApiUser apiUser, UUID twinClassId) {

@@ -6,18 +6,18 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Kit<E> {
+public class Kit<E, K> {
     @Getter
     protected List<E> list;
-    protected Map<UUID, E> map;
-    protected final Function<? super E, ? extends UUID> functionGetId;
+    protected Map<K, E> map;
+    protected final Function<? super E, ? extends K> functionGetId;
 
-    public Kit(List<E> list, Function<? super E, ? extends UUID> functionGetId) {
+    public Kit(List<E> list, Function<? super E, ? extends K> functionGetId) {
         this.list = list;
         this.functionGetId = functionGetId;
     }
 
-    public Kit(Function<? super E, ? extends UUID> functionGetId) {
+    public Kit(Function<? super E, ? extends K> functionGetId) {
         this.functionGetId = functionGetId;
     }
 
@@ -27,7 +27,7 @@ public class Kit<E> {
         return Collections.EMPTY_LIST;
     }
 
-    public Kit<E> add(E e) {
+    public Kit<E, K> add(E e) {
         if (list == null)
             list = new ArrayList<>();
         list.add(e);
@@ -35,7 +35,7 @@ public class Kit<E> {
         return this;
     }
 
-    public Map<UUID, E> getMap() {
+    public Map<K, E> getMap() {
         if (map != null)
             return map;
         if (list == null)
@@ -45,21 +45,21 @@ public class Kit<E> {
         return map;
     }
 
-    public boolean containsKey(UUID key) {
+    public boolean containsKey(K key) {
         getMap();
         if (map == null)
             return false;
         return map.containsKey(key);
     }
 
-    public E get(UUID key) {
+    public E get(K key) {
         getMap();
         if (map == null)
             return null;
         return map.get(key);
     }
 
-    public Set<UUID> getIdSet() {
+    public Set<K> getIdSet() {
         if (map == null)
             getMap();
         if (map == null)

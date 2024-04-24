@@ -9,14 +9,19 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.Kit;
 import org.hibernate.annotations.Type;
-import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.action.TwinClassActionEntity;
+import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 
 import java.sql.Timestamp;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 
 @Entity
 @Data
@@ -44,7 +49,7 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Column(name = "permission_schema_space")
     private boolean permissionSchemaSpace;
 
-    @Column(name = "twinflow_schema_space ")
+    @Column(name = "twinflow_schema_space")
     private boolean twinflowSchemaSpace;
 
     @Column(name = "twin_class_schema_space")
@@ -127,24 +132,28 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowEntity> twinflowKit;
+    private Kit<TwinflowEntity, UUID> twinflowKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinClassFieldEntity> twinClassFieldKit;
+    private Kit<TwinClassFieldEntity, UUID> twinClassFieldKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinStatusEntity> twinStatusKit;
+    private Kit<TwinStatusEntity, UUID> twinStatusKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<LinkEntity> linksKit;
+    private Kit<LinkEntity, UUID> linksKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassActionEntity, TwinAction> protectedActions;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionEntity> transitionsKit;
+    private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet) {

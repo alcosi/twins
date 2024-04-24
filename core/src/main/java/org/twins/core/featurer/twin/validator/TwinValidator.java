@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -14,10 +14,10 @@ import java.util.Properties;
 
 
 @FeaturerType(id = 16,
-        name = "TransitionValidator",
+        name = "TwinValidator",
         description = "")
 @Slf4j
-public abstract class TransitionValidator extends Featurer {
+public abstract class TwinValidator extends Featurer {
 
     public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());

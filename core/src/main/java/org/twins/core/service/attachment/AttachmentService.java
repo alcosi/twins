@@ -66,7 +66,7 @@ public class AttachmentService {
         return twinAttachmentRepository.findByTwinId(twinId);
     }
 
-    public Kit<TwinAttachmentEntity> loadAttachments(TwinEntity twinEntity) {
+    public Kit<TwinAttachmentEntity, UUID> loadAttachments(TwinEntity twinEntity) {
         if (twinEntity.getAttachmentKit() != null)
             return twinEntity.getAttachmentKit();
         List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinId(twinEntity.getId());

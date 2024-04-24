@@ -54,5 +54,5 @@ public class DataListEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<DataListOptionEntity> options;
+    Kit<DataListOptionEntity, UUID> options;
 }

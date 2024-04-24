@@ -15,13 +15,12 @@ import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
+import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.Collection;
-
-import static org.twins.core.mappers.rest.twin.TwinRestDTOMapper.FieldsMode.ALL_FIELDS;
 
 
 @Component
@@ -37,6 +36,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinMarkerService twinMarkerService;
     final TwinTagService twinTagService;
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    final TwinActionService twinActionService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
@@ -63,6 +63,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             DataListOptionRestDTOMapper.Mode showDataListOptionMode = mapperContext.hasMode(TwinTagMode.DETAILED) ? DataListOptionRestDTOMapper.Mode.DETAILED : DataListOptionRestDTOMapper.Mode.SHORT;
             convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(showDataListOptionMode), TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
+        if (showActions(mapperContext)) {
+            twinActionService.loadActions(src);
+            dst.setActions(src.getActions());
+        }
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
@@ -71,6 +75,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     private static boolean showTags(MapperContext mapperContext) {
         return !mapperContext.hasModeOrEmpty(TwinTagMode.HIDE);
+    }
+
+    private static boolean showActions(MapperContext mapperContext) {
+        return !mapperContext.hasModeOrEmpty(TwinActionMode.HIDE);
     }
 
     @Override
@@ -121,6 +129,18 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         public static final String _HIDE = "HIDE";
         public static final String _SHORT = "SHORT";
         public static final String _DETAILED = "DETAILED";
+
+        @Getter
+        final int priority;
+    }
+
+    @AllArgsConstructor
+    public enum TwinActionMode implements MapperMode {
+        HIDE(0),
+        SHOW(1);
+
+        public static final String _HIDE = "HIDE";
+        public static final String _SHOW = "SHOW";
 
         @Getter
         final int priority;

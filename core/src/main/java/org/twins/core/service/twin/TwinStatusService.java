@@ -45,7 +45,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return true;
     }
 
-    public Kit<TwinStatusEntity> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
+    public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinStatusKit() != null)
             return twinClassEntity.getTwinStatusKit();
         twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));

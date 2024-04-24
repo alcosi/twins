@@ -1,5 +1,6 @@
 package org.twins.core.dao.twin;
 
+import org.hibernate.query.TypedParameterValue;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,15 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
     int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
+    @Query(value = "select function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    boolean hasPermission(
+            @Param("permissionId") UUID permissionId,
+            @Param("domainId") UUID domainId,
+            @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
+            @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
+            @Param("userId") UUID userId,
+            @Param("userGroupId") TypedParameterValue<UUID[]> userGroupIds,
+            @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
+            @Param("isAssignee") boolean isAssignee,
+            @Param("isCreator") boolean isCreator);
 }

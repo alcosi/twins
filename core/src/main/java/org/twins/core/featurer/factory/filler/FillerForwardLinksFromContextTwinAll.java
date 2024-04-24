@@ -11,6 +11,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = 2303,
@@ -20,7 +21,7 @@ public class FillerForwardLinksFromContextTwinAll extends FillerLinks {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
-        Kit<TwinLinkEntity> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin);
+        Kit<TwinLinkEntity, UUID> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin);
         if (KitUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No forward links configured from " + contextTwin.logShort());
         addLinks(factoryItem, contextTwinLinksList.getList());

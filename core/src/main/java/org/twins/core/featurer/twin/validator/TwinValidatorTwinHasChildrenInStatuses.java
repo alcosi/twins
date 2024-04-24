@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Featurer(id = 1604,
         name = "TransitionValidatorTwinHasChildrenInStatuses",
         description = "")
-public class TransitionValidatorTwinHasChildrenInStatuses extends TransitionValidator {
+public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     @FeaturerParam(name = "statusIds", description = "")
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
 

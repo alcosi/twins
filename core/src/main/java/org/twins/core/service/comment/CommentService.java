@@ -105,7 +105,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         });
     }
 
-    public Kit<TwinAttachmentEntity> loadAttachments(TwinCommentEntity twinComment) {
+    public Kit<TwinAttachmentEntity, UUID> loadAttachments(TwinCommentEntity twinComment) {
         if (twinComment.getAttachmentKit() != null)
             return twinComment.getAttachmentKit();
         List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinCommentId(twinComment.getId());

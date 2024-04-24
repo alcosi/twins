@@ -84,11 +84,11 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     //todo cache it
-    public Kit<DataListOptionEntity> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
+    public Kit<DataListOptionEntity, UUID> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
         return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
-    public Kit<DataListOptionEntity> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
+    public Kit<DataListOptionEntity, UUID> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
         if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
         return dataListEntity.getOptions();
@@ -112,7 +112,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dataListOptionEntity;
     }
 
-    public Kit<DataListOptionEntity> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+    public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
         List<DataListOptionEntity> dataListOptionEntityList;
         if (authService.getApiUser().isBusinessAccountSpecified())
             dataListOptionEntityList = dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId());
