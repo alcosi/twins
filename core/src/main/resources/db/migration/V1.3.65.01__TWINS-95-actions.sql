@@ -15,6 +15,9 @@ insert into twin_action (id)
 values ('COMMENT')
 on conflict do nothing;
 insert into twin_action (id)
+values ('MOVE')
+on conflict do nothing;
+insert into twin_action (id)
 values ('WATCH')
 on conflict do nothing;
 insert into twin_action (id)
@@ -23,21 +26,24 @@ on conflict do nothing;
 insert into twin_action (id)
 values ('ATTACHMENT_ADD')
 on conflict do nothing;
+insert into twin_action (id)
+values ('ATTACHMENT_DELETE')
+on conflict do nothing;
 
 create table if not exists twin_class_action_permission
 (
-    id            uuid         not null
+    id             uuid         not null
         constraint twin_class_action_permission_pk
             primary key,
-    twin_class_id uuid         not null
+    twin_class_id  uuid         not null
         constraint twin_class_action_permission_twin_class_id_fk
             references twin_class
             on update cascade,
-    twin_action_id     varchar(255) not null
+    twin_action_id varchar(255) not null
         constraint twin_class_action_permission_twin_action_id_fk
             references twin_action
             on update cascade,
-    permission_id uuid not null
+    permission_id  uuid         not null
         constraint twin_class_action_permission_permission_id_fk
             references permission
             on update cascade
@@ -51,24 +57,24 @@ create index if not exists twin_class_action_permission_twin_class_id_index
 
 create table if not exists twin_class_action_validator
 (
-    id                         uuid    not null
+    id                         uuid         not null
         constraint twin_class_action_validator_pk
             primary key,
-    twin_class_id uuid         not null
+    twin_class_id              uuid         not null
         constraint twin_class_action_validator_twin_class_id_fk
             references twin_class
             on update cascade,
-    twin_action_id     varchar(255) not null
+    twin_action_id             varchar(255) not null
         constraint twin_class_action_validator_twin_action_id_fk
             references twin_action
             on update cascade,
-    "order"                    integer default 1,
-    twin_validator_featurer_id integer not null
+    "order"                    integer               default 1,
+    twin_validator_featurer_id integer      not null
         constraint twin_class_action_validator_featurer_id_fk_2
             references featurer,
     twin_validator_params      hstore,
-    invert                     boolean not null default false,
-    active                     boolean not null default true
+    invert                     boolean      not null default false,
+    active                     boolean      not null default true
 );
 
 create index if not exists twin_class_action_validator_twin_validator_featurer_id_
@@ -111,7 +117,9 @@ $$
     end
 $$;
 
-INSERT INTO featurer (id, featurer_type_id, class, name, description) VALUES (1606, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinHasLink', 'TwinValidatorTwinHasLink', '') on conflict do nothing ;
+INSERT INTO featurer (id, featurer_type_id, class, name, description)
+VALUES (1606, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorTwinHasLink', 'TwinValidatorTwinHasLink', '')
+on conflict do nothing;
 
 
 

@@ -125,8 +125,9 @@ public class TwinActionService {
             twinClassEntity = groupedByClass.getGroupingObject(entry.getKey());
             for (TwinAction twinAction : TwinAction.values()) {
                 if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByPermission())) {
-                    permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue()); // extract all permission check variants
-                    for (TwinClassActionPermissionEntity classActionPermissionEntity : twinClassEntity.getActionsProtectedByPermission().getCollection()) { // looping permissions by current class
+                    TwinClassActionPermissionEntity classActionPermissionEntity = twinClassEntity.getActionsProtectedByPermission().get(twinAction);
+                    if (classActionPermissionEntity != null) {
+                        permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue()); // extract all permission check variants
                         for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> samePermissionGroupEntry : permissionDetectKeys.entrySet()) { // looping detected keys
                             if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) { // all twins linked to current key will have such action
                                 for (TwinEntity twinEntity : samePermissionGroupEntry.getValue()) {
