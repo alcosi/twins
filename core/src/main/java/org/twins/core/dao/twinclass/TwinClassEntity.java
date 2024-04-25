@@ -7,11 +7,13 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.action.TwinClassActionEntity;
+import org.twins.core.dao.action.TwinClassActionPermissionEntity;
+import org.twins.core.dao.action.TwinClassActionValidatorEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -148,7 +150,11 @@ public class TwinClassEntity extends EasyLoggableImpl {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinClassActionEntity, TwinAction> protectedActions;
+    private Kit<TwinClassActionPermissionEntity, TwinAction> actionsProtectedByPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinClassActionValidatorEntity, UUID, TwinAction> actionsProtectedByValidator;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient

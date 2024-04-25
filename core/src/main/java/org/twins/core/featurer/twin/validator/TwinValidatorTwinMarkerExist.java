@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.twin.TwinMarkerService;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Slf4j
@@ -33,5 +34,11 @@ public class TwinValidatorTwinMarkerExist extends TwinValidator {
                 invert,
                 twinEntity.logShort() + " does not have marker[" + markerId.extract(properties) + "]",
                 twinEntity.logShort() + " has marker[" + markerId.extract(properties) + "]");
+    }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        twinMarkerService.loadMarkers(twinEntityCollection); // group loading will reduce db query count
+        return super.isValid(properties, twinEntityCollection, invert);
     }
 }

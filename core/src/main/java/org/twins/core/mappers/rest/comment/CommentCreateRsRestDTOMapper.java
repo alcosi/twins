@@ -18,7 +18,7 @@ public class CommentCreateRsRestDTOMapper extends RestSimpleDTOMapper<TwinCommen
         if (src.getAttachmentKit() != null){
             dst
                     .setAttachmentListId(src
-                            .getAttachmentKit().getList()
+                            .getAttachmentKit().getCollection()
                             .stream()
                             .map(TwinAttachmentEntity::getId)
                             .toList());

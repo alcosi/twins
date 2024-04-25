@@ -16,6 +16,7 @@ import java.util.UUID;
 public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>, JpaSpecificationExecutor<TwinLinkEntity> {
     List<TwinLinkEntity> findBySrcTwinIdOrDstTwinId(UUID srcTwinId, UUID dstTwinId);
     List<TwinLinkEntity> findBySrcTwinIdInOrDstTwinIdIn(Set<UUID> srcTwinIdList, Set<UUID> dstTwinIdList);
+    List<TwinLinkEntity> findBySrcTwinIdIn(Set<UUID> srcTwinIdList);
 
     @Modifying
     @Query(value = "from TwinLinkEntity twinLink " +

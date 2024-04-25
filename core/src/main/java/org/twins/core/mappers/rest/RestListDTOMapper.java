@@ -4,18 +4,18 @@ package org.twins.core.mappers.rest;
 import java.util.*;
 
 public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
-    public List<S> convertList(List<T> srcList, MapperContext mapperContext) throws Exception {
-        if (srcList == null)
+    public List<S> convertList(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
+        if (srcCollection == null)
             return null;
-        beforeListConversion(srcList, mapperContext);
+        beforeListConversion(srcCollection, mapperContext);
         List<S> ret = new ArrayList<>();
-        for (T src : srcList) {
+        for (T src : srcCollection) {
             ret.add(this.convert(src, mapperContext));
         }
         return ret;
     }
 
-    public List<S> convertList(List<T> srcList) throws Exception {
+    public List<S> convertList(Collection<T> srcList) throws Exception {
         if (srcList == null)
             return null;
         return convertList(srcList, new MapperContext());

@@ -1,6 +1,6 @@
 package org.cambium.common.util;
 
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 
 public class KitUtils {
     public static boolean isEmpty(Kit<?, ?> kit) {

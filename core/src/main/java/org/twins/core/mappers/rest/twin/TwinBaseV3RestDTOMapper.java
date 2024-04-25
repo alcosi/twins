@@ -46,7 +46,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             mapperContext.setPriorityMinMode(AttachmentViewRestDTOMapper.Mode.SHORT);
         }
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
-            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getList(), mapperContext));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(attachmentService.loadAttachments(src).getCollection(), mapperContext));
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext)) {
@@ -90,6 +90,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinMarkerService.loadMarkers(srcCollection);
         if (showTags(mapperContext))
             twinTagService.loadTags(srcCollection);
+        if (showActions(mapperContext))
+            twinActionService.loadActions(srcCollection);
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             twinLinkService.loadTwinLinks(srcCollection);
         if (!twinTransitionRestDTOMapper.hideMode(mapperContext))

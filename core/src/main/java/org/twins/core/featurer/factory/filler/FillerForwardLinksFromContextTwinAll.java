@@ -1,7 +1,7 @@
 package org.twins.core.featurer.factory.filler;
 
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
@@ -24,6 +24,6 @@ public class FillerForwardLinksFromContextTwinAll extends FillerLinks {
         Kit<TwinLinkEntity, UUID> contextTwinLinksList = twinLinkService.findTwinForwardLinks(contextTwin);
         if (KitUtils.isEmpty(contextTwinLinksList))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No forward links configured from " + contextTwin.logShort());
-        addLinks(factoryItem, contextTwinLinksList.getList());
+        addLinks(factoryItem, contextTwinLinksList.getCollection());
     }
 }

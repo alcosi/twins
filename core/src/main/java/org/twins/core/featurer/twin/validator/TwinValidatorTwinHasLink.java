@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.link.TwinLinkService;
 
+import java.util.Collection;
 import java.util.Properties;
 
 @Slf4j
@@ -34,5 +35,11 @@ public class TwinValidatorTwinHasLink extends TwinValidator {
                 invert,
                 twinEntity.logShort() + " has no link[" + linkId.extract(properties) + "]",
                 twinEntity.logShort() + " has some link[" + linkId.extract(properties) + "]");
+    }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        twinLinkService.loadTwinLinks(twinEntityCollection); // group loading will reduce db query count
+        return super.isValid(properties, twinEntityCollection, invert);
     }
 }

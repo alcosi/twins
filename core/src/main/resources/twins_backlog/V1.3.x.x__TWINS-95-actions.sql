@@ -24,54 +24,64 @@ insert into twin_action (id)
 values ('ATTACHMENT_ADD')
 on conflict do nothing;
 
-create table if not exists twin_class_action
+create table if not exists twin_class_action_permission
 (
     id            uuid         not null
-        constraint twin_class_action_pk
+        constraint twin_class_action_permission_pk
             primary key,
     twin_class_id uuid         not null
-        constraint twin_class_action_twin_class_id_fk
+        constraint twin_class_action_permission_twin_class_id_fk
             references twin_class
             on update cascade,
     twin_action_id     varchar(255) not null
-        constraint twin_class_action_twin_action_id_fk
+        constraint twin_class_action_permission_twin_action_id_fk
             references twin_action
             on update cascade,
-    permission_id uuid
-        constraint twin_class_action_permission_id_fk
+    permission_id uuid not null
+        constraint twin_class_action_permission_permission_id_fk
             references permission
             on update cascade
 );
 
-create index if not exists twin_class_action_twin_action_id_index
-    on public.twin_class_action (twin_action_id);
+create index if not exists twin_class_action_permission_twin_action_id_index
+    on twin_class_action_permission (twin_action_id);
 
-create index if not exists twin_class_action_twin_class_id_index
-    on public.twin_class_action (twin_class_id);
+create index if not exists twin_class_action_permission_twin_class_id_index
+    on twin_class_action_permission (twin_class_id);
 
 create table if not exists twin_class_action_validator
 (
     id                         uuid    not null
         constraint twin_class_action_validator_pk
             primary key,
-    twin_class_action_id       uuid    not null
-        constraint twin_class_action_validator_twin_class_action_id_fk
-            references twin_class_action
+    twin_class_id uuid         not null
+        constraint twin_class_action_validator_twin_class_id_fk
+            references twin_class
+            on update cascade,
+    twin_action_id     varchar(255) not null
+        constraint twin_class_action_validator_twin_action_id_fk
+            references twin_action
             on update cascade,
     "order"                    integer default 1,
     twin_validator_featurer_id integer not null
         constraint twin_class_action_validator_featurer_id_fk_2
             references featurer,
     twin_validator_params      hstore,
-    invert                     boolean default false,
-    active                     boolean default true
+    invert                     boolean not null default false,
+    active                     boolean not null default true
 );
 
 create index if not exists twin_class_action_validator_twin_validator_featurer_id_
     on twin_class_action_validator (twin_validator_featurer_id);
 
-create unique index if not exists twin_class_action_validator_twin_class_action_id_order_uniq
-    on twin_class_action_validator (twin_class_action_id, "order");
+create index if not exists twin_class_action_validator_twin_action_id_index
+    on twin_class_action_validator (twin_action_id);
+
+create index if not exists twin_class_action_validator_twin_class_id_index
+    on twin_class_action_validator (twin_class_id);
+
+create unique index if not exists twin_class_action_validator_order_uniq
+    on twin_class_action_validator (twin_class_id, twin_action_id, "order");
 
 do
 $$
@@ -81,7 +91,7 @@ $$
                    where table_schema = 'public'
                      and table_name = 'twinflow_transition_validator'
                      and column_name = 'transition_validator_featurer_id') then
-            alter table public.twinflow_transition_validator
+            alter table twinflow_transition_validator
                 rename column transition_validator_featurer_id to twin_validator_featurer_id;
         end if;
     end
@@ -95,7 +105,7 @@ $$
                    where table_schema = 'public'
                      and table_name = 'twinflow_transition_validator'
                      and column_name = 'transition_validator_params') then
-            alter table public.twinflow_transition_validator
+            alter table twinflow_transition_validator
                 rename column transition_validator_params to twin_validator_params;
         end if;
     end

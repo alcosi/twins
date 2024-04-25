@@ -5,9 +5,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface TwinClassActionValidatorRepository extends CrudRepository<TwinClassActionValidatorEntity, UUID>, JpaSpecificationExecutor<TwinClassActionValidatorEntity> {
-    List<TwinClassActionValidatorEntity> findByTwinClassActionId(UUID twinActionClassId);
+    List<TwinClassActionValidatorEntity> findByTwinClassIdOrderByOrder(UUID twinClassId);
+
+    List<TwinClassActionValidatorEntity> findByTwinClassIdIn(Set<UUID> twinClassIds);
 }

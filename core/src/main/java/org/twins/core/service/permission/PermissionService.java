@@ -1,6 +1,8 @@
 package org.twins.core.service.permission;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -69,16 +71,54 @@ public class PermissionService {
     public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroups(apiUser);
+        return hasPermission(
+                new PermissionDetectKey(
+                        twinEntity.getTwinClassId(),
+                        twinEntity.getPermissionSchemaSpaceId(),
+                        TwinService.isAssignee(twinEntity, apiUser),
+                        TwinService.isCreator(twinEntity, apiUser)),
+                permissionId);
+    }
+
+    public boolean hasPermission(PermissionDetectKey permissionDetectKey, UUID permissionId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        userGroupService.loadGroups(apiUser);
         return twinRepository.hasPermission(
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
-                TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
+                TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
                 apiUser.getUser().getId(),
                 TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
-                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
-                TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser));
+                TypedParameterTwins.uuidNullable(permissionDetectKey.getTwinClassId()),
+                permissionDetectKey.isAssignee,
+                permissionDetectKey.isCreator);
+    }
+
+    public Map<PermissionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        Map<PermissionDetectKey, List<TwinEntity>> detectKeys = new HashMap<>();
+        PermissionDetectKey detectKey;
+        for (TwinEntity twinEntity : twinEntities) {
+            detectKey = new PermissionDetectKey(
+                    twinEntity.getTwinClassId(),
+                    twinEntity.getPermissionSchemaSpaceId(),
+                    TwinService.isAssignee(twinEntity, apiUser),
+                    TwinService.isCreator(twinEntity, apiUser));
+            detectKeys.computeIfAbsent(detectKey, k -> new ArrayList<>());
+            detectKeys.get(detectKey).add(twinEntity);
+        }
+        return detectKeys;
+    }
+
+    @RequiredArgsConstructor
+    @Getter
+    @EqualsAndHashCode
+    public static class PermissionDetectKey {
+        final UUID twinClassId;
+        final UUID permissionSchemaSpaceId;
+        final boolean isAssignee;
+        final boolean isCreator;
     }
 
     public void checkTwinClassPermission(ApiUser apiUser, UUID twinClassId) {

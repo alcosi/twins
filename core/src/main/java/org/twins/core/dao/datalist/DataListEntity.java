@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 
 import java.sql.Timestamp;
 import java.util.UUID;

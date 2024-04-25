@@ -8,9 +8,7 @@ import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Properties;
+import java.util.*;
 
 
 @FeaturerType(id = 16,
@@ -27,16 +25,36 @@ public abstract class TwinValidator extends Featurer {
 
     protected abstract ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException;
 
-    public void beforeListValidation(Collection<TwinEntity> twinEntities) {
+    public CollectionValidationResult isValid(HashMap<String, String> validatorParams, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());
+        log.info("Running " + (invert ? "inverted " : "") + " validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        return isValid(properties, twinEntityCollection, invert);
+    }
 
+    /**
+     * Must be overridden to reduce db query count
+     */
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        CollectionValidationResult collectionValidationResult = new CollectionValidationResult();
+        ValidationResult singleTwinvalidationResult;
+        for (TwinEntity twinEntity : twinEntityCollection) { // we will validate in loop, and that can produce N+1 query to DB
+            singleTwinvalidationResult = isValid(properties, twinEntity, invert);
+            collectionValidationResult.getTwinsResults().put(twinEntity.getId(), singleTwinvalidationResult);
+        }
+        return collectionValidationResult;
     }
 
     @Data
     @Accessors(chain = true)
     public static class ValidationResult {
-        boolean inverted = false;
         boolean valid = false;
         String message;
+    }
+
+    @Data
+    @Accessors(chain = true)
+    public static class CollectionValidationResult {
+        Map<UUID, ValidationResult> twinsResults = new HashMap<>();
     }
 
     protected ValidationResult buildResult(boolean isValid, boolean invert, String invalidMessage, String invertedInvalidMessage) {

@@ -95,17 +95,17 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");
         twinLinkService.prepareTwinLinks(twin, newTwinLinks);
         LinkService.LinkDirection linkDirection = linkService.detectLinkDirection(linkEntity, twin.getTwinClass());
-        List<TwinLinkEntity> storedLinksList;
+        Collection<TwinLinkEntity> storedLinksList;
         twinLinkService.loadTwinLinks(twin); //todo optimize loading for backward links
         Map<UUID, TwinLinkEntity> storedLinksMap = null; // key is links dstTwinId
         switch (linkDirection) {
             case forward:
-                storedLinksList = twin.getTwinLinks().getForwardLinks().getList();
+                storedLinksList = twin.getTwinLinks().getForwardLinks().getCollection();
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getDstTwinId, Function.identity()));
                 break;
             case backward:
-                storedLinksList = twin.getTwinLinks().getBackwardLinks().getList();
+                storedLinksList = twin.getTwinLinks().getBackwardLinks().getCollection();
                 if (CollectionUtils.isNotEmpty(storedLinksList))
                     storedLinksMap = storedLinksList.stream().collect(Collectors.toMap(TwinLinkEntity::getSrcTwinId, Function.identity()));
                 break;

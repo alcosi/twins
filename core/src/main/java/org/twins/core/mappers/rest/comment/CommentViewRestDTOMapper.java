@@ -40,7 +40,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                 if (src.getCreatedAt().toLocalDateTime() != null)
                     src.getCreatedAt().toLocalDateTime();
                 if (!attachmentRestDTOMapper.hideMode(mapperContext))
-                    dst.setAttachments(attachmentRestDTOMapper.convertList(commentService.loadAttachments(src).getList(), mapperContext));
+                    dst.setAttachments(attachmentRestDTOMapper.convertList(commentService.loadAttachments(src).getCollection(), mapperContext));
                 break;
         }
     }

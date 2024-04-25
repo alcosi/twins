@@ -7,8 +7,8 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twin_class_action")
-public class TwinClassActionEntity {
+@Table(name = "twin_class_action_permission")
+public class TwinClassActionPermissionEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

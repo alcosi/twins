@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.space;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.domain.space.UserRefSpaceRole;

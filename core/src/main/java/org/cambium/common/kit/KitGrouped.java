@@ -1,16 +1,16 @@
-package org.cambium.common;
+package org.cambium.common.kit;
 
 import java.util.*;
 import java.util.function.Function;
 
 public class KitGrouped<E, K, GK> extends Kit<E, K>{
 
-    private Map<GK, List<E>> groupedMap;
+    protected Map<GK, List<E>> groupedMap;
 
     private final Function<? super E, ? extends GK> functionGetGroupingId;
 
-    public KitGrouped(List<E> list, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId) {
-        super(list, functionGetId);
+    public KitGrouped(Collection<E> collection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId) {
+        super(collection, functionGetId);
         this.functionGetGroupingId = functionGetGroupingId;
     }
 
@@ -32,7 +32,7 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
             return Collections.EMPTY_MAP;
         groupedMap = new HashMap<>();
         GK groupingId;
-        for (E entity : list) {
+        for (E entity : collection) {
             groupingId = functionGetGroupingId.apply(entity);
             groupedMap.computeIfAbsent(groupingId, k -> new ArrayList<>());
             groupedMap.get(groupingId).add(entity);
@@ -40,14 +40,14 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         return groupedMap;
     }
 
-    public boolean containsGroupedKey(UUID key) {
+    public boolean containsGroupedKey(GK key) {
         getGroupedMap();
         if (groupedMap == null)
             return false;
         return groupedMap.containsKey(key);
     }
 
-    public List<E> getGrouped(UUID key) {
+    public List<E> getGrouped(GK key) {
         getGroupedMap();
         if (groupedMap == null || groupedMap.isEmpty())
             return Collections.EMPTY_LIST;
