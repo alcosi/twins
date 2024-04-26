@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest;
 
 
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
@@ -74,24 +74,24 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         return null;
     }
 
-    public <F, Y> void convertOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+    public <F, Y> void convertOrPostpone(Kit<F, UUID> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
         if (kit != null) {
             if (mapperContext.isLazyRelations())
-                lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getList(), mapperContext));
+                lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getCollection(), mapperContext));
             else {
                 noLazyModeFunction.accept(dst, kit.getIdSet());
-                mapperContext.addRelatedObjectCollection(kit.getList());
+                mapperContext.addRelatedObjectCollection(kit.getCollection());
             }
         }
     }
 
-    public <F, Y> void convertMapOrPostpone(Kit<F> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
+    public <F, Y> void convertMapOrPostpone(Kit<F, UUID> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, Map<UUID, Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
         if (kit != null && kit.isNotEmpty()) {
             if (mapperContext.isLazyRelations())
                 lazyModeFunction.accept(dst, lazyModeMapper.convertMap(kit.getMap(), mapperContext));
             else {
                 noLazyModeFunction.accept(dst, kit.getIdSet());
-                mapperContext.addRelatedObjectCollection(kit.getList());
+                mapperContext.addRelatedObjectCollection(kit.getCollection());
             }
         }
     }

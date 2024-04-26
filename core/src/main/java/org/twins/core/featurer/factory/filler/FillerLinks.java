@@ -13,6 +13,7 @@ import org.twins.core.service.link.LinkService;
 import org.twins.core.service.link.TwinLinkService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @Slf4j
@@ -25,7 +26,7 @@ public abstract class FillerLinks extends Filler {
     @Autowired
     LinkService linkService;
 
-    protected void addLinks(FactoryItem factoryItem, List<TwinLinkEntity> twinLinkList) {
+    protected void addLinks(FactoryItem factoryItem, Collection<TwinLinkEntity> twinLinkList) {
         TwinOperation outputTwin = factoryItem.getOutput();
         List<TwinLinkEntity> twinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity contextTwinLinkEntity : twinLinkList) {

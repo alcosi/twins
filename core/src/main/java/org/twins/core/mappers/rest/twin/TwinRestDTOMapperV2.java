@@ -32,14 +32,14 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 break;
             case ALL_FIELDS:
                 twinService.loadFieldsValues(src);
-                dst.fields(twinFieldValueRestDTOMapperV2.convertList(src.getFieldValuesKit().getList(), mapperContext).stream().collect(Collectors
+                dst.fields(twinFieldValueRestDTOMapperV2.convertList(src.getFieldValuesKit().getCollection(), mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),
                                 FieldValueText::getValue)));
                 break;
             case NOT_EMPTY_FIELDS:
                 twinService.loadFieldsValues(src);
-                List<FieldValue> notEmptyFields = src.getFieldValuesKit().getList().stream().filter(FieldValue::isFilled).toList();
+                List<FieldValue> notEmptyFields = src.getFieldValuesKit().getCollection().stream().filter(FieldValue::isFilled).toList();
                 dst.fields(twinFieldValueRestDTOMapperV2.convertList(notEmptyFields, mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),

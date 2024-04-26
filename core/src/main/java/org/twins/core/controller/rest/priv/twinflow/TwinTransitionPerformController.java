@@ -91,6 +91,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -119,7 +120,8 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             twinTransitionPerformRsRestDTOMapper.map(transitionResult, rs, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -157,6 +159,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -185,7 +188,8 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             twinTransitionPerformRsRestDTOMapper.map(transitionResult, rs, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -222,6 +226,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -254,7 +259,8 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             twinTransitionPerformRsRestDTOMapper.map(transitionResult, rs, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
@@ -292,6 +298,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -330,7 +337,8 @@ public class TwinTransitionPerformController extends ApiController {
                     .setMode(showAttachmentMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             twinTransitionPerformRsRestDTOMapper.map(commonTransitionResult, rs, mapperContext);
             rs
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

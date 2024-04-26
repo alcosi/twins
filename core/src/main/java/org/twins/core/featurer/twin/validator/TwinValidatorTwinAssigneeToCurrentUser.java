@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -17,16 +17,18 @@ import java.util.Properties;
 @Featurer(id = 1601,
         name = "TransitionValidatorTwinAssigneeToCurrentUser",
         description = "")
-public class TransitionValidatorTwinAssigneeToCurrentUser extends TransitionValidator {
+public class TwinValidatorTwinAssigneeToCurrentUser extends TwinValidator {
     @Lazy
     @Autowired
     AuthService authService;
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         boolean isValid = twinEntity.getAssignerUserId() != null && twinEntity.getAssignerUserId().equals(apiUser.getUser().getId());
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " is not assignee to current user[" + apiUser.getUser().getId() + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " is not assignee to current user[" + apiUser.getUser().getId() + "]",
+                twinEntity.logShort() + " is assignee to current user[" + apiUser.getUser().getId() + "]");
     }
 }

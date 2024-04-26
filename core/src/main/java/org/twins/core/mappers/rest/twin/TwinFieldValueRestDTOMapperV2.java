@@ -13,6 +13,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 
@@ -54,7 +55,7 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     }
 
     @Override
-    public List<FieldValueText> convertList(List<FieldValue> srcList, MapperContext mapperContext) throws Exception {
+    public List<FieldValueText> convertList(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
         return super.convertList(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
     }

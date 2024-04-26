@@ -6,10 +6,11 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
-import org.cambium.common.Kit;
-import org.cambium.common.KitGrouped;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -20,6 +21,7 @@ import org.twins.core.service.link.TwinLinkService;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -149,22 +151,22 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
      */
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinFieldSimpleEntity> twinFieldSimpleKit;
+    private Kit<TwinFieldSimpleEntity, UUID> twinFieldSimpleKit;
 
     /*
      we have to use TwinClassFieldId as key, not id. Also, multiple values supported, that is why kit inside a ki
      */
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinFieldDataListEntity> twinFieldDatalistKit;
+    private KitGrouped<TwinFieldDataListEntity, UUID, UUID> twinFieldDatalistKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinFieldUserEntity> twinFieldUserKit;
+    private KitGrouped<TwinFieldUserEntity, UUID, UUID> twinFieldUserKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<FieldValue> fieldValuesKit;
+    private Kit<FieldValue, UUID> fieldValuesKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -172,20 +174,23 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionEntity> validTransitionsKit;
+    private Kit<TwinflowTransitionEntity, UUID> validTransitionsKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAttachmentEntity> attachmentKit;
+    private Kit<TwinAttachmentEntity, UUID> attachmentKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<DataListOptionEntity> twinMarkerKit;
+    private Kit<DataListOptionEntity, UUID> twinMarkerKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<DataListOptionEntity> twinTagKit;
+    private Kit<DataListOptionEntity, UUID> twinTagKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<TwinAction> actions;
 
     @Override
     public String toString() {
@@ -226,5 +231,10 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
+    }
+
+
+    public void setActions(Set<TwinAction> actions) {
+        this.actions = actions;
     }
 }

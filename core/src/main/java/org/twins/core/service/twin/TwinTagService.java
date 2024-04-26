@@ -5,8 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -72,7 +72,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return true;
     }
 
-    public Kit<DataListOptionEntity> loadTags(TwinEntity twinEntity) {
+    public Kit<DataListOptionEntity, UUID> loadTags(TwinEntity twinEntity) {
         if (twinEntity.getTwinTagKit() != null)
             return twinEntity.getTwinTagKit();
         List<DataListOptionEntity> dataListOptionEntityList = findDataListOptionByTwinId(twinEntity.getId());
@@ -111,12 +111,12 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
     }
 
-    public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    public Kit<DataListOptionEntity, UUID> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
         if (CollectionUtils.isEmpty(newTags) && CollectionUtils.isEmpty(existingTags))
             return null;
         if (twinEntity.getTwinClass().getTagDataListId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "tags are not allowed for " + twinEntity.logNormal());
-        Kit<DataListOptionEntity> savedTags = saveTags(twinEntity,
+        Kit<DataListOptionEntity, UUID> savedTags = saveTags(twinEntity,
                 Optional.ofNullable(newTags)
                         .orElse(new HashSet<>()),
                 Optional.ofNullable(existingTags)
@@ -138,7 +138,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         createTags(twinEntity, newTags, existingTags);
     }
 
-    private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    private Kit<DataListOptionEntity, UUID> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
         UUID businessAccountId = null;
 
         if (authService.getApiUser().isBusinessAccountSpecified()) {

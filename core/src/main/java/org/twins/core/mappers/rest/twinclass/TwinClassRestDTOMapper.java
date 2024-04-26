@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -27,6 +27,7 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
+import java.util.UUID;
 
 
 @Component
@@ -54,7 +55,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext))
             dst.fields(
                     twinClassFieldRestDTOMapper.convertList(
-                            twinClassFieldService.loadTwinClassFields(src).getList(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
+                            twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
         if (!linkForwardRestDTOMapper.hideMode(mapperContext)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
@@ -62,7 +63,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
         if (mapperContext.hasMode(StatusMode.SHOW)) {
-            Kit<TwinStatusEntity> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
+            Kit<TwinStatusEntity, UUID> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
             if (statusKit != null) {
                 if (mapperContext.isLazyRelations())
                     dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), mapperContext));

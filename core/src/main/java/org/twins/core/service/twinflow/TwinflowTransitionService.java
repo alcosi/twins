@@ -8,8 +8,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -31,7 +31,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
-import org.twins.core.featurer.transition.validator.TransitionValidator;
+import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -104,7 +104,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         }
     }
 
-    public Kit<TwinflowTransitionEntity> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
+    public Kit<TwinflowTransitionEntity, UUID> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
         if (twinEntity.getValidTransitionsKit() != null)
             return twinEntity.getValidTransitionsKit();
         ApiUser apiUser = authService.getApiUser();
@@ -369,10 +369,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 return true;
             }
 
-            TransitionValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TransitionValidator.class);
-            TransitionValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTransitionValidatorParams(), twinEntity);
-            if (transitionValidatorEntity.isInvert())
-                validationResult.setValid(!validationResult.isValid());
+            TwinValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTransitionValidatorFeaturer(), TwinValidator.class);
+            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTwinValidatorParams(), twinEntity, transitionValidatorEntity.isInvert());
             if (!validationResult.isValid()) {
                 log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
                 return false;

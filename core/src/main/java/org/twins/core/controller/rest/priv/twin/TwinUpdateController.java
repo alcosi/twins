@@ -82,6 +82,7 @@ public class TwinUpdateController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
@@ -109,7 +110,8 @@ public class TwinUpdateController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
 
             rs
                     .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))

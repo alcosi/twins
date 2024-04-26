@@ -7,9 +7,9 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
-import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
@@ -193,7 +193,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         twinClassFieldService.loadTwinClassFields(twinEntity.getTwinClass());
         boolean hasBasicFields = false, hasUserFields = false, hasDatalistFields = false, hasLinksFields = false;
-        for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getList()) {
+        for (TwinClassFieldEntity twinClassField : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             FieldTyper fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
             if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
                 hasBasicFields = true;
@@ -237,7 +237,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldSimpleLoad.isEmpty()) {
-            KitGrouped<TwinFieldSimpleEntity> allTwinsSimpleFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldSimpleEntity, UUID, UUID> allTwinsSimpleFieldsKit = new KitGrouped<>(
                     twinFieldSimpleRepository.findByTwinIdIn(needFieldSimpleLoad.keySet()), TwinFieldSimpleEntity::getId, TwinFieldSimpleEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsSimpleFieldsKit)) {
                 TwinEntity twinEntity;
@@ -248,7 +248,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldUserLoad.isEmpty()) {
-            KitGrouped<TwinFieldUserEntity> allTwinsUserFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldUserEntity, UUID, UUID> allTwinsUserFieldsKit = new KitGrouped<>(
                     twinFieldUserRepository.findByTwinIdIn(needFieldUserLoad.keySet()), TwinFieldUserEntity::getId, TwinFieldUserEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsUserFieldsKit)) {
                 TwinEntity twinEntity;
@@ -259,7 +259,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
         }
         if (!needFieldDatalistLoad.isEmpty()) {
-            KitGrouped<TwinFieldDataListEntity> allTwinsDatalistFieldsKit = new KitGrouped<>(
+            KitGrouped<TwinFieldDataListEntity, UUID, UUID> allTwinsDatalistFieldsKit = new KitGrouped<>(
                     twinFieldDataListRepository.findByTwinIdIn(needFieldDatalistLoad.keySet()), TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinId);
             if (!KitUtils.isEmpty(allTwinsDatalistFieldsKit)) {
                 TwinEntity twinEntity;
@@ -385,7 +385,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinField twinField;
         FieldValue fieldValue;
         TwinChangesCollector entitiesChangesCollector = new TwinChangesCollector(); //all fields will be saved at once, in one transaction
-        for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getList()) {
+        for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             fieldValue = fields.get(twinClassFieldEntity.getId());
             if (fieldValue == null)
                 if (twinClassFieldEntity.isRequired())
@@ -651,17 +651,17 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         CloneFieldsResult cloneFieldsResult = new CloneFieldsResult();
         loadTwinFields(srcTwin);
         if (KitUtils.isNotEmpty(srcTwin.getTwinFieldSimpleKit()))
-            for (TwinFieldSimpleEntity twinFieldEntity : srcTwin.getTwinFieldSimpleKit().getList()) {
+            for (TwinFieldSimpleEntity twinFieldEntity : srcTwin.getTwinFieldSimpleKit().getCollection()) {
                 TwinFieldSimpleEntity duplicateTwinFieldBasicEntity = twinFieldEntity.cloneFor(dstTwinEntity);
                 cloneFieldsResult.add(duplicateTwinFieldBasicEntity);
             }
         if (KitUtils.isNotEmpty(srcTwin.getTwinFieldUserKit()))
-            for (TwinFieldUserEntity twinFieldUserEntity : srcTwin.getTwinFieldUserKit().getList()) {
+            for (TwinFieldUserEntity twinFieldUserEntity : srcTwin.getTwinFieldUserKit().getCollection()) {
                 TwinFieldUserEntity duplicateTwinFieldUserEntity = twinFieldUserEntity.cloneFor(dstTwinEntity);
                 cloneFieldsResult.add(duplicateTwinFieldUserEntity);
             }
         if (KitUtils.isNotEmpty(srcTwin.getTwinFieldDatalistKit()))
-            for (TwinFieldDataListEntity twinFieldDatalistEntity : srcTwin.getTwinFieldDatalistKit().getList()) {
+            for (TwinFieldDataListEntity twinFieldDatalistEntity : srcTwin.getTwinFieldDatalistKit().getCollection()) {
                 TwinFieldDataListEntity duplicateTwinFieldUserEntity = twinFieldDatalistEntity.cloneFor(dstTwinEntity);
                 cloneFieldsResult.add(duplicateTwinFieldUserEntity);
             }
@@ -710,7 +710,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (src.getTwinClass().getTwinClassFieldKit().isEmpty())
             return; // just empty kit
         FieldValue fieldValue;
-        for (TwinClassFieldEntity twinClassFieldEntity : src.getTwinClass().getTwinClassFieldKit().getList()) {
+        for (TwinClassFieldEntity twinClassFieldEntity : src.getTwinClass().getTwinClassFieldKit().getCollection()) {
             fieldValue = getTwinFieldValue(wrapField(src, twinClassFieldEntity));
             src.getFieldValuesKit().add(fieldValue);
         }

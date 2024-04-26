@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
 
@@ -50,5 +50,5 @@ public class TwinCommentEntity {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAttachmentEntity> attachmentKit;
+    private Kit<TwinAttachmentEntity, UUID> attachmentKit;
 }

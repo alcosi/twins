@@ -1,38 +1,38 @@
-package org.cambium.common;
+package org.cambium.common.kit;
 
 import java.util.*;
 import java.util.function.Function;
 
-public class KitGrouped<E> extends Kit<E>{
+public class KitGrouped<E, K, GK> extends Kit<E, K>{
 
-    private Map<UUID, List<E>> groupedMap;
+    protected Map<GK, List<E>> groupedMap;
 
-    private final Function<? super E, ? extends UUID> functionGetGroupingId;
+    private final Function<? super E, ? extends GK> functionGetGroupingId;
 
-    public KitGrouped(List<E> list, Function<? super E, ? extends UUID> functionGetId, Function<? super E, ? extends UUID> functionGetGroupingId) {
-        super(list, functionGetId);
+    public KitGrouped(Collection<E> collection, Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId) {
+        super(collection, functionGetId);
         this.functionGetGroupingId = functionGetGroupingId;
     }
 
-    public KitGrouped(Function<? super E, ? extends UUID> functionGetId, Function<? super E, ? extends UUID> functionGetGroupingId) {
+    public KitGrouped(Function<? super E, ? extends K> functionGetId, Function<? super E, ? extends GK> functionGetGroupingId) {
         super(functionGetId);
         this.functionGetGroupingId = functionGetGroupingId;
     }
 
     @Override
-    public Kit<E> add(E e) {
+    public Kit<E, K> add(E e) {
         groupedMap = null; //invalidate
         return super.add(e);
     }
 
-    public Map<UUID, List<E>> getGroupedMap() {
+    public Map<GK, List<E>> getGroupedMap() {
         if (groupedMap != null)
             return groupedMap;
         if (isEmpty() || functionGetGroupingId == null)
             return Collections.EMPTY_MAP;
         groupedMap = new HashMap<>();
-        UUID groupingId;
-        for (E entity : list) {
+        GK groupingId;
+        for (E entity : collection) {
             groupingId = functionGetGroupingId.apply(entity);
             groupedMap.computeIfAbsent(groupingId, k -> new ArrayList<>());
             groupedMap.get(groupingId).add(entity);
@@ -40,14 +40,14 @@ public class KitGrouped<E> extends Kit<E>{
         return groupedMap;
     }
 
-    public boolean containsGroupedKey(UUID key) {
+    public boolean containsGroupedKey(GK key) {
         getGroupedMap();
         if (groupedMap == null)
             return false;
         return groupedMap.containsKey(key);
     }
 
-    public List<E> getGrouped(UUID key) {
+    public List<E> getGrouped(GK key) {
         getGroupedMap();
         if (groupedMap == null || groupedMap.isEmpty())
             return Collections.EMPTY_LIST;

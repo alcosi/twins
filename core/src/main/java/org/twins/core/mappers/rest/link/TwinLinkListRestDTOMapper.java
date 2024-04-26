@@ -27,13 +27,13 @@ public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkServi
     public void map(TwinLinkService.FindTwinLinksResult src, TwinLinkListDTOv1 dst, MapperContext mapperContext) throws Exception {
         if (KitUtils.isNotEmpty(src.getForwardLinks())) {
             dst.forwardLinks = new LinkedHashMap<>();
-            for (TwinLinkEntity link : src.getForwardLinks().getList()) {
+            for (TwinLinkEntity link : src.getForwardLinks().getCollection()) {
                 dst.forwardLinks.put(link.getId(), twinLinkForwardRestDTOMapper.convert(link, mapperContext));
             }
         }
         if (KitUtils.isNotEmpty(src.getBackwardLinks())) {
             dst.backwardLinks = new LinkedHashMap<>();
-            for (TwinLinkEntity link : src.getBackwardLinks().getList()) {
+            for (TwinLinkEntity link : src.getBackwardLinks().getCollection()) {
                 dst.backwardLinks.put(link.getId(), twinLinkBackwardRestDTOMapper.convert(link, mapperContext));
             }
         }

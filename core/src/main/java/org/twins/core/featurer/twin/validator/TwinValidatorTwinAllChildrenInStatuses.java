@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -20,7 +20,7 @@ import java.util.UUID;
 @Featurer(id = 1605,
         name = "TransitionValidatorTwinAllChildrenInStatuses",
         description = "")
-public class TransitionValidatorTwinAllChildrenInStatuses extends TransitionValidator {
+public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
     @FeaturerParam(name = "childrenTwinClassId", description = "")
     public static final FeaturerParamUUID childrenTwinClassId = new FeaturerParamUUID("childrenTwinClassId");
@@ -33,7 +33,7 @@ public class TransitionValidatorTwinAllChildrenInStatuses extends TransitionVali
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
 
@@ -45,9 +45,11 @@ public class TransitionValidatorTwinAllChildrenInStatuses extends TransitionVali
 
         boolean isValid = count == 0;
 
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " children [" + childrenTwinStatusId  + "] is not in status [" + childrenTwinStatusId + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " children of class[" + childrenTwinClassId + "] is not in status [" + childrenTwinStatusId + "]",
+                twinEntity.logShort() + " all children of class[" + childrenTwinClassId + "] are in status [" + childrenTwinStatusId + "]");
     }
 
 }

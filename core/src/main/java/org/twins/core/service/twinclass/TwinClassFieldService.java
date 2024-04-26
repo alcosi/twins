@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
-import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
@@ -72,7 +72,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldRepository.findByTwinClassId(twinClassId).stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }
 
-    public Kit<TwinClassFieldEntity> loadTwinClassFields(TwinClassEntity twinClassEntity) {
+    public Kit<TwinClassFieldEntity, UUID> loadTwinClassFields(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinClassFieldKit() != null)
             return twinClassEntity.getTwinClassFieldKit();
         List<TwinClassFieldEntity> ret = twinClassFieldRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet());
@@ -91,7 +91,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             }
         if (needLoad.isEmpty())
             return;
-        KitGrouped<TwinClassFieldEntity> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> fields = new KitGrouped<>(twinClassFieldRepository.findByTwinClassIdIn(forClasses), TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             List<TwinClassFieldEntity> classFields = new ArrayList<>();
             for (UUID twinClassId : twinClassEntity.getExtendedClassIdSet()) {

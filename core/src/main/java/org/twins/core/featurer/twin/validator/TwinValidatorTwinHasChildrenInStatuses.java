@@ -1,4 +1,4 @@
-package org.twins.core.featurer.transition.validator;
+package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Featurer(id = 1604,
         name = "TransitionValidatorTwinHasChildrenInStatuses",
         description = "")
-public class TransitionValidatorTwinHasChildrenInStatuses extends TransitionValidator {
+public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     @FeaturerParam(name = "statusIds", description = "")
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
 
@@ -31,14 +31,16 @@ public class TransitionValidatorTwinHasChildrenInStatuses extends TransitionVali
     TwinSearchService twinSearchService;
 
     @Override
-    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity) throws ServiceException {
+    protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         long count = twinSearchService.count(new BasicSearch()
                 .addHeaderTwinId(twinEntity.getId())
                 .addStatusId(statusIdSet));
         boolean isValid = count > 0;
-        return new ValidationResult()
-                .setValid(isValid)
-                .setMessage(isValid ? "" : twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]");
+        return buildResult(
+                isValid,
+                invert,
+                twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]",
+                twinEntity.logShort() + " has " + count + " children in statuses[" + StringUtils.join(statusIdSet, ",") + "]");
     }
 }
