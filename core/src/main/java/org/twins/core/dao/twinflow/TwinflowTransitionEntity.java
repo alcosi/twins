@@ -2,10 +2,13 @@ package org.twins.core.dao.twinflow;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -81,13 +84,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity dstTwinStatus;
 
-//    @ManyToOne
-//    @JoinColumn(name = "permission_id", insertable = false, updatable = false)
-//    private PermissionEntity permission;
 
-//    @ManyToOne
-//    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
-//    private UserEntity createdByUser;
+    @Transient // because field can be useful only in admin panel
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity permission;
+
+    @Transient // because field can be useful only in admin panel
+    @EqualsAndHashCode.Exclude
+    private UserEntity createdByUser;
 
     @Override
     public String easyLog(Level level) {

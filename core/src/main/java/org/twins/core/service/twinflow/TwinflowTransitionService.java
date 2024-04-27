@@ -18,10 +18,12 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
@@ -41,6 +43,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.user.UserService;
 
 import java.util.*;
 
@@ -65,6 +68,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final AuthService authService;
     final UserGroupService userGroupService;
     final PermissionService permissionService;
+    final UserService userService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -102,6 +106,26 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             if (null != twinClass.getTwinflowKit() && twinClass.getTwinflowKit().isNotEmpty())
                 twinClass.setTransitionsKit(new Kit<>(twinflowTransitionRepository.findByTwinflowIdIn(twinClass.getTwinflowKit().getIdSet()), TwinflowTransitionEntity::getTwinflowId));
         }
+    }
+
+    public void loadAllTransitions(TwinflowEntity twinflowEntity) {
+        if (twinflowEntity.getTransitionsKit() != null)
+            return;
+        twinflowEntity.setTransitionsKit(new Kit<>(twinflowTransitionRepository.findByTwinflowId(twinflowEntity.getId()), TwinflowTransitionEntity::getId));
+    }
+
+    public PermissionEntity loadPermission(TwinflowTransitionEntity twinflowTransitionEntity) throws ServiceException {
+        if (twinflowTransitionEntity.getPermission() != null)
+            return twinflowTransitionEntity.getPermission();
+        twinflowTransitionEntity.setPermission(permissionService.findEntitySafe(twinflowTransitionEntity.getPermissionId()));
+        return twinflowTransitionEntity.getPermission();
+    }
+
+    public UserEntity loadCreatedBy(TwinflowTransitionEntity twinflowTransitionEntity) throws ServiceException {
+        if (twinflowTransitionEntity.getCreatedByUser() != null)
+            return twinflowTransitionEntity.getCreatedByUser();
+        twinflowTransitionEntity.setCreatedByUser(userService.findEntitySafe(twinflowTransitionEntity.getCreatedByUserId()));
+        return twinflowTransitionEntity.getCreatedByUser();
     }
 
     public Kit<TwinflowTransitionEntity, UUID> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {

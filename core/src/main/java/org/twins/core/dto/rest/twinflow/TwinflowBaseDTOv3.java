@@ -4,16 +4,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinflowTransitionBaseV1")
-public class TwinTransitionBaseDTOv1 extends Request {
-    @Schema(example = DTOExamples.TWINFLOW_TRANSITION_ID)
-    public UUID id;
+@Schema(name = "TwinflowBaseV3")
+public class TwinflowBaseDTOv3 extends TwinflowBaseDTOv2 {
+    @Schema(description = "transitions map")
+    public Map<UUID, TwinflowTransitionBaseDTOv2> transitions;
 }
