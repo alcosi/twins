@@ -13,6 +13,8 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -45,6 +47,8 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 
 
@@ -69,6 +73,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final UserGroupService userGroupService;
     final PermissionService permissionService;
     final UserService userService;
+    final I18nService i18nService;
 
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
@@ -221,6 +226,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             triples.get(triple).add(twinEntity);
         }
         return triples;
+    }
+
+    public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
+        twinflowTransitionEntity
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(authService.getApiUser().getUserId())
+                .setTwinflowTransitionAliasId(null); //todo create alias if it's not exist in domain
+        return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     @Getter
