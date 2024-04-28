@@ -98,9 +98,25 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
                 if (entity.getDstTwinStatus() == null)
                     entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));
+                if (entity.getTwinflow() == null)
+                    entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
+                if (entity.getPermission() == null && entity.getPermissionId() != null)
+                    entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
             default:
-                if (entity.getSrcTwinStatusId() != null && !entity.getSrcTwinStatus().getTwinClassId().equals(entity.getDstTwinStatus().getTwinClassId()))
-                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect src/dst status[" + entity.getSrcTwinStatusId() + " > " + entity.getDstTwinStatusId() + "]");
+                if (entity.getSrcTwinStatusId() != null
+                        && (!twinClassService.isInstanceOf(entity.getSrcTwinStatus().getTwinClass(), entity.getDstTwinStatus().getTwinClassId())
+                        || !twinClassService.isInstanceOf(entity.getDstTwinStatus().getTwinClass(), entity.getSrcTwinStatus().getTwinClassId())))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible src -> dst status classes [" + entity.getSrcTwinStatusId() + " > " + entity.getDstTwinStatusId() + "]");
+                if (!twinClassService.isInstanceOf(entity.getTwinflow().getTwinClass(), entity.getDstTwinStatus().getTwinClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible twinflow -> dst status classes [" + entity.getTwinflowId() + " > " + entity.getDstTwinStatusId() + "]");
+                if (entity.getPermission() != null) {
+                    permissionService.validateEntity(entity.getPermission(), EntitySmartService.EntityValidateMode.afterRead); // we are not saving permission entity that is why we can use read mode
+                    if (entity.getPermission().getPermissionGroup() != null
+                            && entity.getPermission().getPermissionGroup().getTwinClassId() != null
+                            && !twinClassService.isInstanceOf(entity.getTwinflow().getTwinClass(), entity.getPermission().getPermissionGroup().getTwinClassId()))
+                        return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible twinflow -> permission classes [" + entity.getTwinflowId() + " > " + entity.getPermissionId() + "]");
+                    ;
+                }
         }
         return true;
     }
@@ -120,6 +136,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public PermissionEntity loadPermission(TwinflowTransitionEntity twinflowTransitionEntity) throws ServiceException {
+        if (twinflowTransitionEntity.getPermissionId() == null)
+            return null;
         if (twinflowTransitionEntity.getPermission() != null)
             return twinflowTransitionEntity.getPermission();
         twinflowTransitionEntity.setPermission(permissionService.findEntitySafe(twinflowTransitionEntity.getPermissionId()));
@@ -234,6 +252,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(authService.getApiUser().getUserId())
                 .setTwinflowTransitionAliasId(null); //todo create alias if it's not exist in domain
+        validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 

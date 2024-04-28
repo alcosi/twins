@@ -48,6 +48,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     final UserGroupService userGroupService;
     @Lazy
     final EntitySmartService entitySmartService;
+    final PermissionGroupService permissionGroupService;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -125,6 +126,18 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
     @Override
     public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getKey() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
+        if (entity.getPermissionGroupId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
+
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getPermissionGroup() == null)
+                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
+            case afterRead:
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
+        }
         return true;
     }
 
