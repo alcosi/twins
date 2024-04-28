@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StreamUtils;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
@@ -21,6 +22,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionService {
+public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
     final PermissionRepository permissionRepository;
     final PermissionSchemaRepository permissionSchemaRepository;
     final PermissionSchemaUserRepository permissionSchemaUserRepository;
@@ -46,6 +48,7 @@ public class PermissionService {
     final UserGroupService userGroupService;
     @Lazy
     final EntitySmartService entitySmartService;
+    final PermissionGroupService permissionGroupService;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -109,6 +112,33 @@ public class PermissionService {
             detectKeys.get(detectKey).add(twinEntity);
         }
         return detectKeys;
+    }
+
+    @Override
+    public CrudRepository<PermissionEntity, UUID> entityRepository() {
+        return permissionRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getKey() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
+        if (entity.getPermissionGroupId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
+
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getPermissionGroup() == null)
+                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
+            case afterRead:
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
+        }
+        return true;
     }
 
     @RequiredArgsConstructor

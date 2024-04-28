@@ -43,7 +43,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     public String getValidationErrorMessage(T entity) throws ServiceException {
         if (entity instanceof EasyLoggable easyLoggable)
-            return easyLoggable.easyLog(EasyLoggable.Level.NORMAL) + " is invalid. Please check database";
+            return easyLoggable.easyLog(EasyLoggable.Level.NORMAL) + " is invalid. Please check log for details";
         else
             return "entity of class[" + entity.getClass().getSimpleName() + "] is invalid";
     }

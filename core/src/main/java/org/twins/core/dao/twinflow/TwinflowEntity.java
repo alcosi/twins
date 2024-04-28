@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -53,6 +54,10 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialTwinStatus;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
     @Override
     public String easyLog(Level level) {
