@@ -3,8 +3,8 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
@@ -45,7 +45,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return true;
     }
 
-    public Kit<TwinStatusEntity> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
+    public Kit<TwinStatusEntity, UUID> loadStatusesForTwinClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getTwinStatusKit() != null)
             return twinClassEntity.getTwinStatusKit();
         twinClassEntity.setTwinStatusKit(new Kit<>(twinStatusRepository.findByTwinClassIdIn(twinClassEntity.getExtendedClassIdSet()), TwinStatusEntity::getId));
@@ -100,8 +100,15 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
-                .setKey(key)
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId());
+                .setKey(key);
+        return createStatus(twinStatusEntity, nameInDefaultLocale, "");
+    }
+
+    @Transactional
+    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, String nameInDefaultLocale, String descriptionInDefaultLocale) throws ServiceException {
+        twinStatusEntity
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
+                .setDescriptionI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, descriptionInDefaultLocale).getI18nId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 }

@@ -36,8 +36,8 @@ public class TwinSearchService {
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroups(apiUser);
-        UUID domainId = apiUser.getDomain().getId();
-        UUID businesAccountId = apiUser.getBusinessAccount().getId();
+        UUID domainId = apiUser.getDomainId();
+        UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         Set<UUID> userGroups = apiUser.getUserGroups();
         return where(
@@ -52,7 +52,7 @@ public class TwinSearchService {
                         .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList(), false))
                         .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
                         .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, basicSearch.getHierarchyTreeContainsIdList()))
-                        .and(checkPermissions(domainId, businesAccountId, userId, userGroups))
+                        .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
                         .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdExcludeList(), true))
                         .and(checkUuidIn(TwinEntity.Fields.twinClassId, basicSearch.getTwinClassIdExcludeList(), true))
                         .and(checkTagIds(basicSearch.getTagDataListOptionIdList(), false))

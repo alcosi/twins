@@ -4,8 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,7 +66,7 @@ public class AttachmentService {
         return twinAttachmentRepository.findByTwinId(twinId);
     }
 
-    public Kit<TwinAttachmentEntity> loadAttachments(TwinEntity twinEntity) {
+    public Kit<TwinAttachmentEntity, UUID> loadAttachments(TwinEntity twinEntity) {
         if (twinEntity.getAttachmentKit() != null)
             return twinEntity.getAttachmentKit();
         List<TwinAttachmentEntity> attachmentEntityList = twinAttachmentRepository.findByTwinId(twinEntity.getId());

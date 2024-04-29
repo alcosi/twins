@@ -71,7 +71,8 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -87,6 +88,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -95,7 +97,8 @@ public class TwinListController extends ApiController {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedTwinMode)
+                    .setMode(showRelatedByHeadTwinMode)
+                    .setMode(showRelatedByLinkTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -110,7 +113,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -136,7 +140,8 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -152,6 +157,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -160,7 +166,8 @@ public class TwinListController extends ApiController {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedTwinMode)
+                    .setMode(showRelatedByHeadTwinMode)
+                    .setMode(showRelatedByLinkTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -175,7 +182,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -199,7 +207,8 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV3(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedTwinMode, defaultValue = RelatedTwinMode._GREEN) RelatedTwinMode showRelatedTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
+            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
@@ -215,6 +224,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
             @RequestBody List<TwinSearchRqDTOv1> request) {
@@ -226,7 +236,8 @@ public class TwinListController extends ApiController {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedTwinMode)
+                    .setMode(showRelatedByHeadTwinMode)
+                    .setMode(showRelatedByLinkTwinMode)
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showClassMode)
@@ -241,7 +252,8 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
                     .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode);
+                    .setMode(showTwinTransitionMode)
+                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))

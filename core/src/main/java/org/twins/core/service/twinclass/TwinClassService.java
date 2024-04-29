@@ -216,8 +216,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
             throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id");
         if (twinClassEntity.getViewPermissionId() != null
-        && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown tag data list id");
+                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_NAME, name).getI18nId())

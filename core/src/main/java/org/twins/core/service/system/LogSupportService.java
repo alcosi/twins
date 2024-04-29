@@ -56,25 +56,25 @@ public class LogSupportService {
             sb.append(item.getId()).append(classReadable(item, false)).append(".id\n");
 
         for (var twinClass : twinClasses)
-            for (var item : twinClass.getTwinStatusKit().getList())
+            for (var item : twinClass.getTwinStatusKit().getCollection())
                 sb.append(item.getId()).append(classReadable(twinClass, false)).append(statusReadable(item, true)).append(".id\n");
 
         for (var twinClass : twinClasses)
-            for (var item : twinClass.getTwinClassFieldKit().getList())
+            for (var item : twinClass.getTwinClassFieldKit().getCollection())
                 sb.append(item.getId()).append(classReadable(twinClass, false)).append(fieldReadable(item, true)).append(".id\n");
 
         for (var twinClass : twinClasses)
-            for (var item : twinClass.getLinksKit().getList())
+            for (var item : twinClass.getLinksKit().getCollection())
                 sb.append(item.getId()).append(linkReadable(item, false)).append("].id\n");
 
         for (var twinClass : twinClasses)
             if (null != twinClass.getTwinflowKit() && twinClass.getTwinflowKit().isNotEmpty())
-                for (var item : twinClass.getTwinflowKit().getList())
+                for (var item : twinClass.getTwinflowKit().getCollection())
                     sb.append(item.getId()).append(twinflowReadable(item, false)).append("].id\n");
 
         for (var twinClass : twinClasses)
             if (null != twinClass.getTransitionsKit() && twinClass.getTransitionsKit().isNotEmpty())
-                for (var item : twinClass.getTransitionsKit().getList())
+                for (var item : twinClass.getTransitionsKit().getCollection())
                     sb.append(item.getId()).append(transitionReadable(item, false)).append("].id\n");
 
 

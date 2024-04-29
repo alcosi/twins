@@ -6,8 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.KitGrouped;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
@@ -221,7 +221,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             }
         if (needLoad.isEmpty())
             return;
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdInOrDstTwinIdIn(needLoad.keySet(), needLoad.keySet());
+        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository
+//                .findBySrcTwinIdInOrDstTwinIdIn(needLoad.keySet(), needLoad.keySet()); //backward links loading is disabled because of huge data
+                .findBySrcTwinIdIn(needLoad.keySet());
         if (CollectionUtils.isEmpty(twinLinkEntityList))
             return;
         TwinEntity twinEntity = null;
@@ -241,7 +243,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public KitGrouped<TwinLinkEntity> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
+    public KitGrouped<TwinLinkEntity, UUID, UUID> findTwinForwardLinks(TwinEntity twinEntity) throws ServiceException {
         loadTwinLinks(twinEntity);
         return twinEntity.getTwinLinks().getForwardLinks();
     }
@@ -324,17 +326,17 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             return 0L;
     }
 
-    public List<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
+    public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
         if (linkDirection == null)
             linkDirection = linkService.detectLinkDirection(linkEntity, twinEntity.getTwinClass());
         switch (linkDirection) {
             case forward:
                 if (twinEntity.getTwinLinks() != null)
-                    return twinEntity.getTwinLinks().forwardLinks.getList();
+                    return twinEntity.getTwinLinks().forwardLinks.getCollection();
                 return twinLinkRepository.findBySrcTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             case backward:
                 if (twinEntity.getTwinLinks() != null)
-                    return twinEntity.getTwinLinks().backwardLinks.getList();
+                    return twinEntity.getTwinLinks().backwardLinks.getCollection();
                 return twinLinkRepository.findByDstTwinIdAndLinkId(twinEntity.getId(), linkEntity.getId(), TwinLinkEntity.class);
             default:
                 return null;
@@ -345,11 +347,17 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Accessors(chain = true)
     public static class FindTwinLinksResult {
         UUID twinId;
-        KitGrouped<TwinLinkEntity> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
-        KitGrouped<TwinLinkEntity> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {
         return one.getSrcTwinId().equals(two.getSrcTwinId()) && one.getDstTwinId().equals(two.getDstTwinId());
+    }
+
+    public boolean hasLink(TwinEntity twinEntity, UUID linkId) {
+        if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getForwardLinks() != null)
+            return twinEntity.getTwinLinks().getForwardLinks().containsGroupedKey(linkId);
+        return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
     }
 }

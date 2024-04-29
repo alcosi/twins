@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
+import org.cambium.common.kit.Kit;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -54,5 +54,5 @@ public class DataListEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
-    Kit<DataListOptionEntity> options;
+    Kit<DataListOptionEntity, UUID> options;
 }

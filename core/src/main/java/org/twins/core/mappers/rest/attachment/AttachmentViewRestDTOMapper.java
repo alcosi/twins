@@ -19,6 +19,7 @@ import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,8 +59,8 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     }
 
     @Override
-    public List<AttachmentViewDTOv1> convertList(List<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
-        List<TwinAttachmentEntity> newList = new ArrayList<>();
+    public List<AttachmentViewDTOv1> convertList(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
+        Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(TwinAttachmentMode.ALL)) {
             case DIRECT:
                 newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());

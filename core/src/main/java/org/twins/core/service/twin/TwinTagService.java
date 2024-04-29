@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.i18n.service.I18nService;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
@@ -39,6 +41,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final EntitySmartService entitySmartService;
     final I18nService i18nService;
     final AuthService authService;
+    final CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -69,7 +72,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return true;
     }
 
-    public Kit<DataListOptionEntity> loadTags(TwinEntity twinEntity) {
+    public Kit<DataListOptionEntity, UUID> loadTags(TwinEntity twinEntity) {
         if (twinEntity.getTwinTagKit() != null)
             return twinEntity.getTwinTagKit();
         List<DataListOptionEntity> dataListOptionEntityList = findDataListOptionByTwinId(twinEntity.getId());
@@ -108,12 +111,12 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
     }
 
-    public Kit<DataListOptionEntity> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    public Kit<DataListOptionEntity, UUID> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
         if (CollectionUtils.isEmpty(newTags) && CollectionUtils.isEmpty(existingTags))
             return null;
         if (twinEntity.getTwinClass().getTagDataListId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "tags are not allowed for " + twinEntity.logNormal());
-        Kit<DataListOptionEntity> savedTags = saveTags(twinEntity,
+        Kit<DataListOptionEntity, UUID> savedTags = saveTags(twinEntity,
                 Optional.ofNullable(newTags)
                         .orElse(new HashSet<>()),
                 Optional.ofNullable(existingTags)
@@ -135,7 +138,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         createTags(twinEntity, newTags, existingTags);
     }
 
-    private Kit<DataListOptionEntity> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    private Kit<DataListOptionEntity, UUID> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
         UUID businessAccountId = null;
 
         if (authService.getApiUser().isBusinessAccountSpecified()) {
@@ -173,15 +176,15 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
     }
 
-    private List<DataListOptionEntity> processNewTags(UUID dataListId, Set<String> newTagOptions, UUID businessAccountId) {
+    private List<DataListOptionEntity> processNewTags(UUID tagsCloudDataListId, Set<String> newTagOptions, UUID businessAccountId) {
         List<DataListOptionEntity> tagOptions = new ArrayList<>();
 
         List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
                 List<DataListOptionEntity> foundOption;
                 if (businessAccountId != null)
-                    foundOption = twinTagRepository.findOptionForBusinessAccount(dataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionForBusinessAccount(tagsCloudDataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
                 else
-                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(dataListId, option.trim(), PageRequest.of(0, 1));
+                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(tagsCloudDataListId, option.trim(), PageRequest.of(0, 1));
 
                 if (CollectionUtils.isNotEmpty(foundOption)) {
                     tagOptions.add(foundOption.get(0));
@@ -194,7 +197,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
                 option.setOption(tag);
                 option.setBusinessAccountId(businessAccountId);
                 option.setStatus(DataListOptionEntity.Status.active);
-                option.setDataListId(dataListId);
+                option.setDataListId(tagsCloudDataListId);
 
                 return option;
             })
@@ -204,8 +207,21 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
 
         Iterable<DataListOptionEntity> savedOptions = entitySmartService.saveAllAndLog(optionsToSave, dataListOptionRepository);
         savedOptions.forEach(tagOptions::add);
-
+        if (CollectionUtils.isNotEmpty(optionsToSave)) {
+            evictTagsCloudCache(tagsCloudDataListId, businessAccountId);
+        }
         return tagOptions;
+    }
+
+    private void evictTagsCloudCache(UUID tagsCloudDataListId, UUID businessAccountId) {
+        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
+        if (cache != null)
+            cache.evictIfPresent(tagsCloudDataListId);
+        if (businessAccountId != null) {
+            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
+            if (cache != null)
+                cache.evictIfPresent(tagsCloudDataListId + "" + businessAccountId);
+        }
     }
 
     private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) {

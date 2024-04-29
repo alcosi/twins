@@ -4,7 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.user.UserGroupService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +20,9 @@ import java.util.UUID;
         description = "")
 @Slf4j
 public abstract class UserGroupManager extends Featurer {
+    @Lazy
+    @Autowired
+    protected UserGroupService userGroupService;
     public void manageForUser(HashMap<String, String> params, UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
         manageForUser(properties, userId, userGroupEnterList, userGroupExitList, apiUser);

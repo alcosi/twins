@@ -33,6 +33,6 @@ public class ConditionerContextTwinOfClassDeep extends Conditioner {
         if (contextItem.getTwin().getTwinClassId().equals(ofTwinClassId.extract(properties)))
             return true;
         // we will try to look deeper
-        return check(properties, factoryItem.checkNotMultiplyContextItem(), recursionCounter - 1);
+        return check(properties, contextItem, recursionCounter - 1);
     }
 }

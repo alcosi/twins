@@ -6,7 +6,7 @@ import lombok.Data;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.transition.validator.TransitionValidator;
+import org.twins.core.featurer.twin.validator.TwinValidator;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -28,17 +28,17 @@ public class TwinflowTransitionValidatorEntity {
     @Column(name = "invert")
     private boolean invert;
 
-    @Column(name = "transition_validator_featurer_id")
-    private Integer transitionValidatorFeaturerId;
+    @Column(name = "twin_validator_featurer_id")
+    private Integer twinValidatorFeaturerId;
 
-    @FeaturerList(type = TransitionValidator.class)
+    @FeaturerList(type = TwinValidator.class)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "transition_validator_featurer_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity transitionValidatorFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "transition_validator_params", columnDefinition = "hstore")
-    private HashMap<String, String> transitionValidatorParams;
+    @Column(name = "twin_validator_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinValidatorParams;
 
     @Column(name = "active")
     private boolean isActive;

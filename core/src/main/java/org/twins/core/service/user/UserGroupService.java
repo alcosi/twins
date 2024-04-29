@@ -34,7 +34,7 @@ public class UserGroupService {
     public List<UserGroupEntity> findGroupsForUser(UUID userId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         List<UserGroupEntity> userGroupEntityList = new ArrayList<>();
-        List<UserGroupMapEntity> userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(userId, apiUser.getDomain().getId());
+        List<UserGroupMapEntity> userGroupMapEntityList = getUserGroupsMap(userId);
         for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
             Slugger slugger = featurerService.getFeaturer(userGroupMapEntity.getUserGroup().getUserGroupType().getSluggerFeaturer(), Slugger.class);
             UserGroupEntity userGroup = slugger.checkConfigAndGetGroup(userGroupMapEntity);
@@ -47,7 +47,7 @@ public class UserGroupService {
     public Set<UUID> loadGroups(ApiUser apiUser) throws ServiceException {
         if (apiUser.getUserGroups() != null)
             return apiUser.getUserGroups();
-        List<UserGroupMapEntity> userGroupMapEntityList = userGroupMapRepository.findByUserIdAndUserGroup_DomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+        List<UserGroupMapEntity> userGroupMapEntityList = getUserGroupsMap(apiUser.getUserId());
         if (CollectionUtils.isNotEmpty(userGroupMapEntityList))
             apiUser.setUserGroups(new HashSet<>());
         for (UserGroupMapEntity userGroupMapEntity : userGroupMapEntityList) {
@@ -57,6 +57,14 @@ public class UserGroupService {
                 apiUser.getUserGroups().add(userGroup.getId());
         }
         return apiUser.getUserGroups();
+    }
+
+    public List<UserGroupMapEntity> getUserGroupsMap(UUID userId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (apiUser.isBusinessAccountSpecified())
+            return userGroupMapRepository.findByUserIdAndBusinessAccountSafe(userId, apiUser.getDomain().getId(), apiUser.getBusinessAccountId());
+        else
+            return userGroupMapRepository.findByUserIdAndBusinessAccountSafe(userId, apiUser.getDomain().getId());
     }
 
 

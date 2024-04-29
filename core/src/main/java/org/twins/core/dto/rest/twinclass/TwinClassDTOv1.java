@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 
 import java.util.List;
@@ -19,10 +18,6 @@ import java.util.UUID;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassV1")
 public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
-
-    @Schema(description = "List of valid heads." + DTOExamples.LAZY_RELATION_MODE_OFF)
-    public List<UUID> validHeadsIds;
-
     @Schema(description = "Class fields list")
     public List<TwinClassFieldDTOv1> fields;
 
@@ -37,9 +32,6 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "List of tag id." + DTOExamples.LAZY_RELATION_MODE_OFF)
     public List<UUID> tagList;
-
-    @Schema(description = "Map of valid heads." + DTOExamples.LAZY_RELATION_MODE_ON)
-    public Map<UUID, TwinBaseDTOv1> validHeadsMap;
 
     @Schema()
     public Map<UUID, LinkDTOv1> forwardLinkMap;

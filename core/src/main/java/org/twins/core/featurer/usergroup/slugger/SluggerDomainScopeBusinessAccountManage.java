@@ -23,8 +23,11 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
     @Override
     protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
         checkUserGroupBusinessAccountEmpty(userGroupMapEntity.getUserGroup());
+        ApiUser apiUser = authService.getApiUser();
         if (userGroupMapEntity.getBusinessAccountId() == null) {
             log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group_map");
+            return null;
+        } else if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(userGroupMapEntity.getBusinessAccountId())) {
             return null;
         } else
             return userGroupMapEntity.getUserGroup();

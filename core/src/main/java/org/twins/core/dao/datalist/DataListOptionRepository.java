@@ -13,11 +13,13 @@ import java.util.UUID;
 
 @Repository
 public interface DataListOptionRepository extends CrudRepository<DataListOptionEntity, UUID>, JpaSpecificationExecutor<DataListOptionEntity> {
-    @Cacheable(value = "DataListOptionRepository.findByDataListId", key = "{#dataListId}")
+    String CACHE_DATA_LIST_OPTIONS = "DataListOptionRepository.findByDataListId";
+    String CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT = "DataListOptionRepository.findByDataListIdAndBusinessAccountId";
+    @Cacheable(value = CACHE_DATA_LIST_OPTIONS, key = "{#dataListId}")
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and option.businessAccountId is null order by option.order")
     List<DataListOptionEntity> findByDataListId(@Param("dataListId") UUID dataListId);
 
-    @Cacheable(value = "DataListOptionRepository.findByDataListIdAndBusinessAccountId", key = "{#dataListId, #businessAccountId}")
+    @Cacheable(value = CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT, key = "#dataListId + '' + #businessAccountId")
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and (option.businessAccountId is null or option.businessAccountId = :businessAccountId) order by option.order")
     List<DataListOptionEntity> findByDataListIdAndBusinessAccountId(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId);
 

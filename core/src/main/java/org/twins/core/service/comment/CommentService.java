@@ -5,8 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.cambium.common.Kit;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Pageable;
@@ -105,7 +105,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         });
     }
 
-    public Kit<TwinAttachmentEntity> loadAttachments(TwinCommentEntity twinComment) {
+    public Kit<TwinAttachmentEntity, UUID> loadAttachments(TwinCommentEntity twinComment) {
         if (twinComment.getAttachmentKit() != null)
             return twinComment.getAttachmentKit();
         List<TwinAttachmentEntity> attachmentEntityList = attachmentRepository.findByTwinCommentId(twinComment.getId());
