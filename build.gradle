@@ -48,6 +48,7 @@ subprojects {
         /**
          * application.properties
          **/
+        outputs.upToDateWhen { false }
         exclude "application.properties"
         println "Using profile [${profile}]"
         rename "application-${profile}.properties" , 'application.properties'

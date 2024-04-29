@@ -7,6 +7,7 @@ public class ApiTag {
     public static final String TWIN = "twin";
     public static final String HISTORY = "history";
     public static final String TWIN_CLASS = "twinClass";
+    public static final String TWINFLOW = "twinflow";
     public static final String CARD = "card";
     public static final String WIDGET = "widget";
     public static final String LINK = "link";
