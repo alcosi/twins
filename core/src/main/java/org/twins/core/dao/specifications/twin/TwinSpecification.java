@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
 
@@ -21,6 +22,31 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification {
+
+    public static Specification<TwinEntity> checkHeadTwin(Specification<TwinEntity> headSpecification, TwinSearch headSearch) {
+        return (root, query, cb) -> {
+            if (null == headSpecification) return cb.conjunction();
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<TwinEntity> subRoot = subquery.from(TwinEntity.class);
+
+            List<Predicate> classPredicates = new ArrayList<>();
+            Predicate classPredicate = null;
+            if (!CollectionUtils.isEmpty(headSearch.getTwinClassIdList())) {
+                for (UUID twinClassId : headSearch.getTwinClassIdList()) {
+                    Predicate checkClassId = cb.equal(subRoot.get(TwinEntity.Fields.twinClassId), twinClassId);
+                    classPredicates.add(checkClassId);
+                }
+                classPredicate = getPredicate(cb, classPredicates, true);
+            }
+            subquery.select(subRoot.get(TwinEntity.Fields.id)).where(
+                    headSpecification.toPredicate(subRoot, query, cb),
+                    null != classPredicate ? classPredicate : cb.conjunction()
+            );
+
+
+            return cb.in(root.get(TwinEntity.Fields.headTwinId)).value(subquery);
+        };
+    }
 
     public static Specification<TwinEntity> checkTagIds(final Collection<UUID> tagIds, final boolean exclude) {
         return (root, query, cb) -> {
@@ -116,6 +142,8 @@ public class TwinSpecification {
             return getPredicate(cb, predicates, or);
         };
     }
+
+
 
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;

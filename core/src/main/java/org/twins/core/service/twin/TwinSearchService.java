@@ -13,6 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 
@@ -33,6 +34,27 @@ public class TwinSearchService {
     @Lazy
     final AuthService authService;
 
+    private Specification<TwinEntity> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch) throws ServiceException {
+
+        return where(
+                checkTwinLinks(twinSearch.getTwinLinksMap(), twinSearch.getTwinNoLinksMap())
+                        .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdExcludeList(), true))
+                        .and(checkFieldLikeIn(TwinEntity.Fields.name, twinSearch.getTwinNameLikeList(), true))
+                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, twinSearch.getAssignerUserIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, twinSearch.getCreatedByUserIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, twinSearch.getStatusIdList(), false))
+                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, twinSearch.getHeaderTwinIdList(), false))
+                        .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, twinSearch.getHierarchyTreeContainsIdList()))
+                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, twinSearch.getStatusIdExcludeList(), true))
+                        .and(checkUuidIn(TwinEntity.Fields.twinClassId, twinSearch.getTwinClassIdExcludeList(), true))
+                        .and(checkTagIds(twinSearch.getTagDataListOptionIdList(), false))
+                        .and(checkTagIds(twinSearch.getTagDataListOptionIdExcludeList(), true))
+                        .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdList(), false))
+                        .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
+        );
+    }
+
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroups(apiUser);
@@ -40,26 +62,21 @@ public class TwinSearchService {
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
         Set<UUID> userGroups = apiUser.getUserGroups();
-        return where(
-                checkTwinLinks(basicSearch.getTwinLinksMap(), basicSearch.getTwinNoLinksMap())
-                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdList(), false))
-                        .and(checkUuidIn(TwinEntity.Fields.id, basicSearch.getTwinIdExcludeList(), true))
-                        .and(checkFieldLikeIn(TwinEntity.Fields.name, basicSearch.getTwinNameLikeList(), true))
-                        .and(checkClass(basicSearch.getTwinClassIdList(), apiUser))
-                        //todo create filter by basicSearch.getExtendsTwinClassIdList()
-                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, basicSearch.getAssignerUserIdList(), false))
-                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, basicSearch.getCreatedByUserIdList(), false))
-                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdList(), false))
-                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, basicSearch.getHeaderTwinIdList(), false))
-                        .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, basicSearch.getHierarchyTreeContainsIdList()))
-                        .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
-                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, basicSearch.getStatusIdExcludeList(), true))
-                        .and(checkUuidIn(TwinEntity.Fields.twinClassId, basicSearch.getTwinClassIdExcludeList(), true))
-                        .and(checkTagIds(basicSearch.getTagDataListOptionIdList(), false))
-                        .and(checkTagIds(basicSearch.getTagDataListOptionIdExcludeList(), true))
-                        .and(checkMarkerIds(basicSearch.getMarkerDataListOptionIdList(), false))
-                        .and(checkMarkerIds(basicSearch.getMarkerDataListOptionIdExcludeList(), true))
+        //todo create filter by basicSearch.getExtendsTwinClassIdList()
+        Specification<TwinEntity> specification = where(checkClass(basicSearch.getTwinClassIdList(), apiUser)
+                .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
+                .and(createTwinEntityBasicSearchSpecification(basicSearch))
         );
+
+        //HEAD TWIN CHECK
+        if (null != basicSearch.getHeadSearch()) specification = specification.and(
+                checkHeadTwin(
+                        createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch()),
+                        basicSearch.getHeadSearch()
+                ));
+
+
+        return specification;
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
@@ -90,9 +107,9 @@ public class TwinSearchService {
     public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int size) throws ServiceException {
         TwinSearchResult twinSearchResult = new TwinSearchResult();
         Specification<TwinEntity> spec = where(null);
-        for(BasicSearch basicSearch : basicSearches)
+        for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset , size, sort(false, TwinEntity.Fields.createdAt)));
+        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset, size, sort(false, TwinEntity.Fields.createdAt)));
         return (TwinSearchResult) twinSearchResult
                 .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
                 .setOffset(offset)
