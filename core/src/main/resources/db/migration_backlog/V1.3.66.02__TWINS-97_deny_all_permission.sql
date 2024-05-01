@@ -1,4 +1,5 @@
-INSERT INTO public.permission (id, key, permission_group_id, name, description) VALUES ('00000000-0000-0000-0004-000000000001'::uuid, 'DENY_ALL'::varchar(100), '8419644c-17c4-46cc-b5d4-a9ff67a7330d'::uuid, null::varchar(100), null::varchar(255)) on conflict (id) do nothing;
+UPDATE public.permission_group SET id = '00000000-0000-0000-0005-000000000001'::uuid WHERE id = '8419644c-17c4-46cc-b5d4-a9ff67a7330d'::uuid;
+INSERT INTO public.permission (id, key, permission_group_id, name, description) VALUES ('00000000-0000-0000-0004-000000000001'::uuid, 'DENY_ALL'::varchar(100), '00000000-0000-0000-0005-000000000001'::uuid, null::varchar(100), null::varchar(255)) on conflict (id) do nothing;
 
 DROP FUNCTION IF EXISTS public.permissionCheck(UUID, UUID, UUID, UUID, UUID, UUID[], UUID, BOOLEAN, BOOLEAN);
 
