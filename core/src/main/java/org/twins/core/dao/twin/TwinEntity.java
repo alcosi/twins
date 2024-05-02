@@ -124,6 +124,18 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     //needed for specification
     @Deprecated
     @OneToMany
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinTagEntity> tags;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinMarkerEntity> markers;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
     private Collection<TwinLinkEntity> linksBySrcTwinId;
 
