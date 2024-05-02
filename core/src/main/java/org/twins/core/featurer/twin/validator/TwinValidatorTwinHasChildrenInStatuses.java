@@ -16,6 +16,8 @@ import org.twins.core.service.twin.TwinSearchService;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Map;
+import java.util.Collection;
 
 @Slf4j
 @Component
@@ -45,4 +47,25 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
                 twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]",
                 twinEntity.logShort() + " has " + count + " children in statuses[" + StringUtils.join(statusIdSet, ",") + "]");
     }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        Set<UUID> statusIdSet = statusIds.extract(properties);
+        BasicSearch search = new BasicSearch();
+        search.addStatusId(statusIdSet);
+        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
+        CollectionValidationResult result = new CollectionValidationResult();
+        for (TwinEntity twinEntity : twinEntityCollection) {
+            long count = counts.getOrDefault(twinEntity.getId(), 0L);
+            boolean isValid = count > 0;
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " has no children in statuses[" + StringUtils.join(statusIdSet, ",") + "]",
+                    twinEntity.logShort() + " has " + count + " children in statuses[" + StringUtils.join(statusIdSet, ",") + "]"
+            ));
+        }
+        return result;
+    }
+
 }

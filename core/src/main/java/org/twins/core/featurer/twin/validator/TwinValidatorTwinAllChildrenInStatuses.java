@@ -12,8 +12,11 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.twin.TwinSearchService;
 
+import java.util.Collection;
 import java.util.Properties;
 import java.util.UUID;
+import java.util.Map;
+
 
 @Slf4j
 @Component
@@ -49,6 +52,27 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
                 invert,
                 twinEntity.logShort() + " children of class[" + childrenTwinClassId + "] is not in status [" + childrenTwinStatusId + "]",
                 twinEntity.logShort() + " all children of class[" + childrenTwinClassId + "] are in status [" + childrenTwinStatusId + "]");
+    }
+
+    @Override
+    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
+        UUID classId = childrenTwinClassId.extract(properties);
+        UUID statusId = childrenTwinStatusId.extract(properties);
+        BasicSearch search = new BasicSearch();
+        search.addTwinClassId(classId).addStatusIdExclude(statusId);
+        Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
+        CollectionValidationResult result = new CollectionValidationResult();
+        for (TwinEntity twinEntity : twinEntityCollection) {
+            long count = counts.getOrDefault(twinEntity.getId(), 0L);
+            boolean isValid = count == 0;
+            result.getTwinsResults().put(twinEntity.getId(), buildResult(
+                    isValid,
+                    invert,
+                    twinEntity.logShort() + " children of class[" + classId + "] are not in status [" + statusId + "]",
+                    twinEntity.logShort() + " all children of class[" + classId + "] are in status [" + statusId + "]"
+            ));
+        }
+        return result;
     }
 
 }
