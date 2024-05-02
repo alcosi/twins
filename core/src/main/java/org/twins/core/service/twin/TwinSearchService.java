@@ -1,6 +1,10 @@
 package org.twins.core.service.twin;
 
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -126,6 +130,21 @@ public class TwinSearchService {
         for (Map.Entry<String, BasicSearch> entry : searchMap.entrySet())
             result.put(entry.getKey(), count(entry.getValue()));
         return result;
+    }
+
+    public <GT> Map<GT, Long> countGroupBy(BasicSearch basicSearch, String groupFieldName) throws ServiceException {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+        CriteriaQuery<Object[]> query = cb.createQuery(Object[].class);
+        Root<TwinEntity> root = query.from(TwinEntity.class);
+        Path<GT> groupField = root.get(groupFieldName);
+        Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
+        query.multiselect(groupField, cb.count(root));
+        query.where(spec.toPredicate(root, query, cb));
+        query.groupBy(groupField);
+        List<Object[]> results = entityManager.createQuery(query).getResultList();
+        Map<GT, Long> resultMap = new HashMap<>();
+        for (Object[] result : results) resultMap.put((GT) result[0], (Long) result[1]);
+        return resultMap;
     }
 
 
