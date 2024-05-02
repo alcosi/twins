@@ -36,7 +36,7 @@ public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, F
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String pattern = regexp.extract(properties);
-        if (value == null && !value.getValue().matches(pattern))
+        if (!value.getValue().matches(pattern))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " value[" + value.getValue() + "] does not match pattern[" + pattern + "]");
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getValue());
     }

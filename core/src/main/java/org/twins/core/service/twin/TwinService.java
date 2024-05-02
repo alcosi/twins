@@ -387,7 +387,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         TwinChangesCollector entitiesChangesCollector = new TwinChangesCollector(); //all fields will be saved at once, in one transaction
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             fieldValue = fields.get(twinClassFieldEntity.getId());
-            if (fieldValue == null)
+            if (fieldValue == null || !fieldValue.isFilled())
                 if (twinClassFieldEntity.isRequired())
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is required");
                 else
