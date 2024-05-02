@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.BasicSearch;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -36,13 +36,12 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
-
-        long count = twinSearchService.count(new BasicSearch()
+        BasicSearch search = new BasicSearch();
+        search
                 .addHeaderTwinId(twinEntity.getId())
                 .addTwinClassId(classId)
-                .addStatusIdExclude(statusId)
-        );
-
+                .addStatusIdExclude(statusId);
+        long count = twinSearchService.count(search);
         boolean isValid = count == 0;
 
         return buildResult(

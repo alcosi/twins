@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
 
@@ -22,42 +23,60 @@ import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 @Slf4j
 public class TwinSpecification {
 
+    public static Specification<TwinEntity> checkHeadTwin(Specification<TwinEntity> headSpecification, TwinSearch headSearch) {
+        return (root, query, cb) -> {
+            if (null == headSpecification) return cb.conjunction();
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<TwinEntity> subRoot = subquery.from(TwinEntity.class);
+
+            List<Predicate> classPredicates = new ArrayList<>();
+            Predicate classPredicate = null;
+            if (!CollectionUtils.isEmpty(headSearch.getTwinClassIdList())) {
+                for (UUID twinClassId : headSearch.getTwinClassIdList()) {
+                    Predicate checkClassId = cb.equal(subRoot.get(TwinEntity.Fields.twinClassId), twinClassId);
+                    classPredicates.add(checkClassId);
+                }
+                classPredicate = getPredicate(cb, classPredicates, true);
+            }
+            subquery.select(subRoot.get(TwinEntity.Fields.id)).where(
+                    headSpecification.toPredicate(subRoot, query, cb),
+                    null != classPredicate ? classPredicate : cb.conjunction()
+            );
+
+
+            return cb.in(root.get(TwinEntity.Fields.headTwinId)).value(subquery);
+        };
+    }
+
     public static Specification<TwinEntity> checkTagIds(final Collection<UUID> tagIds, final boolean exclude) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(tagIds)) return cb.conjunction();
-            Subquery<TwinTagEntity> tagSubquery = query.subquery(TwinTagEntity.class);
-            Root<TwinTagEntity> tagRoot = tagSubquery.from(TwinTagEntity.class);
-            tagSubquery.select(tagRoot);
-            Predicate tagIdIn;
-            tagIdIn = tagRoot.get(TwinTagEntity.Fields.tagDataListOptionId).in(tagIds);
-            tagSubquery.where(
-                    cb.and(
-                            tagIdIn,
-                            cb.equal(tagRoot.get(TwinTagEntity.Fields.twinId), root.get(TwinEntity.Fields.id))
-                    )
-            );
-            return exclude ? cb.not(cb.exists(tagSubquery)) : cb.exists(tagSubquery);
+            Join<TwinEntity, TwinTagEntity> tagJoin = root.join(TwinEntity.Fields.tags, JoinType.LEFT);
+            Predicate tagIdIn = tagJoin.get(TwinTagEntity.Fields.tagDataListOptionId).in(tagIds);
+            query.distinct(true);
+            if (exclude) {
+                Predicate noTags = cb.isNull(tagJoin.get(TwinTagEntity.Fields.twinId));
+                return cb.or(noTags, cb.not(tagIdIn));
+            } else {
+                return cb.and(cb.isNotNull(tagJoin.get(TwinTagEntity.Fields.twinId)), tagIdIn);
+            }
         };
     }
 
     public static Specification<TwinEntity> checkMarkerIds(final Collection<UUID> markerIds, final boolean exclude) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(markerIds)) return cb.conjunction();
-            Subquery<TwinMarkerEntity> markerSubquery = query.subquery(TwinMarkerEntity.class);
-            Root<TwinMarkerEntity> markerRoot = markerSubquery.from(TwinMarkerEntity.class);
-            markerSubquery.select(markerRoot);
-            Predicate markerIdIn;
-            markerIdIn = markerRoot.get(TwinMarkerEntity.Fields.markerDataListOptionId).in(markerIds);
-            markerSubquery.where(
-                    cb.and(
-                            markerIdIn,
-                            cb.equal(markerRoot.get(TwinMarkerEntity.Fields.twinId), root.get(TwinEntity.Fields.id))
-                    )
-            );
-            return exclude ? cb.not(cb.exists(markerSubquery)) : cb.exists(markerSubquery);
+            Join<TwinEntity, TwinMarkerEntity> markerJoin = root.join(TwinEntity.Fields.markers, JoinType.LEFT);
+            Predicate markerIdIn = markerJoin.get(TwinMarkerEntity.Fields.markerDataListOptionId).in(markerIds);
+            query.distinct(true);
+            if (exclude) {
+                Predicate noMarkers = cb.isNull(markerJoin.get(TwinMarkerEntity.Fields.twinId));
+                return cb.or(noMarkers, cb.not(markerIdIn));
+            } else {
+                return cb.and(cb.isNotNull(markerJoin.get(TwinMarkerEntity.Fields.twinId)), markerIdIn);
+            }
         };
     }
-
 
     public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
         return (root, query, cb) -> {
@@ -116,6 +135,8 @@ public class TwinSpecification {
             return getPredicate(cb, predicates, or);
         };
     }
+
+
 
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;

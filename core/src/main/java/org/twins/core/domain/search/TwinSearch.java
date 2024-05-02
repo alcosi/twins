@@ -1,4 +1,4 @@
-package org.twins.core.domain;
+package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -8,9 +8,8 @@ import java.util.*;
 
 @Data
 @Accessors(chain = true)
-public class BasicSearch {
+public class TwinSearch {
     Set<UUID> twinIdList;
-
     Set<String> twinNameLikeList;
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
@@ -30,86 +29,86 @@ public class BasicSearch {
     Set<UUID> markerDataListOptionIdList;
     Set<UUID> markerDataListOptionIdExcludeList;
 
-    public BasicSearch addTwinId(UUID twinId) {
+    public TwinSearch addTwinId(UUID twinId) {
         twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
         return this;
     }
 
-    public BasicSearch addTwinNameLike(String twinNameLike) {
+    public TwinSearch addTwinNameLike(String twinNameLike) {
         twinNameLikeList = CollectionUtils.safeAdd(twinNameLikeList, twinNameLike);
         return this;
     }
 
-    public BasicSearch addTwinExcludeId(UUID twinId) {
+    public TwinSearch addTwinExcludeId(UUID twinId) {
         twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
         return this;
     }
 
-    public BasicSearch addTwinClassId(UUID twinClassId) {
+    public TwinSearch addTwinClassId(UUID twinClassId) {
         twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
         return this;
     }
 
-    public BasicSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
+    public TwinSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
         twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
-    public BasicSearch addHeaderTwinId(UUID headerTwinId) {
+    public TwinSearch addHeaderTwinId(UUID headerTwinId) {
         headerTwinIdList = CollectionUtils.safeAdd(headerTwinIdList, headerTwinId);
         return this;
     }
 
-    public BasicSearch addStatusId(UUID statusId) {
+    public TwinSearch addStatusId(UUID statusId) {
         statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
         return this;
     }
 
-    public BasicSearch addStatusId(Collection<UUID> statusIdList) {
+    public TwinSearch addStatusId(Collection<UUID> statusIdList) {
         if (this.statusIdList == null)
             this.statusIdList = new HashSet<>();
         this.statusIdList.addAll(statusIdList);
         return this;
     }
 
-    public BasicSearch addAssignerUserId(UUID assignerUserId) {
+    public TwinSearch addAssignerUserId(UUID assignerUserId) {
         assignerUserIdList = CollectionUtils.safeAdd(assignerUserIdList, assignerUserId);
         return this;
     }
 
-    public BasicSearch addCreatedByUserId(UUID createdByUserId) {
+    public TwinSearch addCreatedByUserId(UUID createdByUserId) {
         createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
         return this;
     }
 
-    public BasicSearch addOwnerUserId(UUID ownerUserId) {
+    public TwinSearch addOwnerUserId(UUID ownerUserId) {
         ownerUserIdList = CollectionUtils.safeAdd(ownerUserIdList, ownerUserId);
         return this;
     }
 
-    public BasicSearch addOwnerBusinessAccountId(UUID ownerBusinessAccountId) {
+    public TwinSearch addOwnerBusinessAccountId(UUID ownerBusinessAccountId) {
         ownerBusinessAccountIdList = CollectionUtils.safeAdd(ownerBusinessAccountIdList, ownerBusinessAccountId);
         return this;
     }
 
-    public BasicSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
+    public TwinSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
         if (twinLinksMap == null) twinLinksMap = new HashMap<>();
         twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
-    public BasicSearch addNoLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
+    public TwinSearch addNoLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
         if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
         twinNoLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
-    public BasicSearch addHierarchyTreeContainsId(UUID twinId) {
+    public TwinSearch addHierarchyTreeContainsId(UUID twinId) {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
         return this;
     }
 
-    public BasicSearch addStatusIdExclude(UUID statusId) {
+    public TwinSearch addStatusIdExclude(UUID statusId) {
         statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
         return this;
     }
