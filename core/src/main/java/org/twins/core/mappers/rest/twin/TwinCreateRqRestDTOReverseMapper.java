@@ -36,7 +36,7 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
         dst
                 .setTwinEntity(new TwinEntity()
                         .setTwinClassId(src.getClassId())
-                        .setName(src.getName())
+                        .setName(src.getName() == null ? "" : src.getName())
                         .setCreatedByUserId(apiUser.getUser().getId())
                         .setCreatedByUser(apiUser.getUser())
                         .setHeadTwinId(src.getHeadTwinId())
