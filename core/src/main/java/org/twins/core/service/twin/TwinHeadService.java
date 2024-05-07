@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
+import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,10 +14,9 @@ import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.twinclass.validator.HeadHunter;
 import org.twins.core.service.EntitySmartService;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -41,31 +42,32 @@ public class TwinHeadService {
     final AuthService authService;
     final UserService userService;
     final BusinessAccountService businessAccountService;
+    final FeaturerService featurerService;
 
-    public List<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity) throws ServiceException {
-        if (twinClassEntity.getHeadTwinClassId() == null) //todo check parent
-            return new ArrayList<>();
-        BasicSearch search = new BasicSearch();
-        search
-                .addTwinClassId(twinClassEntity.getHeadTwinClassId());
-        if (twinClassEntity.getDomainId() != null) {
-            TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
-            if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
-                if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
-                    return getValidUserTwinListByTwinClass(twinClassEntity);
-                } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
-                    return getValidBusinessAccountTwinListByTwinClass(twinClassEntity);
-                }
-                log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
-            }
-        }
-        // todo create headHunterFeaturer for filtering twins by other fields (statuses, fields and so on)
-        return twinSearchService.findTwins(search);
+    private TwinSearchResult findValidHeads(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null)
+            return (TwinSearchResult) new TwinSearchResult()
+                    .setTwinList(new ArrayList<>())
+                    .setOffset(offset)
+                    .setLimit(limit)
+                    .setTotal(0);
+        TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
+        HeadHunter headHunter = featurerService.getFeaturer(headTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+        if (headHunter == null)
+            throw new ServiceException(ErrorCodeTwins.FEATURER_UNKNOWN, "featurer is unknown");
+        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, PaginationUtils.paginationOffsetUnsorted(offset, limit));
+    }
+
+    public TwinSearchResult findValidHeads(UUID twinClassId, int offset, int limit) throws ServiceException {
+        TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
+        if (twinClassEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
+        return findValidHeads(twinClassEntity, offset, limit);
     }
 
     //todo cache it
-    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity) throws ServiceException {
-        List<TwinEntity> validHeads = findValidHeads(twinClassEntity);
+    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
+        List<TwinEntity> validHeads = findValidHeads(twinClassEntity, offset, limit).getTwinList();
         return EntitySmartService.convertToMap(validHeads, TwinEntity::getId);
     }
 

@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -9,6 +10,8 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggableImpl;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -18,12 +21,10 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.featurer.twinclass.validator.HeadHunter;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -107,6 +108,15 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Column(name = "twin_class_owner_type_id")
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
+
+    @FeaturerList(type = HeadHunter.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity headHunterFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "head_hunter_featurer_params", columnDefinition = "hstore")
+    private HashMap<String, String> headHunterParams;
 
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)

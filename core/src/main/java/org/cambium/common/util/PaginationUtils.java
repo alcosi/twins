@@ -30,5 +30,9 @@ public class PaginationUtils {
         return PageRequest.of(offset / limit, limit, sort);
     }
 
+    public static Pageable paginationOffsetUnsorted(int offset, int limit) throws ServiceException {
+        if (offset % limit > 0) throw new ServiceException(PAGINATION_ERROR);
+        return PageRequest.of(offset / limit, limit);
+    }
 
 }
