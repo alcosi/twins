@@ -35,8 +35,14 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Assigner id list")
     public List<UUID> assignerUserIdList;
 
+    @Schema(description = "Assigner id exclude list")
+    public List<UUID> assignerUserIdExcludeList;
+
     @Schema(description = "Reporter id list")
     public List<UUID> createdByUserIdList;
+
+    @Schema(description = "Reporter id exclude list")
+    public List<UUID> createdByUserIdExcludeList;
 
     @Schema(description = "Include dst twins with given links")
     public List<TwinSearchByLinkDTOv1> linksList;

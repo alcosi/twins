@@ -17,7 +17,9 @@ public class TwinSearch {
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
     Set<UUID> assignerUserIdList;
+    Set<UUID> assignerUserIdExcludeList;
     Set<UUID> createdByUserIdList;
+    Set<UUID> createdByUserIdExcludeList;
     Set<UUID> ownerUserIdList;
     Set<UUID> ownerBusinessAccountIdList;
     Map<UUID, Set<UUID>> twinLinksMap;
