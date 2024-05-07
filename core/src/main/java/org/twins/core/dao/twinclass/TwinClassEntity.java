@@ -21,7 +21,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.featurer.twinclass.validator.HeadHunter;
+import org.twins.core.featurer.twinclass.HeadHunter;
 
 import java.sql.Timestamp;
 import java.util.*;

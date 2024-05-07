@@ -15,7 +15,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.twinclass.validator.HeadHunter;
+import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
