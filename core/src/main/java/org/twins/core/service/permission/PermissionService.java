@@ -16,16 +16,20 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.permission.*;
+import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.permission.PermissionCheckOverview;
+import org.twins.core.domain.permission.PermissionCheckOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
@@ -36,10 +40,17 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
+
     final PermissionRepository permissionRepository;
     final PermissionSchemaRepository permissionSchemaRepository;
     final PermissionSchemaUserRepository permissionSchemaUserRepository;
     final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
+    final PermissionSchemaTwinRoleRepository permissionSchemaTwinRoleRepository;
+    final PermissionSchemaSpaceRolesRepository permissionSchemaSpaceRolesRepository;
+    final SpaceRoleService  spaceRoleService;
+    final SpaceRoleUserRepository spaceRoleUserRepository;
+
+
     final TwinRepository twinRepository;
     @Lazy
     final AuthService authService;
@@ -139,6 +150,76 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
                 return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
         }
         return true;
+    }
+
+    public PermissionCheckOverviewResult checkTwinAndUserForPermissions(PermissionCheckOverview permissionCheckOverview) throws ServiceException {
+        PermissionCheckOverviewResult result = new PermissionCheckOverviewResult();
+
+        //detect permission
+        TwinEntity twin = twinRepository.findById(permissionCheckOverview.getTwinId()).orElse(null);
+        UUID permissionId = permissionCheckOverview.getPermissionId();
+        if (null == permissionId) {
+            if (null != twin) {
+                permissionId = twin.getViewPermissionId();
+                if (null == permissionId) permissionId = twin.getTwinClass().getViewPermissionId();
+            }
+            if (null == permissionId) throw new ServiceException(ErrorCodeTwins.PERMISSION_OVERVIEW_ERROR);
+        }
+
+        //permission
+        PermissionEntity permission = findEntity(permissionId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        result.setPermissionId(permissionId);
+        result.setPermission(permission);
+        result.setPermissionGroupId(permission.getPermissionGroupId());
+        result.setPermissionGroup(permission.getPermissionGroup());
+
+        //user permissions
+        Set<UUID> permissionSchemaIds = new HashSet<>();
+        List<PermissionSchemaEntity> permissionSchemas = new ArrayList<>();
+        FindUserPermissionsResult permissionsForUser = findPermissionsForUser(permissionCheckOverview.getUserId());
+        for (PermissionSchemaUserEntity permissionSchemaUserEntity : permissionsForUser.getPermissionsByUser()) {
+            if (permissionSchemaUserEntity.getPermissionId().equals(permissionId)) {
+                result.setGrantedByUser(true);
+                permissionSchemas.add(permissionSchemaUserEntity.getPermissionSchema());
+                permissionSchemaIds.add(permissionSchemaUserEntity.getPermissionSchemaId());
+            }
+        }
+
+        //group permissions
+        result.setGrantedByUserGroupIds(new HashSet<>());
+        result.setGrantedByUserGroups(new ArrayList<>());
+        for (PermissionSchemaUserGroupEntity permissionSchemaUserGroupEntity : permissionsForUser.getPermissionByUserGroup()) {
+            if (permissionSchemaUserGroupEntity.getPermissionId().equals(permissionId)) {
+                result.getGrantedByUserGroupIds().add(permissionSchemaUserGroupEntity.getUserGroupId());
+                result.getGrantedByUserGroups().add(permissionSchemaUserGroupEntity.getUserGroup());
+                permissionSchemas.add(permissionSchemaUserGroupEntity.getPermissionSchema());
+                permissionSchemaIds.add(permissionSchemaUserGroupEntity.getPermissionSchemaId());
+            }
+        }
+
+        //twin roles
+        result.setGrantedByTwinRoles(new HashSet<>());
+        if(null != twin) {
+            List<PermissionSchemaTwinRoleEntity> permissionsSchemaTwinRoleEntities = permissionSchemaTwinRoleRepository.findByPermissionIdAndTwinClassId(permissionId, twin.getTwinClassId());
+            for (PermissionSchemaTwinRoleEntity permissionSchemaTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
+                if (permissionSchemaTwinRoleEntity.getTwinClassId().equals(twin.getTwinClassId())) {
+                    result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
+                    permissionSchemas.add(permissionSchemaTwinRoleEntity.getPermissionSchema());
+                    permissionSchemaIds.add(permissionSchemaTwinRoleEntity.getPermissionSchemaId());
+                }
+            }
+        }
+
+        //space user
+
+
+
+
+        //schemas
+        result.setPermissionSchemaIds(permissionSchemaIds);
+        result.setPermissionSchemas(permissionSchemas);
+
+        return result;
     }
 
     @RequiredArgsConstructor

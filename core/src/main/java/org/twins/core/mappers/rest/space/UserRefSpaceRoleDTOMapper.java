@@ -14,15 +14,15 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceRole, UserWithinSpaceRolesRsDTOv1> {
     final UserRestDTOMapper userRestDTOMapper;
-    final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    final SpaceRoleByUserDTOMapper spaceRoleByUserDTOMapper;
 
     @Override
     public void map(UserRefSpaceRole src, UserWithinSpaceRolesRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst.setUserId(src.getUser().getId());
         dst.setUser(userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext));
-        if (!spaceRoleDTOMapper.hideMode(mapperContext))
+        if (!spaceRoleByUserDTOMapper.hideMode(mapperContext))
             convertOrPostpone(new Kit<>(src.getRoles(), SpaceRoleUserEntity::getSpaceRoleId),
-                    dst, spaceRoleDTOMapper,
+                    dst, spaceRoleByUserDTOMapper,
                     mapperContext.cloneWithIsolatedModes(),
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleList,
                     UserWithinSpaceRolesRsDTOv1::setSpaceRoleIdsList

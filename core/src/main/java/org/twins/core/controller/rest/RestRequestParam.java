@@ -7,6 +7,8 @@ public interface RestRequestParam {
     String showDataListOptionMode = "showDataListOptionMode";
     String showUserMode = "showUserMode";
     String showSpaceRoleMode = "showSpaceRoleMode";
+    String showSpaceRoleUserMode = "showSpaceRoleUserMode";
+    String showSpaceRoleUserGroupMode = "showSpaceRoleUserGroupMode";
     String showUserGroupMode = "showUserGroupMode";
     String showCardMode = "showCardMode";
     String showCardWidgetMode = "showCardWidgetMode";
@@ -19,6 +21,7 @@ public interface RestRequestParam {
     String showClassTagMode = "showClassTagMode";
     String showPermissionMode = "showPermissionMode";
     String showPermissionGroupMode = "showPermissionGroupMode";
+    String showPermissionSchemaMode = "showPermissionSchemaMode";
     String showStatusMode = "showStatusMode";
     String showTwinMode = "showTwinMode";
     String showTwinFieldMode = "showTwinFieldMode";
