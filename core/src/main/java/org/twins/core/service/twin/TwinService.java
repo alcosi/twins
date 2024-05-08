@@ -16,6 +16,7 @@ import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -799,6 +800,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         List<UUID> aliasToDelete = twinBusinessAccountAliasRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(aliasToDelete, twinBusinessAccountAliasRepository);
+    }
+
+    public TwinSearchResult convertPageInTwinSearchResult(Page<TwinEntity> twinPage, int offset, int limit){
+        return (TwinSearchResult) new TwinSearchResult()
+                .setTwinList(twinPage.getContent().stream().filter(t -> !isEntityReadDenied(t)).toList())
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(twinPage.getTotalElements());
     }
 
 }

@@ -7,6 +7,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
@@ -17,6 +19,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -26,6 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import static org.cambium.common.util.PaginationUtils.sort;
 
 @Service
 @Slf4j
@@ -44,18 +49,27 @@ public class TwinHeadService {
     final BusinessAccountService businessAccountService;
     final FeaturerService featurerService;
 
-    private TwinSearchResult findValidHeads(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
+    public TwinSearchResult findValidHeads(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null)
             return (TwinSearchResult) new TwinSearchResult()
                     .setTwinList(new ArrayList<>())
                     .setOffset(offset)
                     .setLimit(limit)
                     .setTotal(0);
+        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt));
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
         HeadHunter headHunter = featurerService.getFeaturer(headTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
-        if (headHunter == null)
-            throw new ServiceException(ErrorCodeTwins.FEATURER_UNKNOWN, "featurer is unknown");
-        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, PaginationUtils.paginationOffsetUnsorted(offset, limit));
+        if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
+            if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
+                Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pageable);
+                return twinService.convertPageInTwinSearchResult(validUserTwinList, offset, limit);
+            } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
+                Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pageable);
+                return twinService.convertPageInTwinSearchResult(validBusinessAccountTwinList, offset, limit);
+            }
+            log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
+        }
+        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, pageable);
     }
 
     public TwinSearchResult findValidHeads(UUID twinClassId, int offset, int limit) throws ServiceException {
@@ -85,23 +99,23 @@ public class TwinHeadService {
         return headTwinId;
     }
 
-    public List<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+    public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        List<TwinEntity> userTwinList = null;
+        Page<TwinEntity> userTwinList = null;
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN_BUSINESS_ACCOUNT:
             case DOMAIN_BUSINESS_ACCOUNT_USER:
                 // only users linked to domain and businessAccount at once will be selected
-                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId());
+                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountIdAndDomainId(apiUser.getBusinessAccount().getId(), apiUser.getDomain().getId(), pageable);
                 break;
             case BUSINESS_ACCOUNT:
                 // only users linked to businessAccount will be selected
-                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountId(apiUser.getBusinessAccount().getId());
+                userTwinList = twinHeadRepository.findUserTwinByBusinessAccountId(apiUser.getBusinessAccount().getId(), pageable);
                 break;
             case DOMAIN_USER:
             case DOMAIN:
                 // only users linked to domain will be selected
-                userTwinList = twinHeadRepository.findUserTwinByDomainId(apiUser.getDomain().getId());
+                userTwinList = twinHeadRepository.findUserTwinByDomainId(apiUser.getDomain().getId(), pageable);
                 break;
             case USER:
                 //todo all users
@@ -109,20 +123,20 @@ public class TwinHeadService {
         return userTwinList;
     }
 
-    public List<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+    public Page<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        List<TwinEntity> businessAccountList = null;
+        Page<TwinEntity> businessAccountList = null;
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN_BUSINESS_ACCOUNT:
             case DOMAIN_BUSINESS_ACCOUNT_USER:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId());
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUserIdAndDomainId(apiUser.getUser().getId(), apiUser.getDomain().getId(), pageable);
                 break;
             case USER:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUser(apiUser.getUser().getId());
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByUser(apiUser.getUser().getId(), pageable);
                 break;
             case DOMAIN_USER:
             case DOMAIN:
-                businessAccountList = twinHeadRepository.findBusinessAccountTwinByDomainId(apiUser.getDomain().getId());
+                businessAccountList = twinHeadRepository.findBusinessAccountTwinByDomainId(apiUser.getDomain().getId(), pageable);
                 break;
         }
         return businessAccountList;

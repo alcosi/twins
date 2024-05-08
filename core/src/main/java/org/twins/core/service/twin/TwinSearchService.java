@@ -97,28 +97,18 @@ public class TwinSearchService {
     // if it is a multiple, then of30 + sz10 = pg3 (31-40) - everything is ok//
     //***********************************************************************//
 
-    public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int size) throws ServiceException {
-        TwinSearchResult twinSearchResult = new TwinSearchResult();
+    public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int limit) throws ServiceException {
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
-        Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.paginationOffset(offset, size, sort(false, TwinEntity.Fields.createdAt)));
-        return (TwinSearchResult) twinSearchResult
-                .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                .setOffset(offset)
-                .setLimit(size)
-                .setTotal(ret.getTotalElements());
+        Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+        return twinService.convertPageInTwinSearchResult(ret, offset, limit);
     }
 
-    public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int size) throws ServiceException {
-        TwinSearchResult twinSearchResult = new TwinSearchResult();
+    public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int limit) throws ServiceException {
         Specification<TwinEntity> spec = where(null);
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset, size, sort(false, TwinEntity.Fields.createdAt)));
-        return (TwinSearchResult) twinSearchResult
-                .setTwinList(ret.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                .setOffset(offset)
-                .setLimit(size)
-                .setTotal(ret.getTotalElements());
+        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+        return twinService.convertPageInTwinSearchResult(ret, offset, limit);
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {

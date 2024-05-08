@@ -13,12 +13,12 @@ import java.util.Properties;
 
 @FeaturerType(id = 26,
         name = "HeadHunter",
-        description = "")
+        description = "Getting valid head twin class by some class")
 @Slf4j
 public abstract class HeadHunter extends Featurer {
-    public TwinSearchResult findValidHead(HashMap<String, String> validatorParams, TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());
-        log.info("Running validator[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+    public TwinSearchResult findValidHead(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, headHunterParams, new HashMap<>());
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
         return findValidHead(properties, twinClassEntity, pageable);
     }
 
