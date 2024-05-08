@@ -22,8 +22,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.permission.PermissionCheckOverview;
-import org.twins.core.domain.permission.PermissionCheckOverviewResult;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
@@ -47,11 +46,13 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
     final PermissionSchemaTwinRoleRepository permissionSchemaTwinRoleRepository;
     final PermissionSchemaSpaceRolesRepository permissionSchemaSpaceRolesRepository;
-    final SpaceRoleService  spaceRoleService;
+    final SpaceRoleService spaceRoleService;
     final SpaceRoleUserRepository spaceRoleUserRepository;
 
 
     final TwinRepository twinRepository;
+    @Lazy
+    final TwinService twinService;
     @Lazy
     final AuthService authService;
     @Lazy
@@ -152,29 +153,25 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return true;
     }
 
-    public PermissionCheckOverviewResult checkTwinAndUserForPermissions(PermissionCheckOverview permissionCheckOverview) throws ServiceException {
-        PermissionCheckOverviewResult result = new PermissionCheckOverviewResult();
+    public PermissionCheckForTwinOverviewResult checkTwinAndUserForPermissions(UUID userId, UUID twinId, UUID permissionId) throws ServiceException {
+        PermissionCheckForTwinOverviewResult result = new PermissionCheckForTwinOverviewResult();
 
         //detect permission
-        TwinEntity twin = twinRepository.findById(permissionCheckOverview.getTwinId()).orElse(null);
+        TwinEntity twin = twinService.findEntitySafe(permissionCheckOverview.getTwinId());
         UUID permissionId = permissionCheckOverview.getPermissionId();
         if (null == permissionId) {
-            if (null != twin) {
-                permissionId = twin.getViewPermissionId();
-                if (null == permissionId) permissionId = twin.getTwinClass().getViewPermissionId();
-            }
+            permissionId = twin.getViewPermissionId();
+            if (null == permissionId) permissionId = twin.getTwinClass().getViewPermissionId();
             if (null == permissionId) throw new ServiceException(ErrorCodeTwins.PERMISSION_OVERVIEW_ERROR);
         }
 
         //permission
-        PermissionEntity permission = findEntity(permissionId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        result.setPermissionId(permissionId);
+        PermissionEntity permission = findEntitySafe(permissionId);
         result.setPermission(permission);
-        result.setPermissionGroupId(permission.getPermissionGroupId());
-        result.setPermissionGroup(permission.getPermissionGroup());
 
-        //user permissions
-        Set<UUID> permissionSchemaIds = new HashSet<>();
+        PermissionSchemaEntity permissionSchemaEntity =
+                //user permissions
+                Set < UUID > permissionSchemaIds = new HashSet<>();
         List<PermissionSchemaEntity> permissionSchemas = new ArrayList<>();
         FindUserPermissionsResult permissionsForUser = findPermissionsForUser(permissionCheckOverview.getUserId());
         for (PermissionSchemaUserEntity permissionSchemaUserEntity : permissionsForUser.getPermissionsByUser()) {
@@ -199,7 +196,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
         //twin roles
         result.setGrantedByTwinRoles(new HashSet<>());
-        if(null != twin) {
+        if (null != twin) {
             List<PermissionSchemaTwinRoleEntity> permissionsSchemaTwinRoleEntities = permissionSchemaTwinRoleRepository.findByPermissionIdAndTwinClassId(permissionId, twin.getTwinClassId());
             for (PermissionSchemaTwinRoleEntity permissionSchemaTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
                 if (permissionSchemaTwinRoleEntity.getTwinClassId().equals(twin.getTwinClassId())) {
@@ -211,8 +208,6 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         }
 
         //space user
-
-
 
 
         //schemas

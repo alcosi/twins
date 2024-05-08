@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.permission;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.permission.PermissionCheckOverviewResult;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<PermissionCheckOverviewResult, PermissionCheckOverviewRsDTOv1> {
+public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<PermissionCheckForTwinOverviewResult, PermissionCheckOverviewRsDTOv1> {
 
     final PermissionRestDTOMapper permissionRestDTOMapper;
     final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
@@ -24,7 +24,7 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
     final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
 
     @Override
-    public void map(PermissionCheckOverviewResult src, PermissionCheckOverviewRsDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(PermissionCheckForTwinOverviewResult src, PermissionCheckOverviewRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst.setPermissionId(src.getPermissionId())
                 .setPermissionSchemaIds(src.getPermissionSchemaIds())
                 .setPermissionGroupId(src.getPermissionGroupId())

@@ -17,15 +17,15 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.permission.PermissionCheckOverviewResult;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
-import org.twins.core.dto.rest.twin.*;
+import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOReverseMapper;
-import org.twins.core.mappers.rest.twin.*;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.UUID;
@@ -61,7 +61,7 @@ public class PermissionCheckOverviewController extends ApiController {
             @RequestBody PermissionCheckOverviewRqDTOv1 request) {
         PermissionCheckOverviewRsDTOv1 rs = new PermissionCheckOverviewRsDTOv1();
         try {
-            PermissionCheckOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(permissionCheckOverviewDTOReverseMapper.convert(request).setTwinId(twinId));
+            PermissionCheckForTwinOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(permissionCheckOverviewDTOReverseMapper.convert(request).setTwinId(twinId));
             MapperContext mapperContext = new MapperContext()
                     .setMode(showPermissionSchemaMode)
                     .setMode(showPermissionMode)
