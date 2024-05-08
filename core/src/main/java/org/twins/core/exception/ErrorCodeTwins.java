@@ -65,7 +65,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
-    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter");
+    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter"),
+    FEATURER_IS_NULL(11501, "Got featurer is null");
 
 
     private final int code;

@@ -115,4 +115,11 @@ public class TwinSearch {
         return this;
     }
 
+    public TwinSearch addStatusIdExclude(Collection<UUID> statusIdExcludeList) {
+        if (this.statusIdExcludeList == null)
+            this.statusIdExcludeList = new HashSet<>();
+        this.statusIdExcludeList.addAll(statusIdExcludeList);
+        return this;
+    }
+
 }
