@@ -100,7 +100,7 @@ public class TwinSearchService {
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int limit) throws ServiceException {
         Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
         Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-        return twinService.convertPageInTwinSearchResult(ret, offset, limit);
+        return convertPageInTwinSearchResult(ret, offset, limit);
     }
 
     public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int limit) throws ServiceException {
@@ -108,7 +108,7 @@ public class TwinSearchService {
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-        return twinService.convertPageInTwinSearchResult(ret, offset, limit);
+        return convertPageInTwinSearchResult(ret, offset, limit);
     }
 
     public Long count(BasicSearch basicSearch) throws ServiceException {
@@ -137,5 +137,11 @@ public class TwinSearchService {
         return resultMap;
     }
 
-
+    public TwinSearchResult convertPageInTwinSearchResult(Page<TwinEntity> twinPage, int offset, int limit){
+        return (TwinSearchResult) new TwinSearchResult()
+                .setTwinList(twinPage.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(twinPage.getTotalElements());
+    }
 }

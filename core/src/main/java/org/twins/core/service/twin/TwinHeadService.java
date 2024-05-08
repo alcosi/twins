@@ -62,10 +62,10 @@ public class TwinHeadService {
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
                 Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pageable);
-                return twinService.convertPageInTwinSearchResult(validUserTwinList, offset, limit);
+                return twinSearchService.convertPageInTwinSearchResult(validUserTwinList, offset, limit);
             } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
                 Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pageable);
-                return twinService.convertPageInTwinSearchResult(validBusinessAccountTwinList, offset, limit);
+                return twinSearchService.convertPageInTwinSearchResult(validBusinessAccountTwinList, offset, limit);
             }
             log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
         }
