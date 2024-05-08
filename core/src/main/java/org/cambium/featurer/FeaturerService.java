@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -137,6 +138,8 @@ public class FeaturerService {
     }
 
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
+        if (featurerEntity == null)
+            throw new ServiceException(ErrorCodeTwins.FEATURER_IS_NULL);
         Featurer featurer = featurerMap.get(featurerEntity.getId());
         if (featurer == null)
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
