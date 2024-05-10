@@ -8,7 +8,5 @@ import java.util.UUID;
 
 @Repository
 public interface PermissionSchemaTwinRoleRepository extends CrudRepository<PermissionSchemaTwinRoleEntity, UUID> {
-    List<PermissionSchemaTwinRoleEntity> findByPermissionIdAndTwinClassId(UUID permissionId, UUID twinClassId);
-
-
+    List<PermissionSchemaTwinRoleEntity> findByPermissionSchemaIdAndPermissionIdAndTwinClassId(UUID permissionSchemaId, UUID permissionId, UUID twinClassId);
 }

@@ -85,6 +85,10 @@ public class SpaceUserRoleService {
         return spaceRoleUserRepository.findByTwinIdAndSpaceRoleId(twinId, spaceRoleId);
     }
 
+    public List<SpaceRoleUserEntity> findSpaceRoleUsersByTwinIdAndUserId(UUID twinId, UUID userId) throws ServiceException {
+        return spaceRoleUserRepository.findAllByTwinIdAndUserId(twinId, userId);
+    }
+
     @Transactional
     public void manageSpaceRoleForUsers(UUID spaceId, UUID roleId, List<UUID> spaceRoleUserEnterList, List<UUID> spaceRoleUserExitList) throws ServiceException {
         UUID createUserId = authService.getApiUser().getUser().getId();

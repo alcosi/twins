@@ -8,21 +8,21 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "PermissionGroupV1")
+@Schema(name =  "PermissionSchemaV1")
 public class PermissionSchemaDTOv1 {
     @Schema(description = "id")
-    private UUID id;
+    public UUID id;
 
     @Schema(description = "domainId")
-    private UUID domainId;
+    public UUID domainId;
 
     @Schema(description = "businessAccountId")
-    private UUID businessAccountId;
+    public UUID businessAccountId;
 
     @Schema(description = "name")
-    private String name;
+    public String name;
 
     @Schema(description = "description")
-    private String description;
+    public String description;
 
 }

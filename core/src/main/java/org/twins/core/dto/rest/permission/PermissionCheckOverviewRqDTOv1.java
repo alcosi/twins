@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name = "TwinBaseV1")
+@Schema(name = "PermissionCheckOverviewRqV1")
 public class PermissionCheckOverviewRqDTOv1 {
 
     @Schema(description = "userId for whom we want to check permission (will be different from ApiUser)", example = DTOExamples.USER_ID)

@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
@@ -17,26 +16,26 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name =  "PermissionCheckOverviewV1")
+@Schema(name =  "PermissionCheckOverviewRsV1")
 public class PermissionCheckOverviewRsDTOv1 extends Response {
 
     @Schema(description = "permissionId")
     public UUID permissionId;
 
-    @Schema(description = "permissionId")
-    public Set<UUID> permissionSchemaIds;
+    @Schema(description = "permission")
+    public PermissionDTOv1 permission;
 
     @Schema(description = "permissionGroupId")
     public UUID permissionGroupId;
 
-    @Schema(description = "permission")
-    public PermissionDTOv1 permission;
-
-    @Schema(description = "permissionSchema")
-    public List<PermissionSchemaDTOv1> permissionSchemas;
-
     @Schema(description = "permissionGroup")
     public PermissionGroupDTOv1 permissionGroup;
+
+    @Schema(description = "permissionSchemaId")
+    public UUID permissionSchemaId;
+
+    @Schema(description = "permissionSchema")
+    public PermissionSchemaDTOv1 permissionSchema;
 
     @Schema(description = "grantedByUser")
     public boolean grantedByUser;
@@ -49,9 +48,6 @@ public class PermissionCheckOverviewRsDTOv1 extends Response {
 
     @Schema(description = "grantedByTwinRoles")
     public Set<TwinRole> grantedByTwinRoles;
-
-    @Schema(description = "spaceRoles")
-    public List<SpaceRoleDTOv1> spaceRoles;
 
     @Schema(description = "grantedBySpaceRoleUserIds")
     public Set<UUID> grantedBySpaceRoleUserIds;

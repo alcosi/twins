@@ -16,6 +16,8 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
     @Query(value = "select su.user from SpaceRoleUserEntity su where su.twinId = :twinId and su.spaceRoleId = :spaceRoleId")
     List<UserEntity> findByTwinIdAndSpaceRoleId(@Param("twinId") UUID twinId, @Param("spaceRoleId") UUID spaceRoleId);
 
+    List<SpaceRoleUserEntity> findAllByTwinIdAndUserId(UUID twinId, UUID userId);
+
     void deleteAllByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID spaceRoleId, UUID userId);
 
     boolean existsByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID roleId, UUID userId);

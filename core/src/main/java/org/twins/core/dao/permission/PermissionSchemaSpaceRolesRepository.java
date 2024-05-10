@@ -9,7 +9,4 @@ import java.util.UUID;
 @Repository
 public interface PermissionSchemaSpaceRolesRepository extends CrudRepository<PermissionSchemaSpaceRolesEntity, UUID> {
     List<PermissionSchemaSpaceRolesEntity> findByPermissionId(UUID permissionId);
-    List<PermissionSchemaSpaceRolesEntity> findByPermissionIdAndSpaceRoleId(UUID permissionId, UUID spaceRoleId);
-
-
 }
