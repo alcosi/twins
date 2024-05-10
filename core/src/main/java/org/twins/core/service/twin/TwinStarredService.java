@@ -42,10 +42,7 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
     }
 
     public List<TwinStarredEntity> findStarred(UUID twinClassId) throws ServiceException {
-        List<TwinStarredEntity> twinStarredListByTwinClassId = twinStarredRepository.findTwinStarredListByTwinClassId(twinClassId);
-        if (twinStarredListByTwinClassId == null)
-            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN);
-        return twinStarredListByTwinClassId;
+        return twinStarredRepository.findTwinStarredListByTwinClassId(twinClassId);
     }
 
     public TwinStarredEntity addStarred(UUID twinId, ApiUser apiUser) throws ServiceException {
