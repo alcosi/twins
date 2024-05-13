@@ -12,6 +12,8 @@ import java.util.UUID;
 public interface TwinStarredRepository extends CrudRepository<TwinStarredEntity, UUID> {
     void deleteByTwinIdAndUserId(UUID twinId, UUID userId);
 
+    TwinStarredEntity findByTwinIdAndUserId(UUID twinId, UUID userId);
+
     @Query(value = "select twinStarred from TwinStarredEntity twinStarred join TwinEntity twin on twin.id = twinStarred.twinId where twin.twinClassId = :twinClassId")
     List<TwinStarredEntity> findTwinStarredListByTwinClassId(@Param("twinClassId") UUID twinClassId);
 

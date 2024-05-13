@@ -5,15 +5,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dao.twin.TwinStarredRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.List;
 import java.util.UUID;
@@ -21,46 +18,33 @@ import java.util.UUID;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredEntity> {
-
+public class TwinStarredService {
+    final AuthService authService;
+    final TwinService twinService;
     final TwinStarredRepository twinStarredRepository;
-    final EntitySmartService entitySmartService;
-
-    @Override
-    public CrudRepository<TwinStarredEntity, UUID> entityRepository() {
-        return null;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(TwinStarredEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(TwinStarredEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return false;
-    }
 
     public List<TwinStarredEntity> findStarred(UUID twinClassId) throws ServiceException {
         return twinStarredRepository.findTwinStarredListByTwinClassId(twinClassId);
     }
 
-    public TwinStarredEntity addStarred(UUID twinId, ApiUser apiUser) throws ServiceException {
-        TwinStarredEntity twinStarredEntity = new TwinStarredEntity()
-                .setUserId(apiUser.getUserId())
-                .setTwinId(twinId);
-        try {
-            twinStarredEntity = entitySmartService.save(twinStarredEntity, twinStarredRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        } catch (DataIntegrityViolationException e) {
-            throw new ServiceException(ErrorCodeTwins.ENTITY_ALREADY_EXIST, "entity is already exist in db. Please check unique keys");
+    public TwinStarredEntity addStarred(UUID twinId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        TwinStarredEntity twinStarredEntityFromDB = twinStarredRepository.findByTwinIdAndUserId(twinId, apiUser.getUserId());
+        if (twinStarredEntityFromDB == null) {
+            TwinStarredEntity twinStarredEntity = new TwinStarredEntity()
+                    .setUserId(apiUser.getUserId())
+                    .setTwinId(twinId);
+            twinStarredEntityFromDB = twinService.entitySmartService.save(twinStarredEntity, twinStarredRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         }
-        return twinStarredEntity;
+        return twinStarredEntityFromDB;
     }
 
     @Transactional
-    public void deleteStarred(UUID twinId, ApiUser apiUser) throws ServiceException {
+    public void deleteStarred(UUID twinId) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUserId();
         twinStarredRepository.deleteByTwinIdAndUserId(twinId, apiUser.getUserId());
         log.info("Starred[" + StringUtils.join(twinId, ",", userId) + "] perhaps were deleted");
     }
+
 }
