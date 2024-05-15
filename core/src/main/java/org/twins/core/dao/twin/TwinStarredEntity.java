@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_starred")
-public class TwinStarredEntity extends EasyLoggableImpl {
+public class TwinStarredEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -30,6 +30,10 @@ public class TwinStarredEntity extends EasyLoggableImpl {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
+    private TwinEntity twinEntity;
 
     @Override
     public String easyLog(Level level) {
