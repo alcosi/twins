@@ -3,10 +3,9 @@ package org.twins.core.mappers.rest.space;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.space.SpaceRoleUserEntity;
-import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
+import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
+import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -14,22 +13,26 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEntity, SpaceRoleDTOv1> {
-    final I18nService i18nService;
+public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserGroupEntity, SpaceRoleUserGroupDTOv1> {
+    final SpaceRoleByGroupDTOMapper spaceRoleByGroupDTOMapper;
     @Override
-    public void map(SpaceRoleUserEntity src, SpaceRoleDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(SpaceRoleUserGroupEntity src, SpaceRoleUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .key(src.getSpaceRole().getKey())
-                        .name(src.getSpaceRole().getNameI18NId() != null ? i18nService.translateToLocale(src.getSpaceRole().getNameI18NId()) : "")
-                        .description(src.getSpaceRole().getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getSpaceRole().getDescriptionI18NId()) : "");
+                        .setId(src.getId())
+                        .setTwinId(src.getTwinId())
+                        .setSpaceRoleId(src.getSpaceRoleId())
+                        .setUserGroupId(src.getUserGroupId())
+                        .setCreatedByUserId(src.getCreatedByUserId())
+                        .setSpaceRole(spaceRoleByGroupDTOMapper.convert(src, mapperContext));
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .key(src.getSpaceRole().getKey());
+                        .setId(src.getId())
+                        .setTwinId(src.getTwinId())
+                        .setSpaceRoleId(src.getSpaceRoleId())
+                        .setUserGroupId(src.getUserGroupId());
                 break;
         }
     }
@@ -54,7 +57,7 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEntity,
     }
 
     @Override
-    public String getObjectCacheId(SpaceRoleUserEntity src) {
+    public String getObjectCacheId(SpaceRoleUserGroupEntity src) {
         return src.getId().toString();
     }
 }

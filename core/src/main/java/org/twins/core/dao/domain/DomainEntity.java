@@ -11,6 +11,7 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
@@ -101,6 +102,10 @@ public class DomainEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private DomainTypeEntity domainTypeEntity;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionSchemaEntity permissionSchema;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";
