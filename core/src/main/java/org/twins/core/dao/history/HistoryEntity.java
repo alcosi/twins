@@ -3,10 +3,9 @@ package org.twins.core.dao.history;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
@@ -17,11 +16,10 @@ import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "history")
 @FieldNameConstants
-public class HistoryEntity extends EasyLoggableImpl {
+public class HistoryEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -62,11 +60,9 @@ public class HistoryEntity extends EasyLoggableImpl {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "history[" + id + "]";
-            default:
-                return "history[id:" + id + ", twinId:" + twinId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "history[" + id + "]";
+            default -> "history[id:" + id + ", twinId:" + twinId + "]";
+        };
     }
 }

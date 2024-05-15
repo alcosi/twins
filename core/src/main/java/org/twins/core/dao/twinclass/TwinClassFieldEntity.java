@@ -3,9 +3,8 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -16,10 +15,9 @@ import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
-public class TwinClassFieldEntity extends EasyLoggableImpl {
+public class TwinClassFieldEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

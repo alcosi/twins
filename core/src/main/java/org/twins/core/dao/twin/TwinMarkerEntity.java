@@ -2,10 +2,9 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.sql.Timestamp;
@@ -13,11 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_marker", uniqueConstraints = {@UniqueConstraint(columnNames = {"twin_id", "marker_data_list_option_id"}, name = "idx_twin_marker_unique")})
 @FieldNameConstants
-public class TwinMarkerEntity extends EasyLoggableImpl {
+public class TwinMarkerEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -47,11 +45,9 @@ public class TwinMarkerEntity extends EasyLoggableImpl {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinMarker[" + id + "]";
-            default:
-                return "twinMarker[id:" + id + ", twinId:" + twinId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinMarker[" + id + "]";
+            default -> "twinMarker[id:" + id + ", twinId:" + twinId + "]";
+        };
     }
 }

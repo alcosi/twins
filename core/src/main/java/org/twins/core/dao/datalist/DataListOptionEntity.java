@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "data_list_option")
-public class DataListOptionEntity extends EasyLoggableImpl {
+public class DataListOptionEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -81,14 +81,11 @@ public class DataListOptionEntity extends EasyLoggableImpl {
     }
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "option[" + id + "]";
-            case NORMAL:
-                return "option[id:" + id + ", dataListId:" + dataListId + "]";
-            default:
-                return "option[id:" + id + ", dataListId:" + dataListId +  ", option:" + option + "]";
-        }
+        return switch (level) {
+            case SHORT -> "option[" + id + "]";
+            case NORMAL -> "option[id:" + id + ", dataListId:" + dataListId + "]";
+            default -> "option[id:" + id + ", dataListId:" + dataListId + ", option:" + option + "]";
+        };
 
     }
 }

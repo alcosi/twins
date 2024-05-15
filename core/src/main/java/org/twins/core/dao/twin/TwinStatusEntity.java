@@ -2,19 +2,17 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_status")
-public class TwinStatusEntity extends EasyLoggableImpl {
+public class TwinStatusEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -49,14 +47,11 @@ public class TwinStatusEntity extends EasyLoggableImpl {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinStatus[" + id + "]";
-            case NORMAL:
-                return "twinStatus[id:" + id + ", key:" + key +  "]";
-            default:
-                return "twinStatus[id:" + id + ", twinClassId:" + twinClassId +  "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinStatus[" + id + "]";
+            case NORMAL -> "twinStatus[id:" + id + ", key:" + key + "]";
+            default -> "twinStatus[id:" + id + ", twinClassId:" + twinClassId + "]";
+        };
     }
 
 //    @ManyToOne

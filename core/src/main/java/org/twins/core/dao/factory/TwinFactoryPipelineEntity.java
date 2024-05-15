@@ -2,9 +2,8 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 
@@ -14,15 +13,14 @@ import java.util.UUID;
 @Table(name = "twin_factory_pipeline")
 @Accessors(chain = true)
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
+public class TwinFactoryPipelineEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
-    
+
     @Column(name = "twin_factory_id")
     private UUID twinFactoryId;
-    
+
     @Column(name = "input_twin_class_id")
     private UUID inputTwinClassId;
 
@@ -31,10 +29,10 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
 
     @Column(name = "twin_factory_condition_invert")
     private boolean twinFactoryConditionInvert;
-    
+
     @Column(name = "active")
     private boolean active;
-    
+
     @Column(name = "next_twin_factory_id")
     private UUID nextTwinFactoryId;
 
@@ -56,12 +54,10 @@ public class TwinFactoryPipelineEntity extends EasyLoggableImpl {
     private TwinEntity templateTwin;
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinFactoryPipeline[" + id + "]";
-            default:
-                return "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinFactoryPipeline[" + id + "]";
+            default -> "twinFactoryPipeline[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
+        };
 
     }
 }

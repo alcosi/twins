@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "twin_link")
 @FieldNameConstants
-public class TwinLinkEntity extends EasyLoggableImpl implements PublicCloneable<TwinLinkEntity>, TwinFieldStorage {
+public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, TwinFieldStorage, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -55,14 +55,11 @@ public class TwinLinkEntity extends EasyLoggableImpl implements PublicCloneable<
     private UserEntity createdByUser;
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinLink[" + id + "]";
-            case NORMAL:
-                return "twinLink[id:" + id + ", linkId:" + linkId +  "]";
-            default:
-                return "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId +  "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinLink[" + id + "]";
+            case NORMAL -> "twinLink[id:" + id + ", linkId:" + linkId + "]";
+            default -> "twinLink[id:" + id + ", linkId:" + linkId + ", srcTwinId:" + srcTwinId + ", dstTwinId:" + dstTwinId + "]";
+        };
     }
 
     @Transient

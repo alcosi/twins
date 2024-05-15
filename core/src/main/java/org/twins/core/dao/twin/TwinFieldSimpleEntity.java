@@ -2,10 +2,9 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
@@ -13,11 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_field_simple")
 @FieldNameConstants
-public class TwinFieldSimpleEntity extends EasyLoggableImpl implements TwinFieldStorage {
+public class TwinFieldSimpleEntity implements TwinFieldStorage, EasyLoggable {
     @Id
     private UUID id;
 
@@ -52,14 +50,11 @@ public class TwinFieldSimpleEntity extends EasyLoggableImpl implements TwinField
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinField[" + id + "]";
-            case NORMAL:
-                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
-            default:
-                return "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinField[" + id + "]";
+            case NORMAL -> "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + "]";
+            default -> "twinField[id:" + id + (twinClassField != null ? ", key:" + twinClassField.getKey() : "") + ", value:" + value + "]";
+        };
     }
 
     public TwinFieldSimpleEntity cloneFor(TwinEntity dstTwinEntity) {
