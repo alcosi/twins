@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -83,6 +84,10 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 dataListOptionRepository.findByDataListId(dataListId);
     }
 
+    public List<DataListOptionEntity> findDataListOptions(UUID dataListId, Pageable pageable) throws ServiceException {
+        return //todo create me
+    }
+
     //todo cache it
     public Kit<DataListOptionEntity, UUID> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
         return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
@@ -92,6 +97,16 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
         return dataListEntity.getOptions();
+    }
+    public Kit<DataListOptionEntity, UUID> findDataListOptions(DataListEntity dataListEntity, Pageable pageable) throws ServiceException {
+        List<DataListOptionEntity> options;
+        if (dataListEntity.getOptions() != null) {// looks like all options were already loaded
+            options = dataListEntity.getOptions().getCollection().stream().skip(pageable.getOffset()).limit(pageable.getPageSize()).toList();
+        } else if (pageable != null) {
+            options = findDataListOptions(dataListEntity.getId(), pageable);
+        } else
+            options = findDataListOptions(dataListEntity.getId());
+        return new Kit<>(options, DataListOptionEntity::getId);
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {

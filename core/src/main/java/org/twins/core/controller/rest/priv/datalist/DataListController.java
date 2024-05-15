@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,9 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
+
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(description = "Get data lists", name = ApiTag.DATA_LIST)
 @RestController
@@ -51,13 +55,15 @@ public class DataListController extends ApiController {
     public ResponseEntity<?> dataListViewV1(
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
                     dataListService.findEntitySafe(dataListId), new MapperContext()
                             .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode));
+                            .setMode(showDataListOptionMode, PaginationUtils.paginationOffsetUnsorted(offset, limit)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

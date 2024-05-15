@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.springframework.data.domain.Pageable;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
@@ -11,6 +12,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
@@ -39,6 +41,7 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<SpaceRoleUserEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
     private MapperModeMap modes = new MapperModeMap();
+    private MapperModePaginationMap modesPagination = new MapperModePaginationMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
     public static MapperContext create() {
@@ -47,6 +50,12 @@ public class MapperContext {
 
     public MapperContext setMode(MapperMode mapperMode) {
         modes.put(mapperMode);
+        return this;
+    }
+
+    public MapperContext setMode(MapperMode mapperMode, Pageable pageable) {
+        modes.put(mapperMode);
+        modesPagination.put(mapperMode, pageable);
         return this;
     }
 
@@ -223,6 +232,10 @@ public class MapperContext {
         return configuredMode == null;
     }
 
+    public Pageable getModePagination(Class<DataListOptionRestDTOMapper.Mode> modeClass) {
+        return modesPagination.get(modeClass);
+    }
+
     public <S> S getFromCache(Class<S> clazz, String cacheId) {
         if (cacheId == null) {
             log.debug("CacheId is null for class[" + clazz.getSimpleName() + "]");
@@ -299,4 +312,5 @@ public class MapperContext {
         else
             log.debug("Object of class[" + obj.getClass().getSimpleName() + "]" + message);
     }
+
 }
