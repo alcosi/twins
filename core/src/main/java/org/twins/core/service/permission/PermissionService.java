@@ -227,10 +227,10 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         result.setGrantedByTwinRoles(new HashSet<>());
         List<PermissionSchemaTwinRoleEntity> permissionsSchemaTwinRoleEntities = permissionSchemaTwinRoleRepository.findByPermissionSchemaIdAndPermissionIdAndTwinClassId(permissionSchema.getId(), permissionId, twin.getTwinClassId());
         TwinEntity spaceTwin = null;
+        if (null != twin.getPermissionSchemaSpaceId()) {
+            spaceTwin = twin.getId().equals(twin.getPermissionSchemaSpaceId()) ? twin : twinService.findEntitySafe(twin.getPermissionSchemaSpaceId());
+        }
         if (!permissionsSchemaTwinRoleEntities.isEmpty()) {
-            if (null != twin.getPermissionSchemaSpaceId()) {
-                spaceTwin = twin.getId().equals(twin.getPermissionSchemaSpaceId()) ? twin : twinService.findEntitySafe(twin.getPermissionSchemaSpaceId());
-            }
             for (PermissionSchemaTwinRoleEntity permissionSchemaTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
                 if (twin.getAssignerUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
                     result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
@@ -239,7 +239,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
                 if (null != spaceTwin) {
                     if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
                         result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
-                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
+                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.space_creator))
                         result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
                 }
             }
