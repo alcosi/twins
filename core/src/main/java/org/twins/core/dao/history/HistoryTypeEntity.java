@@ -5,16 +5,14 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "history_type")
-public class HistoryTypeEntity extends EasyLoggableImpl {
+public class HistoryTypeEntity implements EasyLoggable {
     @Id
 //    @Convert(converter = HistoryTypeConverter.class)
     private String id;

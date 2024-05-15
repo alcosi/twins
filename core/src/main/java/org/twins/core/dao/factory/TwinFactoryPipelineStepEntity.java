@@ -3,9 +3,8 @@ package org.twins.core.dao.factory;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -18,12 +17,11 @@ import java.util.UUID;
 @Table(name = "twin_factory_pipeline_step")
 @Accessors(chain = true)
 @Data
-@EqualsAndHashCode(callSuper = false)
-public class TwinFactoryPipelineStepEntity extends EasyLoggableImpl {
+public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
-    
+
     @Column(name = "twin_factory_pipeline_id")
     private UUID twinFactoryPipelineId;
 
@@ -32,7 +30,7 @@ public class TwinFactoryPipelineStepEntity extends EasyLoggableImpl {
 
     @Column(name = "twin_factory_condition_invert")
     private boolean twinFactoryConditionInvert;
-    
+
     @Column(name = "order")
     private int order;
 
@@ -41,13 +39,13 @@ public class TwinFactoryPipelineStepEntity extends EasyLoggableImpl {
 
     @Column(name = "optional")
     private boolean optional;
-    
+
     @Column(name = "filler_featurer_id")
     private int fillerFeaturerId;
 
     @Column(name = "comment")
     private String comment;
-    
+
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "filler_params", columnDefinition = "hstore")
     private HashMap<String, String> fillerParams;
@@ -58,14 +56,11 @@ public class TwinFactoryPipelineStepEntity extends EasyLoggableImpl {
     private FeaturerEntity fillerFeaturer;
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinFactoryPipelineStep[" + id + "]";
-            case NORMAL:
-                return "twinFactoryPipelineStep[" + id + "] **" + comment + "**";
-            default:
-                return "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinFactoryPipelineStep[" + id + "]";
+            case NORMAL -> "twinFactoryPipelineStep[" + id + "] **" + comment + "**";
+            default -> "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
+        };
 
     }
 }

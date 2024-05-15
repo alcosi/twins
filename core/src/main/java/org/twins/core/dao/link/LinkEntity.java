@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.sql.Timestamp;
@@ -13,10 +13,9 @@ import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Table(name = "link")
 @FieldNameConstants
-public class LinkEntity extends EasyLoggableImpl {
+public class LinkEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -71,12 +70,10 @@ public class LinkEntity extends EasyLoggableImpl {
 //    private I18nEntity backwardNameI18n;
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "link[" + id + "]";
-            default:
-                return "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "link[" + id + "]";
+            default -> "link[id:" + id + ", srcTwinClassId:" + srcTwinClassId + "], dstTwinClassId:" + dstTwinClassId + "]";
+        };
 
     }
 

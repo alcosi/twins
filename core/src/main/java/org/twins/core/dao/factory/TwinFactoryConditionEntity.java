@@ -3,9 +3,8 @@ package org.twins.core.dao.factory;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -18,8 +17,7 @@ import java.util.UUID;
 @Table(name = "twin_factory_condition")
 @Accessors(chain = true)
 @Data
-@EqualsAndHashCode(callSuper = true)
-public class TwinFactoryConditionEntity extends EasyLoggableImpl {
+public class TwinFactoryConditionEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
@@ -49,12 +47,9 @@ public class TwinFactoryConditionEntity extends EasyLoggableImpl {
     private HashMap<String, String> conditionerParams;
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinFactoryCondition[" + id + "]";
-            default:
-                return "twinFactoryCondition[id:" + id + ", conditionerFeaturerId:" + conditionerFeaturerId + "]";
-
-        }
+        return switch (level) {
+            case SHORT -> "twinFactoryCondition[" + id + "]";
+            default -> "twinFactoryCondition[id:" + id + ", conditionerFeaturerId:" + conditionerFeaturerId + "]";
+        };
     }
 }

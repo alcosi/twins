@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.FeaturerList;
@@ -28,11 +28,10 @@ import java.util.*;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_class")
 @FieldNameConstants
-public class TwinClassEntity extends EasyLoggableImpl {
+public class TwinClassEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -181,12 +180,10 @@ public class TwinClassEntity extends EasyLoggableImpl {
     }
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinClass[" + key + "]";
-            default:
-                return "twinClass[id:" + id + ", key:" + key + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinClass[" + key + "]";
+            default -> "twinClass[id:" + id + ", key:" + key + "]";
+        };
 
     }
 

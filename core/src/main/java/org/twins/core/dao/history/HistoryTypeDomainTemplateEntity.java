@@ -2,18 +2,16 @@ package org.twins.core.dao.history;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "history_type_domain_template")
-public class HistoryTypeDomainTemplateEntity extends EasyLoggableImpl {
+public class HistoryTypeDomainTemplateEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -34,11 +32,9 @@ public class HistoryTypeDomainTemplateEntity extends EasyLoggableImpl {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "historyTypeDomainTemplate[" + id + "]";
-            default:
-                return "historyTypeDomainTemplate[id:" + id + ", domainId:" + domainId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "historyTypeDomainTemplate[" + id + "]";
+            default -> "historyTypeDomainTemplate[id:" + id + ", domainId:" + domainId + "]";
+        };
     }
 }
