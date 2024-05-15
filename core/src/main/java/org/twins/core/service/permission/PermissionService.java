@@ -160,6 +160,8 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     }
 
     public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
+        if(null != domain.getPermissionSchema())
+            return domain.getPermissionSchema();
         final PermissionSchemaEntity permissionSchema = permissionSchemaRepository.findById(domain.getPermissionSchemaId()).orElse(null);
         domain.setPermissionSchema(permissionSchema);
         return permissionSchema;
@@ -172,13 +174,12 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         if (null != twin.getPermissionSchemaSpaceId()) space = spaceRepository.findById(twin.getPermissionSchemaSpaceId()).orElse(null);
         if (null != space) permissionSchema = space.getPermissionSchema();
         if (null == permissionSchema) {
-            try {
+            if(apiUser.isBusinessAccountSpecified()) {
                 final DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
                 permissionSchema = domainBusinessAccount.getPermissionSchema();
-            } catch (ServiceException e) {
-                log.error(e.getMessage());
+            } else {
+                permissionSchema = loadSchemaForDomain(apiUser.getDomain());
             }
-            if (null == permissionSchema) permissionSchema = loadSchemaForDomain(apiUser.getDomain());
             if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
         }
         return permissionSchema;
