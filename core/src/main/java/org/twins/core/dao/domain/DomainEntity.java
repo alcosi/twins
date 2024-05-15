@@ -52,10 +52,6 @@ public class DomainEntity extends EasyLoggableImpl {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
-    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
-    private PermissionSchemaEntity permissionSchema;
-
     @Column(name = "default_i18n_locale_id")
     @Convert(converter = LocaleConverter.class)
     private Locale defaultI18nLocaleId;
@@ -106,6 +102,10 @@ public class DomainEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private DomainTypeEntity domainTypeEntity;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionSchemaEntity permissionSchema;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";

@@ -15,20 +15,20 @@ import java.util.UUID;
 public class SpaceRoleUserGroupDTOv1 extends Request {
 
     @Schema(description = "")
-    private UUID id;
+    public UUID id;
 
     @Schema(description = "")
-    private UUID twinId;
+    public UUID twinId;
 
     @Schema(description = "")
-    private UUID spaceRoleId;
+    public UUID spaceRoleId;
 
     @Schema(description = "")
-    private UUID userGroupId;
+    public UUID userGroupId;
 
     @Schema(description = "")
-    private UUID createdByUserId;
+    public UUID createdByUserId;
 
     @Schema(description = "")
-    private SpaceRoleDTOv1 spaceRole;
+    public SpaceRoleDTOv1 spaceRole;
 }

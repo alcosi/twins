@@ -16,6 +16,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
@@ -23,6 +24,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.DomainResolver;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.permission.TwinRole;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -157,36 +159,53 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return true;
     }
 
+    public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
+        final PermissionSchemaEntity permissionSchema = permissionSchemaRepository.findById(domain.getPermissionSchemaId()).orElse(null);
+        domain.setPermissionSchema(permissionSchema);
+        return permissionSchema;
+    }
+
+    public PermissionSchemaEntity getCurrentPermissionSchema(TwinEntity twin) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        PermissionSchemaEntity permissionSchema = null;
+        SpaceEntity space = null;
+        if (null != twin.getPermissionSchemaSpaceId()) space = spaceRepository.findById(twin.getPermissionSchemaSpaceId()).orElse(null);
+        if (null != space) permissionSchema = space.getPermissionSchema();
+        if (null == permissionSchema) {
+            final DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            permissionSchema = domainBusinessAccount.getPermissionSchema();
+            if (null == permissionSchema) permissionSchema = loadSchemaForDomain(apiUser.getDomain());
+            if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
+        }
+        return permissionSchema;
+    }
+
+
+    /**
+    * Method for checking twin ref user permissions. Only for analyse.
+    * Do not use it for checking permissions.
+    * You must use permissioncheck postgress routine instead
+    * */
     public PermissionCheckForTwinOverviewResult checkTwinAndUserForPermissions(UUID userId, UUID twinId, UUID permissionId) throws ServiceException {
         PermissionCheckForTwinOverviewResult result = new PermissionCheckForTwinOverviewResult();
         //detect permission
         TwinEntity twin = twinService.findEntitySafe(twinId);
-        if (null == twin) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
         if (null == permissionId) {
             permissionId = twin.getViewPermissionId();
             if (null == permissionId) permissionId = twin.getTwinClass().getViewPermissionId();
             if (null == permissionId) throw new ServiceException(ErrorCodeTwins.TWIN_NOT_PROTECTED);
         }
-        ApiUser apiUser = authService.getApiUser();
-
-        //detect permission schema
-
-        SpaceEntity space = null;
-        if (null != twin.getPermissionSchemaSpaceId()) space = spaceRepository.findById(twin.getPermissionSchemaSpaceId()).orElse(null);
-
-        PermissionSchemaEntity permissionSchema = null;
-        if (null != space) permissionSchema = space.getPermissionSchema();
-        if (null == permissionSchema) {
-            final DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-            permissionSchema = domainBusinessAccount.getPermissionSchema();
-            if (null == permissionSchema) permissionSchema = apiUser.getDomain().getPermissionSchema();
-            if (null == permissionSchema) throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_SPECIFIED);
-        }
-        result.setPermissionSchema(permissionSchema);
-
         //permission
         PermissionEntity permission = findEntitySafe(permissionId);
         result.setPermission(permission);
+
+
+        //detect permission schema
+
+
+        PermissionSchemaEntity permissionSchema = getCurrentPermissionSchema(twin);
+        result.setPermissionSchema(permissionSchema);
+
 
         //user permissions
         final boolean grantedForUser = permissionSchemaUserRepository.existsByPermissionSchemaIdAndPermissionIdAndUserId(permissionSchema.getId(), permissionId, userId);
@@ -214,9 +233,9 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
                 if (twin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
                     result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
                 if (null != spaceTwin) {
-                    if (spaceTwin.getAssignerUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
+                    if (null != spaceTwin.getAssignerUserId() && spaceTwin.getAssignerUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.space_assignee))
                         result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
-                    if (spaceTwin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
+                    if (null != spaceTwin.getCreatedByUserId() && spaceTwin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
                         result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
                 }
             }
