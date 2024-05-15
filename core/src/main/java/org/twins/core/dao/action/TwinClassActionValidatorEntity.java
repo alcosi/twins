@@ -3,7 +3,7 @@ package org.twins.core.dao.action;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -15,7 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "twin_class_action_validator")
-public class TwinClassActionValidatorEntity extends EasyLoggableImpl {
+public class TwinClassActionValidatorEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -50,13 +50,10 @@ public class TwinClassActionValidatorEntity extends EasyLoggableImpl {
 
     @Override
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinClassActionValidator[" + id + "]";
-            case NORMAL:
-                return "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
-            default:
-                return "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinClassActionValidator[" + id + "]";
+            case NORMAL -> "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            default -> "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+        };
     }
 }

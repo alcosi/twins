@@ -18,4 +18,6 @@ public interface PermissionSchemaUserRepository extends CrudRepository<Permissio
     List<UUID> findPermissionIdByPermissionSchemaIdAndUserId(UUID permissionSchemaId, UUID userId);
 
     List<PermissionSchemaUserEntity> findByPermissionSchemaIdAndUserIdAndPermission_PermissionGroup_DomainId(UUID permissionSchemaId, UUID userId, UUID domainId);
+
+    boolean existsByPermissionSchemaIdAndPermissionIdAndUserId(UUID permissionSchemaId, UUID permissionId, UUID userId);
 }

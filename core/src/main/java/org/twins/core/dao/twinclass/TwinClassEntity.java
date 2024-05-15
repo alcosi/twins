@@ -1,14 +1,17 @@
 package org.twins.core.dao.twinclass;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -18,20 +21,17 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.featurer.twinclass.HeadHunter;
 
 import java.sql.Timestamp;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Table(name = "twin_class")
 @FieldNameConstants
-public class TwinClassEntity extends EasyLoggableImpl {
+public class TwinClassEntity implements EasyLoggable {
     @Id
     private UUID id;
 
@@ -108,6 +108,15 @@ public class TwinClassEntity extends EasyLoggableImpl {
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
 
+    @FeaturerList(type = HeadHunter.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity headHunterFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "head_hunter_featurer_params", columnDefinition = "hstore")
+    private HashMap<String, String> headHunterParams;
+
 //    @ManyToOne
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
@@ -171,12 +180,10 @@ public class TwinClassEntity extends EasyLoggableImpl {
     }
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinClass[" + key + "]";
-            default:
-                return "twinClass[id:" + id + ", key:" + key + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinClass[" + key + "]";
+            default -> "twinClass[id:" + id + ", key:" + key + "]";
+        };
 
     }
 

@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
@@ -27,10 +27,9 @@ import java.util.UUID;
 @Entity
 @Accessors(chain = true)
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Table(name = "twin")
 @FieldNameConstants
-public class TwinEntity extends EasyLoggableImpl implements Cloneable {
+public class TwinEntity implements Cloneable, EasyLoggable {
     @Id
     private UUID id;
 
@@ -210,16 +209,14 @@ public class TwinEntity extends EasyLoggableImpl implements Cloneable {
     }
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "twin[" + id + "]";
-            case NORMAL:
-                return "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
-            default:
-                return "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twin[" + id + "]";
+            case NORMAL -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + "]";
+            default -> "twin[id:" + id + ", " + (twinClass == null ? "twinClassId:" + twinClassId : twinClass.logNormal()) + ", " + (twinStatus == null ? "twinStatusId:" + twinStatusId : twinStatus.logNormal()) + "]";
+        };
 
     }
+
     public TwinEntity clone() {
         return new TwinEntity()
                 .setId(id)

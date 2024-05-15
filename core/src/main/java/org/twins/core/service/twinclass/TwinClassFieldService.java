@@ -27,7 +27,6 @@ import org.twins.core.featurer.fieldtyper.FieldTyperLink;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.PermissionService;
 
 import java.util.*;
 
@@ -37,7 +36,6 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
     final TwinClassFieldRepository twinClassFieldRepository;
-    final PermissionService permissionService;
     @Lazy
     final TwinClassService twinClassService;
     final I18nService i18nService;

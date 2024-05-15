@@ -1,9 +1,8 @@
 package org.twins.core.domain.factory;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
@@ -17,9 +16,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-public class FactoryItem extends EasyLoggableImpl {
+public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
     private TwinOperation output;
     private List<FactoryItem> contextFactoryItemList;
@@ -72,12 +70,10 @@ public class FactoryItem extends EasyLoggableImpl {
         if (output == null || level == Level.SHORT)
             return "factoryItem[" + System.identityHashCode(this) + "]";
         String operation = output instanceof TwinCreate ? "createTwin" : "updateTwin";
-        switch (level) {
-            case NORMAL:
-                return "factoryItem[" + System.identityHashCode(this) + "] " + operation;
-            default:
-                return toString(1, 5);
-        }
+        return switch (level) {
+            case NORMAL -> "factoryItem[" + System.identityHashCode(this) + "] " + operation;
+            default -> toString(1, 5);
+        };
     }
 
 

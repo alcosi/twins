@@ -3,7 +3,7 @@ package org.twins.core.dao.twin;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -18,7 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
-public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicCloneable<TwinAttachmentEntity>, TwinFieldStorage {
+public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, TwinFieldStorage, EasyLoggable {
     @Id
     private UUID id;
 
@@ -99,14 +99,11 @@ public class TwinAttachmentEntity extends EasyLoggableImpl implements PublicClon
     }
 
     public String easyLog(Level level) {
-        switch (level) {
-            case SHORT:
-                return "attachment[" + id + "]";
-            case NORMAL:
-                return "attachment[id:" + id + ", twinId:" + twinId + "]";
-            default:
-                return "attachment[id:" + id + ", twinId:" + twinId + ", storageLink:" + storageLink + "]";
-        }
+        return switch (level) {
+            case SHORT -> "attachment[" + id + "]";
+            case NORMAL -> "attachment[id:" + id + ", twinId:" + twinId + "]";
+            default -> "attachment[id:" + id + ", twinId:" + twinId + ", storageLink:" + storageLink + "]";
+        };
 
     }
 }

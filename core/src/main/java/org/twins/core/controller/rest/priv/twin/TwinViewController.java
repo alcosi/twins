@@ -47,6 +47,7 @@ public class TwinViewController extends ApiController {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
+    @Deprecated
     @ParametersApiUserHeaders
     @Operation(operationId = "twinViewV1", summary = "Returns twin data by id")
     @ApiResponses(value = {

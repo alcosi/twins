@@ -30,6 +30,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DOMAIN_LOCALE_UNKNOWN(10206, "unknown locale"),
     PERMISSION_SCHEMA_NOT_ALLOWED(10301, "permission schema is not allowed"),
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
+    TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
+    PERMISSION_SCHEMA_NOT_SPECIFIED(10304, "permission schema is not specified"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),
@@ -66,7 +68,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
-    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter");
+    TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter"),
+    FEATURER_IS_NULL(11501, "Got featurer is null");
 
 
     private final int code;

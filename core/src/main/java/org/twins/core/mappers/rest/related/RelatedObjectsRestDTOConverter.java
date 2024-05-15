@@ -24,7 +24,7 @@ import org.twins.core.mappers.rest.RelatedObject;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
+import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -48,7 +48,7 @@ public class RelatedObjectsRestDTOConverter {
     final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
     final DataListRestDTOMapper dataListRestDTOMapper;
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    final SpaceRoleByUserDTOMapper spaceRoleByUserDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -79,7 +79,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContext.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel2, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContext.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel2, spaceRoleMap, SpaceRoleUserEntity::getId);
+            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleByUserDTOMapper, mapperContextLevel2, spaceRoleMap, SpaceRoleUserEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -98,7 +98,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel2.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleUserEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), spaceRoleByUserDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleUserEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -118,7 +118,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel3.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleUserEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), spaceRoleByUserDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleUserEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)

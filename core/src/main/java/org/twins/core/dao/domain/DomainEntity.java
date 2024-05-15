@@ -5,12 +5,13 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.cambium.common.EasyLoggableImpl;
+import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.tokenhandler.TokenHandler;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
@@ -25,7 +26,7 @@ import java.util.UUID;
 @DynamicUpdate
 @Data
 @Accessors(chain = true)
-public class DomainEntity extends EasyLoggableImpl {
+public class DomainEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -101,6 +102,10 @@ public class DomainEntity extends EasyLoggableImpl {
     @Transient
     @EqualsAndHashCode.Exclude
     private DomainTypeEntity domainTypeEntity;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionSchemaEntity permissionSchema;
 
     public String easyLog(Level level) {
         return "domain[id:" + id + ", key:" + key + "]";
