@@ -59,11 +59,11 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
 
     @Override
     public boolean isEntityReadDenied(TwinStarredEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return twinService.isEntityReadDenied(entity.getTwinEntity(), readPermissionCheckMode);
+        return twinService.isEntityReadDenied(entity.getTwin(), readPermissionCheckMode);
     }
 
     @Override
     public boolean validateEntity(TwinStarredEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return false;
+        return true;
     }
 }

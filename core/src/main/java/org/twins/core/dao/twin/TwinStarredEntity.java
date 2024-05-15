@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -32,8 +33,12 @@ public class TwinStarredEntity implements EasyLoggable {
     private Timestamp createdAt;
 
     @ManyToOne
+    @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity user;
+
+    @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twinEntity;
+    private TwinEntity twin;
 
     @Override
     public String easyLog(Level level) {

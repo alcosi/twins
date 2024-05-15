@@ -38,7 +38,7 @@ public class TwinStarredDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin/{twinId}/unstart/v1")
+    @PutMapping(value = "/private/twin/{twinId}/unstar/v1")
     public ResponseEntity<?> markTwinAsUnstarredV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();

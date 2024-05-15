@@ -9,27 +9,34 @@ import org.twins.core.dto.rest.twin.TwinStarredDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEntity, TwinStarredDTOv1> {
+    final UserRestDTOMapper userRestDTOMapper;
+    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public void map(TwinStarredEntity src, TwinStarredDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .userId(src.getUserId())
-                        .twinId(src.getTwinId())
-                        .createdAt(src.getCreatedAt().toLocalDateTime());
+                        .setId(src.getId())
+                        .setUserId(src.getUserId())
+                        .setTwinId(src.getTwinId())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
+                if (!userRestDTOMapper.hideMode(mapperContext))
+                    dst.setUser(userRestDTOMapper.convert(src.getUser(), mapperContext));
+                if (!twinBaseRestDTOMapper.hideMode(mapperContext))
+                    dst.setTwin(twinBaseRestDTOMapper.convert(src.getTwin(), mapperContext));
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .userId(src.getUserId())
-                        .twinId(src.getTwinId());
+                        .setId(src.getId())
+                        .setUserId(src.getUserId())
+                        .setTwinId(src.getTwinId());
                 break;
         }
     }

@@ -41,7 +41,7 @@ public class TwinStarredCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinStarredRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin/{twinId}/start/v1")
+    @PutMapping(value = "/private/twin/{twinId}/star/v1")
     public ResponseEntity<?> markTwinAsStarredV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
