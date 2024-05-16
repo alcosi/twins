@@ -24,18 +24,12 @@ public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEnt
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setUserId(src.getUserId())
                         .setTwinId(src.getTwinId())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
-                if (!userRestDTOMapper.hideMode(mapperContext))
-                    dst.setUser(userRestDTOMapper.convert(src.getUser(), mapperContext));
-                if (!twinBaseRestDTOMapper.hideMode(mapperContext))
-                    dst.setTwin(twinBaseRestDTOMapper.convert(src.getTwin(), mapperContext));
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setTwin(twinBaseRestDTOMapper.convert(src.getTwin(), mapperContext));
                 break;
             case SHORT:
                 dst
-                        .setId(src.getId())
-                        .setUserId(src.getUserId())
                         .setTwinId(src.getTwinId());
                 break;
         }
