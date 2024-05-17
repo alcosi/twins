@@ -7,21 +7,28 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.search.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.search.function.SearchFunction;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -35,6 +42,8 @@ public class TwinSearchService {
     final TwinRepository twinRepository;
     final TwinService twinService;
     final UserGroupService userGroupService;
+    final SearchRepository searchRepository;
+    final PermissionService permissionService;
     @Lazy
     final AuthService authService;
 
@@ -139,11 +148,89 @@ public class TwinSearchService {
         return resultMap;
     }
 
-    public TwinSearchResult convertPageInTwinSearchResult(Page<TwinEntity> twinPage, int offset, int limit){
+    public TwinSearchResult convertPageInTwinSearchResult(Page<TwinEntity> twinPage, int offset, int limit) {
         return (TwinSearchResult) new TwinSearchResult()
                 .setTwinList(twinPage.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
                 .setOffset(offset)
                 .setLimit(limit)
                 .setTotal(twinPage.getTotalElements());
+    }
+
+    public SearchEntity detectSearchByAlias(String searchAliasId) throws ServiceException {
+        List<SearchEntity> searchEntityList = searchRepository.findBySearchAliasId(searchAliasId);
+        if (searchEntityList == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
+        ApiUser apiUser = authService.getApiUser();
+        permissionService.loadUserPermissions(apiUser);
+        SearchEntity searchEntity = null;
+        for (SearchEntity searchByAliasEntity : searchEntityList) { //many searches can be linked to one alias
+            if (searchByAliasEntity.getPermissionId() == null || apiUser.getPermissions().contains(searchByAliasEntity.getPermissionId())) {
+                if (searchEntity == null)
+                    searchEntity = searchByAliasEntity;
+                else
+                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_NOT_UNIQ);
+            }
+        }
+        if (searchEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
+        return searchEntity;
+    }
+
+    public List<TwinEntity> findTwins(String searchAliasId, Map<String, UUID> namedParamsMap) throws ServiceException {
+        return findTwins(detectSearchByAlias(searchAliasId), namedParamsMap);
+    }
+
+    public List<TwinEntity> findTwins(SearchEntity searchEntity, Map<String, UUID> namedParamsMap, TwinSearch searchNarrow) throws ServiceException {
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchParamList())) {
+            if (searchEntity.getSearchParamList().size() != MapUtils.size(namedParamsMap))
+                throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_PARAMS_COUNT_INCORRECT, searchEntity.logShort() + " expected " + searchEntity.getSearchParamList().size())
+        }
+        BasicSearch basicSearch = new BasicSearch();
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchByTwinList())) {
+            for (SearchByTwinEntity searchByTwinEntity : searchEntity.getSearchByTwinList())
+                basicSearch.addTwinId(searchByTwinEntity.getTwinId(), searchByTwinEntity.isExclude());
+        }
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchByTwinStatusList())) {
+            for (SearchByTwinStatusEntity searchByTwinStatusEntity : searchEntity.getSearchByTwinStatusList())
+                basicSearch.addStatusId(searchByTwinStatusEntity.getTwinStatusId(), searchByTwinStatusEntity.isExclude());
+        }
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchByTwinClassList())) {
+            for (SearchByTwinClassEntity searchByTwinClassEntity : searchEntity.getSearchByTwinClassList())
+                basicSearch.addTwinClassId(searchByTwinClassEntity.getTwinClassId(), searchByTwinClassEntity.isExclude());
+        }
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchByUserList())) {
+            for (SearchByUserEntity searchByUserEntity : searchEntity.getSearchByUserList()) {
+                SearchFunction searchFunction = null;
+                if (searchByUserEntity.getSearchParam() != null) {
+                    searchFunction = featurerService.getFeaturer(searchByUserEntity.getSearchParam().getSearchFunctionFeaturer(), SearchFunction.class);
+                    if (!searchFunction.validForField(searchByUserEntity.getSearchField()))
+                        log.warn(searchByUserEntity.logShort() + " incorrect config. Search function [" + searchByUserEntity.getSearchParam().getSearchFunctionFeaturer().getName() + "] can not be applied for field[" + searchByUserEntity.getSearchField() + "].");
+                }
+                switch (searchByUserEntity.getSearchField()) {
+                    case assigneeUserId:
+                        if (searchByUserEntity.getUserId() != null)
+                            basicSearch.addAssignerUserId(searchByUserEntity.getUserId(), false);
+                        if (searchFunction != null)
+                            basicSearch.addAssignerUserId(searchFunction.getId(searchByUserEntity.getSearchParam()), false);
+                        break;
+                    case createdByUserId:
+                        if (searchByUserEntity.getUserId() != null)
+                            basicSearch.addCreatedByUserId(searchByUserEntity.getUserId(), false);
+                        if (searchFunction != null) {
+                            basicSearch.addCreatedByUserId(searchFunction.getId(searchByUserEntity.getSearchParam()), false);
+                        }
+                        break;
+                    default:
+                        log.warn(searchByUserEntity.logShort() + " incorrect config. Search field [" + searchByUserEntity.getSearchField() + "] can not be applied for user.");
+                }
+            }
+            basicSearch.setAssignerUserIdList(searchEntity.getSearchByTwinClassList().stream().map(SearchByTwinClassEntity::getTwinClassId).collect(Collectors.toSet()));
+        }
+        if (CollectionUtils.isNotEmpty(searchEntity.getSearchByLinkList())) {
+            for (SearchByLinkEntity searchByLinkEntity : searchEntity.getSearchByLinkList()) {
+                basicSearch.addLinkDstTwinsId(searchByLinkEntity.getLinkId(), searchByLinkEntity.getDstTwinId());
+            }
+        }
+        return findTwins(basicSearch);
     }
 }

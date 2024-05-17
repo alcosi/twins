@@ -31,8 +31,11 @@ public class TwinSearch {
     Set<UUID> markerDataListOptionIdList;
     Set<UUID> markerDataListOptionIdExcludeList;
 
-    public TwinSearch addTwinId(UUID twinId) {
-        twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
+    public TwinSearch addTwinId(UUID twinId, boolean exclude) {
+        if (exclude)
+            twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
+        else
+            twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
         return this;
     }
 
@@ -41,18 +44,19 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addTwinExcludeId(UUID twinId) {
-        twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
+    public TwinSearch addTwinClassId(UUID twinClassId, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassId);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
         return this;
     }
 
-    public TwinSearch addTwinClassId(UUID twinClassId) {
-        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
-        return this;
-    }
-
-    public TwinSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
-        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
+    public TwinSearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdSet);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
@@ -61,25 +65,35 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addStatusId(UUID statusId) {
-        statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
+    public TwinSearch addStatusId(UUID statusId, boolean exclude) {
+        if (exclude)
+            statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
+        else
+            statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
         return this;
     }
 
-    public TwinSearch addStatusId(Collection<UUID> statusIdList) {
-        if (this.statusIdList == null)
-            this.statusIdList = new HashSet<>();
-        this.statusIdList.addAll(statusIdList);
+    public TwinSearch addStatusId(Collection<UUID> statusIdSet, boolean exclude) {
+        if (exclude)
+            statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusIdSet);
+        else
+            statusIdList = CollectionUtils.safeAdd(statusIdList, statusIdSet);
         return this;
     }
 
-    public TwinSearch addAssignerUserId(UUID assignerUserId) {
-        assignerUserIdList = CollectionUtils.safeAdd(assignerUserIdList, assignerUserId);
+    public TwinSearch addAssignerUserId(UUID assignerUserId, boolean exclude) {
+        if (exclude)
+            assignerUserIdList = CollectionUtils.safeAdd(assignerUserIdList, assignerUserId);
+        else
+            assignerUserIdExcludeList = CollectionUtils.safeAdd(assignerUserIdExcludeList, assignerUserId);
         return this;
     }
 
-    public TwinSearch addCreatedByUserId(UUID createdByUserId) {
-        createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
+    public TwinSearch addCreatedByUserId(UUID createdByUserId, boolean exclude) {
+        if (exclude)
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
+        else
+            createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserId);
         return this;
     }
 
@@ -109,17 +123,4 @@ public class TwinSearch {
         hierarchyTreeContainsIdList = CollectionUtils.safeAdd(hierarchyTreeContainsIdList, twinId);
         return this;
     }
-
-    public TwinSearch addStatusIdExclude(UUID statusId) {
-        statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
-        return this;
-    }
-
-    public TwinSearch addStatusIdExclude(Collection<UUID> statusIdExcludeList) {
-        if (this.statusIdExcludeList == null)
-            this.statusIdExcludeList = new HashSet<>();
-        this.statusIdExcludeList.addAll(statusIdExcludeList);
-        return this;
-    }
-
 }

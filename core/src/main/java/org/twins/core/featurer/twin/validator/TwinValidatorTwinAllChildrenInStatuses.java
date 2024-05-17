@@ -13,9 +13,9 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.Map;
 
 
 @Slf4j
@@ -42,8 +42,8 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
         BasicSearch search = new BasicSearch();
         search
                 .addHeaderTwinId(twinEntity.getId())
-                .addTwinClassId(classId)
-                .addStatusIdExclude(statusId);
+                .addTwinClassId(classId, false)
+                .addStatusId(statusId, true);
         long count = twinSearchService.count(search);
         boolean isValid = count == 0;
 
@@ -59,7 +59,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addTwinClassId(classId).addStatusIdExclude(statusId);
+        search.addTwinClassId(classId, false).addStatusId(statusId, true);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {
