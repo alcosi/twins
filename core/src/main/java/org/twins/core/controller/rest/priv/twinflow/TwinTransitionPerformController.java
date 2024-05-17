@@ -55,7 +55,6 @@ public class TwinTransitionPerformController extends ApiController {
     final AuthService authService;
     final TwinService twinService;
     final UserService userService;
-    final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
     final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinflowTransitionService twinflowTransitionService;

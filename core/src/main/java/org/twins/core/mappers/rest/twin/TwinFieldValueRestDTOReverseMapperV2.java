@@ -56,17 +56,15 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                     .setDate(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
             fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField());
-            for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(dataListOptionId))
-                    continue;
-                UUID dataListOptionUUID;
+            for (String dataListOption : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dataListOption)) continue;
+                DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
                 try {
-                    dataListOptionUUID = UUID.fromString(dataListOptionId);
+                    dataListOptionEntity.setId(UUID.fromString(dataListOption));
                 } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect datalist UUID[" + dataListOptionId + "]");
+                    dataListOptionEntity.setOption(dataListOption);
                 }
-                ((FieldValueSelect) fieldValue).add(new DataListOptionEntity()
-                        .setId(dataListOptionUUID));
+                ((FieldValueSelect) fieldValue).add(dataListOptionEntity);
             }
         }
         if (fieldTyper.getValueType() == FieldValueUser.class) {

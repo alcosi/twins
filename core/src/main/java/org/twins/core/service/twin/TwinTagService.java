@@ -8,10 +8,8 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.service.I18nService;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -145,7 +143,7 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             businessAccountId = authService.getApiUser().getBusinessAccount().getId();
         }
 
-        List<DataListOptionEntity> tagOptions = processNewTags(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
+        List<DataListOptionEntity> tagOptions = dataListService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
         List<DataListOptionEntity> filteredExistingTags;
         if (businessAccountId != null)
             filteredExistingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTags);
@@ -174,54 +172,6 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
 
         entitySmartService.saveAllAndLog(distinctTags, twinTagRepository);
         return new Kit<>(tagOptions, DataListOptionEntity::getId);
-    }
-
-    private List<DataListOptionEntity> processNewTags(UUID tagsCloudDataListId, Set<String> newTagOptions, UUID businessAccountId) {
-        List<DataListOptionEntity> tagOptions = new ArrayList<>();
-
-        List<DataListOptionEntity> optionsToSave = newTagOptions.stream().filter(option -> { // save only new options
-                List<DataListOptionEntity> foundOption;
-                if (businessAccountId != null)
-                    foundOption = twinTagRepository.findOptionForBusinessAccount(tagsCloudDataListId, businessAccountId, option.trim(), PageRequest.of(0, 1));
-                else
-                    foundOption = twinTagRepository.findOptionOutOfBusinessAccount(tagsCloudDataListId, option.trim(), PageRequest.of(0, 1));
-
-                if (CollectionUtils.isNotEmpty(foundOption)) {
-                    tagOptions.add(foundOption.get(0));
-                    return false;
-                }
-
-                return true;
-            }).map(tag -> {
-                DataListOptionEntity option = new DataListOptionEntity();
-                option.setOption(tag);
-                option.setBusinessAccountId(businessAccountId);
-                option.setStatus(DataListOptionEntity.Status.active);
-                option.setDataListId(tagsCloudDataListId);
-
-                return option;
-            })
-            .collect(Collectors.toList());
-
-        // TODO: FIXME: there is no validator for data list options.
-
-        Iterable<DataListOptionEntity> savedOptions = entitySmartService.saveAllAndLog(optionsToSave, dataListOptionRepository);
-        savedOptions.forEach(tagOptions::add);
-        if (CollectionUtils.isNotEmpty(optionsToSave)) {
-            evictTagsCloudCache(tagsCloudDataListId, businessAccountId);
-        }
-        return tagOptions;
-    }
-
-    private void evictTagsCloudCache(UUID tagsCloudDataListId, UUID businessAccountId) {
-        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
-        if (cache != null)
-            cache.evictIfPresent(tagsCloudDataListId);
-        if (businessAccountId != null) {
-            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
-            if (cache != null)
-                cache.evictIfPresent(tagsCloudDataListId + "" + businessAccountId);
-        }
     }
 
     private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) {

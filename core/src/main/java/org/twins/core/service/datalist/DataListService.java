@@ -7,9 +7,13 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
@@ -26,6 +30,8 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -37,6 +43,8 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
+    final CacheManager cacheManager;
+
     @Lazy
     final AuthService authService;
 
@@ -128,5 +136,76 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         List<UUID> optionsToDelete = dataListOptionRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(optionsToDelete, dataListOptionRepository);
     }
+
+
+    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
+        for (DataListOptionEntity option : newOptions) if (option.getId() == null) option.setId(UUID.randomUUID());
+        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
+    }
+
+    public DataListOptionEntity checkOptionsExists(UUID dataListId, String optionName, UUID businessAccountId) {
+        List<DataListOptionEntity> foundOptions;
+        if (businessAccountId != null)
+            foundOptions = dataListOptionRepository.findOptionForBusinessAccount(dataListId, businessAccountId, optionName.trim(), PageRequest.of(0, 1));
+        else
+            foundOptions = dataListOptionRepository.findOptionOutOfBusinessAccount(dataListId, optionName.trim(), PageRequest.of(0, 1));
+
+        if (CollectionUtils.isNotEmpty(foundOptions))
+            return foundOptions.get(0);
+
+        return null;
+    }
+
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
+        List<DataListOptionEntity> newOptions = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).toList();
+        List<DataListOptionEntity> optionsExists = new ArrayList<>();
+        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+        for (DataListOptionEntity option : newOptions) {
+            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, option.getOption(), businessAccountId);
+            if (null != foundedOption) optionsExists.add(foundedOption);
+            else optionsForSave.add(option);
+        }
+        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+        savedOptions.forEach(optionsExists::add);
+        if (CollectionUtils.isNotEmpty(optionsForSave))
+            evictOptionsCloudCache(dataListId, businessAccountId);
+        options.removeIf(option -> ObjectUtils.isEmpty(option.getId()));
+        options.addAll(optionsExists);
+        return options;
+    }
+
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) {
+        List<DataListOptionEntity> optionsExists = new ArrayList<>();
+        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+        for (String optionName : newOptions) {
+            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, optionName, businessAccountId);
+            if (null != foundedOption) optionsExists.add(foundedOption);
+            else {
+                DataListOptionEntity newOption = new DataListOptionEntity();
+                newOption.setOption(optionName);
+                newOption.setBusinessAccountId(businessAccountId);
+                newOption.setStatus(DataListOptionEntity.Status.active);
+                newOption.setDataListId(dataListId);
+                optionsForSave.add(newOption);
+            }
+        }
+        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+        savedOptions.forEach(optionsExists::add);
+        if (CollectionUtils.isNotEmpty(optionsForSave))
+            evictOptionsCloudCache(dataListId, businessAccountId);
+        return optionsExists;
+    }
+
+    private void evictOptionsCloudCache(UUID dataListId, UUID businessAccountId) {
+        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
+        if (cache != null)
+            cache.evictIfPresent(dataListId);
+        if (businessAccountId != null) {
+            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
+            if (cache != null)
+                cache.evictIfPresent(dataListId + "" + businessAccountId);
+        }
+    }
+
 }
 
