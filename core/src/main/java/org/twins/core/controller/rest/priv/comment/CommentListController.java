@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.domain.comment.CommentListResult;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
@@ -30,8 +31,7 @@ import org.twins.core.service.comment.CommentService;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.COMMENT)
 @RestController
@@ -62,7 +62,7 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            CommentListResult commentListResult = commentService.findComment(twinId, sortDirection, offset, limit);
+            CommentListResult commentListResult = commentService.findComment(twinId, createSimplePagination(offset, limit, Sort.by(sortDirection, TwinCommentEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)

@@ -14,6 +14,8 @@ import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
 
+import static org.cambium.common.util.PaginationUtils.convertPagableInSimplePagination;
+
 @Slf4j
 @Component
 @Featurer(id = 2601,
@@ -29,6 +31,6 @@ public class HeadHunterImpl extends HeadHunter {
         BasicSearch search = new BasicSearch();
         search
                 .addTwinClassId(twinClassEntity.getId());
-        return twinSearchService.findTwins(search, (int) pageable.getOffset(), pageable.getPageSize());
+        return twinSearchService.findTwins(search, convertPagableInSimplePagination(pageable));
     }
 }

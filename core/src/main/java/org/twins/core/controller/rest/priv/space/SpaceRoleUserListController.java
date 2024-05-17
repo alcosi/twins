@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.space.UsersRefSpaceRolePageable;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
@@ -32,8 +33,7 @@ import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -88,7 +88,7 @@ public class SpaceRoleUserListController extends ApiController {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, offset, limit);
+            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
@@ -119,7 +119,7 @@ public class SpaceRoleUserListController extends ApiController {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, offset, limit);
+            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

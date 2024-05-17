@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
@@ -40,8 +41,7 @@ import org.twins.core.service.twin.TwinService;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -94,7 +94,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedByHeadTwinMode)
@@ -163,7 +163,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), offset, limit);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchRqDTOMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedByHeadTwinMode)
@@ -233,7 +233,7 @@ public class TwinListController extends ApiController {
             List<BasicSearch> basicSearches = new ArrayList<>();
             for(TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchRqDTOMapper.convert(dto));
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, offset, limit);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedByHeadTwinMode)

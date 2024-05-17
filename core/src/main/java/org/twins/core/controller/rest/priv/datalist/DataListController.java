@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,21 +18,23 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
+import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "Get data lists", name = ApiTag.DATA_LIST)
 @RestController
@@ -42,6 +44,7 @@ public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
     private final DataListRestDTOMapper dataListRestDTOMapper;
+    final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListViewV1", summary = "Returns list data")
@@ -60,10 +63,14 @@ public class DataListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListId), new MapperContext()
-                            .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode, PaginationUtils.paginationOffsetUnsorted(offset, limit)));
+            MapperContext mapperContext = new MapperContext()
+                    .setMode(showDataListMode)
+                    .setMode(showDataListOptionMode, createSimplePagination(offset, limit, Sort.unsorted()));
+            DataListEntity entitySafe = dataListService.findEntitySafe(dataListId);
+            DataListDTOv1 result = dataListRestDTOMapper.convert(entitySafe, mapperContext);
+            rs
+                    .setDataList(result)
+                    .setPagination(paginationMapper.convert(result));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

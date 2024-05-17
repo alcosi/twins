@@ -1,6 +1,8 @@
 package org.twins.core.dao.datalist;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -19,9 +21,17 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and option.businessAccountId is null order by option.order")
     List<DataListOptionEntity> findByDataListId(@Param("dataListId") UUID dataListId);
 
+    @Cacheable(value = CACHE_DATA_LIST_OPTIONS, key = "{#dataListId}")
+    @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and option.businessAccountId is null order by option.order")
+    Page<DataListOptionEntity> findByDataListId(@Param("dataListId") UUID dataListId, Pageable pageable);
+
     @Cacheable(value = CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT, key = "#dataListId + '' + #businessAccountId")
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and (option.businessAccountId is null or option.businessAccountId = :businessAccountId) order by option.order")
     List<DataListOptionEntity> findByDataListIdAndBusinessAccountId(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId);
+
+    @Cacheable(value = CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT, key = "#dataListId + '' + #businessAccountId")
+    @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and (option.businessAccountId is null or option.businessAccountId = :businessAccountId) order by option.order")
+    Page<DataListOptionEntity> findByDataListIdAndBusinessAccountId(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId, Pageable pageable);
 
     int countByDataListId(UUID dataListId); //todo make it businessAccount safe
 

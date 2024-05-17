@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -58,7 +60,7 @@ public class TwinClassValidHeadController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult validHeads = twinHeadService.findValidHeads(twinClassId, offset, limit);
+            TwinSearchResult validHeads = twinHeadService.findValidHeads(twinClassId, PaginationUtils.createSimplePagination(offset, limit, Sort.unsorted()));
             MapperContext mapperContext = new MapperContext()
                     .setMode(showUserMode)
                     .setMode(showStatusMode)

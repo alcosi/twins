@@ -10,8 +10,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -32,6 +31,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -67,23 +67,14 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return true;
     }
 
-    public HistoryListResult findHistory(UUID twinId, int childDepth, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
-        UserEntity user = authService.getApiUser().getUser();
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
-        List<HistoryEntity> list = null;
-        long countElement = 0;
+    public HistoryListResult findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
+        Page<HistoryEntity> listPage;
         if (childDepth == 0) {
-            list = historyRepository.findByTwinId(twinId, pageable);
-            countElement = historyRepository.countByTwinId(twinId);
+            listPage = historyRepository.findByTwinId(twinId, PaginationUtils.pageableOffset(pagination));
         } else {//todo support different depth
-            list = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable).getContent();
-            countElement = historyRepository.countByTwinIdIncludeFirstLevelChildren(twinId);
+            listPage = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, PaginationUtils.pageableOffset(pagination));
         }
-        return (HistoryListResult) new HistoryListResult()
-                .setHistoryList(list)
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(countElement);
+        return convertPageInSearchResult(listPage, pagination);
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {
@@ -370,5 +361,13 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                     .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
         }
         return ret;
+    }
+
+    public HistoryListResult convertPageInSearchResult(Page<HistoryEntity> historyList, SimplePagination pagination){
+        return (HistoryListResult) new HistoryListResult()
+                .setHistoryList(historyList.getContent())
+                .setTotal(historyList.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
     }
 }

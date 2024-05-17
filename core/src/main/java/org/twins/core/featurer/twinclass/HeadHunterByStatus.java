@@ -2,6 +2,7 @@ package org.twins.core.featurer.twinclass;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -42,6 +43,6 @@ public class HeadHunterByStatus extends HeadHunter {
             search.addStatusId(statusIds.extract(properties));
         else
             search.addStatusIdExclude(statusIds.extract(properties));
-        return twinSearchService.findTwins(search, (int) pageable.getOffset(), pageable.getPageSize());
+        return twinSearchService.findTwins(search, PaginationUtils.convertPagableInSimplePagination(pageable));
     }
 }

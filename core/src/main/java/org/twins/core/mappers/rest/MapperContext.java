@@ -3,7 +3,6 @@ package org.twins.core.mappers.rest;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
-import org.springframework.data.domain.Pageable;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
@@ -14,6 +13,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.pagination.SimplePagination;
 
 import java.util.*;
 
@@ -53,9 +53,9 @@ public class MapperContext {
         return this;
     }
 
-    public MapperContext setMode(MapperMode mapperMode, Pageable pageable) {
+    public MapperContext setMode(MapperMode mapperMode, SimplePagination pagination) {
         modes.put(mapperMode);
-        modesPagination.put(mapperMode, pageable);
+        modesPagination.put(mapperMode, pagination);
         return this;
     }
 
@@ -232,7 +232,7 @@ public class MapperContext {
         return configuredMode == null;
     }
 
-    public Pageable getModePagination(Class<DataListOptionRestDTOMapper.Mode> modeClass) {
+    public SimplePagination getModePagination(Class<DataListOptionRestDTOMapper.Mode> modeClass) {
         return modesPagination.get(modeClass);
     }
 
