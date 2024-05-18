@@ -1,4 +1,4 @@
-package org.twins.core.featurer.search.function;
+package org.twins.core.featurer.search.criteriabuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -18,22 +18,31 @@ public abstract class SearchCriteriaBuilderSingleUUID extends SearchCriteriaBuil
         switch (searchPredicateEntity.getSearchField()) {
             case twinId:
                 twinSearch.addTwinId(id, searchPredicateEntity.isExclude());
+                break;
             case statusId:
                 twinSearch.addStatusId(id, searchPredicateEntity.isExclude());
+                break;
             case assigneeUserId:
                 twinSearch.addAssigneeUserId(id, searchPredicateEntity.isExclude());
+                break;
             case createdByUserId:
                 twinSearch.addCreatedByUserId(id, searchPredicateEntity.isExclude());
+                break;
             case twinClassId:
                 twinSearch.addTwinClassId(id, searchPredicateEntity.isExclude());
+                break;
             case headTwinId:
                 twinSearch.addHeaderTwinId(id);  //todo add exclude
+                break;
             case markerDataListOptionId:
                 twinSearch.addMarkerDataListOptionId(id, searchPredicateEntity.isExclude());
+                break;
             case tagDataListOptionId:
                 twinSearch.addTagDataListOptionId(id, searchPredicateEntity.isExclude());
+                break;
             case hierarchyTreeContainsId:
                 twinSearch.addHierarchyTreeContainsId(id); //todo add exclude
+                break;
             default:
                 throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Incorrect criteria builder[" + this.getClass().getSimpleName() + "] for field[" + searchPredicateEntity.getSearchField() + "]");
         }

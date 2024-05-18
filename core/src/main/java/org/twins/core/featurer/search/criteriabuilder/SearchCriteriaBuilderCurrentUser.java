@@ -1,4 +1,4 @@
-package org.twins.core.featurer.search.function;
+package org.twins.core.featurer.search.criteriabuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;

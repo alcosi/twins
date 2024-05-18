@@ -27,7 +27,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.search.function.SearchCriteriaBuilder;
+import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
@@ -188,15 +188,15 @@ public class TwinSearchService {
         return searchEntity;
     }
 
-    public List<TwinEntity> findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow) throws ServiceException {
-        return findTwins(detectSearchByAlias(searchAliasId), namedParamsMap, searchNarrow);
+    public TwinSearchResult  findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+        return findTwins(detectSearchByAlias(searchAliasId), namedParamsMap, searchNarrow, offset, limit);
     }
 
-    public List<TwinEntity> findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow) throws ServiceException {
-        return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow);
+    public TwinSearchResult  findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+        return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, offset, limit);
     }
 
-    public List<TwinEntity> findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow) throws ServiceException {
+    public TwinSearchResult  findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
         BasicSearch basicSearch = new BasicSearch();
         addPredicates(searchEntity.getSearchPredicateList(), namedParamsMap, basicSearch, searchNarrow);
         if (searchEntity.getHeadTwinSearchId() != null) {
@@ -205,7 +205,7 @@ public class TwinSearchService {
                 basicSearch.setHeadSearch(new TwinSearch());
             addPredicates(headSearchPredicates, namedParamsMap, basicSearch.getHeadSearch(), searchNarrow.getHeadSearch());
         }
-        return findTwins(basicSearch);
+        return findTwins(basicSearch, offset, limit);
     }
 
     protected void addPredicates(List<SearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {
@@ -246,6 +246,8 @@ public class TwinSearchService {
             Set<UUID> narrowSet = functioPair.getKey().apply(narrowSearch);
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
+        mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
+        //todo support narrow for links
 //        mainSearch
 //                .setHeaderTwinIdList(narrowSet(mainSearch.getHeaderTwinIdList(), narrowSearch.getHeaderTwinIdList()))
 //                .setCreatedByUserIdList(narrowSet(mainSearch.getCreatedByUserIdList(), narrowSearch.getCreatedByUserIdList()))

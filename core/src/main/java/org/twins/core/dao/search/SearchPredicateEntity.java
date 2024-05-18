@@ -12,7 +12,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.search.function.SearchCriteriaBuilder;
+import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -36,7 +36,7 @@ public class SearchPredicateEntity implements EasyLoggable {
     private boolean exclude;
 
     @Column(name = "search_criteria_builder_featurer_id")
-    private UUID searchFunctionFeaturerId;
+    private int searchFunctionFeaturerId;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude

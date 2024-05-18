@@ -1,4 +1,4 @@
-package org.twins.core.featurer.search.function;
+package org.twins.core.featurer.search.criteriabuilder;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +22,7 @@ import java.util.UUID;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2501,
+@Featurer(id = 2504,
         name = "SearchCriteriaBuilderConfiguredId",
         description = "")
 public class SearchCriteriaBuilderParam extends SearchCriteriaBuilderSingleUUID {
