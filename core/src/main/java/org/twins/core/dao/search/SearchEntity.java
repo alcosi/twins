@@ -42,37 +42,7 @@ public class SearchEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchByTwinClassEntity> searchByTwinClassList;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchByTwinStatusEntity> searchByTwinStatusList;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchByTwinEntity> searchByTwinList;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchByLinkEntity> searchByLinkList;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchByUserEntity> searchByUserList;
-
-    @OneToMany(fetch = FetchType.EAGER)
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = true)
-    private List<SearchParamEntity> searchParamList;
+    private List<SearchPredicateEntity> searchPredicateList;
 
     public String easyLog(Level level)  {
         switch (level) {

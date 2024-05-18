@@ -12,7 +12,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
-import org.twins.core.featurer.search.function.SearchFunction;
+import org.twins.core.featurer.search.function.SearchCriteriaBuilder;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -20,18 +20,22 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "search_param")
-public class SearchParamEntity implements EasyLoggable {
+@Table(name = "search_predicate")
+public class SearchPredicateEntity implements EasyLoggable {
     @Id
     private UUID id;
 
     @Column(name = "search_id")
     private UUID searchId;
 
-    @Column(name = "key")
-    private String key;
+    @Column(name = "search_field_id")
+    @Convert(converter = SearchFieldConverter.class)
+    private SearchField searchField;
 
-    @Column(name = "search_function_featurer_id")
+    @Column(name = "exclude")
+    private boolean exclude;
+
+    @Column(name = "search_criteria_builder_featurer_id")
     private UUID searchFunctionFeaturerId;
 
     @ManyToOne
@@ -40,23 +44,23 @@ public class SearchParamEntity implements EasyLoggable {
     @JoinColumn(name = "search_id", insertable = false, updatable = false, nullable = false)
     private SearchEntity search;
 
-    @FeaturerList(type = SearchFunction.class)
+    @FeaturerList(type = SearchCriteriaBuilder.class)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "search_function_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity searchFunctionFeaturer;
+    @JoinColumn(name = "search_criteria_builder_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity searchCriteriaBuilderFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "search_function_params", columnDefinition = "hstore")
+    @Column(name = "search_criteria_builder_params", columnDefinition = "hstore")
     private HashMap<String, String> searchFunctionParams;
 
     public String easyLog(Level level)  {
         switch (level) {
             case SHORT:
-                return "searchParam[" + id + "]";
+                return "searchPredicate[" + id + "]";
             case NORMAL:
-                return "searchParam[id:" + id + ", searchId:" + searchId + "]";
+                return "searchPredicate[id:" + id + ", searchId:" + searchId + "]";
             default:
-                return "searchParam[id:" + id + ", searchId:" + searchId + ", key:" + key  + "]";
+                return "searchPredicate[id:" + id + ", searchId:" + searchId + ", field:" + searchField  + "]";
         }
     }
 }

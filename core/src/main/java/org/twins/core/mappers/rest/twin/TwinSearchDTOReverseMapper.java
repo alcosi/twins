@@ -14,7 +14,7 @@ import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
-public class TwinSearchDTOMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
+public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
 
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
@@ -22,8 +22,8 @@ public class TwinSearchDTOMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, Ba
                 .setTwinClassIdList(convertSafe(src.getTwinClassIdList()))
                 .setTwinClassIdExcludeList(convertSafe(src.getTwinClassIdExcludeList()))
                 .setStatusIdList(convertSafe(src.getStatusIdList()))
-                .setAssignerUserIdList(convertSafe(src.getAssignerUserIdList()))
-                .setAssignerUserIdExcludeList(convertSafe(src.getAssignerUserIdExcludeList()))
+                .setAssigneeUserIdList(convertSafe(src.getAssignerUserIdList()))
+                .setAssigneeUserIdExcludeList(convertSafe(src.getAssignerUserIdExcludeList()))
                 .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))
                 .setTwinIdList(convertSafe(src.getTwinIdList()))
                 .setTwinIdExcludeList(convertSafe(src.getTwinIdExcludeList()))
@@ -38,11 +38,11 @@ public class TwinSearchDTOMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, Ba
                 .setMarkerDataListOptionIdExcludeList(convertSafe(src.getMarkerDataListOptionIdExcludeList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList());
+                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false);
             }
         if (src.getNoLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getNoLinksList()) {
-                dst.addNoLinkDstTwinsId(twinSearchByNoLinkDTO.linkId, twinSearchByNoLinkDTO.getDstTwinIdList());
+                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true);
             }
     }
 
