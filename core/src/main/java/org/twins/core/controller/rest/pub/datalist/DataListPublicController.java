@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,8 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
+
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "Get public data lists", name = ApiTag.DATA_LIST)
 @RestController
@@ -51,14 +54,16 @@ public class DataListPublicController extends ApiController {
     public ResponseEntity<?> dataListPublicViewV1(
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
             rs.dataList = dataListRestDTOMapper.convert(
                     dataListService.findEntitySafe(dataListId), new MapperContext()
                             .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode));
+                            .setMode(showDataListOptionMode, createSimplePagination(offset, limit, Sort.unsorted())));//todo need implementation
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -79,14 +84,16 @@ public class DataListPublicController extends ApiController {
     public ResponseEntity<?> dataListPublicByKeyViewV1(
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._DETAILED) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser().setAnonymous();
-            rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperContext()
-                            .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode));
+            ApiUser apiUser = authService.getApiUser().setAnonymous();//todo need implementation
+//            rs.dataList = dataListRestDTOMapper.convert(
+//                    dataListService.findDataListByKey(apiUser, dataListKey), new MapperContext()
+//                            .setMode(showDataListMode)
+//                            .setMode(showDataListOptionMode, createSimplePagination(offset, limit, Sort.unsorted()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -107,15 +114,17 @@ public class DataListPublicController extends ApiController {
     public ResponseEntity<?> dataListPublicSearchV1(
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._HIDE) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
-            authService.getApiUser().setAnonymous();
-            rs.dataListList(
-                    dataListRestDTOMapper.convertList(
-                            dataListService.findDataLists(request.dataListIdList()), new MapperContext()
-                                    .setMode(showDataListMode)
-                                    .setMode(showDataListOptionMode)));
+            authService.getApiUser().setAnonymous();//todo need implementation
+//            rs.dataListList(
+//                    dataListRestDTOMapper.convertList(
+//                            dataListService.findDataLists(request.dataListIdList()), new MapperContext()
+//                                    .setMode(showDataListMode)
+//                                    .setMode(showDataListOptionMode, createSimplePagination(offset, limit, Sort.unsorted())));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

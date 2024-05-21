@@ -10,6 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class DataListOptionResult extends PaginationResult{
+public class DataListOptionResult {
     private Kit<DataListOptionEntity, UUID> optionKit;
+    private PaginationResult pagination;
 }

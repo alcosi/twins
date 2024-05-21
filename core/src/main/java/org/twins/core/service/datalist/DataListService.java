@@ -18,10 +18,15 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionResult;
+import org.twins.core.dto.rest.datalist.DataListResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
+import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -39,6 +44,8 @@ import java.util.UUID;
 public class DataListService extends EntitySecureFindServiceImpl<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
+    final DataListRestDTOMapper dataListRestDTOMapper;
+    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
@@ -131,9 +138,22 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return convertKitInSearchResult(new Kit<>(options, DataListOptionEntity::getId), paginationResult);
     }
 
+    public DataListResult getDataList(DataListEntity dataListEntity, DataListDTOv1 dataListDTO, MapperContext mapperContext) throws Exception {
+        DataListOptionResult options = findDataListOptions(dataListEntity, mapperContext.getModePagination(DataListOptionRestDTOMapper.Mode.class));
+        dataListDTO.setOptions(dataListOptionRestDTOMapper.convertMap(options.getOptionKit().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
+        dataListRestDTOMapper.convertMapOrPostpone(options.getOptionKit(), dataListDTO, dataListOptionRestDTOMapper, mapperContext, DataListDTOv1::setOptions, DataListDTOv1::setOptionIdList);
+        return convertListSearchResult(dataListDTO, options.getPagination());
+    }
+
     private DataListOptionResult convertKitInSearchResult(Kit<DataListOptionEntity, UUID> dataListOptionEntityUUIDKit, PaginationResult pagination) {
-        return (DataListOptionResult) new DataListOptionResult()
+        return new DataListOptionResult()
                 .setOptionKit(dataListOptionEntityUUIDKit)
+                .setPagination(pagination);
+    }
+
+    private DataListResult convertListSearchResult(DataListDTOv1 dataList, PaginationResult pagination) {
+        return (DataListResult) new DataListResult()
+                .setDataList(dataList)
                 .setTotal(pagination.getTotal())
                 .setOffset(pagination.getOffset())
                 .setLimit(pagination.getLimit());

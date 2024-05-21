@@ -6,18 +6,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionResult;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.service.datalist.DataListService;
 
 
 @Component
 @RequiredArgsConstructor
 public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, DataListDTOv1> {
-    private final DataListService dataListService;
-    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
     public void map(DataListEntity src, DataListDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -34,11 +30,6 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setId(src.getId())
                         .setName(src.getName());
                 break;
-        }
-        if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
-            DataListOptionResult options = dataListService.findDataListOptions(src, mapperContext.getModePagination(DataListOptionRestDTOMapper.Mode.class));
-            dst.setOptions(dataListOptionRestDTOMapper.convertMap(options.getOptionKit().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
-            convertMapOrPostpone(options.getOptionKit(), dst, dataListOptionRestDTOMapper, mapperContext, DataListDTOv1::setOptions, DataListDTOv1::setOptionIdList);
         }
     }
 

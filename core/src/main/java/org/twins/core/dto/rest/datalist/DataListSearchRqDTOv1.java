@@ -16,4 +16,7 @@ import java.util.UUID;
 public class DataListSearchRqDTOv1 extends Request {
     @Schema(description = "data list id list", example = "")
     public List<UUID> dataListIdList;
+
+    @Schema(description = "data option list", example = "")
+    public List<String> optionLike;
 }
