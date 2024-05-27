@@ -37,11 +37,8 @@ public class HeadHunterByStatus extends HeadHunter {
     protected TwinSearchResult findValidHead(Properties properties, TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
         BasicSearch search = new BasicSearch();
         search
-                .addTwinClassId(twinClassEntity.getId());
-        if (excludeStatusInput.extract(properties))
-            search.addStatusId(statusIds.extract(properties));
-        else
-            search.addStatusIdExclude(statusIds.extract(properties));
+                .addTwinClassId(twinClassEntity.getId(), false)
+                .addStatusId(statusIds.extract(properties), excludeStatusInput.extract(properties));
         return twinSearchService.findTwins(search, (int) pageable.getOffset(), pageable.getPageSize());
     }
 }

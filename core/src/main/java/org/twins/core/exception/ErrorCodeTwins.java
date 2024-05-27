@@ -68,7 +68,11 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
     TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter"),
-    FEATURER_IS_NULL(11501, "Got featurer is null");
+    FEATURER_IS_NULL(11501, "Got featurer is null"),
+    TWIN_SEARCH_NOT_UNIQ(11601, "twin search can not be selected by permission"),
+    TWIN_SEARCH_PARAM_MISSED(11602, "twin search params count incorrect"),
+    TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
+    TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect");
 
 
     private final int code;
