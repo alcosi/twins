@@ -36,6 +36,27 @@ public abstract class Slugger extends Featurer {
 
     protected abstract UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException;
 
+    public void deleteDomainBusinessAccount(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        deleteDomainBusinessAccount(properties, userGroup);
+    }
+    protected abstract void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException;
+
+    public void deleteDomain(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        deleteDomainBusinessAccount(properties, userGroup);
+    }
+    protected abstract void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException;
+
+    public void deleteBusinessAccount(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
+        deleteDomainBusinessAccount(properties, userGroup);
+    }
+    protected abstract void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException;
+
     protected void checkUserGroupBusinessAccountEmpty(UserGroupEntity userGroupEntity) {
         if (userGroupEntity.getBusinessAccountId() != null) {
             log.warn(userGroupEntity + " incorrect config. Group is " + userGroupEntity.getUserGroupTypeId() + ". Business account can not be specified in user_group");

@@ -2,16 +2,13 @@ package org.twins.core.service.user;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.user.UserGroupMapEntity;
-import org.twins.core.dao.user.UserGroupMapRepository;
-import org.twins.core.dao.user.UserGroupRepository;
+import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
@@ -26,6 +23,7 @@ import java.util.*;
 public class UserGroupService {
     final EntitySmartService entitySmartService;
     final UserGroupRepository userGroupRepository;
+    final UserGroupTypeRepository userGroupTypeRepository;
     final UserGroupMapRepository userGroupMapRepository;
     final FeaturerService featurerService;
     @Lazy
@@ -77,21 +75,21 @@ public class UserGroupService {
 
     public void forceDeleteUserGroups(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-
-        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainAndBusinessAccountScopeBusinessAccountManage");
-        entitySmartService.deleteAllAndLog(groupsToDelete, userGroupRepository);
-    }
-
-    public void forceDeleteUsers(UUID businessAccountId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-
-        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndTypes(businessAccountId, domainId, List.of("domainScopeBusinessAccountManage"));
-        entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
-
-        // delete users without business account, for type domainAndBusinessAccountScopeBusinessAccountManage
-        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypesAndUserGroupBusinessAccount(businessAccountId, domainId, List.of("domainAndBusinessAccountScopeBusinessAccountManage"));
-        entitySmartService.deleteAllAndLog(businessAccountUsersToDelete, userGroupMapRepository);
+        List<UserGroupTypeEntity> types = userGroupTypeRepository.findAll();
+        if (CollectionUtils.isEmpty(types))
+            return;
+        UserGroupEntity userGroup = new UserGroupEntity()
+                .setDomainId(apiUser.getDomainId())
+                .setBusinessAccountId(businessAccountId);
+        for (UserGroupTypeEntity type : types) {
+            userGroup.setUserGroupTypeId(type.getId());
+            Slugger slugger = featurerService.getFeaturer(type.getSluggerFeaturer(), Slugger.class);
+            slugger.deleteDomainBusinessAccount(type.getSluggerParams(), userGroup);
+            slugger.deleteDomain(type.getSluggerParams(), userGroup);
+            slugger.deleteBusinessAccount(type.getSluggerParams(), userGroup);
+        }
+        //method to delete user
+//        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainAndBusinessAccountScopeBusinessAccountManage");
+//        entitySmartService.deleteAllAndLog(groupsToDelete, userGroupRepository);
     }
 }

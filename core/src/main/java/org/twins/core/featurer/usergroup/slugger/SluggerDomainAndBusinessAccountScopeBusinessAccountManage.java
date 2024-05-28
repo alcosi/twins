@@ -5,13 +5,17 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.EntitySmartService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -22,6 +26,10 @@ import java.util.UUID;
         description = "")
 @RequiredArgsConstructor
 public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends Slugger {
+    @Lazy
+    @Autowired
+    EntitySmartService entitySmartService;
+
     @Override
     protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -52,5 +60,21 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
+    }
+
+    @Override
+    protected void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypesAndUserGroupBusinessAccount(userGroup.getBusinessAccountId(), userGroup.getDomainId(), List.of(userGroup.getUserGroupTypeId()));
+        entitySmartService.deleteAllAndLog(businessAccountUsersToDelete, userGroupMapRepository);
+    }
+
+    @Override
+    protected void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+
+    }
+
+    @Override
+    protected void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+
     }
 }

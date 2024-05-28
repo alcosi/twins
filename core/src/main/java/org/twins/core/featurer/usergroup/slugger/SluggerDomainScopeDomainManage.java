@@ -37,4 +37,19 @@ public class SluggerDomainScopeDomainManage extends Slugger {
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
     }
+
+    @Override
+    protected void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+
+    }
+
+    @Override
+    protected void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+
+    }
+
+    @Override
+    protected void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+
+    }
 }
