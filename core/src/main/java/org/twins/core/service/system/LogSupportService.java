@@ -37,11 +37,11 @@ public class LogSupportService {
     final TwinflowService twinflowService;
     final TwinflowTransitionService twinflowTransitionService;
 
-    public String generateSubstitutionsConfig(ApiUser apiUser, String filename) throws Exception {
+    public String generateSubstitutionsConfig(ApiUser apiUser, String filename, int offset, int limit) throws Exception {
         if (ObjectUtils.isEmpty(filename)) filename = apiUser.getDomain().getKey() + ".conf";
 
         var domain = apiUser.getDomain();
-        var twinClasses = twinClassService.findTwinClasses(apiUser, null);
+        var twinClasses = twinClassService.findTwinClasses(null, offset, limit).getTwinClassList();
         twinStatusService.loadStatusesForTwinClasses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinksForTwinClasses(twinClasses);

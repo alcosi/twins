@@ -50,4 +50,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "head class")
     public TwinClassBaseDTOv1 headClass;
+
+    @Schema(description = "extends class")
+    public TwinClassBaseDTOv1 extendsClass;
 }

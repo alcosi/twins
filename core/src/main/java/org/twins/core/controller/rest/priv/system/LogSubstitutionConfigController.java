@@ -10,7 +10,10 @@ import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
@@ -42,7 +45,7 @@ public class LogSubstitutionConfigController extends ApiController {
         CommandRsDTOv1 rs = new CommandRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename));
+            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, 0, 999));//todo add pagination
         } catch (Exception e) {
             e.printStackTrace();
             return createErrorRs(e, rs);
