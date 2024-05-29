@@ -303,11 +303,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public List<TwinEntity> findValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()));
+            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
             return twinSearchService.findTwins(search);
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass));
+            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
             return twinSearchService.findTwins(search);
         } else
             return null;
@@ -316,11 +316,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()));
+            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
             return twinSearchService.count(search);
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass));
+            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
             return twinSearchService.count(search);
         } else
             return 0L;

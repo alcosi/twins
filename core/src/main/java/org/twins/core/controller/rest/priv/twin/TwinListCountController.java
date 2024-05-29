@@ -22,7 +22,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinSearchRqDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -48,7 +48,7 @@ public class TwinListCountController extends ApiController {
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     final TwinRestDTOMapper twinRestDTOMapper;
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinSearchRqDTOMapper twinSearchRqDTOMapper;
+    final TwinSearchWithHeadDTOReverseMapper twinSearchRqDTOMapper;
     final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders

@@ -3,14 +3,18 @@ package org.twins.core.service.twinclass;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +30,7 @@ import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
@@ -36,8 +41,14 @@ import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
 
 @Slf4j
 @Service
@@ -84,11 +95,35 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return true;
     }
 
-    public List<TwinClassEntity> findTwinClasses(ApiUser apiUser, List<UUID> uuidLists) throws ServiceException {
-        if (CollectionUtils.isNotEmpty(uuidLists))
-            return twinClassRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
-        else
-            return twinClassRepository.findByDomainId(apiUser.getDomain().getId());
+    public TwinClassResult findTwinClasses(TwinClassSearch twinClassSearch, int offset, int limit) throws ServiceException {
+        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
+        if (twinClassSearch == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELDS_IS_EMPTY);
+        Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), pageable);
+        return convertPageSearchResult(twinClassList, offset, limit);
+    }
+
+    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch){
+        return where(
+                checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
+                .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
+                .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
+                .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
+                .and(hasOwnerType(twinClassSearch.getOwnerType()))
+                .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
+                .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
+                .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
+                .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
+                .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
+        );
+    }
+
+    private TwinClassResult convertPageSearchResult(Page<TwinClassEntity> twinClassList, int offset, int limit) {//todo change impl pagination
+        return (TwinClassResult) new TwinClassResult()
+                .setTwinClassList(twinClassList.toList())
+                .setTotal(twinClassList.getTotalElements())
+                .setOffset(offset)
+                .setLimit(limit);
     }
 
     public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {

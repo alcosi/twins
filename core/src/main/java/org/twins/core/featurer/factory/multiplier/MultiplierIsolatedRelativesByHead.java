@@ -49,9 +49,9 @@ public class MultiplierIsolatedRelativesByHead extends Multiplier {
             }
             BasicSearch search = new BasicSearch();
             search
-                    .addTwinClassId(inputTwin.getTwinClassId())
+                    .addTwinClassId(inputTwin.getTwinClassId(), false)
                     .addHeaderTwinId(inputTwin.getHeadTwinId())
-                    .addStatusId(statusIds.extract(properties));
+                    .addStatusId(statusIds.extract(properties), false);
             List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {
                 log.error(inputTwin.logShort() + " no relatives twins by head[" + inputTwin.getHeadTwinId() + "]");
