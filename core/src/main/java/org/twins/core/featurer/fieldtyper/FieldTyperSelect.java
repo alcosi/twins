@@ -37,6 +37,7 @@ public class FieldTyperSelect extends FieldTyperList {
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
         boolean supportCustomValue = supportCustom.extract(properties);
         // TODO add transactional support
+        // TODO maybe need to get BAiD at apiUser
         if (supportCustomValue)
             value.setOptions(dataListService.processNewOptions(listUUID.extract(properties), value.getOptions(), twin.getOwnerBusinessAccountId()));
         else
@@ -48,14 +49,14 @@ public class FieldTyperSelect extends FieldTyperList {
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
         dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-        int listSize = dataListOptionRepository.countByDataListId(listId);
+        int listSize = dataListService.countByDataListId(listId);
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
                 .supportCustom(supportCustom.extract(properties))
                 .multiple(multiple.extract(properties));
         if (listSize > longListThreshold.extract(properties))
             fieldDescriptorList.dataListId(listId);
         else {
-            fieldDescriptorList.options(dataListOptionRepository.findByDataListId(listId));
+            fieldDescriptorList.options(dataListService.findByDataListId(listId));
         }
         return fieldDescriptorList;
     }

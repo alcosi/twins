@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -139,9 +140,40 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
 
     public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
-        for (DataListOptionEntity option : newOptions) if (option.getId() == null) option.setId(UUID.randomUUID());
         return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
     }
+
+    public int countByDataListId(UUID listId) {
+        return dataListOptionRepository.countByDataListId(listId);
+    }
+
+    public List<DataListOptionEntity> findByDataListId(UUID listId) {
+        return dataListOptionRepository.findByDataListId(listId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(UUID listId, UUID twinClassFieldId) {
+       return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(UUID listId, UUID twinClassFieldId, UUID businessAccountId) {
+        return dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldId, businessAccountId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
+       return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+    }
+
+    //Method for reloading options if dataList is not present in entity;
+    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
+        List<UUID> idsForReload = new ArrayList<>();
+        for(var option : options) if(null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+        if (!idsForReload.isEmpty()) {
+            options.removeIf(o -> idsForReload.contains(o.getId()));
+            options.addAll(dataListOptionRepository.findByIdIn(idsForReload));
+        }
+        return options;
+    }
+
 
     public DataListOptionEntity checkOptionsExists(UUID dataListId, String optionName, UUID businessAccountId) {
         List<DataListOptionEntity> foundOptions;
@@ -157,20 +189,10 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
-        List<DataListOptionEntity> newOptions = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).toList();
-        List<DataListOptionEntity> optionsExists = new ArrayList<>();
-        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
-        for (DataListOptionEntity option : newOptions) {
-            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, option.getOption(), businessAccountId);
-            if (null != foundedOption) optionsExists.add(foundedOption);
-            else optionsForSave.add(option);
-        }
-        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
-        savedOptions.forEach(optionsExists::add);
-        if (CollectionUtils.isNotEmpty(optionsForSave))
-            evictOptionsCloudCache(dataListId, businessAccountId);
-        options.removeIf(option -> ObjectUtils.isEmpty(option.getId()));
-        options.addAll(optionsExists);
+        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
+        options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
+        List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
+        options.addAll(processedOptions);
         return options;
     }
 
@@ -206,6 +228,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 cache.evictIfPresent(dataListId + "" + businessAccountId);
         }
     }
+
 
 }
 
