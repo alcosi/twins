@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -59,11 +60,8 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
             for (String dataListOption : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;
                 DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
-                try {
-                    dataListOptionEntity.setId(UUID.fromString(dataListOption));
-                } catch (Exception e) {
-                    dataListOptionEntity.setOption(dataListOption);
-                }
+                if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
+                else dataListOptionEntity.setOption(dataListOption);
                 ((FieldValueSelect) fieldValue).add(dataListOptionEntity);
             }
         }
