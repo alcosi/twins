@@ -1,5 +1,6 @@
 package org.cambium.common.util;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -15,11 +16,13 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         return ret;
     }
 
-    public static <K, V> void narrowMapOfSets(Map<K, Set<V>> mainMap, Map<K, Set<V>> narrowMap) {
-        if (narrowMap == null) return;
+    public static <K, V> Map<K, Set<V>> narrowMapOfSets(Map<K, Set<V>> mainMap, Map<K, Set<V>> narrowMap) {
+        if (narrowMap == null) return mainMap;
+        Map<K, Set<V>> resultMap = new HashMap<>();
         Set<K> crossKeys = narrowSet(mainMap.keySet(), narrowMap.keySet());
         for (K key : crossKeys) {
-            mainMap.put(key, narrowSet(mainMap.get(key), narrowMap.get(key)));
+            resultMap.put(key, narrowSet(mainMap.get(key), narrowMap.get(key)));
         }
+        return resultMap;
     }
 }
