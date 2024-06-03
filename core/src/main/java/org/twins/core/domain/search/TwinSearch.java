@@ -16,6 +16,8 @@ public class TwinSearch {
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
+    Set<UUID> headTwinClassIdList;
+    Set<UUID> extendsTwinClassIdList;
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
     Set<UUID> assigneeUserIdList;
@@ -64,6 +66,16 @@ public class TwinSearch {
 
     public TwinSearch addHeaderTwinId(UUID headerTwinId) {
         headerTwinIdList = CollectionUtils.safeAdd(headerTwinIdList, headerTwinId);
+        return this;
+    }
+
+    public TwinSearch addHeadTwinClassId(UUID headTwinClassId) {
+        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, headTwinClassId);
+        return this;
+    }
+
+    public TwinSearch addExtendTwinClassId(UUID extendTwinClassId) {
+        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendTwinClassId);
         return this;
     }
 

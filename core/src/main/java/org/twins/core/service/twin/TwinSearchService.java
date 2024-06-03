@@ -23,6 +23,7 @@ import org.twins.core.dao.search.SearchPredicateRepository;
 import org.twins.core.dao.search.SearchRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinSearch;
@@ -79,6 +80,8 @@ public class TwinSearchService {
                         .and(checkTagIds(twinSearch.getTagDataListOptionIdExcludeList(), true))
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdList(), false))
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
+                        .and(checkTwinClassFields(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
+                        .and(checkTwinClassFields(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
         );
     }
 

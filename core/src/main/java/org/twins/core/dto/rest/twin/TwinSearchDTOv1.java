@@ -68,4 +68,10 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin marker exclude list(data list options ids)")
     public List<UUID> markerDataListOptionIdExcludeList;
 
+    @Schema(description = "Twin extends by twin class list ids")
+    public List<UUID> extendsTwinClassIdList;
+
+    @Schema(description = "Head twin class list ids")
+    public List<UUID> headTwinClassIdList;
+
 }
