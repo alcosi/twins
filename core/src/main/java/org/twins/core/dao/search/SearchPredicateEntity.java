@@ -38,6 +38,9 @@ public class SearchPredicateEntity implements EasyLoggable {
     @Column(name = "search_criteria_builder_featurer_id")
     private int searchFunctionFeaturerId;
 
+    @Column(name = "description")
+    private String description;
+
     @ManyToOne
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
