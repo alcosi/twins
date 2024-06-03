@@ -22,6 +22,8 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.space.SpaceUserRoleService;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.UUID;
 
 @Tag(name = ApiTag.SPACE)
@@ -47,7 +49,10 @@ public class SpaceRoleUserManageController extends ApiController {
             @RequestBody SpaceRoleUserRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
+            List<UUID> spaceRoleUserEnterList = request.spaceRoleUserEnterList;
+            List<UUID> spaceRoleUserExitList = request.spaceRoleUserExitList;
+            spaceRoleUserEnterList.addAll(spaceRoleUserExitList);
+            spaceUserRoleService.overrideUsers(spaceId, roleId, new HashSet<>(spaceRoleUserEnterList));
             rs.userList = userRestDTOMapper.convertList(
                     spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
         } catch (Exception e) {

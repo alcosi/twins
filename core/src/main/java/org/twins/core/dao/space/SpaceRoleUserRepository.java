@@ -1,5 +1,6 @@
 package org.twins.core.dao.space;
 
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -18,7 +20,10 @@ public interface SpaceRoleUserRepository extends CrudRepository<SpaceRoleUserEnt
 
     List<SpaceRoleUserEntity> findAllByTwinIdAndUserId(UUID twinId, UUID userId);
 
-    void deleteAllByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID spaceRoleId, UUID userId);
+    @Query("SELECT sru.userId FROM SpaceRoleUserEntity sru WHERE sru.twinId = :spaceTwinId AND sru.spaceRoleId = :spaceRoleId AND sru.userId IN :uuidSet")
+    Set<UUID> findUserIdsByTwinIdAndSpaceRoleIdAndUserIdIn(@Param("spaceTwinId") UUID spaceTwinId, @Param("spaceRoleId") UUID spaceRoleId, @Param("uuidSet") Set<UUID> uuidSet);
 
-    boolean existsByTwinIdAndSpaceRoleIdAndUserId(UUID twinId, UUID roleId, UUID userId);
+    @Transactional
+    void deleteAllByTwinIdAndSpaceRoleIdAndUserIdIn(UUID spaceTwinId, UUID spaceRoleId, Set<UUID> userIds);
+
 }
