@@ -22,7 +22,7 @@ import java.util.UUID;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2504,
+@Featurer(id = 2704,
         name = "SearchCriteriaBuilderConfiguredId",
         description = "")
 public class SearchCriteriaBuilderParam extends SearchCriteriaBuilderSingleUUID {
