@@ -177,7 +177,9 @@ public class TwinSearch {
             Pair.of(TwinSearch::getStatusIdExcludeList, TwinSearch::setStatusIdExcludeList),
             Pair.of(TwinSearch::getTwinClassIdList, TwinSearch::setTwinClassIdList),
             Pair.of(TwinSearch::getTwinClassIdExcludeList, TwinSearch::setTwinClassIdExcludeList),
-            Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList)
+            Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList),
+            Pair.of(TwinSearch::getExtendsTwinClassIdList, TwinSearch::setExtendsTwinClassIdList),
+            Pair.of(TwinSearch::getHeadTwinClassIdList, TwinSearch::setHeadTwinClassIdList)
     );
 
 }
