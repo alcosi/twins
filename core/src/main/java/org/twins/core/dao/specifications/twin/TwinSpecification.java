@@ -136,7 +136,7 @@ public class TwinSpecification {
         };
     }
 
-    public static Specification<TwinEntity> checkTwinClassFields(final String field, final Collection<UUID> uuids) {
+    public static Specification<TwinEntity> checkTwinClassUuidFieldIn(final String field, final Collection<UUID> uuids) {
         return (root, query, cb) -> {
             Join<TwinEntity, TwinClassEntity> twinClassJoin = root.join(TwinEntity.Fields.twinClass, JoinType.INNER);
             Predicate predicate = cb.conjunction();

@@ -80,8 +80,8 @@ public class TwinSearchService {
                         .and(checkTagIds(twinSearch.getTagDataListOptionIdExcludeList(), true))
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdList(), false))
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
-                        .and(checkTwinClassFields(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
-                        .and(checkTwinClassFields(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
+                        .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
+                        .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
         );
     }
 
