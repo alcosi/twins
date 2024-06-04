@@ -74,8 +74,8 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addExtendTwinClassId(UUID extendTwinClassId) {
-        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendTwinClassId);
+    public TwinSearch addExtendsTwinClassId(UUID extendsTwinClassId) {
+        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendsTwinClassId);
         return this;
     }
 
