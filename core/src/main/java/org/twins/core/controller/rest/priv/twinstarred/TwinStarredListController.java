@@ -22,7 +22,6 @@ import org.twins.core.dto.rest.twin.TwinStarredListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinStarredService;
 
 import java.util.List;
@@ -45,7 +44,6 @@ public class TwinStarredListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/starred/v1")
     public ResponseEntity<?> twinStarredListV1(
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinStarredListRsDTOv1 rs = new TwinStarredListRsDTOv1();
@@ -53,7 +51,6 @@ public class TwinStarredListController extends ApiController {
             List<TwinStarredEntity> twinStarredList = twinStarredService.findStarred(twinClassId);
             rs
                     .setStarredTwins(twinStarredRestDTOMapper.convertList(twinStarredList, new MapperContext()
-                            .setMode(showUserMode)
                             .setMode(showTwinMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

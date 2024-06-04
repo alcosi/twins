@@ -11,16 +11,16 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinStarredRsDTOv1;
+import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
 import org.twins.core.service.twin.TwinStarredService;
 
@@ -43,12 +43,14 @@ public class TwinStarredCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/star/v1")
     public ResponseEntity<?> markTwinAsStarredV1(
-            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._SHORT) TwinBaseRestDTOMapper.TwinMode showTwinMode) {
         TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
         try {
             TwinStarredEntity twinStarredEntity = twinStarredService.addStarred(twinId);
             rs
-                    .twinStarred(twinStarredRestDTOMapper.convert(twinStarredEntity));
+                    .twinStarred(twinStarredRestDTOMapper.convert(twinStarredEntity, new MapperContext()
+                            .setMode(showTwinMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
