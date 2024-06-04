@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Properties;
 
 
-@FeaturerType(id = 25,
+@FeaturerType(id = 27,
         name = "SearchCriteriaBuilder",
         description = "")
 @Slf4j

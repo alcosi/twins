@@ -19,7 +19,7 @@ import java.util.Properties;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2503,
+@Featurer(id = 2703,
         name = "SearchCriteriaBuilderLink",
         description = "")
 public class SearchCriteriaBuilderLink extends SearchCriteriaBuilder {

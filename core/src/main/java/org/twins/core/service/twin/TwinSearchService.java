@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
+import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -188,15 +189,15 @@ public class TwinSearchService {
         return searchEntity;
     }
 
-    public TwinSearchResult  findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+    public TwinSearchResult findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
         return findTwins(detectSearchByAlias(searchAliasId), namedParamsMap, searchNarrow, offset, limit);
     }
 
-    public TwinSearchResult  findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+    public TwinSearchResult findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
         return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, offset, limit);
     }
 
-    public TwinSearchResult  findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+    public TwinSearchResult findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
         BasicSearch basicSearch = new BasicSearch();
         addPredicates(searchEntity.getSearchPredicateList(), namedParamsMap, basicSearch, searchNarrow);
         if (searchEntity.getHeadTwinSearchId() != null) {
@@ -217,48 +218,16 @@ public class TwinSearchService {
         narrowSearch(mainSearch, narrowSearch);
     }
 
-    private static final ImmutableList<Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>>> FUNCTIONS = ImmutableList.of(
-            Pair.of(TwinSearch::getHeaderTwinIdList, TwinSearch::setHeaderTwinIdList),
-            Pair.of(TwinSearch::getCreatedByUserIdList, TwinSearch::setCreatedByUserIdList),
-            Pair.of(TwinSearch::getCreatedByUserIdExcludeList, TwinSearch::setCreatedByUserIdExcludeList),
-            Pair.of(TwinSearch::getAssigneeUserIdList, TwinSearch::setAssigneeUserIdList),
-            Pair.of(TwinSearch::getAssigneeUserIdExcludeList, TwinSearch::setAssigneeUserIdExcludeList),
-            Pair.of(TwinSearch::getMarkerDataListOptionIdList, TwinSearch::setMarkerDataListOptionIdList),
-            Pair.of(TwinSearch::getMarkerDataListOptionIdExcludeList, TwinSearch::setMarkerDataListOptionIdExcludeList),
-            Pair.of(TwinSearch::getTagDataListOptionIdList, TwinSearch::setTagDataListOptionIdList),
-            Pair.of(TwinSearch::getTagDataListOptionIdExcludeList, TwinSearch::setTagDataListOptionIdExcludeList),
-            Pair.of(TwinSearch::getTwinIdList, TwinSearch::setTwinIdList),
-            Pair.of(TwinSearch::getTwinIdExcludeList, TwinSearch::setTwinIdExcludeList),
-            Pair.of(TwinSearch::getOwnerBusinessAccountIdList, TwinSearch::setOwnerBusinessAccountIdList),
-            Pair.of(TwinSearch::getOwnerUserIdList, TwinSearch::setOwnerUserIdList),
-            Pair.of(TwinSearch::getStatusIdList, TwinSearch::setStatusIdList),
-            Pair.of(TwinSearch::getStatusIdExcludeList, TwinSearch::setStatusIdExcludeList),
-            Pair.of(TwinSearch::getTwinClassIdList, TwinSearch::setTwinClassIdList),
-            Pair.of(TwinSearch::getTwinClassIdExcludeList, TwinSearch::setTwinClassIdExcludeList),
-            Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList)
-    );
-
     protected void narrowSearch(TwinSearch mainSearch, TwinSearch narrowSearch) {
         if (narrowSearch == null)
             return;
-        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functioPair : FUNCTIONS) {
+        for (Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>> functioPair : TwinSearch.FUNCTIONS) {
             Set<UUID> mainSet = functioPair.getKey().apply(mainSearch);
             Set<UUID> narrowSet = functioPair.getKey().apply(narrowSearch);
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
-        //todo support narrow for links
-//        mainSearch
-//                .setHeaderTwinIdList(narrowSet(mainSearch.getHeaderTwinIdList(), narrowSearch.getHeaderTwinIdList()))
-//                .setCreatedByUserIdList(narrowSet(mainSearch.getCreatedByUserIdList(), narrowSearch.getCreatedByUserIdList()))
-//                .setCreatedByUserIdExcludeList(narrowSet(mainSearch.getCreatedByUserIdExcludeList(), narrowSearch.getCreatedByUserIdExcludeList()))
-//                .setAssigneeUserIdList(narrowSet(mainSearch.getAssigneeUserIdList(), narrowSearch.getAssigneeUserIdList()))
-//                .setAssigneeUserIdExcludeList(narrowSet(mainSearch.getAssigneeUserIdExcludeList(), narrowSearch.getAssigneeUserIdExcludeList()))
-//                .setMarkerDataListOptionIdList(narrowSet(mainSearch.getMarkerDataListOptionIdList(), narrowSearch.getMarkerDataListOptionIdList()))
-//                .setMarkerDataListOptionIdExcludeList(narrowSet(mainSearch.getMarkerDataListOptionIdExcludeList(), narrowSearch.getMarkerDataListOptionIdExcludeList()))
-//                .setTagDataListOptionIdList(narrowSet(mainSearch.getTagDataListOptionIdList(), narrowSearch.getTagDataListOptionIdList()))
-//                .setTagDataListOptionIdExcludeList(narrowSet(mainSearch.getTagDataListOptionIdExcludeList(), narrowSearch.getTagDataListOptionIdExcludeList()))
-//                .setTwinIdList(narrowSet(mainSearch.getTwinIdList(), narrowSearch.getTwinIdList()))
-        ;
+        mainSearch.setTwinLinksMap(narrowMapOfSets(mainSearch.getTwinLinksMap(), narrowSearch.getTwinLinksMap()));
+        mainSearch.setTwinNoLinksMap(narrowMapOfSets(mainSearch.getTwinNoLinksMap(), narrowSearch.getTwinNoLinksMap()));
     }
 }

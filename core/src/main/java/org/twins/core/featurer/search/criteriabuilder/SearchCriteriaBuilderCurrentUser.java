@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2502,
+@Featurer(id = 2702,
         name = "SearchCriteriaBuilderCurrentUser",
         description = "")
 public class SearchCriteriaBuilderCurrentUser extends SearchCriteriaBuilder {
