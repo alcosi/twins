@@ -7,3 +7,7 @@ DELETE FROM public.featurer_param WHERE featurer_id = 2504 AND key LIKE 'paramKe
 DELETE FROM public.featurer_param WHERE featurer_id = 2503 AND key LIKE 'linkId' ESCAPE '#';
 UPDATE public.featurer SET class = 'org.twins.core.featurer.search.criteriabuilder.DomainInitiatorBasic', name = 'DomainInitiatorBasic' WHERE id = 2501;
 UPDATE public.featurer SET class = 'org.twins.core.featurer.search.criteriabuilder.DomainInitiatorB2B', name = 'DomainInitiatorB2B' WHERE id = 2502;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description) VALUES (2701, 27, 'org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderConfiguredId', 'SearchCriteriaBuilderConfiguredId', '') on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description) VALUES (2702, 27, 'org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderCurrentUser', 'SearchCriteriaBuilderCurrentUser', '') on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description) VALUES (2703, 27, 'org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderLink', 'SearchCriteriaBuilderLink', '') on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description) VALUES (2704, 27, 'org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilderParam', 'SearchCriteriaBuilderConfiguredId', '') on conflict (id) do nothing;
