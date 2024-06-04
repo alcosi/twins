@@ -19,9 +19,14 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
     public static <K, V> Map<K, Set<V>> narrowMapOfSets(Map<K, Set<V>> mainMap, Map<K, Set<V>> narrowMap) {
         if (narrowMap == null) return mainMap;
         Map<K, Set<V>> resultMap = new HashMap<>();
-        Set<K> crossKeys = narrowSet(mainMap.keySet(), narrowMap.keySet());
-        for (K key : crossKeys) {
-            resultMap.put(key, narrowSet(mainMap.get(key), narrowMap.get(key)));
+        for (Map.Entry<K, Set<V>> entry : narrowMap.entrySet()) {
+            K key = entry.getKey();
+            Set<V> values = entry.getValue();
+            if (mainMap.containsKey(key)) {
+                resultMap.put(key, narrowSet(mainMap.get(key), values));
+            } else {
+                resultMap.put(key, values);
+            }
         }
         return resultMap;
     }
