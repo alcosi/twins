@@ -1,5 +1,6 @@
 package org.cambium.featurer.params;
 
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.annotations.FeaturerParamType;
 
 import java.util.HashSet;
@@ -20,8 +21,8 @@ public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
     @Override
     public Set<UUID> extract(Properties properties) {
         Set<UUID> ret = new HashSet<>();
-        for (String uuidString : properties.get(key).toString().split(","))
-            ret.add(UUID.fromString(uuidString.trim()));
+        for (String uuidString : properties.get(key).toString().split(",")) {
+              if(UuidUtils.isUUID(uuidString.trim())) ret.add(UUID.fromString(uuidString.trim()));
         return ret;
     }
 }
