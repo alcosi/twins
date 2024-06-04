@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
+import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
 
@@ -46,13 +47,14 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (!apiUser.isBusinessAccountSpecified() ||
-                userGroup.getBusinessAccountId() == null ||
-                !userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId())) {
+        if (!checkBusinessAccountCompatability(apiUser, userGroup)) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
-
+        if (!checkDomainCompatability(apiUser, userGroup)) {
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
+            return null;
+        }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
@@ -63,18 +65,18 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
     }
 
     @Override
-    protected void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypesAndUserGroupBusinessAccount(userGroup.getBusinessAccountId(), userGroup.getDomainId(), List.of(userGroup.getUserGroupTypeId()));
+    protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
+        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypeAndUserGroupBusinessAccount(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
         entitySmartService.deleteAllAndLog(businessAccountUsersToDelete, userGroupMapRepository);
     }
 
     @Override
-    protected void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+    protected void processDomainDeletion(Properties properties) throws ServiceException {
 
     }
 
     @Override
-    protected void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
+    protected void processBusinessAccountDeletion(Properties properties) throws ServiceException {
 
     }
 }

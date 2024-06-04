@@ -8,6 +8,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
+import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 
 import java.sql.Timestamp;
@@ -25,6 +26,7 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
     @Override
     protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
         checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
+        checkUserGroupDomainEmpty(userGroupMapEntity.getUserGroup());
         ApiUser apiUser = authService.getApiUser();
         if (userGroupMapEntity.getUserGroup().getBusinessAccountId() == null) {
             log.warn(userGroupMapEntity.getUserGroup().easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
@@ -37,7 +39,7 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
 
     @Override
     protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (!apiUser.isBusinessAccountSpecified() || !userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId())) {
+        if (!checkBusinessAccountCompatability(apiUser, userGroup)) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
@@ -51,17 +53,17 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
     }
 
     @Override
-    protected void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-
+    protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
+        //nothing to do, because slugger should not react on BA from domain deletion
     }
 
     @Override
-    protected void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-
+    protected void processDomainDeletion(Properties properties) throws ServiceException {
+        //nothing to do
     }
 
     @Override
-    protected void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-
+    protected void processBusinessAccountDeletion(Properties properties) throws ServiceException {
+        //todo implement me
     }
 }

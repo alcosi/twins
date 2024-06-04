@@ -189,8 +189,7 @@ public class DomainService {
 
         twinService.forceDeleteTwins(businessAccountId);
         twinService.forceDeleteAliasCounters(businessAccountId);
-        userGroupService.forceDeleteUserGroups(businessAccountId);
-//        userGroupService.forceDeleteUsers(businessAccountId);
+        userGroupService.processDomainBusinessAccountDeletion(businessAccountId);
         spaceRoleService.forceDeleteRoles(businessAccountId);
         dataListService.forceDeleteOptions(businessAccountId);
         twinflowService.forceDeleteSchemas(businessAccountId);

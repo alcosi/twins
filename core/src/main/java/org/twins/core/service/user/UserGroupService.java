@@ -73,20 +73,14 @@ public class UserGroupService {
         userGroupManager.manageForUser(domainEntity.getUserGroupManagerParams(), userId, userGroupEnterList, userGroupExitList, apiUser);
     }
 
-    public void forceDeleteUserGroups(UUID businessAccountId) throws ServiceException {
+    public void processDomainBusinessAccountDeletion(UUID businessAccountId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         List<UserGroupTypeEntity> types = userGroupTypeRepository.findAll();
         if (CollectionUtils.isEmpty(types))
             return;
-        UserGroupEntity userGroup = new UserGroupEntity()
-                .setDomainId(apiUser.getDomainId())
-                .setBusinessAccountId(businessAccountId);
         for (UserGroupTypeEntity type : types) {
-            userGroup.setUserGroupTypeId(type.getId());
             Slugger slugger = featurerService.getFeaturer(type.getSluggerFeaturer(), Slugger.class);
-            slugger.deleteDomainBusinessAccount(type.getSluggerParams(), userGroup);
-            slugger.deleteDomain(type.getSluggerParams(), userGroup);
-            slugger.deleteBusinessAccount(type.getSluggerParams(), userGroup);
+            slugger.processDomainBusinessAccountDeletion(type, businessAccountId);
         }
         //method to delete user
 //        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainAndBusinessAccountScopeBusinessAccountManage");

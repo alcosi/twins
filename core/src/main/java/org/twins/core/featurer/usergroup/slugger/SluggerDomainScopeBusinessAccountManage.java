@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupRepository;
+import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
 
@@ -54,6 +55,9 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
         if (!apiUser.isBusinessAccountSpecified()) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]. Business account is unknown");
             return null;
+        } else if (!checkDomainCompatability(apiUser, userGroup)) {
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
+            return null;
         }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
@@ -67,18 +71,18 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
     }
 
     @Override
-    protected void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndTypes(userGroup.getBusinessAccountId(), userGroup.getDomainId(), List.of(userGroup.getUserGroupTypeId()));
+    protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
+        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
         entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
     }
 
     @Override
-    protected void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-
+    protected void processDomainDeletion(Properties properties) throws ServiceException {
+        //todo implement
     }
 
     @Override
-    protected void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException {
-
+    protected void processBusinessAccountDeletion(Properties properties) throws ServiceException {
+        //todo implement
     }
 }

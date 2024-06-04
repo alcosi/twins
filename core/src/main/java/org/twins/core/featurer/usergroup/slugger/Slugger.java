@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupMapRepository;
+import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
@@ -36,33 +37,21 @@ public abstract class Slugger extends Featurer {
 
     protected abstract UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException;
 
-    public void deleteDomainBusinessAccount(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
-        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        deleteDomainBusinessAccount(properties, userGroup);
-    }
-    protected abstract void deleteDomainBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException;
-
-    public void deleteDomain(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
-        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        deleteDomainBusinessAccount(properties, userGroup);
-    }
-    protected abstract void deleteDomain(Properties properties, UserGroupEntity userGroup) throws ServiceException;
-
-    public void deleteBusinessAccount(HashMap<String, String> sluggerParams, UserGroupEntity userGroup) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
-        log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        deleteDomainBusinessAccount(properties, userGroup);
-    }
-    protected abstract void deleteBusinessAccount(Properties properties, UserGroupEntity userGroup) throws ServiceException;
-
     protected void checkUserGroupBusinessAccountEmpty(UserGroupEntity userGroupEntity) {
         if (userGroupEntity.getBusinessAccountId() != null) {
             log.warn(userGroupEntity + " incorrect config. Group is " + userGroupEntity.getUserGroupTypeId() + ". Business account can not be specified in user_group");
             userGroupEntity
                     .setBusinessAccountId(null)
                     .setBusinessAccount(null);
+        }
+    }
+
+    protected void checkUserGroupDomainEmpty(UserGroupEntity userGroupEntity) {
+        if (userGroupEntity.getDomainId() != null) {
+            log.warn(userGroupEntity+ " incorrect config. Group is " + userGroupEntity.getUserGroupTypeId() + ". Domain can not be specified in user_group");
+            userGroupEntity
+                    .setDomainId(null)
+                    .setDomain(null);
         }
     }
 
@@ -74,6 +63,7 @@ public abstract class Slugger extends Featurer {
                     .setBusinessAccount(null);
         }
     }
+
     public void enterGroup(UserGroupEntity userGroup, UUID userId) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams(), new HashMap<>());
         UserGroupMapEntity userGroupMapEntity = userGroupMapRepository.findByUserIdAndUserGroupId(userId, userGroup.getId());
@@ -105,5 +95,35 @@ public abstract class Slugger extends Featurer {
     protected boolean exitGroup(Properties properties, UserGroupMapEntity userGroupMapEntity, ApiUser apiUser) {
         userGroupMapRepository.delete(userGroupMapEntity);
         return true;
+    }
+
+    public void processDomainBusinessAccountDeletion(UserGroupTypeEntity userGroupTypeEntity, UUID businessAccountId) throws ServiceException {
+        Properties properties = extractProperties(userGroupTypeEntity.getSluggerParams(), true);
+        processDomainBusinessAccountDeletion(properties, businessAccountId, userGroupTypeEntity);
+    }
+    protected abstract void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException;
+
+    public void processDomainDeletion(HashMap<String, String> sluggerParams) throws ServiceException {
+        Properties properties = extractProperties(sluggerParams, true);
+        processDomainDeletion(properties);
+    }
+    protected abstract void processDomainDeletion(Properties properties) throws ServiceException;
+
+    public void processBusinessAccountDeletion(HashMap<String, String> sluggerParams) throws ServiceException {
+        Properties properties = extractProperties(sluggerParams, true);
+        processBusinessAccountDeletion(properties);
+    }
+    protected abstract void processBusinessAccountDeletion(Properties properties) throws ServiceException;
+
+    protected static boolean checkDomainCompatability(ApiUser apiUser, UserGroupEntity userGroup) throws ServiceException {
+        return apiUser.isDomainSpecified() &&
+                userGroup.getDomainId() != null &&
+                userGroup.getDomainId().equals(apiUser.getDomainId());
+    }
+
+    protected static boolean checkBusinessAccountCompatability(ApiUser apiUser, UserGroupEntity userGroup) throws ServiceException {
+        return apiUser.isBusinessAccountSpecified() &&
+                userGroup.getBusinessAccountId() != null &&
+                userGroup.getBusinessAccountId().equals(apiUser.getBusinessAccountId());
     }
 }
