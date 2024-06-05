@@ -7,15 +7,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dao.twin.TwinStarredRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.user.UserGroupService;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -24,11 +27,13 @@ import java.util.stream.Collectors;
 public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredEntity> {
     final AuthService authService;
     final TwinService twinService;
+    final UserGroupService userGroupService;
     final TwinStarredRepository twinStarredRepository;
 
     public List<TwinStarredEntity> findStarred(UUID twinClassId) throws ServiceException {
-        return twinStarredRepository.findTwinStarredListByTwinClassId(twinClassId).stream()
-                    .filter(this::isEntityReadDenied)
+        ApiUser apiUser = authService.getApiUser();
+        return twinStarredRepository.findTwinStarredListByTwinClassIdAndUserIdAndUserGroupId(twinClassId, apiUser.getDomainId(), TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()), apiUser.getUserId(),  TypedParameterTwins.uuidArray(apiUser.getUserGroups())).stream()
+                    .filter(Predicate.not(this::isEntityReadDenied))
                     .collect(Collectors.toList());
     }
 
@@ -59,7 +64,7 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
 
     @Override
     public boolean isEntityReadDenied(TwinStarredEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return !twinService.isEntityReadDenied(entity.getTwin(), readPermissionCheckMode);
+        return twinService.isEntityReadDenied(entity.getTwin(), readPermissionCheckMode);
     }
 
     @Override
