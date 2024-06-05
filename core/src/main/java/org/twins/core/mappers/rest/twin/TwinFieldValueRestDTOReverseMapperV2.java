@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -56,17 +57,12 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                     .setDate(fieldValueText.getValue());
         if (fieldTyper.getValueType() == FieldValueSelect.class) {
             fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField());
-            for (String dataListOptionId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
-                if (StringUtils.isEmpty(dataListOptionId))
-                    continue;
-                UUID dataListOptionUUID;
-                try {
-                    dataListOptionUUID = UUID.fromString(dataListOptionId);
-                } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect datalist UUID[" + dataListOptionId + "]");
-                }
-                ((FieldValueSelect) fieldValue).add(new DataListOptionEntity()
-                        .setId(dataListOptionUUID));
+            for (String dataListOption : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+                if (StringUtils.isEmpty(dataListOption)) continue;
+                DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
+                if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
+                else dataListOptionEntity.setOption(dataListOption);
+                ((FieldValueSelect) fieldValue).add(dataListOptionEntity);
             }
         }
         if (fieldTyper.getValueType() == FieldValueUser.class) {

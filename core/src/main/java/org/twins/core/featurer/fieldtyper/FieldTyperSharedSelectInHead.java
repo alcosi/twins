@@ -35,7 +35,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
 
     @Override
     public UUID checkOptionAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInHead(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId(), twinEntity.getHeadTwinId())
+        if (dataListService.findByDataListIdAndNotUsedInHead(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId(), twinEntity.getHeadTwinId())
                 .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in headTwin");
         return super.checkOptionAllowed(twinEntity, twinClassFieldEntity, dataListOptionEntity);
@@ -50,7 +50,7 @@ public class FieldTyperSharedSelectInHead extends FieldTyperList {
         Properties properties = featurerService.extractProperties(this, twinClassFieldEntity.getFieldTyperParams(), new HashMap<>());
         UUID listId = listUUID.extract(properties);
         DataListEntity dataListEntity = dataListService.findEntitySafe(listId);
-        List<DataListOptionEntity> options = dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId);
+        List<DataListOptionEntity> options = dataListService.findByDataListIdAndNotUsedInHead(listId, twinClassFieldEntity.getId(), headTwinId);
         return dataListEntity.setOptions(new Kit<>(options, DataListOptionEntity::getId));
     }
 }
