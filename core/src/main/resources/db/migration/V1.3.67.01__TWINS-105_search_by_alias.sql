@@ -54,6 +54,18 @@ on conflict do nothing;
 INSERT INTO search_field (id)
 VALUES ('hierarchyTreeContainsId')
 on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('assigneeUserId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('createdByUserId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('headTwinId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('statusId')
+    on conflict do nothing;
 
 alter table search
     add if not exists head_twin_search_id uuid;
