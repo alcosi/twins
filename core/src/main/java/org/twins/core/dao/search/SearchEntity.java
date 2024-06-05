@@ -30,7 +30,7 @@ public class SearchEntity implements EasyLoggable {
     private UUID permissionId;
 
     @Column(name = "search_alias_id")
-    private String searchAliasId;
+    private UUID searchAliasId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;

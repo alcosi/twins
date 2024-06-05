@@ -54,7 +54,7 @@ public class SearchPredicateEntity implements EasyLoggable {
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "search_criteria_builder_params", columnDefinition = "hstore")
-    private HashMap<String, String> searchFunctionParams;
+    private HashMap<String, String> searchCriteriaBuilderParams;
 
     public String easyLog(Level level)  {
         switch (level) {
