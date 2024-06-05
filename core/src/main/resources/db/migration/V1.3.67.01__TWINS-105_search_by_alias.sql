@@ -62,5 +62,5 @@ alter table search
     drop constraint if exists search_head_search_id_fk;
 
 alter table search
-    add constraint head_search_search_id_fk
+    add constraint search_head_search_id_fk
         foreign key (head_twin_search_id) references search;
