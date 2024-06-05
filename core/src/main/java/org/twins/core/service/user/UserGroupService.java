@@ -82,8 +82,5 @@ public class UserGroupService {
             Slugger slugger = featurerService.getFeaturer(type.getSluggerFeaturer(), Slugger.class);
             slugger.processDomainBusinessAccountDeletion(type, businessAccountId);
         }
-        //method to delete user
-//        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, domainId, "domainAndBusinessAccountScopeBusinessAccountManage");
-//        entitySmartService.deleteAllAndLog(groupsToDelete, userGroupRepository);
     }
 }

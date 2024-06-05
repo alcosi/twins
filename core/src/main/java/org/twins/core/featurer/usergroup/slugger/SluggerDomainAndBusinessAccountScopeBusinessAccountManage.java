@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
+import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.EntitySmartService;
@@ -30,6 +31,9 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
     @Lazy
     @Autowired
     EntitySmartService entitySmartService;
+
+    @Autowired
+    UserGroupRepository userGroupRepository;
 
     @Override
     protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
@@ -66,8 +70,10 @@ public class SluggerDomainAndBusinessAccountScopeBusinessAccountManage extends S
 
     @Override
     protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
-        List<UUID> businessAccountUsersToDelete = userGroupMapRepository.findAllByDomainIdAndTypeAndUserGroupBusinessAccount(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
-        entitySmartService.deleteAllAndLog(businessAccountUsersToDelete, userGroupMapRepository);
+        //we should delete groups of given type, because they were created only for given BA in given domain
+        //no need to delete data from user_group_map table, because it has cascade delete FK on user_group table
+        List<UUID> groupsToDelete = userGroupRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
+        entitySmartService.deleteAllAndLog(groupsToDelete, userGroupRepository);
     }
 
     @Override

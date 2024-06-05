@@ -72,6 +72,7 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
 
     @Override
     protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
+        //we should delete only members from groups of given type, which where linked to given BA. But group should not be deleted, because it will include users from other BAs
         List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
         entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
     }
