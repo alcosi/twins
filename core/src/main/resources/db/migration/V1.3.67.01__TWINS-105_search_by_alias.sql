@@ -55,6 +55,10 @@ INSERT INTO search_field (id)
 VALUES ('hierarchyTreeContainsId')
 on conflict do nothing;
 
+alter table search
+    add if not exists head_twin_search_id uuid;
+alter table search
+    drop constraint if exists head_search_search_id_fk;
 
 alter table search
     add if not exists head_twin_search_id uuid;
