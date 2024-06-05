@@ -23,7 +23,7 @@ public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
     @Override
     public Set<UUID> extract(Properties properties) {
         Set<UUID> ret = new HashSet<>();
-        if (!ObjectUtils.isEmpty(properties.get(key)) && !StringUtils.isNotBlank(properties.get(key).toString()))
+        if (!ObjectUtils.isEmpty(properties.get(key)) && StringUtils.isNotBlank(properties.get(key).toString()))
             for (String uuidString : properties.get(key).toString().split(","))
                 ret.add(UUID.fromString(uuidString.trim()));
         return ret;
