@@ -1,5 +1,5 @@
 INSERT INTO featurer_type (id, name, description) VALUES (28, 'SearchDetector', '') on conflict (id) do nothing;
-INSERT INTO featurer VALUES (2801, 28, 'org.twins.core.featurer.search.detector.SearchDetectorPreferProtected', '') on conflict (id) do nothing;
+INSERT INTO featurer VALUES (2801, 28, 'org.twins.core.featurer.search.detector.SearchDetectorPreferProtected', 'SearchDetectorPreferProtected') on conflict (id) do nothing;
 
 alter table search_alias
     add if not exists alias varchar;

@@ -5,7 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.search.SearchAliasEntity;
 import org.twins.core.dao.search.SearchEntity;
 import org.twins.core.service.auth.AuthService;
@@ -20,12 +20,12 @@ import java.util.Properties;
         name = "SearchBatcher",
         description = "Encapsulate logic to select searches from one alias into one batch")
 @Slf4j
-@Component
 public abstract class SearchDetector extends Featurer {
 
     @Autowired
     AuthService authService;
 
+    @Lazy
     @Autowired
     PermissionService permissionService;
 

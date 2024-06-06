@@ -73,7 +73,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_NOT_UNIQ(11601, "twin search can not be selected by permission"),
     TWIN_SEARCH_PARAM_MISSED(11602, "twin search params count incorrect"),
     TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
-    TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect");
+    TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
+    TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect");
 
 
     private final int code;

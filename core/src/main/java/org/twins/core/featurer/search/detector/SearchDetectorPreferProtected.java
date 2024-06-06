@@ -3,6 +3,7 @@ package org.twins.core.featurer.search.detector;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.stereotype.Component;
 import org.twins.core.dao.search.SearchEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -14,6 +15,7 @@ import java.util.Properties;
 @Featurer(id = 2801,
         name = "SearchDetectorPreferProtected",
         description = "")
+@Component
 public class SearchDetectorPreferProtected extends SearchDetector {
 
     @Override
