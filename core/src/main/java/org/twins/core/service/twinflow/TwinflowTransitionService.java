@@ -47,8 +47,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -60,6 +58,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
     final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
     final TwinClassService twinClassService;
     final TwinFactoryService twinFactoryService;
     final TwinStatusService twinStatusService;
@@ -185,7 +184,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         */
         Map<String, TwinflowTransitionEntity> alreadyAdded = new HashMap<>(); // key = alias_id + dst_status
         for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
-            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAliasId() + transitionEntity.getDstTwinStatusId();
+            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAlias().getAlias() + transitionEntity.getDstTwinStatusId();
             if (alreadyAdded.containsKey(transitionDistinctKey)
                     && alreadyAdded.get(transitionDistinctKey).getSrcTwinStatusId() != null)
                 continue; //skipping current transition because we already have one with specific src_status
@@ -247,13 +246,40 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         twinflowTransitionEntity
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(authService.getApiUser().getUserId())
-                .setTwinflowTransitionAliasId(null); //todo create alias if it's not exist in domain
+                .setCreatedByUserId(apiUser.getUserId())
+                .setTwinflowTransitionAliasId(checkAliasOnExistsInDomain(apiUser.getDomainId(), "key")); //todo create alias if it's not exist in domain
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    private UUID checkAliasOnExistsInDomain(UUID domainId, String key) throws ServiceException {
+        String alias = convertKeyInAlias(key);
+        UUID uuidAlias = twinflowTransitionAliasRepository.findByDomainIdAndAlias(domainId, alias);
+        if (uuidAlias != null)
+            return uuidAlias;
+        TwinflowTransitionAliasEntity saveAlias = new TwinflowTransitionAliasEntity()
+                .setDomainId(domainId)
+                .setAlias(alias);
+        return saveTwinflowTransitionAlias(saveAlias);
+    }
+
+    private String convertKeyInAlias(String key) {
+        // INPUT -> TOOL_USER_TRANSFER_WORKER_DECISION
+        // OUTPUT -> toolUserTransferWorkerDecision
+        String[] parts = key.toLowerCase().split("_");
+        StringBuilder camelCaseString = new StringBuilder(parts[0]);
+        for (int i = 1; i < parts.length; i++) {
+            camelCaseString.append(parts[i].substring(0, 1).toUpperCase())
+                    .append(parts[i].substring(1));
+        }
+        return camelCaseString.toString();
+    }
+
+    private UUID saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException).getId();
     }
 
     @Getter
