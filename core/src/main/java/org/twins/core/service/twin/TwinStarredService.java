@@ -32,9 +32,16 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
 
     public List<TwinStarredEntity> findStarred(UUID twinClassId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return twinStarredRepository.findTwinStarredListByTwinClassIdAndUserIdAndUserGroupId(twinClassId, apiUser.getDomainId(), TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()), apiUser.getUserId(),  TypedParameterTwins.uuidArray(apiUser.getUserGroups())).stream()
-                    .filter(Predicate.not(this::isEntityReadDenied))
-                    .collect(Collectors.toList());
+        userGroupService.loadGroups(apiUser);
+        return twinStarredRepository.findTwinStarredListByTwinClassIdAndUserIdAndUserGroupId(
+                        twinClassId,
+                        apiUser.getDomainId(),
+                        TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
+                        apiUser.getUserId(),
+                        TypedParameterTwins.uuidArray(apiUser.getUserGroups()))
+                .stream()
+                .filter(Predicate.not(this::isEntityReadDenied))
+                .collect(Collectors.toList());
     }
 
     public TwinStarredEntity addStarred(UUID twinId) throws ServiceException {
@@ -54,7 +61,7 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
         ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUserId();
         twinStarredRepository.deleteByTwinIdAndUserId(twinId, apiUser.getUserId());
-        log.info("Starred[" + StringUtils.join(twinId, ",", userId) + "] perhaps were deleted");
+        log.info("Starred[{}] perhaps were deleted", StringUtils.join(twinId, ",", userId));
     }
 
     @Override
