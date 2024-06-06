@@ -35,3 +35,6 @@ alter table search_alias
 alter table search
     add constraint search_search_alias_id_fk
         foreign key (search_alias_id) references search_alias on update cascade on delete cascade;
+
+create unique index if not exists search_alias_domain_id_alias_uindex
+    on search_alias (domain_id, alias);
