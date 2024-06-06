@@ -179,7 +179,7 @@ public class TwinSearchService {
         List<SearchEntity> detectedSearches = searchDetector.detect(searchAliasEntity, searchEntityList);
         if (CollectionUtils.isEmpty(detectedSearches))
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "no searches detected");
-        return searchDetector.detect(searchAliasEntity, searchEntityList);
+        return detectedSearches;
     }
 
     public TwinSearchResult findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
