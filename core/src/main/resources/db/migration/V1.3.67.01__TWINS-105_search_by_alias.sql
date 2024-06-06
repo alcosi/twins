@@ -54,7 +54,23 @@ on conflict do nothing;
 INSERT INTO search_field (id)
 VALUES ('hierarchyTreeContainsId')
 on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('assigneeUserId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('createdByUserId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('headTwinId')
+    on conflict do nothing;
+INSERT INTO search_field (id)
+VALUES ('statusId')
+    on conflict do nothing;
 
+alter table search
+    add if not exists head_twin_search_id uuid;
+alter table search
+    drop constraint if exists head_search_search_id_fk;
 
 alter table search
     add if not exists head_twin_search_id uuid;
@@ -62,5 +78,5 @@ alter table search
     drop constraint if exists search_head_search_id_fk;
 
 alter table search
-    add constraint head_search_search_id_fk
+    add constraint search_head_search_id_fk
         foreign key (head_twin_search_id) references search;

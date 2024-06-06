@@ -28,12 +28,12 @@ public class FieldTyperSharedSelectInDomain extends FieldTyperList {
         return new FieldDescriptorList()
                 .supportCustom(false)
                 .multiple(false)
-                .options(dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldEntity.getId()));
+                .options(dataListService.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldEntity.getId()));
     }
 
     @Override
     public UUID checkOptionAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInDomain(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId()).stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
+        if (dataListService.findByDataListIdAndNotUsedInDomain(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId()).stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in domain");
         return super.checkOptionAllowed(twinEntity, twinClassFieldEntity, dataListOptionEntity);
     }

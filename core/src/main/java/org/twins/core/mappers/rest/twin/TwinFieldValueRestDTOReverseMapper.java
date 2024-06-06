@@ -19,6 +19,7 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 
 @Component
 @RequiredArgsConstructor
+@Deprecated
 public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<TwinFieldValueDTO, FieldValue> {
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
     final TwinClassFieldService twinClassFieldService;

@@ -184,13 +184,12 @@ public class DomainService {
     }
 
     @Transactional
-    public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
+    public void deleteBusinessAccountFromDomain(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
 
         twinService.forceDeleteTwins(businessAccountId);
         twinService.forceDeleteAliasCounters(businessAccountId);
-        userGroupService.forceDeleteUserGroups(businessAccountId);
-        userGroupService.forceDeleteUsers(businessAccountId);
+        userGroupService.processDomainBusinessAccountDeletion(businessAccountId);
         spaceRoleService.forceDeleteRoles(businessAccountId);
         dataListService.forceDeleteOptions(businessAccountId);
         twinflowService.forceDeleteSchemas(businessAccountId);
