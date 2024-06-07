@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
-import org.twins.core.dto.rest.twin.TwinStoredSearchRqDTOv1;
+import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
@@ -63,6 +63,7 @@ public class TwinListController extends ApiController {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
     final PaginationMapper paginationMapper;
+    final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchV1", summary = "Twins basic search")
@@ -303,10 +304,10 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
-            @RequestBody TwinStoredSearchRqDTOv1 request) {
+            @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(searchAlias, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), offset, limit);
+            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showRelatedByHeadTwinMode)
@@ -371,7 +372,7 @@ public class TwinListController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
-            @RequestBody TwinStoredSearchRqDTOv1 request) {
+            @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), offset, limit);

@@ -11,11 +11,8 @@ import java.util.Map;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinStoredSearchRqV1")
-public class TwinStoredSearchRqDTOv1 extends Request {
-    @Schema(description = "Search named params values")
-    public Map<String, String> params;
-
-    @Schema(description = "search narrowing")
-    public TwinSearchWithHeadDTOv1 narrow;
+@Schema(name =  "TwinSearchByAliasBatchRqV1")
+public class TwinSearchByAliasBatchRqDTOv1 extends Request {
+    @Schema(description = "Search alias ref alias request body(TwinSearchByAliasRqV1)")
+    public Map<String, TwinSearchByAliasRqDTOv1> searchMap;
 }
