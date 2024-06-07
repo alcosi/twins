@@ -21,10 +21,10 @@ import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -35,7 +35,7 @@ import java.util.UUID;
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
     final TwinClassFieldService twinClassFieldService;
     final TwinService twinService;
-    final TwinHeadService twinHeadService;
+    final TwinClassService twinClassService;
     final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
     final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
     final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
@@ -99,9 +99,18 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
-//        if (!mapperContext.hasModeOrEmpty(HeadClassMode.HIDE) && src.getHeadTwinClassId() != null) {
-//            dst.headClass()
-//        }
+        if (mapperContext.hasMode(HeadClassMode.SHOW) && src.getHeadTwinClassId() != null) {
+            twinClassService.loadHeadTwinClass(src);
+            dst.headClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getHeadTwinClass(),
+                    mapperContext.cloneWithFlushedModes()
+                            .setMode(mapperContext.getModeOrUse(TwinClassBaseRestDTOMapper.ClassMode.SHORT))));
+        }
+        if (mapperContext.hasMode(ExtendsClassMode.SHOW) && src.getExtendsTwinClassId() != null) {
+            twinClassService.loadExtendsTwinClass(src);
+            dst.extendsClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(),
+                    mapperContext.cloneWithFlushedModes()
+                            .setMode(mapperContext.getModeOrUse(TwinClassBaseRestDTOMapper.ClassMode.SHORT))));
+        }
     }
 
     @Override
@@ -112,6 +121,12 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext)) {
             twinClassFieldService.loadTwinClassFields(srcCollection);
+        }
+        if (mapperContext.hasMode(HeadClassMode.SHOW)) {
+            twinClassService.loadHeadTwinClasses(srcCollection);
+        }
+        if (mapperContext.hasMode(HeadClassMode.SHOW)) {
+            twinClassService.loadExtendsTwinClasses(srcCollection);
         }
     }
 

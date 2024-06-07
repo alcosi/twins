@@ -170,6 +170,15 @@ public class TwinClassEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity headTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity extendsTwinClass;
+
+
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet) {
             extendedClassIdSet = new HashSet<>();

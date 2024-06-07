@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.dao.I18nEntity;
@@ -41,10 +43,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.LinkedHashSet;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -274,6 +273,50 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (StringUtils.isBlank(twinClassEntity.getExtendsHierarchyTree())) // this field is filled by trigger only after transaction commit. So we have to reload entity from database
             twinClassEntity.setExtendsHierarchyTree(twinClassRepository.getExtendsHierarchyTree(twinClassEntity.getId()));
         return twinClassEntity;
+    }
+
+    public void loadHeadTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null || twinClassEntity.getHeadTwinClass() != null)
+            return;
+        twinClassEntity.setHeadTwinClass(findEntitySafe(twinClassEntity.getHeadTwinClassId()));
+    }
+
+    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getHeadTwinClass() != null)
+                continue;
+            needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (TwinClassEntity headTwinClass : heads) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
+                twinClass.setHeadTwinClass(headTwinClass);
+        }
+    }
+
+    public void loadExtendsTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getExtendsTwinClassId() == null || twinClassEntity.getExtendsTwinClass() != null)
+            return;
+        twinClassEntity.setExtendsTwinClass(findEntitySafe(twinClassEntity.getExtendsTwinClassId()));
+    }
+
+    public void loadExtendsTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getExtendsTwinClassId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getExtendsTwinClass() != null)
+                continue;
+            needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (TwinClassEntity extendsTwinClass : heads) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
+                twinClass.setExtendsTwinClass(extendsTwinClass);
+        }
     }
 }
 
