@@ -1,6 +1,5 @@
 package org.twins.core.service.twin;
 
-import com.google.common.collect.ImmutableList;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -17,10 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.search.SearchEntity;
-import org.twins.core.dao.search.SearchPredicateEntity;
-import org.twins.core.dao.search.SearchPredicateRepository;
-import org.twins.core.dao.search.SearchRepository;
+import org.twins.core.dao.search.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -29,6 +25,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
+import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
@@ -53,6 +50,7 @@ public class TwinSearchService {
     final TwinService twinService;
     final UserGroupService userGroupService;
     final SearchRepository searchRepository;
+    final SearchAliasRepository searchAliasRepository;
     final SearchPredicateRepository searchPredicateRepository;
     final PermissionService permissionService;
     @Lazy
@@ -125,9 +123,7 @@ public class TwinSearchService {
     //***********************************************************************//
 
     public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int limit) throws ServiceException {
-        Specification<TwinEntity> spec = createTwinEntitySearchSpecification(basicSearch);
-        Page<TwinEntity> ret = twinRepository.findAll(where(spec), PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-        return convertPageInTwinSearchResult(ret, offset, limit);
+        return findTwins(List.of(basicSearch), offset, limit);
     }
 
     public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int limit) throws ServiceException {
@@ -172,28 +168,22 @@ public class TwinSearchService {
                 .setTotal(twinPage.getTotalElements());
     }
 
-    public SearchEntity detectSearchByAlias(String searchAliasId) throws ServiceException {
-        List<SearchEntity> searchEntityList = searchRepository.findBySearchAliasId(searchAliasId);
+    public List<SearchEntity> detectSearchesByAlias(String searchAliasId) throws ServiceException {
+        SearchAliasEntity searchAliasEntity = searchAliasRepository.findByDomainIdAndAlias(authService.getApiUser().getDomainId(), searchAliasId);
+        if (searchAliasEntity == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
+        List<SearchEntity> searchEntityList = searchRepository.findBySearchAliasId(searchAliasEntity.getId());
         if (searchEntityList == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
-        ApiUser apiUser = authService.getApiUser();
-        permissionService.loadUserPermissions(apiUser);
-        SearchEntity searchEntity = null;
-        for (SearchEntity searchByAliasEntity : searchEntityList) { //many searches can be linked to one alias
-            if (searchByAliasEntity.getPermissionId() == null || apiUser.getPermissions().contains(searchByAliasEntity.getPermissionId())) {
-                if (searchEntity == null)
-                    searchEntity = searchByAliasEntity;
-                else
-                    throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_NOT_UNIQ);
-            }
-        }
-        if (searchEntity == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_ALIAS_UNKNOWN);
-        return searchEntity;
+        SearchDetector searchDetector = featurerService.getFeaturer(searchAliasEntity.getSearchDetectorFeaturer(), SearchDetector.class);
+        List<SearchEntity> detectedSearches = searchDetector.detect(searchAliasEntity, searchEntityList);
+        if (CollectionUtils.isEmpty(detectedSearches))
+            throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "no searches detected");
+        return detectedSearches;
     }
 
     public TwinSearchResult findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
-        return findTwins(detectSearchByAlias(searchAliasId), namedParamsMap, searchNarrow, offset, limit);
+        return findTwins(detectSearchesByAlias(searchAliasId), namedParamsMap, searchNarrow, offset, limit);
     }
 
     public TwinSearchResult findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
@@ -201,15 +191,23 @@ public class TwinSearchService {
     }
 
     public TwinSearchResult findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
-        BasicSearch basicSearch = new BasicSearch();
-        addPredicates(searchEntity.getSearchPredicateList(), namedParamsMap, basicSearch, searchNarrow);
-        if (searchEntity.getHeadTwinSearchId() != null) {
-            List<SearchPredicateEntity> headSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getHeadTwinSearchId());
-            if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
-                basicSearch.setHeadSearch(new TwinSearch());
-            addPredicates(headSearchPredicates, namedParamsMap, basicSearch.getHeadSearch(), searchNarrow.getHeadSearch());
+        return findTwins(List.of(searchEntity), namedParamsMap, searchNarrow, offset, limit);
+    }
+
+    public TwinSearchResult findTwins(List<SearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+        List<BasicSearch> basicSearches = new ArrayList<>();
+        for (SearchEntity searchEntity : searchEntities) {
+            BasicSearch basicSearch = new BasicSearch();
+            addPredicates(searchEntity.getSearchPredicateList(), namedParamsMap, basicSearch, searchNarrow);
+            if (searchEntity.getHeadTwinSearchId() != null) {
+                List<SearchPredicateEntity> headSearchPredicates = searchPredicateRepository.findBySearchId(searchEntity.getHeadTwinSearchId());
+                if (CollectionUtils.isNotEmpty(headSearchPredicates) && basicSearch.getHeadSearch() == null)
+                    basicSearch.setHeadSearch(new TwinSearch());
+                addPredicates(headSearchPredicates, namedParamsMap, basicSearch.getHeadSearch(), searchNarrow.getHeadSearch());
+            }
+            basicSearches.add(basicSearch);
         }
-        return findTwins(basicSearch, offset, limit);
+        return findTwins(basicSearches, offset, limit);
     }
 
     protected void addPredicates(List<SearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {

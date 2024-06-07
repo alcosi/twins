@@ -18,7 +18,7 @@ import java.util.Properties;
 @Slf4j
 public abstract class SearchCriteriaBuilder extends Featurer {
     public void concat(TwinSearch twinSearch, SearchPredicateEntity searchPredicateEntity, Map<String, String> namedParamsMap) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, searchPredicateEntity.getSearchFunctionParams(), new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, searchPredicateEntity.getSearchCriteriaBuilderParams(), new HashMap<>());
         concat(twinSearch, searchPredicateEntity, properties, namedParamsMap);
     }
 

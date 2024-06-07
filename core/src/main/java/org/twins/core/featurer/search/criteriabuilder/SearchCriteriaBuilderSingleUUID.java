@@ -22,6 +22,9 @@ public abstract class SearchCriteriaBuilderSingleUUID extends SearchCriteriaBuil
             case statusId:
                 twinSearch.addStatusId(id, searchPredicateEntity.isExclude());
                 break;
+            case linkId:
+                twinSearch.addLinkDstTwinsId(id, null, searchPredicateEntity.isExclude());
+                break;
             case assigneeUserId:
                 twinSearch.addAssigneeUserId(id, searchPredicateEntity.isExclude());
                 break;
