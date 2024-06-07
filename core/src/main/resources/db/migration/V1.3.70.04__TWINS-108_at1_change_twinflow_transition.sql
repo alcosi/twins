@@ -14,6 +14,9 @@ drop view if exists  twinflow_transition_lazy;
 -- set column new type
 alter table twinflow_transition
     alter column twinflow_transition_alias_id type uuid using twinflow_transition_alias_id::uuid;
+-- set column new type
+alter table twinflow_transition_alias
+    alter column id type uuid using id::uuid;
 -- create view
 CREATE VIEW twinflow_transition_lazy
             (id, twinflow_id, fk_twinflow_name, fk_twinflow_twinclass_key, name_i18n_id, src_twin_status_id,
@@ -53,9 +56,6 @@ FROM twinflow_transition tft
          LEFT JOIN twin_status ts1 ON tft.src_twin_status_id = ts1.id
          LEFT JOIN twin_class tc2 ON ts1.twins_class_id = tc2.id
          LEFT JOIN twinflow_transition_alias tfta ON tft.twinflow_transition_alias_id = tfta.id;
--- set column new type
-alter table twinflow_transition_alias
-    alter column id type uuid using id::uuid;
 -- add new fk
 alter table twinflow_transition
     add constraint twinflow_transition_twinflow_transition_alias_id_fk
