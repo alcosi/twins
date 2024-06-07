@@ -15,7 +15,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.domain.search.SearchAlias;
+import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -82,11 +82,11 @@ public class TwinListCountController extends ApiController {
     public ResponseEntity<?> twinSearchByAliasCountInBatchV1(@RequestBody TwinSearchByAliasBatchRqDTOv1 request) {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {
-            Map<String, SearchAlias> searchMap = new HashMap<>();
+            Map<String, SearchByAlias> searchMap = new HashMap<>();
             for (Map.Entry<String, TwinSearchByAliasRqDTOv1> entry : request.searchMap.entrySet()) {
-                SearchAlias searchAlias = twinSearchByAliasDTOReverseMapper.convert(entry.getValue());
-                searchAlias.setAlias(entry.getKey());
-                searchMap.put(entry.getKey(), searchAlias);
+                SearchByAlias searchByAlias = twinSearchByAliasDTOReverseMapper.convert(entry.getValue());
+                searchByAlias.setAlias(entry.getKey());
+                searchMap.put(entry.getKey(), searchByAlias);
             }
             rs.response(twinSearchService.countTwinsBySearchAliasInBatch(searchMap));
         } catch (ServiceException se) {

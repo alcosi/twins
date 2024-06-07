@@ -7,7 +7,7 @@ import java.util.Map;
 
 @Data
 @Accessors(chain = true)
-public class SearchAlias extends TwinSearch {
+public class SearchByAlias {
     String alias;
     BasicSearch narrow;
     Map<String, String> params;
