@@ -99,6 +99,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
+//        if (!mapperContext.hasModeOrEmpty(HeadClassMode.HIDE) && src.getHeadTwinClassId() != null) {
+//            dst.headClass()
+//        }
     }
 
     @Override

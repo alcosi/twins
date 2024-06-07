@@ -98,7 +98,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public TwinClassResult findTwinClasses(TwinClassSearch twinClassSearch, int offset, int limit) throws ServiceException {
         Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
         if (twinClassSearch == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELDS_IS_EMPTY);
+            twinClassSearch = new TwinClassSearch(); //no filters
         Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), pageable);
         return convertPageSearchResult(twinClassList, offset, limit);
     }

@@ -39,7 +39,7 @@ public class TwinClassSearch {
         return this;
     }
 
-    public TwinClassSearch  addExtendsTwinClassId(Collection<UUID> twinClassIdSet) {
+    public TwinClassSearch addExtendsTwinClassId(Collection<UUID> twinClassIdSet) {
         extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, twinClassIdSet);
         return this;
     }

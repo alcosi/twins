@@ -3,6 +3,7 @@ package org.twins.core.config;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import io.swagger.v3.oas.models.media.StringSchema;
 import io.swagger.v3.oas.models.parameters.HeaderParameter;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import org.springdoc.core.models.GroupedOpenApi;
@@ -98,6 +99,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_USER_ID)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.USER_ID);
     }
 
@@ -105,6 +107,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_DOMAIN_ID)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.DOMAIN_ID);
     }
 
@@ -112,6 +115,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_LOCALE)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.LOCALE);
     }
 
@@ -119,6 +123,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_BUSINESS_ACCOUNT_ID)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.BUSINESS_ACCOUNT_ID);
     }
 
@@ -126,6 +131,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_AUTH_TOKEN)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.AUTH_TOKEN);
     }
 
@@ -133,6 +139,7 @@ public class OpenApiConfig {
         return new HeaderParameter()
                 .name(HttpRequestService.HEADER_CHANNEL)
                 .required(true)
+                .schema(new StringSchema())
                 .example(DTOExamples.CHANNEL);
     }
 

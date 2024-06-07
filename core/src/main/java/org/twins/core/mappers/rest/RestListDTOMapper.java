@@ -10,7 +10,9 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
         beforeListConversion(srcCollection, mapperContext);
         List<S> ret = new ArrayList<>();
         for (T src : srcCollection) {
-            ret.add(this.convert(src, mapperContext));
+            S converted = this.convert(src, mapperContext);
+            if (converted != null)
+                ret.add(converted);
         }
         return ret;
     }
@@ -26,13 +28,13 @@ public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {
             return null;
         beforeListConversion(srcMap.values(), mapperContext);
         Map<UUID, S> ret = new LinkedHashMap<>();
-        for (Map.Entry<UUID, T>  src : srcMap.entrySet()) {
+        for (Map.Entry<UUID, T> src : srcMap.entrySet()) {
             ret.put(src.getKey(), this.convert(src.getValue(), mapperContext));
         }
         return ret;
     }
 
-    public void beforeListConversion(Collection<T> srcCollection, MapperContext mapperContext) throws Exception{
+    public void beforeListConversion(Collection<T> srcCollection, MapperContext mapperContext) throws Exception {
 
     }
 }
