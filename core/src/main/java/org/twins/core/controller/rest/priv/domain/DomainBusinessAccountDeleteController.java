@@ -44,7 +44,7 @@ public class DomainBusinessAccountDeleteController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
 
-            domainService.deleteBusinessAccount(
+            domainService.deleteBusinessAccountFromDomain(
                     domainService.checkDomainId(apiUser.getDomain().getId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     apiUser.getBusinessAccount().getId());
         } catch (ServiceException se) {

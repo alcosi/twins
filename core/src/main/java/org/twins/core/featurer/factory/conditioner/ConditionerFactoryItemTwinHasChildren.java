@@ -38,7 +38,7 @@ public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
         BasicSearch search = new BasicSearch();
         search
                 .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
-                .addStatusId(statusIds.extract(properties));
+                .addStatusId(statusIds.extract(properties), false);
         if (excludeFactoryInput.extract(properties))
             search.setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         long count = twinSearchService.count(search);

@@ -24,20 +24,6 @@ public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, 
     @Query(value = "select m.tagDataListOption from TwinTagEntity m where m.twinId = :twinId ")
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
 
-    @Query(value = "SELECT o FROM DataListOptionEntity o " +
-            "WHERE o.dataListId = :dataListId " +
-            "AND (o.businessAccountId IS NULL) " +
-            "AND (lower(:name) like lower(o.option)) " +
-            "ORDER BY o.businessAccountId")
-    List<DataListOptionEntity> findOptionOutOfBusinessAccount(@Param("dataListId") UUID dataListId, @Param("name") String name, Pageable pageable);
-
-    @Query(value = "SELECT o FROM DataListOptionEntity o " +
-            "WHERE o.dataListId = :dataListId " +
-            "AND (o.businessAccountId = :businessAccountId OR o.businessAccountId IS NULL) " +
-            "AND (lower(:name) like lower(o.option)) " +
-            "ORDER BY o.businessAccountId")
-    List<DataListOptionEntity> findOptionForBusinessAccount(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId, @Param("name") String name, Pageable pageable);
-
     @Query(value = "select o from DataListOptionEntity o " +
             "where o.dataListId = :dataListId " +
             "and (o.businessAccountId = :businessAccountId or o.businessAccountId is null) " +

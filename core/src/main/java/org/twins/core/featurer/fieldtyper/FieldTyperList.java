@@ -9,7 +9,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
@@ -29,8 +28,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity> {
-    @Autowired
-    DataListOptionRepository dataListOptionRepository;
 
     @Autowired
     @Lazy
@@ -49,7 +46,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);
-        List<DataListOptionEntity> dataListOptionEntityList = dataListOptionRepository.findByIdIn(value.getOptions().stream().map(DataListOptionEntity::getId).toList());
+
+        List<DataListOptionEntity> dataListOptionEntityList = dataListService.reloadOptionsOnDataListAbsent(value.getOptions());
+
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))

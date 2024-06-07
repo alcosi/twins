@@ -1,6 +1,7 @@
 package org.twins.core.dto.rest;
 
 public interface DTOExamples {
+    String TERNARY = "ONLY";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String TWIN_CLASS_KEY = "TOOL";
     String TWIN_CLASS_NAME = "Tool";
@@ -16,6 +17,7 @@ public interface DTOExamples {
     String TWIN_CLASS_FIELD_NAME = "Serial number";
     String TWIN_CLASS_FIELD_DESCRIPTION = "Manufacture serial number";
     String TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID = "2fe95272-afcb-40ee-a6a8-87c5da4d5b8d";
+    String TWIN_CLASS_OWNER_TYPE = "SYSTEM";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
     String TWIN_COMMENT = "be44e826-ce24-4881-a227-f3f72d915a20";
@@ -58,4 +60,6 @@ public interface DTOExamples {
     String LAZY_RELATION_MODE_ON = " Will be filled only if lazyRelations mode is true";
     String LAZY_RELATION_MODE_OFF = " Will be filled only in lazyRelations mode is false";
     String SPACE_ROLE_USER_ID = "275bf3c4-951a-4d26-bb82-5e18361d301c";
+    String SEARCH_ALIAS = "tools";
+    String SEARCH_ID = "8c580967-c050-47cf-ac27-4096c6dda2d1";
 }

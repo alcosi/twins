@@ -1,6 +1,7 @@
 package org.twins.core.dao.datalist;
 
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -48,5 +49,20 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
 
     @Query("select dlo.id from DataListOptionEntity dlo where dlo.businessAccountId = :businessAccountId and dlo.dataList.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+
+    @Query(value = "SELECT o FROM DataListOptionEntity o " +
+            "WHERE o.dataListId = :dataListId " +
+            "AND (o.businessAccountId IS NULL) " +
+            "AND (lower(:name) like lower(o.option)) " +
+            "ORDER BY o.businessAccountId")
+    List<DataListOptionEntity> findOptionOutOfBusinessAccount(@Param("dataListId") UUID dataListId, @Param("name") String name, Pageable pageable);
+
+    @Query(value = "SELECT o FROM DataListOptionEntity o " +
+            "WHERE o.dataListId = :dataListId " +
+            "AND (o.businessAccountId = :businessAccountId OR o.businessAccountId IS NULL) " +
+            "AND (lower(:name) like lower(o.option)) " +
+            "ORDER BY o.businessAccountId")
+    List<DataListOptionEntity> findOptionForBusinessAccount(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId, @Param("name") String name, Pageable pageable);
+
 
 }

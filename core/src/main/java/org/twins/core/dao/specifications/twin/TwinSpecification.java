@@ -136,6 +136,16 @@ public class TwinSpecification {
         };
     }
 
+    public static Specification<TwinEntity> checkTwinClassUuidFieldIn(final String field, final Collection<UUID> uuids) {
+        return (root, query, cb) -> {
+            Join<TwinEntity, TwinClassEntity> twinClassJoin = root.join(TwinEntity.Fields.twinClass, JoinType.INNER);
+            Predicate predicate = cb.conjunction();
+            if (CollectionUtils.isNotEmpty(uuids)) {
+                predicate = twinClassJoin.get(field).in(uuids);
+            }
+            return predicate;
+        };
+    }
 
 
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {

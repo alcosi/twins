@@ -36,7 +36,7 @@ public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput extends
         search
                 .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
-                .addStatusId(statusIds.extract(properties));
+                .addStatusId(statusIds.extract(properties), false);
         long count = twinSearchService.count(search);
         return count > 0;
     }

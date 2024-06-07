@@ -159,4 +159,24 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         @Getter
         final int priority;
     }
+
+    @AllArgsConstructor
+    public enum HeadClassMode implements MapperMode {
+        HIDE(0),
+        SHOW(1);
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
+        @Getter
+        final int priority;
+    }
+
+    @AllArgsConstructor
+    public enum ExtendsClassMode implements MapperMode {
+        HIDE(0),
+        SHOW(1);
+        public static final String _SHOW = "SHOW";
+        public static final String _HIDE = "HIDE";
+        @Getter
+        final int priority;
+    }
 }
