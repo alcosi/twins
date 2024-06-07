@@ -15,15 +15,11 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.dto.rest.twin.TwinSearchBatchRqDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchBatchRsDTOv1;
-import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
+import org.twins.core.domain.search.SearchByAlias;
+import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -50,6 +46,7 @@ public class TwinListCountController extends ApiController {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final TwinSearchWithHeadDTOReverseMapper twinSearchRqDTOMapper;
     final PaginationMapper paginationMapper;
+    final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchCountV1", summary = "Count twins by frontendId")
@@ -73,4 +70,31 @@ public class TwinListCountController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinSearchByAliasCountV1", summary = "Count twins by search aliases")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Map { alias / count }", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = TwinSearchBatchRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @RequestMapping(value = "/private/twin/search_by_alias/count/v1", method = RequestMethod.POST)
+    public ResponseEntity<?> twinSearchByAliasCountInBatchV1(@RequestBody TwinSearchByAliasBatchRqDTOv1 request) {
+        TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
+        try {
+            Map<String, SearchByAlias> searchMap = new HashMap<>();
+            for (Map.Entry<String, TwinSearchByAliasRqDTOv1> entry : request.searchMap.entrySet()) {
+                SearchByAlias searchByAlias = twinSearchByAliasDTOReverseMapper.convert(entry.getValue());
+                searchByAlias.setAlias(entry.getKey());
+                searchMap.put(entry.getKey(), searchByAlias);
+            }
+            rs.response(twinSearchService.countTwinsBySearchAliasInBatch(searchMap));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
 }
