@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -41,6 +42,8 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Column(name = "permission_id")
     private UUID permissionId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -66,7 +69,11 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     private UUID draftingTwinFactoryId;
 
     @Column(name = "twinflow_transition_alias_id")
-    private String twinflowTransitionAliasId;
+    private UUID twinflowTransitionAliasId;
+
+    @ManyToOne
+    @JoinColumn(name = "twinflow_transition_alias_id", insertable = false, updatable = false, nullable = false)
+    private TwinflowTransitionAliasEntity twinflowTransitionAlias;
 
     @ManyToOne
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)

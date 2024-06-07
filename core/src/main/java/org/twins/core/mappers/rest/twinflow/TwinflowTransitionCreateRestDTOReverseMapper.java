@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionCreateRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -21,6 +22,6 @@ public class TwinflowTransitionCreateRestDTOReverseMapper extends RestSimpleDTOM
                 .setDstTwinStatusId(src.getDstStatusId())
                 .setPermissionId(src.getPermissionId())
                 .setTwinflowId(src.getTwinflowId())
-                .setTwinflowTransitionAliasId(src.getAliasId());
+                .setTwinflowTransitionAlias(new TwinflowTransitionAliasEntity().setAlias(src.getAlias()));
     }
 }
