@@ -11,7 +11,7 @@ import java.util.Map;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinSearchBatchCoooRqV1")
+@Schema(name = "TwinSearchBatchRqV1")
 public class TwinSearchBatchRqDTOv1 extends Request {
     @Schema(description = "Map of { frontendId / TwinSearchRqV1 }", example = """
             {
