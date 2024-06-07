@@ -72,7 +72,7 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     private UUID twinflowTransitionAliasId;
 
     @ManyToOne
-    @JoinColumn(name = "twinflow_transition_alias", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "twinflow_transition_alias_id", insertable = false, updatable = false, nullable = false)
     private TwinflowTransitionAliasEntity twinflowTransitionAlias;
 
     @ManyToOne

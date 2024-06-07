@@ -247,39 +247,26 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        TwinflowTransitionAliasEntity twinflowTransitionAliasEntity = checkAliasOnExistsInDomain(apiUser.getDomainId(), twinflowTransitionEntity.getTwinflowTransitionAlias());
         twinflowTransitionEntity
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
                 .setCreatedByUserId(apiUser.getUserId())
-                .setTwinflowTransitionAliasId(checkAliasOnExistsInDomain(apiUser.getDomainId(), "key")); //todo create alias if it's not exist in domain
+                .setTwinflowTransitionAlias(twinflowTransitionAliasEntity)
+                .setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    private UUID checkAliasOnExistsInDomain(UUID domainId, String key) throws ServiceException {
-        String alias = convertKeyInAlias(key);
-        UUID uuidAlias = twinflowTransitionAliasRepository.findByDomainIdAndAlias(domainId, alias);
-        if (uuidAlias != null)
-            return uuidAlias;
-        TwinflowTransitionAliasEntity saveAlias = new TwinflowTransitionAliasEntity()
-                .setDomainId(domainId)
-                .setAlias(alias);
-        return saveTwinflowTransitionAlias(saveAlias);
+    private TwinflowTransitionAliasEntity checkAliasOnExistsInDomain(UUID domainId, TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        TwinflowTransitionAliasEntity currentTransitionAlias = twinflowTransitionAliasRepository.findByDomainIdAndAlias(domainId, transitionAlias.getAlias());
+        if (currentTransitionAlias != null)
+            return currentTransitionAlias;
+        transitionAlias.setDomainId(domainId);
+        return saveTwinflowTransitionAlias(transitionAlias);
     }
 
-    private String convertKeyInAlias(String key) {
-        // INPUT -> TOOL_USER_TRANSFER_WORKER_DECISION
-        // OUTPUT -> toolUserTransferWorkerDecision
-        String[] parts = key.toLowerCase().split("_");
-        StringBuilder camelCaseString = new StringBuilder(parts[0]);
-        for (int i = 1; i < parts.length; i++) {
-            camelCaseString.append(parts[i].substring(0, 1).toUpperCase())
-                    .append(parts[i].substring(1));
-        }
-        return camelCaseString.toString();
-    }
-
-    private UUID saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
-        return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException).getId();
+    private TwinflowTransitionAliasEntity saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
     @Getter

@@ -19,7 +19,7 @@ CREATE VIEW twinflow_transition_lazy
             (id, twinflow_id, fk_twinflow_name, fk_twinflow_twinclass_key, name_i18n_id, src_twin_status_id,
              dst_twin_status_id, screen_id, permission_id, key, created_at, created_by_user_id, allow_comment,
              allow_attachments, allow_links, inbuilt_twin_factory_id, drafting_twin_factory_id,
-             twinflow_transition_alias_id, fk_src_status_twinclass_key, fk_dst_status_twinclass_key, fk_src_status_name,
+             twinflow_transition_alias, fk_src_status_twinclass_key, fk_dst_status_twinclass_key, fk_src_status_name,
              fk_dst_status_name)
 AS
 SELECT tft.id,
@@ -39,7 +39,7 @@ SELECT tft.id,
        tft.allow_links,
        tft.inbuilt_twin_factory_id,
        tft.drafting_twin_factory_id,
-       tft.twinflow_transition_alias_id,
+       tfta.alias,
        tc2.key AS fk_src_status_twinclass_key,
        tc3.key AS fk_dst_status_twinclass_key,
        ts1.key AS fk_src_status_name,
@@ -51,7 +51,8 @@ FROM twinflow_transition tft
          LEFT JOIN twin_status ts2 ON tft.dst_twin_status_id = ts2.id
          LEFT JOIN twin_class tc3 ON ts2.twins_class_id = tc3.id
          LEFT JOIN twin_status ts1 ON tft.src_twin_status_id = ts1.id
-         LEFT JOIN twin_class tc2 ON ts1.twins_class_id = tc2.id;
+         LEFT JOIN twin_class tc2 ON ts1.twins_class_id = tc2.id
+         LEFT JOIN twinflow_transition_alias tfta ON tft.twinflow_transition_alias_id = tfta.id;
 -- set column new type
 alter table twinflow_transition_alias
     alter column id type uuid using id::uuid;

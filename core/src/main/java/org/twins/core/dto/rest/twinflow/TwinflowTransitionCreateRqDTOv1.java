@@ -26,7 +26,7 @@ public class TwinflowTransitionCreateRqDTOv1 extends Request {
     public String name;
 
     @Schema(description = "[optional] uniq alias inside twinflow", example = DTOExamples.TWINFLOW_TRANSITION_ALIAS)
-    public String aliasId;
+    public String alias;
 
     @Schema(description = "[optional] some permission required to run transition", example = DTOExamples.PERMISSION_ID)
     public UUID permissionId;
