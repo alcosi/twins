@@ -247,22 +247,25 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        TwinflowTransitionAliasEntity twinflowTransitionAliasEntity = checkAliasOnExistsInDomain(apiUser.getDomainId(), twinflowTransitionEntity.getTwinflowTransitionAlias());
         twinflowTransitionEntity
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
                 .setCreatedByUserId(apiUser.getUserId())
-                .setTwinflowTransitionAlias(twinflowTransitionAliasEntity)
-                .setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
+                .setTwinflowTransitionAliasId(creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias()));
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    private TwinflowTransitionAliasEntity checkAliasOnExistsInDomain(UUID domainId, TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
-        TwinflowTransitionAliasEntity currentTransitionAlias = twinflowTransitionAliasRepository.findByDomainIdAndAlias(domainId, transitionAlias.getAlias());
-        if (currentTransitionAlias != null)
-            return currentTransitionAlias;
-        transitionAlias.setDomainId(domainId);
-        return saveTwinflowTransitionAlias(transitionAlias);
+    private UUID creatAliasIfNeeded(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        if (transitionAlias.getDomainId() == null)
+            transitionAlias.setDomainId(authService.getApiUser().getDomainId());
+        if (transitionAlias.getId() != null)
+            return transitionAlias.getId();
+        UUID currentTransitionAliasId = twinflowTransitionAliasRepository.findIdByDomainIdAndAlias(transitionAlias.getDomainId(), transitionAlias.getAlias());
+        if (currentTransitionAliasId != null)
+            transitionAlias.setId(currentTransitionAliasId);
+        else
+            saveTwinflowTransitionAlias(transitionAlias);
+        return transitionAlias.getId();
     }
 
     private TwinflowTransitionAliasEntity saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {

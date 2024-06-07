@@ -7,6 +7,8 @@ import org.springframework.data.repository.query.Param;
 import java.util.UUID;
 
 public interface TwinflowTransitionAliasRepository extends CrudRepository<TwinflowTransitionAliasEntity, UUID> {
-    @Query("select tta from TwinflowTransitionAliasEntity tta where tta.domainId = :domainId and tta.alias = :alias")
-    TwinflowTransitionAliasEntity findByDomainIdAndAlias(@Param("domainId") UUID domainId, @Param("alias") String alias);
+    TwinflowTransitionAliasEntity findByDomainIdAndAlias(UUID domainId, String alias);
+
+    @Query("select tta.id from TwinflowTransitionAliasEntity tta where tta.domainId = :domainId and tta.alias = :aliasId")
+    UUID findIdByDomainIdAndAlias(@Param("domainId") UUID domainId, @Param("alias") String aliasId);
 }

@@ -24,6 +24,12 @@ public class TwinflowTransitionAliasEntity implements EasyLoggable {
 
     @Override
     public String easyLog(Level level) {
-        return "twinflowTransition[domain id:" + domainId + ", alias:" + alias + "]";
+        switch (level) {
+            case SHORT:
+                return "twinflowTransitionAlias[" + id + "]";
+            default:
+                return "twinflowTransitionAlias[domain id:" + domainId + ", alias:" + alias + "]";
+        }
+
     }
 }
