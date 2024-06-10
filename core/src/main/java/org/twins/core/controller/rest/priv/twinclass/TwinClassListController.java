@@ -64,8 +64,8 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinClassRestDTOMapper.HeadClassMode._HIDE) TwinClassRestDTOMapper.HeadClassMode showHeadClassMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinClassRestDTOMapper.ExtendsClassMode._HIDE) TwinClassRestDTOMapper.ExtendsClassMode showExtendsClassMode,
+            @RequestParam(name = RestRequestParam.showHeadClassMode, defaultValue = TwinClassRestDTOMapper.HeadClassMode._HIDE) TwinClassRestDTOMapper.HeadClassMode showHeadClassMode,
+            @RequestParam(name = RestRequestParam.showExtendsClassMode, defaultValue = TwinClassRestDTOMapper.ExtendsClassMode._HIDE) TwinClassRestDTOMapper.ExtendsClassMode showExtendsClassMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinClassSearchRqDTOv1 request) {
