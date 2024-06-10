@@ -12,13 +12,14 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 1301,
+@Featurer(id = FeaturerTwins.ID_1301,
         name = "FieldTyperTextField",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText> {

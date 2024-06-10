@@ -10,11 +10,13 @@ import java.util.Set;
 import java.util.UUID;
 
 @FeaturerParamType(
-        id = "UUID",
+        id = "UUID_SET",
         description = "",
-        regexp = ".*", //todo
-        example = "9a3f6075-f175-41cd-a804-934201ec969c")
+        regexp = FeaturerParamUUIDSet.UUID_SET_REGEXP,
+        example = FeaturerParamUUIDSet.UUID_SET_EXAMPLE)
 public class FeaturerParamUUIDSet extends FeaturerParam<Set<UUID>> {
+    public static final String UUID_SET_REGEXP = ".*"; //todo
+    public static final String UUID_SET_EXAMPLE = "9a3f6075-f175-41cd-a804-934201ec969c, 1b3f6075-f175-41cd-a804-934201ec969c";
     public FeaturerParamUUIDSet(String key) {
         super(key);
     }

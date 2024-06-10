@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.search.SearchPredicateEntity;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.UUID;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2702,
+@Featurer(id = FeaturerTwins.ID_2702,
         name = "SearchCriteriaBuilderCurrentUser",
         description = "")
 public class SearchCriteriaBuilderCurrentUser extends SearchCriteriaBuilder {

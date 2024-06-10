@@ -14,21 +14,23 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2322,
+@Featurer(id = FeaturerTwins.ID_2322,
         name = "FillerBasicsAssigneeFromContextFieldTwinAssignee",
         description = "If value of context field is an id of other twin (link) we will get assignee from that twin")
 @Slf4j
 public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
     @FeaturerParam(name = "linkField", description = "")
-    public static final FeaturerParamUUID linkField = new FeaturerParamUUID("linkField");
+    public static final FeaturerParamUUID linkField = new FeaturerParamUUIDTwinsTwinClassFieldId("linkField");
 
     @Lazy
     @Autowired

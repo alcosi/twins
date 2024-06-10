@@ -7,12 +7,13 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.search.SearchEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.List;
 import java.util.Properties;
 
 @Slf4j
-@Featurer(id = 2801,
+@Featurer(id = FeaturerTwins.ID_2801,
         name = "SearchDetectorPreferProtected",
         description = "")
 @Component

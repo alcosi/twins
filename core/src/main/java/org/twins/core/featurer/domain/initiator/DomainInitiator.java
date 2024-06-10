@@ -2,7 +2,6 @@ package org.twins.core.featurer.domain.initiator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import org.twins.core.dao.twinflow.TwinflowRepository;
 import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapRepository;
 import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -37,11 +37,11 @@ import java.util.Properties;
 import java.util.UUID;
 
 
-@FeaturerType(id = 25,
+@FeaturerType(id = FeaturerTwins.TYPE_25,
         name = "DomainInitiator",
         description = "")
 @Slf4j
-public abstract class DomainInitiator extends Featurer {
+public abstract class DomainInitiator extends FeaturerTwins {
     @Autowired
     EntitySmartService entitySmartService;
     @Autowired

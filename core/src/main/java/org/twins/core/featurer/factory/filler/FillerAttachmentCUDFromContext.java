@@ -8,11 +8,12 @@ import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2320,
+@Featurer(id = FeaturerTwins.ID_2320,
         name = "FillerAttachmentCUDFromContext",
         description = "")
 public class FillerAttachmentCUDFromContext extends Filler {

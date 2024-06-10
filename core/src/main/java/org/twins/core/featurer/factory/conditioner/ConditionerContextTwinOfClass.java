@@ -5,11 +5,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2412,
+@Featurer(id = FeaturerTwins.ID_2412,
         name = "ConditionerContextTwinOfClass",
         description = "")
 @Slf4j

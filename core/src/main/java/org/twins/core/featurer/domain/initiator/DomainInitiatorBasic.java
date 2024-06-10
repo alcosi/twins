@@ -6,11 +6,12 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2501,
+@Featurer(id = FeaturerTwins.ID_2501,
         name = "DomainInitiatorBasic",
         description = "")
 @RequiredArgsConstructor

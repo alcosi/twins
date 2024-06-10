@@ -11,6 +11,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -19,12 +21,12 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2202,
+@Featurer(id = FeaturerTwins.ID_2202,
         name = "MultiplierIsolated",
         description = "New output twin for each input. Output class from params")
 public class MultiplierIsolated extends Multiplier {
     @FeaturerParam(name = "outputTwinClassId", description = "")
-    public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUID("outputTwinClassId");
+    public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("outputTwinClassId");
 
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {

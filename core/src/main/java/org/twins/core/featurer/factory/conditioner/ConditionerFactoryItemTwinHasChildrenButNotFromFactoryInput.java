@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -18,13 +20,13 @@ import java.util.stream.Collectors;
 
 @Deprecated
 @Component
-@Featurer(id = 2408,
+@Featurer(id = FeaturerTwins.ID_2408,
         name = "ConditionerHasChildrenButNotFromFactoryInput",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput extends Conditioner {
     @FeaturerParam(name = "statusIds", description = "")
-    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
+    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Lazy
     @Autowired

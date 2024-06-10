@@ -3,7 +3,6 @@ package org.twins.core.featurer.usergroup.slugger;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -12,6 +11,7 @@ import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupMapRepository;
 import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.HashMap;
@@ -19,11 +19,11 @@ import java.util.Properties;
 import java.util.UUID;
 
 
-@FeaturerType(id = 20,
+@FeaturerType(id = FeaturerTwins.TYPE_20,
         name = "Slugger",
         description = "")
 @Slf4j
-public abstract class Slugger extends Featurer {
+public abstract class Slugger extends FeaturerTwins {
     @Autowired
     UserGroupMapRepository userGroupMapRepository;
     @Lazy

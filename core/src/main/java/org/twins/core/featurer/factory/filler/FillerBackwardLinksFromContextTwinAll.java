@@ -12,13 +12,14 @@ import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2304,
+@Featurer(id = FeaturerTwins.ID_2304,
         name = "FillerBackwardLinksFromContextTwinAll",
         description = "")
 public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
