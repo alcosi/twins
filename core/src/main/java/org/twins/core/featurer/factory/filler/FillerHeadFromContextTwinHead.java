@@ -6,12 +6,13 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2302,
+@Featurer(id = FeaturerTwins.ID_2302,
         name = "FillerHeadFromContextTwinHead",
         description = "")
 public class FillerHeadFromContextTwinHead extends Filler {

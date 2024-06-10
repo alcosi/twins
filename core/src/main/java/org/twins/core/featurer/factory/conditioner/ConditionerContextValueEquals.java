@@ -8,6 +8,7 @@ import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -15,7 +16,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2415,
+@Featurer(id = FeaturerTwins.ID_2415,
         name = "ConditionerContextValueEquals",
         description = "")
 @Slf4j

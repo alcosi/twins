@@ -14,6 +14,7 @@ import org.twins.core.dao.search.SearchField;
 import org.twins.core.dao.search.SearchPredicateEntity;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Map;
 import java.util.Properties;
@@ -22,7 +23,7 @@ import java.util.UUID;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 2704,
+@Featurer(id = FeaturerTwins.ID_2704,
         name = "SearchCriteriaBuilderParam",
         description = "")
 public class SearchCriteriaBuilderParam extends SearchCriteriaBuilderSingleUUID {

@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -19,7 +20,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2324,
+@Featurer(id = FeaturerTwins.ID_2324,
         name = "FillerBasicsAssigneeFromContext",
         description = "")
 @Slf4j

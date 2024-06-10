@@ -13,6 +13,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.twin.TwinService;
 
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2325,
+@Featurer(id = FeaturerTwins.ID_2325,
         name = "FillerForwardLinkFromContextTwinLinkDstTwinHead",
         description = "Finds link in context twin. " +
                 "Get dst twin for this link. " +

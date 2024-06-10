@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
@@ -17,7 +18,7 @@ import org.twins.core.service.twin.TwinService;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2323,
+@Featurer(id = FeaturerTwins.ID_2323,
         name = "FillerFieldFromContext",
         description = "")
 @Slf4j

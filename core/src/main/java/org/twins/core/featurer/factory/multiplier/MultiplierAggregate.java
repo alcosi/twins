@@ -11,6 +11,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.sql.Timestamp;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2201,
+@Featurer(id = FeaturerTwins.ID_2201,
         name = "MultiplierAggregate",
         description = "Only one output twin, even for multiple input.  Output class from params")
 public class MultiplierAggregate extends Multiplier {

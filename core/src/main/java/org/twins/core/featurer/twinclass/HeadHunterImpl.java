@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -16,7 +17,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 2601,
+@Featurer(id = FeaturerTwins.ID_2601,
         name = "HeadHunterImpl",
         description = "")
 public class HeadHunterImpl extends HeadHunter {

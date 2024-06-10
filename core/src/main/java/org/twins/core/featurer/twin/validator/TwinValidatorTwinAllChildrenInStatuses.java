@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 import org.twins.core.service.twin.TwinSearchService;
@@ -22,7 +23,7 @@ import java.util.UUID;
 
 @Slf4j
 @Component
-@Featurer(id = 1605,
+@Featurer(id = FeaturerTwins.ID_1605,
         name = "TransitionValidatorTwinAllChildrenInStatuses",
         description = "")
 public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {

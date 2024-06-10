@@ -14,6 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
@@ -21,7 +22,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 @Component
-@Featurer(id = 1317,
+@Featurer(id = FeaturerTwins.ID_1317,
         name = "FieldTyperNumeric",
         description = "Numeric field")
 public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText> {

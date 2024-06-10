@@ -13,6 +13,7 @@ import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
@@ -24,7 +25,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2206,
+@Featurer(id = FeaturerTwins.ID_2206,
         name = "MultiplierIsolatedOnContextFieldList",
         description = "New output twin for each input. Output class is selected by checking if fields in context (in loop). Order is important." +
                 "If field is present then output twin class will be selected from this field class, otherwise loop will continue")

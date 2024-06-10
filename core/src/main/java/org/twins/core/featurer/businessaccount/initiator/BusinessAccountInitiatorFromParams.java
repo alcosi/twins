@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsPermissionSchemaId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassSchemaId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinflowSchemaId;
@@ -14,7 +15,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinflowSchemaId;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 1101,
+@Featurer(id = FeaturerTwins.ID_1101,
         name = "BusinessAccountInitiatorFromParams",
         description = "")
 @RequiredArgsConstructor

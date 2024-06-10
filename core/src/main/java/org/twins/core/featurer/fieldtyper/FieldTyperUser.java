@@ -23,6 +23,7 @@ import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.history.HistoryItem;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Lazy
-@Featurer(id = 1311,
+@Featurer(id = FeaturerTwins.ID_1311,
         name = "FieldTyperUser",
         description = "")
 public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity> implements LongList {

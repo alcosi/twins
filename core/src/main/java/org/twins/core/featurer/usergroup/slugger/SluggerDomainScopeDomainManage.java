@@ -9,6 +9,7 @@ import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -16,7 +17,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2001,
+@Featurer(id = FeaturerTwins.ID_2001,
         name = "SluggerDomainScopeDomainManage",
         description = "")
 @Slf4j

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.factory.TwinFactoryService;
 
@@ -18,7 +19,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2326,
+@Featurer(id = FeaturerTwins.ID_2326,
         name = "FillerBasicsAssigneeFromContextTwinOfClassAssignee",
         description = "")
 @Slf4j

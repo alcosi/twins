@@ -2,23 +2,23 @@ package org.twins.core.featurer.factory.filler;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.HashMap;
 import java.util.Properties;
 
 
-@FeaturerType(id = 23,
+@FeaturerType(id = FeaturerTwins.TYPE_23,
         name = "Filler",
         description = "")
 @Slf4j
-public abstract class Filler extends Featurer {
+public abstract class Filler extends FeaturerTwins {
     @Lazy
     @Autowired
     TwinFactoryService factoryService;

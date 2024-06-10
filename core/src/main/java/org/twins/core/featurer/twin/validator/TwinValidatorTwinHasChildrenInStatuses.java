@@ -11,6 +11,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
@@ -18,7 +19,7 @@ import java.util.*;
 
 @Slf4j
 @Component
-@Featurer(id = 1604,
+@Featurer(id = FeaturerTwins.ID_1604,
         name = "TransitionValidatorTwinHasChildrenInStatuses",
         description = "")
 public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {

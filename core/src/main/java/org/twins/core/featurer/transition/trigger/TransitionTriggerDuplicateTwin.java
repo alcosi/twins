@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -20,7 +21,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 1501,
+@Featurer(id = FeaturerTwins.ID_1501,
         name = "TransitionTriggerDuplicateTwin",
         description = "")
 @RequiredArgsConstructor

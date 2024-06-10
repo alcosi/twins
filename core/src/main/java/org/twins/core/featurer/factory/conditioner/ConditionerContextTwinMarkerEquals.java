@@ -10,13 +10,14 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsMarkerId;
 import org.twins.core.service.twin.TwinMarkerService;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2405,
+@Featurer(id = FeaturerTwins.ID_2405,
         name = "ConditionerContextTwinMarkerEquals",
         description = "")
 @Slf4j

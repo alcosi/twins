@@ -7,12 +7,13 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2414,
+@Featurer(id = FeaturerTwins.ID_2414,
         name = "ConditionerFactoryItemTwinOfClass",
         description = "")
 @Slf4j

@@ -19,6 +19,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Lazy
 @Component
-@Featurer(id = 1310,
+@Featurer(id = FeaturerTwins.ID_1310,
         name = "FieldTyperLink",
         description = "")
 public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity> {

@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
@@ -18,7 +19,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 2204,
+@Featurer(id = FeaturerTwins.ID_2204,
         name = "MultiplierIsolatedShiftHead",
         description = "Output twin for each input. Output twin will be loaded from head")
 public class MultiplierIsolatedShiftHead extends Multiplier {

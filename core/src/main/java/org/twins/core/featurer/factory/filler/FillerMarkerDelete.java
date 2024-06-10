@@ -9,12 +9,13 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsMarkerId;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2319,
+@Featurer(id = FeaturerTwins.ID_2319,
         name = "FillerMarkerDelete",
         description = "")
 @Slf4j
