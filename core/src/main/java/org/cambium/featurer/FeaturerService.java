@@ -77,6 +77,8 @@ public class FeaturerService {
         }
         featurerTypeRepository.saveAll(featurerTypeEntityList);
         featurerRepository.saveAll(featurerEntityList);
+        //truncating old params
+        featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityList.stream().map(FeaturerEntity::getId).toList());
         featurerParamRepository.saveAll(featurerParamEntityList);
     }
 
@@ -99,7 +101,7 @@ public class FeaturerService {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
                 if (featurerParamAnnotation != null) {
-                    FeaturerParamType featurerParamTypeAnnotation = field.getType().getAnnotation(FeaturerParamType.class);
+                    FeaturerParamType featurerParamTypeAnnotation = field.get(null).getClass().getAnnotation(FeaturerParamType.class);
                     if (featurerParamTypeAnnotation == null) {
                         log.error("FeaturerParamType is not specified for param[{}]!", field.getType().getSimpleName());
                         continue;
