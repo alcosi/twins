@@ -19,7 +19,7 @@ import java.util.UUID;
         description = "")
 public class SearchCriteriaBuilderConfiguredId extends SearchCriteriaBuilderSingleUUID {
     @FeaturerParam(name = "entityId", description = "")
-    public static final FeaturerParamUUID entityId = new FeaturerParamUUID("entityId");
+    public static final FeaturerParamUUID entityId = new FeaturerParamUUID("entityId"); //todo UI problems (TWINS-113)
 
     @Override
     protected UUID getId(Properties properties, Map<String, String> namedParamsMap) {

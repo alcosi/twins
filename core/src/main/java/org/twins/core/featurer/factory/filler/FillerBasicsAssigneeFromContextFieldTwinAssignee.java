@@ -16,6 +16,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
@@ -28,7 +29,7 @@ import java.util.UUID;
 @Slf4j
 public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
     @FeaturerParam(name = "linkField", description = "")
-    public static final FeaturerParamUUID linkField = new FeaturerParamUUID("linkField");
+    public static final FeaturerParamUUID linkField = new FeaturerParamUUIDTwinsTwinClassFieldId("linkField");
 
     @Lazy
     @Autowired

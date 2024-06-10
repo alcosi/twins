@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Properties;
@@ -20,7 +21,7 @@ import java.util.Properties;
 @Slf4j
 public class ConditionerContextTwinInstanceOfDeep extends Conditioner {
     @FeaturerParam(name = "instanceOfTwinClassId", description = "")
-    public static final FeaturerParamUUID instanceOfTwinClassId = new FeaturerParamUUID("instanceOfTwinClassId");
+    public static final FeaturerParamUUID instanceOfTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("instanceOfTwinClassId");
 
     @Lazy
     @Autowired

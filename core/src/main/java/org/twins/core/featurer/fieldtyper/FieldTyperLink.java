@@ -8,7 +8,6 @@ import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -22,6 +21,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorLink;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.link.TwinLinkService;
@@ -55,7 +55,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     TwinLinkRepository twinLinkRepository;
 
     @FeaturerParam(name = "linkUUID", description = "")
-    public static final FeaturerParamUUID linkUUID = new FeaturerParamUUID("linkUUID");
+    public static final FeaturerParamUUIDTwinsLinkId linkUUID = new FeaturerParamUUIDTwinsLinkId("linkUUID");
 
     @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");

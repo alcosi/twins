@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Properties;
@@ -23,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
     @FeaturerParam(name = "twinClassId", description = "")
-    public static final FeaturerParamUUID twinClassId = new FeaturerParamUUID("twinClassId");
+    public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
     @Lazy
     @Autowired

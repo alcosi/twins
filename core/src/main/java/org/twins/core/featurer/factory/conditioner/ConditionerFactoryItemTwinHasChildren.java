@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -24,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
     @FeaturerParam(name = "statusIds", description = "")
-    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
+    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @FeaturerParam(name = "excludeFactoryInput", description = "")
     public static final FeaturerParamBoolean excludeFactoryInput = new FeaturerParamBoolean("excludeFactoryInput");

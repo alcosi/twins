@@ -12,6 +12,8 @@ import org.twins.core.dao.search.SearchField;
 import org.twins.core.dao.search.SearchPredicateEntity;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 
 import java.util.Map;
 import java.util.Properties;
@@ -24,10 +26,10 @@ import java.util.Properties;
         description = "")
 public class SearchCriteriaBuilderLink extends SearchCriteriaBuilder {
     @FeaturerParam(name = "linkId", description = "")
-    public static final FeaturerParamUUID linkId = new FeaturerParamUUID("linkId");
+    public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
     @FeaturerParam(name = "dstTwinId", description = "")
-    public static final FeaturerParamUUIDSet dstTwinId = new FeaturerParamUUIDSet("dstTwinId");
+    public static final FeaturerParamUUIDSet dstTwinId = new FeaturerParamUUIDSetTwinsTwinId("dstTwinId");
 
     @Override
     public void concat(TwinSearch twinSearch, SearchPredicateEntity searchPredicateEntity, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {

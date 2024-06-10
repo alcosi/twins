@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
 
@@ -20,7 +21,7 @@ import java.util.Properties;
 @Slf4j
 public class ConditionerContextValueEquals extends Conditioner {
     @FeaturerParam(name = "twinClassFieldId", description = "")
-    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUID("twinClassFieldId");
+    public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @FeaturerParam(name = "value", description = "")
     public static final FeaturerParamString value = new FeaturerParamString("value");

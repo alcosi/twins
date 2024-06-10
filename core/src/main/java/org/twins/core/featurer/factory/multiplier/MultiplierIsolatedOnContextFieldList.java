@@ -14,6 +14,7 @@ import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsTwinClassFieldId;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -29,7 +30,7 @@ import java.util.UUID;
                 "If field is present then output twin class will be selected from this field class, otherwise loop will continue")
 public class MultiplierIsolatedOnContextFieldList extends Multiplier {
     @FeaturerParam(name = "contextFieldList", description = "")
-    public static final FeaturerParamUUIDSet contextFieldIdList = new FeaturerParamUUIDSet("contextFieldIdList");
+    public static final FeaturerParamUUIDSet contextFieldIdList = new FeaturerParamUUIDSetTwinsTwinClassFieldId("contextFieldIdList");
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         UUID outputTwinClassId = null;

@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsLinkId;
 
 import java.util.List;
 import java.util.Properties;
@@ -20,7 +21,7 @@ import java.util.Properties;
         description = "")
 public class FillerForwardLinksFromContextTwin extends FillerLinks {
     @FeaturerParam(name = "linksIds", description = "")
-    public static final FeaturerParamUUIDSet linksIds = new FeaturerParamUUIDSet("linksIds");
+    public static final FeaturerParamUUIDSet linksIds = new FeaturerParamUUIDSetTwinsLinkId("linksIds");
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

@@ -11,6 +11,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -24,7 +25,7 @@ import java.util.Properties;
 public class MultiplierAggregate extends Multiplier {
 
     @FeaturerParam(name = "outputTwinClassId", description = "")
-    public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUID("outputTwinClassId");
+    public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("outputTwinClassId");
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId.extract(properties));

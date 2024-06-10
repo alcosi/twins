@@ -13,6 +13,7 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
 import java.util.UUID;
@@ -24,7 +25,7 @@ import java.util.UUID;
 @Slf4j
 public class FillerBasicsAssigneeFromContext extends Filler {
     @FeaturerParam(name = "assigneeField", description = "")
-    public static final FeaturerParamUUID assigneeField = new FeaturerParamUUID("assigneeField");
+    public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

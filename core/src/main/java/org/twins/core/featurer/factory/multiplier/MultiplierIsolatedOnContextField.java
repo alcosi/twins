@@ -13,6 +13,8 @@ import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -27,9 +29,9 @@ import java.util.UUID;
         description = "New output twin for each input. Output class is selected by checking if given twinClassField is present in context")
 public class MultiplierIsolatedOnContextField extends Multiplier {
     @FeaturerParam(name = "outputTwinClassIdFromContextField", description = "")
-    public static final FeaturerParamUUID outputTwinClassIdFromContextField = new FeaturerParamUUID("outputTwinClassIdFromContextField");
+    public static final FeaturerParamUUID outputTwinClassIdFromContextField = new FeaturerParamUUIDTwinsTwinClassFieldId("outputTwinClassIdFromContextField");
     @FeaturerParam(name = "elseOutputTwinClassId", description = "")
-    public static final FeaturerParamUUID elseOutputTwinClassId = new FeaturerParamUUID("elseOutputTwinClassId");
+    public static final FeaturerParamUUID elseOutputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("elseOutputTwinClassId");
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         FieldValue fieldValue = MapUtils.getObject(factoryContext.getFields(), outputTwinClassIdFromContextField.extract(properties));

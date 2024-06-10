@@ -50,7 +50,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     TwinFieldUserRepository twinFieldUserRepository;
 
     @FeaturerParam(name = "userFilterUUID", description = "")
-    public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID");
+    public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type
 
     @FeaturerParam(name = "multiple", description = "If true, then multiple select available")
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");

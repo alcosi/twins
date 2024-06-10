@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
 
 import java.util.Properties;
 
@@ -17,7 +18,7 @@ import java.util.Properties;
 @Slf4j
 public class ConditionerFactoryItemTwinOfClass extends Conditioner {
     @FeaturerParam(name = "ofTwinClassId", description = "")
-    public static final FeaturerParamUUID ofTwinClassId = new FeaturerParamUUID("ofTwinClassId");
+    public static final FeaturerParamUUID ofTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("ofTwinClassId");
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {

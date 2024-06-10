@@ -9,6 +9,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -20,7 +21,7 @@ import java.util.Properties;
         description = "")
 public class BusinessAccountInitiatorFromParamsPostCreate extends BusinessAccountInitiatorFromParams {
     @FeaturerParam(name = "businessAccountTemplateTwinId", description = "")
-    public static final FeaturerParamUUID businessAccountTemplateTwinId = new FeaturerParamUUID("businessAccountTemplateTwinId");
+    public static final FeaturerParamUUID businessAccountTemplateTwinId = new FeaturerParamUUIDTwinsTwinId("businessAccountTemplateTwinId");
 
     @Lazy
     @Autowired
