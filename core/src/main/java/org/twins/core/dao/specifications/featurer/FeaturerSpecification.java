@@ -17,14 +17,11 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Component
 public class FeaturerSpecification {
 
-    public static Specification<FeaturerEntity> checkIntegerIn(final String field, final Set<Integer> listId) {
-        return (root, query, cb) ->
-                CollectionUtils.isEmpty(listId) ? cb.conjunction() : root.get(field).in(listId);
-    }
-
-    public static Specification<FeaturerEntity> checkStringIn(final String field, final Set<String> typeIdList) {
-        return (root, query, cb) ->
-                CollectionUtils.isEmpty(typeIdList) ? cb.conjunction() : root.get(field).in(typeIdList);
+    public static Specification<FeaturerEntity> checkIntegerIn(final String field, final Set<Integer> ids, boolean not) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
+            return not ? root.get(field).in(ids).not() : root.get(field).in(ids);
+        };
     }
 
     public static Specification<FeaturerEntity> checkFieldLikeIn(final String fieldName, final Collection<String> search, final boolean or) {

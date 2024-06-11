@@ -38,9 +38,9 @@ public class FeaturerSearchController extends ApiController {
     final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "featurerListV1", summary = "")//todo sumarry
+    @Operation(operationId = "featurerListV1", summary = "Featurer search")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+            @ApiResponse(responseCode = "200", description = "Featurer data result", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = FeaturerSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})

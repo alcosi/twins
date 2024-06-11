@@ -5,8 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -22,7 +21,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.twins.core.dao.specifications.featurer.FeaturerSpecification;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FeaturerSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.featurer.FeaturerSearchResult;
@@ -30,9 +28,11 @@ import org.twins.core.service.featurer.FeaturerSearchResult;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.*;
+import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.checkIntegerIn;
 
 @Component
 @Slf4j
@@ -189,25 +189,21 @@ public class FeaturerService {
         featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
     }
 
-    public void loadFeaturerParam(Collection<FeaturerEntity> featurerEntityCollection) {
-        if (featurerEntity == null)
+    public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
+        if (CollectionUtils.isEmpty(featurerEntityCollection))
             return;
-        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
-    }
-
-    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
-        for (TwinClassEntity twinClass : twinClassEntityCollection) {
-            if (twinClass.getHeadTwinClass() != null)
-                continue;
-            needLoad.add(twinClass);
-        }
-        if (KitUtils.isEmpty(needLoad))
+        Set<Integer> featurerIds = featurerEntityCollection.stream()
+//                .filter(el -> el.getParams() == null)
+                .map(FeaturerEntity::getId)
+                .collect(Collectors.toSet());
+        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(featurerIds);
+        if (CollectionUtils.isEmpty(allParams))
             return;
-        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (TwinClassEntity headTwinClass : heads) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
-                twinClass.setHeadTwinClass(headTwinClass);
+        Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
+                .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
+        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+            List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
+            featurerEntity.setParams(params != null ? params : new ArrayList<>());
         }
     }
 
@@ -285,8 +281,8 @@ public class FeaturerService {
 
     public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
         return where(
-                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList()))//todo collection input
-                .and(checkStringIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList()))//todo collection input
+                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false))
+                .and(checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false))
                 .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
     }
 

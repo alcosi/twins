@@ -11,6 +11,6 @@ import java.util.Set;
 @FieldNameConstants
 public class FeaturerSearch {
     private Set<Integer> idList;
-    private Set<String> typeIdList;
+    private Set<Integer> typeIdList;
     private Set<String> nameLikeList;
 }

@@ -14,7 +14,7 @@ public class FeaturerSearchRqDTOv1 {
     public Set<Integer> idList;
 
     @Schema(description = "type ids list")
-    public Set<String> typeIdList;
+    public Set<Integer> typeIdList;
 
     @Schema(description = "names list")
     public Set<String> nameLikeList;

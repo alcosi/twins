@@ -36,13 +36,16 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         }
     }
 
+    private static boolean showFeaturerParams(MapperContext mapperContext) {
+        return !mapperContext.hasModeOrEmpty(showFeaturerParamMode.HIDE);
+    }
+
     @Override
     public void beforeListConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeListConversion(srcCollection, mapperContext);
-        for (FeaturerEntity featurerEntity : srcCollection) {
-            featurerService.loadAllFeaturerFieldsParams(featurerEntity);
+        if (showFeaturerParams(mapperContext)) {
+            featurerService.loadFeaturerParams(srcCollection);
         }
-
     }
 
     @AllArgsConstructor
