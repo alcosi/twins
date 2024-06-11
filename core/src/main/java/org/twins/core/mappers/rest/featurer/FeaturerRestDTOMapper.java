@@ -28,6 +28,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setName(src.getName())
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
+                        .setDeprecated(src.getDeprecated())
                         .setParams(featurerParamRestDTOMapper.convertList(src.getParams()));
             case SHORT:
                 dst

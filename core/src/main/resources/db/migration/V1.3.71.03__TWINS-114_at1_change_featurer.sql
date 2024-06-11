@@ -1,0 +1,1 @@
+alter table featurer add column IF NOT EXISTS deprecated boolean;

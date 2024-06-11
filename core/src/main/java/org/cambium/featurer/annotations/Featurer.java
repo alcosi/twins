@@ -13,4 +13,6 @@ public @interface Featurer {
     String name();
 
     String description();
+
+    boolean deprecated() default false;
 }

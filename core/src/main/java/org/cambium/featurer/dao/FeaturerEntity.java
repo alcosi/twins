@@ -32,9 +32,11 @@ public class FeaturerEntity {
     @Column(name = "name")
     private String name;
 
-    @Basic
     @Column(name = "description")
     private String description;
+
+    @Column(name = "deprecated")
+    private Boolean deprecated;
 
     @Transient
     @ToString.Exclude

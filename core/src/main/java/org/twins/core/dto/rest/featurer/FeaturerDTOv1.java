@@ -23,6 +23,9 @@ public class FeaturerDTOv1 {
     @Schema(description = "description")
     public String description;
 
+    @Schema(description = "deprecated")
+    public boolean deprecated;
+
     @Schema(description = "params list")
     public List<FeaturerParamDTOv1> params;
 }

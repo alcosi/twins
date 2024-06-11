@@ -82,6 +82,7 @@ public class FeaturerService {
                 featurerEntity.setClazz(featurerClass.getName());
                 featurerEntity.setFeaturerTypeId(featurerTypeAnnotation.id());
                 featurerEntity.setDescription(featurerAnnotation.description());
+                featurerEntity.setDeprecated(featurerAnnotation.deprecated());
                 featurerEntityList.add(featurerEntity);
                 featurerMap.put(featurerAnnotation.id(), featurer);
                 syncFeaturersParams(featurerClass, featurerParamEntityList);
