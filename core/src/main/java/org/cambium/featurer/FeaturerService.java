@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.annotations.FeaturerType;
@@ -13,13 +16,23 @@ import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
+import org.twins.core.dao.specifications.featurer.FeaturerSpecification;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.FeaturerSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.featurer.FeaturerSearchResult;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+
+import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.*;
 
 @Component
 @Slf4j
@@ -30,6 +43,7 @@ public class FeaturerService {
     final FeaturerParamRepository featurerParamRepository;
     final FeaturerParamTypeRepository featurerParamTypeRepository;
     final FeaturerInjectionRepository injectionRepository;
+    final FeaturerSpecification featurerSpecification;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
     Hashtable<Integer, Set<String>> featurerParamsMap = new Hashtable<>();
@@ -169,6 +183,34 @@ public class FeaturerService {
         return featurerParamRepository.findByFeaturerIdAndKey(id, key);
     }
 
+    public void loadFeaturerParam(FeaturerEntity featurerEntity) {
+        if (featurerEntity == null)
+            return;
+        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+    }
+
+    public void loadFeaturerParam(Collection<FeaturerEntity> featurerEntityCollection) {
+        if (featurerEntity == null)
+            return;
+        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+    }
+
+    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getHeadTwinClass() != null)
+                continue;
+            needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (TwinClassEntity headTwinClass : heads) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
+                twinClass.setHeadTwinClass(headTwinClass);
+        }
+    }
+
     public void loadAllFeaturerFieldsParams(Object object) {
         Method[] methods = object.getClass().getMethods();
         for (Method method : methods) {
@@ -233,5 +275,26 @@ public class FeaturerService {
 
     public Injector getInjector(FeaturerEntity featurerEntity) throws ServiceException {
         return getFeaturer(featurerEntity, Injector.class);
+    }
+
+    public FeaturerSearchResult findFeaturers(FeaturerSearch featurerSearch, int offset, int limit) throws ServiceException {
+        Specification<FeaturerEntity> spec = createFeaturerSearchSpecification(featurerSearch);
+        Page<FeaturerEntity> ret = featurerRepository.findAll(spec, PaginationUtils.paginationOffset(offset, limit, Sort.unsorted()));
+        return convertPageInFeaturerSearchResult(ret, offset, limit);
+    }
+
+    public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
+        return where(
+                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList()))//todo collection input
+                .and(checkStringIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList()))//todo collection input
+                .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
+    }
+
+    public FeaturerSearchResult convertPageInFeaturerSearchResult(Page<FeaturerEntity> featurerPage, int offset, int limit) {
+        return (FeaturerSearchResult) new FeaturerSearchResult()
+                .setFeaturerList(featurerPage.toList())
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(featurerPage.getTotalElements());
     }
 }

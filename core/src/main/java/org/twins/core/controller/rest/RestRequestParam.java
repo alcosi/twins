@@ -45,4 +45,6 @@ public interface RestRequestParam {
     String paginationOffset = "offset";
     String paginationLimit = "limit";
     String filename = "filename";
+    String showFeaturerMode = "showFeaturerMode";
+    String showFeaturerParamMode = "showFeaturerParamMode";
 }
