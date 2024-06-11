@@ -108,6 +108,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
 
+    @Column(name = "head_hunter_featurer_id")
+    private Integer headHunterFeaturerId;
+
     @FeaturerList(type = HeadHunter.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)

@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -15,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -141,7 +141,7 @@ public class FeaturerService {
 
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
-            throw new ServiceException(ErrorCodeTwins.FEATURER_IS_NULL);
+            throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
         Featurer featurer = featurerMap.get(featurerEntity.getId());
         if (featurer == null)
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
@@ -233,5 +233,14 @@ public class FeaturerService {
 
     public Injector getInjector(FeaturerEntity featurerEntity) throws ServiceException {
         return getFeaturer(featurerEntity, Injector.class);
+    }
+
+    public void checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
+        Featurer featurer = featurerMap.get(featurerId);
+        if (featurer == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
+        if (!expectedFeaturerClass.isInstance(featurer))
+            throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
+        extractProperties(featurer, featurerParams, new HashMap<>());
     }
 }

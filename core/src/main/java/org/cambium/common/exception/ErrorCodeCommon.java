@@ -7,7 +7,11 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCodeCommon implements ErrorCode {
     OK(0, "success", HttpStatus.OK),
     UNEXPECTED_SERVER_EXCEPTION(500, "something is not well configured in database"),
-    NOT_IMPLEMENTED(501, "this operation is not supported yet");
+    NOT_IMPLEMENTED(501, "this operation is not supported yet"),
+    FEATURER_IS_NULL(600, "Got featurer is null"),
+    FEATURER_ID_UNKNOWN(601, "featurer id is unknown"),
+    FEATURER_INCORRECT_TYPE(602, "featurer type is incorrect"),
+    FEATURER_WRONG_PARAMS(604, "featurer type is incorrect"),;
 
     private final int code;
     private final String message;

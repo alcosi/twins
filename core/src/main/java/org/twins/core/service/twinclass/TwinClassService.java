@@ -6,9 +6,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
@@ -34,6 +36,7 @@ import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
@@ -71,6 +74,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final DomainService domainService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final FeaturerService featurerService;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -237,6 +242,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (twinClassEntity.getHeadTwinClassId() != null
                 && !twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
+        if (twinClassEntity.getHeadHunterFeaturerId() != null)
+            featurerService.checkValid(twinClassEntity.getHeadHunterFeaturerId(), twinClassEntity.getHeadHunterParams(), HeadHunter.class);
+        else
+            twinClassEntity.setHeadHunterParams(null);
         if (twinClassEntity.getExtendsTwinClassId() != null) {
             if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getExtendsTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id");
@@ -316,6 +325,71 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         for (TwinClassEntity extendsTwinClass : heads) {
             for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
                 twinClass.setExtendsTwinClass(extendsTwinClass);
+        }
+    }
+
+    @Transactional
+    public void updateTwinClass(TwinClassEntity updateTwinClassEntity) throws ServiceException {
+        TwinClassEntity dbTwinClassEntity = findEntitySafe(updateTwinClassEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), updateTwinClassEntity.getHeadTwinClassId())) {
+            if (dbTwinClassEntity.getHeadTwinClassId() != null && twinRepository.existsByTwinClassId(dbTwinClassEntity.getHeadTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "head class can not be changed, because some twins are already exist");
+            dbTwinClassEntity
+                    .setHeadTwinClassId(updateTwinClassEntity.getHeadTwinClassId())
+                    .setHeadTwinClass(updateTwinClassEntity.getHeadTwinClass());
+        }
+        if (changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), updateTwinClassEntity.getExtendsTwinClassId())) {
+            if (dbTwinClassEntity.getExtendsTwinClassId() != null && twinRepository.existsByTwinClassId(dbTwinClassEntity.getExtendsTwinClassId()))
+                //todo restrict only if there are fields
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "extends class can not be changed, because some twins are already exist");
+            dbTwinClassEntity
+                    .setExtendsTwinClassId(updateTwinClassEntity.getExtendsTwinClassId())
+                    .setExtendsTwinClass(updateTwinClassEntity.getExtendsTwinClass());
+        }
+        if (changesHelper.isChanged("isAbstract", dbTwinClassEntity.isAbstractt(), updateTwinClassEntity.isAbstractt())) {
+            if (updateTwinClassEntity.isAbstractt() && twinRepository.existsByTwinClassId(dbTwinClassEntity.getExtendsTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class can not be marked abstract, because some twins are already exist");
+            dbTwinClassEntity
+                    .setAbstractt(updateTwinClassEntity.isAbstractt());
+        }
+        if (changesHelper.isChanged("isTwinClassSchemaSpace", dbTwinClassEntity.isTwinClassSchemaSpace(), updateTwinClassEntity.isTwinClassSchemaSpace())) {
+            //todo check that we have trigger which will update twin.twin_class_schema_space_id column twins of given class
+            dbTwinClassEntity
+                    .setTwinClassSchemaSpace(updateTwinClassEntity.isTwinClassSchemaSpace());
+        }
+        if (changesHelper.isChanged("isTwinflowSchemaSpace", dbTwinClassEntity.isTwinflowSchemaSpace(), updateTwinClassEntity.isTwinflowSchemaSpace())) {
+            //todo check that we have trigger which will update twin.twinflow_schema_space_id column twins of given class
+            dbTwinClassEntity
+                    .setTwinflowSchemaSpace(updateTwinClassEntity.isTwinflowSchemaSpace());
+        }
+        if (changesHelper.isChanged("isAliasSpace", dbTwinClassEntity.isAliasSpace(), updateTwinClassEntity.isAliasSpace())) {
+            //todo check that we have trigger which will update twin.alias_space_id column twins of given class
+            dbTwinClassEntity
+                    .setAliasSpace(updateTwinClassEntity.isAliasSpace());
+        }
+        if (changesHelper.isChanged("isPermissionSchemaSpace", dbTwinClassEntity.isPermissionSchemaSpace(), updateTwinClassEntity.isPermissionSchemaSpace())) {
+            //todo check that we have trigger which will update twin.twinflow_schema_space_id column twins of given class
+            dbTwinClassEntity
+                    .setPermissionSchemaSpace(updateTwinClassEntity.isPermissionSchemaSpace());
+        }
+        if (changesHelper.isChanged("viewPermissionId", dbTwinClassEntity.getViewPermissionId(), updateTwinClassEntity.getViewPermissionId())) {
+            dbTwinClassEntity
+                    .setViewPermissionId(updateTwinClassEntity.getViewPermissionId());
+        }
+        if (changesHelper.isChanged("key", dbTwinClassEntity.getKey(), updateTwinClassEntity.getKey())) {
+            if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), updateTwinClassEntity.getKey()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class key is already exist");
+            //todo generate new aliases for all existed twins. old class twin aliases should not be deleted, until we will detect conflicts
+            dbTwinClassEntity
+                    .setKey(updateTwinClassEntity.getKey());
+        }
+        if (changesHelper.isChanged("key", dbTwinClassEntity.getHeadHunterFeaturer(), updateTwinClassEntity.getKey())) {
+            if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), updateTwinClassEntity.getKey()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class key is already exist");
+            //todo generate new aliases for all existed twins. old class twin aliases should not be deleted, until we will detect conflicts
+            dbTwinClassEntity
+                    .setKey(updateTwinClassEntity.getKey());
         }
     }
 }

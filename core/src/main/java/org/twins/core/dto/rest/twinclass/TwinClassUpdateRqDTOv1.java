@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinClassCreateRsV1")
-public class TwinClassCreateRsDTOv1 extends TwinClassRsDTOv1 {
+@Schema(name =  "TwinClassUpdateRqV1")
+public class TwinClassUpdateRqDTOv1 extends TwinClassSaveRqDTOv1 {
 }
