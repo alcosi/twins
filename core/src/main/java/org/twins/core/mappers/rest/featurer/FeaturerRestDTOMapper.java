@@ -28,7 +28,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setName(src.getName())
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
-                        .setDeprecated(src.getDeprecated());
+                        .setDeprecated(src.isDeprecated());
                 if (showFeaturerParams(mapperContext))
                     dst
                         .setParams(featurerParamRestDTOMapper.convertList(src.getParams(), mapperContext));
