@@ -62,4 +62,7 @@ public interface DTOExamples {
     String SPACE_ROLE_USER_ID = "275bf3c4-951a-4d26-bb82-5e18361d301c";
     String SEARCH_ALIAS = "tools";
     String SEARCH_ID = "8c580967-c050-47cf-ac27-4096c6dda2d1";
+    String FEATURER_ID = "1000";
+    String FEATURER_NAME = "InjectorImpl";
+    String FEATURER_PARAM_NAME = "listUUID";
 }
