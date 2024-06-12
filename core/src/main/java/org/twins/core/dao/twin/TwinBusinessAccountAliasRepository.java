@@ -41,4 +41,5 @@ public interface TwinBusinessAccountAliasRepository extends CrudRepository<TwinB
 
     @Query("select tb.id from TwinBusinessAccountAliasEntity tb where tb.businessAccountId = :businessAccountId and tb.twin.twinClass.domainId = :domainId")
     List<UUID> findAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
+
 }
