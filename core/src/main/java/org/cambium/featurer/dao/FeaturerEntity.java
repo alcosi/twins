@@ -36,7 +36,7 @@ public class FeaturerEntity {
     private String description;
 
     @Column(name = "deprecated")
-    private Boolean deprecated;
+    private boolean deprecated;
 
     @Transient
     @ToString.Exclude

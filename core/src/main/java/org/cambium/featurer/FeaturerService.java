@@ -83,7 +83,9 @@ public class FeaturerService {
                 featurerEntity.setClazz(featurerClass.getName());
                 featurerEntity.setFeaturerTypeId(featurerTypeAnnotation.id());
                 featurerEntity.setDescription(featurerAnnotation.description());
-                featurerEntity.setDeprecated(featurerAnnotation.deprecated());
+                Deprecated deprecatedAnnotation = featurerClass.getAnnotation(Deprecated.class);
+                if (deprecatedAnnotation != null)
+                    featurerEntity.setDeprecated(true);
                 featurerEntityList.add(featurerEntity);
                 featurerMap.put(featurerAnnotation.id(), featurer);
                 syncFeaturersParams(featurerClass, featurerParamEntityList);
