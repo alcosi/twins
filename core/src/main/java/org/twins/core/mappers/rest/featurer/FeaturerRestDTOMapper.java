@@ -46,9 +46,8 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     @Override
     public void beforeListConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeListConversion(srcCollection, mapperContext);
-        if (showFeaturerParams(mapperContext)) {
+        if (showFeaturerParams(mapperContext))
             featurerService.loadFeaturerParams(srcCollection);
-        }
     }
 
     @Override

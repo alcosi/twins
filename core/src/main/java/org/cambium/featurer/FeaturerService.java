@@ -198,7 +198,7 @@ public class FeaturerService {
             return;
         Kit<FeaturerEntity, Integer> needLoad = new Kit<>(FeaturerEntity::getId);
         for (FeaturerEntity featurerEntity : featurerEntityCollection) {
-            if (featurerEntity.getParams() != null)
+            if (featurerEntity.getParams() == null)
                 needLoad.add(featurerEntity);
         }
         List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
