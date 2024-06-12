@@ -235,12 +235,13 @@ public class FeaturerService {
         return getFeaturer(featurerEntity, Injector.class);
     }
 
-    public void checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
+    public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
         Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
         extractProperties(featurer, featurerParams, new HashMap<>());
+        return featurerRepository.getById(featurerId);
     }
 }

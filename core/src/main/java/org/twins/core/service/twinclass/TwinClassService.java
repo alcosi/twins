@@ -11,6 +11,7 @@ import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
@@ -338,6 +339,13 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             dbTwinClassEntity
                     .setHeadTwinClassId(updateTwinClassEntity.getHeadTwinClassId())
                     .setHeadTwinClass(updateTwinClassEntity.getHeadTwinClass());
+        }
+        if (changesHelper.isChanged("headHunterFeaturerId", dbTwinClassEntity.getHeadHunterFeaturerId(), updateTwinClassEntity.getHeadHunterFeaturerId())) {
+            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(updateTwinClassEntity.getHeadHunterFeaturerId(), updateTwinClassEntity.getHeadHunterParams(), HeadHunter.class);
+            dbTwinClassEntity
+                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
+                    .setHeadHunterFeaturer(newHeadHunterFeaturer)
+                    .setHeadHunterParams(updateTwinClassEntity.getHeadHunterParams());
         }
         if (changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), updateTwinClassEntity.getExtendsTwinClassId())) {
             if (dbTwinClassEntity.getExtendsTwinClassId() != null && twinRepository.existsByTwinClassId(dbTwinClassEntity.getExtendsTwinClassId()))
