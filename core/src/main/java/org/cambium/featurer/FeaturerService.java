@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -193,18 +194,19 @@ public class FeaturerService {
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
         if (CollectionUtils.isEmpty(featurerEntityCollection))
             return;
-        Set<Integer> featurerIds = featurerEntityCollection.stream()
-//                .filter(el -> el.getParams() == null)
-                .map(FeaturerEntity::getId)
-                .collect(Collectors.toSet());
-        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(featurerIds);
+        Kit<FeaturerEntity, Integer> needLoad = new Kit<>(FeaturerEntity::getId);
+        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+            if (featurerEntity.getParams() != null)
+                needLoad.add(featurerEntity);
+        }
+        List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(allParams))
             return;
         Map<Integer, List<FeaturerParamEntity>> paramsGroupedByFeaturerId = allParams.stream()
                 .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
-        for (FeaturerEntity featurerEntity : featurerEntityCollection) {
+        for (FeaturerEntity featurerEntity : needLoad.getCollection()) {
             List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
-            featurerEntity.setParams(params != null ? params : new ArrayList<>());
+            featurerEntity.setParams(params != null ? params : Collections.EMPTY_LIST);
         }
     }
 
@@ -214,7 +216,8 @@ public class FeaturerService {
             if (method.getReturnType().equals(FeaturerEntity.class)) {
                 try {
                     FeaturerEntity featurerEntity = (FeaturerEntity) method.invoke(object);
-                    featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+                    if (featurerEntity.getParams() == null)
+                        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
                 } catch (Exception e) {
                     log.error("Exception: ", e);
                 }

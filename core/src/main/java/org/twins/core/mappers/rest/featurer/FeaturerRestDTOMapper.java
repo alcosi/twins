@@ -28,8 +28,10 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setName(src.getName())
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
-                        .setDeprecated(src.getDeprecated())
-                        .setParams(featurerParamRestDTOMapper.convertList(src.getParams()));
+                        .setDeprecated(src.getDeprecated());
+                if (showFeaturerParams(mapperContext))
+                    dst
+                        .setParams(featurerParamRestDTOMapper.convertList(src.getParams(), mapperContext));
             case SHORT:
                 dst
                         .setId(src.getId())
@@ -38,7 +40,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     private static boolean showFeaturerParams(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(showFeaturerParamMode.HIDE);
+        return !mapperContext.hasModeOrEmpty(ShowFeaturerParamMode.HIDE);
     }
 
     @Override
@@ -47,6 +49,11 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
         if (showFeaturerParams(mapperContext)) {
             featurerService.loadFeaturerParams(srcCollection);
         }
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     @AllArgsConstructor
@@ -64,7 +71,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     @AllArgsConstructor
-    public enum showFeaturerParamMode implements MapperMode {
+    public enum ShowFeaturerParamMode implements MapperMode {
         HIDE(0),
         SHOW(1);
         public static final String _SHOW = "SHOW";

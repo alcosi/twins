@@ -47,7 +47,7 @@ public class FeaturerSearchController extends ApiController {
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
         @RequestParam(name = RestRequestParam.showFeaturerMode, defaultValue = FeaturerRestDTOMapper.Mode._SHORT) FeaturerRestDTOMapper.Mode showFeaturerMode,
-        @RequestParam(name = RestRequestParam.showFeaturerParamMode, defaultValue = FeaturerRestDTOMapper.showFeaturerParamMode._SHOW) FeaturerRestDTOMapper.showFeaturerParamMode showFeaturerParamMode,
+        @RequestParam(name = RestRequestParam.showFeaturerParamMode, defaultValue = FeaturerRestDTOMapper.ShowFeaturerParamMode._SHOW) FeaturerRestDTOMapper.ShowFeaturerParamMode showFeaturerParamMode,
         @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
         @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
         @RequestBody FeaturerSearchRqDTOv1 request) {
