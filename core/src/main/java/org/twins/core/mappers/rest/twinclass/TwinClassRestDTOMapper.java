@@ -73,7 +73,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             }
         }
         if (!mapperContext.hasModeOrEmpty(MarkerMode.HIDE) && src.getMarkerDataListId() != null) {
-            DataListEntity markerDataListEntity = dataListService.findEntitySafe(src.getMarkerDataListId());
+            twinClassService.loadMarkerDataList(src);
+            DataListEntity markerDataListEntity = src.getMarkerDataList();
             dataListService.loadDataListOptions(markerDataListEntity);
             if (markerDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
@@ -127,6 +128,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasMode(HeadClassMode.SHOW)) {
             twinClassService.loadExtendsTwinClasses(srcCollection);
+        }
+        if (!mapperContext.hasModeOrEmpty(MarkerMode.HIDE)) {
+            twinClassService.loadMarkerDataList(srcCollection, true);
         }
     }
 

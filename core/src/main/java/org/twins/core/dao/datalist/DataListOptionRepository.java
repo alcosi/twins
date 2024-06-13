@@ -10,15 +10,20 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
 public interface DataListOptionRepository extends CrudRepository<DataListOptionEntity, UUID>, JpaSpecificationExecutor<DataListOptionEntity> {
     String CACHE_DATA_LIST_OPTIONS = "DataListOptionRepository.findByDataListId";
     String CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT = "DataListOptionRepository.findByDataListIdAndBusinessAccountId";
+
     @Cacheable(value = CACHE_DATA_LIST_OPTIONS, key = "{#dataListId}")
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and option.businessAccountId is null order by option.order")
     List<DataListOptionEntity> findByDataListId(@Param("dataListId") UUID dataListId);
+
+    @Query(value = "from DataListOptionEntity option where option.dataListId in (:dataListIds) and option.businessAccountId is null order by option.order")
+    List<DataListOptionEntity> findByDataListIdIn(@Param("dataListIds") Set<UUID> dataListIds);
 
     @Cacheable(value = CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT, key = "#dataListId + '' + #businessAccountId")
     @Query(value = "from DataListOptionEntity option where option.dataListId = :dataListId and (option.businessAccountId is null or option.businessAccountId = :businessAccountId) order by option.order")
@@ -31,6 +36,9 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
 
     @Query(value = "from DataListOptionEntity option where (option.businessAccountId is null or option.businessAccountId = :businessAccountId) and option.id in (:idList) order by option.order")
     List<DataListOptionEntity> findByIdInAndBusinessAccountId(@Param("idList") Collection<UUID> dataListOptionId, UUID businessAccountId);
+
+    @Query(value = "from DataListOptionEntity option where option.dataListId in (:dataListIds) and (option.businessAccountId is null or option.businessAccountId = :businessAccountId) order by option.order")
+    List<DataListOptionEntity> findByDataListIdInAndBusinessAccountId(Set<UUID> dataListIds, UUID businessAccountId);
 
     @Query(value = "from DataListOptionEntity option " +
             "where option.dataListId = :dataListId " +
@@ -63,6 +71,4 @@ public interface DataListOptionRepository extends CrudRepository<DataListOptionE
             "AND (lower(:name) like lower(o.option)) " +
             "ORDER BY o.businessAccountId")
     List<DataListOptionEntity> findOptionForBusinessAccount(@Param("dataListId") UUID dataListId, @Param("businessAccountId") UUID businessAccountId, @Param("name") String name, Pageable pageable);
-
-
 }
