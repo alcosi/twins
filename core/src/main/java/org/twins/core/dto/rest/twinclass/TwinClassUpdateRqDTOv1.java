@@ -15,7 +15,7 @@ import java.util.UUID;
 @Schema(name =  "TwinClassUpdateRqV1")
 public class TwinClassUpdateRqDTOv1 extends TwinClassSaveRqDTOv1 {
     @Schema(description = "[optional] if marker data list is changed during update, you should pass map [old_marker_id -> new_marker_id]")
-    public Map<UUID, UUID> markersRemap;
+    public Map<UUID, UUID> markersReplaceMap;
 
     @JsonIgnore
     public UUID twinClassId;

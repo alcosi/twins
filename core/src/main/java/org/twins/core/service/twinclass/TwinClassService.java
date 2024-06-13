@@ -3,7 +3,6 @@ package org.twins.core.service.twinclass;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
@@ -82,7 +81,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Lazy
     final TwinMarkerService twinMarkerService;
     @Lazy
-    final DataListService  dataListService;
+    final DataListService dataListService;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -351,7 +350,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassViewPermission(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
         updateTwinClassKey(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
         updateTwinClassLogo(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
-        updateTwinClassMarkerDataList(updateTwinClassEntity, dbTwinClassEntity, updateTwinClass.getMarkersRemap(), changesHelper);
+        updateTwinClassMarkerDataList(updateTwinClassEntity, dbTwinClassEntity, updateTwinClass.getMarkersReplaceMap(), changesHelper);
         updateTwinClassTagDataList(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
     }
 
@@ -364,23 +363,17 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     }
 
     @Transactional
-    public void updateTwinClassMarkerDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, Map<UUID, UUID> markersRemap, ChangesHelper changesHelper) throws ServiceException {
+    public void updateTwinClassMarkerDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, Map<UUID, UUID> markersReplaceMap, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("markerDataListId", dbTwinClassEntity.getMarkerDataListId(), updateTwinClassEntity.getMarkerDataListId()))
             return;
         if (UuidUtils.isNullifyMarker(updateTwinClassEntity.getMarkerDataListId()))
             //we have to delete all markers from twins of given class
             twinMarkerService.deleteAllMarkersForTwinsOfClass(updateTwinClassEntity.getId());
         else {
-            if (MapUtils.isNotEmpty(markersRemap)) {
-                //loadMarkerDataList(updateTwinClassEntity);
-                for (Map.Entry<UUID, UUID> entry : markersRemap.entrySet()) {
-
-                }
-            }
+            twinMarkerService.replaceMarkersForTwinsOfClass(updateTwinClassEntity, markersReplaceMap);
         }
         dbTwinClassEntity
                 .setMarkerDataListId(UuidUtils.nullifyIfNecessary(updateTwinClassEntity.getMarkerDataListId()));
-
     }
 
     public void updateTwinClassLogo(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ChangesHelper changesHelper) {
@@ -472,11 +465,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public void updateTwinClassHeadTwinClass(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), updateTwinClassEntity.getHeadTwinClassId()))
             return;
-            if (dbTwinClassEntity.getHeadTwinClassId() != null && twinRepository.existsByTwinClassId(dbTwinClassEntity.getHeadTwinClassId()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "head class can not be changed, because some twins are already exist");
-            dbTwinClassEntity
-                    .setHeadTwinClassId(updateTwinClassEntity.getHeadTwinClassId())
-                    .setHeadTwinClass(updateTwinClassEntity.getHeadTwinClass());
+        if (dbTwinClassEntity.getHeadTwinClassId() != null && twinRepository.existsByTwinClassId(dbTwinClassEntity.getHeadTwinClassId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "head class can not be changed, because some twins are already exist");
+        dbTwinClassEntity
+                .setHeadTwinClassId(updateTwinClassEntity.getHeadTwinClassId())
+                .setHeadTwinClass(updateTwinClassEntity.getHeadTwinClass());
     }
 
     public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {

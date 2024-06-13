@@ -12,5 +12,5 @@ import java.util.UUID;
 public class TwinClassUpdate {
     private TwinClassEntity updateTwinClassEntity;
     private TwinClassEntity dbTwinClassEntity;
-    private Map<UUID, UUID> markersRemap;
+    private Map<UUID, UUID> markersReplaceMap;
 }

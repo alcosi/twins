@@ -20,6 +20,6 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
         dst
                 .setUpdateTwinClassEntity(twinClassSaveRestDTOReverseMapper.convert(src))
                 .setDbTwinClassEntity(twinClassService.findEntitySafe(src.getTwinClassId()))
-                .setMarkersRemap(src.markersRemap);
+                .setMarkersReplaceMap(src.markersReplaceMap);
     }
 }

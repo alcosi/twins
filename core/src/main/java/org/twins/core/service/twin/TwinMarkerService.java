@@ -3,11 +3,13 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.UuidUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -16,10 +18,13 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,6 +39,8 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     final TwinService twinService;
     final DataListService dataListService;
     final EntitySmartService entitySmartService;
+    @Lazy
+    final TwinClassService twinClassService;
 
     @Override
     public CrudRepository<TwinMarkerEntity, UUID> entityRepository() {
@@ -145,5 +152,35 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     @Transactional
     public void deleteAllMarkersForTwinsOfClass(UUID twinClassId) {
         twinMarkerRepository.deleteByTwin_TwinClassId(twinClassId);
+    }
+
+    public Set<UUID> findExistedTwinMarkersForTwinsOfClass(UUID twinClassId) {
+        return twinMarkerRepository.findDistinctMakersDataListOptionIdByTwinTwinClassId(twinClassId);
+    }
+
+    @Transactional
+    public void replaceMarkersForTwinsOfClass(TwinClassEntity twinClassEntity,  Map<UUID, UUID> markersReplaceMap) throws ServiceException {
+        Set<UUID> existedTwinMarkerIds = findExistedTwinMarkersForTwinsOfClass(twinClassEntity.getId());
+        if (CollectionUtils.isNotEmpty(existedTwinMarkerIds)) {
+            if (MapUtils.isEmpty(markersReplaceMap))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap for markers: " + org.cambium.common.util.StringUtils.join(existedTwinMarkerIds));
+            twinClassService.loadMarkerDataList(twinClassEntity);
+            Set<UUID> markersForDeletion = new HashSet<>();
+            for (UUID markerForReplace : existedTwinMarkerIds) {
+                UUID replacement = markersReplaceMap.get(markerForReplace);
+                if (replacement == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap value for marker: " + markerForReplace);
+                if (UuidUtils.isNullifyMarker(replacement)) {
+                    markersForDeletion.add(markerForReplace);
+                    continue;
+                }
+                if (twinClassEntity.getMarkerDataList().getOptions().get(replacement) == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct markersReplaceMap value for marker: " + markerForReplace);
+                twinMarkerRepository.replaceMarkersForTwinsOfClass(twinClassEntity.getId(), markerForReplace, replacement);
+            }
+            if (CollectionUtils.isNotEmpty(markersForDeletion)) {
+                twinMarkerRepository.deleteByTwin_TwinClassIdAAndMarkerDataListOptionIdIn(twinClassEntity.getId(), markersForDeletion);
+            }
+        }
     }
 }
