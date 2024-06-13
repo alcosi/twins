@@ -2,6 +2,7 @@ package org.cambium.common.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class ChangesHelper {
     List<String> changes;
@@ -25,7 +26,10 @@ public class ChangesHelper {
 
     public boolean isChanged(String field, Object oldValue, Object newValue) {
         if (newValue != null && !newValue.equals(oldValue)) {
-            add(field, oldValue, newValue);
+            if (newValue instanceof UUID && UuidUtils.NULLIFY_MARKER.equals(newValue)) {
+                add(field, oldValue, null);
+            } else
+                add(field, oldValue, newValue);
             return true;
         }
         return false;

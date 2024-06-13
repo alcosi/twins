@@ -16,7 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassSaveRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassUpdateRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -42,7 +42,7 @@ public class TwinClassUpdateController extends ApiController {
     final TwinClassService twinClassService;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinClassSaveRestDTOReverseMapper twinClassSaveRestDTOReverseMapper;
+    final TwinClassUpdateRestDTOReverseMapper twinClassUpdateRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassUpdateV1", summary = "Update twin class by id")
@@ -67,9 +67,8 @@ public class TwinClassUpdateController extends ApiController {
             @RequestBody TwinClassUpdateRqDTOv1 request) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
-            TwinClassEntity twinClassEntity = twinClassSaveRestDTOReverseMapper.convert(request)
-                    .setId(twinClassId);
-            twinClassService.updateTwinClass(twinClassEntity);
+            TwinClassUpdate twinClassUpdate = twinClassUpdateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId));
+            twinClassService.updateTwinClass(twinClassUpdate);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showClassMode)
@@ -82,7 +81,7 @@ public class TwinClassUpdateController extends ApiController {
                     .setMode(showExtendsClassMode)
                     .setMode(showHeadClassMode);
             rs
-                    .setTwinClass(twinClassRestDTOMapper.convert(twinClassEntity, mapperContext))
+                    .setTwinClass(twinClassRestDTOMapper.convert(twinClassUpdate.getDbTwinClassEntity(), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

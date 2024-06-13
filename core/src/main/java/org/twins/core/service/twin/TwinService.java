@@ -13,6 +13,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
@@ -428,7 +429,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             dbTwinEntity.setDescription(updateTwinEntity.getDescription());
         }
         if (changesHelper.isChanged("assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
-            if (updateTwinEntity.getAssignerUserId().equals(TwinUpdate.NULLIFY_MARKER)) {
+            if (updateTwinEntity.getAssignerUserId().equals(UuidUtils.NULLIFY_MARKER)) {
                 historyCollector.add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), null));
                 dbTwinEntity
                         .setAssignerUserId(null)

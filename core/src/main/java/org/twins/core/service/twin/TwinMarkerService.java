@@ -11,6 +11,7 @@ import org.cambium.common.util.KitUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinMarkerEntity;
@@ -139,5 +140,10 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
         log.info("Markers[" + StringUtils.join(markersDelete, ",") + "] perhaps were deleted from " + twinEntity.logShort());
         twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
+    }
+
+    @Transactional
+    public void deleteAllMarkersForTwinsOfClass(UUID twinClassId) {
+        twinMarkerRepository.deleteByTwin_TwinClassId(twinClassId);
     }
 }

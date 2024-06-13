@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.List;
@@ -22,4 +23,7 @@ public interface TwinMarkerRepository extends CrudRepository<TwinMarkerEntity, U
     void deleteByTwinId(UUID twinId);
 
     void deleteByTwinIdAndMarkerDataListOptionIdIn(UUID twinId, Set<UUID> markerIdList);
+
+    @Transactional
+    void deleteByTwin_TwinClassId(UUID twinClassId);
 }
