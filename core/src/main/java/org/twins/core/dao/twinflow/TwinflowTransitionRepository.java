@@ -46,12 +46,14 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
-    @Query(value = "select tt from TwinflowTransitionEntity tt where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) and tt.twinflowTransitionAliasId = :aliasId " +
-            " and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.srcTwinStatusId limit 1")
+    @Query(value = "select tt from TwinflowTransitionEntity tt " +
+            "where tt.twinflowId = :twinflowId and (tt.srcTwinStatusId = :srcTwinStatusId or tt.srcTwinStatusId is null) " +
+            "and tt.twinflowTransitionAlias.alias = :alias " +
+            "and true = function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, tt.permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator) order by tt.srcTwinStatusId limit 1")
     TwinflowTransitionEntity findTransitionByAlias(
             @Param("twinflowId") UUID twinflowId,
             @Param("srcTwinStatusId") UUID srcTwinStatusId,
-            @Param("aliasId") String alias,
+            @Param("alias") String alias,
             @Param("domainId") UUID domainId,
             @Param("businessAccountId") TypedParameterValue<UUID> businessAccountId,
             @Param("permissionSpaceId") TypedParameterValue<UUID> permissionSpaceId,
