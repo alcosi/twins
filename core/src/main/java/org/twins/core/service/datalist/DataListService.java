@@ -6,6 +6,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -28,11 +30,7 @@ import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -98,9 +96,33 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public Kit<DataListOptionEntity, UUID> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
-        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
+        if (dataListEntity.getOptions() != null)
+            return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
         return dataListEntity.getOptions();
+    }
+
+    public void loadDataListOptions(Collection<DataListEntity> dataListEntityCollection) throws ServiceException {
+        Kit<DataListEntity, UUID> needLoad = new Kit<>(DataListEntity::getId);
+        for (DataListEntity dataListEntity : dataListEntityCollection) {
+            if (dataListEntity.getOptions() == null)
+                needLoad.add(dataListEntity);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        KitGrouped<DataListOptionEntity, UUID, UUID> optionsKit = new KitGrouped<>(
+                findOptionsForDataLists(needLoad.getIdSet()),
+                DataListOptionEntity::getId,
+                DataListOptionEntity::getDataListId);
+        for (DataListEntity dataListEntity : needLoad.getCollection()) {
+            dataListEntity.setOptions(new Kit<>(optionsKit.getGrouped(dataListEntity.getId()), DataListOptionEntity::getId));
+        }
+    }
+
+    public List<DataListOptionEntity> findOptionsForDataLists(Set<UUID> dataListIds) throws ServiceException {
+        return authService.getApiUser().isBusinessAccountSpecified() ?
+                dataListOptionRepository.findByDataListIdInAndBusinessAccountId(dataListIds, authService.getApiUser().getBusinessAccount().getId()) :
+                dataListOptionRepository.findByDataListIdIn(dataListIds);
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
