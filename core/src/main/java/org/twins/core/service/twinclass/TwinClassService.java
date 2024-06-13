@@ -33,6 +33,7 @@ import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.ReplaceOperation;
 import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -44,6 +45,7 @@ import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
@@ -80,6 +82,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final FeaturerService featurerService;
     @Lazy
     final TwinMarkerService twinMarkerService;
+    @Lazy
+    final TwinTagService twinTagService;
     @Lazy
     final DataListService dataListService;
 
@@ -350,27 +354,32 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassViewPermission(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
         updateTwinClassKey(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
         updateTwinClassLogo(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
-        updateTwinClassMarkerDataList(updateTwinClassEntity, dbTwinClassEntity, updateTwinClass.getMarkersReplaceMap(), changesHelper);
-        updateTwinClassTagDataList(updateTwinClassEntity, dbTwinClassEntity, changesHelper);
+        updateTwinClassMarkerDataList(updateTwinClassEntity, dbTwinClassEntity, updateTwinClass.getMarkersReplace(), changesHelper);
+        updateTwinClassTagDataList(updateTwinClassEntity, dbTwinClassEntity, updateTwinClass.getTagsReplace(), changesHelper);
     }
 
-    public void updateTwinClassTagDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ChangesHelper changesHelper) {
+    public void updateTwinClassTagDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ReplaceOperation replaceOperation, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("tagsDataListId", dbTwinClassEntity.getTagDataListId(), updateTwinClassEntity.getTagDataListId()))
             return;
-        //todo remap tags
+        if (UuidUtils.isNullifyMarker(updateTwinClassEntity.getTagDataListId()))
+            //we have to delete all tags from twins of given class
+            twinTagService.deleteAllTagsForTwinsOfClass(updateTwinClassEntity.getId());
+        else {
+            twinTagService.replaceTagsForTwinsOfClass(updateTwinClassEntity, replaceOperation);
+        }
         dbTwinClassEntity
                 .setTagDataListId(UuidUtils.nullifyIfNecessary(updateTwinClassEntity.getTagDataListId()));
     }
 
     @Transactional
-    public void updateTwinClassMarkerDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, Map<UUID, UUID> markersReplaceMap, ChangesHelper changesHelper) throws ServiceException {
+    public void updateTwinClassMarkerDataList(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ReplaceOperation replaceOperation, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("markerDataListId", dbTwinClassEntity.getMarkerDataListId(), updateTwinClassEntity.getMarkerDataListId()))
             return;
         if (UuidUtils.isNullifyMarker(updateTwinClassEntity.getMarkerDataListId()))
             //we have to delete all markers from twins of given class
             twinMarkerService.deleteAllMarkersForTwinsOfClass(updateTwinClassEntity.getId());
         else {
-            twinMarkerService.replaceMarkersForTwinsOfClass(updateTwinClassEntity, markersReplaceMap);
+            twinMarkerService.replaceMarkersForTwinsOfClass(updateTwinClassEntity, replaceOperation);
         }
         dbTwinClassEntity
                 .setMarkerDataListId(UuidUtils.nullifyIfNecessary(updateTwinClassEntity.getMarkerDataListId()));

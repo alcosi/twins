@@ -19,6 +19,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ReplaceOperation;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
@@ -159,17 +160,22 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     }
 
     @Transactional
-    public void replaceMarkersForTwinsOfClass(TwinClassEntity twinClassEntity,  Map<UUID, UUID> markersReplaceMap) throws ServiceException {
+    public void replaceMarkersForTwinsOfClass(TwinClassEntity twinClassEntity, ReplaceOperation replaceOperation) throws ServiceException {
         Set<UUID> existedTwinMarkerIds = findExistedTwinMarkersForTwinsOfClass(twinClassEntity.getId());
         if (CollectionUtils.isNotEmpty(existedTwinMarkerIds)) {
-            if (MapUtils.isEmpty(markersReplaceMap))
+            if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed
+                    && MapUtils.isEmpty(replaceOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap for markers: " + org.cambium.common.util.StringUtils.join(existedTwinMarkerIds));
             twinClassService.loadMarkerDataList(twinClassEntity);
             Set<UUID> markersForDeletion = new HashSet<>();
             for (UUID markerForReplace : existedTwinMarkerIds) {
-                UUID replacement = markersReplaceMap.get(markerForReplace);
-                if (replacement == null)
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap value for marker: " + markerForReplace);
+                UUID replacement = replaceOperation.getReplaceMap().get(markerForReplace);
+                if (replacement == null) {
+                    if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed)
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap value for marker: " + markerForReplace);
+                    else
+                        replacement = UuidUtils.NULLIFY_MARKER;
+                }
                 if (UuidUtils.isNullifyMarker(replacement)) {
                     markersForDeletion.add(markerForReplace);
                     continue;
@@ -179,7 +185,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                 twinMarkerRepository.replaceMarkersForTwinsOfClass(twinClassEntity.getId(), markerForReplace, replacement);
             }
             if (CollectionUtils.isNotEmpty(markersForDeletion)) {
-                twinMarkerRepository.deleteByTwin_TwinClassIdAAndMarkerDataListOptionIdIn(twinClassEntity.getId(), markersForDeletion);
+                twinMarkerRepository.deleteByTwin_TwinClassIdAndMarkerDataListOptionIdIn(twinClassEntity.getId(), markersForDeletion);
             }
         }
     }

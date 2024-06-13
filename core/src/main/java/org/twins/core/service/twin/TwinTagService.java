@@ -3,10 +3,12 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
@@ -17,11 +19,14 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ReplaceOperation;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -40,6 +45,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     final I18nService i18nService;
     final AuthService authService;
     final CacheManager cacheManager;
+    @Lazy
+    final TwinClassService twinClassService;
 
     @Override
     public CrudRepository<TwinTagEntity, UUID> entityRepository() {
@@ -182,5 +189,43 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         newTag.setTagDataListOption(option);
 
         return newTag;
+    }
+
+    public void deleteAllTagsForTwinsOfClass(UUID twinClassId) {
+        twinTagRepository.deleteByTwin_TwinClassId(twinClassId);
+    }
+
+    public void replaceTagsForTwinsOfClass(TwinClassEntity twinClassEntity, ReplaceOperation replaceOperation) throws ServiceException {
+        Set<UUID> existedTwinTagIds = findExistedTwinTagsForTwinsOfClass(twinClassEntity.getId());
+        if (CollectionUtils.isNotEmpty(existedTwinTagIds)) {
+            if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed
+                    && MapUtils.isEmpty(replaceOperation.getReplaceMap()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
+            twinClassService.loadMarkerDataList(twinClassEntity);
+            Set<UUID> tagsForDeletion = new HashSet<>();
+            for (UUID tagForReplace : existedTwinTagIds) {
+                UUID replacement = replaceOperation.getReplaceMap().get(tagForReplace);
+                if (replacement == null) {
+                    if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed)
+                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap value for tag: " + tagForReplace);
+                    else
+                        replacement = UuidUtils.NULLIFY_MARKER;
+                }
+                if (UuidUtils.isNullifyMarker(replacement)) {
+                    tagsForDeletion.add(tagForReplace);
+                    continue;
+                }
+                if (twinClassEntity.getMarkerDataList().getOptions().get(replacement) == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct tagsReplaceMap value for tag: " + tagForReplace);
+                twinTagRepository.replaceTagsForTwinsOfClass(twinClassEntity.getId(), tagForReplace, replacement);
+            }
+            if (CollectionUtils.isNotEmpty(tagsForDeletion)) {
+                twinTagRepository.deleteByTwin_TwinClassIdAndTagDataListOptionIdIn(twinClassEntity.getId(), tagsForDeletion);
+            }
+        }
+    }
+
+    private Set<UUID> findExistedTwinTagsForTwinsOfClass(UUID twinClassId) {
+        return twinTagRepository.findDistinctTagsDataListOptionIdByTwinTwinClassId(twinClassId);
     }
 }

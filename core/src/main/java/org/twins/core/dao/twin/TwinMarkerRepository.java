@@ -30,7 +30,7 @@ public interface TwinMarkerRepository extends CrudRepository<TwinMarkerEntity, U
     void deleteByTwin_TwinClassId(UUID twinClassId);
 
     @Transactional
-    void deleteByTwin_TwinClassIdAAndMarkerDataListOptionIdIn(UUID twinClassId, Collection<UUID> markerIdList);
+    void deleteByTwin_TwinClassIdAndMarkerDataListOptionIdIn(UUID twinClassId, Collection<UUID> markerIdList);
 
     @Query(value = "select distinct m.markerDataListOptionId from TwinMarkerEntity m where m.twin.twinClassId = :twinClassId ")
     Set<UUID> findDistinctMakersDataListOptionIdByTwinTwinClassId(@Param("twinClassId") UUID twinClassId);
