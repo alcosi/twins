@@ -489,7 +489,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 } else if (twinOperation instanceof TwinUpdate twinUpdate) {
                     boolean isProcessedTwin = true;
                     if (transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinUpdate.getTwinEntity().getId())) {// case when twin was taken from input, we have to force update status from transition
-                        if (twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
+                        if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
                             twinUpdate.getTwinEntity()
                                     .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
                                     .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
