@@ -54,7 +54,7 @@ public class TwinStatusCreateController extends ApiController {
             @RequestBody TwinStatusCreateRqDTOv1 request) {
         TwinStatusCreateRsDTOv1 rs = new TwinStatusCreateRsDTOv1();
         try {
-            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId));
+            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert((TwinStatusCreateRqDTOv1) request.setTwinClassId(twinClassId));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(true)
                     .setMode(showStatusMode);

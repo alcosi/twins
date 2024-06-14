@@ -2,6 +2,8 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -45,6 +47,16 @@ public class TwinStatusEntity implements EasyLoggable {
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private String name;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private String description;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
@@ -53,12 +65,4 @@ public class TwinStatusEntity implements EasyLoggable {
             default -> "twinStatus[id:" + id + ", twinClassId:" + twinClassId + "]";
         };
     }
-
-//    @ManyToOne
-//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity nameI18n;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity descriptionI18n;
 }

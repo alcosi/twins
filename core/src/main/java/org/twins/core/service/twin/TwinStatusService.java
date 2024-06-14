@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
@@ -111,4 +112,20 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setDescriptionI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, descriptionInDefaultLocale).getI18nId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
+
+    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity) throws ServiceException {
+        TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("key", dbEntity.getKey(), updateEntity.getKey()))
+            dbEntity.setKey(updateEntity.getKey());
+        if (changesHelper.isChanged("color", dbEntity.getColor(), updateEntity.getColor()))
+            dbEntity.setColor(updateEntity.getColor());
+        if (changesHelper.isChanged("logo", dbEntity.getLogo(), updateEntity.getLogo()))
+            dbEntity.setLogo(updateEntity.getLogo());
+        //todo update name
+        //todo update description
+        entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
+        return updateEntity;
+    }
+
 }
