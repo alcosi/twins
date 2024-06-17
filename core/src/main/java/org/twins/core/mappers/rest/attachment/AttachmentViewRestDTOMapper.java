@@ -11,7 +11,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;

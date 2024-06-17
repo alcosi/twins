@@ -7,6 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -98,22 +99,22 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     @Transactional
-    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, String nameInDefaultLocale) throws ServiceException {
+    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, I18nTranslation nameInDefaultLocale) throws ServiceException {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey(key);
-        return createStatus(twinStatusEntity, nameInDefaultLocale, "");
+        return createStatus(twinStatusEntity, nameInDefaultLocale, I18nTranslation.empty());
     }
 
     @Transactional
-    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, String nameInDefaultLocale, String descriptionInDefaultLocale) throws ServiceException {
+    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nTranslation name, I18nTranslation description) throws ServiceException {
         twinStatusEntity
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
-                .setDescriptionI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, descriptionInDefaultLocale).getI18nId());
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, name.getTranslate()).getI18nId())
+                .setDescriptionI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, description.getTranslate()).getI18nId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity) throws ServiceException {
+    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nTranslation names, I18nTranslation descriptions) throws ServiceException {
         TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged("key", dbEntity.getKey(), updateEntity.getKey()))
@@ -122,8 +123,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             dbEntity.setColor(updateEntity.getColor());
         if (changesHelper.isChanged("logo", dbEntity.getLogo(), updateEntity.getLogo()))
             dbEntity.setLogo(updateEntity.getLogo());
-        //todo update name
-        //todo update description
+        i18nService.updateTranslations(updateEntity.getNameI18nId(), names);
+        i18nService.updateTranslations(updateEntity.getNameI18nId(), descriptions);
         entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
         return updateEntity;
     }

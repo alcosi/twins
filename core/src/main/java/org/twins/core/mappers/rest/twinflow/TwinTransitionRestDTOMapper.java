@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor

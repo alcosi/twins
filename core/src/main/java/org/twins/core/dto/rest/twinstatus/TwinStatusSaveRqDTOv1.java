@@ -7,6 +7,8 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
+import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dto.rest.twin.TwinStatusSaveDTOv1;
 
 import java.util.UUID;
 
@@ -15,22 +17,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinStatusSaveRqV1")
 public class TwinStatusSaveRqDTOv1 extends Request {
-
-    @Schema(description = "[optional] key within the domain", example = DTOExamples.TWIN_STATUS_KEY)
-    public String key;
-
-    @Schema(description = "[optional] name", example = DTOExamples.TWIN_STATUS_NAME)
-    public String name;
-
-    @Schema(description = "[optional] description", example = DTOExamples.TWIN_STATUS_DESCRIPTION)
-    public String description;
-
-    @Schema(description = "[optional] url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
-    public String logo;
-
-    @Schema(description = "[optional] color hex", example = "#ff00ff")
-    public String color;
-
-    @JsonIgnore
-    public UUID twinClassId;
+    @Schema(description = "twin status")
+    public TwinStatusSaveDTOv1 twinStatus;
 }

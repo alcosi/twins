@@ -11,6 +11,5 @@ import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinStatusUpdateRsV1")
 public class TwinStatusUpdateRsDTOv1 extends TwinStatusSaveRsDTOv1 {
-    @Schema(description = "result - twin status")
-    public TwinStatusDTOv1 twinStatus;
+
 }

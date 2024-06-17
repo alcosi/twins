@@ -10,12 +10,15 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -218,5 +221,39 @@ public abstract class I18nService {
             locale = i18nProperties.defaultLocale();
         }
         return locale;
+    }
+
+    public void updateTranslations(UUID i18nId, I18nTranslation transitions) {
+        if (MapUtils.isEmpty(transitions.getTranslations()))
+            return;
+        Map<Locale, String> translationsForUpdate = transitions.getTranslations();
+
+        List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationRepository.findByI18nIdAndLocaleIn(i18nId, translationsForUpdate.keySet());
+
+        Map<Locale, I18nTranslationEntity> existingTranslationsMap = i18nTranslationEntities.stream()
+                .collect(Collectors.toMap(I18nTranslationEntity::getLocale, Function.identity()));
+
+        List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
+
+        for (Map.Entry<Locale, String> entry : translationsForUpdate.entrySet()) {
+            Locale locale = entry.getKey();
+            String translation = entry.getValue();
+
+            I18nTranslationEntity entity = existingTranslationsMap.get(locale);
+
+            if (entity == null) {
+                entity = new I18nTranslationEntity()
+                        .setI18nId(i18nId)
+                        .setLocale(locale)
+                        .setTranslation(translation);
+                entitiesToSave.add(entity);
+            } else {
+                if (!Objects.equals(entity.getTranslation(), translation)) {
+                    entity.setTranslation(translation);
+                    entitiesToSave.add(entity);
+                }
+            }
+        }
+        i18nTranslationRepository.saveAll(entitiesToSave);
     }
 }

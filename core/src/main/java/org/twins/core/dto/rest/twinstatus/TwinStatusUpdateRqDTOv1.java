@@ -12,6 +12,5 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinStatusUpdateRqV1")
 public class TwinStatusUpdateRqDTOv1 extends TwinStatusSaveRqDTOv1 {
-    @Schema(description = "uuid")
-    public UUID id;
+
 }

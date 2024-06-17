@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.twin;
+package org.twins.core.mappers.rest.twinstatus;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,16 +22,16 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
         switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()))
-                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .logo(src.getLogo())
-                        .color(src.getColor());
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setLogo(src.getLogo())
+                        .setColor(src.getColor());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()));
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()));
                 break;
         }
     }

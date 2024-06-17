@@ -11,6 +11,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -261,8 +262,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-
-        TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
+        TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", I18nTranslation.createTranslate("Initial status"));
         TwinflowEntity twinflowEntity = twinflowService.createTwinflow(twinClassEntity, twinStatusEntity);
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowService.registerTwinflow(twinflowEntity, apiUser.getDomain(), twinClassEntity);
         return twinClassEntity;

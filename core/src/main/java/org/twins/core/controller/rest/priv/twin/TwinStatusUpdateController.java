@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,11 +20,12 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRqDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOReverseMapper;
 import org.twins.core.service.twin.TwinStatusService;
 
-@Tag(description = "", name = ApiTag.TWIN)
+@Tag(description = "", name = ApiTag.TWIN_STATUS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -31,11 +33,12 @@ public class TwinStatusUpdateController extends ApiController {
     final TwinStatusService twinStatusService;
     final TwinStatusRestDTOReverseMapper twinStatusRestDTOReverseMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusUpdateV1", summary = "Update twin status")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+            @ApiResponse(responseCode = "200", description = "Twin status data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinStatusUpdateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
@@ -46,8 +49,10 @@ public class TwinStatusUpdateController extends ApiController {
         TwinStatusUpdateRsDTOv1 rs = new TwinStatusUpdateRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setMode(showStatusMode);
+            I18nTranslation translationName = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationName());
+            I18nTranslation translationDescription = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationDescription());
             TwinStatusEntity twinStatusEntity = twinStatusService
-                    .updateStatus(twinStatusRestDTOReverseMapper.convert(request));
+                    .updateStatus(twinStatusRestDTOReverseMapper.convert(request), translationName, translationDescription);
             rs
                     .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {

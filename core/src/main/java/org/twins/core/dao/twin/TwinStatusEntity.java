@@ -47,16 +47,6 @@ public class TwinStatusEntity implements EasyLoggable {
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private String name;
-
-    @Transient
-    @EqualsAndHashCode.Exclude
-    @ToString.Exclude
-    private String description;
-
     @Override
     public String easyLog(Level level) {
         return switch (level) {

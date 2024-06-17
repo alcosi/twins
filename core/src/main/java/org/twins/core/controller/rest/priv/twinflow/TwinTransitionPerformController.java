@@ -35,6 +35,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionPerformRsRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
