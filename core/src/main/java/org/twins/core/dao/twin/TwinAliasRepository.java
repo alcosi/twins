@@ -66,12 +66,24 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set domain_alias_counter = domain_alias_counter + 1 " +
-            "where twin_id = :twinId; " +
+            "where twin_id = :twinId and :aliasType in ('S'); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.domain_alias_counter), now(), space.domain_id " +
             "from space where space.twin_id = :twinId; " +
             "commit;")
-    void createSpaceAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+    void createSpaceDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+
+    @Modifying
+    @Transactional
+    @Query(nativeQuery = true, value = "begin; " +
+            "update space set business_account_alias_counter = business_account_alias_counter + 1 " +
+            "where twin_id = :twinId and :aliasType in ('K', 'T'); " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id, business_account_id) " +
+            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.business_account_alias_counter), now(), space.domain_id, space.business_account_id " +
+            "from space where space.twin_id = :twinId; " +
+            "commit;")
+    void createSpaceBusinessAccountAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+
 
     @Query("SELECT t FROM TwinAliasEntity t WHERE t.twinId = :twinId AND t.aliasTypeId = :aliasType")
     TwinAliasEntity findByTwinIdAndType(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);

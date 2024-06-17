@@ -73,9 +73,10 @@ public class TwinAliasService {
                 twinAliasRepository.createBusinessAccountClassAlias(twin.getId(), aliasType);
                 break;
             case S:
+                twinAliasRepository.createSpaceDomainAlias(twin.getId(), aliasType);
             case K:
             case T:
-                twinAliasRepository.createSpaceAlias(twin.getId(), aliasType);
+                twinAliasRepository.createSpaceBusinessAccountAlias(twin.getId(), aliasType);
                 break;
             default:
                 throw new ServiceException(ErrorCodeTwins.UNSUPPORTED_ALIAS_TYPE, "Unsupported alias type: " + aliasType);
