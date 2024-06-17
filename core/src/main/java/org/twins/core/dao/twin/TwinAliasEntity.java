@@ -39,10 +39,6 @@ public class TwinAliasEntity {
     @Column(name = "businesw_account_id")
     private UUID businessAccountId;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_alias_type_id", insertable = false, updatable = false, nullable = true)
-    private TwinAliasType aliasType;
-
     @JoinColumn(name = "business_account_id")
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)

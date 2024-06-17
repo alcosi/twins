@@ -12,6 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_business_account_alias")
+@Deprecated
 public class TwinBusinessAccountAliasEntity {
     @Id
     @GeneratedValue(generator = "uuid")

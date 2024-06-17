@@ -13,6 +13,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_domain_alias")
+@Deprecated
 public class TwinDomainAliasEntity {
     @Id
     @GeneratedValue(generator = "uuid")
