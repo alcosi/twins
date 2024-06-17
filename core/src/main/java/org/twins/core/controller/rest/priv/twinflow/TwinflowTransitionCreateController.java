@@ -24,8 +24,8 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV1RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV2RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -43,7 +43,7 @@ public class TwinflowTransitionCreateController extends ApiController {
     final UserService userService;
     final TwinflowTransitionCreateRestDTOReverseMapper twinflowTransitionCreateRestDTOReverseMapper;
     final TwinflowTransitionService twinflowTransitionService;
-    final TwinflowTransitionBaseV2RestDTOMapper twinflowTransitionBaseV2RestDTOMapper;
+    final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "transitionCreateV1", summary = "Create new transition")
@@ -55,7 +55,7 @@ public class TwinflowTransitionCreateController extends ApiController {
     @RequestMapping(value = "/private/twinflow/{twinflowId}/transition/v1", method = RequestMethod.POST)
     public ResponseEntity<?> transitionCreateV1(
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinflowId,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode._SHORT) TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode showTwinflowTransitionMode,
+            @RequestParam(name = RestRequestParam.showTransitionMode, defaultValue = TransitionBaseV1RestDTOMapper.Mode.Fields.SHORT) TransitionBaseV1RestDTOMapper.Mode showTwinflowTransitionMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode,
@@ -71,7 +71,7 @@ public class TwinflowTransitionCreateController extends ApiController {
                     .setMode(showPermissionMode);
             twinflowTransitionEntity = twinflowTransitionService.createTwinflowTransition(twinflowTransitionEntity, request.getName());
             rs
-                    .setTransition(twinflowTransitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
+                    .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

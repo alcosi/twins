@@ -24,7 +24,6 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowService;
 
@@ -51,7 +50,7 @@ public class TwinflowViewController extends ApiController {
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowMode, defaultValue = TwinflowBaseV1RestDTOMapper.TwinflowMode._SHORT) TwinflowBaseV1RestDTOMapper.TwinflowMode showTwinflowMode,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode._SHORT) TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode showTwinflowTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = TwinflowBaseV3RestDTOMapper.TwinflowTransitionMode.Fields.SHORT) TwinflowBaseV3RestDTOMapper.TwinflowTransitionMode showTwinflowTransitionMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode) {

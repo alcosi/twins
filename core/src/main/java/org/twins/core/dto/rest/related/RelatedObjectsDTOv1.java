@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.util.Map;
@@ -32,7 +32,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, TwinClassDTOv1> twinClassMap;
 
     @Schema(description = "related transitionsMap map", example = "{twin transition map}")
-    public Map<UUID, TwinTransitionViewDTOv1> transitionsMap;
+    public Map<UUID, TwinflowTransitionBaseDTOv1> transitionsMap;
 
     @Schema(description = "related datalist map", example = "{datalist map}")
     public Map<UUID, DataListDTOv1> dataListsMap;

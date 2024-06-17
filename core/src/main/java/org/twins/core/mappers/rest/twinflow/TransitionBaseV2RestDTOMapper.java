@@ -14,18 +14,18 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 @Component
 @RequiredArgsConstructor
-public class TwinflowTransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv2> {
+public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv2> {
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final I18nService i18nService;
     final PermissionRestDTOMapper permissionRestDTOMapper;
-    final TwinflowTransitionBaseV1RestDTOMapper twinflowTransitionBaseV1RestDTOMapper;
+    final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
     final TwinflowTransitionService twinflowTransitionService;
     final UserRestDTOMapper userRestDTOMapper;
 
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
-        twinflowTransitionBaseV1RestDTOMapper.map(src, dst, mapperContext);
-        switch (mapperContext.getModeOrUse(TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode.SHORT)) {
+        transitionBaseV1RestDTOMapper.map(src, dst, mapperContext);
+        switch (mapperContext.getModeOrUse(TransitionBaseV1RestDTOMapper.Mode.SHORT)) {
             case DETAILED:
                 dst
                         .setSrcTwinStatusId(src.getDstTwinStatusId())
@@ -48,7 +48,7 @@ public class TwinflowTransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinflowTransitionBaseV1RestDTOMapper.TwinflowTransitionMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TransitionBaseV1RestDTOMapper.Mode.HIDE);
     }
 
 }

@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -14,13 +15,13 @@ import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
+public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
     final I18nService i18nService;
 
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinflowTransitionMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(Mode.SHORT)) {
             case DETAILED:
                 dst
                         .setDstTwinStatusId(src.getDstTwinStatusId())
@@ -48,18 +49,15 @@ public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinflowTransitionMode.HIDE);
+        return mapperContext.hasModeOrEmpty(Mode.HIDE);
     }
 
     @AllArgsConstructor
-    public enum TwinflowTransitionMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Mode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
 
         @Getter
         final int priority;

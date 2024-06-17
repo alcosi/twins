@@ -279,6 +279,11 @@ public class MapperContext {
         return mapperContext;
     }
 
+    public MapperContext forkOnPoint(MapperModePointer<?> mapperModePointer) {
+        MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
+        return cloneWithIsolatedModes().setMode(configuredPointer.point());
+    }
+
     public MapperContext cloneWithFlushedModes() {
         MapperContext mapperContext = new MapperContext();
         mapperContext.lazyRelations = this.lazyRelations;

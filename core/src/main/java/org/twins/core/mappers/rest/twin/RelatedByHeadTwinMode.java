@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 
 @Getter
 public enum RelatedByHeadTwinMode implements MapperModeCollection {
@@ -26,7 +26,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     GREEN(1,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -40,7 +40,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     FOREST_GREEN(1,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -54,7 +54,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     YELLOW(2,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -68,7 +68,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     BLUE(3,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -82,7 +82,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     BLACK(4,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -96,7 +96,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     GRAY(4,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -110,7 +110,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE),
+            TransitionBaseV1RestDTOMapper.Mode.HIDE),
     ORANGE(5,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
             TwinBaseV3RestDTOMapper.TwinMarkerMode.HIDE,
@@ -124,7 +124,7 @@ public enum RelatedByHeadTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkRestDTOMapper.Mode.HIDE,
             LinkRestDTOMapper.Mode.HIDE,
-            TwinTransitionRestDTOMapper.Mode.HIDE);
+            TransitionBaseV1RestDTOMapper.Mode.HIDE);
 
     public static final String _WHITE = "WHITE";
     public static final String _GREEN = "GREEN";

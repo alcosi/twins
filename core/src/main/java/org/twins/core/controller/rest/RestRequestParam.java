@@ -29,6 +29,7 @@ public interface RestRequestParam {
     String showTwinMarkerMode = "showTwinMarkerMode";
     String showTwinTagMode = "showTwinTagMode";
     String showLinkMode = "showLinkMode";
+    String showTransitionMode = "showTransitionMode";
     String showTwinTransitionMode = "showTwinTransitionMode";
     String showTwinActionMode = "showTwinActionMode";
     String showTwinflowTransitionResultMode = "showTwinflowTransitionResultMode";

@@ -3,17 +3,19 @@ package org.twins.core.mappers.rest.attachment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinService;
@@ -29,7 +31,7 @@ import java.util.stream.Collectors;
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
     final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+    final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
     @Autowired
     TwinClassRestDTOMapper twinClassRestDTOMapper;
     final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
@@ -38,13 +40,12 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(AttachmentViewRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
                         .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
                         .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                        .setTwinflowTransition(twinTransitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.cloneWithIsolatedModes().setMode(TwinTransitionRestDTOMapper.Mode.SHORT)))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setTwinClassFieldId(src.getTwinClassFieldId())
                         .setCommentId(src.getTwinCommentId())
@@ -55,6 +56,11 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                 dst
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
+        }
+        if (!mapperContext.hasModeOrEmpty(AttachmentViewRestDTOMapper.Mode.HIDE)) {
+            dst
+                    .setTwinflowTransitionId(src.getTwinflowTransitionId())
+                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(AttachmentTransitionMode.SHORT)));
         }
     }
 
@@ -88,7 +94,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(AttachmentViewRestDTOMapper.Mode.HIDE);
     }
 
     @AllArgsConstructor
@@ -121,6 +127,26 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
         @Getter
         final int priority;
+    }
+
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum AttachmentTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.Mode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        @Getter
+        final int priority;
+
+        @Override
+        public TransitionBaseV1RestDTOMapper.Mode point() {
+            return switch (this) {
+                case HIDE -> TransitionBaseV1RestDTOMapper.Mode.HIDE;
+                case SHORT -> TransitionBaseV1RestDTOMapper.Mode.SHORT;
+                case DETAILED -> TransitionBaseV1RestDTOMapper.Mode.DETAILED;
+            };
+        }
     }
 
 }

@@ -17,7 +17,7 @@ import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RelatedObject;
@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
+import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 import java.util.HashMap;
@@ -45,7 +45,7 @@ public class RelatedObjectsRestDTOConverter {
     final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     final UserRestDTOMapper userRestDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+    final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
     final DataListRestDTOMapper dataListRestDTOMapper;
     final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
     final SpaceRoleByUserDTOMapper spaceRoleByUserDTOMapper;
@@ -58,7 +58,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
         Map<UUID, UserDTOv1> userMap = new HashMap<>();
         Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
-        Map<UUID, TwinTransitionViewDTOv1> twinTransitionMap = new HashMap<>();
+        Map<UUID, TwinflowTransitionBaseDTOv1> twinflowTransitionMap = new HashMap<>();
         Map<UUID, DataListDTOv1> dataListMap = new HashMap<>();
         Map<UUID, DataListOptionDTOv1> dataListOptionMap = new HashMap<>();
         Map<UUID, SpaceRoleDTOv1> spaceRoleMap = new HashMap<>();
@@ -73,7 +73,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContext.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel2, userMap, UserEntity::getId);
         if (!mapperContext.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), twinTransitionRestDTOMapper, mapperContextLevel2, twinTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel2, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContext.getRelatedDataListMap().isEmpty())
             convertAndPut(mapperContext.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel2, dataListMap, DataListEntity::getId);
         if (!mapperContext.getRelatedDataListOptionMap().isEmpty())
@@ -92,7 +92,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), twinTransitionRestDTOMapper, mapperContextLevel3, twinTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel3, dataListMap, DataListEntity::getId);
         if (!mapperContextLevel2.getRelatedDataListOptionMap().isEmpty())
@@ -112,7 +112,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinflowTransitionMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), twinTransitionRestDTOMapper, mapperContextLevel3, twinTransitionMap, TwinflowTransitionEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinflowTransitionMap(), transitionBaseV1RestDTOMapper, mapperContextLevel3, twinflowTransitionMap, TwinflowTransitionEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedDataListMap(), dataListRestDTOMapper, mapperContextLevel3, dataListMap, DataListEntity::getId);
         if (!mapperContextLevel3.getRelatedDataListOptionMap().isEmpty())
@@ -125,7 +125,7 @@ public class RelatedObjectsRestDTOConverter {
                 .setTwinMap(twinMap.isEmpty() ? null : twinMap)
                 .setStatusMap(statusMap.isEmpty() ? null : statusMap)
                 .setUserMap(userMap.isEmpty() ? null : userMap)
-                .setTransitionsMap(twinTransitionMap.isEmpty() ? null : twinTransitionMap)
+                .setTransitionsMap(twinflowTransitionMap.isEmpty() ? null : twinflowTransitionMap)
                 .setDataListsMap(dataListMap.isEmpty() ? null : dataListMap)
                 .setDataListsOptionMap(dataListOptionMap.isEmpty() ? null : dataListOptionMap)
                 .setSpaceRoleMap(spaceRoleMap.isEmpty() ? null : spaceRoleMap);

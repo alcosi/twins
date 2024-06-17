@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinflowTransitionViewV1")
+@Schema(name =  "TwinTransitionViewV1")
 public class TwinTransitionViewDTOv1 extends TwinflowTransitionBaseDTOv1 {
 
 }
