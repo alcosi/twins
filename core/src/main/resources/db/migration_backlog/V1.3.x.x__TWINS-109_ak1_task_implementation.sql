@@ -30,3 +30,5 @@ CREATE UNIQUE INDEX if not exists twin_alias_D_C_S ON twin_alias (domain_id, ali
 CREATE UNIQUE INDEX if not exists twin_alias_B_K ON twin_alias (domain_id, business_account_id, alias_value) WHERE twin_alias_type_id IN ('B', 'K');
 CREATE UNIQUE INDEX if not exists twin_alias_T ON twin_alias (domain_id, user_id, alias_value) WHERE twin_alias_type_id = 'T';
 alter table public.twin_class add if not exists alias_counter integer default 0;
+alter table public.search_alias add if not exists  created_at timestamp default current_timestamp;
+

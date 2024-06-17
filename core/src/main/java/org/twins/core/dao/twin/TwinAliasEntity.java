@@ -8,6 +8,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -38,6 +39,9 @@ public class TwinAliasEntity {
 
     @Column(name = "businesw_account_id")
     private UUID businessAccountId;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
 
     @JoinColumn(name = "business_account_id")
     @ManyToOne
