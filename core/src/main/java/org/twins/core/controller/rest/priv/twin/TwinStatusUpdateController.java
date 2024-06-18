@@ -42,7 +42,7 @@ public class TwinStatusUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinStatusUpdateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin_status/{twinStatusId}/v1")
+    @PutMapping(value = "/private/twin_status/v1")
     public ResponseEntity<?> twinStatusUpdateV1(
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
             @RequestBody TwinStatusUpdateRqDTOv1 request) {

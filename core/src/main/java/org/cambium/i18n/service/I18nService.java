@@ -15,10 +15,12 @@ import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Component
 @Slf4j
@@ -201,6 +203,29 @@ public abstract class I18nService {
         return i18nTranslationRepository.save(i18nTranslationEntity);
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public List<I18nTranslationEntity> createI18nAndTranslations(I18nType i18nType, Map<Locale, String> transitions) {
+        List<I18nTranslationEntity> entryForSave = new ArrayList<>();
+        I18nEntity i18nEntity = new I18nEntity()
+                .setKey(null)
+                .setName(null)
+                .setType(i18nType);
+        i18nEntity = i18nRepository.save(i18nEntity);
+        for (var entry : transitions.entrySet()) {
+            entryForSave.add(new I18nTranslationEntity()
+                    .setI18n(i18nEntity)
+                    .setI18nId(i18nEntity.getId())
+                    .setLocale(entry.getKey())
+                    .setTranslation(entry.getValue() != null ? entry.getValue() : I18nTranslation.empty().getTranslate())
+            );
+        }
+        return StreamSupport
+                .stream(i18nTranslationRepository.saveAll(entryForSave).spliterator(), false)
+                .collect(Collectors.toList());
+    }
+
+
+
     private String addCopyPostfix(String originalStr) {
         if (org.apache.commons.lang3.StringUtils.isEmpty(originalStr))
             return originalStr;
@@ -223,19 +248,23 @@ public abstract class I18nService {
         return locale;
     }
 
-    public void updateTranslations(UUID i18nId, I18nTranslation transitions) {
-        if (MapUtils.isEmpty(transitions.getTranslations()))
-            return;
-        Map<Locale, String> translationsForUpdate = transitions.getTranslations();
+    @Transactional
+    public List<I18nTranslationEntity> updateTranslations(UUID i18nId, I18nType type, Map<Locale, String> transitions) {
+        if (MapUtils.isEmpty(transitions))
+            return Collections.emptyList();
 
-        List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationRepository.findByI18nIdAndLocaleIn(i18nId, translationsForUpdate.keySet());
+        if (i18nId == null){
+            return createI18nAndTranslations(type, transitions);
+        }
+
+        List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationRepository.findByI18nIdAndLocaleIn(i18nId, transitions.keySet());
 
         Map<Locale, I18nTranslationEntity> existingTranslationsMap = i18nTranslationEntities.stream()
                 .collect(Collectors.toMap(I18nTranslationEntity::getLocale, Function.identity()));
 
         List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
 
-        for (Map.Entry<Locale, String> entry : translationsForUpdate.entrySet()) {
+        for (Map.Entry<Locale, String> entry : transitions.entrySet()) {
             Locale locale = entry.getKey();
             String translation = entry.getValue();
 
@@ -254,6 +283,8 @@ public abstract class I18nService {
                 }
             }
         }
-        i18nTranslationRepository.saveAll(entitiesToSave);
+        return StreamSupport
+                .stream(i18nTranslationRepository.saveAll(entitiesToSave).spliterator(), false)
+                .collect(Collectors.toList());
     }
 }

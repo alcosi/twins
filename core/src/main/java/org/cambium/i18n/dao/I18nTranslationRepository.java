@@ -17,6 +17,7 @@ public interface I18nTranslationRepository extends CrudRepository<I18nTranslatio
     Optional<I18nTranslationEntity> findByI18nIdAndLocale(UUID i18nId, Locale locale);
 
     List<I18nTranslationEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locales);
+
     List<I18nTranslationEntity> findByI18nIdAndLocaleIn(UUID i18nId, Collection<Locale> locales);
 
     List<I18nTranslationEntity> findByI18nId(UUID i18nId);

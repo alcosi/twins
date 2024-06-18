@@ -6,6 +6,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.MapUtils;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
@@ -114,19 +116,25 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
+    @Transactional
     public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nTranslation names, I18nTranslation descriptions) throws ServiceException {
         TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("key", dbEntity.getKey(), updateEntity.getKey()))
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
             dbEntity.setKey(updateEntity.getKey());
-        if (changesHelper.isChanged("color", dbEntity.getColor(), updateEntity.getColor()))
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.color, dbEntity.getColor(), updateEntity.getColor()))
             dbEntity.setColor(updateEntity.getColor());
-        if (changesHelper.isChanged("logo", dbEntity.getLogo(), updateEntity.getLogo()))
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.logo, dbEntity.getLogo(), updateEntity.getLogo()))
             dbEntity.setLogo(updateEntity.getLogo());
-        i18nService.updateTranslations(updateEntity.getNameI18nId(), names);
-        i18nService.updateTranslations(updateEntity.getNameI18nId(), descriptions);
+        I18nType i18nType = I18nType.TWIN_STATUS_NAME;
+        List<I18nTranslationEntity> i18nTranslationNames = i18nService.updateTranslations(dbEntity.getNameI18nId(), i18nType, names.getTranslations());
+        if (dbEntity.getNameI18nId() == null && MapUtils.isNotEmpty(names.getTranslations()))
+            dbEntity.setNameI18nId(i18nTranslationNames.stream().findFirst().get().getI18nId());
+        List<I18nTranslationEntity> i18nTranslationDescriptions = i18nService.updateTranslations(dbEntity.getDescriptionI18nId(), i18nType, descriptions.getTranslations());
+        if (dbEntity.getDescriptionI18nId() == null && MapUtils.isNotEmpty(names.getTranslations()))
+            dbEntity.setDescriptionI18nId(i18nTranslationDescriptions.stream().findFirst().get().getI18nId());
         entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
-        return updateEntity;
+        return dbEntity;
     }
 
 }

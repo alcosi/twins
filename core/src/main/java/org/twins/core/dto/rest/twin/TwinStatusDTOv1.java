@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.UUID;
@@ -15,14 +16,14 @@ public class TwinStatusDTOv1 {
     @Schema(description = "uuid", example = DTOExamples.TWIN_STATUS_ID)
     public UUID id;
 
-    @Schema(name = "key within the domain")
+    @Schema(description = "key within the domain")
     private String key;
 
-    @Schema(description = "name", example = "")
-    public String name;
+    @Schema(description = "translation of names")
+    public I18nDTOv1 translationName;
 
-    @Schema(description = "description", example = "")
-    public String description;
+    @Schema(description = "translation of descriptions")
+    public I18nDTOv1 translationDescription;
 
     @Schema(description = "url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
     public String logo;
