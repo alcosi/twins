@@ -1,9 +1,6 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldNameConstants;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv2;
@@ -24,13 +21,13 @@ public class TwinflowBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinflowBaseV1RestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(TwinflowAuthorMode.HIDE) && src.getCreatedByUserId() != null)
+        if (mapperContext.hasModeButNot(MapperModePointer.TwinflowAuthorMode.HIDE) && src.getCreatedByUserId() != null)
             dst
-                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(TwinflowAuthorMode.SHORT)))
+                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(MapperModePointer.TwinflowAuthorMode.SHORT)))
                     .setCreatedByUserId(src.getCreatedByUserId());
-        if (mapperContext.hasModeButNot(TwinflowInitStatusMode.HIDE) && src.getCreatedByUserId() != null)
+        if (mapperContext.hasModeButNot(MapperModePointer.TwinflowInitStatusMode.HIDE) && src.getCreatedByUserId() != null)
             dst
-                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(TwinflowInitStatusMode.SHORT)))
+                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(MapperModePointer.TwinflowInitStatusMode.SHORT)))
                     .setInitialStatusId(src.getInitialTwinStatusId());
     }
 
@@ -44,43 +41,4 @@ public class TwinflowBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         return twinflowBaseV1RestDTOMapper.hideMode(mapperContext);
     }
 
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowAuthorMode implements MapperModePointer<UserRestDTOMapper.Mode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        @Getter
-        final int priority;
-
-        @Override
-        public UserRestDTOMapper.Mode point() {
-            return switch (this) {
-                case HIDE -> UserRestDTOMapper.Mode.HIDE;
-                case SHORT -> UserRestDTOMapper.Mode.SHORT;
-                case DETAILED -> UserRestDTOMapper.Mode.DETAILED;
-            };
-        }
-    }
-
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowInitStatusMode implements MapperModePointer<TwinStatusRestDTOMapper.Mode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        @Getter
-        final int priority;
-
-        @Override
-        public TwinStatusRestDTOMapper.Mode point() {
-            return switch (this) {
-                case HIDE -> TwinStatusRestDTOMapper.Mode.HIDE;
-                case SHORT -> TwinStatusRestDTOMapper.Mode.SHORT;
-                case DETAILED -> TwinStatusRestDTOMapper.Mode.DETAILED;
-            };
-        }
-    }
 }

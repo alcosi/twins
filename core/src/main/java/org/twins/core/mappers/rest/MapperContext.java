@@ -289,7 +289,13 @@ public class MapperContext {
 
     public MapperContext forkOnPoint(MapperModePointer<?> mapperModePointer) {
         MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
-        return cloneWithIsolatedModes().setMode(configuredPointer.point());
+        MapperMode pointedMode = configuredPointer.point();
+        if (pointedMode == null)
+            return this;
+        else if (pointedMode instanceof MapperModeCollection modeCollection)
+            return cloneWithIsolatedModes(modeCollection);
+        else
+            return cloneWithIsolatedModes().setMode(pointedMode);
     }
 
     public MapperContext cloneWithFlushedModes() {

@@ -20,7 +20,7 @@ public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEnt
 
     @Override
     public void map(TwinStarredEntity src, TwinStarredDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.StatusMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())

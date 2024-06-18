@@ -1,9 +1,6 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldNameConstants;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -22,7 +19,7 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
 
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TransitionMode.SHORT)) {
             case DETAILED:
                 dst
                         .setDstTwinStatusId(src.getDstTwinStatusId())
@@ -40,10 +37,10 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setId(src.getId());
                 break;
         }
-        if (mapperContext.hasModeButNot(TransitionStatusMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperModePointer.TransitionStatusMode.HIDE))
             dst
                     .setDstTwinStatusId(src.getDstTwinStatusId())
-                    .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext.forkOnPoint(TransitionStatusMode.SHORT)));
+                    .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext.forkOnPoint(MapperModePointer.TransitionStatusMode.SHORT)));
     }
 
     @Override
@@ -53,37 +50,7 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TransitionMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TransitionMode.HIDE);
     }
 
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TransitionMode implements MapperMode {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TransitionStatusMode implements MapperModePointer<TwinStatusRestDTOMapper.Mode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        @Getter
-        final int priority;
-
-        @Override
-        public TwinStatusRestDTOMapper.Mode point() {
-            return switch (this) {
-                case HIDE -> TwinStatusRestDTOMapper.Mode.HIDE;
-                case SHORT -> TwinStatusRestDTOMapper.Mode.SHORT;
-                case DETAILED -> TwinStatusRestDTOMapper.Mode.DETAILED;
-            };
-        }
-    }
 }

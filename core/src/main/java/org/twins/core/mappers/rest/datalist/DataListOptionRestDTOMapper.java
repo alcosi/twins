@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.datalist;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
@@ -21,7 +19,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
 
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.DataListOptionMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -51,23 +49,9 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
         return ret.size() > 0 ? ret : null;
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
-
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.DataListOptionMode.HIDE);
     }
 
     @Override

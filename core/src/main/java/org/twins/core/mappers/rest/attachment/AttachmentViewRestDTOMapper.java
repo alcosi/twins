@@ -1,9 +1,6 @@
 package org.twins.core.mappers.rest.attachment;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.FieldNameConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
@@ -40,7 +37,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(AttachmentViewRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.AttachmentMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
@@ -57,17 +54,17 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
         }
-        if (!mapperContext.hasModeOrEmpty(AttachmentViewRestDTOMapper.Mode.HIDE)) {
+        if (!mapperContext.hasModeOrEmpty(MapperMode.AttachmentMode.HIDE)) {
             dst
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(AttachmentTransitionMode.SHORT)));
+                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperModePointer.AttachmentTransitionMode.SHORT)));
         }
     }
 
     @Override
     public List<AttachmentViewDTOv1> convertList(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
-        switch (mapperContext.getModeOrUse(TwinAttachmentMode.ALL)) {
+        switch (mapperContext.getModeOrUse(MapperMode.AttachmentCollectionMode.ALL)) {
             case DIRECT:
                 newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());
                 break;
@@ -94,59 +91,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(AttachmentViewRestDTOMapper.Mode.HIDE);
-    }
-
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    public enum TwinAttachmentMode implements MapperMode {
-        DIRECT(0),
-        FROM_TRANSITIONS(1),
-        FROM_COMMENTS(1),
-        FROM_FIELDS(1),
-        ALL(2);
-
-        public static final String _ALL = "ALL";
-        public static final String _DIRECT = "DIRECT";
-        public static final String _FROM_TRANSITIONS = "FROM_TRANSITIONS";
-        public static final String _FROM_COMMENTS = "FROM_COMMENTS";
-        public static final String _FROM_FIELDS = "FROM_FIELDS";
-
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum AttachmentTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.TransitionMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        @Getter
-        final int priority;
-
-        @Override
-        public TransitionBaseV1RestDTOMapper.TransitionMode point() {
-            return switch (this) {
-                case HIDE -> TransitionBaseV1RestDTOMapper.TransitionMode.HIDE;
-                case SHORT -> TransitionBaseV1RestDTOMapper.TransitionMode.SHORT;
-                case DETAILED -> TransitionBaseV1RestDTOMapper.TransitionMode.DETAILED;
-            };
-        }
+        return mapperContext.hasModeOrEmpty(MapperMode.AttachmentMode.HIDE);
     }
 
 }

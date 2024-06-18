@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 
@@ -34,7 +35,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .date(date.getDate());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.getOptions(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertList(select.getOptions(), new MapperContext().setMode(MapperMode.DataListOptionMode.SHORT)));
         return null;
     }
 }

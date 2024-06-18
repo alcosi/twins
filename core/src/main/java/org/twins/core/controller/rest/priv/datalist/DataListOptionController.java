@@ -22,6 +22,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 
@@ -45,7 +46,7 @@ public class DataListOptionController extends ApiController {
     @RequestMapping(value = "/private/data_list_option/{dataListOptionId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> dataListOptionV1(
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._SHORT) DataListOptionRestDTOMapper.Mode showDataListOptionMode) {
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {
             DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
@@ -69,7 +70,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_option/map/v1", method = RequestMethod.POST)
     public ResponseEntity<?> dataListsOptionsMapV1(
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = DataListOptionRestDTOMapper.Mode._SHORT) DataListOptionRestDTOMapper.Mode showDataListOptionMode,
+            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
         try {

@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -16,7 +14,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
 
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinflowMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinflowMode.SHORT)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -40,20 +38,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinflowMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TwinflowMode.HIDE);
     }
 
-    @AllArgsConstructor
-    public enum TwinflowMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

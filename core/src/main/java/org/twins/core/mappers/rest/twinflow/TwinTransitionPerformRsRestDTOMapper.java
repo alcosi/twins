@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -11,7 +9,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.*;
@@ -24,7 +21,7 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
 
     @Override
     public void map(TwinflowTransitionService.TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TransitionResultMode.DETAILED)) {
             case DETAILED:
                 List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertList(src.getProcessedTwinList(), mapperContext);
 
@@ -43,20 +40,7 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinStatusRestDTOMapper.Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.StatusMode.HIDE);
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

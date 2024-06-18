@@ -22,8 +22,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
 import org.twins.core.dto.rest.comment.CommentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 
@@ -58,7 +58,7 @@ public class CommentEditController extends ApiController {
                             convert(twinComment,
                                     new MapperContext()
                                             .setMode(CommentViewRestDTOMapper.Mode.DETAILED)
-                                            .setMode(AttachmentViewRestDTOMapper.Mode.DETAILED)));
+                                            .setMode(MapperMode.AttachmentMode.DETAILED)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
