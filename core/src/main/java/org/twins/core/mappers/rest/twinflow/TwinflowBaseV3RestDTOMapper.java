@@ -23,15 +23,11 @@ public class TwinflowBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinflowBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        if (showTransitions(mapperContext)) {
+        if (mapperContext.hasModeButNot(TwinflowTransitionMode.HIDE)) {
                 twinflowTransitionService.loadAllTransitions(src);
                 dst
                         .setTransitions(transitionBaseV2RestDTOMapper.convertMap(src.getTransitionsKit().getMap(), mapperContext.forkOnPoint(TwinflowTransitionMode.HIDE)));
         }
-    }
-
-    private static boolean showTransitions(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(TwinflowTransitionMode.HIDE);
     }
 
     @Override
@@ -46,7 +42,7 @@ public class TwinflowBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
 
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.Mode> {
+    public enum TwinflowTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -55,11 +51,11 @@ public class TwinflowBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
         final int priority;
 
         @Override
-        public TransitionBaseV1RestDTOMapper.Mode point() {
+        public TransitionBaseV1RestDTOMapper.TransitionMode point() {
             return switch (this) {
-                case HIDE -> TransitionBaseV1RestDTOMapper.Mode.HIDE;
-                case SHORT -> TransitionBaseV1RestDTOMapper.Mode.SHORT;
-                case DETAILED -> TransitionBaseV1RestDTOMapper.Mode.DETAILED;
+                case HIDE -> TransitionBaseV1RestDTOMapper.TransitionMode.HIDE;
+                case SHORT -> TransitionBaseV1RestDTOMapper.TransitionMode.SHORT;
+                case DETAILED -> TransitionBaseV1RestDTOMapper.TransitionMode.DETAILED;
             };
         }
     }

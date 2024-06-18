@@ -131,7 +131,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum AttachmentTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.Mode> {
+    public enum AttachmentTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -140,11 +140,11 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         final int priority;
 
         @Override
-        public TransitionBaseV1RestDTOMapper.Mode point() {
+        public TransitionBaseV1RestDTOMapper.TransitionMode point() {
             return switch (this) {
-                case HIDE -> TransitionBaseV1RestDTOMapper.Mode.HIDE;
-                case SHORT -> TransitionBaseV1RestDTOMapper.Mode.SHORT;
-                case DETAILED -> TransitionBaseV1RestDTOMapper.Mode.DETAILED;
+                case HIDE -> TransitionBaseV1RestDTOMapper.TransitionMode.HIDE;
+                case SHORT -> TransitionBaseV1RestDTOMapper.TransitionMode.SHORT;
+                case DETAILED -> TransitionBaseV1RestDTOMapper.TransitionMode.DETAILED;
             };
         }
     }

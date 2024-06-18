@@ -210,12 +210,20 @@ public class MapperContext {
             return false;
     }
 
+    public <T extends MapperMode> boolean hasMode(Class<T> modeClass) {
+        return modes.containsKey(modeClass);
+    }
+
     public <T extends MapperMode> boolean hasModeOrEmpty(T mode) {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode != null)
             return configuredMode.equals(mode);
         else
             return true;
+    }
+
+    public <T extends MapperMode> boolean hasModeButNot(T mode) {
+        return !hasModeOrEmpty(mode);
     }
 
     public <T extends MapperMode> boolean hasEmpty(T mode) {

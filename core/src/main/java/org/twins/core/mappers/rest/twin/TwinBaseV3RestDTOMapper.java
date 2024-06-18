@@ -71,19 +71,19 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(TwinMarkerMode.HIDE);
+        return mapperContext.hasModeButNot(TwinMarkerMode.HIDE);
     }
 
     private static boolean showTags(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(TwinTagMode.HIDE);
+        return mapperContext.hasModeButNot(TwinTagMode.HIDE);
     }
 
     private static boolean showActions(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(TwinActionMode.HIDE);
+        return mapperContext.hasModeButNot(TwinActionMode.HIDE);
     }
 
     private static boolean showTransitions(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(TwinTransitionMode.HIDE);
+        return mapperContext.hasModeButNot(TwinTransitionMode.HIDE);
     }
 
     @Override
@@ -159,7 +159,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.Mode> {
+    public enum TwinTransitionMode implements MapperModePointer<TransitionBaseV1RestDTOMapper.TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -168,11 +168,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         final int priority;
 
         @Override
-        public TransitionBaseV1RestDTOMapper.Mode point() {
+        public TransitionBaseV1RestDTOMapper.TransitionMode point() {
             return switch (this) {
-                case HIDE -> TransitionBaseV1RestDTOMapper.Mode.HIDE;
-                case SHORT -> TransitionBaseV1RestDTOMapper.Mode.SHORT;
-                case DETAILED -> TransitionBaseV1RestDTOMapper.Mode.DETAILED;
+                case HIDE -> TransitionBaseV1RestDTOMapper.TransitionMode.HIDE;
+                case SHORT -> TransitionBaseV1RestDTOMapper.TransitionMode.SHORT;
+                case DETAILED -> TransitionBaseV1RestDTOMapper.TransitionMode.DETAILED;
             };
         }
     }
