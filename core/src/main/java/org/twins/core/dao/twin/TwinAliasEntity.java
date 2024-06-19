@@ -37,13 +37,12 @@ public class TwinAliasEntity {
     @Column(name = "domain_id")
     private UUID domainId;
 
-    @Column(name = "businesw_account_id")
+    @Column(name = "business_account_id")
     private UUID businessAccountId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @JoinColumn(name = "business_account_id")
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity twin;
