@@ -4,12 +4,12 @@ CREATE TABLE if not exists public.twin_alias_type (
               CONSTRAINT twin_alias_type_pk PRIMARY KEY (alias_type_id)
 );
 
-INSERT INTO public.twin_alias_type VALUES ('D', '') on conflict(alias_type_id) do nothing;
-INSERT INTO public.twin_alias_type VALUES ('C', '') on conflict(alias_type_id) do nothing;
-INSERT INTO public.twin_alias_type VALUES ('B', '') on conflict(alias_type_id) do nothing;
-INSERT INTO public.twin_alias_type VALUES ('S', '') on conflict(alias_type_id) do nothing;
-INSERT INTO public.twin_alias_type VALUES ('T', '') on conflict(alias_type_id) do nothing;
-INSERT INTO public.twin_alias_type VALUES ('K', '') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('D', 'Domain key is uniq, so given type of alias is also uniq even between all registered domains') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('C', 'Twin class key is uniq only in given domain. That is why such kind of alias can be duplicated between different domains.') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('B', 'This alias is differ from domain class alias because it is uniq only inside BA inside some domain.') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('S', 'Space for owner type domain') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('T', 'Space for owner type domainBusinessAccount') on conflict(alias_type_id) do nothing;
+INSERT INTO public.twin_alias_type VALUES ('K', 'Space for owner type domainUser') on conflict(alias_type_id) do nothing;
 
 
 CREATE TABLE IF NOT EXISTS public.twin_alias (
