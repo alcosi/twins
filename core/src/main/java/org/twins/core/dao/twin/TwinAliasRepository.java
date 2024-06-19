@@ -27,23 +27,23 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update domain set alias_counter = alias_counter + 1 " +
-            "where id = (select domain_id from twin where id = :twinId); " +
-            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id) " +
+            "where id = (select domain_id from twin_class where id = (select twin_class_id from twin where id = :twinId)); " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(domain.key, '-', :aliasType, domain.alias_counter), now(), domain.id " +
-            "from domain, twin where twin.id = :twinId and twin.domain_id = domain.id; " +
+            "from domain, twin_class, twin where twin.id = :twinId and twin.twin_class_id = twin_class.id and twin_class.domain_id = domain.id; " +
             "commit;")
-    void createDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+    void createDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
 
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update twin_class set domain_alias_counter = domain_alias_counter + 1 " +
             "where id = (select twin_class_id from twin where id = :twinId); " +
-            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id) " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(twin_class.key, '-', :aliasType, twin_class.domain_alias_counter), now(), twin_class.domain_id " +
             "from twin_class, twin where twin.id = :twinId and twin.twin_class_id = twin_class.id; " +
             "commit;")
-    void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+    void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
 
     @Modifying
     @Transactional
@@ -52,37 +52,38 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "select gen_random_uuid(), twin.owner_business_account_id, twin.twin_class_id, 1 " +
             "from twin where twin.id = :twinId " +
             "on conflict ON CONSTRAINT twin_business_account_alias_counter_uniq do update set alias_counter = twin_business_account_alias_counter.alias_counter + 1; " +
-            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, business_account_id) " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, business_account_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(twin_class.key, '-', :aliasType, twin_business_account_alias_counter.alias_counter), now(), twin.owner_business_account_id " +
             "from twin_business_account_alias_counter, twin_class, twin " +
             "where twin_business_account_alias_counter.business_account_id = twin.owner_business_account_id " +
             "and twin_business_account_alias_counter.twin_class_id = twin.twin_class_id " +
             "and twin_class.id = twin_business_account_alias_counter.twin_class_id " +
-            "and twin.id = :twinId; " +
-            "commit;")
-    void createBusinessAccountClassAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+            "and twin.id = :twinId " +
+            ";commit;")
+    void createBusinessAccountClassAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
+
 
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set domain_alias_counter = domain_alias_counter + 1 " +
             "where twin_id = :twinId and :aliasType in ('S'); " +
-            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id) " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.domain_alias_counter), now(), space.domain_id " +
-            "from space where space.twin_id = :twinId; " +
-            "commit;")
-    void createSpaceDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+            "from space where space.twin_id = :twinId " +
+            ";commit;")
+    void createSpaceDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
 
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set business_account_alias_counter = business_account_alias_counter + 1 " +
             "where twin_id = :twinId and :aliasType in ('K', 'T'); " +
-            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias, created_at, domain_id, business_account_id) " +
+            "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id, business_account_id) " +
             "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.business_account_alias_counter), now(), space.domain_id, space.business_account_id " +
-            "from space where space.twin_id = :twinId; " +
-            "commit;")
-    void createSpaceBusinessAccountAlias(@Param("twinId") UUID twinId, @Param("aliasType") TwinAliasType aliasType);
+            "from space where space.twin_id = :twinId " +
+            ";commit;")
+    void createSpaceBusinessAccountAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
 
 
     @Query("SELECT t FROM TwinAliasEntity t WHERE t.twinId = :twinId AND t.aliasTypeId = :aliasType")

@@ -18,6 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.twins.core.dao.twin.TwinAliasType.*;
+
 @Lazy
 @Slf4j
 @Service
@@ -42,18 +44,18 @@ public class TwinAliasService {
         List<TwinAliasEntity> aliases = new ArrayList<>();
         switch (twin.getTwinClass().getOwnerType()) {
             case DOMAIN:
-                aliases.add(createAlias(twin, TwinAliasType.D));
-                aliases.add(createAlias(twin, TwinAliasType.C));
-                aliases.add(createAlias(twin, TwinAliasType.S));
+                aliases.add(createAlias(twin, _D));
+                aliases.add(createAlias(twin, _C));
+                aliases.add(createAlias(twin, _S));
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
-                aliases.add(createAlias(twin, TwinAliasType.D));
-                aliases.add(createAlias(twin, TwinAliasType.B));
-                aliases.add(createAlias(twin, TwinAliasType.K));
+                aliases.add(createAlias(twin, _D));
+                aliases.add(createAlias(twin, _B));
+                aliases.add(createAlias(twin, _K));
                 break;
             case DOMAIN_USER:
-                aliases.add(createAlias(twin, TwinAliasType.D));
-                aliases.add(createAlias(twin, TwinAliasType.T));
+                aliases.add(createAlias(twin, _D));
+                aliases.add(createAlias(twin, _T));
                 break;
             default:
                 log.warn("Unsupported owner type for alias creation: {}", twin.getTwinClass().getOwnerType());
@@ -61,27 +63,27 @@ public class TwinAliasService {
         return aliases;
     }
 
-    private TwinAliasEntity createAlias(TwinEntity twin, TwinAliasType aliasType) throws ServiceException {
+    private TwinAliasEntity createAlias(TwinEntity twin, String aliasType) throws ServiceException {
         switch (aliasType) {
-            case D:
+            case _D:
                 twinAliasRepository.createDomainAlias(twin.getId(), aliasType);
                 break;
-            case C:
+            case _C:
                 twinAliasRepository.createDomainClassAlias(twin.getId(), aliasType);
                 break;
-            case B:
+            case _B:
                 twinAliasRepository.createBusinessAccountClassAlias(twin.getId(), aliasType);
                 break;
-            case S:
+            case _S:
                 twinAliasRepository.createSpaceDomainAlias(twin.getId(), aliasType);
-            case K:
-            case T:
+            case _K:
+            case _T:
                 twinAliasRepository.createSpaceBusinessAccountAlias(twin.getId(), aliasType);
                 break;
             default:
                 throw new ServiceException(ErrorCodeTwins.UNSUPPORTED_ALIAS_TYPE, "Unsupported alias type: " + aliasType);
         }
-        return twinAliasRepository.findByTwinIdAndType(twin.getId(), aliasType);
+        return twinAliasRepository.findByTwinIdAndType(twin.getId(), TwinAliasType.valueOf(aliasType));
     }
 
     public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {
