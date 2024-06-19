@@ -89,7 +89,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperModePointer.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -157,7 +157,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperModePointer.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -224,7 +224,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperModePointer.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
@@ -296,7 +296,7 @@ public class TwinTransitionPerformController extends ApiController {
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperModePointer.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
             @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();

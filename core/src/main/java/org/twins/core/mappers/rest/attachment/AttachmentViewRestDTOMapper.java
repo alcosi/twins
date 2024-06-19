@@ -7,7 +7,6 @@ import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
@@ -57,7 +56,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         if (!mapperContext.hasModeOrEmpty(MapperMode.AttachmentMode.HIDE)) {
             dst
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperModePointer.AttachmentTransitionMode.SHORT)));
+                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperMode.AttachmentTransitionMode.SHORT)));
         }
     }
 

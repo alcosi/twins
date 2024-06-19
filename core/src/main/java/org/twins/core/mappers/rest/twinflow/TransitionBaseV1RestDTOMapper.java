@@ -7,7 +7,6 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
 
@@ -37,10 +36,10 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setId(src.getId());
                 break;
         }
-        if (mapperContext.hasModeButNot(MapperModePointer.TransitionStatusMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperMode.TransitionStatusMode.HIDE))
             dst
                     .setDstTwinStatusId(src.getDstTwinStatusId())
-                    .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext.forkOnPoint(MapperModePointer.TransitionStatusMode.SHORT)));
+                    .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext.forkOnPoint(MapperMode.TransitionStatusMode.SHORT)));
     }
 
     @Override

@@ -8,7 +8,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
@@ -48,21 +47,21 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         }
         if (showAttachments(mapperContext)) {
             attachmentService.loadAttachments(src);
-            dst.setAttachments(attachmentRestDTOMapper.convertList(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperModePointer.TwinAttachmentMode.SHORT)));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperMode.TwinAttachmentMode.SHORT)));
         }
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));
         if (showTransitions(mapperContext)) {
             twinflowTransitionService.loadValidTransitions(src);
-            convertOrPostpone(src.getValidTransitionsKit(), dst, twinTransitionRestDTOMapper, mapperContext.forkOnPoint(MapperModePointer.TwinTransitionMode.HIDE), TwinBaseDTOv3::setTransitions, TwinBaseDTOv3::setTransitionsIdList);
+            convertOrPostpone(src.getValidTransitionsKit(), dst, twinTransitionRestDTOMapper, mapperContext.forkOnPoint(MapperMode.TwinTransitionMode.HIDE), TwinBaseDTOv3::setTransitions, TwinBaseDTOv3::setTransitionsIdList);
         }
         if (showMarkers(mapperContext)) {
             twinMarkerService.loadMarkers(src);
-            convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(MapperModePointer.TwinMarkerMode.HIDE), TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
+            convertOrPostpone(src.getTwinMarkerKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(MapperMode.TwinMarkerMode.HIDE), TwinBaseDTOv3::setMarkers, TwinBaseDTOv3::setMarkerIdList);
         }
         if (showTags(mapperContext)) {
             twinTagService.loadTags(src);
-            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(MapperModePointer.TwinTagMode.HIDE), TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
+            convertOrPostpone(src.getTwinTagKit(), dst, dataListOptionRestDTOMapper, mapperContext.forkOnPoint(MapperMode.TwinTagMode.HIDE), TwinBaseDTOv3::setTags, TwinBaseDTOv3::setTagIdList);
         }
         if (showActions(mapperContext)) {
             twinActionService.loadActions(src);
@@ -71,11 +70,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperModePointer.TwinMarkerMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinMarkerMode.HIDE);
     }
 
     private static boolean showTags(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperModePointer.TwinTagMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinTagMode.HIDE);
     }
 
     private static boolean showActions(MapperContext mapperContext) {
@@ -83,11 +82,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showTransitions(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperModePointer.TwinTransitionMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinTransitionMode.HIDE);
     }
 
     private static boolean showAttachments(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperModePointer.TwinAttachmentMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinAttachmentMode.HIDE);
     }
 
     @Override
