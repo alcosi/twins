@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.domain.DomainEntity;
@@ -12,7 +13,6 @@ import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;

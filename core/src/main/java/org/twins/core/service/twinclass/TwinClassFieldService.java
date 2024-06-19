@@ -11,10 +11,10 @@ import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
 import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nRepository;
 import org.cambium.i18n.dao.I18nType;
-import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -26,13 +26,10 @@ import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyperLink;
-import org.twins.core.service.EntitySecureFindServiceImpl;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 
-import static org.cambium.i18n.domain.I18nTranslation.createAndGetTranslations;
 
 @Slf4j
 @Service
@@ -182,8 +179,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
         FeaturerEntity fieldTyperSimple = featurerRepository.getById(1301);
         twinClassFieldEntity
-                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, createAndGetTranslations(apiUser.getLocale(), name)).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, createAndGetTranslations(apiUser.getLocale(), description)).getId())
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_FIELD_NAME, name).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, description).getId())
                 .setFieldTyperFeaturerId(fieldTyperSimple.getId())
                 .setFieldTyperFeaturer(fieldTyperSimple)
                 .setFieldTyperParams(SIMPLE_FIELD_PARAMS);

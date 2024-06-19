@@ -6,24 +6,23 @@ import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
-import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
-public abstract class I18nService {
+public abstract class I18nService  {
     @Autowired
     private I18nRepository i18nRepository;
     @Autowired
@@ -120,11 +119,11 @@ public abstract class I18nService {
             return;
         List<Locale> locales = Arrays.asList(resolveDefaultLocale(), Locale.forLanguageTag(locale));
         if (i18nEntity.getType().isImage()) {
-            i18nEntity.setTranslationsBin(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales));
+            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationBinEntity::getLocale));
         } else {
-            i18nEntity.setTranslations(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales));
+            i18nEntity.setTranslations(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
             if (i18nEntity.getType().isStyledText()) {
-                for (I18nTranslationEntity translation : i18nEntity.getTranslations()) {
+                for (I18nTranslationEntity translation : i18nEntity.getTranslations().getCollection()) {
                     translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
                 }
             }
@@ -188,22 +187,31 @@ public abstract class I18nService {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public I18nEntity createI18nAndTranslations(I18nType i18nType, Map<Locale, String> transitions) {
-        List<I18nTranslationEntity> entryForSave = new ArrayList<>();
-        I18nEntity i18nEntity = new I18nEntity()
-                .setKey(null)
-                .setName(null)
-                .setType(i18nType);
-        i18nEntity = i18nRepository.save(i18nEntity);
-        for (var entry : transitions.entrySet()) {
-            entryForSave.add(new I18nTranslationEntity()
+    public I18nEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) {
+        return createI18nAndTranslations(buildI18nEntity(i18nType, defaultLocaleTranslation));
+    }
+
+    public I18nEntity buildI18nEntity(I18nType i18nType, String translationInDefaultLocale) {
+        return new I18nEntity()
+                .setType(i18nType)
+                .addTranslation(new I18nTranslationEntity()
+                        .setLocale(resolveDefaultLocale())
+                        .setTranslation(translationInDefaultLocale));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public I18nEntity createI18nAndTranslations(I18nEntity i18nEntity) {
+        i18nEntity.setId(null);
+        i18nEntity.setId(i18nRepository.save(i18nEntity).getId());
+        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+            return i18nEntity;
+        for (var entry : i18nEntity.getTranslations().getCollection()) {
+            entry
                     .setI18n(i18nEntity)
                     .setI18nId(i18nEntity.getId())
-                    .setLocale(entry.getKey())
-                    .setTranslation(entry.getValue() != null ? entry.getValue() : "")
-            );
+                    .setTranslation(StringUtils.defaultString(entry.getTranslation()));
         }
-        i18nTranslationRepository.saveAll(entryForSave);
+        i18nTranslationRepository.saveAll(i18nEntity.getTranslations().getCollection());
         return i18nEntity;
     }
 
@@ -230,47 +238,30 @@ public abstract class I18nService {
     }
 
     @Transactional
-    public I18nEntity saveTranslations(UUID i18nId, String fieldName, I18nType type, Map<Locale, String> translations, ChangesHelper changesHelper) {
-        if (i18nId == null)
-            return createI18nAndTranslations(type, translations);
+    public I18nEntity saveTranslations(I18nEntity i18nEntity) throws ServiceException {
+        if (i18nEntity.getId() == null)
+            return createI18nAndTranslations(i18nEntity);
         else
-            return updateTranslations(i18nId, fieldName, translations, changesHelper);
+            return updateTranslations(i18nEntity);
     }
 
     @Transactional
-    public I18nEntity updateTranslations(UUID i18nId, String fieldName, Map<Locale, String> translations, ChangesHelper changesHelper) {
-        if (MapUtils.isEmpty(translations))
-            return new I18nEntity();
-
-        List<I18nTranslationEntity> i18nTranslationEntities = i18nTranslationRepository.findByI18nIdAndLocaleIn(i18nId, translations.keySet());
-
-        Map<Locale, I18nTranslationEntity> existingTranslationsMap = i18nTranslationEntities.stream()
-                .collect(Collectors.toMap(I18nTranslationEntity::getLocale, Function.identity()));
+    public I18nEntity updateTranslations(I18nEntity i18nEntity) throws ServiceException {
+        if (i18nEntity.getId() == null)
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "id can not be empty");
+        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+            return i18nEntity;
 
         List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
-
-        for (Map.Entry<Locale, String> entry : translations.entrySet()) {
-            Locale locale = entry.getKey();
-            String translation = entry.getValue();
-            if (locale == null || translation == null)
+        for (var entry : i18nEntity.getTranslations().getMap().entrySet()) {
+            if (entry.getValue().getTranslation() == null)
                 continue;
-
-            I18nTranslationEntity entity = existingTranslationsMap.get(locale);
-
-            if (entity == null) {
-                entity = new I18nTranslationEntity()
-                        .setI18nId(i18nId)
-                        .setLocale(locale)
-                        .setTranslation(translation);
-                entitiesToSave.add(entity);
-            } else {
-                if (changesHelper.isChanged(fieldName ,entity.getTranslation(), translation)) {
-                    entity.setTranslation(translation);
-                    entitiesToSave.add(entity);
-                }
+            if (entry.getValue().getI18nId() == null) {
+                entry.getValue().setI18nId(i18nEntity.getId());
             }
+            entitiesToSave.add(entry.getValue());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
-        return new I18nEntity().setId(i18nId);
+        return i18nEntity;
     }
 }

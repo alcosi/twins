@@ -1,8 +1,10 @@
 package org.cambium.i18n.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.i18n.dao.I18nType;
 
 import java.util.Locale;
 import java.util.Map;
@@ -16,4 +18,7 @@ public class I18nDTOv1 {
 
     @Schema(description = "map (locale : translate)")
     public Map<Locale, String> translations;
+
+    @JsonIgnore
+    public I18nType i18nType;
 }

@@ -1,11 +1,11 @@
-package org.twins.core.service;
+package org.cambium.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
-import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;
 
@@ -81,7 +81,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return true;
         if (!validateEntity(entity, entityValidateMode)) {
-            throw new ServiceException(ErrorCodeTwins.ENTITY_INVALID, getValidationErrorMessage(entity));
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, getValidationErrorMessage(entity));
         }
         return true;
     }
