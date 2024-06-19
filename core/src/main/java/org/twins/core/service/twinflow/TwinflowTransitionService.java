@@ -14,6 +14,7 @@ import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -248,7 +249,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         twinflowTransitionEntity
-                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, I18nTranslation.createAndGetTranslations(apiUser.getLocale(), nameInDefaultLocale)).getId())
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias()));
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);

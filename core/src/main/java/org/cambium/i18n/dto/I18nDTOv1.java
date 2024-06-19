@@ -11,17 +11,9 @@ import java.util.Map;
 @Accessors(chain = true)
 @Schema(name = "I18nV1")
 public class I18nDTOv1 {
-    @Schema(description = "translate")
+    @Schema(description = "translation in current locale")
     public String translationInCurrentLocale;
 
     @Schema(description = "map (locale : translate)")
     public Map<Locale, String> translations;
-
-    public static I18nDTOv1 createI18n(String name) {
-        return new I18nDTOv1().setTranslationInCurrentLocale(name);
-    }
-
-    public static I18nDTOv1 empty() {
-        return new I18nDTOv1().setTranslationInCurrentLocale("");
-    }
 }

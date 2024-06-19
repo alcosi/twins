@@ -19,11 +19,11 @@ public class TwinStatusDTOv1 {
     @Schema(description = "key within the domain")
     private String key;
 
-    @Schema(description = "translation of names")
-    public I18nDTOv1 translationName;
+    @Schema(description = "name")
+    public String name;
 
-    @Schema(description = "translation of descriptions")
-    public I18nDTOv1 translationDescription;
+    @Schema(description = "description")
+    public String description;
 
     @Schema(description = "url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
     public String logo;

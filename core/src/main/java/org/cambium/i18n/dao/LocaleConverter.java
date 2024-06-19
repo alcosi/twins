@@ -1,7 +1,6 @@
 package org.cambium.i18n.dao;
 
 import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
 
 import java.util.Locale;
 

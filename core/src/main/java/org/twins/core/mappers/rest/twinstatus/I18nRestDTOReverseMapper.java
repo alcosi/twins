@@ -13,6 +13,7 @@ import org.twins.core.service.auth.AuthService;
 @RequiredArgsConstructor
 public class I18nRestDTOReverseMapper extends RestSimpleDTOMapper<I18nDTOv1, I18nTranslation> {
     final AuthService authService;
+
     @Override
     public void map(I18nDTOv1 src, I18nTranslation dst, MapperContext mapperContext) throws Exception {
         if (src.getTranslationInCurrentLocale() != null)

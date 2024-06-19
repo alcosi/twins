@@ -57,14 +57,14 @@ public class TwinStatusCreateController extends ApiController {
             @RequestBody TwinStatusCreateRqDTOv1 request) {
         TwinStatusCreateRsDTOv1 rs = new TwinStatusCreateRsDTOv1();
         try {
-            request.getTwinStatus().setTwinClassId(twinClassId);
+            request.setTwinClassId(twinClassId);
+            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert(request);
+            I18nTranslation translationNames = i18nRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nTranslation translationDescriptions = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            twinStatusService.createStatus(twinStatusEntity, translationNames.getTranslations(), translationDescriptions.getTranslations());
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(true)
                     .setMode(showStatusMode);
-            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert(request);
-            I18nTranslation translationNames = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationName());
-            I18nTranslation translationDescriptions = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationDescription());
-            twinStatusService.createStatus(twinStatusEntity, translationNames, translationDescriptions);
             rs
                     .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {

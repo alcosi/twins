@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twin;
+package org.twins.core.controller.rest.priv.twinstatus;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,11 +48,12 @@ public class TwinStatusUpdateController extends ApiController {
             @RequestBody TwinStatusUpdateRqDTOv1 request) {
         TwinStatusUpdateRsDTOv1 rs = new TwinStatusUpdateRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext().setMode(showStatusMode);
-            I18nTranslation translationName = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationName());
-            I18nTranslation translationDescription = i18nRestDTOReverseMapper.convert(request.getTwinStatus().getTranslationDescription());
+            I18nTranslation i18nTranslationName = i18nRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nTranslation i18nTranslationDescription = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
             TwinStatusEntity twinStatusEntity = twinStatusService
-                    .updateStatus(twinStatusRestDTOReverseMapper.convert(request), translationName, translationDescription);
+                    .updateStatus(twinStatusRestDTOReverseMapper.convert(request), i18nTranslationName, i18nTranslationDescription);
+            MapperContext mapperContext = new MapperContext()
+                    .setMode(showStatusMode);
             rs
                     .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {

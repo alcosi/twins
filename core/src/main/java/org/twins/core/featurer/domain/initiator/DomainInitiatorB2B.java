@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.domain.I18nTranslation;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
@@ -13,6 +14,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.EntitySmartService;
 
@@ -58,6 +60,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
 
     @Transactional
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
@@ -71,7 +74,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey("Active")
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, "Active").getI18nId());
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, I18nTranslation.createAndGetTranslations(apiUser.getLocale(), "Active")).getId());
         twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinflowEntity twinflowEntity = new TwinflowEntity()

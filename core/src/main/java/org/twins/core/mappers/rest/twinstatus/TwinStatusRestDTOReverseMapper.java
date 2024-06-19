@@ -14,10 +14,10 @@ public class TwinStatusRestDTOReverseMapper extends RestSimpleDTOMapper<TwinStat
     @Override
     public void map(TwinStatusUpdateRqDTOv1 src, TwinStatusEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setId(src.getTwinStatus().getId())
-                .setKey(src.getTwinStatus().getKey())
-                .setColor(src.getTwinStatus().getColor())
-                .setLogo(src.getTwinStatus().getLogo())
+                .setId(src.getId())
+                .setKey(src.getKey())
+                .setColor(src.getColor())
+                .setLogo(src.getLogo())
         ;
     }
 }

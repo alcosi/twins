@@ -26,17 +26,15 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
             case DETAILED:
                 dst
                         .setId(src.getId())
-                        .setTranslationName(I18nDTOv1.createI18n(i18nService.translateToLocale(src.getNameI18nId())))
-                        .setTranslationDescription(src.getDescriptionI18nId() != null
-                                ? I18nDTOv1.createI18n(i18nService.translateToLocale(src.getDescriptionI18nId()))
-                                : I18nDTOv1.empty())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .setLogo(src.getLogo())
                         .setColor(src.getColor());
                 break;
             case SHORT:
                 dst
                         .setId(src.getId())
-                        .setTranslationName(I18nDTOv1.createI18n(i18nService.translateToLocale(src.getNameI18nId())));
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()));
                 break;
         }
     }

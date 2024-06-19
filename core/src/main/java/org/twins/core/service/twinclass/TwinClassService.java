@@ -255,14 +255,14 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
-                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_NAME, name).getI18nId())
-                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_DESCRIPTION, description).getI18nId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, I18nTranslation.createAndGetTranslations(apiUser.getLocale(), name)).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, I18nTranslation.createAndGetTranslations(apiUser.getLocale(), description)).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", I18nTranslation.createTranslate("Initial status"));
+        TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", I18nTranslation.createAndGetTranslations(apiUser.getLocale(),"Initial status"));
         TwinflowEntity twinflowEntity = twinflowService.createTwinflow(twinClassEntity, twinStatusEntity);
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowService.registerTwinflow(twinflowEntity, apiUser.getDomain(), twinClassEntity);
         return twinClassEntity;

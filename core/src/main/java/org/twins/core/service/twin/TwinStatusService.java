@@ -7,7 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.MapUtils;
-import org.cambium.i18n.dao.I18nTranslationEntity;
+import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.domain.I18nTranslation;
 import org.cambium.i18n.service.I18nService;
@@ -101,23 +101,23 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     }
 
     @Transactional
-    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, I18nTranslation nameInDefaultLocale) throws ServiceException {
+    public TwinStatusEntity createStatus(TwinClassEntity twinClassEntity, String key, Map<Locale, String> translationNames) throws ServiceException {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey(key);
-        return createStatus(twinStatusEntity, nameInDefaultLocale, I18nTranslation.empty());
+        return createStatus(twinStatusEntity, translationNames, I18nTranslation.createAndGetTranslations(null, null));
     }
 
     @Transactional
-    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nTranslation name, I18nTranslation description) throws ServiceException {
+    public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, Map<Locale, String> translationNames, Map<Locale, String> translationDescriptions) throws ServiceException {
         twinStatusEntity
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, name.getTranslate()).getI18nId())
-                .setDescriptionI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, description.getTranslate()).getI18nId());
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, translationNames).getId())
+                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, translationDescriptions).getId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     @Transactional
-    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nTranslation names, I18nTranslation descriptions) throws ServiceException {
+    public TwinStatusEntity updateStatus(TwinStatusEntity updateEntity, I18nTranslation nameI18n, I18nTranslation descriptionI18n) throws ServiceException {
         TwinStatusEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged(TwinStatusEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
@@ -127,12 +127,12 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         if (changesHelper.isChanged(TwinStatusEntity.Fields.logo, dbEntity.getLogo(), updateEntity.getLogo()))
             dbEntity.setLogo(updateEntity.getLogo());
         I18nType i18nType = I18nType.TWIN_STATUS_NAME;
-        List<I18nTranslationEntity> i18nTranslationNames = i18nService.updateTranslations(dbEntity.getNameI18nId(), i18nType, names.getTranslations());
-        if (dbEntity.getNameI18nId() == null && MapUtils.isNotEmpty(names.getTranslations()))
-            dbEntity.setNameI18nId(i18nTranslationNames.stream().findFirst().get().getI18nId());
-        List<I18nTranslationEntity> i18nTranslationDescriptions = i18nService.updateTranslations(dbEntity.getDescriptionI18nId(), i18nType, descriptions.getTranslations());
-        if (dbEntity.getDescriptionI18nId() == null && MapUtils.isNotEmpty(names.getTranslations()))
-            dbEntity.setDescriptionI18nId(i18nTranslationDescriptions.stream().findFirst().get().getI18nId());
+        I18nEntity i18nName = i18nService.saveTranslations(dbEntity.getNameI18nId(), "name", i18nType, nameI18n.getTranslations(), changesHelper);
+        if (dbEntity.getNameI18nId() == null && MapUtils.isNotEmpty(nameI18n.getTranslations()))
+            dbEntity.setNameI18nId(i18nName.getId());
+        I18nEntity i18nDescription = i18nService.saveTranslations(dbEntity.getDescriptionI18nId(), "description", i18nType, descriptionI18n.getTranslations(), changesHelper);
+        if (dbEntity.getDescriptionI18nId() == null && MapUtils.isNotEmpty(nameI18n.getTranslations()))
+            dbEntity.setDescriptionI18nId(i18nDescription.getId());
         entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
         return dbEntity;
     }
