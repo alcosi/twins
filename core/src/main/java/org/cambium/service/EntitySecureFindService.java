@@ -1,4 +1,4 @@
-package org.twins.core.service;
+package org.cambium.service;
 
 import org.cambium.common.exception.ServiceException;
 

@@ -1,6 +1,7 @@
-package org.twins.core.mappers.rest.twin;
+package org.twins.core.mappers.rest.twinstatus;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.i18n.dto.I18nDTOv1;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -8,6 +9,8 @@ import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+
+import java.util.Collection;
 
 
 @Component
@@ -20,16 +23,16 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
         switch (mapperContext.getModeOrUse(MapperMode.StatusMode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()))
-                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .logo(src.getLogo())
-                        .color(src.getColor());
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setLogo(src.getLogo())
+                        .setColor(src.getColor());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()));
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()));
                 break;
         }
     }

@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,15 +24,16 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusCreateRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN_STATUS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -41,6 +43,7 @@ public class TwinStatusCreateController extends ApiController {
     final TwinStatusCreateRestDTOReverseMapper twinStatusCreateRestDTOReverseMapper;
     final TwinStatusService twinStatusService;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusCreateV1", summary = "Create new twin status")
@@ -56,11 +59,14 @@ public class TwinStatusCreateController extends ApiController {
             @RequestBody TwinStatusCreateRqDTOv1 request) {
         TwinStatusCreateRsDTOv1 rs = new TwinStatusCreateRsDTOv1();
         try {
-            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert(request.setTwinClassId(twinClassId));
+            request.setTwinClassId(twinClassId);
+            TwinStatusEntity twinStatusEntity = twinStatusCreateRestDTOReverseMapper.convert(request);
+            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionsI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            twinStatusService.createStatus(twinStatusEntity, nameI18n, descriptionsI18n);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(true)
                     .setMode(showStatusMode);
-            twinStatusEntity = twinStatusService.createStatus(twinStatusEntity, request.getName(), request.getDescription());
             rs
                     .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {
