@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
+import java.util.List;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
@@ -26,4 +28,7 @@ public class TwinBaseDTOv2 extends TwinBaseDTOv1 {
 
     @Schema(description = "headTwin")
     public TwinBaseDTOv2 headTwin;
+
+    @Schema(description = "aliases")
+    public List<TwinAliasDTOv1> aliases;
 }

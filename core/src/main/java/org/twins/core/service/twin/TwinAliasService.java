@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinAliasEntity;
@@ -40,6 +41,16 @@ public class TwinAliasService {
         return twinAliasEntity;
     }
 
+    public Kit<TwinAliasEntity, UUID> loadAliases(TwinEntity twinEntity) {
+        if (twinEntity.getTwinAliases() != null)
+            return twinEntity.getTwinAliases();
+        List<TwinAliasEntity> aliases = twinAliasRepository.findAllByTwinId(twinEntity.getId());
+        if (aliases != null)
+            twinEntity.setTwinAliases(new Kit<>(aliases, TwinAliasEntity::getId));
+        return twinEntity.getTwinAliases();
+    }
+
+
     public List<TwinAliasEntity> createAliases(TwinEntity twin) throws ServiceException {
         List<TwinAliasEntity> aliases = new ArrayList<>();
         switch (twin.getTwinClass().getOwnerType()) {
@@ -70,16 +81,16 @@ public class TwinAliasService {
     private TwinAliasEntity createAlias(TwinEntity twin, String aliasType) throws ServiceException {
         switch (aliasType) {
             case _D:
-                twinAliasRepository.createDomainAlias(twin.getId(), aliasType);
+                twinAliasRepository.createDomainAlias(twin.getId(), twin.getTwinClass().getDomainId());
                 break;
             case _C:
-                twinAliasRepository.createDomainClassAlias(twin.getId(), aliasType);
+                twinAliasRepository.createDomainClassAlias(twin.getId());
                 break;
             case _B:
-                twinAliasRepository.createBusinessAccountClassAlias(twin.getId(), aliasType);
+                twinAliasRepository.createBusinessAccountClassAlias(twin.getId());
                 break;
             case _S:
-                twinAliasRepository.createSpaceDomainAlias(twin.getId(), aliasType);
+                twinAliasRepository.createSpaceDomainAlias(twin.getId());
             case _K:
             case _T:
                 twinAliasRepository.createSpaceBusinessAccountAlias(twin.getId(), aliasType);

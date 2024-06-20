@@ -201,6 +201,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Kit<TwinAliasEntity, UUID> twinAliases;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Set<TwinAction> actions;
 
     @Override

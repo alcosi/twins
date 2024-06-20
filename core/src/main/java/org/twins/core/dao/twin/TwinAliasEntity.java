@@ -46,16 +46,4 @@ public class TwinAliasEntity {
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity twin;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false, nullable = true)
-    private UserEntity user;
-
-    @ManyToOne
-    @JoinColumn(name = "domain_id", insertable = false, updatable = false, nullable = true)
-    private DomainEntity domain;
-
-    @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false, nullable = true)
-    private BusinessAccountEntity businessAccount;
 }
