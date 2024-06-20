@@ -251,7 +251,7 @@ public abstract class I18nService  {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "id can not be empty");
         if (KitUtils.isEmpty(i18nEntity.getTranslations()))
             return i18nEntity;
-
+        //todo all translations are currently being updated. you can update only the ones you need (obtain from the database)
         List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
         for (var entry : i18nEntity.getTranslations().getMap().entrySet()) {
             if (entry.getValue().getTranslation() == null)
