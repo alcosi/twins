@@ -32,7 +32,7 @@ public class TwinAliasService {
     public TwinAliasEntity findAlias(String twinAlias) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         UUID domainId = apiUser.getDomainId();
-        UUID businessAccountId = apiUser.getBusinessAccount() != null ? apiUser.getBusinessAccount().getId() : null;
+        UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUserId();
         TwinAliasEntity twinAliasEntity = twinAliasRepository.findByAlias(twinAlias, domainId, businessAccountId, userId);
         if (twinAliasEntity == null)
