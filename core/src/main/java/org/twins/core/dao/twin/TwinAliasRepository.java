@@ -67,10 +67,13 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set domain_alias_counter = domain_alias_counter + 1 " +
-            "where twin_id = :twinId and :aliasType in ('S'); " +
+            "where twin_id = :twinId and :aliasType in ('S') and exists (select 1 from space where twin_id = :twinId); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
-            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.domain_alias_counter), now(), space.domain_id " +
-            "from space where space.twin_id = :twinId " +
+            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.domain_alias_counter), now(), twin_class.domain_id " +
+            "from space " +
+            "join twin_class_schema_map map on space.twin_class_schema_id = map.twin_class_schema_id " +
+            "join twin_class_schema twin_class on map.twin_class_id = twin_class.id " +
+            "where space.twin_id = :twinId " +
             ";commit;")
     void createSpaceDomainAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
 
@@ -78,12 +81,18 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update space set business_account_alias_counter = business_account_alias_counter + 1 " +
-            "where twin_id = :twinId and :aliasType in ('K', 'T'); " +
+            "where twin_id = :twinId and :aliasType in ('K', 'T') and exists (select 1 from space where twin_id = :twinId); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id, business_account_id) " +
-            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.business_account_alias_counter), now(), space.domain_id, space.business_account_id " +
-            "from space where space.twin_id = :twinId " +
+            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.business_account_alias_counter), now(), twin_class.domain_id, twin.owner_business_account_id " +
+            "from space " +
+            "join twin_class_schema_map map on space.twin_class_schema_id = map.twin_class_schema_id " +
+            "join twin_class_schema twin_class on map.twin_class_id = twin_class.id " +
+            "join twin on twin.id = space.twin_id " +
+            "where space.twin_id = :twinId " +
             ";commit;")
     void createSpaceBusinessAccountAlias(@Param("twinId") UUID twinId, @Param("aliasType") String aliasType);
+
+
 
 
     @Query("SELECT t FROM TwinAliasEntity t WHERE t.twinId = :twinId AND t.aliasTypeId = :aliasType")

@@ -44,23 +44,27 @@ public class TwinAliasService {
         List<TwinAliasEntity> aliases = new ArrayList<>();
         switch (twin.getTwinClass().getOwnerType()) {
             case DOMAIN:
-                aliases.add(createAlias(twin, _D));
-                aliases.add(createAlias(twin, _C));
-                aliases.add(createAlias(twin, _S));
+                addAliasIfNotNull(aliases, createAlias(twin, _D));
+                addAliasIfNotNull(aliases, createAlias(twin, _C));
+                addAliasIfNotNull(aliases, createAlias(twin, _S));
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
-                aliases.add(createAlias(twin, _D));
-                aliases.add(createAlias(twin, _B));
-                aliases.add(createAlias(twin, _K));
+                addAliasIfNotNull(aliases, createAlias(twin, _D));
+                addAliasIfNotNull(aliases, createAlias(twin, _B));
+                addAliasIfNotNull(aliases, createAlias(twin, _K));
                 break;
             case DOMAIN_USER:
-                aliases.add(createAlias(twin, _D));
-                aliases.add(createAlias(twin, _T));
+                addAliasIfNotNull(aliases, createAlias(twin, _D));
+                addAliasIfNotNull(aliases, createAlias(twin, _T));
                 break;
             default:
                 log.warn("Unsupported owner type for alias creation: {}", twin.getTwinClass().getOwnerType());
         }
         return aliases;
+    }
+
+    private void addAliasIfNotNull(List<TwinAliasEntity> aliases, TwinAliasEntity alias) {
+        if (alias != null) aliases.add(alias);
     }
 
     private TwinAliasEntity createAlias(TwinEntity twin, String aliasType) throws ServiceException {
