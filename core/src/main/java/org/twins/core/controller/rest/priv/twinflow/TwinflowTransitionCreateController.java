@@ -23,7 +23,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionCreateRsDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;

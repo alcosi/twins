@@ -1,15 +1,16 @@
-package org.twins.core.service;
+package org.cambium.service;
 
 import lombok.Data;
+import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.exception.ErrorCodeTwins;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -17,10 +18,11 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+@Setter
 @Service
 @Slf4j
 public class EntitySmartService {
-    public static final String DAO_BASE_PACKAGE = "org.twins.core.dao";
+    public String[] daoPackages = new String[]{};
 
     public <T> T save(UUID uuid, T entity, CrudRepository<T, UUID> repository, SaveMode mode) throws ServiceException {
         SaveResult<T> saveResult = saveWithResult(uuid, entity, repository, mode);
@@ -48,17 +50,17 @@ public class EntitySmartService {
             case ifNotPresentThrows:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isEmpty())
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(entity) + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown " + entityShortName(entity) + "[" + uuid + "]");
                 return saveResult.setSavedEntity(dbEntity.get());
             case ifPresentThrows:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isPresent())
-                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
+                    throw new ServiceException(ErrorCodeCommon.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
                 return saveResult;
             case ifPresentThrowsElseCreate:
                 dbEntity = repository.findById(throwIfEmptyId(uuid));
                 if (dbEntity.isPresent())
-                    throw new ServiceException(ErrorCodeTwins.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
+                    throw new ServiceException(ErrorCodeCommon.UUID_ALREADY_EXIST, entityShortName(entity) + "[" + uuid + "] is already exist");
                 else {
                     entity = repository.save(entity);
                     logSaving(uuid, entity);
@@ -99,7 +101,7 @@ public class EntitySmartService {
 
     private UUID throwIfEmptyId(UUID uuid) throws ServiceException {
         if (uuid == null)
-            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "UUID can not be null");
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "UUID can not be null");
         return uuid;
     }
 
@@ -142,10 +144,12 @@ public class EntitySmartService {
         for (Type t : interfaces) {
             if (t instanceof Class<?>) {
                 Class<?> clazz = (Class<?>) t;
-                if (clazz.getPackage().getName().startsWith(DAO_BASE_PACKAGE)) {
-                    // Repositories should implement only ONE interface from application packages
-                    Type genericInterface = clazz.getGenericInterfaces()[0];
-                    return (Class<T>) ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
+                for (String daoPackage : daoPackages) {
+                    if (clazz.getPackage().getName().startsWith(daoPackage)) {
+                        // Repositories should implement only ONE interface from application packages
+                        Type genericInterface = clazz.getGenericInterfaces()[0];
+                        return (Class<T>) ((ParameterizedType) genericInterface).getActualTypeArguments()[0];
+                    }
                 }
             }
         }
@@ -160,7 +164,7 @@ public class EntitySmartService {
                 log.error(logMessage);
                 return;
             case ifDeniedThrows:
-                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, logMessage);
+                throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, logMessage);
         }
     }
 
@@ -187,7 +191,7 @@ public class EntitySmartService {
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
                 return optional.get();
         }
         return null;
@@ -204,29 +208,29 @@ public class EntitySmartService {
         switch (checkMode) {
             case EMPTY:
                 if (uuid != null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + entityName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Incorrect " + entityName + "[" + uuid + "]");
                 break;
             case EMPTY_OR_DB_EXISTS:
                 if (uuid == null)
                     break;
                 if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
                 break;
             case NOT_EMPTY:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Empty " + entityName);
                 break;
             case NOT_EMPTY_AND_DB_EXISTS:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Empty " + entityName);
                 if (!repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unknown " + entityName + "[" + uuid + "]");
                 break;
             case NOT_EMPTY_AND_DB_MISSING:
                 if (uuid == null)
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Empty " + entityName);
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Empty " + entityName);
                 if (repository.existsById(uuid))
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, entityName + "[" + uuid + "] is already present in database");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, entityName + "[" + uuid + "] is already present in database");
                 break;
         }
         return uuid;
@@ -236,7 +240,7 @@ public class EntitySmartService {
         try {
             return UUID.fromString(uuid);
         } catch (Exception exception) {
-            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuid + "]");
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Incorrect " + fieldName + "[" + uuid + "]");
         }
     }
 

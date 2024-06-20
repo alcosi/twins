@@ -6,6 +6,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
@@ -15,7 +16,6 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
-import org.twins.core.service.EntitySmartService;
 
 import java.util.Properties;
 import java.util.UUID;
