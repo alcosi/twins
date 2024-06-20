@@ -32,3 +32,13 @@ CREATE UNIQUE INDEX if not exists twin_alias_T ON twin_alias (domain_id, user_id
 alter table public.twin_class add if not exists alias_counter integer default 0;
 alter table public.twin_alias add if not exists created_at timestamp default current_timestamp;
 
+DROP TABLE if exists twin_domain_alias;
+DROP TABLE if exists twin_business_account_alias;
+
+DELETE FROM twin_alias;
+DELETE FROM twin_business_account_alias_counter;
+
+UPDATE twin_business_account_alias_counter SET alias_counter = 0;
+UPDATE domain SET alias_counter = 0;
+UPDATE twin_class SET domain_alias_counter = 0;
+UPDATE space SET domain_alias_counter = 0, business_account_alias_counter = 0;
