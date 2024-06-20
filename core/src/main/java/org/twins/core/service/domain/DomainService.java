@@ -6,18 +6,25 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
+import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.comment.CommentListResult;
+import org.twins.core.domain.domain.DomainListResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -109,6 +116,20 @@ public class DomainService {
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
         return domainEntity;
+    }
+
+    public DomainListResult findDomainListByUser(int offset, int limit) throws ServiceException {
+        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
+        ApiUser apiUser = authService.getApiUser();
+        Page<DomainUserEntity> domainUserEntities = domainUserRepository.findAllByUserId(apiUser.getUserId(), pageable);
+        List<DomainEntity> domainEntityList = domainUserEntities.stream()
+                .map(DomainUserEntity::getDomain)
+                .collect(Collectors.toList());
+        return (DomainListResult) new DomainListResult()
+                .setDomainList(domainEntityList)
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(domainUserEntities.getTotalElements());
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
