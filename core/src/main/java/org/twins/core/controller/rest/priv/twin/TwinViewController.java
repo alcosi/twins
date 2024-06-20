@@ -30,8 +30,6 @@ import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -72,8 +70,8 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.AttachmentCollectionMode.Fields.ALL) MapperMode.AttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentCollectionMode, defaultValue = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
@@ -96,7 +94,7 @@ public class TwinViewController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showAttachmentMode)
+                    .setMode(showTwinAttachmentMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
@@ -136,8 +134,8 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.AttachmentCollectionMode.Fields.ALL) MapperMode.AttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentCollectionMode, defaultValue = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
@@ -160,7 +158,7 @@ public class TwinViewController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showAttachmentMode)
+                    .setMode(showTwinAttachmentMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
@@ -200,8 +198,8 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.AttachmentCollectionMode.Fields.ALL) MapperMode.AttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentCollectionMode, defaultValue = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
@@ -225,7 +223,7 @@ public class TwinViewController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showAttachmentMode)
+                    .setMode(showTwinAttachmentMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
@@ -265,8 +263,8 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.AttachmentCollectionMode.Fields.ALL) MapperMode.AttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentCollectionMode, defaultValue = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
+            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
@@ -290,7 +288,7 @@ public class TwinViewController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showAttachmentMode)
+                    .setMode(showTwinAttachmentMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)

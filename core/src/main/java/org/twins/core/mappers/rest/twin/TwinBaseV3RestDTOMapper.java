@@ -42,12 +42,12 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.ALL_FIELDS_WITH_ATTACHMENTS) || mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS_WITH_ATTACHMENTS)) {
-            mapperContext.setPriorityMinMode(MapperMode.AttachmentCollectionMode.FROM_FIELDS);
-            mapperContext.setPriorityMinMode(MapperMode.AttachmentMode.SHORT);
+            mapperContext.setPriorityMinMode(MapperMode.TwinAttachmentCollectionMode.FROM_FIELDS);
+            mapperContext.setPriorityMinMode(MapperMode.TwinAttachmentMode.SHORT);
         }
         if (showAttachments(mapperContext)) {
             attachmentService.loadAttachments(src);
-            dst.setAttachments(attachmentRestDTOMapper.convertList(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperMode.TwinAttachmentMode.SHORT)));
+            dst.setAttachments(attachmentRestDTOMapper.convertList(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperMode.TwinAttachmentMode.SHORT, MapperMode.TwinAttachmentCollectionMode.FROM_FIELDS)));
         }
         if (!twinLinkListRestDTOMapper.hideMode(mapperContext))
             dst.setLinks(twinLinkListRestDTOMapper.convert(twinLinkService.loadTwinLinks(src), mapperContext));

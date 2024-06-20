@@ -287,15 +287,24 @@ public class MapperContext {
         return mapperContext;
     }
 
-    public MapperContext forkOnPoint(MapperModePointer<?> mapperModePointer) {
-        MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
-        MapperMode pointedMode = configuredPointer.point();
-        if (pointedMode == null)
-            return this;
-        else if (pointedMode instanceof MapperModeCollection modeCollection)
-            return cloneWithIsolatedModes(modeCollection);
-        else
-            return cloneWithIsolatedModes().setMode(pointedMode);
+    public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
+        MapperContext fork = null;
+        for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
+            MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
+            MapperMode pointedMode = configuredPointer.point();
+            if (pointedMode == null)
+                continue;
+            else if (pointedMode instanceof MapperModeCollection modeCollection) {
+                if (fork == null)
+                    fork = cloneWithIsolatedModes();
+                fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
+            } else {
+                if (fork == null)
+                    fork = cloneWithIsolatedModes();
+                fork.setMode(pointedMode);
+            }
+        }
+        return fork != null ? fork : this;
     }
 
     public MapperContext cloneWithFlushedModes() {

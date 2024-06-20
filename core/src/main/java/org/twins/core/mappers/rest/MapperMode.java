@@ -274,6 +274,30 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinAttachmentCollectionMode implements MapperModePointer<AttachmentCollectionMode> {
+        @FieldNameConstants.Include DIRECT(0),
+        @FieldNameConstants.Include FROM_TRANSITIONS(1),
+        @FieldNameConstants.Include FROM_COMMENTS(1),
+        @FieldNameConstants.Include FROM_FIELDS(1),
+        @FieldNameConstants.Include ALL(2);
+
+        final int priority;
+
+        @Override
+        public AttachmentCollectionMode point() {
+            return switch (this) {
+                case DIRECT -> AttachmentCollectionMode.DIRECT;
+                case FROM_TRANSITIONS -> AttachmentCollectionMode.FROM_TRANSITIONS;
+                case FROM_COMMENTS -> AttachmentCollectionMode.FROM_COMMENTS;
+                case FROM_FIELDS -> AttachmentCollectionMode.FROM_FIELDS;
+                case ALL -> AttachmentCollectionMode.ALL;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum AttachmentTransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
