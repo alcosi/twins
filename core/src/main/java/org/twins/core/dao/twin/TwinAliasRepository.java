@@ -45,7 +45,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "select gen_random_uuid(), :twinId, 'C', concat(twin_class.key, '-C', twin_class.domain_alias_counter), now(), twin_class.domain_id " +
             "from twin_class where twin_class.id = :twinClassId ; " +
             "commit;")
-    void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("twinId") UUID twinClassId);
+    void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("twinClassId") UUID twinClassId);
 
     @Modifying
     @Transactional
