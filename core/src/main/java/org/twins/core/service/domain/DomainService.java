@@ -27,6 +27,7 @@ import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -68,6 +69,8 @@ public class DomainService {
     final DomainLocaleRepository domainLocaleRepository;
     @Lazy
     final TwinService twinService;
+    @Lazy
+    final TwinAliasService twinAliasService;
 
     @Lazy
     final SpaceRoleService spaceRoleService;
@@ -188,7 +191,7 @@ public class DomainService {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
 
         twinService.forceDeleteTwins(businessAccountId);
-        twinService.forceDeleteAliasCounters(businessAccountId);
+        twinAliasService.forceDeleteAliasCounters(businessAccountId);
         userGroupService.processDomainBusinessAccountDeletion(businessAccountId);
         spaceRoleService.forceDeleteRoles(businessAccountId);
         dataListService.forceDeleteOptions(businessAccountId);
