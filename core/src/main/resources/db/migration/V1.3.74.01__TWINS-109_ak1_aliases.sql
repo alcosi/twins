@@ -51,14 +51,14 @@ DO $$
         space_counter INT;
         new_alias VARCHAR;
     BEGIN
-        -- Генерация псевдонимов для DOMAIN
+        -- generate alias for DOMAIN
         FOR twin_record IN
             SELECT twin.id, twin.twin_class_id, tc.domain_id, twin.owner_business_account_id, tc.twin_class_owner_type_id
             FROM twin
                      JOIN twin_class tc ON twin.twin_class_id = tc.id
             WHERE tc.twin_class_owner_type_id = 'domain'
             LOOP
-                -- Генерация псевдонима для Domain
+                -- generate alias for Domain
                 domain_counter := (SELECT alias_counter FROM domain WHERE id = twin_record.domain_id);
                 domain_counter := domain_counter + 1;
                 UPDATE domain SET alias_counter = domain_counter WHERE id = twin_record.domain_id;
@@ -67,7 +67,7 @@ DO $$
                 INSERT INTO twin_alias(id, twin_alias_type_id, domain_id, alias_value, twin_id, created_at)
                 VALUES (gen_random_uuid(), 'D', twin_record.domain_id, new_alias, twin_record.id, now());
 
-                -- Генерация псевдонима для Domain Class
+                -- generate alias for Domain Class
                 domain_counter := (SELECT domain_alias_counter FROM twin_class WHERE id = twin_record.twin_class_id);
                 domain_counter := domain_counter + 1;
                 UPDATE twin_class SET domain_alias_counter = domain_counter WHERE id = twin_record.twin_class_id;
@@ -76,7 +76,7 @@ DO $$
                 INSERT INTO twin_alias(id, twin_alias_type_id, domain_id, alias_value, twin_id, created_at)
                 VALUES (gen_random_uuid(), 'C', twin_record.domain_id, new_alias, twin_record.id, now());
 
-                -- Генерация псевдонима для Space
+                -- generate alias for Space
                 space_counter := (SELECT domain_alias_counter FROM space WHERE twin_id = twin_record.id);
                 IF space_counter IS NOT NULL THEN
                     space_counter := space_counter + 1;
@@ -88,14 +88,14 @@ DO $$
                 END IF;
             END LOOP;
 
-        -- Генерация псевдонимов для DOMAIN_BUSINESS_ACCOUNT
+        -- generate alias for DOMAIN_BUSINESS_ACCOUNT
         FOR twin_record IN
             SELECT twin.id, twin.twin_class_id, tc.domain_id, twin.owner_business_account_id, tc.twin_class_owner_type_id
             FROM twin
                      JOIN twin_class tc ON twin.twin_class_id = tc.id
             WHERE tc.twin_class_owner_type_id = 'domainBusinessAccount'
             LOOP
-                -- Генерация псевдонима для Domain
+                -- generate alias for Domain
                 domain_counter := (SELECT alias_counter FROM domain WHERE id = twin_record.domain_id);
                 domain_counter := domain_counter + 1;
                 UPDATE domain SET alias_counter = domain_counter WHERE id = twin_record.domain_id;
@@ -104,7 +104,7 @@ DO $$
                 INSERT INTO twin_alias(id, twin_alias_type_id, domain_id, alias_value, twin_id, created_at)
                 VALUES (gen_random_uuid(), 'D', twin_record.domain_id, new_alias, twin_record.id, now());
 
-                -- Генерация псевдонима для Business Account Class
+                -- generate alias for Business Account Class
                 ba_counter := (SELECT alias_counter FROM twin_business_account_alias_counter WHERE business_account_id = twin_record.owner_business_account_id AND twin_class_id = twin_record.twin_class_id);
                 if twin_record.owner_business_account_id is not null then
                 IF ba_counter IS NULL THEN
@@ -121,7 +121,7 @@ DO $$
                 VALUES (gen_random_uuid(), 'B', twin_record.domain_id, twin_record.owner_business_account_id, new_alias, twin_record.id, now());
                 END IF;
 
-                -- Генерация псевдонима для Space
+                -- generate alias for Space
                 space_counter := (SELECT business_account_alias_counter FROM space WHERE twin_id = twin_record.id);
                 IF space_counter IS NOT NULL THEN
                     space_counter := space_counter + 1;
@@ -133,14 +133,14 @@ DO $$
                 END IF;
             END LOOP;
 
-        -- Генерация псевдонимов для DOMAIN_USER
+        -- generate alias for DOMAIN_USER
         FOR twin_record IN
             SELECT twin.id, twin.twin_class_id, tc.domain_id, twin.owner_business_account_id, tc.twin_class_owner_type_id
             FROM twin
                      JOIN twin_class tc ON twin.twin_class_id = tc.id
             WHERE tc.twin_class_owner_type_id = 'domainUser'
             LOOP
-                -- Генерация псевдонима для Domain
+                -- generate alias for Domain
                 domain_counter := (SELECT alias_counter FROM domain WHERE id = twin_record.domain_id);
                 domain_counter := domain_counter + 1;
                 UPDATE domain SET alias_counter = domain_counter WHERE id = twin_record.domain_id;
@@ -149,7 +149,7 @@ DO $$
                 INSERT INTO twin_alias(id, twin_alias_type_id, domain_id, alias_value, twin_id, created_at)
                 VALUES (gen_random_uuid(), 'D', twin_record.domain_id, new_alias, twin_record.id, now());
 
-                -- Генерация псевдонима для User Class
+                -- generate alias for User Class
                 space_counter := (SELECT domain_alias_counter FROM space WHERE twin_id = twin_record.id);
                 IF space_counter IS NOT NULL THEN
                     space_counter := space_counter + 1;
