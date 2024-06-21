@@ -11,15 +11,17 @@ import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.service.EntitySmartService;
 
-import java.util.*;
+import java.util.Properties;
+import java.util.UUID;
 
 @Component
-@Featurer(id = 1305,
+@Featurer(id = FeaturerTwins.ID_1305,
         name = "FieldTyperSelect",
         description = "")
 @Slf4j

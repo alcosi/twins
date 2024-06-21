@@ -16,6 +16,7 @@ import org.twins.core.dao.user.UserGroupMapRepository;
 import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 
 import java.util.*;
@@ -23,7 +24,7 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Featurer(id = 2102,
+@Featurer(id = FeaturerTwins.ID_2102,
         name = "UserGroupManagerSingleGroup",
         description = "")
 @RequiredArgsConstructor

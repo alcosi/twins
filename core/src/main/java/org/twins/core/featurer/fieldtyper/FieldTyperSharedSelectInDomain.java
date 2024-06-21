@@ -9,6 +9,7 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 
@@ -16,7 +17,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 1307,
+@Featurer(id = FeaturerTwins.ID_1307,
         name = "FieldTyperSharedSelectInDomain",
         description = "")
 @Slf4j

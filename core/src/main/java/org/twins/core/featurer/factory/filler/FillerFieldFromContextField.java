@@ -6,11 +6,12 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2312,
+@Featurer(id = FeaturerTwins.ID_2312,
         name = "FillerFieldFromContextField",
         description = "")
 @Slf4j

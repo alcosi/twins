@@ -2,7 +2,6 @@ package org.twins.core.featurer.fieldtyper;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -24,11 +24,11 @@ import java.lang.reflect.Type;
 import java.util.*;
 
 
-@FeaturerType(id = 13,
+@FeaturerType(id = FeaturerTwins.TYPE_13,
         name = "FieldTyper",
         description = "Customize format of twin class field")
 @Slf4j
-public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage> extends Featurer {
+public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage> extends FeaturerTwins {
     @Lazy
     @Autowired
     HistoryService historyService;

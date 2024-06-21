@@ -10,6 +10,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2207,
+@Featurer(id = FeaturerTwins.ID_2207,
         name = "MultiplierIsolatedCopy",
         description = "New output twin for each input. Output class will be taken from input twin.")
 public class MultiplierIsolatedCopy extends Multiplier {

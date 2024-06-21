@@ -11,13 +11,14 @@ import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 
 import java.util.*;
 
 @Slf4j
 @Component
-@Featurer(id = 2101,
+@Featurer(id = FeaturerTwins.ID_2101,
         name = "UserGroupManagerImpl",
         description = "")
 @RequiredArgsConstructor

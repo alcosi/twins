@@ -2,11 +2,11 @@ package org.twins.core.featurer.usergroup.manager;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.HashMap;
@@ -15,11 +15,11 @@ import java.util.Properties;
 import java.util.UUID;
 
 
-@FeaturerType(id = 21,
+@FeaturerType(id = FeaturerTwins.TYPE_21,
         name = "UserGroupManager",
         description = "")
 @Slf4j
-public abstract class UserGroupManager extends Featurer {
+public abstract class UserGroupManager extends FeaturerTwins {
     @Lazy
     @Autowired
     protected UserGroupService userGroupService;

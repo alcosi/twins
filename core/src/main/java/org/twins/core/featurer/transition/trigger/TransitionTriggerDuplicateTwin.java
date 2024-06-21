@@ -2,7 +2,6 @@ package org.twins.core.featurer.transition.trigger;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -12,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
@@ -20,7 +21,7 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 1501,
+@Featurer(id = FeaturerTwins.ID_1501,
         name = "TransitionTriggerDuplicateTwin",
         description = "")
 @RequiredArgsConstructor
@@ -31,7 +32,7 @@ public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
     final AuthService authService;
 
     @FeaturerParam(name = "twinId", description = "")
-    public static final FeaturerParamUUID twinId = new FeaturerParamUUID("twinId");
+    public static final FeaturerParamUUID twinId = new FeaturerParamUUIDTwinsTwinId("twinId");
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {

@@ -14,6 +14,8 @@ import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
@@ -23,12 +25,12 @@ import java.util.Properties;
 
 @Slf4j
 @Component
-@Featurer(id = 2205,
+@Featurer(id = FeaturerTwins.ID_2205,
         name = "MultiplierIsolatedRelativesByHead",
         description = "Output list of twin relatives for each input. Output twin list will be loaded by head and filtered by statusIds")
 public class MultiplierIsolatedRelativesByHead extends Multiplier {
     @FeaturerParam(name = "statusIds", description = "")
-    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
+    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
     @Lazy
     @Autowired
     TwinService twinService;

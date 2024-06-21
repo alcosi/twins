@@ -2,13 +2,13 @@ package org.twins.core.featurer.factory.multiplier;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -17,11 +17,11 @@ import java.util.List;
 import java.util.Properties;
 
 
-@FeaturerType(id = 22,
+@FeaturerType(id = FeaturerTwins.TYPE_22,
         name = "Multiplier",
         description = "")
 @Slf4j
-public abstract class Multiplier extends Featurer {
+public abstract class Multiplier extends FeaturerTwins {
     @Lazy
     @Autowired
     TwinClassService twinClassService;

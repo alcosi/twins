@@ -13,13 +13,15 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2325,
+@Featurer(id = FeaturerTwins.ID_2325,
         name = "FillerForwardLinkFromContextTwinLinkDstTwinHead",
         description = "Finds link in context twin. " +
                 "Get dst twin for this link. " +
@@ -32,10 +34,10 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
     TwinService twinService;
 
     @FeaturerParam(name = "headHunterLink", description = "")
-    public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUID("headHunterLink");
+    public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUIDTwinsLinkId("headHunterLink");
 
     @FeaturerParam(name = "newLinksId", description = "")
-    public static final FeaturerParamUUID newLinksId = new FeaturerParamUUID("newLinksId");
+    public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {

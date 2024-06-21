@@ -19,10 +19,10 @@ import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
-import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
@@ -127,10 +127,8 @@ public class TwinListController extends ApiController {
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
-            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);

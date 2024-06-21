@@ -8,6 +8,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorChecks;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
@@ -15,7 +16,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 1306,
+@Featurer(id = FeaturerTwins.ID_1306,
         name = "FieldTyperCheckbox",
         description = "")
 @RequiredArgsConstructor

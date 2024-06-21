@@ -13,6 +13,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.EntitySmartService;
 
 import java.sql.Timestamp;
@@ -21,7 +22,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2502,
+@Featurer(id = FeaturerTwins.ID_2502,
         name = "DomainInitiatorB2B",
         description = "")
 @RequiredArgsConstructor

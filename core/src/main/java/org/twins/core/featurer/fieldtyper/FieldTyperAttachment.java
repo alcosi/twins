@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
 
@@ -20,7 +21,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 1316,
+@Featurer(id = FeaturerTwins.ID_1316,
         name = "FieldTyperAttachment",
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity> {

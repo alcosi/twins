@@ -14,6 +14,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
 import org.twins.core.featurer.fieldtyper.value.FieldValueDate;
 
@@ -21,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Slf4j
-@Featurer(id = 1302,
+@Featurer(id = FeaturerTwins.ID_1302,
         name = "FieldTyperDateScroll",
         description = "")
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate> {

@@ -20,6 +20,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
@@ -37,6 +38,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -71,6 +73,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     final DomainService domainService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final DataListService dataListService;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -317,6 +321,30 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
                 twinClass.setExtendsTwinClass(extendsTwinClass);
         }
+    }
+
+    public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getMarkerDataList() != null || twinClassEntity.getMarkerDataListId() == null)
+            return;
+        twinClassEntity.setMarkerDataList(dataListService.findEntitySafe(twinClassEntity.getMarkerDataListId()));
+    }
+
+    public void loadMarkerDataList(Collection<TwinClassEntity> twinClassCollection, boolean loadOptions) throws ServiceException {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getMarkerDataListId);
+        for (TwinClassEntity twinClassEntity : twinClassCollection) {
+            if (twinClassEntity.getMarkerDataListId() != null && twinClassEntity.getMarkerDataList() == null)
+                needLoad.add(twinClassEntity);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<DataListEntity> markers = dataListRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad.getGroupedMap().keySet());
+        for (DataListEntity dataListEntity : markers) {
+            for (TwinClassEntity twinClassEntity : needLoad.getGrouped(dataListEntity.getId())) {
+                twinClassEntity.setMarkerDataList(dataListEntity);
+            }
+        }
+        if (loadOptions)
+            dataListService.loadDataListOptions(markers);
     }
 }
 

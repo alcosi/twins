@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.user.UserService;
 
@@ -11,7 +12,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 1901,
+@Featurer(id = FeaturerTwins.ID_1901,
         name = "TokenHandlerStub",
         description = "")
 @RequiredArgsConstructor
