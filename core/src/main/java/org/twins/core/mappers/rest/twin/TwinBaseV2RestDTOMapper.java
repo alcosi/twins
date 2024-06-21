@@ -8,13 +8,19 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Collection;
+
+import java.util.Collection;
+
+import java.util.ArrayList;
 
 @Component
 @RequiredArgsConstructor
@@ -22,8 +28,10 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
     final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
 
     final TwinService twinService;
+    final TwinAliasService twinAliasService;
 
 
     @Lazy
@@ -54,6 +62,18 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst
                     .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(MapperMode.TwinHeadMode.GREEN)))  //head twin will be much less detail
                     .twinClassId(src.getTwinClassId());
+        }
+
+        switch (mapperContext.getModeOrUse(TwinBaseRestDTOMapper.TwinMode.SHORT)) {
+            case DETAILED:
+                twinService.loadHeadForTwin(src);
+                twinAliasService.loadAliases(src);
+                dst
+                        .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext))
+                        .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
+                        .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext))
+                        .aliases(twinAliasRestDTOMapper.convertListPostpone(new ArrayList<>(src.getTwinAliases().getCollection()), mapperContext))                .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext)) //todo deep recursion risk
+                        .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.cloneWithIsolatedModes(mapperContext.getModeOrUse(RelatedByHeadTwinMode.WHITE)))); //head twin will be much less detail
         }
     }
 
