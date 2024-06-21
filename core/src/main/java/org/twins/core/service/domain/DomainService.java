@@ -19,12 +19,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
-import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
-import org.twins.core.domain.comment.CommentListResult;
-import org.twins.core.domain.domain.DomainListResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -32,6 +29,7 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.pagination.PageableResult;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinService;
@@ -118,18 +116,14 @@ public class DomainService {
         return domainEntity;
     }
 
-    public DomainListResult findDomainListByUser(int offset, int limit) throws ServiceException {
+    public PageableResult<DomainEntity> findDomainListByUser(int offset, int limit) throws ServiceException {
         Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
-        ApiUser apiUser = authService.getApiUser();
-        Page<DomainUserEntity> domainUserEntities = domainUserRepository.findAllByUserId(apiUser.getUserId(), pageable);
-        List<DomainEntity> domainEntityList = domainUserEntities.stream()
-                .map(DomainUserEntity::getDomain)
-                .collect(Collectors.toList());
-        return (DomainListResult) new DomainListResult()
-                .setDomainList(domainEntityList)
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), pageable);
+        return new PageableResult<DomainEntity>()
+                .setList(domainEntityList.stream().toList())
                 .setOffset(offset)
                 .setLimit(limit)
-                .setTotal(domainUserEntities.getTotalElements());
+                .setTotal(domainEntityList.getTotalElements());
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {

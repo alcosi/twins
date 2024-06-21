@@ -8,9 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.twins.core.dao.twin.TwinEntity;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -18,7 +16,8 @@ import java.util.UUID;
 public interface DomainUserRepository extends CrudRepository<DomainUserEntity, UUID>, JpaSpecificationExecutor<DomainUserEntity> {
     <T> T findByDomainIdAndUserId(UUID domainId, UUID userId, Class<T> type);
 
-    Page<DomainUserEntity> findAllByUserId(UUID userId, Pageable pageable);
+    @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId")
+    Page<DomainEntity> findAllDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
 

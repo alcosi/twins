@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.domain.comment.CommentListResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.pagination.PageableResult;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -81,12 +81,12 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         return currentComment;
     }
 
-    public CommentListResult findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
+    public PageableResult<TwinCommentEntity> findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
         Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, TwinCommentEntity.Fields.createdAt));
-        List<TwinCommentEntity> commentListByTwinId = commentRepository.findAllByTwinId(twinId, pageable);
+        List<TwinCommentEntity> commentList = commentRepository.findAllByTwinId(twinId, pageable);
         long totalElement = commentRepository.countByTwinId(twinId);
-        return (CommentListResult) new CommentListResult()
-                .setCommentList(commentListByTwinId)
+        return new PageableResult<TwinCommentEntity>()
+                .setList(commentList)
                 .setOffset(offset)
                 .setLimit(limit)
                 .setTotal(totalElement);

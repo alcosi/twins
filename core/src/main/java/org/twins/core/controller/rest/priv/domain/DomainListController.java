@@ -17,13 +17,16 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
-import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.domain.DomainListResult;
+import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.domain.apiuser.*;
 import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.pagination.PageableResult;
 
 import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
 import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
@@ -33,11 +36,13 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainListController extends ApiController {
+    final AuthService authService;
+    final UserResolverAuthToken userResolverAuthToken;
     final DomainService domainService;
     final DomainViewRestDTOMapper domainViewRestDTOMapper;
     final PaginationMapper paginationMapper;
 
-    @ParametersApiUserHeaders
+    @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainListV1", summary = "Return a list of domains for current user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
@@ -51,12 +56,16 @@ public class DomainListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();
         try {
-            DomainListResult domainListResult = domainService.findDomainListByUser(offset, limit);
+            authService.getApiUser()
+                    .setUserResolver(userResolverAuthToken)
+                    .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
+                    .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
+            PageableResult<DomainEntity> domainList = domainService.findDomainListByUser(offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setMode(showDomainMode);
             rs
-                    .setDomainList(domainViewRestDTOMapper.convertList(domainListResult.getDomainList(), mapperContext))
-                    .setPagination(paginationMapper.convert(domainListResult));
+                    .setDomainList(domainViewRestDTOMapper.convertList(domainList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(domainList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

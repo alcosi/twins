@@ -17,6 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.history.HistoryListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -27,8 +28,8 @@ import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.history.HistoryListResult;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.pagination.PageableResult;
 
 import java.util.UUID;
 
@@ -66,14 +67,14 @@ public class HistoryListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
-            HistoryListResult historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);
+            PageableResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
                     .setMode(showTwinMode)
                     .setMode(showClassMode);
             rs
-                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getHistoryList(), mapperContext))
+                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
