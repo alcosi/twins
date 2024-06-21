@@ -3,11 +3,12 @@ package org.twins.core.featurer.widget.accessor;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 1403,
+@Featurer(id = FeaturerTwins.ID_1403,
         name = "WidgetAccessorAllowForSpace",
         description = "")
 public class WidgetAccessorAllowForSpace extends WidgetAccessor {

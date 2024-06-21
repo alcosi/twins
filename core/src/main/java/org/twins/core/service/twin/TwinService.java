@@ -15,6 +15,8 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.service.I18nService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -32,8 +34,6 @@ import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.service.EntitySecureFindServiceImpl;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
@@ -60,8 +60,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final TwinFieldUserRepository twinFieldUserRepository;
     final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinClassFieldRepository twinClassFieldRepository;
-    final TwinBusinessAccountAliasRepository twinBusinessAccountAliasRepository;
-    final TwinDomainAliasRepository twinDomainAliasRepository;
     final TwinClassFieldService twinClassFieldService;
     final EntityManager entityManager;
     final EntitySmartService entitySmartService;
@@ -86,6 +84,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     final I18nService i18nService;
     @Lazy
     final TwinTagService twinTagService;
+    @Lazy
+    final TwinAliasService twinAliasService;
+
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
         Map<UUID, List<TwinEntity>> ret = new HashMap<>();
@@ -151,16 +152,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return true;
     }
 
-    public TwinEntity findTwinByAlias(ApiUser apiUser, String twinAlias) throws ServiceException {
-        if (apiUser.getBusinessAccount() != null) {
-            TwinBusinessAccountAliasEntity twinBusinessAccountAliasEntity = twinBusinessAccountAliasRepository.findByBusinessAccountIdAndAlias(apiUser.getBusinessAccount().getId(), twinAlias);
-            if (twinBusinessAccountAliasEntity != null)
-                return twinBusinessAccountAliasEntity.getTwin();
-        }
-        TwinDomainAliasEntity twinDomainAliasEntity = twinDomainAliasRepository.findByDomainIdAndAlias(apiUser.getDomain().getId(), twinAlias);
-        if (twinDomainAliasEntity == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_ALIAS_UNKNOWN, "unknown twin alias[" + twinAlias + "]");
-        return twinDomainAliasEntity.getTwin();
+    public TwinEntity findTwinByAlias(String twinAlias) throws ServiceException {
+        return twinAliasService.findAlias(twinAlias).getTwin();
     }
 
     public FieldValue getTwinFieldValue(TwinField twinField) throws ServiceException {
@@ -324,8 +317,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
-                .setBusinessAccountAliasEntityList(createTwinBusinessAccountAliases(twinEntity))
-                .setDomainAliasEntityList(createTwinDomainAliases(twinEntity));
+                .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity));
     }
 
     public void invalidateFields(TwinEntity twinEntity) {
@@ -541,26 +533,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinChangesService.saveEntities(twinChangesCollector);
     }
 
-    public List<TwinBusinessAccountAliasEntity> createTwinBusinessAccountAliases(TwinEntity twinEntity) {
-        if (twinEntity.getTwinClass().getOwnerType() != TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT && twinEntity.getTwinClass().getOwnerType() != TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT_USER)
-            return new ArrayList<>(); // businessAccountAliases can not be created for this twin
-        twinBusinessAccountAliasRepository.createAliasByClass(twinEntity.getId());
-        TwinEntity spaceTwin = loadSpaceForTwin(twinEntity);
-        if (spaceTwin != null) {
-            twinBusinessAccountAliasRepository.createAliasBySpace(twinEntity.getId(), spaceTwin.getId());
-        }
-        return twinBusinessAccountAliasRepository.findAllByTwinId(twinEntity.getId());
-    }
-
-    public List<TwinDomainAliasEntity> createTwinDomainAliases(TwinEntity twinEntity) {
-        twinDomainAliasRepository.createAliasByClass(twinEntity.getId());
-        TwinEntity spaceTwin = loadSpaceForTwin(twinEntity);
-        if (spaceTwin != null) {
-            twinDomainAliasRepository.createAliasBySpace(twinEntity.getId(), spaceTwin.getId());
-        }
-        return twinDomainAliasRepository.findAllByTwinId(twinEntity.getId());
-    }
-
     public TwinEntity loadSpaceForTwin(TwinEntity twinEntity) {
         if (twinEntity.getSpaceTwin() != null)
             return twinEntity.getSpaceTwin();
@@ -745,8 +717,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Accessors(chain = true)
     public static class TwinCreateResult {
         private TwinEntity createdTwin;
-        private List<TwinBusinessAccountAliasEntity> businessAccountAliasEntityList;
-        private List<TwinDomainAliasEntity> domainAliasEntityList;
+        private List<TwinAliasEntity> twinAliasEntityList;
     }
 
     @Data
@@ -791,14 +762,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
         int deletedCount = twinRepository.deleteAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         log.info(deletedCount + " number of twins were deleted");
-    }
-
-    public void forceDeleteAliasCounters(UUID businessAccountId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomainId();
-
-        List<UUID> aliasToDelete = twinBusinessAccountAliasRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
-        entitySmartService.deleteAllAndLog(aliasToDelete, twinBusinessAccountAliasRepository);
     }
 
 }

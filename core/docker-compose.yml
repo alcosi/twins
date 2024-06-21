@@ -1,6 +1,6 @@
 version: "3.9"
 networks:
-  services_elpmee-net:
+  80lvl-dev-network:
     external: true
 services:
   twins:
@@ -16,4 +16,4 @@ services:
       - "5006:5006"
     restart: always
     networks:
-      - services_elpmee-net
+      - 80lvl-dev-network

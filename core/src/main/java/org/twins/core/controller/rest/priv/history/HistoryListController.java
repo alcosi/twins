@@ -28,12 +28,13 @@ import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.history.HistoryListResult;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.pagination.PageableResult;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.*;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(description = "", name = ApiTag.HISTORY)
 @RestController
@@ -58,22 +59,22 @@ public class HistoryListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
+            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._HIDE) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
-            HistoryListResult historyList = historyService.findHistory(twinId, childDepth, createSimplePagination(offset, limit, Sort.by(sortDirection, HistoryEntity.Fields.createdAt)));
+            PageableResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
                     .setMode(showTwinMode)
                     .setMode(showClassMode);
             rs
-                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getHistoryList(), mapperContext))
+                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

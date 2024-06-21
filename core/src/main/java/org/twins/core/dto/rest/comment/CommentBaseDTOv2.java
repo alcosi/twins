@@ -19,20 +19,20 @@ import java.util.UUID;
 public class CommentBaseDTOv2 extends CommentBaseDTOv1 {
 
     @Schema(description = "id", example = DTOExamples.TWIN_COMMENT)
-    private UUID id;
+    public UUID id;
 
     @Schema(description = "author id", example = DTOExamples.USER_ID)
-    private UUID authorUserId;
+    public UUID authorUserId;
 
     @Schema(description = "current author")
-    private UserDTOv1 authorUser;
+    public UserDTOv1 authorUser;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
-    private LocalDateTime createdAt;
+    public LocalDateTime createdAt;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "changed at", example = DTOExamples.INSTANT)
-    private LocalDateTime changedAt;
+    public LocalDateTime changedAt;
 
 }

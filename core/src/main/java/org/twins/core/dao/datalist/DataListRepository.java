@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,7 +16,7 @@ public interface DataListRepository extends CrudRepository<DataListEntity, UUID>
 
     DataListEntity findByDomainIdAndKey(UUID domainId, String key);
 
-    List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids);
+    List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, Collection<UUID> ids);
 
     boolean existsByDomainIdAndId(UUID domainId, UUID dataListId);
 }

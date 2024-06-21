@@ -6,37 +6,32 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.dto.rest.datalist.DataListDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionResult;
-import org.twins.core.dto.rest.datalist.DataListResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
-import org.twins.core.service.EntitySecureFindServiceImpl;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -44,11 +39,11 @@ import java.util.UUID;
 public class DataListService extends EntitySecureFindServiceImpl<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
-    final DataListRestDTOMapper dataListRestDTOMapper;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
     final EntitySmartService entitySmartService;
     final TwinClassFieldService twinClassFieldService;
     final FeaturerService featurerService;
+    final CacheManager cacheManager;
+
     @Lazy
     final AuthService authService;
 
@@ -70,9 +65,6 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     @Override
     public boolean validateEntity(DataListEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
-    }
-    public void findEntitySafe() {
-
     }
 
     public List<DataListEntity> findDataLists(List<UUID> uuidLists) throws ServiceException {
@@ -98,65 +90,39 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 dataListOptionRepository.findByDataListId(dataListId);
     }
 
-    public Page<DataListOptionEntity> findDataListOptions(UUID dataListId, SimplePagination pagination) throws ServiceException {
-        Page<DataListOptionEntity> dataListOptionPage;
-        if (authService.getApiUser().isBusinessAccountSpecified()) {
-            dataListOptionPage = dataListOptionRepository.findByDataListIdAndBusinessAccountId(dataListId, authService.getApiUser().getBusinessAccount().getId(), PaginationUtils.pageableOffset(pagination));
-        } else {
-            dataListOptionPage = dataListOptionRepository.findByDataListId(dataListId, PaginationUtils.pageableOffset(pagination));
-        }
-        return dataListOptionPage;
-    }
-
     //todo cache it
     public Kit<DataListOptionEntity, UUID> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
         return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
     }
 
     public Kit<DataListOptionEntity, UUID> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
-        if (dataListEntity.getOptions() != null) return dataListEntity.getOptions();
+        if (dataListEntity.getOptions() != null)
+            return dataListEntity.getOptions();
         dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
         return dataListEntity.getOptions();
     }
 
-    public DataListOptionResult findDataListOptions(DataListEntity dataListEntity, SimplePagination pagination) throws ServiceException {
-        List<DataListOptionEntity> options = null;
-        PaginationResult paginationResult = null;
-        if (pagination != null) {
-            paginationResult = (PaginationResult) new PaginationResult()
-                    .setOffset(pagination.getOffset())
-                    .setLimit(pagination.getLimit());
+    public void loadDataListOptions(Collection<DataListEntity> dataListEntityCollection) throws ServiceException {
+        Kit<DataListEntity, UUID> needLoad = new Kit<>(DataListEntity::getId);
+        for (DataListEntity dataListEntity : dataListEntityCollection) {
+            if (dataListEntity.getOptions() == null)
+                needLoad.add(dataListEntity);
         }
-        if (dataListEntity.getOptions() != null) {// looks like all options were already loaded
-            options = dataListEntity.getOptions().getCollection().stream().skip(pagination.getOffset()).limit(pagination.getLimit()).toList();
-            paginationResult.setTotal(dataListEntity.getOptions().getCollection().size());
-        } else if (pagination != null) {
-            Page<DataListOptionEntity> optionsPage = findDataListOptions(dataListEntity.getId(), pagination);
-            paginationResult.setTotal(optionsPage.getTotalElements());
-        } else
-            options = findDataListOptions(dataListEntity.getId());
-        return convertKitInSearchResult(new Kit<>(options, DataListOptionEntity::getId), paginationResult);
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        KitGrouped<DataListOptionEntity, UUID, UUID> optionsKit = new KitGrouped<>(
+                findOptionsForDataLists(needLoad.getIdSet()),
+                DataListOptionEntity::getId,
+                DataListOptionEntity::getDataListId);
+        for (DataListEntity dataListEntity : needLoad.getCollection()) {
+            dataListEntity.setOptions(new Kit<>(optionsKit.getGrouped(dataListEntity.getId()), DataListOptionEntity::getId));
+        }
     }
 
-    public DataListResult getDataList(DataListEntity dataListEntity, DataListDTOv1 dataListDTO, MapperContext mapperContext) throws Exception {
-        DataListOptionResult options = findDataListOptions(dataListEntity, mapperContext.getModePagination(DataListOptionRestDTOMapper.Mode.class));
-        dataListDTO.setOptions(dataListOptionRestDTOMapper.convertMap(options.getOptionKit().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
-        dataListRestDTOMapper.convertMapOrPostpone(options.getOptionKit(), dataListDTO, dataListOptionRestDTOMapper, mapperContext, DataListDTOv1::setOptions, DataListDTOv1::setOptionIdList);
-        return convertListSearchResult(dataListDTO, options.getPagination());
-    }
-
-    private DataListOptionResult convertKitInSearchResult(Kit<DataListOptionEntity, UUID> dataListOptionEntityUUIDKit, PaginationResult pagination) {
-        return new DataListOptionResult()
-                .setOptionKit(dataListOptionEntityUUIDKit)
-                .setPagination(pagination);
-    }
-
-    private DataListResult convertListSearchResult(DataListDTOv1 dataList, PaginationResult pagination) {
-        return (DataListResult) new DataListResult()
-                .setDataList(dataList)
-                .setTotal(pagination.getTotal())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
+    public List<DataListOptionEntity> findOptionsForDataLists(Set<UUID> dataListIds) throws ServiceException {
+        return authService.getApiUser().isBusinessAccountSpecified() ?
+                dataListOptionRepository.findByDataListIdInAndBusinessAccountId(dataListIds, authService.getApiUser().getBusinessAccount().getId()) :
+                dataListOptionRepository.findByDataListIdIn(dataListIds);
     }
 
     public DataListEntity findDataListOptionsSharedInHead(UUID twinClassFieldId, UUID headTwinId) throws ServiceException {
@@ -193,5 +159,98 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         List<UUID> optionsToDelete = dataListOptionRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(optionsToDelete, dataListOptionRepository);
     }
+
+
+    public Iterable<DataListOptionEntity> saveOptions(List<DataListOptionEntity> newOptions) {
+        return entitySmartService.saveAllAndLog(newOptions, dataListOptionRepository);
+    }
+
+    public int countByDataListId(UUID listId) {
+        return dataListOptionRepository.countByDataListId(listId);
+    }
+
+    public List<DataListOptionEntity> findByDataListId(UUID listId) {
+        return dataListOptionRepository.findByDataListId(listId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(UUID listId, UUID twinClassFieldId) {
+       return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(UUID listId, UUID twinClassFieldId, UUID businessAccountId) {
+        return dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldId, businessAccountId);
+    }
+
+    public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
+       return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+    }
+
+    //Method for reloading options if dataList is not present in entity;
+    public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
+        List<UUID> idsForReload = new ArrayList<>();
+        for(var option : options) if(null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+        if (!idsForReload.isEmpty()) {
+            options.removeIf(o -> idsForReload.contains(o.getId()));
+            options.addAll(dataListOptionRepository.findByIdIn(idsForReload));
+        }
+        return options;
+    }
+
+
+    public DataListOptionEntity checkOptionsExists(UUID dataListId, String optionName, UUID businessAccountId) {
+        List<DataListOptionEntity> foundOptions;
+        if (businessAccountId != null)
+            foundOptions = dataListOptionRepository.findOptionForBusinessAccount(dataListId, businessAccountId, optionName.trim(), PageRequest.of(0, 1));
+        else
+            foundOptions = dataListOptionRepository.findOptionOutOfBusinessAccount(dataListId, optionName.trim(), PageRequest.of(0, 1));
+
+        if (CollectionUtils.isNotEmpty(foundOptions))
+            return foundOptions.get(0);
+
+        return null;
+    }
+
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
+        Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
+        options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
+        List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
+        options.addAll(processedOptions);
+        return options;
+    }
+
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) {
+        List<DataListOptionEntity> optionsExists = new ArrayList<>();
+        List<DataListOptionEntity> optionsForSave = new ArrayList<>();
+        for (String optionName : newOptions) {
+            DataListOptionEntity foundedOption = checkOptionsExists(dataListId, optionName, businessAccountId);
+            if (null != foundedOption) optionsExists.add(foundedOption);
+            else {
+                DataListOptionEntity newOption = new DataListOptionEntity();
+                newOption.setOption(optionName);
+                newOption.setBusinessAccountId(businessAccountId);
+                newOption.setStatus(DataListOptionEntity.Status.active);
+                newOption.setDataListId(dataListId);
+                optionsForSave.add(newOption);
+            }
+        }
+        Iterable<DataListOptionEntity> savedOptions = saveOptions(optionsForSave);
+        savedOptions.forEach(optionsExists::add);
+        if (CollectionUtils.isNotEmpty(optionsForSave))
+            evictOptionsCloudCache(dataListId, businessAccountId);
+        return optionsExists;
+    }
+
+    private void evictOptionsCloudCache(UUID dataListId, UUID businessAccountId) {
+        Cache cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS);
+        if (cache != null)
+            cache.evictIfPresent(dataListId);
+        if (businessAccountId != null) {
+            cache = cacheManager.getCache(DataListOptionRepository.CACHE_DATA_LIST_OPTIONS_WITH_BUSINESS_ACCOUNT);
+            if (cache != null)
+                cache.evictIfPresent(dataListId + "" + businessAccountId);
+        }
+    }
+
+
 }
 

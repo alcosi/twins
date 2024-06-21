@@ -17,6 +17,7 @@ import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinClassActionPermissionEntity;
 import org.twins.core.dao.action.TwinClassActionValidatorEntity;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -169,6 +170,23 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity headTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private TwinClassEntity extendsTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private DataListEntity markerDataList;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private DataListEntity tagDataList;
+
 
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet) {

@@ -9,7 +9,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
@@ -20,6 +19,7 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
 
@@ -29,8 +29,6 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity> {
-    @Autowired
-    DataListOptionRepository dataListOptionRepository;
 
     @Autowired
     @Lazy
@@ -40,7 +38,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     TwinFieldDataListRepository twinFieldDataListRepository;
 
     @FeaturerParam(name = "listUUID", description = "")
-    public static final FeaturerParamUUID listUUID = new FeaturerParamUUID("listUUID");
+    public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsLinkId("listUUID");
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
@@ -49,7 +47,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
         if (value.getOptions() != null && value.getOptions().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);
-        List<DataListOptionEntity> dataListOptionEntityList = dataListOptionRepository.findByIdIn(value.getOptions().stream().map(DataListOptionEntity::getId).toList());
+
+        List<DataListOptionEntity> dataListOptionEntityList = dataListService.reloadOptionsOnDataListAbsent(value.getOptions());
+
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
         if (twin.getTwinFieldDatalistKit().containsGroupedKey(value.getTwinClassField().getId()))

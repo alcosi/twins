@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -20,7 +21,7 @@ import java.util.List;
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2309,
+@Featurer(id = FeaturerTwins.ID_2309,
         name = "FillerFieldsFromTemplateTwinAll",
         description = "")
 @Slf4j

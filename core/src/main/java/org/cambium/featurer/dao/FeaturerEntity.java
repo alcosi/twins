@@ -3,12 +3,14 @@ package org.cambium.featurer.dao;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.ToString;
+import lombok.experimental.FieldNameConstants;
 
 import java.util.List;
 
 @Entity
 @Data
 @Table(name = "featurer")
+@FieldNameConstants
 public class FeaturerEntity {
     @Id
     @Column(name = "id")
@@ -30,9 +32,11 @@ public class FeaturerEntity {
     @Column(name = "name")
     private String name;
 
-    @Basic
     @Column(name = "description")
     private String description;
+
+    @Column(name = "deprecated")
+    private boolean deprecated;
 
     @Transient
     @ToString.Exclude

@@ -7,7 +7,10 @@ import org.springframework.http.HttpStatus;
 public enum ErrorCodeCommon implements ErrorCode {
     OK(0, "success", HttpStatus.OK),
     UNEXPECTED_SERVER_EXCEPTION(500, "something is not well configured in database"),
-    NOT_IMPLEMENTED(501, "this operation is not supported yet");
+    NOT_IMPLEMENTED(501, "this operation is not supported yet"),
+    UUID_UNKNOWN(10000, "uuid is unknown"),
+    UUID_ALREADY_EXIST(10001, "uuid is already exist"),
+    ENTITY_INVALID(10002, "entity invalid");
 
     private final int code;
     private final String message;

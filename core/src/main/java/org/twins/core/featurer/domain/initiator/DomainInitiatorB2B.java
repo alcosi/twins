@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.i18n.dao.I18nType;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
@@ -13,7 +14,8 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
-import org.twins.core.service.EntitySmartService;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -21,7 +23,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 2502,
+@Featurer(id = FeaturerTwins.ID_2502,
         name = "DomainInitiatorB2B",
         description = "")
 @RequiredArgsConstructor
@@ -57,6 +59,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
 
     @Transactional
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
                 .setDomainId(domainEntity.getId())
                 .setAbstractt(false)
@@ -70,7 +73,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId())
                 .setKey("Active")
-                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, "Active").getI18nId());
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME,"Active").getId());
         twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinflowEntity twinflowEntity = new TwinflowEntity()

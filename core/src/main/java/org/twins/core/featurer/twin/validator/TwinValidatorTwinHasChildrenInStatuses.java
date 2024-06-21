@@ -11,22 +11,20 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.Map;
-import java.util.Collection;
+import java.util.*;
 
 @Slf4j
 @Component
-@Featurer(id = 1604,
+@Featurer(id = FeaturerTwins.ID_1604,
         name = "TransitionValidatorTwinHasChildrenInStatuses",
         description = "")
 public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     @FeaturerParam(name = "statusIds", description = "")
-    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSet("statusIds");
+    public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Lazy
     @Autowired
@@ -38,7 +36,7 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
         BasicSearch search = new BasicSearch();
         search
                 .addHeaderTwinId(twinEntity.getId())
-                .addStatusId(statusIdSet);
+                .addStatusId(statusIdSet, false);
         long count = twinSearchService.count(search);
         boolean isValid = count > 0;
         return buildResult(
@@ -52,7 +50,7 @@ public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
     protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
         Set<UUID> statusIdSet = statusIds.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addStatusId(statusIdSet);
+        search.addStatusId(statusIdSet, false);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {

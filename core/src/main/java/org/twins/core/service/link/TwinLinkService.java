@@ -8,6 +8,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
@@ -24,8 +26,6 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.EntitySecureFindServiceImpl;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
@@ -303,11 +303,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public List<TwinEntity> findValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()));
+            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
             return twinSearchService.findTwins(search);
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass));
+            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
             return twinSearchService.findTwins(search);
         } else
             return null;
@@ -316,11 +316,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()));
+            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
             return twinSearchService.count(search);
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
             BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass));
+            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
             return twinSearchService.count(search);
         } else
             return 0L;

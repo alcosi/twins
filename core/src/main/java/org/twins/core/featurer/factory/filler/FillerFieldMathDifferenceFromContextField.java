@@ -16,8 +16,10 @@ import org.twins.core.domain.TwinField;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -28,15 +30,15 @@ import java.util.UUID;
 import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
-@Featurer(id = 2321,
+@Featurer(id = FeaturerTwins.ID_2321,
         name = "FillerFieldMathDifferenceFromContextField",
         description = "")
 @Slf4j
 public class FillerFieldMathDifferenceFromContextField extends Filler {
     @FeaturerParam(name = "minuendTwinClassFieldId", description = "")
-    public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUID("minuendTwinClassFieldId");
+    public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("minuendTwinClassFieldId");
     @FeaturerParam(name = "subtrahendTwinClassFieldId", description = "Value from this field will be ")
-    public static final FeaturerParamUUID subtrahendTwinClassFieldId = new FeaturerParamUUID("subtrahendTwinClassFieldId");
+    public static final FeaturerParamUUID subtrahendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("subtrahendTwinClassFieldId");
     @FeaturerParam(name = "allowNegativeResult", description = "")
     public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
     @Lazy

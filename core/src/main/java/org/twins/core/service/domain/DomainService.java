@@ -6,10 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nLocaleRepository;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
@@ -20,13 +25,14 @@ import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.pagination.PageableResult;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -68,6 +74,8 @@ public class DomainService {
     final DomainLocaleRepository domainLocaleRepository;
     @Lazy
     final TwinService twinService;
+    @Lazy
+    final TwinAliasService twinAliasService;
 
     @Lazy
     final SpaceRoleService spaceRoleService;
@@ -109,6 +117,16 @@ public class DomainService {
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
         return domainEntity;
+    }
+
+    public PageableResult<DomainEntity> findDomainListByUser(int offset, int limit) throws ServiceException {
+        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), pageable);
+        return new PageableResult<DomainEntity>()
+                .setList(domainEntityList.stream().toList())
+                .setOffset(offset)
+                .setLimit(limit)
+                .setTotal(domainEntityList.getTotalElements());
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
@@ -184,13 +202,12 @@ public class DomainService {
     }
 
     @Transactional
-    public void deleteBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
+    public void deleteBusinessAccountFromDomain(UUID domainId, UUID businessAccountId) throws ServiceException {
         DomainBusinessAccountEntity domainBusinessAccountEntity = getDomainBusinessAccountEntitySafe(domainId, businessAccountId);
 
         twinService.forceDeleteTwins(businessAccountId);
-        twinService.forceDeleteAliasCounters(businessAccountId);
-        userGroupService.forceDeleteUserGroups(businessAccountId);
-        userGroupService.forceDeleteUsers(businessAccountId);
+        twinAliasService.forceDeleteAliasCounters(businessAccountId);
+        userGroupService.processDomainBusinessAccountDeletion(businessAccountId);
         spaceRoleService.forceDeleteRoles(businessAccountId);
         dataListService.forceDeleteOptions(businessAccountId);
         twinflowService.forceDeleteSchemas(businessAccountId);

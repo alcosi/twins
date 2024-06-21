@@ -4,18 +4,18 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.featurer.Featurer;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.*;
 
 
-@FeaturerType(id = 16,
+@FeaturerType(id = FeaturerTwins.TYPE_16,
         name = "TwinValidator",
         description = "")
 @Slf4j
-public abstract class TwinValidator extends Featurer {
+public abstract class TwinValidator extends FeaturerTwins {
 
     public ValidationResult isValid(HashMap<String, String> validatorParams, TwinEntity twinEntity, boolean invert) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, validatorParams, new HashMap<>());

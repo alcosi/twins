@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -19,7 +20,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
@@ -44,7 +44,7 @@ public class DomainBusinessAccountDeleteController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
 
-            domainService.deleteBusinessAccount(
+            domainService.deleteBusinessAccountFromDomain(
                     domainService.checkDomainId(apiUser.getDomain().getId(), EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS),
                     apiUser.getBusinessAccount().getId());
         } catch (ServiceException se) {

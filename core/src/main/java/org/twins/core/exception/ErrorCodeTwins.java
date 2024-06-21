@@ -11,6 +11,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_UNKNOWN(10000, "uuid is unknown"),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     ENTITY_INVALID(10002, "entity invalid"),
+    ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. Please check unique keys"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     USER_GROUP_UNKNOWN(10901, "user group is unknown"),
@@ -57,6 +58,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
     TWIN_ALIAS_UNKNOWN(10801, "alias is unknown"),
+    UNSUPPORTED_ALIAS_TYPE(10802, "unsupported alias type"),
     TWIN_LINK_INCORRECT(10901, "twins can not be linkend"),
     TWIN_FIELD_VALUE_INCORRECT(10902, "twins field value can not be converted"),
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
@@ -68,7 +70,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_COMMENT_EDIT_ACCESS_DENIED(11302, "Comment editing access denied"),
     TWIN_ATTACHMENT_INCORRECT_COMMENT(11402, "This attachment belongs to another comment"),
     TWIN_ATTACHMENT_DELETE_ACCESS_DENIED(11403, "This attachment does not belong to the commenter"),
-    FEATURER_IS_NULL(11501, "Got featurer is null");
+    FEATURER_IS_NULL(11501, "Got featurer is null"),
+    TWIN_SEARCH_NOT_UNIQ(11601, "twin search can not be selected by permission"),
+    TWIN_SEARCH_PARAM_MISSED(11602, "twin search params count incorrect"),
+    TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
+    TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
+    TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect");
 
 
     private final int code;

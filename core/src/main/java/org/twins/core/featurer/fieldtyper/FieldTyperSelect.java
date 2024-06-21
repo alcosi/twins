@@ -6,17 +6,22 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamInt;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
-import org.twins.core.service.EntitySmartService;
+import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 
 import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 1305,
+@Featurer(id = FeaturerTwins.ID_1305,
         name = "FieldTyperSelect",
         description = "")
 @Slf4j
@@ -31,17 +36,29 @@ public class FieldTyperSelect extends FieldTyperList {
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
+    protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        boolean supportCustomValue = supportCustom.extract(properties);
+        // TODO add transactional support
+        // TODO maybe need to get BAiD at apiUser
+        if (supportCustomValue)
+            value.setOptions(dataListService.processNewOptions(listUUID.extract(properties), value.getOptions(), twin.getOwnerBusinessAccountId()));
+        else
+            value.getOptions().removeIf(o -> ObjectUtils.isEmpty(o.getId()));
+        super.serializeValue(properties, twin, value, twinChangesCollector);
+    }
+
+    @Override
     public FieldDescriptor getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         UUID listId = listUUID.extract(properties);
         dataListService.checkId(listId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS);
-        int listSize = dataListOptionRepository.countByDataListId(listId);
+        int listSize = dataListService.countByDataListId(listId);
         FieldDescriptorList fieldDescriptorList = new FieldDescriptorList()
                 .supportCustom(supportCustom.extract(properties))
                 .multiple(multiple.extract(properties));
         if (listSize > longListThreshold.extract(properties))
             fieldDescriptorList.dataListId(listId);
         else {
-            fieldDescriptorList.options(dataListOptionRepository.findByDataListId(listId));
+            fieldDescriptorList.options(dataListService.findByDataListId(listId));
         }
         return fieldDescriptorList;
     }

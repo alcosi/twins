@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ArrayUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -18,7 +19,6 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.EntitySmartService;
 
 import java.util.List;
 import java.util.Locale;

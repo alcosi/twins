@@ -17,9 +17,6 @@ public class TwinCreateRsDTOv1 extends Response {
     @Schema(description = "new twin id")
     public UUID twinId;
 
-    @Schema(description = "twin alias list. Alias is unique in business account scope")
-    public List<String> businessAccountAliasList;
-
-    @Schema(description = "twin alias list. Alias is unique in domain scope")
-    public List<String> domainAliasList;
+    @Schema(description = "twin alias list")
+    public List<String> twinAliasList;
 }

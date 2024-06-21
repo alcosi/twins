@@ -10,26 +10,29 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
-import java.util.Map;
 
 
 @Slf4j
 @Component
-@Featurer(id = 1605,
+@Featurer(id = FeaturerTwins.ID_1605,
         name = "TransitionValidatorTwinAllChildrenInStatuses",
         description = "")
 public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
     @FeaturerParam(name = "childrenTwinClassId", description = "")
-    public static final FeaturerParamUUID childrenTwinClassId = new FeaturerParamUUID("childrenTwinClassId");
+    public static final FeaturerParamUUID childrenTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("childrenTwinClassId");
 
     @FeaturerParam(name = "childrenTwinStatusId", description = "")
-    public static final FeaturerParamUUID childrenTwinStatusId = new FeaturerParamUUID("childrenTwinStatusId");
+    public static final FeaturerParamUUID childrenTwinStatusId = new FeaturerParamUUIDTwinsTwinStatusId("childrenTwinStatusId");
 
     @Lazy
     @Autowired
@@ -42,8 +45,8 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
         BasicSearch search = new BasicSearch();
         search
                 .addHeaderTwinId(twinEntity.getId())
-                .addTwinClassId(classId)
-                .addStatusIdExclude(statusId);
+                .addTwinClassId(classId, false)
+                .addStatusId(statusId, true);
         long count = twinSearchService.count(search);
         boolean isValid = count == 0;
 
@@ -59,7 +62,7 @@ public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
         UUID classId = childrenTwinClassId.extract(properties);
         UUID statusId = childrenTwinStatusId.extract(properties);
         BasicSearch search = new BasicSearch();
-        search.addTwinClassId(classId).addStatusIdExclude(statusId);
+        search.addTwinClassId(classId, false).addStatusId(statusId, true);
         Map<UUID, Long> counts = twinSearchService.countGroupBy(search, TwinEntity.Fields.headTwinId);
         CollectionValidationResult result = new CollectionValidationResult();
         for (TwinEntity twinEntity : twinEntityCollection) {

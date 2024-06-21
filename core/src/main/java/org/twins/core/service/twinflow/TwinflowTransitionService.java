@@ -15,6 +15,8 @@ import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
+import org.cambium.service.EntitySecureFindServiceImpl;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -36,8 +38,6 @@ import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.featurer.twin.validator.TwinValidator;
-import org.twins.core.service.EntitySecureFindServiceImpl;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.permission.PermissionService;
@@ -47,8 +47,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 
 
@@ -60,6 +58,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
     final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
     final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
     final TwinClassService twinClassService;
     final TwinFactoryService twinFactoryService;
     final TwinStatusService twinStatusService;
@@ -185,7 +184,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         */
         Map<String, TwinflowTransitionEntity> alreadyAdded = new HashMap<>(); // key = alias_id + dst_status
         for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
-            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAliasId() + transitionEntity.getDstTwinStatusId();
+            String transitionDistinctKey = transitionEntity.getTwinflowTransitionAlias().getAlias() + transitionEntity.getDstTwinStatusId();
             if (alreadyAdded.containsKey(transitionDistinctKey)
                     && alreadyAdded.get(transitionDistinctKey).getSrcTwinStatusId() != null)
                 continue; //skipping current transition because we already have one with specific src_status
@@ -247,13 +246,30 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, String nameInDefaultLocale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         twinflowTransitionEntity
-                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getI18nId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
-                .setCreatedByUserId(authService.getApiUser().getUserId())
-                .setTwinflowTransitionAliasId(null); //todo create alias if it's not exist in domain
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId())
+                .setCreatedByUserId(apiUser.getUserId())
+                .setTwinflowTransitionAliasId(creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias()));
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    private UUID creatAliasIfNeeded(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        if (transitionAlias.getDomainId() == null)
+            transitionAlias.setDomainId(authService.getApiUser().getDomainId());
+        if (transitionAlias.getId() != null)
+            return transitionAlias.getId();
+        UUID currentTransitionAliasId = twinflowTransitionAliasRepository.findIdByDomainIdAndAlias(transitionAlias.getDomainId(), transitionAlias.getAlias());
+        if (currentTransitionAliasId != null)
+            transitionAlias.setId(currentTransitionAliasId);
+        else
+            saveTwinflowTransitionAlias(transitionAlias);
+        return transitionAlias.getId();
+    }
+
+    private TwinflowTransitionAliasEntity saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+        return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
     @Getter
@@ -473,7 +489,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 } else if (twinOperation instanceof TwinUpdate twinUpdate) {
                     boolean isProcessedTwin = true;
                     if (transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinUpdate.getTwinEntity().getId())) {// case when twin was taken from input, we have to force update status from transition
-                        if (twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
+                        if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
                             twinUpdate.getTwinEntity()
                                     .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
                                     .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());

@@ -11,6 +11,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorList;
 import org.twins.core.service.auth.AuthService;
@@ -19,7 +20,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = 1308,
+@Featurer(id = FeaturerTwins.ID_1308,
         name = "FieldTyperBusinessAccountSharedSelect",
         description = "")
 @Slf4j
@@ -34,12 +35,12 @@ public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {
         return new FieldDescriptorList()
                 .supportCustom(false)
                 .multiple(false)
-                .options(dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity)));
+                .options(dataListService.findByDataListIdAndNotUsedInBusinessAccount(listId, twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity)));
     }
 
     @Override
     public UUID checkOptionAllowed(TwinEntity twinEntity, TwinClassFieldEntity twinClassFieldEntity, DataListOptionEntity dataListOptionEntity) throws ServiceException {
-        if (dataListOptionRepository.findByDataListIdAndNotUsedInBusinessAccount(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity))
+        if (dataListService.findByDataListIdAndNotUsedInBusinessAccount(dataListOptionEntity.getDataListId(), twinClassFieldEntity.getId(), getBusinessAccountId(twinClassFieldEntity))
                 .stream().noneMatch(o -> o.getId().equals(dataListOptionEntity.getId())))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_IS_ALREADY_IN_USE, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " can not be filled with optionId[" + dataListOptionEntity.getId() + "] cause it is already in use in businessAccount");
         return super.checkOptionAllowed(twinEntity, twinClassFieldEntity, dataListOptionEntity);

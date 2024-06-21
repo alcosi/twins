@@ -5,12 +5,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.factory.filler.FieldLookupMode;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 2401,
+@Featurer(id = FeaturerTwins.ID_2401,
         name = "ConditionerContextTwinFieldValueEquals",
         description = "")
 @Slf4j

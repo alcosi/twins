@@ -10,13 +10,14 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
 import java.util.Properties;
 
 public interface FieldTyperCountChildrenTwins {
 
     @FeaturerParam(name = "childrenTwinStatusIdList", description = "Twin.Status.IDs of child twin")
-    FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSet("childrenTwinStatusIdList");
+    FeaturerParamUUIDSet childrenTwinStatusIdList = new FeaturerParamUUIDSetTwinsStatusId("childrenTwinStatusIdList");
 
     @FeaturerParam(name = "exclude", description = "Exclude(true)/Include(false) child-field's Twin.Status.IDs from query result")
     FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");

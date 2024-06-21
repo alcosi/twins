@@ -1,23 +1,31 @@
 package org.twins.core.domain.search;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 public class TwinSearch {
     Set<UUID> twinIdList;
     Set<String> twinNameLikeList;
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
+    Set<UUID> headTwinClassIdList;
+    Set<UUID> extendsTwinClassIdList;
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
-    Set<UUID> assignerUserIdList;
-    Set<UUID> assignerUserIdExcludeList;
+    Set<UUID> assigneeUserIdList;
+    Set<UUID> assigneeUserIdExcludeList;
     Set<UUID> createdByUserIdList;
     Set<UUID> createdByUserIdExcludeList;
     Set<UUID> ownerUserIdList;
@@ -31,8 +39,11 @@ public class TwinSearch {
     Set<UUID> markerDataListOptionIdList;
     Set<UUID> markerDataListOptionIdExcludeList;
 
-    public TwinSearch addTwinId(UUID twinId) {
-        twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
+    public TwinSearch addTwinId(UUID twinId, boolean exclude) {
+        if (exclude)
+            twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
+        else
+            twinIdList = CollectionUtils.safeAdd(twinIdList, twinId);
         return this;
     }
 
@@ -41,18 +52,19 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addTwinExcludeId(UUID twinId) {
-        twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
+    public TwinSearch addTwinClassId(UUID twinClassId, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassId);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
         return this;
     }
 
-    public TwinSearch addTwinClassId(UUID twinClassId) {
-        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassId);
-        return this;
-    }
-
-    public TwinSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
-        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
+    public TwinSearch addTwinClassId(Collection<UUID> twinClassIdSet, boolean exclude) {
+        if (exclude)
+            twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdSet);
+        else
+            twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
         return this;
     }
 
@@ -61,25 +73,45 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addStatusId(UUID statusId) {
-        statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
+    public TwinSearch addHeadTwinClassId(UUID headTwinClassId) {
+        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, headTwinClassId);
         return this;
     }
 
-    public TwinSearch addStatusId(Collection<UUID> statusIdList) {
-        if (this.statusIdList == null)
-            this.statusIdList = new HashSet<>();
-        this.statusIdList.addAll(statusIdList);
+    public TwinSearch addExtendsTwinClassId(UUID extendsTwinClassId) {
+        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendsTwinClassId);
         return this;
     }
 
-    public TwinSearch addAssignerUserId(UUID assignerUserId) {
-        assignerUserIdList = CollectionUtils.safeAdd(assignerUserIdList, assignerUserId);
+    public TwinSearch addStatusId(UUID statusId, boolean exclude) {
+        if (exclude)
+            statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
+        else
+            statusIdList = CollectionUtils.safeAdd(statusIdList, statusId);
         return this;
     }
 
-    public TwinSearch addCreatedByUserId(UUID createdByUserId) {
-        createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
+    public TwinSearch addStatusId(Collection<UUID> statusIdSet, boolean exclude) {
+        if (exclude)
+            statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusIdSet);
+        else
+            statusIdList = CollectionUtils.safeAdd(statusIdList, statusIdSet);
+        return this;
+    }
+
+    public TwinSearch addAssigneeUserId(UUID assigneeUserId, boolean exclude) {
+        if (exclude)
+            assigneeUserIdList = CollectionUtils.safeAdd(assigneeUserIdList, assigneeUserId);
+        else
+            assigneeUserIdExcludeList = CollectionUtils.safeAdd(assigneeUserIdExcludeList, assigneeUserId);
+        return this;
+    }
+
+    public TwinSearch addCreatedByUserId(UUID createdByUserId, boolean exclude) {
+        if (exclude)
+            createdByUserIdList = CollectionUtils.safeAdd(createdByUserIdList, createdByUserId);
+        else
+            createdByUserIdExcludeList = CollectionUtils.safeAdd(createdByUserIdExcludeList, createdByUserId);
         return this;
     }
 
@@ -93,15 +125,16 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
-        if (twinLinksMap == null) twinLinksMap = new HashMap<>();
-        twinLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
-        return this;
-    }
-
-    public TwinSearch addNoLinkDstTwinsId(UUID linkId, List<UUID> dstTwinIdList) {
-        if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
-        twinNoLinksMap.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
+    public TwinSearch addLinkDstTwinsId(UUID linkId, Collection<UUID> dstTwinIdList, boolean exclude) {
+        Map<UUID, Set<UUID>> map = null;
+        if (exclude) {
+            if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
+            map = twinNoLinksMap;
+        } else {
+            if (twinLinksMap == null) twinLinksMap = new HashMap<>();
+            map = twinLinksMap;
+        }
+        map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;
     }
 
@@ -110,16 +143,43 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addStatusIdExclude(UUID statusId) {
-        statusIdExcludeList = CollectionUtils.safeAdd(statusIdExcludeList, statusId);
+    public TwinSearch addMarkerDataListOptionId(UUID markerDataListOptionId, boolean exclude) {
+        if (exclude)
+            markerDataListOptionIdExcludeList = CollectionUtils.safeAdd(markerDataListOptionIdExcludeList, markerDataListOptionId);
+        else
+            markerDataListOptionIdList = CollectionUtils.safeAdd(markerDataListOptionIdList, markerDataListOptionId);
         return this;
     }
 
-    public TwinSearch addStatusIdExclude(Collection<UUID> statusIdExcludeList) {
-        if (this.statusIdExcludeList == null)
-            this.statusIdExcludeList = new HashSet<>();
-        this.statusIdExcludeList.addAll(statusIdExcludeList);
+    public TwinSearch addTagDataListOptionId(UUID tagDataListOptionId, boolean exclude) {
+        if (exclude)
+            tagDataListOptionIdExcludeList = CollectionUtils.safeAdd(tagDataListOptionIdExcludeList, tagDataListOptionId);
+        else
+            tagDataListOptionIdList = CollectionUtils.safeAdd(tagDataListOptionIdList, tagDataListOptionId);
         return this;
     }
+
+    public static final ImmutableList<Pair<Function<TwinSearch, Set<UUID>>, BiConsumer<TwinSearch, Set<UUID>>>> FUNCTIONS = ImmutableList.of(
+            Pair.of(TwinSearch::getHeaderTwinIdList, TwinSearch::setHeaderTwinIdList),
+            Pair.of(TwinSearch::getCreatedByUserIdList, TwinSearch::setCreatedByUserIdList),
+            Pair.of(TwinSearch::getCreatedByUserIdExcludeList, TwinSearch::setCreatedByUserIdExcludeList),
+            Pair.of(TwinSearch::getAssigneeUserIdList, TwinSearch::setAssigneeUserIdList),
+            Pair.of(TwinSearch::getAssigneeUserIdExcludeList, TwinSearch::setAssigneeUserIdExcludeList),
+            Pair.of(TwinSearch::getMarkerDataListOptionIdList, TwinSearch::setMarkerDataListOptionIdList),
+            Pair.of(TwinSearch::getMarkerDataListOptionIdExcludeList, TwinSearch::setMarkerDataListOptionIdExcludeList),
+            Pair.of(TwinSearch::getTagDataListOptionIdList, TwinSearch::setTagDataListOptionIdList),
+            Pair.of(TwinSearch::getTagDataListOptionIdExcludeList, TwinSearch::setTagDataListOptionIdExcludeList),
+            Pair.of(TwinSearch::getTwinIdList, TwinSearch::setTwinIdList),
+            Pair.of(TwinSearch::getTwinIdExcludeList, TwinSearch::setTwinIdExcludeList),
+            Pair.of(TwinSearch::getOwnerBusinessAccountIdList, TwinSearch::setOwnerBusinessAccountIdList),
+            Pair.of(TwinSearch::getOwnerUserIdList, TwinSearch::setOwnerUserIdList),
+            Pair.of(TwinSearch::getStatusIdList, TwinSearch::setStatusIdList),
+            Pair.of(TwinSearch::getStatusIdExcludeList, TwinSearch::setStatusIdExcludeList),
+            Pair.of(TwinSearch::getTwinClassIdList, TwinSearch::setTwinClassIdList),
+            Pair.of(TwinSearch::getTwinClassIdExcludeList, TwinSearch::setTwinClassIdExcludeList),
+            Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList),
+            Pair.of(TwinSearch::getExtendsTwinClassIdList, TwinSearch::setExtendsTwinClassIdList),
+            Pair.of(TwinSearch::getHeadTwinClassIdList, TwinSearch::setHeadTwinClassIdList)
+    );
 
 }

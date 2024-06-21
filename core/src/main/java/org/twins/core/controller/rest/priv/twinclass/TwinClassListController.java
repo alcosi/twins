@@ -20,14 +20,20 @@ import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
+import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twinclass.TwinClassResult;
 import org.twins.core.service.twinclass.TwinClassService;
+
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
+import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
@@ -38,6 +44,8 @@ public class TwinClassListController extends ApiController {
     final TwinClassService twinClassService;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    final TwinClassSearchRestDTOReverseMapper twinClassSearchRestDTOReverseMapper;
+    final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class search result")
@@ -56,10 +64,13 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode,
+            @RequestParam(name = RestRequestParam.showHeadClassMode, defaultValue = TwinClassRestDTOMapper.HeadClassMode._HIDE) TwinClassRestDTOMapper.HeadClassMode showHeadClassMode,
+            @RequestParam(name = RestRequestParam.showExtendsClassMode, defaultValue = TwinClassRestDTOMapper.ExtendsClassMode._HIDE) TwinClassRestDTOMapper.ExtendsClassMode showExtendsClassMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showClassMode)
@@ -69,11 +80,15 @@ public class TwinClassListController extends ApiController {
                     .setMode(showClassTagMode)
                     .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
                     .setMode(showLinkMode)
-                    .setMode(showStatusMode);
+                    .setMode(showStatusMode)
+                    .setMode(showHeadClassMode)
+                    .setMode(showExtendsClassMode);
+            TwinClassResult twinClasses = twinClassService
+                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), offset, limit);
             rs
-                    .setTwinClassList(
-                            twinClassRestDTOMapper.convertList(
-                                    twinClassService.findTwinClasses(apiUser, request.twinClassIdList()), mapperContext))
+                    .setTwinClassList(twinClassRestDTOMapper
+                            .convertList(twinClasses.getTwinClassList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinClasses))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -99,7 +114,11 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode) {
+            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode,
+            @RequestParam(name = RestRequestParam.showHeadClassMode, defaultValue = TwinClassRestDTOMapper.HeadClassMode._HIDE) TwinClassRestDTOMapper.HeadClassMode showHeadClassMode,
+            @RequestParam(name = RestRequestParam.showExtendsClassMode, defaultValue = TwinClassRestDTOMapper.ExtendsClassMode._HIDE) TwinClassRestDTOMapper.ExtendsClassMode showExtendsClassMode,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
@@ -112,11 +131,14 @@ public class TwinClassListController extends ApiController {
                     .setMode(showClassTagMode)
                     .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
                     .setMode(showLinkMode)
-                    .setMode(showStatusMode);
-            rs.setTwinClassList(
-                    twinClassRestDTOMapper.convertList(
-                            twinClassService.findTwinClasses(apiUser, null), mapperContext));
-            rs.setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+                    .setMode(showStatusMode)
+                    .setMode(showHeadClassMode)
+                    .setMode(showExtendsClassMode);
+            TwinClassResult twinClasses = twinClassService.findTwinClasses(null, offset, limit);
+            rs
+                    .setTwinClassList(twinClassRestDTOMapper.convertList(twinClasses.getTwinClassList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinClasses))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

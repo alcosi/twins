@@ -5,11 +5,12 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.Properties;
 
 @Component
-@Featurer(id = 1103,
+@Featurer(id = FeaturerTwins.ID_1103,
         name = "BusinessAccountInitiatorFromParams",
         description = "")
 @RequiredArgsConstructor

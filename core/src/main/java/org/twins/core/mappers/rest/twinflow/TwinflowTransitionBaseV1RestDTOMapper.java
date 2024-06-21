@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
@@ -29,13 +29,13 @@ public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<T
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
-                        .setAlias(src.getTwinflowTransitionAliasId())
+                        .setAlias(src.getTwinflowTransitionAlias().getAlias())
                         .setId(src.getId());
                 break;
             case SHORT:
                 dst
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
-                        .setAlias(src.getTwinflowTransitionAliasId())
+                        .setAlias(src.getTwinflowTransitionAlias().getAlias())
                         .setId(src.getId());
                 break;
         }

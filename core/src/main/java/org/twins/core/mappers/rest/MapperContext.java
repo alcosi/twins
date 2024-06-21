@@ -288,15 +288,28 @@ public class MapperContext {
 
     public MapperContext cloneWithIsolatedModes() {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
-        mapperContext.relatedUserMap = this.relatedUserMap;
-        mapperContext.relatedTwinClassMap = this.relatedTwinClassMap;
-        mapperContext.relatedTwinStatusMap = this.relatedTwinStatusMap;
-        mapperContext.relatedTwinMap = this.relatedTwinMap;
-        mapperContext.relatedTwinflowTransitionMap = this.relatedTwinflowTransitionMap;
-        mapperContext.relatedDataListMap = this.relatedDataListMap;
-        mapperContext.relatedDataListOptionMap = this.relatedDataListOptionMap;
-        mapperContext.relatedSpaceRoleMap = this.relatedSpaceRoleMap;
+        linkToRelatedObjects(this, mapperContext);
         return mapperContext;
+    }
+
+    public MapperContext cloneWithFlushedModes() {
+        MapperContext mapperContext = new MapperContext();
+        mapperContext.lazyRelations = this.lazyRelations;
+        mapperContext.cachedObjects = this.cachedObjects; // same map
+        mapperContext.properties = new Hashtable<>(this.properties); // new map with presets
+        linkToRelatedObjects(this, mapperContext);
+        return mapperContext;
+    }
+
+    private static void linkToRelatedObjects(MapperContext srcMapperContext, MapperContext dstMapperContext) {
+        dstMapperContext.relatedUserMap = srcMapperContext.relatedUserMap;
+        dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
+        dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
+        dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
+        dstMapperContext.relatedTwinflowTransitionMap = srcMapperContext.relatedTwinflowTransitionMap;
+        dstMapperContext.relatedDataListMap = srcMapperContext.relatedDataListMap;
+        dstMapperContext.relatedDataListOptionMap = srcMapperContext.relatedDataListOptionMap;
+        dstMapperContext.relatedSpaceRoleMap = srcMapperContext.relatedSpaceRoleMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
