@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.comment.CommentListResult;
+import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -27,6 +27,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
+import org.twins.core.service.pagination.PageableResult;
 
 import java.util.UUID;
 
@@ -62,15 +63,15 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            CommentListResult commentListResult = commentService.findComment(twinId, sortDirection, offset, limit);
+            PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
                     .setMode(showCommentMode)
                     .setMode(showAttachmentMode);
             rs
-                    .setComments(commentViewRestDTOMapper.convertList(commentListResult.getCommentList(), mapperContext))
-                    .setPagination(paginationMapper.convert(commentListResult))
+                    .setComments(commentViewRestDTOMapper.convertList(commentList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(commentList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
