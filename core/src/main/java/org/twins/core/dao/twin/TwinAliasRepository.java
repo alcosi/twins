@@ -40,30 +40,27 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update twin_class set domain_alias_counter = domain_alias_counter + 1 " +
-            "where id = (select twin_class_id from twin where id = :twinId); " +
+            "where id = :twinClassId ); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, 'C', concat(twin_class.key, '-C', twin_class.domain_alias_counter), now(), twin_class.domain_id " +
-            "from twin_class, twin where twin.id = :twinId and twin.twin_class_id = twin_class.id; " +
+            "from twin_class where twin_class.id = :twinClassId ; " +
             "commit;")
-    void createDomainClassAlias(@Param("twinId") UUID twinId);
+    void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("twinId") UUID twinClassId);
 
     @Modifying
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "insert into twin_business_account_alias_counter (id, business_account_id, twin_class_id, alias_counter) " +
-            "select gen_random_uuid(), twin.owner_business_account_id, twin.twin_class_id, 1 " +
+            "select gen_random_uuid(), :businessAccountId , :twinClassId , 1 " +
             "from twin where twin.id = :twinId " +
             "on conflict ON CONSTRAINT twin_business_account_alias_counter_uniq do update set alias_counter = twin_business_account_alias_counter.alias_counter + 1; " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, business_account_id) " +
-            "select gen_random_uuid(), :twinId, 'B', concat(twin_class.key, '-B', twin_business_account_alias_counter.alias_counter), now(), twin.owner_business_account_id " +
-            "from twin_business_account_alias_counter, twin_class, twin " +
-            "where twin_business_account_alias_counter.business_account_id = twin.owner_business_account_id " +
-            "and twin_business_account_alias_counter.twin_class_id = twin.twin_class_id " +
-            "and twin_class.id = twin_business_account_alias_counter.twin_class_id " +
-            "and twin.id = :twinId " +
+            "select gen_random_uuid(), :twinId, 'B', concat( :twinClassKey , '-B', twin_business_account_alias_counter.alias_counter), now(), :businessAccountId " +
+            "from twin_business_account_alias_counter " +
+            "where twin_business_account_alias_counter.business_account_id = :businessAccountId " +
+            "and twin_business_account_alias_counter.twin_class_id = :twinClassId " +
             ";commit;")
-    void createBusinessAccountClassAlias(@Param("twinId") UUID twinId);
-
+    void createBusinessAccountClassAlias(@Param("twinId") UUID twinId, @Param("businessAccountId") UUID businessAccountId, @Param("twinClassId") UUID twinClassId, @Param("twinClassKey") String twinClassKey);
 
     @Modifying
     @Transactional

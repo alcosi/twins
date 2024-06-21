@@ -45,8 +45,7 @@ public class TwinAliasService {
         if (twinEntity.getTwinAliases() != null)
             return twinEntity.getTwinAliases();
         List<TwinAliasEntity> aliases = twinAliasRepository.findAllByTwinId(twinEntity.getId());
-        if (aliases != null)
-            twinEntity.setTwinAliases(new Kit<>(aliases, TwinAliasEntity::getId));
+        twinEntity.setTwinAliases(new Kit<>(aliases, TwinAliasEntity::getId));
         return twinEntity.getTwinAliases();
     }
 
@@ -84,10 +83,10 @@ public class TwinAliasService {
                 twinAliasRepository.createDomainAlias(twin.getId(), twin.getTwinClass().getDomainId());
                 break;
             case _C:
-                twinAliasRepository.createDomainClassAlias(twin.getId());
+                twinAliasRepository.createDomainClassAlias(twin.getId(), twin.getTwinClassId());
                 break;
             case _B:
-                twinAliasRepository.createBusinessAccountClassAlias(twin.getId());
+                twinAliasRepository.createBusinessAccountClassAlias(twin.getId(), twin.getOwnerBusinessAccountId(), twin.getTwinClassId(), twin.getTwinClass().getKey());
                 break;
             case _S:
                 twinAliasRepository.createSpaceDomainAlias(twin.getId());
