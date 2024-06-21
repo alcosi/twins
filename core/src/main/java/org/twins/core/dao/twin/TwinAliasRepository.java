@@ -40,7 +40,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
     @Transactional
     @Query(nativeQuery = true, value = "begin; " +
             "update twin_class set domain_alias_counter = domain_alias_counter + 1 " +
-            "where id = :twinClassId ); " +
+            "where id = :twinClassId ; " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
             "select gen_random_uuid(), :twinId, 'C', concat(twin_class.key, '-C', twin_class.domain_alias_counter), now(), twin_class.domain_id " +
             "from twin_class where twin_class.id = :twinClassId ; " +
