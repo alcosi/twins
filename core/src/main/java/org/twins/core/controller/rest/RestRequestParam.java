@@ -6,6 +6,7 @@ public interface RestRequestParam {
     String showTwinAttachmentMode = "showTwinAttachmentMode";
     String showDataListMode = "showDataListMode";
     String showDataListOptionMode = "showDataListOptionMode";
+    String showDomainMode = "showDomainMode";
     String showUserMode = "showUserMode";
     String showSpaceRoleMode = "showSpaceRoleMode";
     String showSpaceRoleUserMode = "showSpaceRoleUserMode";
