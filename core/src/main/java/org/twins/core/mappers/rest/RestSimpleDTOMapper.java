@@ -6,10 +6,7 @@ import org.cambium.common.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> {
@@ -54,7 +51,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         return convert(src, mapperContext);
     }
 
-    public List<S> convertListPostpone(List<T> srcList, MapperContext mapperContext) throws Exception {
+    public List<S> convertCollectionPostpone(Collection<T> srcList, MapperContext mapperContext) throws Exception {
         if (srcList == null)
             return null;
         List<S> ret = null;

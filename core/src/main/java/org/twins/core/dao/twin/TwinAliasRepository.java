@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -15,6 +16,7 @@ import java.util.UUID;
 public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUID>, JpaSpecificationExecutor<TwinAliasEntity> {
 
     List<TwinAliasEntity> findAllByTwinId(UUID twinId);
+    List<TwinAliasEntity> findAllByTwinIdIn(Collection<UUID> twinIds);
 
     @Query("SELECT t FROM TwinAliasEntity t WHERE t.alias = :alias AND " +
             "(t.domainId = :domainId OR t.domainId IS NULL) AND " +

@@ -2,22 +2,18 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.TwinAliasEntity;
-import org.twins.core.dao.twin.TwinAliasRepository;
-import org.twins.core.dao.twin.TwinAliasType;
-import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.twins.core.dao.twin.TwinAliasType.*;
 
@@ -49,6 +45,25 @@ public class TwinAliasService {
         return twinEntity.getTwinAliases();
     }
 
+    public void loadAliases(Collection<TwinEntity> twinEntities) {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntities)
+            if (twinEntity.getTwinAliases() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.isEmpty())
+            return;
+        List<TwinAliasEntity> twinAliasEntityList = twinAliasRepository.findAllByTwinIdIn(needLoad.keySet());
+        if (CollectionUtils.isEmpty(twinAliasEntityList))
+            return;
+        Map<UUID, List<TwinAliasEntity>> aliasMap = new HashMap<>(); // key - twinId
+        for (TwinAliasEntity twinAliasEntity : twinAliasEntityList) { //grouping by twin
+            aliasMap.computeIfAbsent(twinAliasEntity.getTwinId(), k -> new ArrayList<>());
+            aliasMap.get(twinAliasEntity.getTwinId()).add(twinAliasEntity);
+        }
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
+            entry.getValue().setTwinAliases(new Kit<>(aliasMap.get(entry.getKey()), TwinAliasEntity::getId));
+        }
+    }
 
     public List<TwinAliasEntity> createAliases(TwinEntity twin) throws ServiceException {
         List<TwinAliasEntity> aliases = new ArrayList<>();

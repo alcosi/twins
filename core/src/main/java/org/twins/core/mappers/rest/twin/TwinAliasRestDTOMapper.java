@@ -19,7 +19,7 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity,
 
     @Override
     public void map(TwinAliasEntity src,  TwinAliasDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(TwinAliasRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinAliasMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -39,7 +39,7 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity,
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TwinAliasMode.HIDE);
     }
 
     @Override
@@ -47,17 +47,4 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity,
         return src.getId().toString();
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }
