@@ -100,8 +100,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return true;
     }
 
-    public TwinClassResult findTwinClasses(TwinClassSearch twinClassSearch, int offset, int limit) throws ServiceException {
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
+    public PaginationResult<TwinClassEntity> findTwinClasses(TwinClassSearch twinClassSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch(); //no filters
         Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), PaginationUtils.pageableOffset(pagination));
@@ -280,6 +279,74 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (StringUtils.isBlank(twinClassEntity.getExtendsHierarchyTree())) // this field is filled by trigger only after transaction commit. So we have to reload entity from database
             twinClassEntity.setExtendsHierarchyTree(twinClassRepository.getExtendsHierarchyTree(twinClassEntity.getId()));
         return twinClassEntity;
+    }
+
+    public void loadHeadTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null || twinClassEntity.getHeadTwinClass() != null)
+            return;
+        twinClassEntity.setHeadTwinClass(findEntitySafe(twinClassEntity.getHeadTwinClassId()));
+    }
+
+    public void loadHeadTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getHeadTwinClassId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getHeadTwinClass() != null)
+                continue;
+            needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (TwinClassEntity headTwinClass : heads) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(headTwinClass.getId()))
+                twinClass.setHeadTwinClass(headTwinClass);
+        }
+    }
+
+    public void loadExtendsTwinClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getExtendsTwinClassId() == null || twinClassEntity.getExtendsTwinClass() != null)
+            return;
+        twinClassEntity.setExtendsTwinClass(findEntitySafe(twinClassEntity.getExtendsTwinClassId()));
+    }
+
+    public void loadExtendsTwinClasses(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getExtendsTwinClassId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getExtendsTwinClass() != null)
+                continue;
+            needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> heads = twinClassRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (TwinClassEntity extendsTwinClass : heads) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(extendsTwinClass.getId()))
+                twinClass.setExtendsTwinClass(extendsTwinClass);
+        }
+    }
+
+    public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getMarkerDataList() != null || twinClassEntity.getMarkerDataListId() == null)
+            return;
+        twinClassEntity.setMarkerDataList(dataListService.findEntitySafe(twinClassEntity.getMarkerDataListId()));
+    }
+
+    public void loadMarkerDataList(Collection<TwinClassEntity> twinClassCollection, boolean loadOptions) throws ServiceException {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getMarkerDataListId);
+        for (TwinClassEntity twinClassEntity : twinClassCollection) {
+            if (twinClassEntity.getMarkerDataListId() != null && twinClassEntity.getMarkerDataList() == null)
+                needLoad.add(twinClassEntity);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+        List<DataListEntity> markers = dataListRepository.findByDomainIdAndIdIn(authService.getApiUser().getDomainId(), needLoad.getGroupedMap().keySet());
+        for (DataListEntity dataListEntity : markers) {
+            for (TwinClassEntity twinClassEntity : needLoad.getGrouped(dataListEntity.getId())) {
+                twinClassEntity.setMarkerDataList(dataListEntity);
+            }
+        }
+        if (loadOptions)
+            dataListService.loadDataListOptions(markers);
     }
 }
 

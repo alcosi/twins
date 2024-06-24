@@ -68,7 +68,7 @@ public class HistoryListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
-            PageableResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);
+            PaginationResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, PaginationUtils.createSimplePagination(offset, limit, Sort.by(sortDirection, HistoryEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)

@@ -64,7 +64,7 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
+            PaginationResult<TwinCommentEntity> commentList = commentService.findComment(twinId, PaginationUtils.createSimplePagination(offset, limit, Sort.by(sortDirection, TwinCommentEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)
