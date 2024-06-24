@@ -8,6 +8,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -26,7 +29,7 @@ import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.pagination.PageableResult;
+import org.twins.core.service.pagination.PaginationResult;
 
 import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
 import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
@@ -60,7 +63,8 @@ public class DomainListController extends ApiController {
                     .setUserResolver(userResolverAuthToken)
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
-            PageableResult<DomainEntity> domainList = domainService.findDomainListByUser(offset, limit);
+            PaginationResult<DomainEntity> domainList = domainService
+                    .findDomainListByUser(PaginationUtils.createSimplePagination(offset, limit, Sort.unsorted()));
             MapperContext mapperContext = new MapperContext()
                     .setMode(showDomainMode);
             rs

@@ -13,8 +13,6 @@ import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
@@ -29,7 +27,8 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.pagination.PageableResult;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
@@ -119,14 +118,19 @@ public class DomainService {
         return domainEntity;
     }
 
-    public PageableResult<DomainEntity> findDomainListByUser(int offset, int limit) throws ServiceException {
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
-        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), pageable);
-        return new PageableResult<DomainEntity>()
+    public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
+        return convertCollectionInPaginationResult(domainEntityList, pagination);
+    }
+
+    private static PaginationResult<DomainEntity> convertCollectionInPaginationResult(Page<DomainEntity> domainEntityList, SimplePagination pagination) {
+        PaginationResult<DomainEntity> domainEntityPaginationResult = new PaginationResult<>();
+        domainEntityPaginationResult
                 .setList(domainEntityList.stream().toList())
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(domainEntityList.getTotalElements());
+                .setTotal(domainEntityList.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return domainEntityPaginationResult;
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {

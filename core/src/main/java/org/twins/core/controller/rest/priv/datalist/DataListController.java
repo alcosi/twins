@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.*;
@@ -28,6 +29,7 @@ import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
+import org.twins.core.service.pagination.PaginationResult;
 
 import java.util.List;
 import java.util.UUID;
@@ -61,25 +63,18 @@ public class DataListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
-        DataListResult dataListResult;
+        PaginationResult<DataListOptionEntity> dataListOption;
         try {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showDataListMode)
-                    .setMode(showDataListOptionMode, createSimplePagination(offset, limit, Sort.unsorted()));
+                    .setMode(showDataListOptionMode
+//                            , createSimplePagination(offset, limit, Sort.unsorted()) //todo pagination for dataListOption
+                    );
             DataListEntity dataListEntity = dataListService.findEntitySafe(dataListId);
+            dataListService.loadDataListOptions(dataListEntity);
             DataListDTOv1 dataListDTO = dataListRestDTOMapper.convert(dataListEntity, mapperContext);
-            if (!dataListOptionRestDTOMapper.hideMode(mapperContext)) {
-                dataListResult = dataListService.getDataList(dataListEntity, dataListDTO, mapperContext);
-            } else {
-                dataListResult = (DataListResult) new DataListResult()
-                        .setDataList(dataListDTO)
-                        .setTotal(0)
-                        .setOffset(offset)
-                        .setLimit(limit);
-            }
             rs
-                    .setDataList(dataListResult.getDataList())
-                    .setPagination(paginationMapper.convert(dataListResult));
+                    .setDataList(dataListDTO);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

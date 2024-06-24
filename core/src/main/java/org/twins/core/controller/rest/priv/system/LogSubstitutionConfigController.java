@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -45,7 +47,7 @@ public class LogSubstitutionConfigController extends ApiController {
         CommandRsDTOv1 rs = new CommandRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, 0, 999));//todo add pagination
+            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, PaginationUtils.createSimplePagination(0, 999, Sort.unsorted())));//todo add pagination
         } catch (Exception e) {
             e.printStackTrace();
             return createErrorRs(e, rs);

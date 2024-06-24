@@ -9,6 +9,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,10 +24,9 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.featurer.FeaturerDTOReversMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.service.featurer.FeaturerSearchResult;
+import org.twins.core.service.pagination.PaginationResult;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "", name = ApiTag.SYSTEM)
 @RestController
@@ -56,11 +57,11 @@ public class FeaturerSearchController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showFeaturerMode)
                     .setMode(showFeaturerParamMode);
-            FeaturerSearchResult featurers = featurerService
-                    .findFeaturers(featurerDTOReversMapper.convert(request), offset, limit);
+            PaginationResult<FeaturerEntity> featurers = featurerService
+                    .findFeaturers(featurerDTOReversMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
             rs
-                    .setPagination(paginationMapper.convert(featurers))
-                    .setFeaturerList(featurerRestDTOMapper.convertList(featurers.getFeaturerList(), mapperContext));
+                    .setFeaturerList(featurerRestDTOMapper.convertList(featurers.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(featurers));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

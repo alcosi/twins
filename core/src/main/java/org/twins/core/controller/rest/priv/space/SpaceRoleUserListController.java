@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.space.UsersRefSpaceRolePageable;
+import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
@@ -29,6 +29,7 @@ import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.pagination.PaginationResult;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
@@ -88,9 +89,10 @@ public class SpaceRoleUserListController extends ApiController {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
-                    .setPagination(paginationMapper.convert(usersRefRoles))
+            PaginationResult<UserRefSpaceRole> userRefSpaceRoleList = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            rs
+                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(userRefSpaceRoleList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(userRefSpaceRoleList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -119,9 +121,9 @@ public class SpaceRoleUserListController extends ApiController {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
-                    .setPagination(paginationMapper.convert(usersRefRoles))
+            PaginationResult<UserRefSpaceRole> usersRefRolesMap = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRolesMap.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(usersRefRolesMap))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
 
 

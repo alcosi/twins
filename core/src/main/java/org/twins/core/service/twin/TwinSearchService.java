@@ -29,6 +29,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserGroupService;
 
@@ -123,16 +125,16 @@ public class TwinSearchService {
     // if it is a multiple, then of30 + sz10 = pg3 (31-40) - everything is ok//
     //***********************************************************************//
 
-    public TwinSearchResult findTwins(BasicSearch basicSearch, int offset, int limit) throws ServiceException {
-        return findTwins(List.of(basicSearch), offset, limit);
+    public PaginationResult<TwinEntity> findTwins(BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        return findTwins(List.of(basicSearch), pagination);
     }
 
-    public TwinSearchResult findTwins(List<BasicSearch> basicSearches, int offset, int limit) throws ServiceException {
+    public PaginationResult<TwinEntity> findTwins(List<BasicSearch> basicSearches, SimplePagination pagination) throws ServiceException {
         Specification<TwinEntity> spec = where(null);
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
-        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-        return convertPageInTwinSearchResult(ret, offset, limit);
+        Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return convertCollectionInPaginationResult(ret, pagination);
     }
 
     public Long count(Specification<TwinEntity> spec) throws ServiceException {
@@ -197,12 +199,14 @@ public class TwinSearchService {
         return resultMap;
     }
 
-    public TwinSearchResult convertPageInTwinSearchResult(Page<TwinEntity> twinPage, int offset, int limit) {
-        return (TwinSearchResult) new TwinSearchResult()
-                .setTwinList(twinPage.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(twinPage.getTotalElements());
+    public PaginationResult<TwinEntity> convertCollectionInPaginationResult(Page<TwinEntity> twinPage, SimplePagination pagination) {
+        PaginationResult<TwinEntity> twinEntityPaginationResult = new PaginationResult<>();
+        twinEntityPaginationResult
+                .setList(twinPage.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
+                .setTotal(twinPage.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return twinEntityPaginationResult;
     }
 
     public List<SearchEntity> detectSearchesByAlias(String searchAliasId) throws ServiceException {
@@ -219,28 +223,28 @@ public class TwinSearchService {
         return detectedSearches;
     }
 
-    public TwinSearchResult findTwins(SearchByAlias searchByAlias, int offset, int limit) throws ServiceException {
-        return findTwins(searchByAlias.getAlias(), searchByAlias.getParams(), searchByAlias.getNarrow(), offset, limit);
+    public PaginationResult<TwinEntity> findTwins(SearchByAlias searchByAlias, SimplePagination pagination) throws ServiceException {
+        return findTwins(searchByAlias.getAlias(), searchByAlias.getParams(), searchByAlias.getNarrow(), pagination);
     }
 
-    public TwinSearchResult findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
-        return findTwins(detectSearchesByAlias(searchAliasId), namedParamsMap, searchNarrow, offset, limit);
+    public PaginationResult<TwinEntity> findTwins(String searchAliasId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        return findTwins(detectSearchesByAlias(searchAliasId), namedParamsMap, searchNarrow, pagination);
     }
 
-    public TwinSearchResult findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
-        return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, offset, limit);
+    public PaginationResult<TwinEntity> findTwins(UUID searchId, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        return findTwins(entitySmartService.findById(searchId, searchRepository, EntitySmartService.FindMode.ifEmptyThrows), namedParamsMap, searchNarrow, pagination);
     }
 
-    public TwinSearchResult findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
-        return findTwins(List.of(searchEntity), namedParamsMap, searchNarrow, offset, limit);
+    public PaginationResult<TwinEntity> findTwins(SearchEntity searchEntity, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
+        return findTwins(List.of(searchEntity), namedParamsMap, searchNarrow, pagination);
     }
 
-    public TwinSearchResult findTwins(List<SearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, int offset, int limit) throws ServiceException {
+    public PaginationResult<TwinEntity> findTwins(List<SearchEntity> searchEntities, Map<String, String> namedParamsMap, BasicSearch searchNarrow, SimplePagination pagination) throws ServiceException {
         SearchByAlias searchByAlias = new SearchByAlias();
         searchByAlias.setParams(namedParamsMap);
         searchByAlias.setNarrow(searchNarrow);
         List<BasicSearch> basicSearches = getBasicSearchesByAlias(searchEntities, searchByAlias);
-        return findTwins(basicSearches, offset, limit);
+        return findTwins(basicSearches, pagination);
     }
 
     protected void addPredicates(List<SearchPredicateEntity> searchPredicates, Map<String, String> namedParamsMap, TwinSearch mainSearch, TwinSearch narrowSearch) throws ServiceException {

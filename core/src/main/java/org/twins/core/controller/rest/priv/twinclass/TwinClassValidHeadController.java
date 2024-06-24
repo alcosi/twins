@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
@@ -26,8 +27,8 @@ import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.pagination.PaginationResult;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchResult;
 
 import java.util.UUID;
 
@@ -60,13 +61,13 @@ public class TwinClassValidHeadController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult validHeads = twinHeadService.findValidHeads(twinClassId, PaginationUtils.createSimplePagination(offset, limit, Sort.unsorted()));
+            PaginationResult<TwinEntity> validHeads = twinHeadService.findValidHeads(twinClassId, PaginationUtils.createSimplePagination(offset, limit, Sort.unsorted()));
             MapperContext mapperContext = new MapperContext()
                     .setMode(showUserMode)
                     .setMode(showStatusMode)
                     .setMode(showTwinMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(validHeads.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertList(validHeads.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
