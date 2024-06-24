@@ -52,7 +52,7 @@ public class TwinAliasService {
                 needLoad.put(twinEntity.getId(), twinEntity);
         if (needLoad.isEmpty())
             return;
-        List<TwinAliasEntity> twinAliasEntityList = twinAliasRepository.findAllByTwinIdIn(needLoad.keySet());
+        List<TwinAliasEntity> twinAliasEntityList = twinAliasRepository.findAllByTwinIdIn(needLoad.keySet()); //todo kit grouped
         if (CollectionUtils.isEmpty(twinAliasEntityList))
             return;
         Map<UUID, List<TwinAliasEntity>> aliasMap = new HashMap<>(); // key - twinId

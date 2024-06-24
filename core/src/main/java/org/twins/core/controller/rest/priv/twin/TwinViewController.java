@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinRsDTOv1;
@@ -54,7 +55,7 @@ public class TwinViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinViewV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
@@ -73,7 +74,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = MapperMode.TwinAliasMode.Fields.HIDE) MapperModePointer.TwinAliasMode showTwinAliasMode,
+            @MapperModeParam MapperModePointer.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
@@ -120,7 +121,7 @@ public class TwinViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/v2", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin/{twinId}/v2")
     public ResponseEntity<?> twinViewV2(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
@@ -139,7 +140,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = MapperMode.TwinAliasMode.Fields.HIDE) MapperModePointer.TwinAliasMode showTwinAliasMode,
+            @MapperModeParam MapperModePointer.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
@@ -186,7 +187,7 @@ public class TwinViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_by_alias/{twinAlias}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v1")
     public ResponseEntity<?> twinViewByAliasV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
@@ -205,7 +206,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = MapperMode.TwinAliasMode.Fields.HIDE) MapperModePointer.TwinAliasMode showTwinAliasMode,
+            @MapperModeParam MapperModePointer.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
@@ -252,7 +253,7 @@ public class TwinViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_by_alias/{twinAlias}/v2", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v2")
     public ResponseEntity<?> twinViewByAliasV2(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
@@ -271,7 +272,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = MapperMode.TwinAttachmentMode.Fields.HIDE) MapperMode.TwinAttachmentMode showTwinAttachmentMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = MapperMode.TwinMarkerMode.Fields.HIDE) MapperModePointer.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = MapperMode.TwinTagMode.Fields.HIDE) MapperModePointer.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = MapperMode.TwinAliasMode.Fields.HIDE) MapperModePointer.TwinAliasMode showTwinAliasMode,
+            @MapperModeParam MapperModePointer.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
