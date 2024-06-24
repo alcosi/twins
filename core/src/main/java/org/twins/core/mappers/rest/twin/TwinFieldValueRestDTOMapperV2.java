@@ -55,8 +55,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     }
 
     @Override
-    public List<FieldValueText> convertList(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
-        return super.convertList(srcList
+    public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
+        return super.convertCollection(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
     }
 

@@ -17,8 +17,6 @@ import org.twins.core.service.twin.TwinService;
 
 import java.util.Collection;
 
-import java.util.ArrayList;
-
 @Component
 @RequiredArgsConstructor
 public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv2> {
@@ -63,13 +61,13 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (mapperContext.hasModeButNot(MapperMode.TwinAliasMode.HIDE)) {
             twinAliasService.loadAliases(src);
             dst
-                    .aliases(twinAliasRestDTOMapper.convertList(src.getTwinAliases().getCollection(), mapperContext));
+                    .aliases(twinAliasRestDTOMapper.convertCollection(src.getTwinAliases().getCollection(), mapperContext));
         }
     }
 
     @Override
-    public void beforeListConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeListConversion(srcCollection, mapperContext);
+    public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasModeButNot(MapperMode.TwinAliasMode.HIDE))
             twinAliasService.loadAliases(srcCollection);
 

@@ -70,7 +70,7 @@ public class CommentListController extends ApiController {
                     .setMode(showCommentMode)
                     .setMode(showAttachmentMode);
             rs
-                    .setComments(commentViewRestDTOMapper.convertList(commentList.getList(), mapperContext))
+                    .setComments(commentViewRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

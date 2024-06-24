@@ -24,7 +24,6 @@ import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchResult;
@@ -66,7 +65,7 @@ public class TwinClassValidHeadController extends ApiController {
                     .setMode(showStatusMode)
                     .setMode(showTwinMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(validHeads.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

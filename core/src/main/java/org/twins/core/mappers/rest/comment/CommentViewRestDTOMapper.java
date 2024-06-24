@@ -40,14 +40,14 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                 if (src.getCreatedAt().toLocalDateTime() != null)
                     src.getCreatedAt().toLocalDateTime();
                 if (!attachmentRestDTOMapper.hideMode(mapperContext))
-                    dst.setAttachments(attachmentRestDTOMapper.convertList(commentService.loadAttachments(src).getCollection(), mapperContext));
+                    dst.setAttachments(attachmentRestDTOMapper.convertCollection(commentService.loadAttachments(src).getCollection(), mapperContext));
                 break;
         }
     }
 
     @Override
-    public void beforeListConversion(Collection<TwinCommentEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeListConversion(srcCollection, mapperContext);
+    public void beforeCollectionConversion(Collection<TwinCommentEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
         if (!attachmentRestDTOMapper.hideMode(mapperContext))
             commentService.loadAttachments(srcCollection);
     }

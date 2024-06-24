@@ -52,7 +52,7 @@ public class CommentAddController extends ApiController {
             TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
             rs = commentCreateRsRestDTOMapper.convert(commentService
                     .createComment(comment, attachmentAddRestDTOReverseMapper.
-                            convertList(request.attachments)));
+                            convertCollection(request.attachments)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

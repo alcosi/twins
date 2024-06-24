@@ -25,7 +25,6 @@ import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -89,7 +88,7 @@ public class TwinClassListController extends ApiController {
                     .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), offset, limit);
             rs
                     .setTwinClassList(twinClassRestDTOMapper
-                            .convertList(twinClasses.getTwinClassList(), mapperContext))
+                            .convertCollection(twinClasses.getTwinClassList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -138,7 +137,7 @@ public class TwinClassListController extends ApiController {
                     .setMode(showExtendsClassMode);
             TwinClassResult twinClasses = twinClassService.findTwinClasses(null, offset, limit);
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertList(twinClasses.getTwinClassList(), mapperContext))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getTwinClassList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

@@ -134,7 +134,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 CollectionUtils.addIgnoreNull(
                         fields,
                         createValueByClassIdAndFieldKey(twinClassId, entry.getKey(), entry.getValue()));
-        return convertList(fields);
+        return convertCollection(fields);
     }
 
     public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
@@ -147,6 +147,6 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         fields,
                         createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
             }
-        return convertList(fields);
+        return convertCollection(fields);
     }
 }

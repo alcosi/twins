@@ -48,7 +48,7 @@ public class UserGroupListController extends ApiController {
             @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
-            rs.userGroupList = userGroupDTOMapper.convertList(
+            rs.userGroupList = userGroupDTOMapper.convertCollection(
                     userGroupService.findGroupsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperContext().setMode(showUserGroupMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

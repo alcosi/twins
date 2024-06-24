@@ -52,7 +52,7 @@ public class TwinClassCardListController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.cardList(
-                    cardRestDTOMapper.convertList(
+                    cardRestDTOMapper.convertCollection(
                             cardService.findCards(apiUser, twinClassId), new MapperContext()
                                     .setMode(showCardMode)
                                     .setMode(showCardWidgetMode)));

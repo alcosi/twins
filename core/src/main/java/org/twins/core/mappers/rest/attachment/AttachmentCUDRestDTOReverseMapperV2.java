@@ -17,8 +17,8 @@ public class AttachmentCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Att
     @Override
     public void map(AttachmentCudDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
         dst
-                .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertList(src.getUpdate()))
-                .setCreateList(attachmentAddRestDTOReverseMapper.convertList(src.getCreate()))
+                .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getUpdate()))
+                .setCreateList(attachmentAddRestDTOReverseMapper.convertCollection(src.getCreate()))
                 .setDeleteUUIDList(src.getDelete());
     }
 }

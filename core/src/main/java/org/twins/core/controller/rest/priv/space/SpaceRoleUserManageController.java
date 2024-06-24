@@ -48,7 +48,7 @@ public class SpaceRoleUserManageController extends ApiController {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
             spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
-            rs.userList = userRestDTOMapper.convertList(
+            rs.userList = userRestDTOMapper.convertCollection(
                     spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
         } catch (Exception e) {
             return createErrorRs(e, rs);

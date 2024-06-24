@@ -45,7 +45,7 @@ public class LocaleListPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             rs
-                    .setLocaleList(localeRestDTOMapper.convertList(domainService.getLocaleList()));
+                    .setLocaleList(localeRestDTOMapper.convertCollection(domainService.getLocaleList()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

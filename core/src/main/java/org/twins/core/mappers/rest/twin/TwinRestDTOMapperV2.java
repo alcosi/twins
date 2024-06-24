@@ -32,7 +32,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
                 break;
             case ALL_FIELDS:
                 twinService.loadFieldsValues(src);
-                dst.fields(twinFieldValueRestDTOMapperV2.convertList(src.getFieldValuesKit().getCollection(), mapperContext).stream().collect(Collectors
+                dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(src.getFieldValuesKit().getCollection(), mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),
                                 FieldValueText::getValue)));
@@ -40,7 +40,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
             case NOT_EMPTY_FIELDS:
                 twinService.loadFieldsValues(src);
                 List<FieldValue> notEmptyFields = src.getFieldValuesKit().getCollection().stream().filter(FieldValue::isFilled).toList();
-                dst.fields(twinFieldValueRestDTOMapperV2.convertList(notEmptyFields, mapperContext).stream().collect(Collectors
+                dst.fields(twinFieldValueRestDTOMapperV2.convertCollection(notEmptyFields, mapperContext).stream().collect(Collectors
                         .toMap(
                                 fieldValueText -> fieldValueText.getTwinClassField().getKey(),
                                 FieldValueText::getValue)));
@@ -49,8 +49,8 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     }
 
     @Override
-    public void beforeListConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        twinBaseV3RestDTOMapper.beforeListConversion(srcCollection, mapperContext);
+    public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.ALL_FIELDS) || mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS))
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
     }

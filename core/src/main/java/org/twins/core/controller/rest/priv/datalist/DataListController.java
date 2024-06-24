@@ -110,7 +110,7 @@ public class DataListController extends ApiController {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
             rs.dataListList(
-                    dataListRestDTOMapper.convertList(
+                    dataListRestDTOMapper.convertCollection(
                             dataListService.findDataLists(request.dataListIdList()), new MapperContext()
                                     .setMode(showDataListMode)
                                     .setMode(showDataListOptionMode)));

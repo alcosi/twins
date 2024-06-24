@@ -31,7 +31,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setDeprecated(src.isDeprecated());
                 if (showFeaturerParams(mapperContext))
                     dst
-                        .setParams(featurerParamRestDTOMapper.convertList(src.getParams(), mapperContext));
+                        .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
             case SHORT:
                 dst
                         .setId(src.getId())
@@ -44,8 +44,8 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     @Override
-    public void beforeListConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeListConversion(srcCollection, mapperContext);
+    public void beforeCollectionConversion(Collection<FeaturerEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
         if (showFeaturerParams(mapperContext))
             featurerService.loadFeaturerParams(srcCollection);
     }

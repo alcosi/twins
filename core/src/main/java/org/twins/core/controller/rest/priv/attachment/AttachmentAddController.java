@@ -55,7 +55,7 @@ public class AttachmentAddController extends ApiController {
             rs.setAttachmentIdList(attachmentService.addAttachments(
                             twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
                             apiUser.getUser(),
-                            attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()))
+                            attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .stream().map(TwinAttachmentEntity::getId).toList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

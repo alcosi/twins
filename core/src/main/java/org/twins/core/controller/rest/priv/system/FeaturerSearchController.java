@@ -60,7 +60,7 @@ public class FeaturerSearchController extends ApiController {
                     .findFeaturers(featurerDTOReversMapper.convert(request), offset, limit);
             rs
                     .setPagination(paginationMapper.convert(featurers))
-                    .setFeaturerList(featurerRestDTOMapper.convertList(featurers.getFeaturerList(), mapperContext));
+                    .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getFeaturerList(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

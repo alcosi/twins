@@ -50,7 +50,7 @@ public class TwinStarredListController extends ApiController {
         try {
             List<TwinStarredEntity> twinStarredList = twinStarredService.findStarred(twinClassId);
             rs
-                    .setStarredTwins(twinStarredRestDTOMapper.convertList(twinStarredList, new MapperContext()
+                    .setStarredTwins(twinStarredRestDTOMapper.convertCollection(twinStarredList, new MapperContext()
                             .setMode(showTwinMode)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

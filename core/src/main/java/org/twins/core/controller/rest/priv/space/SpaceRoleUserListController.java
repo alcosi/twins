@@ -61,7 +61,7 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            rs.userList = userRestDTOMapper.convertList(spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
+            rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -89,7 +89,7 @@ public class SpaceRoleUserListController extends ApiController {
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
             UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, offset, limit);
-            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -120,7 +120,7 @@ public class SpaceRoleUserListController extends ApiController {
         try {
             MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
             UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, offset, limit);
-            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getUsersRefRoles(), mapperContext))
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
 

@@ -45,7 +45,7 @@ public class TwinClassWidgetListController extends ApiController {
         WidgetListRsDTOv1 rs = new WidgetListRsDTOv1();
         try {
             rs.widgetList(
-                    widgetRestDTOMapper.convertList(
+                    widgetRestDTOMapper.convertCollection(
                             widgetService.findWidgets(twinClassId)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

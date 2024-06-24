@@ -44,8 +44,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .setDescription(src.getDescription()))
                 .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()));
         dst
-                .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(src.getAttachments()))
-                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(src.getLinks()))
+                .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(src.getAttachments()))
+                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getLinks()))
                 .setNewTags(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::newTags)
                         .orElseGet(HashSet::new))

@@ -51,7 +51,7 @@ public class TwinLinkAddController extends ApiController {
         try {
             twinLinkService.addLinks(
                     twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
-                    twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
+                    twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -125,7 +125,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapper.convertList(twinSearchResult.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapper.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -194,7 +194,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -266,7 +266,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -337,7 +337,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -407,7 +407,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twinSearchResult.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

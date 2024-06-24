@@ -61,7 +61,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     }
 
     @Override
-    public List<AttachmentViewDTOv1> convertList(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
+    public List<AttachmentViewDTOv1> convertCollection(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(MapperMode.AttachmentCollectionMode.ALL)) {
             case DIRECT:
@@ -80,7 +80,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                 newList = srcList;
                 break;
         }
-        return super.convertList(newList, mapperContext);
+        return super.convertCollection(newList, mapperContext);
     }
 
     @Override

@@ -53,7 +53,7 @@ public class TwinClassFieldListController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showClassFieldMode);
             List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(twinClassId);
-            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertList(twinClassFieldsList, mapperContext));
+            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldsList, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

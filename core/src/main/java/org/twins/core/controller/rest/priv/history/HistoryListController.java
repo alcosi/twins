@@ -74,7 +74,7 @@ public class HistoryListController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showClassMode);
             rs
-                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getList(), mapperContext))
+                    .setHistoryList(historyDTOMapperV1.convertCollection(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

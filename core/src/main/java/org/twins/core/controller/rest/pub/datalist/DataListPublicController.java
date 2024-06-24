@@ -112,7 +112,7 @@ public class DataListPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymous();
             rs.dataListList(
-                    dataListRestDTOMapper.convertList(
+                    dataListRestDTOMapper.convertCollection(
                             dataListService.findDataLists(request.dataListIdList()), new MapperContext()
                                     .setMode(showDataListMode)
                                     .setMode(showDataListOptionMode)));

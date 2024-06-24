@@ -20,6 +20,6 @@ public class PermissionGroupWithGroupRestDTOMapper extends RestSimpleDTOMapper<I
     @Override
     public void map(ImmutablePair<PermissionGroupEntity, List<PermissionEntity>> src, PermissionGroupWithPermissionsDTOv1 dst, MapperContext mapperContext) throws Exception {
         permissionGroupRestDTOMapper.map(src.getLeft(), dst, mapperContext);
-        dst.permissions(permissionRestDTOMapper.convertList(src.getRight(), mapperContext));
+        dst.permissions(permissionRestDTOMapper.convertCollection(src.getRight(), mapperContext));
     }
 }

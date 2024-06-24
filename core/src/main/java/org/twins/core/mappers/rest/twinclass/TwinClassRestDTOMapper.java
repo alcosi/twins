@@ -54,7 +54,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         twinClassBaseRestDTOMapper.map(src, dst, mapperContext);
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext))
             dst.fields(
-                    twinClassFieldRestDTOMapper.convertList(
+                    twinClassFieldRestDTOMapper.convertCollection(
                             twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
         if (!linkForwardRestDTOMapper.hideMode(mapperContext)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
@@ -115,8 +115,8 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     }
 
     @Override
-    public void beforeListConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
-        super.beforeListConversion(srcCollection, mapperContext);
+    public void beforeCollectionConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
         if (mapperContext.hasMode(StatusMode.SHOW)) {
             twinStatusService.loadStatusesForTwinClasses(srcCollection);
         }

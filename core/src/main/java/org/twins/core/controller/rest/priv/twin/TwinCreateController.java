@@ -77,10 +77,10 @@ public class TwinCreateController extends ApiController {
                             .setHeadTwinId(request.getHeadTwinId())
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                             .setDescription(request.getDescription()))
-                    .setFields(twinFieldValueRestDTOReverseMapper.convertList(fields));
+                    .setFields(twinFieldValueRestDTOReverseMapper.convertCollection(fields));
             twinCreate
-                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
+                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
+                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(apiUser, twinCreate));

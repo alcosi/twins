@@ -18,8 +18,8 @@ public class TwinLinkCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<TwinL
     @Override
     public void map(TwinLinkCudDTOv1 src, EntityCUD<TwinLinkEntity> dst, MapperContext mapperContext) throws Exception {
         dst
-                .setUpdateList(twinLinkUpdateRestDTOReverseMapper.convertList(src.getUpdate()))
-                .setCreateList(twinLinkAddRestDTOReverseMapper.convertList(src.getCreate()))
+                .setUpdateList(twinLinkUpdateRestDTOReverseMapper.convertCollection(src.getUpdate()))
+                .setCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getCreate()))
                 .setDeleteUUIDList(src.getDelete());
     }
 }

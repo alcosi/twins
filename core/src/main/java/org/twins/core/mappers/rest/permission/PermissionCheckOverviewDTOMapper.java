@@ -33,11 +33,11 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
                 .setPermissionGroup(permissionGroupRestDTOMapper.convert(src.getPermission().getPermissionGroup(), mapperContext))
                 .setGrantedByUser(src.isGrantedByUser())
                 .setGrantedByUserGroupIds(src.getGrantedByUserGroups().getIdSet())
-                .setGrantedByUserGroups(userGroupRestDTOMapper.convertList(src.getGrantedByUserGroups().getCollection(), mapperContext))
+                .setGrantedByUserGroups(userGroupRestDTOMapper.convertCollection(src.getGrantedByUserGroups().getCollection(), mapperContext))
                 .setGrantedByTwinRoles(src.getGrantedByTwinRoles())
                 .setGrantedBySpaceRoleUserIds(src.getGrantedBySpaceRoleUsers().getIdSet())
-                .setGrantedBySpaceRoleUsers(spaceRoleUserDTOMapper.convertList(src.getGrantedBySpaceRoleUsers().getCollection(), mapperContext))
+                .setGrantedBySpaceRoleUsers(spaceRoleUserDTOMapper.convertCollection(src.getGrantedBySpaceRoleUsers().getCollection(), mapperContext))
                 .setGrantedBySpaceRoleUserGroupIds(src.getGrantedBySpaceRoleUserGroups().getIdSet())
-                .setGrantedBySpaceRoleUserGroups(spaceRoleUserGroupDTOMapper.convertList(src.getGrantedBySpaceRoleUserGroups().getCollection(), mapperContext));
+                .setGrantedBySpaceRoleUserGroups(spaceRoleUserGroupDTOMapper.convertCollection(src.getGrantedBySpaceRoleUserGroups().getCollection(), mapperContext));
     }
 }

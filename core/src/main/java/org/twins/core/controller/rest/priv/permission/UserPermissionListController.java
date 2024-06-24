@@ -55,7 +55,7 @@ public class UserPermissionListController extends ApiController {
             @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
-            rs.permissionList = permissionWithGroupRestDTOMapper.convertList(
+            rs.permissionList = permissionWithGroupRestDTOMapper.convertCollection(
                     permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissions(),
                     new MapperContext()
                             .setMode(showPermissionMode)
@@ -82,7 +82,7 @@ public class UserPermissionListController extends ApiController {
             @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
-            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertList(
+            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(
                     permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissionGroups(),
                     new MapperContext()
                             .setMode(showPermissionMode)

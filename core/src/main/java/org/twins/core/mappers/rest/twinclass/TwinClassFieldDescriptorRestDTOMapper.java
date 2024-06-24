@@ -52,7 +52,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .options(dataListOptionRestDTOMapper.convertList(listDescriptor.options(), new MapperContext().setMode(MapperMode.DataListOptionMode.SHORT)));
+                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), new MapperContext().setMode(MapperMode.DataListOptionMode.SHORT)));
             }
         else if (fieldDescriptor instanceof FieldDescriptorUser userDescriptor)
             if (userDescriptor.userFilterId() != null) {
@@ -97,7 +97,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertList(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
             }
         return null;
     }

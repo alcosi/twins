@@ -64,7 +64,7 @@ public class DomainListController extends ApiController {
             MapperContext mapperContext = new MapperContext()
                     .setMode(showDomainMode);
             rs
-                    .setDomainList(domainViewRestDTOMapper.convertList(domainList.getList(), mapperContext))
+                    .setDomainList(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

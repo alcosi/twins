@@ -9,7 +9,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.*;
@@ -24,7 +23,7 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
     public void map(TwinflowTransitionService.TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(MapperMode.TransitionResultMode.DETAILED)) {
             case DETAILED:
-                List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertList(src.getProcessedTwinList(), mapperContext);
+                List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertCollection(src.getProcessedTwinList(), mapperContext);
 
                 if (CollectionUtils.isNotEmpty(processedList)) {
                     Map<UUID, List<TwinDTOv2>> processedGroupedByClass = new HashMap<>();
@@ -35,7 +34,7 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tw
                     dst.setProcessedTwinList(processedGroupedByClass);
                 }
             case SHORT:
-                dst.setTransitionedTwinList(twinRestDTOMapperV2.convertList(src.getTransitionedTwinList(), mapperContext));
+                dst.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(src.getTransitionedTwinList(), mapperContext));
         }
     }
 
