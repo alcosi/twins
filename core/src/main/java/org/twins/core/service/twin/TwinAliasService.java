@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
@@ -50,19 +51,11 @@ public class TwinAliasService {
         for (TwinEntity twinEntity : twinEntities)
             if (twinEntity.getTwinAliases() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
-        if (needLoad.isEmpty())
-            return;
-        List<TwinAliasEntity> twinAliasEntityList = twinAliasRepository.findAllByTwinIdIn(needLoad.keySet()); //todo kit grouped
-        if (CollectionUtils.isEmpty(twinAliasEntityList))
-            return;
-        Map<UUID, List<TwinAliasEntity>> aliasMap = new HashMap<>(); // key - twinId
-        for (TwinAliasEntity twinAliasEntity : twinAliasEntityList) { //grouping by twin
-            aliasMap.computeIfAbsent(twinAliasEntity.getTwinId(), k -> new ArrayList<>());
-            aliasMap.get(twinAliasEntity.getTwinId()).add(twinAliasEntity);
-        }
-        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet()) {
-            entry.getValue().setTwinAliases(new Kit<>(aliasMap.get(entry.getKey()), TwinAliasEntity::getId));
-        }
+        if (needLoad.isEmpty()) return;
+        KitGrouped<TwinAliasEntity, UUID, UUID> aliasKit = new KitGrouped<>(
+                twinAliasRepository.findAllByTwinIdIn(needLoad.keySet()), TwinAliasEntity::getId, TwinAliasEntity::getTwinId);
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
+            entry.getValue().setTwinAliases(new Kit<>(aliasKit.getGrouped(entry.getKey()), TwinAliasEntity::getId));
     }
 
     public List<TwinAliasEntity> createAliases(TwinEntity twin) throws ServiceException {
