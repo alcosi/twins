@@ -12,8 +12,8 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -32,7 +32,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PageableResult;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -68,23 +69,25 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return true;
     }
 
-    public PageableResult<HistoryEntity> findHistory(UUID twinId, int childDepth, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
+    public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
         UserEntity user = authService.getApiUser().getUser();
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, HistoryEntity.Fields.createdAt));
-        List<HistoryEntity> historyList = null;
-        long countElement = 0;
-        if (childDepth == 0) {
+        Pageable pageable = PaginationUtils.pageableOffset(pagination);
+        Page<HistoryEntity> historyList;
+        if (childDepth == 0)
             historyList = historyRepository.findByTwinId(twinId, pageable);
-            countElement = historyRepository.countByTwinId(twinId);
-        } else {//todo support different depth
-            historyList = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable).getContent();
-            countElement = historyRepository.countByTwinIdIncludeFirstLevelChildren(twinId);
-        }
-        return new PageableResult<HistoryEntity>()
-                .setList(historyList)
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(countElement);
+        else //todo support different depth
+            historyList = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable);
+        return convertCollectionInPaginationResult(historyList, pagination);
+    }
+
+    private PaginationResult<HistoryEntity> convertCollectionInPaginationResult(Page<HistoryEntity> historyList, SimplePagination pagination) {
+        PaginationResult<HistoryEntity> historyEntityPaginationResult = new PaginationResult<>();
+        historyEntityPaginationResult
+                .setList(historyList.toList())
+                .setTotal(historyList.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return historyEntityPaginationResult;
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {

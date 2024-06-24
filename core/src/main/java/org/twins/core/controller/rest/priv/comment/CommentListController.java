@@ -27,12 +27,11 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
-import org.twins.core.service.pagination.PageableResult;
+import org.twins.core.service.pagination.PaginationResult;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.COMMENT)
 @RestController
@@ -54,7 +53,7 @@ public class CommentListController extends ApiController {
     @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinCommentListV1(
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
+            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction direction,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._SHORT) CommentViewRestDTOMapper.Mode showCommentMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
@@ -63,7 +62,7 @@ public class CommentListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
+            PaginationResult<TwinCommentEntity> commentList = commentService.findComment(twinId, createSimplePagination(offset, limit, Sort.by(direction, TwinCommentEntity.Fields.createdAt)));
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showUserMode)

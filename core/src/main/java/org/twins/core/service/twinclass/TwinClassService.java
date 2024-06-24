@@ -16,8 +16,6 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -40,6 +38,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinflow.TwinflowService;
 
@@ -98,35 +98,36 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return true;
     }
 
-    public TwinClassResult findTwinClasses(TwinClassSearch twinClassSearch, int offset, int limit) throws ServiceException {
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.unsorted());
+    public PaginationResult<TwinClassEntity> findTwinClasses(TwinClassSearch twinClassSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch(); //no filters
-        Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), pageable);
-        return convertPageSearchResult(twinClassList, offset, limit);
+        Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), PaginationUtils.pageableOffset(pagination));
+        return convertCollectionInPaginationResult(twinClassList, pagination);
     }
 
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch){
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
-                .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
-                .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
-                .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
-                .and(hasOwnerType(twinClassSearch.getOwnerType()))
-                .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
-                .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
-                .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
-                .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
-                .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
+                        .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
+                        .and(hasOwnerType(twinClassSearch.getOwnerType()))
+                        .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
+                        .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
+                        .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
+                        .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
+                        .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
         );
     }
 
-    private TwinClassResult convertPageSearchResult(Page<TwinClassEntity> twinClassList, int offset, int limit) {//todo change impl pagination
-        return (TwinClassResult) new TwinClassResult()
-                .setTwinClassList(twinClassList.toList())
+    private PaginationResult<TwinClassEntity> convertCollectionInPaginationResult(Page<TwinClassEntity> twinClassList, SimplePagination pagination) {
+        PaginationResult<TwinClassEntity> twinClassEntityPaginationResult = new PaginationResult<>();
+        twinClassEntityPaginationResult
+                .setList(twinClassList.toList())
                 .setTotal(twinClassList.getTotalElements())
-                .setOffset(offset)
-                .setLimit(limit);
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return twinClassEntityPaginationResult;
     }
 
     public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {

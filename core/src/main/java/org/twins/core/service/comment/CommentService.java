@@ -11,8 +11,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,7 +21,8 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PageableResult;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -81,15 +81,19 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         return currentComment;
     }
 
-    public PageableResult<TwinCommentEntity> findComment(UUID twinId, Sort.Direction createdBySortDirection, int offset, int limit) throws ServiceException {
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, Sort.by(createdBySortDirection, TwinCommentEntity.Fields.createdAt));
-        List<TwinCommentEntity> commentList = commentRepository.findAllByTwinId(twinId, pageable);
-        long totalElement = commentRepository.countByTwinId(twinId);
-        return new PageableResult<TwinCommentEntity>()
-                .setList(commentList)
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(totalElement);
+    public PaginationResult<TwinCommentEntity> findComment(UUID twinId, SimplePagination pagination) throws ServiceException {
+        Page<TwinCommentEntity> commentList = commentRepository.findAllByTwinId(twinId, PaginationUtils.pageableOffset(pagination));
+        return convertCollectionInPaginationResult(commentList, pagination);
+    }
+
+    private PaginationResult<TwinCommentEntity> convertCollectionInPaginationResult(Page<TwinCommentEntity> list, SimplePagination pagination) {
+        PaginationResult<TwinCommentEntity> twinCommentEntityPaginationResult = new PaginationResult<>();
+        twinCommentEntityPaginationResult
+                .setList(list.toList())
+                .setTotal(list.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return twinCommentEntityPaginationResult;
     }
 
     public void deleteComment(UUID commentId) throws ServiceException {

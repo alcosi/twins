@@ -3,10 +3,11 @@ package org.twins.core.featurer.twinclass;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.springframework.data.domain.Pageable;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.twin.TwinSearchResult;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -16,11 +17,11 @@ import java.util.Properties;
         description = "Getting valid head twin class by some class")
 @Slf4j
 public abstract class HeadHunter extends FeaturerTwins {
-    public TwinSearchResult findValidHead(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
+    public PaginationResult<TwinEntity> findValidHead(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, headHunterParams, new HashMap<>());
         log.info("Running featurer[" + this.getClass().getSimpleName() + "] with params: " + properties.toString());
-        return findValidHead(properties, twinClassEntity, pageable);
+        return findValidHead(properties, twinClassEntity, pagination);
     }
 
-    protected abstract TwinSearchResult findValidHead(Properties properties, TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException;
+    protected abstract PaginationResult<TwinEntity> findValidHead(Properties properties, TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException;
 }

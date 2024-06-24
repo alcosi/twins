@@ -73,7 +73,6 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
             if((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
                 throw new Exception();
         } catch (Exception e) {
-            e.printStackTrace();
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
                             " value[" + value.getValue() + "] is not numeric format or does not match the field settings["+

@@ -24,7 +24,8 @@ import org.springframework.util.ClassUtils;
 import org.twins.core.dao.specifications.featurer.FeaturerSpecification;
 import org.twins.core.domain.search.FeaturerSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.featurer.FeaturerSearchResult;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -279,10 +280,10 @@ public class FeaturerService {
         return getFeaturer(featurerEntity, Injector.class);
     }
 
-    public FeaturerSearchResult findFeaturers(FeaturerSearch featurerSearch, int offset, int limit) throws ServiceException {
+    public PaginationResult<FeaturerEntity> findFeaturers(FeaturerSearch featurerSearch, SimplePagination pagination) throws ServiceException {
         Specification<FeaturerEntity> spec = createFeaturerSearchSpecification(featurerSearch);
-        Page<FeaturerEntity> ret = featurerRepository.findAll(spec, PaginationUtils.paginationOffset(offset, limit, Sort.unsorted()));
-        return convertPageInFeaturerSearchResult(ret, offset, limit);
+        Page<FeaturerEntity> ret = featurerRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return convertCollectionInPaginationResult(ret, pagination);
     }
 
     public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
@@ -292,11 +293,13 @@ public class FeaturerService {
                 .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
     }
 
-    public FeaturerSearchResult convertPageInFeaturerSearchResult(Page<FeaturerEntity> featurerPage, int offset, int limit) {
-        return (FeaturerSearchResult) new FeaturerSearchResult()
-                .setFeaturerList(featurerPage.toList())
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(featurerPage.getTotalElements());
+    private PaginationResult<FeaturerEntity> convertCollectionInPaginationResult(Page<FeaturerEntity> featurerPage, SimplePagination pagination) {
+        PaginationResult<FeaturerEntity> featurerEntityPaginationResult = new PaginationResult<>();
+        featurerEntityPaginationResult
+                .setList(featurerPage.toList())
+                .setTotal(featurerPage.getTotalElements())
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return featurerEntityPaginationResult;
     }
 }

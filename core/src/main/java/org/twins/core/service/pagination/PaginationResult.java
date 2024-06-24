@@ -7,9 +7,7 @@ import java.util.List;
 
 @Data
 @Accessors(chain = true)
-public class PageableResult<T> {
-    private int offset;
-    private int limit;
-    private long total;
-    private List<T> list;
+public class PaginationResult<T> extends SimplePagination {
+    protected List<T> list;
+    protected long total;
 }

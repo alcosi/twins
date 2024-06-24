@@ -22,15 +22,12 @@ import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
+import org.twins.core.service.pagination.PaginationResult;
+import org.twins.core.service.pagination.SimplePagination;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.cambium.common.util.PaginationUtils.sort;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -49,39 +46,44 @@ public class TwinHeadService {
     final BusinessAccountService businessAccountService;
     final FeaturerService featurerService;
 
-    public TwinSearchResult findValidHeads(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
+    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null)
-            return (TwinSearchResult) new TwinSearchResult()
-                    .setTwinList(new ArrayList<>())
-                    .setOffset(offset)
-                    .setLimit(limit)
-                    .setTotal(0);
-        Pageable pageable = PaginationUtils.paginationOffset(offset, limit, sort(false, TwinEntity.Fields.createdAt));
+            return convertInPaginationResult(pagination);
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
         HeadHunter headHunter = featurerService.getFeaturer(headTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
-                Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pageable);
-                return twinSearchService.convertPageInTwinSearchResult(validUserTwinList, offset, limit);
+                Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pagination);
+                return twinSearchService.convertCollectionInPaginationResult(validUserTwinList, pagination);
             } else if (SystemEntityService.isTwinClassForBusinessAccount(headTwinClassEntity.getId())) {// twin.id = business_account_id
-                Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pageable);
-                return twinSearchService.convertPageInTwinSearchResult(validBusinessAccountTwinList, offset, limit);
+                Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pagination);
+                return twinSearchService.convertCollectionInPaginationResult(validBusinessAccountTwinList, pagination);
             }
             log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
         }
-        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, pageable);
+        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, pagination);
     }
 
-    public TwinSearchResult findValidHeads(UUID twinClassId, int offset, int limit) throws ServiceException {
+    private PaginationResult<TwinEntity> convertInPaginationResult(SimplePagination pagination) {
+        PaginationResult<TwinEntity> objectPaginationResult = new PaginationResult<>();
+        objectPaginationResult
+                .setList(new ArrayList<>())
+                .setTotal(0)
+                .setOffset(pagination.getOffset())
+                .setLimit(pagination.getLimit());
+        return objectPaginationResult;
+    }
+
+    public PaginationResult<TwinEntity> findValidHeads(UUID twinClassId, SimplePagination simplePagination) throws ServiceException {
         TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
         if (twinClassEntity == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
-        return findValidHeads(twinClassEntity, offset, limit);
+        return findValidHeads(twinClassEntity, simplePagination);
     }
 
     //todo cache it
-    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity, int offset, int limit) throws ServiceException {
-        List<TwinEntity> validHeads = findValidHeads(twinClassEntity, offset, limit).getTwinList();
+    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
+        List<TwinEntity> validHeads = findValidHeads(twinClassEntity, pagination).getList();
         return EntitySmartService.convertToMap(validHeads, TwinEntity::getId);
     }
 
@@ -99,8 +101,9 @@ public class TwinHeadService {
         return headTwinId;
     }
 
-    public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
+    public Page<TwinEntity> getValidUserTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        Pageable pageable = PaginationUtils.pageableOffset(pagination);
         Page<TwinEntity> userTwinList = null;
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN_BUSINESS_ACCOUNT:
@@ -123,8 +126,9 @@ public class TwinHeadService {
         return userTwinList;
     }
 
-    public Page<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity, Pageable pageable) throws ServiceException {
+    public Page<TwinEntity> getValidBusinessAccountTwinListByTwinClass(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        Pageable pageable = PaginationUtils.pageableOffset(pagination);
         Page<TwinEntity> businessAccountList = null;
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN_BUSINESS_ACCOUNT:
