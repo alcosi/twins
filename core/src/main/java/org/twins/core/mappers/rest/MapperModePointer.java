@@ -9,5 +9,4 @@ package org.twins.core.mappers.rest;
 
 public interface MapperModePointer<T extends MapperMode> extends MapperMode{
     T point();
-
 }
