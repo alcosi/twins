@@ -30,7 +30,6 @@ public interface RestRequestParam {
     String showTwinLinkMode = "showTwinLinkMode";
     String showLinkMode = "showLinkMode";
     String showTransitionMode = "showTransitionMode";
-    String showTwinTransitionMode = "showTwinTransitionMode";
     String showTwinflowTransitionResultMode = "showTwinflowTransitionResultMode";
     String showTwinflowMode = "showTwinflowMode";
     String showTwinflowTransitionMode = "showTwinflowTransitionMode";

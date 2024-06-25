@@ -77,7 +77,7 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode) {
 
             TwinRsDTOv1 rs = new TwinRsDTOv1();
@@ -144,7 +144,7 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
@@ -210,7 +210,7 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
@@ -276,7 +276,7 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
             @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = MapperMode.TwinTransitionMode.Fields.HIDE) MapperModePointer.TwinTransitionMode showTwinTransitionMode,
+            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
