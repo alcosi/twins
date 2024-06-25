@@ -77,6 +77,28 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum LinkMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum LinkRelationMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum TransitionMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -169,11 +191,10 @@ public interface MapperMode {
         }
     }
 
-
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinUserMode implements MapperModePointer<UserRestDTOMapper.Mode> {
+    enum TwinAttachmentMode implements MapperModePointer<AttachmentMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -181,11 +202,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public UserRestDTOMapper.Mode point() {
+        public AttachmentMode point() {
             return switch (this) {
-                case HIDE -> UserRestDTOMapper.Mode.HIDE;
-                case SHORT -> UserRestDTOMapper.Mode.SHORT;
-                case DETAILED -> UserRestDTOMapper.Mode.DETAILED;
+                case HIDE -> AttachmentMode.HIDE;
+                case SHORT -> AttachmentMode.SHORT;
+                case DETAILED -> AttachmentMode.DETAILED;
             };
         }
     }
@@ -193,22 +214,27 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinStatusMode implements MapperModePointer<StatusMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+    enum TwinAttachmentCollectionMode implements MapperModePointer<AttachmentCollectionMode> {
+        @FieldNameConstants.Include DIRECT(0),
+        @FieldNameConstants.Include FROM_TRANSITIONS(1),
+        @FieldNameConstants.Include FROM_COMMENTS(1),
+        @FieldNameConstants.Include FROM_FIELDS(1),
+        @FieldNameConstants.Include ALL(2);
 
         final int priority;
 
         @Override
-        public StatusMode point() {
+        public AttachmentCollectionMode point() {
             return switch (this) {
-                case HIDE -> StatusMode.HIDE;
-                case SHORT -> StatusMode.SHORT;
-                case DETAILED -> StatusMode.DETAILED;
+                case DIRECT -> AttachmentCollectionMode.DIRECT;
+                case FROM_TRANSITIONS -> AttachmentCollectionMode.FROM_TRANSITIONS;
+                case FROM_COMMENTS -> AttachmentCollectionMode.FROM_COMMENTS;
+                case FROM_FIELDS -> AttachmentCollectionMode.FROM_FIELDS;
+                case ALL -> AttachmentCollectionMode.ALL;
             };
         }
     }
+
 
     @Getter
     @AllArgsConstructor
@@ -263,6 +289,66 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinLinkMode implements MapperModePointer<LinkRelationMode>{
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public LinkRelationMode point() {
+            return switch (this) {
+                case HIDE -> LinkRelationMode.HIDE;
+                case SHORT -> LinkRelationMode.SHORT;
+                case DETAILED -> LinkRelationMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinLinkOnLinkMode implements MapperModePointer<LinkMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public LinkMode point() {
+            return switch (this) {
+                case HIDE -> LinkMode.HIDE;
+                case SHORT -> LinkMode.SHORT;
+                case DETAILED -> LinkMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassLinkMode implements MapperModePointer<LinkMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public LinkMode point() {
+            return switch (this) {
+                case HIDE -> LinkMode.HIDE;
+                case SHORT -> LinkMode.SHORT;
+                case DETAILED -> LinkMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum TwinMarkerMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -276,6 +362,26 @@ public interface MapperMode {
                 case HIDE -> DataListOptionMode.HIDE;
                 case SHORT -> DataListOptionMode.SHORT;
                 case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinStatusMode implements MapperModePointer<StatusMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public StatusMode point() {
+            return switch (this) {
+                case HIDE -> StatusMode.HIDE;
+                case SHORT -> StatusMode.SHORT;
+                case DETAILED -> StatusMode.DETAILED;
             };
         }
     }
@@ -323,7 +429,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinAttachmentMode implements MapperModePointer<AttachmentMode> {
+    enum TwinUserMode implements MapperModePointer<UserRestDTOMapper.Mode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -331,35 +437,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public AttachmentMode point() {
+        public UserRestDTOMapper.Mode point() {
             return switch (this) {
-                case HIDE -> AttachmentMode.HIDE;
-                case SHORT -> AttachmentMode.SHORT;
-                case DETAILED -> AttachmentMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinAttachmentCollectionMode implements MapperModePointer<AttachmentCollectionMode> {
-        @FieldNameConstants.Include DIRECT(0),
-        @FieldNameConstants.Include FROM_TRANSITIONS(1),
-        @FieldNameConstants.Include FROM_COMMENTS(1),
-        @FieldNameConstants.Include FROM_FIELDS(1),
-        @FieldNameConstants.Include ALL(2);
-
-        final int priority;
-
-        @Override
-        public AttachmentCollectionMode point() {
-            return switch (this) {
-                case DIRECT -> AttachmentCollectionMode.DIRECT;
-                case FROM_TRANSITIONS -> AttachmentCollectionMode.FROM_TRANSITIONS;
-                case FROM_COMMENTS -> AttachmentCollectionMode.FROM_COMMENTS;
-                case FROM_FIELDS -> AttachmentCollectionMode.FROM_FIELDS;
-                case ALL -> AttachmentCollectionMode.ALL;
+                case HIDE -> UserRestDTOMapper.Mode.HIDE;
+                case SHORT -> UserRestDTOMapper.Mode.SHORT;
+                case DETAILED -> UserRestDTOMapper.Mode.DETAILED;
             };
         }
     }

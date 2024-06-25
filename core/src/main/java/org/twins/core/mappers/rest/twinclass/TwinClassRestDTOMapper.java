@@ -56,7 +56,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dst.fields(
                     twinClassFieldRestDTOMapper.convertCollection(
                             twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
-        if (!linkForwardRestDTOMapper.hideMode(mapperContext)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinClassLinkMode.HIDE)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))

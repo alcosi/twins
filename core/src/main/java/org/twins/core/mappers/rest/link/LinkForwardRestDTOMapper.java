@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.RelatedByLinkTwinMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
@@ -18,7 +19,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
 
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(LinkRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinClassLinkMode.DETAILED)) {
             case DETAILED:
                 dst
                         .dstTwinClassId(src.getDstTwinClassId())
@@ -35,7 +36,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(LinkRestDTOMapper.Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TwinClassLinkMode.HIDE);
     }
 
     @Override

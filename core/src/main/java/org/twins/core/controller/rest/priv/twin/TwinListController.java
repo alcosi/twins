@@ -27,8 +27,6 @@ import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
-import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
@@ -93,8 +91,8 @@ public class TwinListController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -121,7 +119,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
@@ -162,8 +160,8 @@ public class TwinListController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -190,7 +188,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
@@ -231,8 +229,8 @@ public class TwinListController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
@@ -262,7 +260,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
@@ -305,8 +303,8 @@ public class TwinListController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -333,7 +331,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs
@@ -375,8 +373,8 @@ public class TwinListController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -403,7 +401,7 @@ public class TwinListController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
             rs

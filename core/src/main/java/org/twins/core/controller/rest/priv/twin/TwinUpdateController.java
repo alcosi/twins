@@ -81,8 +81,8 @@ public class TwinUpdateController extends ApiController {
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
+            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinUpdateRqDTOv1 request) {
@@ -112,7 +112,7 @@ public class TwinUpdateController extends ApiController {
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinLinkOnLinkMode)
                     .setMode(showTwinTransitionMode)
                     .setMode(showTwinActionMode);
 

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRqDTOv1;
@@ -21,9 +22,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
@@ -59,7 +58,7 @@ public class TwinClassCreateController extends ApiController {
             @RequestParam(name = RestRequestParam.showClassStatusMode, defaultValue = TwinClassRestDTOMapper.StatusMode._HIDE) TwinClassRestDTOMapper.StatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
+            @MapperModeParam MapperMode.TwinClassLinkMode showTwinClassLinkMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.HIDE) MapperModePointer.StatusMode showStatusMode,
             @RequestBody TwinClassCreateRqDTOv1 request) {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
@@ -72,7 +71,7 @@ public class TwinClassCreateController extends ApiController {
                     .setMode(showClassStatusMode)
                     .setMode(showClassMarkerMode)
                     .setMode(showClassTagMode)
-                    .setMode(showLinkMode)
+                    .setMode(showTwinClassLinkMode)
                     .setMode(showStatusMode);
             twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, request.getName(), request.getDescription());
             rs

@@ -22,8 +22,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     GREEN(1,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
@@ -36,8 +37,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     FOREST_GREEN(1,
             TwinBaseRestDTOMapper.TwinMode.SHORT,
@@ -50,8 +52,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     YELLOW(2,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
@@ -64,8 +67,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     BLUE(3,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
@@ -78,8 +82,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     BLACK(4,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
@@ -92,8 +97,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     GRAY(4,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
@@ -106,8 +112,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE),
     ORANGE(5,
             TwinBaseRestDTOMapper.TwinMode.DETAILED,
@@ -120,8 +127,9 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.StatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
-            TwinLinkRestDTOMapper.Mode.HIDE,
-            LinkRestDTOMapper.Mode.HIDE,
+            TwinLinkMode.HIDE,
+            TwinLinkOnLinkMode.HIDE,
+
             MapperMode.TransitionMode.HIDE);
 
     public static final String _WHITE = "WHITE";
