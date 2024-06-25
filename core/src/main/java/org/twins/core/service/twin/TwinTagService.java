@@ -14,13 +14,14 @@ import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ReplaceOperation;
+import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.EntitySecureFindServiceImpl;
 import org.twins.core.service.EntitySmartService;
@@ -195,34 +196,47 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         twinTagRepository.deleteByTwin_TwinClassId(twinClassId);
     }
 
-    public void replaceTagsForTwinsOfClass(TwinClassEntity twinClassEntity, ReplaceOperation replaceOperation) throws ServiceException {
-        Set<UUID> existedTwinTagIds = findExistedTwinTagsForTwinsOfClass(twinClassEntity.getId());
-        if (CollectionUtils.isNotEmpty(existedTwinTagIds)) {
-            if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed
-                    && MapUtils.isEmpty(replaceOperation.getReplaceMap()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
-            twinClassService.loadMarkerDataList(twinClassEntity);
-            Set<UUID> tagsForDeletion = new HashSet<>();
-            for (UUID tagForReplace : existedTwinTagIds) {
-                UUID replacement = replaceOperation.getReplaceMap().get(tagForReplace);
-                if (replacement == null) {
-                    if (replaceOperation.getStrategy() == ReplaceOperation.Strategy.restrictIfMissed)
-                        throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap value for tag: " + tagForReplace);
-                    else
-                        replacement = UuidUtils.NULLIFY_MARKER;
-                }
-                if (UuidUtils.isNullifyMarker(replacement)) {
-                    tagsForDeletion.add(tagForReplace);
-                    continue;
-                }
-                if (twinClassEntity.getMarkerDataList().getOptions().get(replacement) == null)
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct tagsReplaceMap value for tag: " + tagForReplace);
-                twinTagRepository.replaceTagsForTwinsOfClass(twinClassEntity.getId(), tagForReplace, replacement);
-            }
-            if (CollectionUtils.isNotEmpty(tagsForDeletion)) {
-                twinTagRepository.deleteByTwin_TwinClassIdAndTagDataListOptionIdIn(twinClassEntity.getId(), tagsForDeletion);
-            }
+    public void replaceTagsForTwinsOfClass(TwinClassEntity twinClassEntity, EntityRelinkOperation entityRelinkOperation) throws ServiceException {
+        if (UuidUtils.isNullifyMarker(entityRelinkOperation.getNewId())) {
+            //we have to delete all tags from twins of given class
+            deleteAllTagsForTwinsOfClass(twinClassEntity.getId());
+            twinClassEntity
+                    .setTagDataListId(null)
+                    .setTagDataList(null);
+            return;
         }
+        //we will try to replace tags with new provided values
+        Set<UUID> existedTwinTagIds = findExistedTwinTagsForTwinsOfClass(twinClassEntity.getId());
+        if (CollectionUtils.isEmpty(existedTwinTagIds))
+            return;
+        if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+                && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
+        DataListEntity newTagsDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
+        dataListService.loadDataListOptions(newTagsDataList);
+        Set<UUID> tagsForDeletion = new HashSet<>();
+        for (UUID tagForReplace : existedTwinTagIds) {
+            UUID replacement = entityRelinkOperation.getReplaceMap().get(tagForReplace);
+            if (replacement == null) {
+                if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap value for tag: " + tagForReplace);
+                else
+                    replacement = UuidUtils.NULLIFY_MARKER;
+            }
+            if (UuidUtils.isNullifyMarker(replacement)) {
+                tagsForDeletion.add(tagForReplace);
+                continue;
+            }
+            if (newTagsDataList.getOptions().get(replacement) == null)
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct tagsReplaceMap value for tag: " + tagForReplace);
+            twinTagRepository.replaceTagsForTwinsOfClass(twinClassEntity.getId(), tagForReplace, replacement);
+        }
+        if (CollectionUtils.isNotEmpty(tagsForDeletion)) {
+            twinTagRepository.deleteByTwin_TwinClassIdAndTagDataListOptionIdIn(twinClassEntity.getId(), tagsForDeletion);
+        }
+        twinClassEntity
+                .setMarkerDataList(newTagsDataList)
+                .setMarkerDataListId(newTagsDataList.getId());
     }
 
     private Set<UUID> findExistedTwinTagsForTwinsOfClass(UUID twinClassId) {

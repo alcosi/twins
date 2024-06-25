@@ -8,9 +8,11 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.user.UserEntity;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -41,4 +43,15 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
             @Param("twinClassId") TypedParameterValue<UUID> twinClassId,
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
+
+    @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId != null")
+    Set<UUID> findDistinctHeadTwinIdByTwinClassId(UUID twinClassId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")
+    void replaceHeadTwinForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
+
+    @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId")
+    Set<UUID> findIdByTwinClassId(@Param("twinClassId") UUID twinClassId);
 }

@@ -7,6 +7,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.featurer.dao.FeaturerRepository;
@@ -185,5 +186,21 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinClassFieldEntity;
+    }
+
+    public KitGrouped<TwinClassFieldEntity, UUID, UUID> findTwinClassFields(Collection<UUID> ids) {
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> result = new KitGrouped<>(TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+        if (CollectionUtils.isEmpty(ids))
+            return result;
+        result.addAll(twinClassFieldRepository.findByIdIn(ids));
+        return result;
+    }
+
+    public boolean isConvertable(TwinClassFieldEntity fromTwinClassField, TwinClassFieldEntity toTwinClassField) {
+        //todo move logic to FieldTypers
+        if (fromTwinClassField.getFieldTyperFeaturerId() != toTwinClassField.getFieldTyperFeaturerId()
+                || MapUtils.sizeOf(fromTwinClassField.getFieldTyperParams()) != MapUtils.sizeOf(toTwinClassField.getFieldTyperParams()))
+            return false;
+        return true;
     }
 }

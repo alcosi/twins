@@ -30,4 +30,9 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         }
         return resultMap;
     }
+
+    public static int sizeOf(Map<?, ?> map) {
+        if (map == null) return 0;
+        return map.size();
+    }
 }

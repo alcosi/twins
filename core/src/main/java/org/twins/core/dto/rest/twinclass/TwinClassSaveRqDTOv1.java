@@ -15,7 +15,6 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinClassSaveRqV1")
 public class TwinClassSaveRqDTOv1 extends Request {
-
     @Schema(description = "unique key within the domain", example = DTOExamples.TWIN_CLASS_KEY)
     public String key;
 
@@ -25,18 +24,11 @@ public class TwinClassSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] description", example = DTOExamples.TWIN_CLASS_DESCRIPTION)
     public String description;
 
-    @Schema(description = "[optional] link to head (parent) class. It should be used in case, when twins of some class can not exist without some parent twin. " +
-            "Example: Task and Sub-task. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
-    public UUID headTwinClassId;
-
     @Schema(description = "[optional] an id of head hunter featurer. The field has a sense only if headTwinClassId filled", example = "")
     public Integer headHunterFeaturerId;
 
     @Schema(description = "[optional] head hunter featurer params", example = "")
     public HashMap<String, String> headHunterParams;
-
-    @Schema(description = "[optional] link to extends class. All fields and links will be valid for current class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
-    public UUID extendsTwinClassId;
 
     @Schema(description = "[optional] if true, then not twin of given class can be created. Abstract classes must be extended", example = "false")
     public Boolean abstractClass;
@@ -56,15 +48,6 @@ public class TwinClassSaveRqDTOv1 extends Request {
     @Schema(description = "[optional] if true then twins of current class must have own alias key and this key will be used to generate alias for children twins", example = "false")
     public Boolean aliasSpace;
 
-    @Schema(description = "[optional] id of linked marker list. Markers in some cases similar to secondary statuses. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
-    public UUID markerDataListId;
-
-    @Schema(description = "[optional] id of linked tags cloud. Tags differ from markers in that new tags can be added to the cloud by the users themselves. " +
-            "And the list of markers is configured only by the domain manager. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
-    public UUID tagDataListId;
-
     @Schema(description = "[optional] this field helps to set extra permission, needed by users to view twins of given class. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID viewPermissionId;
-
-
 }

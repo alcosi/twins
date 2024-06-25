@@ -49,4 +49,12 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     TwinFieldSimpleEntity findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
 
     void deleteByTwinId(UUID twinId);
+
+    @Query(value = """
+            select distinct field.twinClassFieldId
+            from TwinFieldSimpleEntity field where field.twin.twinClassId = :twinClassId and field.twinClassFieldId in (:twinClassFields)
+            """)
+    List<UUID> findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
+
+    void deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(@Param("twinClassId") UUID twinClassId, @Param("twinClassFields") Collection<UUID> twinClassFields);
 }

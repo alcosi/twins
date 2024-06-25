@@ -8,12 +8,13 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-public class ReplaceOperation {
-    public Strategy strategy = Strategy.deleteIfMissed;
-    public Map<UUID, UUID> replaceMap;
+public class EntityRelinkOperation {
+    private UUID newId;
+    private Strategy strategy = Strategy.delete;
+    private Map<UUID, UUID> replaceMap;
 
     public enum Strategy {
-        deleteIfMissed,
-        restrictIfMissed
+        delete,
+        restrict
     }
 }

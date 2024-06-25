@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.ReplaceOperationDTOv1;
+import org.twins.core.dto.rest.common.BasicUpdateOperationDTOv1;
 
 import java.util.UUID;
 
@@ -14,13 +14,17 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TwinClassUpdateRqV1")
 public class TwinClassUpdateRqDTOv1 extends TwinClassSaveRqDTOv1 {
-    @Schema(description = "[optional] if marker data list is changed during update, " +
-            "you should specify what should be done with already existed markers")
-    public ReplaceOperationDTOv1 markersReplace;
+    @Schema(description = "[optional] should be filled on change marker data list id")
+    public BasicUpdateOperationDTOv1 markerDataListUpdate;
 
-    @Schema(description = "[optional] if tag data list is changed during update, " +
-            "you should specify what should be done with already existed tags")
-    public ReplaceOperationDTOv1 tagsReplace;
+    @Schema(description = "[optional] should be filled on change tag data list id")
+    public BasicUpdateOperationDTOv1 tagDataListChange;
+
+    @Schema(description = "[optional] should be filled on change extends twins class id")
+    public BasicUpdateOperationDTOv1 extendsTwinClassUpdate;
+
+    @Schema(description = "[optional] should be filled on change extends twins class id")
+    public BasicUpdateOperationDTOv1 headTwinClassUpdate;
 
     @JsonIgnore
     public UUID twinClassId;

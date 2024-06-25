@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -740,6 +741,67 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public static boolean isFilled(FieldValue fieldValue) {
         return fieldValue != null && fieldValue.isFilled();
+    }
+
+    public KitGrouped<TwinClassFieldEntity, UUID, UUID> findInheritedTwinClassFields(TwinClassEntity twinClassEntity, boolean showUsedOnly) throws ServiceException {
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> result = new KitGrouped<>(TwinClassFieldEntity::getId, TwinClassFieldEntity::getTwinClassId);
+        if (twinClassEntity.getExtendsTwinClassId() == null)
+            return result;
+        twinClassFieldService.loadTwinClassFields(twinClassEntity);
+        if (twinClassEntity.getTwinClassFieldKit().isEmpty())
+            return result;
+        if (!showUsedOnly) {
+            for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+                if (twinClassField.getTwinClass().getExtendedClassIdSet() != null && twinClassField.getTwinClass().getExtendedClassIdSet().contains(twinClassEntity.getExtendsTwinClassId())) {
+                    result.add(twinClassField);
+                }
+            }
+            return result;
+        }
+        Set<UUID> inheritedTwinClassFieldIds = new HashSet<>();
+        Set<UUID> inheritedSimpleTwinClassFieldIds = new HashSet<>();
+        Set<UUID> inheritedUserTwinClassFieldIds = new HashSet<>();
+        Set<UUID> inheritedDatalistTwinClassFieldIds = new HashSet<>();
+        for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+            if (twinClassField.getTwinClass().getExtendedClassIdSet() != null && twinClassField.getTwinClass().getExtendedClassIdSet().contains(twinClassEntity.getExtendsTwinClassId())) {
+                var fieldTyper = featurerService.getFeaturer(twinClassField.getFieldTyperFeaturer(), FieldTyper.class);
+                if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+                    inheritedSimpleTwinClassFieldIds.add(twinClassField.getId());
+                } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
+                    inheritedUserTwinClassFieldIds.add(twinClassField.getId());
+                } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
+                    inheritedDatalistTwinClassFieldIds.add(twinClassField.getId());
+                }
+            }
+        }
+        if (!inheritedSimpleTwinClassFieldIds.isEmpty()) {
+            inheritedTwinClassFieldIds.addAll(twinFieldSimpleRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+        }
+        if (!inheritedUserTwinClassFieldIds.isEmpty()) {
+            inheritedTwinClassFieldIds.addAll(twinFieldUserRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+        }
+        if (!inheritedDatalistTwinClassFieldIds.isEmpty()) {
+            inheritedTwinClassFieldIds.addAll(twinFieldDataListRepository.findUsedFieldsByTwinClassIdAndTwinClassFieldIdIn(twinClassEntity.getId(), inheritedSimpleTwinClassFieldIds));
+        }
+        if (CollectionUtils.isEmpty(inheritedTwinClassFieldIds))
+            return result;
+        for (TwinClassFieldEntity twinClassField : twinClassEntity.getTwinClassFieldKit().getCollection()) {
+            if (inheritedTwinClassFieldIds.contains(twinClassField.getId())) {
+                result.add(twinClassField);
+            }
+        }
+        return result;
+    }
+
+    public void deleteTwinFieldsOfClass(Collection<TwinClassFieldEntity> twinClassFieldsForDeletion, UUID twinClassId) {
+        if (CollectionUtils.isEmpty(twinClassFieldsForDeletion))
+            return;
+        // we should not care about FieldStorage, cause such deletion will do extra cleaning
+        List<UUID> twinClassFieldIds = twinClassFieldsForDeletion.stream().map(TwinClassFieldEntity::getId).toList();
+        twinFieldSimpleRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldUserRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        twinFieldDataListRepository.deleteByTwin_TwinClassIdAndTwinClassFieldIdIn(twinClassId, twinClassFieldIds);
+        log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") +  "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }
 
     @Data
