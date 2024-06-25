@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twin;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -78,7 +76,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showActions(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(TwinActionMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinActionMode.HIDE);
     }
 
     private static boolean showTransitions(MapperContext mapperContext) {
@@ -117,15 +115,5 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return src.getId().toString();
     }
 
-    @AllArgsConstructor
-    public enum TwinActionMode implements MapperMode {
-        HIDE(0),
-        SHOW(1);
 
-        public static final String _HIDE = "HIDE";
-        public static final String _SHOW = "SHOW";
-
-        @Getter
-        final int priority;
-    }
 }

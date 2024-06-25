@@ -21,6 +21,16 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum ActionMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHOW(1);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum AliasMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -111,6 +121,33 @@ public interface MapperMode {
 
         final int priority;
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinActionMode implements MapperModePointer<ActionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHOW(2);
+
+        final int priority;
+
+        @Override
+        public ActionMode point() {
+            return switch (this) {
+                case HIDE -> ActionMode.HIDE;
+                case SHOW -> ActionMode.SHOW;
+            };
+        }
+    }
+
+
+
+    /* *
+     *
+     * TODO POINTS ****************************************************************************************************
+     *
+     * */
+
 
     @Getter
     @AllArgsConstructor
