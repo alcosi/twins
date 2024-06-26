@@ -5,8 +5,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dao.twin.TwinAliasEntity;
+import org.twins.core.dto.rest.twin.TwinAliasDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -14,24 +14,25 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
+public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity, TwinAliasDTOv1> {
     final I18nService i18nService;
 
     @Override
-    public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
+    public void map(TwinAliasEntity src,  TwinAliasDTOv1 dst, MapperContext mapperContext) {
+        switch (mapperContext.getModeOrUse(TwinAliasRestDTOMapper.Mode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()))
-                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .logo(src.getLogo())
-                        .color(src.getColor());
+                        .alias(src.getAlias())
+                        .twinId(src.getTwinId())
+                        .domainId(src.getDomainId())
+                        .businessAccountId(src.getBusinessAccountId())
+                        .userId(src.getUserId());
                 break;
             case SHORT:
                 dst
                         .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()));
+                        .alias(src.getAlias());
                 break;
         }
     }
@@ -42,7 +43,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
     }
 
     @Override
-    public String getObjectCacheId(TwinStatusEntity src) {
+    public String getObjectCacheId(TwinAliasEntity src) {
         return src.getId().toString();
     }
 

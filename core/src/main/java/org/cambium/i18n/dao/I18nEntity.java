@@ -3,9 +3,9 @@ package org.cambium.i18n.dao;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.kit.Kit;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -30,33 +30,19 @@ public class I18nEntity {
     @Column(name = "key")
     private String key;
 
-    public List<I18nTranslationBinEntity> getTranslationsBin() {
-        return translationsBin;
-    }
-
-    public void setTranslationsBin(List<I18nTranslationBinEntity> translationsBin) {
-        this.translationsBin = translationsBin;
-    }
+    @Transient
+    private Kit<I18nTranslationEntity, Locale> translations;
 
     @Transient
-    private List<I18nTranslationEntity> translations;
-
-    @Transient
-    public void addTranslation(I18nTranslationEntity translationEntity) {
+    public I18nEntity addTranslation(I18nTranslationEntity translationEntity) {
         if (translations == null)
-            translations = new ArrayList<>();
+            translations = new Kit<>(I18nTranslationEntity::getLocale);
         translations.add(translationEntity);
+        return this;
     }
 
     @Transient
-    private List<I18nTranslationBinEntity> translationsBin;
-
-    @Transient
-    public void addTranslationBin(I18nTranslationBinEntity translationtranslationBinEntity) {
-        if (translationsBin == null)
-            translationsBin = new ArrayList<>();
-        translationsBin.add(translationtranslationBinEntity);
-    }
+    private Kit<I18nTranslationBinEntity, Locale> translationsBin;
 
     @Override
     public String toString() {

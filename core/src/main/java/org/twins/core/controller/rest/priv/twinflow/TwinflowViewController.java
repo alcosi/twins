@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionBaseV1RestDTOMapper;

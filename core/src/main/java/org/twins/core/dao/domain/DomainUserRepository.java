@@ -1,5 +1,7 @@
 package org.twins.core.dao.domain;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +15,9 @@ import java.util.UUID;
 @Repository
 public interface DomainUserRepository extends CrudRepository<DomainUserEntity, UUID>, JpaSpecificationExecutor<DomainUserEntity> {
     <T> T findByDomainIdAndUserId(UUID domainId, UUID userId, Class<T> type);
+
+    @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId")
+    Page<DomainEntity> findAllDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
 
     DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
 

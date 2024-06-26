@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 

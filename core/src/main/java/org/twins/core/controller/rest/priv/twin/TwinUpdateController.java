@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,8 +33,8 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
@@ -77,6 +78,7 @@ public class TwinUpdateController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
+            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
             @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
             @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
             @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
@@ -106,6 +108,7 @@ public class TwinUpdateController extends ApiController {
                     .setMode(showTwinMode)
                     .setMode(showTwinFieldMode)
                     .setMode(showAttachmentMode)
+                    .setMode(showTwinAliasMode)
                     .setMode(showTwinMarkerMode)
                     .setMode(showTwinTagMode)
                     .setMode(showTwinLinkMode)

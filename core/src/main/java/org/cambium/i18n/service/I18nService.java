@@ -6,7 +6,10 @@ import jakarta.persistence.PersistenceContext;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
@@ -19,7 +22,7 @@ import java.util.*;
 
 @Component
 @Slf4j
-public abstract class I18nService {
+public abstract class I18nService  {
     @Autowired
     private I18nRepository i18nRepository;
     @Autowired
@@ -116,11 +119,11 @@ public abstract class I18nService {
             return;
         List<Locale> locales = Arrays.asList(resolveDefaultLocale(), Locale.forLanguageTag(locale));
         if (i18nEntity.getType().isImage()) {
-            i18nEntity.setTranslationsBin(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales));
+            i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationBinEntity::getLocale));
         } else {
-            i18nEntity.setTranslations(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales));
+            i18nEntity.setTranslations(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
             if (i18nEntity.getType().isStyledText()) {
-                for (I18nTranslationEntity translation : i18nEntity.getTranslations()) {
+                for (I18nTranslationEntity translation : i18nEntity.getTranslations().getCollection()) {
                     translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
                 }
             }
@@ -184,18 +187,32 @@ public abstract class I18nService {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public I18nTranslationEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) {
-        I18nEntity i18nEntity = new I18nEntity()
-                .setKey(null)
-                .setName(null)
-                .setType(i18nType);
-        i18nEntity = i18nRepository.save(i18nEntity);
-        I18nTranslationEntity i18nTranslationEntity = new I18nTranslationEntity()
-                .setI18n(i18nEntity)
-                .setI18nId(i18nEntity.getId())
-                .setLocale(resolveDefaultLocale())
-                .setTranslation(defaultLocaleTranslation != null ? defaultLocaleTranslation : "");
-        return i18nTranslationRepository.save(i18nTranslationEntity);
+    public I18nEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) {
+        return createI18nAndTranslations(buildI18nEntity(i18nType, defaultLocaleTranslation));
+    }
+
+    public I18nEntity buildI18nEntity(I18nType i18nType, String translationInDefaultLocale) {
+        return new I18nEntity()
+                .setType(i18nType)
+                .addTranslation(new I18nTranslationEntity()
+                        .setLocale(resolveDefaultLocale())
+                        .setTranslation(translationInDefaultLocale));
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public I18nEntity createI18nAndTranslations(I18nEntity i18nEntity) {
+        i18nEntity.setId(null);
+        i18nEntity.setId(i18nRepository.save(i18nEntity).getId());
+        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+            return i18nEntity;
+        for (var entry : i18nEntity.getTranslations().getCollection()) {
+            entry
+                    .setI18n(i18nEntity)
+                    .setI18nId(i18nEntity.getId())
+                    .setTranslation(StringUtils.defaultString(entry.getTranslation()));
+        }
+        i18nTranslationRepository.saveAll(i18nEntity.getTranslations().getCollection());
+        return i18nEntity;
     }
 
     private String addCopyPostfix(String originalStr) {
@@ -218,5 +235,33 @@ public abstract class I18nService {
             locale = i18nProperties.defaultLocale();
         }
         return locale;
+    }
+
+    @Transactional
+    public I18nEntity saveTranslations(I18nEntity i18nEntity) throws ServiceException {
+        if (i18nEntity.getId() == null)
+            return createI18nAndTranslations(i18nEntity);
+        else
+            return updateTranslations(i18nEntity);
+    }
+
+    @Transactional
+    public I18nEntity updateTranslations(I18nEntity i18nEntity) throws ServiceException {
+        if (i18nEntity.getId() == null)
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "id can not be empty");
+        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+            return i18nEntity;
+        //todo all translations are currently being updated. you can update only the ones you need (obtain from the database)
+        List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
+        for (var entry : i18nEntity.getTranslations().getMap().entrySet()) {
+            if (entry.getValue().getTranslation() == null)
+                continue;
+            if (entry.getValue().getI18nId() == null) {
+                entry.getValue().setI18nId(i18nEntity.getId());
+            }
+            entitiesToSave.add(entry.getValue());
+        }
+        i18nTranslationRepository.saveAll(entitiesToSave);
+        return i18nEntity;
     }
 }

@@ -5,6 +5,7 @@ public interface RestRequestParam {
     String showTwinAttachmentMode = "showTwinAttachmentMode";
     String showDataListMode = "showDataListMode";
     String showDataListOptionMode = "showDataListOptionMode";
+    String showDomainMode = "showDomainMode";
     String showUserMode = "showUserMode";
     String showSpaceRoleMode = "showSpaceRoleMode";
     String showSpaceRoleUserMode = "showSpaceRoleUserMode";
@@ -28,6 +29,7 @@ public interface RestRequestParam {
     String showTwinLinkMode = "showTwinLinkMode";
     String showTwinMarkerMode = "showTwinMarkerMode";
     String showTwinTagMode = "showTwinTagMode";
+    String showTwinAliasMode = "showTwinAliasMode";
     String showLinkMode = "showLinkMode";
     String showTwinTransitionMode = "showTwinTransitionMode";
     String showTwinActionMode = "showTwinActionMode";

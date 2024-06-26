@@ -10,6 +10,7 @@ package org.twins.core.config;
 
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.service.EntitySmartService;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -85,6 +86,13 @@ public class ApplicationConfig {
                         true);
             }
         };
+    }
+
+    @Bean
+    public EntitySmartService entitySmartService() {
+        EntitySmartService entitySmartService = new EntitySmartService();
+                entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
+        return new EntitySmartService();
     }
 
 //    @Bean(name = "cacheManagerRequestScope")

@@ -3,11 +3,11 @@ package org.twins.core.service.space;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.List;

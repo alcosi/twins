@@ -1,13 +1,13 @@
 package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.service.EntitySmartService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
