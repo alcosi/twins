@@ -35,4 +35,13 @@ public class MapUtils extends org.apache.commons.collections.MapUtils {
         if (map == null) return 0;
         return map.size();
     }
+
+    public static boolean areEqual(Map<String, String> first, Map<String, String> second) {
+        if (sizeOf(first) != sizeOf(second)) {
+            return false;
+        }
+
+        return first.entrySet().stream()
+                .allMatch(e -> e.getValue().equals(second.get(e.getKey())));
+    }
 }

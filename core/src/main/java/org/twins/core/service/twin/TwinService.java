@@ -804,6 +804,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         log.info("Twin class fields [" + StringUtils.join(twinClassFieldIds, ",") +  "] perhaps were deleted from all twins of class[" + twinClassId + "]");
     }
 
+    public void convertFieldsForTwinsOfClass(TwinClassEntity twinClassEntity, TwinClassFieldEntity twinClassFieldForReplace, TwinClassFieldEntity twinClassFieldReplacement) throws ServiceException {
+        if (!twinClassFieldService.isConvertable(twinClassFieldForReplace, twinClassFieldReplacement))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_INCORRECT_TYPE, twinClassFieldForReplace.logNormal() + " can not be converted to " + twinClassFieldReplacement.logNormal());
+        var fieldTyper = featurerService.getFeaturer(twinClassFieldForReplace.getFieldTyperFeaturer(), FieldTyper.class);
+        if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+            twinFieldSimpleRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
+            twinFieldUserRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
+            twinFieldDataListRepository.replaceTwinClassFieldForTwinsOfClass(twinClassEntity.getId(), twinClassFieldForReplace.getId(), twinClassFieldReplacement.getId());
+        }
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {

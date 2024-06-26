@@ -197,10 +197,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
     public boolean isConvertable(TwinClassFieldEntity fromTwinClassField, TwinClassFieldEntity toTwinClassField) {
-        //todo move logic to FieldTypers
-        if (fromTwinClassField.getFieldTyperFeaturerId() != toTwinClassField.getFieldTyperFeaturerId()
-                || MapUtils.sizeOf(fromTwinClassField.getFieldTyperParams()) != MapUtils.sizeOf(toTwinClassField.getFieldTyperParams()))
-            return false;
-        return true;
+        //todo move logic to FieldTyper and make it more smart (not all FieldTyperParams are important)
+        return fromTwinClassField.getFieldTyperFeaturerId() == toTwinClassField.getFieldTyperFeaturerId()
+                && MapUtils.areEqual(fromTwinClassField.getFieldTyperParams(), toTwinClassField.getFieldTyperParams());
     }
 }

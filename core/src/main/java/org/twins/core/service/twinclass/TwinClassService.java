@@ -485,8 +485,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             if (!twinClassFieldReplacement.getTwinClassId().equals(dbTwinClassEntity.getId()) &&
                     !newExtendsTwinClass.getExtendedClassIdSet().contains(twinClassFieldReplacement.getTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, twinClassFieldReplacement.logNormal() + " is incorrect replacement for " + twinClassFieldForReplace.logNormal());
-            if (twinClassFieldService.isConvertable(twinClassFieldForReplace, twinClassFieldReplacement))
-                twinService.convertFieldsForTwinsOfClass(dbTwinClassEntity, twinClassFieldForReplace, twinClassFieldReplacement);
+
+            twinService.convertFieldsForTwinsOfClass(dbTwinClassEntity, twinClassFieldForReplace, twinClassFieldReplacement);
         }
         if (CollectionUtils.isNotEmpty(twinClassFieldsForDeletion))
             twinService.deleteTwinFieldsOfClass(twinClassFieldsForDeletion, dbTwinClassEntity.getId());
@@ -496,14 +496,16 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     }
 
     @Transactional
-    public void updateTwinClassHeadHunterFeaturer(TwinClassEntity updateTwinClassEntity, TwinClassEntity dbTwinClassEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("headHunterFeaturerId", dbTwinClassEntity.getHeadHunterFeaturerId(), updateTwinClassEntity.getHeadHunterFeaturerId()))
-            return;
-        FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(updateTwinClassEntity.getHeadHunterFeaturerId(), updateTwinClassEntity.getHeadHunterParams(), HeadHunter.class);
-        dbTwinClassEntity
-                .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
-                .setHeadHunterFeaturer(newHeadHunterFeaturer)
-                .setHeadHunterParams(updateTwinClassEntity.getHeadHunterParams());
+    public void updateTwinClassHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, TwinClassUpdate twinClassUpdate, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.isChanged("headHunterFeaturerId", dbTwinClassEntity.getHeadHunterFeaturerId(), twinClassUpdate.getHeadHunterFeaturerId())) {
+            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(twinClassUpdate.getHeadHunterFeaturerId(), twinClassUpdate.getHeadHunterParams(), HeadHunter.class);
+            dbTwinClassEntity
+                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
+                    .setHeadHunterFeaturer(newHeadHunterFeaturer);
+        }
+        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), twinClassUpdate.getHeadHunterParams()))
+            dbTwinClassEntity
+                    .setHeadHunterParams(twinClassUpdate.getHeadHunterParams());
     }
 
     @Transactional
