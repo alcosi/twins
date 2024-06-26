@@ -145,7 +145,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     }
 
     @AllArgsConstructor
-    public enum StatusMode implements MapperMode {
+    public enum StatusMode implements MapperMode { //collection
         HIDE(0),
         SHOW(1);
         public static final String _SHOW = "SHOW";
