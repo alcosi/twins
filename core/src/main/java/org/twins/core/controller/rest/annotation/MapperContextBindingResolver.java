@@ -13,7 +13,7 @@ import org.twins.core.mappers.rest.MapperMode;
 
 import java.lang.reflect.Parameter;
 
-//@Component
+@Component
 public class MapperContextBindingResolver implements HandlerMethodArgumentResolver {
 
     @Override
@@ -25,47 +25,26 @@ public class MapperContextBindingResolver implements HandlerMethodArgumentResolv
     @Override
     public Object resolveArgument(@NonNull MethodParameter parameter, ModelAndViewContainer mavContainer,
                                   @NonNull NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
-        MapperContext mapperContext = null;
-        if (parameter.getMethod().isAnnotationPresent(MapperContextBinding.class)) {
-            System.out.println("ra+");
-            Parameter[] parameters = parameter.getMethod().getParameters();
-            for (Parameter param : parameters) {
-                if (param.getType().equals(MapperContext.class)) {
-                    System.out.println("context found");
-                    mapperContext = new MapperContext();
-                    break;
+        MapperContext mapperContext = new MapperContext();
+        Parameter[] parameters = parameter.getMethod().getParameters();
+        for (Parameter param : parameters) {
+            if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && !param.getName().equals("lazyRelation")) {
+                Object value = webRequest.getParameter(param.getName());
+                if (value != null) {
+                    setModeInMapperContext(mapperContext, value, param.getType());
                 }
-            }
-
-            if (mapperContext != null) {
-                for (Parameter param : parameters) {
-                    System.out.println(param.getName());
-                    if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && !param.getName().equals("lazyRelation")) {
-                        Object value = webRequest.getParameter(param.getName());
-                        if (value != null) {
-                            System.out.println("here");
-                            setModeInMapperContext(mapperContext, value);
-                        }
-                    } else if (param.isAnnotationPresent(RequestParam.class) && param.getName().equals("lazyRelation")) {
-                        Object value = webRequest.getParameter(param.getName());
-                        System.out.println(value);
-                        if (value != null) {
-                            mapperContext.setLazyRelations(Boolean.parseBoolean((String) value));
-                        }
-                    }
+            } else if (param.isAnnotationPresent(RequestParam.class) && param.getName().equals("lazyRelation")) {
+                Object value = webRequest.getParameter(param.getName());
+                if (value != null) {
+                    mapperContext.setLazyRelations(Boolean.parseBoolean((String) value));
                 }
             }
         }
         return mapperContext;
     }
 
-    private void setModeInMapperContext(MapperContext mapperContext, Object value) {
-        System.out.println("set: " + value);
-        if (value instanceof MapperMode) {
-            mapperContext.setMode((MapperMode) value);
-        } else {
-            throw new IllegalArgumentException("Unsupported parameter type: " + value.getClass().getName());
-        }
+    private void setModeInMapperContext(MapperContext mapperContext, Object value, Class<?> paramType) {
+        mapperContext.setMode((MapperMode) Enum.valueOf((Class<Enum>) paramType, (String) value));
     }
 
 }

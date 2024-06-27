@@ -115,7 +115,7 @@ public class TwinFieldSaveController extends ApiController {
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/twin/{twinId}/field_list/v1", method = RequestMethod.POST)
-    public ResponseEntity<?> twinFieldListUpdateV1(
+    public ResponseEntity<?> twinFieldListUpdateV1(MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
@@ -131,15 +131,6 @@ public class TwinFieldSaveController extends ApiController {
             TwinEntity twinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
             List<FieldValue> fields = twinFieldValueRestDTOReverseMapperV2.mapFields(twinEntity.getTwinClassId(), request.getFields());
             twinService.updateTwinFields(twinEntity, fields);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showAttachmentMode);
             rs
                     .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

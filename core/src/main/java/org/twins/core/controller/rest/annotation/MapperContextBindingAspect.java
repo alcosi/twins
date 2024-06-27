@@ -11,7 +11,8 @@ import org.twins.core.mappers.rest.MapperMode;
 
 import java.lang.reflect.Parameter;
 
-@Aspect
+//@Aspect
+@Deprecated
 @Component
 public class MapperContextBindingAspect {
 

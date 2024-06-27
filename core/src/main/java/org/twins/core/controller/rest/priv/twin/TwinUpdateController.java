@@ -61,7 +61,7 @@ public class TwinUpdateController extends ApiController {
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/v1")
-    public ResponseEntity<?> twinUpdateV1(
+    public ResponseEntity<?> twinUpdateV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -92,27 +92,6 @@ public class TwinUpdateController extends ApiController {
             twinService.updateTwin(twinUpdate);
 
             // get twin by id and set result based on mapper context
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassStatusMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
 
             rs
                     .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))

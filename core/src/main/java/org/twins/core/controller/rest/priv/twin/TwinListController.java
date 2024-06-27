@@ -74,7 +74,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/search/v1")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchV1(
+    public ResponseEntity<?> twinSearchV1(MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
             @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
@@ -101,27 +101,6 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapper.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -143,7 +122,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/search/v2")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchV2(
+    public ResponseEntity<?> twinSearchV2(MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
             @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
@@ -170,27 +149,6 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -212,7 +170,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/search/v3")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchV3(
+    public ResponseEntity<?> twinSearchV3(MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
             @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
@@ -242,27 +200,6 @@ public class TwinListController extends ApiController {
             for(TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchWithHeadDTOReverseMapper.convert(dto));
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -285,7 +222,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/search_by_alias/{searchAlias}/v1")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchByAliasV1(
+    public ResponseEntity<?> twinSearchByAliasV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -313,27 +250,6 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))
@@ -355,7 +271,7 @@ public class TwinListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/search/{searchId}/v1")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> twinSearchByIdV1(
+    public ResponseEntity<?> twinSearchByIdV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -383,27 +299,6 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentCollectionMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showTwinLinkOnLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinSearchResult))

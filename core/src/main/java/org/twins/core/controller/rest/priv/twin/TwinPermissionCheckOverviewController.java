@@ -53,7 +53,7 @@ public class TwinPermissionCheckOverviewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> permissonCheckOverview(
+    public ResponseEntity<?> permissonCheckOverview(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.showPermissionSchemaMode, defaultValue = PermissionSchemaRestDTOMapper.Mode._DETAILED) PermissionSchemaRestDTOMapper.Mode showPermissionSchemaMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
@@ -66,14 +66,6 @@ public class TwinPermissionCheckOverviewController extends ApiController {
         PermissionCheckOverviewRsDTOv1 rs = new PermissionCheckOverviewRsDTOv1();
         try {
             PermissionCheckForTwinOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(request.userId(), twinId, request.permissionId());
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showPermissionSchemaMode)
-                    .setMode(showPermissionMode)
-                    .setMode(showPermissionGroupMode)
-                    .setMode(showUserGroupMode)
-                    .setMode(showSpaceRoleUserMode)
-                    .setMode(showSpaceRoleUserGroupMode)
-                    .setMode(showSpaceRoleMode);
             rs = permissionCheckOverviewDTOMapper.convert(permissionCheckOverviewResult, mapperContext);
         } catch (ServiceException se) {
             se.printStackTrace();

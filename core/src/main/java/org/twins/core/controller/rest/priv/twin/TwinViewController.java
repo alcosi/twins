@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
-import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
@@ -55,8 +54,7 @@ public class TwinViewController extends ApiController {
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/v1")
-    @MapperContextBinding
-    public ResponseEntity<?> twinViewV1(
+    public ResponseEntity<?> twinViewV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -78,8 +76,8 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
-            @Schema(hidden = true, defaultValue = "") MapperContext mapperContext) {
+            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
+            ) {
 
             TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
@@ -102,8 +100,7 @@ public class TwinViewController extends ApiController {
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/v2")
-    @MapperContextBinding
-    public ResponseEntity<?> twinViewV2(
+    public ResponseEntity<?> twinViewV2(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -125,8 +122,8 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
-            @Schema(hidden = true, defaultValue = "") MapperContext mapperContext) {
+            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
+            ) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
             rs
@@ -148,8 +145,7 @@ public class TwinViewController extends ApiController {
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v1")
-    @MapperContextBinding
-    public ResponseEntity<?> twinViewByAliasV1(
+    public ResponseEntity<?> twinViewByAliasV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
 
@@ -175,8 +171,8 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
-            @Schema(hidden = true, defaultValue = "") MapperContext mapperContext) {
+            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
+            ) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             rs
@@ -198,8 +194,7 @@ public class TwinViewController extends ApiController {
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v2")
-    @MapperContextBinding
-    public ResponseEntity<?> twinViewByAliasV2(
+    public ResponseEntity<?> twinViewByAliasV2(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
@@ -221,8 +216,8 @@ public class TwinViewController extends ApiController {
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
-            @Schema(hidden = true, defaultValue = "") MapperContext mapperContext) {
+            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
+            ) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             rs
