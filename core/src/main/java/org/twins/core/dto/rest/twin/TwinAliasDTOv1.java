@@ -9,7 +9,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinStatusV1")
+@Schema(name =  "TwinAliasV1")
 public class TwinAliasDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID id;

@@ -17,7 +17,7 @@ public class TwinStatusDTOv1 {
     public UUID id;
 
     @Schema(description = "key within the domain")
-    private String key;
+    public String key;
 
     @Schema(description = "name")
     public String name;
