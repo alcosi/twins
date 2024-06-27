@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassUpdateRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.common.BasicUpdateOperationRestDTOReverseMapper;
+import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.service.twinclass.TwinClassService;
 
 
@@ -15,8 +16,8 @@ import org.twins.core.service.twinclass.TwinClassService;
 @RequiredArgsConstructor
 public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassUpdateRqDTOv1, TwinClassUpdate> {
     final TwinClassService twinClassService;
-    final TwinClassSaveRestDTOReverseMapper twinClassSaveRestDTOReverseMapper;
     final BasicUpdateOperationRestDTOReverseMapper basicUpdateOperationRestDTOReverseMapper;
+    final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
     @Override
     public void map(TwinClassUpdateRqDTOv1 src, TwinClassUpdate dst, MapperContext mapperContext) throws Exception {
@@ -32,8 +33,13 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setLogo(src.getLogo())
                 .setViewPermissionId(src.getViewPermissionId())
 
+                .setNameI18n(i18nRestDTOReverseMapper.convert(src.getNameI18n(), mapperContext))
+                .setDescriptionI18n(i18nRestDTOReverseMapper.convert(src.getDescriptionI18n(), mapperContext))
+
                 .setDbTwinClassEntity(twinClassService.findEntitySafe(src.getTwinClassId()))
                 .setMarkerDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getMarkerDataListUpdate()))
-                .setTagDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getTagDataListChange()));
+                .setTagDataListUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getTagDataListChange()))
+                .setExtendsTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getExtendsTwinClassUpdate()))
+                .setHeadTwinClassUpdate(basicUpdateOperationRestDTOReverseMapper.convert(src.getHeadTwinClassUpdate()));
     }
 }

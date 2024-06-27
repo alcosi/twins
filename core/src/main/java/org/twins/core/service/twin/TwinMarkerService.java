@@ -9,9 +9,9 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.cambium.common.util.UuidUtils;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -182,6 +182,8 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         dataListService.loadDataListOptions(newMarkerDataList);
         Set<UUID> markersForDeletion = new HashSet<>();
         for (UUID markerForReplace : existedTwinMarkerIds) {
+            if (newMarkerDataList.getOptions().get(markerForReplace) != null) //be smart if somehow already existed marker belongs to new list
+                continue;
             UUID replacement = entityRelinkOperation.getReplaceMap().get(markerForReplace);
             if (replacement == null) {
                 if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)

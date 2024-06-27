@@ -92,7 +92,7 @@ public class ApplicationConfig {
     public EntitySmartService entitySmartService() {
         EntitySmartService entitySmartService = new EntitySmartService();
                 entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
-        return new EntitySmartService();
+        return entitySmartService;
     }
 
 //    @Bean(name = "cacheManagerRequestScope")

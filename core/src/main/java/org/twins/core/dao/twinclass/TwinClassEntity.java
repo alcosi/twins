@@ -194,10 +194,18 @@ public class TwinClassEntity implements EasyLoggable {
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet) {
             extendedClassIdSet = new HashSet<>();
-            for (String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
+            for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
                 extendedClassIdSet.add(UUID.fromString(hierarchyItem));
         }
         return extendedClassIdSet;
+    }
+
+    public static String convertUuidFromLtreeFormat(String uuidLtreeFormat) {
+        return uuidLtreeFormat.replace("_", "-");
+    }
+
+    public static String convertUuidToLtreeFormat(UUID uuid) {
+        return uuid.toString().replace("-", "_");
     }
 
     public String easyLog(Level level) {

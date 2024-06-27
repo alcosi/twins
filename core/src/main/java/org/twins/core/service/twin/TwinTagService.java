@@ -216,6 +216,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         dataListService.loadDataListOptions(newTagsDataList);
         Set<UUID> tagsForDeletion = new HashSet<>();
         for (UUID tagForReplace : existedTwinTagIds) {
+            if (newTagsDataList.getOptions().get(tagForReplace) != null) //be smart if somehow already existed tag belongs to new list
+                continue;
             UUID replacement = entityRelinkOperation.getReplaceMap().get(tagForReplace);
             if (replacement == null) {
                 if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)

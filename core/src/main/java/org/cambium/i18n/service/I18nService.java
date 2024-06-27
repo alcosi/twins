@@ -15,6 +15,8 @@ import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,8 @@ public abstract class I18nService  {
     private I18nProperties i18nProperties;
     @PersistenceContext
     private EntityManager entityManager;
+    @Autowired
+    private CacheManager cacheManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -260,8 +264,16 @@ public abstract class I18nService  {
                 entry.getValue().setI18nId(i18nEntity.getId());
             }
             entitiesToSave.add(entry.getValue());
+            evictCache(entry.getValue().getI18nId(), entry.getKey());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
+
         return i18nEntity;
+    }
+
+    public void evictCache(UUID i18nId, Locale locale) {
+        Cache cache = cacheManager.getCache(I18nTranslationRepository.CACHE_I18N_TRANSLATIONS);
+        if (cache != null)
+            cache.evictIfPresent(i18nId + "" + locale);
     }
 }
