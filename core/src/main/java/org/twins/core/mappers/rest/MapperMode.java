@@ -18,6 +18,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 public interface MapperMode {
     int getPriority();
 
+
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
@@ -111,6 +112,17 @@ public interface MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum StatusMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -402,6 +414,26 @@ public interface MapperMode {
                 case HIDE -> DataListOptionMode.HIDE;
                 case SHORT -> DataListOptionMode.SHORT;
                 case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinDefaultMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
             };
         }
     }

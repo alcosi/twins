@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twin;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -16,7 +14,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinDefaultMode.SHORT)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -40,7 +38,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TwinDefaultMode.HIDE);
     }
 
     @Override
@@ -48,17 +46,4 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
         return src.getId().toString();
     }
 
-    @Getter
-    @AllArgsConstructor
-    public enum TwinMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        final int priority;
-    }
 }

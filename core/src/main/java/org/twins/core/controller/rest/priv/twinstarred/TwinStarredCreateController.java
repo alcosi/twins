@@ -14,13 +14,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinStarredRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
 import org.twins.core.service.twin.TwinStarredService;
 
@@ -44,7 +44,7 @@ public class TwinStarredCreateController extends ApiController {
     @PutMapping(value = "/private/twin/{twinId}/star/v1")
     public ResponseEntity<?> markTwinAsStarredV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._SHORT) TwinBaseRestDTOMapper.TwinMode showTwinMode) {
+            @MapperModeParam MapperMode.TwinDefaultMode showTwinMode) {
         TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
         try {
             TwinStarredEntity twinStarredEntity = twinStarredService.addStarred(twinId);

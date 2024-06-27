@@ -13,7 +13,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -97,7 +96,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(MapperMode.TwinDefaultMode.SHORT)));
             }
         return null;
     }

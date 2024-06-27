@@ -3,8 +3,6 @@ package org.twins.core.mappers.rest.twin;
 import lombok.Getter;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModeCollection;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
-import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -12,9 +10,9 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 @Getter
 public enum RelatedByLinkTwinMode implements MapperModeCollection {
     WHITE(0,
-            TwinBaseRestDTOMapper.TwinMode.HIDE,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.HIDE,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -24,12 +22,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     GREEN(1,
-            TwinBaseRestDTOMapper.TwinMode.SHORT,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.SHORT,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -39,12 +36,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     FOREST_GREEN(1,
-            TwinBaseRestDTOMapper.TwinMode.SHORT,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.DETAILED,
+            TwinDefaultMode.SHORT,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.DETAILED,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -54,12 +50,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     YELLOW(2,
-            TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.DETAILED,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -69,12 +64,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     BLUE(3,
-            TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.DETAILED,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -84,12 +78,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     BLACK(4,
-            TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.DETAILED,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -99,12 +92,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     GRAY(4,
-            TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.DETAILED,
+            TwinDefaultMode.DETAILED,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.DETAILED,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
@@ -114,12 +106,11 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE),
+            TransitionMode.HIDE),
     ORANGE(5,
-            TwinBaseRestDTOMapper.TwinMode.DETAILED,
-            MapperMode.TwinMarkerMode.HIDE,
-            MapperMode.TwinTagMode.HIDE,
+            TwinDefaultMode.DETAILED,
+            TwinMarkerMode.HIDE,
+            TwinTagMode.HIDE,
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.DETAILED,
@@ -129,8 +120,7 @@ public enum RelatedByLinkTwinMode implements MapperModeCollection {
             TwinClassRestDTOMapper.TagMode.HIDE,
             TwinLinkMode.HIDE,
             TwinLinkOnLinkMode.HIDE,
-
-            MapperMode.TransitionMode.HIDE);
+            TransitionMode.HIDE);
 
     public static final String _WHITE = "WHITE";
     public static final String _GREEN = "GREEN";
