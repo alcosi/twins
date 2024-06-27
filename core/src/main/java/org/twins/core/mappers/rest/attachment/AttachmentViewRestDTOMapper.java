@@ -40,7 +40,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(MapperMode.CreatorMode.SHORT)))
                         .setTwinflowTransitionId(src.getTwinflowTransitionId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setTwinClassFieldId(src.getTwinClassFieldId())

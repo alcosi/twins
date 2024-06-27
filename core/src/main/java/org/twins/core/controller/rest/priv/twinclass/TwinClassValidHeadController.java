@@ -24,7 +24,6 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinSearchResult;
 
@@ -49,21 +48,18 @@ public class TwinClassValidHeadController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/valid_heads/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/valid_heads/v1")
     public ResponseEntity<?> twinClassValidHeadsV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             TwinSearchResult validHeads = twinHeadService.findValidHeads(twinClassId, offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showTwinMode);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getTwinList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));

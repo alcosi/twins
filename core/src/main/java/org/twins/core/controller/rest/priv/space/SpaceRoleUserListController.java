@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.space.UsersRefSpaceRolePageable;
 import org.twins.core.dto.rest.DTOExamples;
@@ -22,6 +23,7 @@ import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
@@ -56,12 +58,13 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/role/{roleId}/users/v1")
     public ResponseEntity<?> spaceRoleForUserListV1(
+            MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode) {
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
+            rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserByRole(spaceId, roleId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -79,15 +82,15 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/users/list/v1")
     public ResponseEntity<?> spaceUserListV1(
+            MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleByUserDTOMapper.Mode._SHORT) SpaceRoleByUserDTOMapper.Mode spaceRoleMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
             UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, offset, limit);
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
@@ -109,16 +112,16 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/users/search/v1")
     public ResponseEntity<?> spaceRoleUserSearchV1(
+            MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleByUserDTOMapper.Mode._SHORT) SpaceRoleByUserDTOMapper.Mode spaceRoleMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody UserRefSpaceRoleSearchDTOv1 request) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext().setLazyRelations(lazyRelation).setMode(showUserMode).setMode(spaceRoleMode);
             UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, offset, limit);
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))

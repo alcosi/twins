@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -25,10 +26,8 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 import org.twins.core.service.user.UserService;
@@ -53,23 +52,18 @@ public class TwinflowTransitionCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinStatusCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twinflow/{twinflowId}/transition/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twinflow/{twinflowId}/transition/v1")
     public ResponseEntity<?> transitionCreateV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinflowId,
             @RequestParam(name = RestRequestParam.showTransitionMode, defaultValue = MapperMode.TransitionMode.Fields.SHORT) MapperMode.TransitionMode showTwinflowTransitionMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode,
             @RequestBody TwinflowTransitionCreateRqDTOv1 request) {
         TwinflowTransitionCreateRsDTOv1 rs = new TwinflowTransitionCreateRsDTOv1();
         try {
             TwinflowTransitionEntity twinflowTransitionEntity = twinflowTransitionCreateRestDTOReverseMapper.convert(request.setTwinflowId(twinflowId));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(true)
-                    .setMode(showTwinflowTransitionMode)
-                    .setMode(showStatusMode)
-                    .setMode(showUserMode)
-                    .setMode(showPermissionMode);
             twinflowTransitionEntity = twinflowTransitionService.createTwinflowTransition(twinflowTransitionEntity, request.getName());
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));

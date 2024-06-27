@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinflowViewRsDTOv1;
@@ -23,10 +24,7 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV3RestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.util.UUID;
@@ -49,22 +47,16 @@ public class TwinflowViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowMode, defaultValue = MapperMode.TwinflowMode.Fields.SHORT) MapperMode.TwinflowMode showTwinflowMode,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = MapperMode.TwinflowTransitionMode.Fields.SHORT) MapperModePointer.TwinflowTransitionMode showTwinflowTransitionMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode) {
         TwinflowViewRsDTOv1 rs = new TwinflowViewRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showTwinflowMode)
-                    .setMode(showTwinflowTransitionMode)
-                    .setMode(showStatusMode)
-                    .setMode(showUserMode)
-                    .setMode(showPermissionMode);
             rs
                     .setTwinflow(twinflowBaseV3RestDTOMapper.convert(twinflowService.findEntitySafe(twinflowId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

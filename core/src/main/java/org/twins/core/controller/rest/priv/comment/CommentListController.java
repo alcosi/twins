@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -25,7 +26,6 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.pagination.PageableResult;
 
@@ -51,11 +51,12 @@ public class CommentListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._SHORT) CommentViewRestDTOMapper.Mode showCommentMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.SHORT) MapperMode.AttachmentMode showAttachmentMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -64,11 +65,6 @@ public class CommentListController extends ApiController {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
             PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showUserMode)
-                    .setMode(showCommentMode)
-                    .setMode(showAttachmentMode);
             rs
                     .setComments(commentViewRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentList))

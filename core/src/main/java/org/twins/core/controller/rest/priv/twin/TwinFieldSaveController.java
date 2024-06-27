@@ -34,7 +34,6 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -62,7 +61,7 @@ public class TwinFieldSaveController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1")
     public ResponseEntity<?> twinFieldSaveV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
@@ -87,7 +86,7 @@ public class TwinFieldSaveController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v2", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v2")
     public ResponseEntity<?> twinFieldByKeySaveV2(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
@@ -114,11 +113,11 @@ public class TwinFieldSaveController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/field_list/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/field_list/v1")
     public ResponseEntity<?> twinFieldListUpdateV1(MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
+            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = MapperMode.Mode._SHORT) MapperMode.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,

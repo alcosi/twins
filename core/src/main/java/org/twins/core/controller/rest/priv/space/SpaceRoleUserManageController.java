@@ -13,12 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.space.SpaceUserRoleService;
 
@@ -39,17 +40,18 @@ public class SpaceRoleUserManageController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/space/{spaceId}/role/{roleId}/users/manage/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/manage/v1")
     public ResponseEntity<?> spaceRoleUserManageV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._DETAILED) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestBody SpaceRoleUserRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
             spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
             rs.userList = userRestDTOMapper.convertCollection(
-                    spaceUserRoleService.findUserByRole(spaceId, roleId), new MapperContext().setMode(showUserMode));
+                    spaceUserRoleService.findUserByRole(spaceId, roleId), mapperContext);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

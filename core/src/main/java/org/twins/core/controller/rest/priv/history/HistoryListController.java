@@ -27,7 +27,6 @@ import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.pagination.PageableResult;
@@ -55,13 +54,13 @@ public class HistoryListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = HistoryListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/history/list/v1", method = RequestMethod.GET)
-    public ResponseEntity<?> historyListV1(
+    @GetMapping(value = "/private/twin/{twinId}/history/list/v1")
+    public ResponseEntity<?> historyListV1(MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._HIDE) UserRestDTOMapper.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.HIDE) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -69,11 +68,6 @@ public class HistoryListController extends ApiController {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
             PageableResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, sortDirection, offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showUserMode)
-                    .setMode(showTwinMode)
-                    .setMode(showClassMode);
             rs
                     .setHistoryList(historyDTOMapperV1.convertCollection(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))

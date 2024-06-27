@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.link;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -22,7 +20,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                 dst
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(UserRestDTOMapper.Mode.SHORT)))
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.cloneWithIsolatedModes().setMode(MapperMode.Mode.SHORT)))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setLinkId(src.getLinkId());
                 break;

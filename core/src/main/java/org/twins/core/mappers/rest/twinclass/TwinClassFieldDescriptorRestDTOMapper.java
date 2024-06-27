@@ -62,7 +62,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor = new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
                         .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext
-                                .setMode(UserRestDTOMapper.Mode.SHORT)
+                                .setMode(MapperMode.UserMode.SHORT)
                                 .setLazyRelations(mapperContext.isLazyRelations())));
                 if (userFieldDescriptor.users == null)
                     userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());

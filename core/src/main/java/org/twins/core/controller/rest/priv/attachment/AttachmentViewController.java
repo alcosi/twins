@@ -16,13 +16,13 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
@@ -44,18 +44,17 @@ public class AttachmentViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.DETAILED) MapperMode.AttachmentMode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode) {
+            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             rs.setAttachment(
                     attachmentRestDTOMapperV2.convert(
-                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperContext()
-                                    .setMode(showUserMode)
-                                    .setMode(showAttachmentMode)
+                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), mapperContext
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
