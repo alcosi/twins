@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.RelatedByLinkTwinMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
 @Component
@@ -20,7 +20,7 @@ public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEn
         twinLinkRestDTOMapper.map(src, dst, mapperContext);
         dst
                 .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getDstTwin(), mapperContext
-                        .cloneWithIsolatedModes(RelatedByLinkTwinMode.GREEN)))
+                        .cloneWithIsolatedModes(MapperMode.TwinByLinkMode.GREEN)))
                 .setLink(linkForwardRestDTOMapper.convert(src.getLink(), mapperContext))
                 .setDstTwinId(src.getDstTwinId());
     }

@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.RelatedByHeadTwinMode;
+import org.twins.core.mappers.rest.twin.RelationTwinMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -271,29 +271,61 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinHeadMode implements MapperModePointer<RelatedByHeadTwinMode> {
-        @FieldNameConstants.Include WHITE(0),
-        @FieldNameConstants.Include GREEN(1),
-        @FieldNameConstants.Include FOREST_GREEN(1),
-        @FieldNameConstants.Include YELLOW(2),
-        @FieldNameConstants.Include BLUE(3),
-        @FieldNameConstants.Include BLACK(4),
-        @FieldNameConstants.Include GRAY(4),
-        @FieldNameConstants.Include ORANGE(5);
+    enum TwinByHeadMode implements MapperModePointer<RelationTwinMode>, MapperModeCollection {
+        @FieldNameConstants.Include WHITE(0, new RelationTwinMode[]{RelationTwinMode.WHITE}),
+        @FieldNameConstants.Include GREEN(1, new RelationTwinMode[]{RelationTwinMode.GREEN}),
+        @FieldNameConstants.Include FOREST_GREEN(1, new RelationTwinMode[]{RelationTwinMode.FOREST_GREEN}),
+        @FieldNameConstants.Include YELLOW(2, new RelationTwinMode[]{RelationTwinMode.YELLOW}),
+        @FieldNameConstants.Include BLUE(3, new RelationTwinMode[]{RelationTwinMode.BLUE}),
+        @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
+        @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
+        @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE});
 
         final int priority;
+        final MapperMode[] configuredModes;
 
         @Override
-        public RelatedByHeadTwinMode point() {
+        public RelationTwinMode point() {
             return switch (this) {
-                case WHITE -> RelatedByHeadTwinMode.WHITE;
-                case GREEN -> RelatedByHeadTwinMode.GREEN;
-                case FOREST_GREEN -> RelatedByHeadTwinMode.FOREST_GREEN;
-                case YELLOW -> RelatedByHeadTwinMode.YELLOW;
-                case BLUE -> RelatedByHeadTwinMode.BLUE;
-                case BLACK -> RelatedByHeadTwinMode.BLACK;
-                case GRAY -> RelatedByHeadTwinMode.GRAY;
-                case ORANGE -> RelatedByHeadTwinMode.ORANGE;
+                case WHITE -> RelationTwinMode.WHITE;
+                case GREEN -> RelationTwinMode.GREEN;
+                case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
+                case YELLOW -> RelationTwinMode.YELLOW;
+                case BLUE -> RelationTwinMode.BLUE;
+                case BLACK -> RelationTwinMode.BLACK;
+                case GRAY -> RelationTwinMode.GRAY;
+                case ORANGE -> RelationTwinMode.ORANGE;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinByLinkMode implements MapperModePointer<RelationTwinMode>, MapperModeCollection {
+        @FieldNameConstants.Include WHITE(0, new RelationTwinMode[]{RelationTwinMode.WHITE}),
+        @FieldNameConstants.Include GREEN(1, new RelationTwinMode[]{RelationTwinMode.GREEN}),
+        @FieldNameConstants.Include FOREST_GREEN(1, new RelationTwinMode[]{RelationTwinMode.FOREST_GREEN}),
+        @FieldNameConstants.Include YELLOW(2, new RelationTwinMode[]{RelationTwinMode.YELLOW}),
+        @FieldNameConstants.Include BLUE(3, new RelationTwinMode[]{RelationTwinMode.BLUE}),
+        @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
+        @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
+        @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE});
+
+        final int priority;
+        final MapperMode[] configuredModes;
+
+        @Override
+        public RelationTwinMode point() {
+            return switch (this) {
+                case WHITE -> RelationTwinMode.WHITE;
+                case GREEN -> RelationTwinMode.GREEN;
+                case FOREST_GREEN -> RelationTwinMode.FOREST_GREEN;
+                case YELLOW -> RelationTwinMode.YELLOW;
+                case BLUE -> RelationTwinMode.BLUE;
+                case BLACK -> RelationTwinMode.BLACK;
+                case GRAY -> RelationTwinMode.GRAY;
+                case ORANGE -> RelationTwinMode.ORANGE;
             };
         }
     }
@@ -414,26 +446,6 @@ public interface MapperMode {
                 case HIDE -> DataListOptionMode.HIDE;
                 case SHORT -> DataListOptionMode.SHORT;
                 case DETAILED -> DataListOptionMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinDefaultMode implements MapperModePointer<TwinMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public TwinMode point() {
-            return switch (this) {
-                case HIDE -> TwinMode.HIDE;
-                case SHORT -> TwinMode.SHORT;
-                case DETAILED -> TwinMode.DETAILED;
             };
         }
     }

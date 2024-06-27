@@ -8,7 +8,6 @@ import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.RelatedByLinkTwinMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 
 @Component
@@ -24,7 +23,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
                 dst
                         .dstTwinClassId(src.getSrcTwinClassId())
                         .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
-                                .cloneWithIsolatedModes(RelatedByLinkTwinMode.GREEN)))
+                                .cloneWithIsolatedModes(MapperMode.TwinByLinkMode.GREEN)))
                         .linkStrengthId(src.getLinkStrengthId())
                         .type(src.getType());
             case SHORT:

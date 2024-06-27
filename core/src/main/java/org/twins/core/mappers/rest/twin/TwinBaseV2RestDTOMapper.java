@@ -52,10 +52,10 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst
                     .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(MapperMode.TwinClassMode.SHORT))) //todo deep recursion risk
                     .twinClassId(src.getTwinClassId());
-        if (mapperContext.hasModeButNot(MapperMode.TwinHeadMode.WHITE)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinByHeadMode.WHITE)) {
             twinService.loadHeadForTwin(src);
             dst
-                    .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(MapperMode.TwinHeadMode.GREEN)))  //head twin will be much less detail
+                    .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(MapperMode.TwinByHeadMode.GREEN)))  //head twin will be much less detail
                     .twinClassId(src.getTwinClassId());
         }
         if (mapperContext.hasModeButNot(MapperMode.TwinAliasMode.HIDE)) {

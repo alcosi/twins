@@ -52,7 +52,7 @@ public class TwinClassValidHeadController extends ApiController {
     @RequestMapping(value = "/private/twin_class/{twinClassId}/valid_heads/v1", method = RequestMethod.GET)
     public ResponseEntity<?> twinClassValidHeadsV1(
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @MapperModeParam MapperMode.TwinDefaultMode showTwinMode,
+            @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,

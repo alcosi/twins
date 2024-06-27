@@ -14,7 +14,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.TwinDefaultMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinMode.SHORT)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -38,7 +38,7 @@ public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinB
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.TwinDefaultMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.TwinMode.HIDE);
     }
 
     @Override

@@ -44,7 +44,7 @@ public class TwinStarredCreateController extends ApiController {
     @PutMapping(value = "/private/twin/{twinId}/star/v1")
     public ResponseEntity<?> markTwinAsStarredV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @MapperModeParam MapperMode.TwinDefaultMode showTwinMode) {
+            @MapperModeParam MapperMode.TwinMode showTwinMode) {
         TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
         try {
             TwinStarredEntity twinStarredEntity = twinStarredService.addStarred(twinId);
