@@ -18,7 +18,7 @@ public class TwinClassUpdateRqDTOv1 extends TwinClassSaveRqDTOv1 {
     public BasicUpdateOperationDTOv1 markerDataListUpdate;
 
     @Schema(description = "[optional] should be filled on change tag data list id")
-    public BasicUpdateOperationDTOv1 tagDataListChange;
+    public BasicUpdateOperationDTOv1 tagDataListUpdate;
 
     @Schema(description = "[optional] should be filled on change extends twins class id")
     public BasicUpdateOperationDTOv1 extendsTwinClassUpdate;
