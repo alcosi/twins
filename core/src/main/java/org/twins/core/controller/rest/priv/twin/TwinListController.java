@@ -82,7 +82,9 @@ public class TwinListController extends ApiController {
             @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
@@ -133,7 +135,9 @@ public class TwinListController extends ApiController {
             @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
@@ -184,7 +188,9 @@ public class TwinListController extends ApiController {
             @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
@@ -206,7 +212,7 @@ public class TwinListController extends ApiController {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             List<BasicSearch> basicSearches = new ArrayList<>();
-            for(TwinSearchRqDTOv1 dto : request)
+            for (TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchWithHeadDTOReverseMapper.convert(dto));
             TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, offset, limit);
             rs
@@ -240,7 +246,9 @@ public class TwinListController extends ApiController {
             @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
@@ -292,7 +300,9 @@ public class TwinListController extends ApiController {
             @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,

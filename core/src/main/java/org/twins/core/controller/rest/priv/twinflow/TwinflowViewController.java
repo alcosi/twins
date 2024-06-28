@@ -52,7 +52,7 @@ public class TwinflowViewController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showTwinflowMode, defaultValue = MapperMode.TwinflowMode.Fields.SHORT) MapperMode.TwinflowMode showTwinflowMode,
             @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = MapperMode.TwinflowTransitionMode.Fields.SHORT) MapperModePointer.TwinflowTransitionMode showTwinflowTransitionMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinflowInitStatusMode showTwinflowStatusMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode) {
         TwinflowViewRsDTOv1 rs = new TwinflowViewRsDTOv1();

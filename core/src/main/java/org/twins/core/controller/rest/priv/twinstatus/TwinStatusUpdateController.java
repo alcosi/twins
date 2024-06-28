@@ -16,7 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -24,7 +24,6 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRqDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusUpdateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOReverseMapper;
@@ -51,15 +50,15 @@ public class TwinStatusUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_status/{twinStatusId}/v1")
     public ResponseEntity<?> twinStatusUpdateV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_STATUS_ID) @PathVariable UUID twinStatusId,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @RequestBody TwinStatusUpdateRqDTOv1 request) {
         TwinStatusUpdateRsDTOv1 rs = new TwinStatusUpdateRsDTOv1();
         try {
             I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n().setI18nType(I18nType.TWIN_STATUS_NAME));
             I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n().setI18nType(I18nType.TWIN_STATUS_DESCRIPTION));
             TwinStatusEntity twinStatusEntity = twinStatusService.updateStatus(twinStatusRestDTOReverseMapper.convert(request.setId(twinStatusId)), nameI18n, descriptionI18n);
-            MapperContext mapperContext = new MapperContext().setMode(showStatusMode);
             rs.setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -27,7 +27,7 @@ public class TwinflowBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
                     .setCreatedByUserId(src.getCreatedByUserId());
         if (mapperContext.hasModeButNot(MapperMode.TwinflowInitStatusMode.HIDE) && src.getCreatedByUserId() != null)
             dst
-                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(MapperMode.TwinflowInitStatusMode.SHORT)))
+                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinflowInitStatusMode.SHORT))))
                     .setInitialStatusId(src.getInitialTwinStatusId());
     }
 

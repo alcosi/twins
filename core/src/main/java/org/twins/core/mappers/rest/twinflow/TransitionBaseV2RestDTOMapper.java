@@ -38,7 +38,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         if (mapperContext.hasModeButNot(MapperMode.TransitionStatusMode.HIDE))
             dst
                     .setSrcTwinStatusId(src.getDstTwinStatusId())
-                    .setSrcTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(MapperMode.TransitionStatusMode.SHORT)));
+                    .setSrcTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TransitionStatusMode.SHORT))));
         if (mapperContext.hasModeButNot(MapperMode.TransitionPermissionMode.HIDE) && src.getPermissionId() != null)
             dst
                     .setPermissionId(src.getDstTwinStatusId())

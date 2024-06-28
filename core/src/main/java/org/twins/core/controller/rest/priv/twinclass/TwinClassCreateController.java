@@ -50,12 +50,13 @@ public class TwinClassCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/v1")
     public ResponseEntity<?> twinClassCreateV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassStatusMode, defaultValue = TwinClassRestDTOMapper.StatusMode._HIDE) TwinClassRestDTOMapper.StatusMode showClassStatusMode,
+            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
             @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
             @MapperModeParam MapperMode.TwinClassLinkMode showTwinClassLinkMode,
@@ -64,15 +65,6 @@ public class TwinClassCreateController extends ApiController {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {
             TwinClassEntity twinClassEntity = twinClassCreateRestDTOReverseMapper.convert(request);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showClassStatusMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinClassLinkMode)
-                    .setMode(showStatusMode);
             twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, request.getName(), request.getDescription());
             rs
                     .setTwinClass(twinClassRestDTOMapper.convert(twinClassEntity, mapperContext))

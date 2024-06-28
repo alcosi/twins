@@ -62,11 +62,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))
                     .backwardLinkMap(linkBackwardRestDTOMapper.convertMap(findTwinClassLinksResult.getBackwardLinks(), mapperContext));
         }
-        if (mapperContext.hasMode(StatusMode.SHOW)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinClassStatusMode.HIDE)) {
             Kit<TwinStatusEntity, UUID> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
             if (statusKit != null) {
                 if (mapperContext.isLazyRelations())
-                    dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), mapperContext));
+                    dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassStatusMode.SHORT))));
                 else {
                     dst.statusList(mapperContext.addRelatedObjectMap(statusKit.getMap()));
                 }
@@ -117,7 +117,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public void beforeCollectionConversion(Collection<TwinClassEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasMode(StatusMode.SHOW)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinClassStatusMode.HIDE)) {
             twinStatusService.loadStatusesForTwinClasses(srcCollection);
         }
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext)) {
@@ -142,16 +142,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public String getObjectCacheId(TwinClassEntity src) {
         return src.getId().toString();
-    }
-
-    @AllArgsConstructor
-    public enum StatusMode implements MapperMode { //collection
-        HIDE(0),
-        SHOW(1);
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-        @Getter
-        final int priority;
     }
 
     @AllArgsConstructor

@@ -24,7 +24,6 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionCreateRsDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;
@@ -57,7 +56,7 @@ public class TwinflowTransitionCreateController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinflowId,
             @RequestParam(name = RestRequestParam.showTransitionMode, defaultValue = MapperMode.TransitionMode.Fields.SHORT) MapperMode.TransitionMode showTwinflowTransitionMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
+            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode,
             @RequestBody TwinflowTransitionCreateRqDTOv1 request) {
