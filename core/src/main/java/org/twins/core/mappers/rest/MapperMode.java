@@ -668,4 +668,64 @@ public interface MapperMode {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassTagMode implements MapperModePointer<DataListOptionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public DataListOptionMode point() {
+            return switch (this) {
+                case HIDE -> DataListOptionMode.HIDE;
+                case SHORT -> DataListOptionMode.SHORT;
+                case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassMarkerMode implements MapperModePointer<DataListOptionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public DataListOptionMode point() {
+            return switch (this) {
+                case HIDE -> DataListOptionMode.HIDE;
+                case SHORT -> DataListOptionMode.SHORT;
+                case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassFieldMode implements MapperModePointer<DataListOptionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public DataListOptionMode point() {
+            return switch (this) {
+                case HIDE -> DataListOptionMode.HIDE;
+                case SHORT -> DataListOptionMode.SHORT;
+                case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
 }

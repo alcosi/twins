@@ -55,7 +55,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext))
             dst.fields(
                     twinClassFieldRestDTOMapper.convertCollection(
-                            twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT))); //todo only required
+                            twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.setModeIfNotPresent(MapperMode.TwinClassFieldMode.SHORT))); //todo only required
         if (mapperContext.hasModeButNot(MapperMode.TwinClassLinkMode.HIDE)) {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
@@ -72,13 +72,13 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
-        if (!mapperContext.hasModeOrEmpty(MarkerMode.HIDE) && src.getMarkerDataListId() != null) {
+        if (!mapperContext.hasModeOrEmpty(MapperMode.TwinClassMarkerMode.HIDE) && src.getMarkerDataListId() != null) {
             twinClassService.loadMarkerDataList(src);
             DataListEntity markerDataListEntity = src.getMarkerDataList();
             dataListService.loadDataListOptions(markerDataListEntity);
             if (markerDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
-                        .setModeIfNotPresent(mapperContext.hasMode(MarkerMode.SHORT) ? MapperMode.DataListOptionMode.SHORT : MapperMode.DataListOptionMode.DETAILED);
+                        .setModeIfNotPresent(mapperContext.hasMode(MapperMode.TwinClassMarkerMode.SHORT) ? MapperMode.DataListOptionMode.SHORT : MapperMode.DataListOptionMode.DETAILED);
                 if (mapperContext.isLazyRelations())
                     dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions().getMap(), dataListMapperContext));
                 else {
@@ -87,11 +87,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
-        if (!mapperContext.hasModeOrEmpty(TagMode.HIDE) && src.getTagDataListId() != null) {
+        if (!mapperContext.hasModeOrEmpty(MapperMode.TwinClassTagMode.HIDE) && src.getTagDataListId() != null) {
             DataListEntity tagDataListEntity = dataListService.findEntitySafe(src.getTagDataListId());
             dataListService.loadDataListOptions(tagDataListEntity);
             if (tagDataListEntity.getOptions() != null) {
-                MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(mapperContext.hasMode(TagMode.SHORT) ? MapperMode.DataListOptionMode.SHORT : MapperMode.DataListOptionMode.DETAILED);
+                MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(mapperContext.hasMode(MapperMode.TwinClassTagMode.SHORT) ? MapperMode.DataListOptionMode.SHORT : MapperMode.DataListOptionMode.DETAILED);
                 if (mapperContext.isLazyRelations())
                     dst.tagMap(dataListOptionRestDTOMapper.convertMap(tagDataListEntity.getOptions().getMap(), dataListMapperContext));
                 else {
@@ -127,7 +127,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasMode(HeadClassMode.SHOW)) {
             twinClassService.loadExtendsTwinClasses(srcCollection);
         }
-        if (!mapperContext.hasModeOrEmpty(MarkerMode.HIDE)) {
+        if (!mapperContext.hasModeOrEmpty(MapperMode.TwinClassMarkerMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
     }
@@ -140,34 +140,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public String getObjectCacheId(TwinClassEntity src) {
         return src.getId().toString();
-    }
-
-    @AllArgsConstructor
-    public enum MarkerMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    public enum TagMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
     }
 
     @AllArgsConstructor

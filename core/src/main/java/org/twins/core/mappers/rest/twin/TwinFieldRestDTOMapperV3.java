@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dto.rest.twin.TwinFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -22,7 +23,7 @@ public class TwinFieldRestDTOMapperV3 extends RestSimpleDTOMapper<FieldValue, Tw
     @Override
     public void map(FieldValue src, TwinFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(TwinClassFieldRestDTOMapper.Mode.SHORT)))
+                .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(MapperMode.TwinClassFieldMode.SHORT)))
                 .value(twinFieldValueRestDTOMapper.convert(src));
     }
 }
