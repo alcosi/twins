@@ -44,14 +44,13 @@ public class TwinClassFieldListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/field/list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/field/list/v1")
     public ResponseEntity<?> twinClassFieldListV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode) {
         TwinClassFieldListRsDTOv1 rs = new TwinClassFieldListRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showClassFieldMode);
             List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(twinClassId);
             rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldsList, mapperContext));
         } catch (ServiceException se) {
@@ -69,15 +68,14 @@ public class TwinClassFieldListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1")
     public ResponseEntity<?> twinClassFieldViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findEntitySafe(twinClassFieldId);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showClassFieldMode);
             rs.field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

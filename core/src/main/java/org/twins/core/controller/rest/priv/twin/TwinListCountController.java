@@ -56,7 +56,7 @@ public class TwinListCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchBatchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/count/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/count/v1")
     public ResponseEntity<?> twinSearchCountInBatchV1(@RequestBody TwinSearchBatchRqDTOv1 request) {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {
@@ -79,7 +79,7 @@ public class TwinListCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchBatchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search_by_alias/count/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search_by_alias/count/v1")
     public ResponseEntity<?> twinSearchByAliasCountInBatchV1(@RequestBody TwinSearchByAliasBatchRqDTOv1 request) {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {

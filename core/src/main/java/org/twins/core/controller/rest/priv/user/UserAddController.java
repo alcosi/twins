@@ -46,7 +46,7 @@ public class UserAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/user/v1")
     public ResponseEntity<?> userAddV1(
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();

@@ -45,7 +45,7 @@ public class CommentEditController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/{commentId}/v1", method = RequestMethod.PUT)
+    @PutMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentUpdateV1(
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId,
             @RequestBody CommentUpdateRqDTOv1 request) {

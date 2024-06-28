@@ -41,17 +41,15 @@ public class CommentViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/{commentId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._DETAILED) CommentViewRestDTOMapper.Mode showCommentMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.SHORT) MapperMode.AttachmentMode showAttachmentMode,
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {
             TwinCommentEntity comment = commentService.findEntitySafe(commentId);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showCommentMode)
-                    .setMode(showAttachmentMode);
             rs
                     .setComment(commentViewRestDTOMapper.convert(comment, mapperContext));
         } catch (ServiceException se) {

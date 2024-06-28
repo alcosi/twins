@@ -49,6 +49,7 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.DETAILED) MapperMode.DataListOptionMode showDataListOptionMode) {
@@ -56,9 +57,7 @@ public class DataListPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymous();
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListId), new MapperContext()
-                            .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode));
+                    dataListService.findEntitySafe(dataListId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

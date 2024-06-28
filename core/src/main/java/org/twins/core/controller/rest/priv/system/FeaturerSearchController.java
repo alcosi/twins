@@ -46,6 +46,7 @@ public class FeaturerSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
+        MapperContext mapperContext,
         @RequestParam(name = RestRequestParam.showFeaturerMode, defaultValue = FeaturerRestDTOMapper.Mode._SHORT) FeaturerRestDTOMapper.Mode showFeaturerMode,
         @RequestParam(name = RestRequestParam.showFeaturerParamMode, defaultValue = FeaturerRestDTOMapper.ShowFeaturerParamMode._SHOW) FeaturerRestDTOMapper.ShowFeaturerParamMode showFeaturerParamMode,
         @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
@@ -53,9 +54,6 @@ public class FeaturerSearchController extends ApiController {
         @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showFeaturerMode)
-                    .setMode(showFeaturerParamMode);
             FeaturerSearchResult featurers = featurerService
                     .findFeaturers(featurerDTOReversMapper.convert(request), offset, limit);
             rs

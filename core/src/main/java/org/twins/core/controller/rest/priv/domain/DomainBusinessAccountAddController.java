@@ -45,7 +45,7 @@ public class DomainBusinessAccountAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/business_account/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/domain/{domainId}/business_account/v1")
     public ResponseEntity<?> domainBusinessAccountAddV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {

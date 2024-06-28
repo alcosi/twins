@@ -37,7 +37,7 @@ public class CommentDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/{commentId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentDeleteV1(
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
         Response rs = new Response();

@@ -51,6 +51,7 @@ public class DomainListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/list/v1")
     public ResponseEntity<?> domainListV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.showDomainMode, defaultValue = DomainViewRestDTOMapper.DomainMode._SHORT) DomainViewRestDTOMapper.DomainMode showDomainMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
@@ -61,8 +62,6 @@ public class DomainListController extends ApiController {
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
             PageableResult<DomainEntity> domainList = domainService.findDomainListByUser(offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showDomainMode);
             rs
                     .setDomainList(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainList));

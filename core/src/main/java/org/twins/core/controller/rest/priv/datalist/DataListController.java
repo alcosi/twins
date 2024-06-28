@@ -46,18 +46,16 @@ public class DataListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/data_list/{dataListId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDataListMode,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.DETAILED) MapperMode.DataListOptionMode showDataListOptionMode) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findEntitySafe(dataListId), new MapperContext()
-                            .setMode(showDataListMode)
-                            .setMode(showDataListOptionMode));
+            rs.dataList = dataListRestDTOMapper.convert(dataListService.findEntitySafe(dataListId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

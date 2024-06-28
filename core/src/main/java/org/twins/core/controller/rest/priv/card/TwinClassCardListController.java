@@ -43,8 +43,9 @@ public class TwinClassCardListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CardListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/card/list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/card/list/v1")
     public ResponseEntity<?> twinClassCardListV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardRestDTOMapper.Mode showCardMode,
             @RequestParam(name = RestRequestParam.showCardWidgetMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardWidgetRestDTOMapper.Mode showCardWidgetMode) {
@@ -53,9 +54,7 @@ public class TwinClassCardListController extends ApiController {
             ApiUser apiUser = authService.getApiUser();
             rs.cardList(
                     cardRestDTOMapper.convertCollection(
-                            cardService.findCards(apiUser, twinClassId), new MapperContext()
-                                    .setMode(showCardMode)
-                                    .setMode(showCardWidgetMode)));
+                            cardService.findCards(apiUser, twinClassId), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -37,7 +37,7 @@ public class BusinessAccountDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/business_account/{businessAccountId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/business_account/{businessAccountId}/v1")
     public ResponseEntity<?> businessAccountDeleteV1(
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
         Response rs = new Response();

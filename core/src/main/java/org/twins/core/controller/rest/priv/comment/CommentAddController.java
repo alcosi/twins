@@ -43,7 +43,7 @@ public class CommentAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentAddV1(
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID twinId,
             @RequestBody CommentCreateRqDTOv1 request) {

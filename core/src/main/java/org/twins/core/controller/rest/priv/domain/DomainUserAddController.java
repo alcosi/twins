@@ -44,7 +44,7 @@ public class DomainUserAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/user/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/domain/{domainId}/user/v1")
     public ResponseEntity<?> domainUserAddV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @RequestBody DomainUserAddRqDTOv1 request) {

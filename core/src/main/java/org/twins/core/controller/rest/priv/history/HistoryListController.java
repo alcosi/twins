@@ -54,7 +54,8 @@ public class HistoryListController extends ApiController {
                     @Schema(implementation = HistoryListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/history/list/v1")
-    public ResponseEntity<?> historyListV1(MapperContext mapperContext,
+    public ResponseEntity<?> historyListV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,

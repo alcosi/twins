@@ -43,7 +43,7 @@ public class DomainAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DomainViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/domain/v1")
     public ResponseEntity<?> domainAddV1(
             @RequestBody DomainAddRqDTOv1 request) {
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();

@@ -43,7 +43,7 @@ public class TwinDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinDeleteV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();

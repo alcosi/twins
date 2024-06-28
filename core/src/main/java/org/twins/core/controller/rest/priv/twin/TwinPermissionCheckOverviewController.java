@@ -53,7 +53,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
-    public ResponseEntity<?> permissonCheckOverview(MapperContext mapperContext,
+    public ResponseEntity<?> permissonCheckOverview(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.showPermissionSchemaMode, defaultValue = PermissionSchemaRestDTOMapper.Mode._DETAILED) PermissionSchemaRestDTOMapper.Mode showPermissionSchemaMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,

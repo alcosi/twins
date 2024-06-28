@@ -43,7 +43,7 @@ public class TwinLinkAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinLinkAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/link/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/link/v1")
     public ResponseEntity<?> twinLinkAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinLinkAddRqDTOv1 request) {

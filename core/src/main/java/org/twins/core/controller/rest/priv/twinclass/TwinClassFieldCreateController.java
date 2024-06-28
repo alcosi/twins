@@ -49,8 +49,9 @@ public class TwinClassFieldCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/field/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/{twinClassId}/field/v1")
     public ResponseEntity<?> twinClassFieldCreateV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestBody TwinClassFieldCreateRqDTOv1 request) {
@@ -58,8 +59,6 @@ public class TwinClassFieldCreateController extends ApiController {
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldCreateRestDTOReverseMapper.convert(request)
                     .setTwinClassId(twinClassId);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showClassFieldMode);
             twinClassFieldEntity = twinClassFieldService.createSimpleField(twinClassFieldEntity, request.getName(), request.getDescription());
             rs
                     .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext));

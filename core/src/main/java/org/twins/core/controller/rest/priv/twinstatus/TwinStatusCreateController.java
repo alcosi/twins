@@ -52,8 +52,10 @@ public class TwinStatusCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinStatusCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/twin_status/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/{twinClassId}/twin_status/v1")
     public ResponseEntity<?> twinStatusCreateV1(
+            MapperContext mapperContext,
+            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.HIDE) MapperModePointer.StatusMode showStatusMode,
             @RequestBody TwinStatusCreateRqDTOv1 request) {
@@ -64,9 +66,6 @@ public class TwinStatusCreateController extends ApiController {
             I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
             twinStatusService.createStatus(twinStatusEntity, nameI18n, descriptionsI18n);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(true)
-                    .setMode(showStatusMode);
             rs
                     .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {

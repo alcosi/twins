@@ -47,6 +47,7 @@ public class DataListOptionPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/public/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionPublicViewV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
@@ -55,7 +56,7 @@ public class DataListOptionPublicController extends ApiController {
             DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
             rs
                     .dataListId(dataListOptionEntity.getDataListId())
-                    .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity, new MapperContext().setMode(showDataListOptionMode)));
+                    .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -73,6 +74,7 @@ public class DataListOptionPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/map/v1")
     public ResponseEntity<?> dataListOptionsMapViewV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
@@ -80,9 +82,7 @@ public class DataListOptionPublicController extends ApiController {
             authService.getApiUser().setAnonymous();
             rs
                     .dataListOptionMap(dataListOptionRestDTOMapper.convertMap(
-                            dataListService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(),
-                            new MapperContext().setMode(showDataListOptionMode)
-                    ));
+                            dataListService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

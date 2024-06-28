@@ -39,7 +39,7 @@ public class DomainUserDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/user/{userId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/domain/{domainId}/user/{userId}/v1")
     public ResponseEntity<?> domainUserDeleteV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {

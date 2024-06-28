@@ -44,8 +44,9 @@ public class TwinClassFieldSharedController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class_field/{twinClassFieldId}/data_list_shared_in_head/{headTwinId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class_field/{twinClassFieldId}/data_list_shared_in_head/{headTwinId}/v1")
     public ResponseEntity<?> twinClassFieldDataListSharedInHeadV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_SHARED_IN_HEAD_ID) @PathVariable UUID twinClassFieldId,
             @Parameter(example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId,
             @RequestParam(name = RestRequestParam.showDataListMode, defaultValue = DataListRestDTOMapper.Mode._DETAILED) DataListRestDTOMapper.Mode showDatalistMode,
@@ -53,9 +54,7 @@ public class TwinClassFieldSharedController extends ApiController {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             rs.dataList = dataListRestDTOMapper.convert(
-                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), new MapperContext()
-                            .setMode(showDatalistMode)
-                            .setMode(showDataListOptionMode));
+                    dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

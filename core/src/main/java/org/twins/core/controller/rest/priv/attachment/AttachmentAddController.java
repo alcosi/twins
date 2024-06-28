@@ -45,7 +45,7 @@ public class AttachmentAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/attachment/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/attachment/v1")
     public ResponseEntity<?> attachmentAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody AttachmentAddRqDTOv1 request) {

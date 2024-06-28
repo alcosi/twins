@@ -45,8 +45,9 @@ public class UserGroupMemberManageController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/user_group/manage/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/user/{userId}/user_group/manage/v1")
     public ResponseEntity<?> userGroupMemberManageV1(
+            MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode,
             @RequestBody UserGroupMemberManageRqDTOv1 request) {
@@ -54,7 +55,7 @@ public class UserGroupMemberManageController extends ApiController {
         try {
             userGroupService.manageForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS), request.getUserGroupEnterList(), request.getUserGroupExitList());
             rs.userGroupList = userGroupDTOMapper.convertCollection(
-                    userGroupService.findGroupsForUser(userId), new MapperContext().setMode(showUserGroupMode));
+                    userGroupService.findGroupsForUser(userId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
