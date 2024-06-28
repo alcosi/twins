@@ -143,6 +143,10 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private Set<UUID> headHierarchyClassIdSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private Set<UUID> childClassIdSet;
 
     @Transient
@@ -198,6 +202,15 @@ public class TwinClassEntity implements EasyLoggable {
                 extendedClassIdSet.add(UUID.fromString(hierarchyItem));
         }
         return extendedClassIdSet;
+    }
+
+    public Set<UUID> getHeadHierarchyClassIdSet() {
+        if (null == headHierarchyClassIdSet) {
+            headHierarchyClassIdSet = new HashSet<>();
+            for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
+                headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));
+        }
+        return headHierarchyClassIdSet;
     }
 
     public static String convertUuidFromLtreeFormat(String uuidLtreeFormat) {

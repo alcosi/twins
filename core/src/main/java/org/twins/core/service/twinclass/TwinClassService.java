@@ -529,8 +529,9 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
     }
 
-    private TwinClassEntity setNewExtendsTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newExtendsTwinClass) {
+    private static TwinClassEntity setNewExtendsTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newExtendsTwinClass) {
         if (twinClassEntity.getExtendsTwinClassId() != null)
+            // we will do it manually (but also it will be done by db trigger on save)
             twinClassEntity
                     .setExtendsHierarchyTree(
                             newExtendsTwinClass.getExtendsHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getExtendsHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getExtendsTwinClassId())))
@@ -541,6 +542,20 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setTwinClassFieldKit(null); //invalidating
         return twinClassEntity;
     }
+
+    private static TwinClassEntity setNewHeadTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newHeadTwinClass) {
+        if (twinClassEntity.getExtendsTwinClassId() != null)
+            // we will do it manually (but also it will be done by db trigger on save)
+            twinClassEntity
+                    .setHeadHierarchyTree(
+                            newHeadTwinClass.getHeadHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getHeadHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getHeadTwinClassId())))
+                    .setHeadHierarchyClassIdSet(null);
+        twinClassEntity
+                .setHeadTwinClassId(newHeadTwinClass.getId())
+                .setHeadTwinClass(newHeadTwinClass);
+        return twinClassEntity;
+    }
+
 
     @Transactional
     public void updateTwinClassHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
@@ -559,15 +574,18 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public void updateTwinClassHeadTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation headRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
         if (headRelinkOperation == null || !changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), headRelinkOperation.getNewId()))
             return;
+        TwinClassEntity newHeadTwinClassEntity = findEntitySafe(headRelinkOperation.getNewId());
+        if (newHeadTwinClassEntity.getHeadHierarchyClassIdSet().contains(dbTwinClassEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, newHeadTwinClassEntity.logNormal() + " can not be set as head of " + dbTwinClassEntity.logNormal() + " because of cycling");
         if (dbTwinClassEntity.getHeadTwinClassId() == null || !twinRepository.existsByTwinClassId(dbTwinClassEntity.getId())) {
-            dbTwinClassEntity
-                    .setHeadTwinClassId(headRelinkOperation.getNewId())
-                    .setHeadTwinClass(findEntitySafe(headRelinkOperation.getNewId()));
+            setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
             return;
         }
         Set<UUID> existedTwinHeadIds = findExistedTwinHeadIdsOfClass(dbTwinClassEntity.getId());
-        if (CollectionUtils.isEmpty(existedTwinHeadIds))
+        if (CollectionUtils.isEmpty(existedTwinHeadIds)) {
+            setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
             return;
+        }
         if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
                 && MapUtils.isEmpty(headRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));

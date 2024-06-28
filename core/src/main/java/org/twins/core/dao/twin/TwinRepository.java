@@ -44,7 +44,7 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
             @Param("isAssignee") boolean isAssignee,
             @Param("isCreator") boolean isCreator);
 
-    @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId != null")
+    @Query(value = "select distinct t.headTwinId from TwinEntity t where t.twinClassId = :twinClassId and t.headTwinId is not null")
     Set<UUID> findDistinctHeadTwinIdByTwinClassId(UUID twinClassId);
 
     @Transactional
