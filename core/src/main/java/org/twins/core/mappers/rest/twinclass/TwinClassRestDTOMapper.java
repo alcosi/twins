@@ -103,14 +103,12 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasMode(HeadClassMode.SHOW) && src.getHeadTwinClassId() != null) {
             twinClassService.loadHeadTwinClass(src);
             dst.headClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getHeadTwinClass(),
-                    mapperContext.cloneWithFlushedModes()
-                            .setMode(mapperContext.getModeOrUse(TwinClassBaseRestDTOMapper.ClassMode.SHORT))));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassMode.SHORT))));
         }
         if (mapperContext.hasMode(ExtendsClassMode.SHOW) && src.getExtendsTwinClassId() != null) {
             twinClassService.loadExtendsTwinClass(src);
             dst.extendsClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(),
-                    mapperContext.cloneWithFlushedModes()
-                            .setMode(mapperContext.getModeOrUse(TwinClassBaseRestDTOMapper.ClassMode.SHORT))));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassMode.SHORT))));
         }
     }
 

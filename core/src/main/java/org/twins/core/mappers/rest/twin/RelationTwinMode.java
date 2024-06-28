@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModeCollection;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 
@@ -18,7 +17,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.HIDE,
+            TwinClassMode.HIDE,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -32,7 +31,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.SHORT,
+            TwinClassMode.SHORT,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -46,7 +45,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.SHORT,
+            TwinClassMode.SHORT,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -60,7 +59,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NO_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.SHORT,
+            TwinClassMode.SHORT,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -74,7 +73,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.SHORT,
+            TwinClassMode.SHORT,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -88,7 +87,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.DETAILED,
+            TwinClassMode.DETAILED,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -102,7 +101,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.HIDE,
-            TwinClassBaseRestDTOMapper.ClassMode.DETAILED,
+            TwinClassMode.DETAILED,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,
@@ -116,7 +115,7 @@ public enum RelationTwinMode implements MapperModeCollection {
             TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldRestDTOMapper.Mode.DETAILED,
-            TwinClassBaseRestDTOMapper.ClassMode.DETAILED,
+            TwinClassMode.DETAILED,
             TwinClassStatusMode.HIDE,
             TwinClassRestDTOMapper.MarkerMode.HIDE,
             TwinClassRestDTOMapper.TagMode.HIDE,

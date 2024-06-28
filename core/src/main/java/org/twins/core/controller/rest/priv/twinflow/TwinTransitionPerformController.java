@@ -31,7 +31,6 @@ import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionPerformRsRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
@@ -81,7 +80,7 @@ public class TwinTransitionPerformController extends ApiController {
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
@@ -136,7 +135,7 @@ public class TwinTransitionPerformController extends ApiController {
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
@@ -190,7 +189,7 @@ public class TwinTransitionPerformController extends ApiController {
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
@@ -249,7 +248,7 @@ public class TwinTransitionPerformController extends ApiController {
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,

@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twinclass;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
@@ -19,7 +17,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(ClassMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.ClassMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -44,7 +42,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(ClassMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.ClassMode.HIDE);
     }
 
     @Override
@@ -53,17 +51,4 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     }
 
 
-    @AllArgsConstructor
-    public enum ClassMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

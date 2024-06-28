@@ -24,8 +24,6 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
@@ -55,10 +53,11 @@ public class TwinClassListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/search/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/search/v1")
     public ResponseEntity<?> twinClassSearchV1(
+            MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
@@ -72,18 +71,6 @@ public class TwinClassListController extends ApiController {
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showClassStatusMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(TwinRestDTOMapper.FieldsMode.NO_FIELDS)
-                    .setMode(showTwinClassLinkMode)
-                    .setMode(showStatusMode)
-                    .setMode(showHeadClassMode)
-                    .setMode(showExtendsClassMode);
             TwinClassResult twinClasses = twinClassService
                     .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), offset, limit);
             rs
@@ -110,7 +97,7 @@ public class TwinClassListController extends ApiController {
     public ResponseEntity<?> twinClassLstV1(
             MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
             @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,

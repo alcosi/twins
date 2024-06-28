@@ -26,7 +26,6 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.pagination.PageableResult;
@@ -62,7 +61,7 @@ public class HistoryListController extends ApiController {
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
             @MapperModeParam(def = MapperMode.CreatorMode.Fields.HIDE) MapperMode.CreatorMode showCreatorMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
+            @MapperModeParam MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();

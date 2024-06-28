@@ -12,7 +12,6 @@ import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.RelationTwinMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 
 public interface MapperMode {
     int getPriority();
@@ -132,6 +131,17 @@ public interface MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum TwinMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum ClassMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -379,7 +389,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassMode implements MapperModePointer<TwinClassBaseRestDTOMapper.ClassMode> {
+    enum TwinClassMode implements MapperModePointer<ClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -387,11 +397,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public TwinClassBaseRestDTOMapper.ClassMode point() {
+        public ClassMode point() {
             return switch (this) {
-                case HIDE -> TwinClassBaseRestDTOMapper.ClassMode.HIDE;
-                case SHORT -> TwinClassBaseRestDTOMapper.ClassMode.SHORT;
-                case DETAILED -> TwinClassBaseRestDTOMapper.ClassMode.DETAILED;
+                case HIDE -> ClassMode.HIDE;
+                case SHORT -> ClassMode.SHORT;
+                case DETAILED -> ClassMode.DETAILED;
             };
         }
     }
