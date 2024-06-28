@@ -291,6 +291,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setCreatedByUserId(apiUser.getUserId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         refreshExtendsHierarchyTree(twinClassEntity);
+        refreshHeadHierarchyTree(twinClassEntity);
         TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
         TwinflowEntity twinflowEntity = twinflowService.createTwinflow(twinClassEntity, twinStatusEntity);
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowService.registerTwinflow(twinflowEntity, apiUser.getDomain(), twinClassEntity);
@@ -541,17 +542,23 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         twinClassEntity.setExtendedClassIdSet(null);
     }
 
-    private static TwinClassEntity setNewHeadTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newHeadTwinClass) {
-        if (twinClassEntity.getExtendsTwinClassId() != null)
-            // we will do it manually (but also it will be done by db trigger on save)
-            twinClassEntity
-                    .setHeadHierarchyTree(
-                            newHeadTwinClass.getHeadHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getHeadHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getHeadTwinClassId())))
-                    .setHeadHierarchyClassIdSet(null);
+    private TwinClassEntity setNewHeadTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newHeadTwinClass) throws ServiceException {
         twinClassEntity
-                .setHeadTwinClassId(newHeadTwinClass.getId())
+                .setHeadTwinClassId(newHeadTwinClass != null ? newHeadTwinClass.getId() : null)
                 .setHeadTwinClass(newHeadTwinClass);
+        refreshHeadHierarchyTree(twinClassEntity);
         return twinClassEntity;
+    }
+
+    // we can refresh tree from code. because db trigger will do this only after transaction commit, but perhaps we will need this field earlier
+    public void refreshHeadHierarchyTree(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getHeadTwinClassId() == null) {
+            twinClassEntity.setHeadHierarchyTree(TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+        } else {
+            loadHeadTwinClass(twinClassEntity);
+            twinClassEntity.setHeadHierarchyTree(twinClassEntity.getHeadTwinClass().getHeadHierarchyTree() + "." + TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+        }
+        twinClassEntity.setHeadHierarchyClassIdSet(null);
     }
 
 
@@ -572,8 +579,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public void updateTwinClassHeadTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation headRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
         if (headRelinkOperation == null || !changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), headRelinkOperation.getNewId()))
             return;
-        TwinClassEntity newHeadTwinClassEntity = findEntitySafe(headRelinkOperation.getNewId());
-        if (newHeadTwinClassEntity.getHeadHierarchyClassIdSet().contains(dbTwinClassEntity.getId()))
+        TwinClassEntity newHeadTwinClassEntity = UuidUtils.isNullifyMarker(headRelinkOperation.getNewId()) ? null : findEntitySafe(headRelinkOperation.getNewId());
+        if (newHeadTwinClassEntity != null && newHeadTwinClassEntity.getHeadHierarchyClassIdSet().contains(dbTwinClassEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, newHeadTwinClassEntity.logNormal() + " can not be set as head of " + dbTwinClassEntity.logNormal() + " because of cycling");
         if (dbTwinClassEntity.getHeadTwinClassId() == null || !twinRepository.existsByTwinClassId(dbTwinClassEntity.getId())) {
             setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
