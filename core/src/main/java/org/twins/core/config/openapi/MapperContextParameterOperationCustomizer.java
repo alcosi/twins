@@ -1,4 +1,4 @@
-package org.twins.core.config;
+package org.twins.core.config.openapi;
 
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.stereotype.Component;

@@ -1,10 +1,10 @@
-package org.twins.core.controller.rest.annotation;
+package org.twins.core.config.openapi;
 
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.springdoc.core.customizers.ParameterCustomizer;
 import org.springframework.core.MethodParameter;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 
 import java.util.ArrayList;
 import java.util.List;

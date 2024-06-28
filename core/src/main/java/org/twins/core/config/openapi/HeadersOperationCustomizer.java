@@ -1,4 +1,4 @@
-package org.twins.core.config;
+package org.twins.core.config.openapi;
 
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.StringSchema;
