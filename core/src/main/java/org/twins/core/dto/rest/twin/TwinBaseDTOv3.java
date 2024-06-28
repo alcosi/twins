@@ -4,12 +4,14 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
+import org.twins.core.mappers.rest.MapperMode;
 
 import java.util.List;
 import java.util.Set;
@@ -20,6 +22,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinBaseV3")
 public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
+    @MapperModeBinding(modes = {MapperMode.TwinAttachmentMode.class, MapperMode.TwinAttachmentCollectionMode.class})
     @Schema(description = "attachments")
     public List<AttachmentViewDTOv1> attachments;
 
