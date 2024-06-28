@@ -24,7 +24,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.featurer.FeaturerDTOReversMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.service.pagination.PaginationResult;
+import org.cambium.common.pagination.PaginationResult;
 
 import static org.cambium.common.util.PaginationUtils.*;
 

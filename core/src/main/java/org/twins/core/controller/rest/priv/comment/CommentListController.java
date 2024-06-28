@@ -27,7 +27,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
-import org.twins.core.service.pagination.PaginationResult;
+import org.cambium.common.pagination.PaginationResult;
 
 import java.util.UUID;
 

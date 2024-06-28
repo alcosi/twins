@@ -32,8 +32,8 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -77,17 +77,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             historyList = historyRepository.findByTwinId(twinId, pageable);
         else //todo support different depth
             historyList = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable);
-        return convertCollectionInPaginationResult(historyList, pagination);
-    }
-
-    private PaginationResult<HistoryEntity> convertCollectionInPaginationResult(Page<HistoryEntity> historyList, SimplePagination pagination) {
-        PaginationResult<HistoryEntity> historyEntityPaginationResult = new PaginationResult<>();
-        historyEntityPaginationResult
-                .setList(historyList.toList())
-                .setTotal(historyList.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return historyEntityPaginationResult;
+        return PaginationUtils.convertInPaginationResult(historyList, pagination);
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {

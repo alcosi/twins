@@ -17,8 +17,8 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
 import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -63,7 +63,7 @@ public class SpaceUserRoleService {
         return createUserRoleMap(spaceRoleUserEntities, pagination);
     }
 
-    private PaginationResult<UserRefSpaceRole> createUserRoleMap(Page<SpaceRoleUserEntity> spaceRoleUserEntities, SimplePagination pagination) {
+    private PaginationResult<UserRefSpaceRole> createUserRoleMap(Page<SpaceRoleUserEntity> spaceRoleUserEntities, SimplePagination pagination) throws ServiceException {
         List<UserRefSpaceRole> resultList = new ArrayList<>();
         Map<UserEntity, List<SpaceRoleUserEntity>> map = new HashMap<>();
         for(SpaceRoleUserEntity item : spaceRoleUserEntities) {
@@ -71,17 +71,7 @@ public class SpaceUserRoleService {
             map.get(item.getUser()).add(item);
         }
         for(var entry : map.entrySet()) resultList.add(new UserRefSpaceRole().setUser(entry.getKey()).addRoles(entry.getValue()));
-        return convertCollectionInPaginationResult(resultList, spaceRoleUserEntities, pagination);
-    }
-
-    public PaginationResult<UserRefSpaceRole> convertCollectionInPaginationResult(List<UserRefSpaceRole> list ,Page<SpaceRoleUserEntity> page, SimplePagination pagination) {
-        PaginationResult<UserRefSpaceRole> userRefSpaceRolePaginationResult = new PaginationResult<>();
-        userRefSpaceRolePaginationResult
-                .setList(list)
-                .setTotal(page.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return userRefSpaceRolePaginationResult;
+        return PaginationUtils.convertInPaginationResult(resultList, pagination, spaceRoleUserEntities.getTotalElements());
     }
 
     public List<UserEntity> findUserByRole(UUID twinId, UUID spaceRoleId) throws ServiceException {

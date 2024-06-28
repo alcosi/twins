@@ -29,7 +29,7 @@ import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.pagination.PaginationResult;
+import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;

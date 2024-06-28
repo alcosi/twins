@@ -17,15 +17,14 @@ import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import org.twins.core.dao.specifications.featurer.FeaturerSpecification;
+import org.cambium.featurer.dao.specifications.FeaturerSpecification;
 import org.twins.core.domain.search.FeaturerSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -33,8 +32,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.featurer.FeaturerSpecification.checkIntegerIn;
+import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkFieldLikeIn;
+import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
 
 @Component
 @Slf4j
@@ -283,7 +282,7 @@ public class FeaturerService {
     public PaginationResult<FeaturerEntity> findFeaturers(FeaturerSearch featurerSearch, SimplePagination pagination) throws ServiceException {
         Specification<FeaturerEntity> spec = createFeaturerSearchSpecification(featurerSearch);
         Page<FeaturerEntity> ret = featurerRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return convertCollectionInPaginationResult(ret, pagination);
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
@@ -293,13 +292,4 @@ public class FeaturerService {
                 .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
     }
 
-    private PaginationResult<FeaturerEntity> convertCollectionInPaginationResult(Page<FeaturerEntity> featurerPage, SimplePagination pagination) {
-        PaginationResult<FeaturerEntity> featurerEntityPaginationResult = new PaginationResult<>();
-        featurerEntityPaginationResult
-                .setList(featurerPage.toList())
-                .setTotal(featurerPage.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return featurerEntityPaginationResult;
-    }
 }

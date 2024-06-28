@@ -29,7 +29,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.pagination.PaginationResult;
+import org.cambium.common.pagination.PaginationResult;
 
 import java.util.UUID;
 

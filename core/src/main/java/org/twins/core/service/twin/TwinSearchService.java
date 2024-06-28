@@ -29,8 +29,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserGroupService;
 
@@ -39,6 +39,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
+import static org.cambium.common.util.PaginationUtils.convertInPaginationResult;
 import static org.cambium.common.util.PaginationUtils.sort;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -134,17 +135,8 @@ public class TwinSearchService {
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return convertCollectionInPaginationResult(ret, pagination);
-    }
-
-    public PaginationResult<TwinEntity> convertCollectionInPaginationResult(Page<TwinEntity> twinPage, SimplePagination pagination) {
-        PaginationResult<TwinEntity> twinEntityPaginationResult = new PaginationResult<>();
-        twinEntityPaginationResult
-                .setList(twinPage.getContent().stream().filter(t -> !twinService.isEntityReadDenied(t)).toList())
-                .setTotal(twinPage.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return twinEntityPaginationResult;
+        Function<TwinEntity, Boolean> filterFunction = t -> !twinService.isEntityReadDenied(t);
+        return PaginationUtils.convertInPaginationResult(ret, pagination, filterFunction);
     }
 
     public Long count(Specification<TwinEntity> spec) throws ServiceException {

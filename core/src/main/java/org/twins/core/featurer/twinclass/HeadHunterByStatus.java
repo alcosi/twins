@@ -14,8 +14,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;

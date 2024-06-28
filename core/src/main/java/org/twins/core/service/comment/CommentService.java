@@ -21,8 +21,8 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -83,17 +83,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     public PaginationResult<TwinCommentEntity> findComment(UUID twinId, SimplePagination pagination) throws ServiceException {
         Page<TwinCommentEntity> commentList = commentRepository.findAllByTwinId(twinId, PaginationUtils.pageableOffset(pagination));
-        return convertCollectionInPaginationResult(commentList, pagination);
-    }
-
-    private PaginationResult<TwinCommentEntity> convertCollectionInPaginationResult(Page<TwinCommentEntity> list, SimplePagination pagination) {
-        PaginationResult<TwinCommentEntity> twinCommentEntityPaginationResult = new PaginationResult<>();
-        twinCommentEntityPaginationResult
-                .setList(list.toList())
-                .setTotal(list.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return twinCommentEntityPaginationResult;
+        return PaginationUtils.convertInPaginationResult(commentList, pagination);
     }
 
     public void deleteComment(UUID commentId) throws ServiceException {

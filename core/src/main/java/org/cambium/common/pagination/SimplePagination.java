@@ -1,4 +1,4 @@
-package org.twins.core.service.pagination;
+package org.cambium.common.pagination;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

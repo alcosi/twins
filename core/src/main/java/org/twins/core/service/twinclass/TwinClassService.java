@@ -38,8 +38,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinflow.TwinflowService;
 
@@ -102,7 +102,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (twinClassSearch == null)
             twinClassSearch = new TwinClassSearch(); //no filters
         Page<TwinClassEntity> twinClassList = twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch), PaginationUtils.pageableOffset(pagination));
-        return convertCollectionInPaginationResult(twinClassList, pagination);
+        return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
     }
 
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch){
@@ -118,16 +118,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
         );
-    }
-
-    private PaginationResult<TwinClassEntity> convertCollectionInPaginationResult(Page<TwinClassEntity> twinClassList, SimplePagination pagination) {
-        PaginationResult<TwinClassEntity> twinClassEntityPaginationResult = new PaginationResult<>();
-        twinClassEntityPaginationResult
-                .setList(twinClassList.toList())
-                .setTotal(twinClassList.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return twinClassEntityPaginationResult;
     }
 
     public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {

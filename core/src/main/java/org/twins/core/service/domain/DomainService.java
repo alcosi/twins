@@ -27,8 +27,8 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.pagination.PaginationResult;
-import org.twins.core.service.pagination.SimplePagination;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
@@ -120,17 +120,7 @@ public class DomainService {
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
         Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
-        return convertCollectionInPaginationResult(domainEntityList, pagination);
-    }
-
-    private PaginationResult<DomainEntity> convertCollectionInPaginationResult(Page<DomainEntity> domainEntityList, SimplePagination pagination) {
-        PaginationResult<DomainEntity> domainEntityPaginationResult = new PaginationResult<>();
-        domainEntityPaginationResult
-                .setList(domainEntityList.toList())
-                .setTotal(domainEntityList.getTotalElements())
-                .setOffset(pagination.getOffset())
-                .setLimit(pagination.getLimit());
-        return domainEntityPaginationResult;
+        return PaginationUtils.convertInPaginationResult(domainEntityList, pagination);
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
