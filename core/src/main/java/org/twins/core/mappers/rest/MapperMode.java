@@ -175,6 +175,17 @@ public interface MapperMode {
         final int priority;
     }
 
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum ClassFieldMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
     /* *
      *
      * TODO POINTS ****************************************************************************************************
@@ -711,7 +722,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassFieldMode implements MapperModePointer<DataListOptionMode> {
+    enum TwinClassFieldMode implements MapperModePointer<ClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -719,11 +730,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public DataListOptionMode point() {
+        public ClassFieldMode point() {
             return switch (this) {
-                case HIDE -> DataListOptionMode.HIDE;
-                case SHORT -> DataListOptionMode.SHORT;
-                case DETAILED -> DataListOptionMode.DETAILED;
+                case HIDE -> ClassFieldMode.HIDE;
+                case SHORT -> ClassFieldMode.SHORT;
+                case DETAILED -> ClassFieldMode.DETAILED;
             };
         }
     }
