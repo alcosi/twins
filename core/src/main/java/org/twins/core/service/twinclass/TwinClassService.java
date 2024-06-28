@@ -487,6 +487,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (extendsRelinkOperation == null || !changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), extendsRelinkOperation.getNewId()))
             return;
         TwinClassEntity newExtendsTwinClass = findEntitySafe(extendsRelinkOperation.getNewId());
+        if (newExtendsTwinClass.getExtendedClassIdSet().contains(dbTwinClassEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, dbTwinClassEntity.logNormal() + " can not extend " + newExtendsTwinClass.logNormal() + " because of cycling");
         if (dbTwinClassEntity.getExtendsTwinClassId() == null || !twinRepository.existsByTwinClassId(dbTwinClassEntity.getId())) {
             setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
             return;
