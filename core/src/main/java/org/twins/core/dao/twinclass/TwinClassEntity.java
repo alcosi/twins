@@ -109,6 +109,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
 
+    @Column(name = "head_hunter_featurer_id")
+    private Integer headHunterFeaturerId;
+
     @FeaturerList(type = HeadHunter.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "head_hunter_featurer_id", insertable = false, updatable = false)
@@ -137,6 +140,10 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Set<UUID> extendedClassIdSet;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<UUID> headHierarchyClassIdSet;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -191,10 +198,27 @@ public class TwinClassEntity implements EasyLoggable {
     public Set<UUID> getExtendedClassIdSet() {
         if (null == extendedClassIdSet) {
             extendedClassIdSet = new HashSet<>();
-            for (String hierarchyItem : getExtendsHierarchyTree().replace("_", "-").split("\\."))
+            for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
                 extendedClassIdSet.add(UUID.fromString(hierarchyItem));
         }
         return extendedClassIdSet;
+    }
+
+    public Set<UUID> getHeadHierarchyClassIdSet() {
+        if (null == headHierarchyClassIdSet) {
+            headHierarchyClassIdSet = new HashSet<>();
+            for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
+                headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));
+        }
+        return headHierarchyClassIdSet;
+    }
+
+    public static String convertUuidFromLtreeFormat(String uuidLtreeFormat) {
+        return uuidLtreeFormat.replace("_", "-");
+    }
+
+    public static String convertUuidToLtreeFormat(UUID uuid) {
+        return uuid.toString().replace("-", "_");
     }
 
     public String easyLog(Level level) {

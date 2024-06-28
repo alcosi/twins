@@ -4,6 +4,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
@@ -159,7 +160,7 @@ public class FeaturerService {
 
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
-            throw new ServiceException(ErrorCodeTwins.FEATURER_IS_NULL);
+            throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
         Featurer featurer = featurerMap.get(featurerEntity.getId());
         if (featurer == null)
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
@@ -298,5 +299,15 @@ public class FeaturerService {
                 .setOffset(offset)
                 .setLimit(limit)
                 .setTotal(featurerPage.getTotalElements());
+    }
+
+    public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
+        Featurer featurer = featurerMap.get(featurerId);
+        if (featurer == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
+        if (!expectedFeaturerClass.isInstance(featurer))
+            throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
+        extractProperties(featurer, featurerParams, new HashMap<>());
+        return featurerRepository.getById(featurerId);
     }
 }

@@ -11,11 +11,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
+
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
 public class TwinUpdate extends TwinOperation {
-    public static final UUID NULLIFY_MARKER = UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
