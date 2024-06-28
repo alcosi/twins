@@ -24,9 +24,9 @@ import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassSaveRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -41,7 +41,7 @@ public class TwinClassCreateController extends ApiController {
     final UserService userService;
     final TwinClassService twinClassService;
     final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final TwinClassSaveRestDTOReverseMapper twinClassSaveRestDTOReverseMapper;
+    final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
@@ -65,7 +65,7 @@ public class TwinClassCreateController extends ApiController {
             @RequestBody TwinClassCreateRqDTOv1 request) {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {
-            TwinClassEntity twinClassEntity = twinClassSaveRestDTOReverseMapper.convert(request);
+            TwinClassEntity twinClassEntity = twinClassCreateRestDTOReverseMapper.convert(request);
             MapperContext mapperContext = new MapperContext()
                     .setLazyRelations(lazyRelation)
                     .setMode(showClassMode)

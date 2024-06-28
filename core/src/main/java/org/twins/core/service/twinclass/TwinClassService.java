@@ -257,34 +257,34 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         }
         if (twinClassEntity.getHeadTwinClassId() != null
                 && !twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
         if (twinClassEntity.getHeadHunterFeaturerId() != null)
             featurerService.checkValid(twinClassEntity.getHeadHunterFeaturerId(), twinClassEntity.getHeadHunterParams(), HeadHunter.class);
         else
             twinClassEntity.setHeadHunterParams(null);
         if (twinClassEntity.getExtendsTwinClassId() != null) {
             if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getExtendsTwinClassId()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id");
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
         } else {
             twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
         }
         if (twinClassEntity.getMarkerDataListId() != null
-                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id");
+                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + twinClassEntity.getMarkerDataListId() + "]");
         if (twinClassEntity.getTagDataListId() != null
-                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id");
+                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + twinClassEntity.getTagDataListId() + "]");
         if (twinClassEntity.getViewPermissionId() != null
-                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + twinClassEntity.getViewPermissionId() + "]");
         if (nameI18n == null)
-            nameI18n = new I18nEntity().setType(I18nType.TWIN_CLASS_NAME);
+            nameI18n = new I18nEntity();
         if (descriptionI18n == null)
-            descriptionI18n = new I18nEntity().setType(I18nType.TWIN_CLASS_DESCRIPTION);
+            descriptionI18n = new I18nEntity();
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
-                .setNameI18NId(i18nService.createI18nAndTranslations(nameI18n).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(descriptionI18n).getId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
@@ -376,9 +376,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return;
         if (dbTwinClassEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinClassEntity.getDescriptionI18NId());
-        else
-            descriptionI18n.setType(I18nType.TWIN_CLASS_DESCRIPTION);
-        i18nService.saveTranslations(descriptionI18n);
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n);
         dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
@@ -388,9 +386,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return;
         if (dbTwinClassEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinClassEntity.getNameI18NId());
-        else
-            nameI18n.setType(I18nType.TWIN_CLASS_NAME);
-        i18nService.saveTranslations(nameI18n);
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
         dbTwinClassEntity.setNameI18NId(nameI18n.getId());
     }
 
