@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.annotation;
+package org.twins.core.config.resolvers;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
@@ -6,6 +6,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 
 public class MapperModeParamResolver implements HandlerMethodArgumentResolver {
 

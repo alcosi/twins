@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.annotation;
+package org.twins.core.config.resolvers;
 
 import org.springframework.core.MethodParameter;
 import org.springframework.lang.NonNull;
@@ -8,6 +8,7 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 
@@ -19,18 +20,6 @@ import java.util.List;
 public class MapperContextBindingResolver implements HandlerMethodArgumentResolver {
 
     private static final String LAZY_RELATION = "lazyRelation";
-    private static final String OFFSET = "offset";
-    private static final String LIMIT = "limit";
-    private static final String SORT_DIRECTION = "direction";
-    private static final String CHILD_DEPTH = "childDepth";
-
-    private static final List<String> PARAM_NAME_EXCLUDE_LIST = new ArrayList<>() {{
-        add(LAZY_RELATION);
-        add(OFFSET);
-        add(LIMIT);
-        add(SORT_DIRECTION);
-        add(CHILD_DEPTH);
-    }};
 
     @Override
     public boolean supportsParameter(@NonNull MethodParameter parameter) {
@@ -44,12 +33,12 @@ public class MapperContextBindingResolver implements HandlerMethodArgumentResolv
         MapperContext mapperContext = new MapperContext();
         Parameter[] parameters = parameter.getMethod().getParameters();
         for (Parameter param : parameters) {
-            if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && !excludeListCheck(param.getName())) {
+            if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && MapperMode.class.isAssignableFrom(param.getType())) {
                 Object value = webRequest.getParameter(param.getName());
                 if (value != null) {
                     setModeInMapperContext(mapperContext, value, param.getType());
                 }
-            } else if (param.isAnnotationPresent(RequestParam.class) && excludeListCheck(param.getName())) {
+            } else if (param.isAnnotationPresent(RequestParam.class)) {
                 switch (param.getName()) {
                     case LAZY_RELATION:
                         Object value = webRequest.getParameter(param.getName());
@@ -61,10 +50,6 @@ public class MapperContextBindingResolver implements HandlerMethodArgumentResolv
             }
         }
         return mapperContext;
-    }
-
-    private boolean excludeListCheck(String name) {
-        return PARAM_NAME_EXCLUDE_LIST.contains(name);
     }
 
     private void setModeInMapperContext(MapperContext mapperContext, Object value, Class<?> paramType) {

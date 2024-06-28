@@ -3,8 +3,8 @@ package org.twins.core.config;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.twins.core.controller.rest.annotation.MapperContextBindingResolver;
-import org.twins.core.controller.rest.annotation.MapperModeParamResolver;
+import org.twins.core.config.resolvers.MapperContextBindingResolver;
+import org.twins.core.config.resolvers.MapperModeParamResolver;
 
 import java.util.List;
 
