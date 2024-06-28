@@ -293,14 +293,6 @@ public class FeaturerService {
                 .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
     }
 
-    public FeaturerSearchResult convertPageInFeaturerSearchResult(Page<FeaturerEntity> featurerPage, int offset, int limit) {
-        return (FeaturerSearchResult) new FeaturerSearchResult()
-                .setFeaturerList(featurerPage.toList())
-                .setOffset(offset)
-                .setLimit(limit)
-                .setTotal(featurerPage.getTotalElements());
-    }
-
     public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
         Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
