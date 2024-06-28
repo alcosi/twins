@@ -35,6 +35,14 @@ public class Kit<E, K> {
         return this;
     }
 
+    public Kit<E, K> addAll(Collection<E> e) {
+        if (collection == null)
+            collection = new ArrayList<>();
+        collection.addAll(e);
+        map = null; //invalidate
+        return this;
+    }
+
     public Map<K, E> getMap() {
         if (map != null)
             return map;

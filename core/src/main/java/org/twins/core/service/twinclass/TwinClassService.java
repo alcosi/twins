@@ -3,17 +3,21 @@ package org.twins.core.service.twinclass;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.PaginationUtils;
-import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.*;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
@@ -26,21 +30,24 @@ import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.twin.TwinMarkerService;
+import org.twins.core.service.twin.TwinService;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
+import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
@@ -74,7 +81,17 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Lazy
     final AuthService authService;
     @Lazy
+    final FeaturerService featurerService;
+    @Lazy
+    final TwinMarkerService twinMarkerService;
+    @Lazy
+    final TwinTagService twinTagService;
+    @Lazy
     final DataListService dataListService;
+    @Lazy
+    final TwinService twinService;
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
@@ -105,7 +122,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
     }
 
-    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch){
+    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) {
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
@@ -221,7 +238,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     }
 
     @Transactional
-    public TwinClassEntity createInDomainClassTransactional(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
+    public TwinClassEntity createInDomainClassTransactional(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
@@ -231,26 +248,34 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         }
         if (twinClassEntity.getHeadTwinClassId() != null
                 && !twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
+        if (twinClassEntity.getHeadHunterFeaturerId() != null)
+            featurerService.checkValid(twinClassEntity.getHeadHunterFeaturerId(), twinClassEntity.getHeadHunterParams(), HeadHunter.class);
+        else
+            twinClassEntity.setHeadHunterParams(null);
         if (twinClassEntity.getExtendsTwinClassId() != null) {
             if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getExtendsTwinClassId()))
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id");
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
         } else {
             twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
         }
         if (twinClassEntity.getMarkerDataListId() != null
-                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id");
+                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + twinClassEntity.getMarkerDataListId() + "]");
         if (twinClassEntity.getTagDataListId() != null
-                && dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id");
+                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + twinClassEntity.getTagDataListId() + "]");
         if (twinClassEntity.getViewPermissionId() != null
-                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + twinClassEntity.getViewPermissionId() + "]");
+        if (nameI18n == null)
+            nameI18n = new I18nEntity();
+        if (descriptionI18n == null)
+            descriptionI18n = new I18nEntity();
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
-                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_NAME, name).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_CLASS_DESCRIPTION, description).getId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
@@ -262,7 +287,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return twinClassEntity;
     }
 
-    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, String name, String description) throws ServiceException {
+    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity name, I18nEntity description) throws ServiceException {
         twinClassEntity = createInDomainClassTransactional(twinClassEntity, name, description);
         if (StringUtils.isBlank(twinClassEntity.getExtendsHierarchyTree())) // this field is filled by trigger only after transaction commit. So we have to reload entity from database
             twinClassEntity.setExtendsHierarchyTree(twinClassRepository.getExtendsHierarchyTree(twinClassEntity.getId()));
@@ -313,6 +338,271 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         }
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public void updateTwinClass(TwinClassUpdate twinClassUpdate) throws ServiceException {
+        TwinClassEntity dbTwinClassEntity = twinClassUpdate.getDbTwinClassEntity();
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
+        updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
+        updateTwinClassHeadTwinClass(dbTwinClassEntity, twinClassUpdate.getHeadTwinClassUpdate(), changesHelper);
+        updateTwinClassHeadHunterFeaturer(dbTwinClassEntity, twinClassUpdate.getHeadHunterFeaturerId(), twinClassUpdate.getHeadHunterParams(), changesHelper);
+        updateTwinClassExtendsTwinClass(dbTwinClassEntity, twinClassUpdate.getExtendsTwinClassUpdate(), changesHelper);
+        updateTwinClassAbstractFlag(dbTwinClassEntity, twinClassUpdate.getAbstractt(), changesHelper);
+        updateTwinClassTwinClassSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinClassSchemaSpace(), changesHelper);
+        updateTwinClassTwinflowSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getTwinflowSchemaSpace(), changesHelper);
+        updateTwinClassAliasSpaceFlag(dbTwinClassEntity, twinClassUpdate.getAliasSpace(), changesHelper);
+        updateTwinClassPermissionSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getPermissionSchemaSpace(), changesHelper);
+        updateTwinClassViewPermission(dbTwinClassEntity, twinClassUpdate.getViewPermissionId(), changesHelper);
+        updateTwinClassKey(dbTwinClassEntity, twinClassUpdate.getKey(), changesHelper);
+        updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
+        updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
+        updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+        twinClassRepository.save(twinClassUpdate.getDbTwinClassEntity());
+        evictCache(twinClassUpdate.getDbTwinClassEntity().getId());
+    }
+
+    @Transactional
+    public void updateTwinClassDescription(TwinClassEntity dbTwinClassEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbTwinClassEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbTwinClassEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n);
+        dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+
+    public void updateTwinClassName(TwinClassEntity dbTwinClassEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbTwinClassEntity.getNameI18NId() != null)
+            nameI18n.setId(dbTwinClassEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
+        dbTwinClassEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    @Transactional
+    public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (tagsRelinkOperation == null || !changesHelper.isChanged("tagsDataListId", dbTwinClassEntity.getTagDataListId(), tagsRelinkOperation.getNewId()))
+            return;
+        twinTagService.replaceTagsForTwinsOfClass(dbTwinClassEntity, tagsRelinkOperation);
+    }
+
+    @Transactional
+    public void updateTwinClassMarkerDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation updateOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (updateOperation == null || !changesHelper.isChanged("markerDataListId", dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
+            return;
+        twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
+    }
+
+    @Transactional
+    public void updateTwinClassLogo(TwinClassEntity dbTwinClassEntity, String newLogo, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("logo", dbTwinClassEntity.getLogo(), newLogo))
+            return;
+        dbTwinClassEntity.setLogo(newLogo);
+    }
+
+    @Transactional
+    public void updateTwinClassKey(TwinClassEntity dbTwinClassEntity, String newKey, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("key", dbTwinClassEntity.getKey(), newKey))
+            return;
+        if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), newKey))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class key is already exist");
+        if (twinRepository.existsByTwinClassId(dbTwinClassEntity.getId()))
+            //todo generate new aliases for all existed twins. old class twin aliases should not be deleted, until we will detect conflicts
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class key change is not implemented fully ");
+        dbTwinClassEntity
+                .setKey(newKey);
+    }
+
+    @Transactional
+    public void updateTwinClassViewPermission(TwinClassEntity dbTwinClassEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("viewPermissionId", dbTwinClassEntity.getViewPermissionId(), newViewPermissionId))
+            return;
+        dbTwinClassEntity
+                .setViewPermissionId(UuidUtils.nullifyIfNecessary(newViewPermissionId));
+    }
+
+    @Transactional
+    public void updateTwinClassPermissionSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassPermissionSchemaSpaceFlag, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("isPermissionSchemaSpace", dbTwinClassEntity.isPermissionSchemaSpace(), newTwinClassPermissionSchemaSpaceFlag))
+            return;
+        //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
+        dbTwinClassEntity
+                .setPermissionSchemaSpace(newTwinClassPermissionSchemaSpaceFlag);
+    }
+
+    @Transactional
+    public void updateTwinClassAliasSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassAliasSpaceFlag, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("isAliasSpace", dbTwinClassEntity.isAliasSpace(), newTwinClassAliasSpaceFlag))
+            return;
+        //we have db trigger which will update twin.alias_space_id column for twins of given class
+        dbTwinClassEntity
+                .setAliasSpace(newTwinClassAliasSpaceFlag);
+    }
+
+    @Transactional
+    public void updateTwinClassTwinflowSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassTwinflowSchemaSpaceFlag, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("isTwinflowSchemaSpace", dbTwinClassEntity.isTwinflowSchemaSpace(), newTwinClassTwinflowSchemaSpaceFlag))
+            return;
+        //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
+        dbTwinClassEntity
+                .setTwinflowSchemaSpace(newTwinClassTwinflowSchemaSpaceFlag);
+    }
+
+    @Transactional
+    public void updateTwinClassTwinClassSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassSchemaSpaceFlag, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged("isTwinClassSchemaSpace", dbTwinClassEntity.isTwinClassSchemaSpace(), newTwinClassSchemaSpaceFlag))
+            return;
+        //we have db trigger which will update twin.twin_class_schema_space_id column for twins of given class
+        dbTwinClassEntity
+                .setTwinClassSchemaSpace(newTwinClassSchemaSpaceFlag);
+    }
+
+    @Transactional
+    public void updateTwinClassAbstractFlag(TwinClassEntity dbTwinClassEntity, Boolean newAbstractFlag, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("isAbstract", dbTwinClassEntity.isAbstractt(), newAbstractFlag))
+            return;
+        if (newAbstractFlag && twinRepository.existsByTwinClassId(dbTwinClassEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class can not be marked abstract, because some twins are already exist");
+        dbTwinClassEntity
+                .setAbstractt(newAbstractFlag);
+    }
+
+    @Transactional
+    public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (extendsRelinkOperation == null || !changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), extendsRelinkOperation.getNewId()))
+            return;
+        TwinClassEntity newExtendsTwinClass = findEntitySafe(extendsRelinkOperation.getNewId());
+        if (newExtendsTwinClass.getExtendedClassIdSet().contains(dbTwinClassEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, dbTwinClassEntity.logNormal() + " can not extend " + newExtendsTwinClass.logNormal() + " because of cycling");
+        if (dbTwinClassEntity.getExtendsTwinClassId() == null || !twinRepository.existsByTwinClassId(dbTwinClassEntity.getId())) {
+            setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
+            return;
+        }
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> inheritedAndUsedTwinClassFields = twinService.findInheritedTwinClassFields(dbTwinClassEntity, newExtendsTwinClass, true);
+        if (KitUtils.isEmpty(inheritedAndUsedTwinClassFields)) {
+            //we will lose nothing
+            setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
+            return;
+        }
+        if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+                && MapUtils.isEmpty(extendsRelinkOperation.getReplaceMap()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap for classFields: " + StringUtils.join(inheritedAndUsedTwinClassFields.getIdSet()));
+        KitGrouped<TwinClassFieldEntity, UUID, UUID> replacementKit = twinClassFieldService.findTwinClassFields(extendsRelinkOperation.getReplaceMap().values());
+        Set<TwinClassFieldEntity> twinClassFieldsForDeletion = new HashSet<>();
+        for (TwinClassFieldEntity twinClassFieldForReplace : inheritedAndUsedTwinClassFields.getCollection()) {
+            UUID replacement = extendsRelinkOperation.getReplaceMap().get(twinClassFieldForReplace.getId());
+            if (replacement == null) {
+                if (extendsRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide extendsReplaceMap value for " + twinClassFieldForReplace.logShort());
+                else
+                    replacement = UuidUtils.NULLIFY_MARKER;
+            }
+            if (UuidUtils.isNullifyMarker(replacement)) {
+                twinClassFieldsForDeletion.add(twinClassFieldForReplace);
+                continue;
+            }
+            TwinClassFieldEntity twinClassFieldReplacement = replacementKit.get(replacement);
+            // we need to check if replacement field correct
+            if (!twinClassFieldReplacement.getTwinClassId().equals(dbTwinClassEntity.getId()) &&
+                    !newExtendsTwinClass.getExtendedClassIdSet().contains(twinClassFieldReplacement.getTwinClassId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, twinClassFieldReplacement.logNormal() + " is incorrect replacement for " + twinClassFieldForReplace.logNormal());
+
+            twinService.convertFieldsForTwinsOfClass(dbTwinClassEntity, twinClassFieldForReplace, twinClassFieldReplacement);
+        }
+        if (CollectionUtils.isNotEmpty(twinClassFieldsForDeletion))
+            twinService.deleteTwinFieldsOfClass(twinClassFieldsForDeletion, dbTwinClassEntity.getId());
+        setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
+    }
+
+    private static TwinClassEntity setNewExtendsTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newExtendsTwinClass) {
+        if (twinClassEntity.getExtendsTwinClassId() != null)
+            // we will do it manually (but also it will be done by db trigger on save)
+            twinClassEntity
+                    .setExtendsHierarchyTree(
+                            newExtendsTwinClass.getExtendsHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getExtendsHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getExtendsTwinClassId())))
+                    .setExtendedClassIdSet(null);
+        twinClassEntity
+                .setExtendsTwinClassId(newExtendsTwinClass.getId())
+                .setExtendsTwinClass(newExtendsTwinClass)
+                .setTwinClassFieldKit(null); //invalidating
+        return twinClassEntity;
+    }
+
+    private static TwinClassEntity setNewHeadTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newHeadTwinClass) {
+        if (twinClassEntity.getExtendsTwinClassId() != null)
+            // we will do it manually (but also it will be done by db trigger on save)
+            twinClassEntity
+                    .setHeadHierarchyTree(
+                            newHeadTwinClass.getHeadHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getHeadHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getHeadTwinClassId())))
+                    .setHeadHierarchyClassIdSet(null);
+        twinClassEntity
+                .setHeadTwinClassId(newHeadTwinClass.getId())
+                .setHeadTwinClass(newHeadTwinClass);
+        return twinClassEntity;
+    }
+
+
+    @Transactional
+    public void updateTwinClassHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.isChanged("headHunterFeaturerId", dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
+            FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
+            dbTwinClassEntity
+                    .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
+                    .setHeadHunterFeaturer(newHeadHunterFeaturer);
+        }
+        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams))
+            dbTwinClassEntity
+                    .setHeadHunterParams(headHunterParams);
+    }
+
+    @Transactional
+    public void updateTwinClassHeadTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation headRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (headRelinkOperation == null || !changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), headRelinkOperation.getNewId()))
+            return;
+        TwinClassEntity newHeadTwinClassEntity = findEntitySafe(headRelinkOperation.getNewId());
+        if (newHeadTwinClassEntity.getHeadHierarchyClassIdSet().contains(dbTwinClassEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, newHeadTwinClassEntity.logNormal() + " can not be set as head of " + dbTwinClassEntity.logNormal() + " because of cycling");
+        if (dbTwinClassEntity.getHeadTwinClassId() == null || !twinRepository.existsByTwinClassId(dbTwinClassEntity.getId())) {
+            setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
+            return;
+        }
+        Set<UUID> existedTwinHeadIds = findExistedTwinHeadIdsOfClass(dbTwinClassEntity.getId());
+        if (CollectionUtils.isEmpty(existedTwinHeadIds)) {
+            setNewHeadTwinClass(dbTwinClassEntity, newHeadTwinClassEntity);
+            return;
+        }
+        if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
+                && MapUtils.isEmpty(headRelinkOperation.getReplaceMap()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));
+        Set<UUID> twinsForDeletion = new HashSet<>();
+        Set<UUID> newValidTwinHeadIds = twinRepository.findIdByTwinClassId(headRelinkOperation.getNewId());
+        for (UUID headForReplace : existedTwinHeadIds) {
+            UUID replacement = headRelinkOperation.getReplaceMap().get(headForReplace);
+            if (replacement == null) {
+                if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide headReplaceMap value for head: " + headForReplace);
+                else
+                    replacement = UuidUtils.NULLIFY_MARKER;
+            }
+            if (UuidUtils.isNullifyMarker(replacement)) {
+                twinsForDeletion.add(headForReplace);
+                continue;
+            }
+            if (!newValidTwinHeadIds.contains(replacement))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for head: " + headForReplace);
+            twinRepository.replaceHeadTwinForTwinsOfClass(dbTwinClassEntity.getId(), headForReplace, replacement);
+        }
+        if (CollectionUtils.isNotEmpty(twinsForDeletion)) {
+            //todo support deletion
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "twin auto deletion is currently not implemented. please provide headReplaceMap value for heads: " + StringUtils.join(twinsForDeletion));
+        }
+        dbTwinClassEntity
+                .setHeadTwinClassId(headRelinkOperation.getNewId())
+                .setHeadTwinClass(findEntitySafe(headRelinkOperation.getNewId()));
+    }
+
     public void loadMarkerDataList(TwinClassEntity twinClassEntity) throws ServiceException {
         if (twinClassEntity.getMarkerDataList() != null || twinClassEntity.getMarkerDataListId() == null)
             return;
@@ -335,6 +625,16 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         }
         if (loadOptions)
             dataListService.loadDataListOptions(markers);
+    }
+
+    private Set<UUID> findExistedTwinHeadIdsOfClass(UUID twinClassId) {
+        return twinRepository.findDistinctHeadTwinIdByTwinClassId(twinClassId);
+    }
+
+    public void evictCache(UUID twinClassId) {
+        Cache cache = cacheManager.getCache(TwinClassRepository.CACHE_TWIN_CLASS_BY_ID);
+        if (cache != null)
+            cache.evictIfPresent(twinClassId);
     }
 }
 

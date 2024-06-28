@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
-import org.cambium.i18n.dao.I18nType;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -54,10 +53,8 @@ public class TwinStatusUpdateController extends ApiController {
             @RequestBody TwinStatusUpdateRqDTOv1 request) {
         TwinStatusUpdateRsDTOv1 rs = new TwinStatusUpdateRsDTOv1();
         try {
-            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n()
-                    .setI18nType(I18nType.TWIN_STATUS_NAME));
-            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n()
-                    .setI18nType(I18nType.TWIN_STATUS_DESCRIPTION));
+            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
             TwinStatusEntity twinStatusEntity = twinStatusService
                     .updateStatus(twinStatusRestDTOReverseMapper.convert(request.setId(twinStatusId)), nameI18n, descriptionI18n);
             MapperContext mapperContext = new MapperContext()

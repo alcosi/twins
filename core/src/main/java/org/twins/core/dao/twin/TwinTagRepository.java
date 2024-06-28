@@ -1,11 +1,12 @@
 package org.twins.core.dao.twin;
 
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.Collection;
@@ -37,4 +38,18 @@ public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, 
     List<DataListOptionEntity> findTagsOutOfBusinessAccount(@Param("dataListId") UUID dataListId, @Param("idList") Collection<UUID> idList);
 
     void deleteByTwinIdAndTagDataListOptionIdIn(UUID twinId, Set<UUID> markerIdList);
+
+    @Transactional
+    void deleteByTwin_TwinClassId(UUID twinClassId);
+
+    @Transactional
+    void deleteByTwin_TwinClassIdAndTagDataListOptionIdIn(UUID twinClassId, Collection<UUID> markerIdList);
+
+    @Query(value = "select distinct m.tagDataListOptionId from TwinTagEntity m where m.twin.twinClassId = :twinClassId ")
+    Set<UUID> findDistinctTagsDataListOptionIdByTwinTwinClassId(@Param("twinClassId") UUID twinClassId);
+
+    @Transactional
+    @Modifying
+    @Query(value = "update TwinTagEntity set tagDataListOptionId = :newVal where tagDataListOptionId = :oldVal and twin.twinClassId = :twinClassId")
+    void replaceTagsForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
 }

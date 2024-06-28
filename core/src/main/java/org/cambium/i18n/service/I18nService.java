@@ -15,6 +15,8 @@ import org.cambium.i18n.config.I18nProperties;
 import org.cambium.i18n.dao.*;
 import org.cambium.i18n.exception.ErrorCodeI18n;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +37,8 @@ public abstract class I18nService  {
     private I18nProperties i18nProperties;
     @PersistenceContext
     private EntityManager entityManager;
+    @Autowired
+    private CacheManager cacheManager;
 
     public String translateToLocale(I18nEntity i18NEntity, Locale locale) {
         return translateToLocale(i18NEntity, locale, null);
@@ -187,8 +191,8 @@ public abstract class I18nService  {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public I18nEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) {
-        return createI18nAndTranslations(buildI18nEntity(i18nType, defaultLocaleTranslation));
+    public I18nEntity createI18nAndDefaultTranslation(I18nType i18nType, String defaultLocaleTranslation) throws ServiceException {
+        return createI18nAndTranslations(i18nType, buildI18nEntity(i18nType, defaultLocaleTranslation));
     }
 
     public I18nEntity buildI18nEntity(I18nType i18nType, String translationInDefaultLocale) {
@@ -200,9 +204,13 @@ public abstract class I18nService  {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public I18nEntity createI18nAndTranslations(I18nEntity i18nEntity) {
-        i18nEntity.setId(null);
-        i18nEntity.setId(i18nRepository.save(i18nEntity).getId());
+    public I18nEntity createI18nAndTranslations(I18nType i18nType, I18nEntity i18nEntity) throws ServiceException {
+        if (i18nEntity.getType() != null && !i18nEntity.getType().equals(i18nType))
+            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type mismatch");
+        i18nEntity
+                .setType(i18nType)
+                .setId(null)
+                .setId(i18nRepository.save(i18nEntity).getId());
         if (KitUtils.isEmpty(i18nEntity.getTranslations()))
             return i18nEntity;
         for (var entry : i18nEntity.getTranslations().getCollection()) {
@@ -238,9 +246,9 @@ public abstract class I18nService  {
     }
 
     @Transactional
-    public I18nEntity saveTranslations(I18nEntity i18nEntity) throws ServiceException {
+    public I18nEntity saveTranslations(I18nType i18nType, I18nEntity i18nEntity) throws ServiceException {
         if (i18nEntity.getId() == null)
-            return createI18nAndTranslations(i18nEntity);
+            return createI18nAndTranslations(i18nType, i18nEntity);
         else
             return updateTranslations(i18nEntity);
     }
@@ -260,8 +268,16 @@ public abstract class I18nService  {
                 entry.getValue().setI18nId(i18nEntity.getId());
             }
             entitiesToSave.add(entry.getValue());
+            evictCache(entry.getValue().getI18nId(), entry.getKey());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
+
         return i18nEntity;
+    }
+
+    public void evictCache(UUID i18nId, Locale locale) {
+        Cache cache = cacheManager.getCache(I18nTranslationRepository.CACHE_I18N_TRANSLATIONS);
+        if (cache != null)
+            cache.evictIfPresent(i18nId + "" + locale);
     }
 }

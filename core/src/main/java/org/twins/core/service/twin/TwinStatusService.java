@@ -110,14 +110,12 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     @Transactional
     public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n) throws ServiceException {
-        if (nameI18n != null) {
-            nameI18n.setType(I18nType.TWIN_STATUS_NAME);
-            twinStatusEntity.setNameI18nId(i18nService.createI18nAndTranslations(nameI18n).getId());
-        }
-        if (descriptionsI18n != null) {
-            descriptionsI18n.setType(I18nType.TWIN_STATUS_DESCRIPTION);
-            twinStatusEntity.setDescriptionI18nId(i18nService.createI18nAndTranslations(descriptionsI18n).getId());
-        }
+        if (nameI18n == null)
+            nameI18n = new I18nEntity();
+        twinStatusEntity.setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId());
+        if (descriptionsI18n == null)
+            descriptionsI18n = new I18nEntity();
+        twinStatusEntity.setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
@@ -134,12 +132,14 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         if (nameI18n != null) {
             if (dbEntity.getNameI18nId() != null)
                 nameI18n.setId(dbEntity.getNameI18nId());
-            i18nService.saveTranslations(nameI18n);
+            i18nService.saveTranslations(I18nType.TWIN_STATUS_NAME, nameI18n);
+            dbEntity.setNameI18nId(nameI18n.getId()); // if new i18n was added
         }
         if (descriptionI18n != null) {
             if (dbEntity.getDescriptionI18nId() != null)
                 descriptionI18n.setId(dbEntity.getDescriptionI18nId());
-            i18nService.saveTranslations(descriptionI18n);
+            i18nService.saveTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionI18n);
+            dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
         }
         entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
         return dbEntity;

@@ -25,6 +25,12 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
         return super.add(e);
     }
 
+    @Override
+    public Kit<E, K> addAll(Collection<E> e) {
+        groupedMap = null; //invalidate
+        return super.addAll(e);
+    }
+
     public Map<GK, List<E>> getGroupedMap() {
         if (groupedMap != null)
             return groupedMap;
