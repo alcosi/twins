@@ -246,8 +246,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return true;
     }
 
-    @Transactional
-    public TwinClassEntity createInDomainClassTransactional(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
@@ -290,16 +290,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        refreshExtendsHierarchyTree(twinClassEntity);
         TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
         TwinflowEntity twinflowEntity = twinflowService.createTwinflow(twinClassEntity, twinStatusEntity);
         TwinflowSchemaMapEntity twinflowSchemaMapEntity = twinflowService.registerTwinflow(twinflowEntity, apiUser.getDomain(), twinClassEntity);
-        return twinClassEntity;
-    }
-
-    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity name, I18nEntity description) throws ServiceException {
-        twinClassEntity = createInDomainClassTransactional(twinClassEntity, name, description);
-        if (StringUtils.isBlank(twinClassEntity.getExtendsHierarchyTree())) // this field is filled by trigger only after transaction commit. So we have to reload entity from database
-            twinClassEntity.setExtendsHierarchyTree(twinClassRepository.getExtendsHierarchyTree(twinClassEntity.getId()));
         return twinClassEntity;
     }
 
@@ -482,6 +476,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
         if (extendsRelinkOperation == null || !changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), extendsRelinkOperation.getNewId()))
             return;
+        if (UuidUtils.isNullifyMarker(extendsRelinkOperation.getNewId()))
+            extendsRelinkOperation.setNewId(authService.getApiUser().getDomain().getAncestorTwinClassId());
         TwinClassEntity newExtendsTwinClass = findEntitySafe(extendsRelinkOperation.getNewId());
         if (newExtendsTwinClass.getExtendedClassIdSet().contains(dbTwinClassEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, dbTwinClassEntity.logNormal() + " can not extend " + newExtendsTwinClass.logNormal() + " because of cycling");
@@ -525,18 +521,24 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         setNewExtendsTwinClass(dbTwinClassEntity, newExtendsTwinClass);
     }
 
-    private static TwinClassEntity setNewExtendsTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newExtendsTwinClass) {
-        if (twinClassEntity.getExtendsTwinClassId() != null)
-            // we will do it manually (but also it will be done by db trigger on save)
-            twinClassEntity
-                    .setExtendsHierarchyTree(
-                            newExtendsTwinClass.getExtendsHierarchyTree() + StringUtils.substringAfter(twinClassEntity.getExtendsHierarchyTree(), TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getExtendsTwinClassId())))
-                    .setExtendedClassIdSet(null);
+    public TwinClassEntity setNewExtendsTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newExtendsTwinClass) throws ServiceException {
         twinClassEntity
-                .setExtendsTwinClassId(newExtendsTwinClass.getId())
+                .setExtendsTwinClassId(newExtendsTwinClass != null ? newExtendsTwinClass.getId() : null)
                 .setExtendsTwinClass(newExtendsTwinClass)
                 .setTwinClassFieldKit(null); //invalidating
+        refreshExtendsHierarchyTree(twinClassEntity);
         return twinClassEntity;
+    }
+
+    // we can refresh tree from code. because db trigger will do this only after transaction commit, but perhaps we will need this field earlier
+    public void refreshExtendsHierarchyTree(TwinClassEntity twinClassEntity) throws ServiceException {
+        if (twinClassEntity.getExtendsTwinClassId() == null) {
+            twinClassEntity.setExtendsHierarchyTree(TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+        } else {
+            loadExtendsTwinClass(twinClassEntity);
+            twinClassEntity.setExtendsHierarchyTree(twinClassEntity.getExtendsTwinClass().getExtendsHierarchyTree() + "." + TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+        }
+        twinClassEntity.setExtendedClassIdSet(null);
     }
 
     private static TwinClassEntity setNewHeadTwinClass(TwinClassEntity twinClassEntity, TwinClassEntity newHeadTwinClass) {
