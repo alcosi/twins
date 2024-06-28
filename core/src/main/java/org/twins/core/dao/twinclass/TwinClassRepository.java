@@ -16,8 +16,10 @@ import java.util.UUID;
 
 @Repository
 public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUID>, JpaSpecificationExecutor<TwinClassEntity> {
+    String CACHE_TWIN_CLASS_BY_ID = "TwinClassRepository.findById";
+
     @Override
-    @Cacheable(value = "TwinClassRepository.findById", key = "{#uuid}")
+    @Cacheable(value = CACHE_TWIN_CLASS_BY_ID, key = "#uuid")
     Optional<TwinClassEntity> findById(UUID uuid);
     Page<TwinClassEntity> findByDomainId(UUID domainId, Pageable pageable);
     Page<TwinClassEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids, Pageable pageable);

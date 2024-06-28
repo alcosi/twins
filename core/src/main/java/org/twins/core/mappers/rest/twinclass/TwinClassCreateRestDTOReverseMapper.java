@@ -13,23 +13,17 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @RequiredArgsConstructor
 public class TwinClassCreateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassCreateRqDTOv1, TwinClassEntity> {
     final I18nService i18nService;
+    final TwinClassSaveRestDTOReverseMapper twinClassSaveRestDTOReverseMapper;
 
     @Override
     public void map(TwinClassCreateRqDTOv1 src, TwinClassEntity dst, MapperContext mapperContext) throws Exception {
+        twinClassSaveRestDTOReverseMapper.map(src, dst, mapperContext);
         dst
-                .setKey(src.getKey())
-                .setAbstractt(src.isAbstractClass())
                 .setExtendsTwinClassId(src.getExtendsTwinClassId())
                 .setHeadTwinClassId(src.getHeadTwinClassId())
-                .setAliasSpace(src.isAliasSpace())
-                .setPermissionSchemaSpace(src.isPermissionSchemaSpace())
-                .setTwinClassSchemaSpace(src.isTwinClassSchemaSpace())
-                .setTwinflowSchemaSpace(src.isTwinflowSchemaSpace())
                 .setHeadTwinClassId(src.getHeadTwinClassId())
                 .setMarkerDataListId(src.getMarkerDataListId())
                 .setTagDataListId(src.getTagDataListId())
-                .setLogo(src.getLogo())
-                .setViewPermissionId(src.getViewPermissionId())
         ;
     }
 }

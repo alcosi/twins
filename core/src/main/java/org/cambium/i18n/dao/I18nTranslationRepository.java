@@ -13,7 +13,9 @@ import java.util.*;
 
 @Repository
 public interface I18nTranslationRepository extends CrudRepository<I18nTranslationEntity, UUID>, JpaSpecificationExecutor<I18nTranslationEntity> {
-    @Cacheable(value = "I18nTranslationRepository.findByI18nIdAndLocale", key = "{#i18nId, #locale }")
+    String CACHE_I18N_TRANSLATIONS = "I18nTranslationRepository.findByI18nIdAndLocale";
+
+    @Cacheable(value = CACHE_I18N_TRANSLATIONS, key = "#i18nId + '' + #locale ")
     Optional<I18nTranslationEntity> findByI18nIdAndLocale(UUID i18nId, Locale locale);
 
     List<I18nTranslationEntity> findByI18nAndLocaleIn(I18nEntity i18n, List<Locale> locales);

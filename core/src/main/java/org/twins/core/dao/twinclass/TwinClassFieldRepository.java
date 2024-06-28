@@ -28,4 +28,9 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
             "where field.key = :key " +
             "and field.twinClassId = class.extendsTwinClassId and class.id = :twinClassId")
     TwinClassFieldEntity findByTwinClassIdAndParentKey(@Param("twinClassId") UUID twinClassId, @Param("key") String key);
+
+    @Query(value = "select field.id from TwinClassFieldEntity field, TwinClassEntity twinClass where twinClass.id = :twinClassId and field.twinClassId in (twinClass.extendsHierarchyTree)")
+    Set<UUID> findInheritedTwinClassFieldIds(UUID twinClassId);
+
+    List<TwinClassFieldEntity> findByIdIn(Collection<UUID> ids);
 }

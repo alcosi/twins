@@ -10,7 +10,11 @@ public enum ErrorCodeCommon implements ErrorCode {
     NOT_IMPLEMENTED(501, "this operation is not supported yet"),
     UUID_UNKNOWN(10000, "uuid is unknown"),
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
-    ENTITY_INVALID(10002, "entity invalid");
+    ENTITY_INVALID(10002, "entity invalid"),
+    FEATURER_IS_NULL(600, "Got featurer is null"),
+    FEATURER_ID_UNKNOWN(601, "featurer id is unknown"),
+    FEATURER_INCORRECT_TYPE(602, "featurer type is incorrect"),
+    FEATURER_WRONG_PARAMS(604, "featurer type is incorrect");
 
     private final int code;
     private final String message;
