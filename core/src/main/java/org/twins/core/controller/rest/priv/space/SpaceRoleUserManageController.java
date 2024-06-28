@@ -45,7 +45,7 @@ public class SpaceRoleUserManageController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
+            @MapperModeParam(def = MapperMode.UserMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestBody SpaceRoleUserRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {

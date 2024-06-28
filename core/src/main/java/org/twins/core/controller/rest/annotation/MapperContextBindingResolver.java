@@ -12,9 +12,25 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 
 import java.lang.reflect.Parameter;
+import java.util.ArrayList;
+import java.util.List;
 
 @Component
 public class MapperContextBindingResolver implements HandlerMethodArgumentResolver {
+
+    private static final String LAZY_RELATION = "lazyRelation";
+    private static final String OFFSET = "offset";
+    private static final String LIMIT = "limit";
+    private static final String SORT_DIRECTION = "direction";
+    private static final String CHILD_DEPTH = "childDepth";
+
+    private static final List<String> PARAM_NAME_EXCLUDE_LIST = new ArrayList<>() {{
+        add(LAZY_RELATION);
+        add(OFFSET);
+        add(LIMIT);
+        add(SORT_DIRECTION);
+        add(CHILD_DEPTH);
+    }};
 
     @Override
     public boolean supportsParameter(@NonNull MethodParameter parameter) {
@@ -28,19 +44,27 @@ public class MapperContextBindingResolver implements HandlerMethodArgumentResolv
         MapperContext mapperContext = new MapperContext();
         Parameter[] parameters = parameter.getMethod().getParameters();
         for (Parameter param : parameters) {
-            if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && !param.getName().equals("lazyRelation")) {
+            if (param.isAnnotationPresent(MapperModeParam.class) || param.isAnnotationPresent(RequestParam.class) && !excludeListCheck(param.getName())) {
                 Object value = webRequest.getParameter(param.getName());
                 if (value != null) {
                     setModeInMapperContext(mapperContext, value, param.getType());
                 }
-            } else if (param.isAnnotationPresent(RequestParam.class) && param.getName().equals("lazyRelation")) {
-                Object value = webRequest.getParameter(param.getName());
-                if (value != null) {
-                    mapperContext.setLazyRelations(Boolean.parseBoolean((String) value));
+            } else if (param.isAnnotationPresent(RequestParam.class) && excludeListCheck(param.getName())) {
+                switch (param.getName()) {
+                    case LAZY_RELATION:
+                        Object value = webRequest.getParameter(param.getName());
+                        if (value != null) {
+                            mapperContext.setLazyRelations(Boolean.parseBoolean((String) value));
+                        }
+                        break;
                 }
             }
         }
         return mapperContext;
+    }
+
+    private boolean excludeListCheck(String name) {
+        return PARAM_NAME_EXCLUDE_LIST.contains(name);
     }
 
     private void setModeInMapperContext(MapperContext mapperContext, Object value, Class<?> paramType) {

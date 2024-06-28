@@ -61,7 +61,7 @@ public class SpaceRoleUserListController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode) {
+            @MapperModeParam(def = MapperMode.UserMode.Fields.DETAILED) MapperMode.UserMode showUserMode) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
             rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserByRole(spaceId, roleId), mapperContext);
@@ -85,7 +85,7 @@ public class SpaceRoleUserListController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
+            @MapperModeParam(def = MapperMode.UserMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleByUserDTOMapper.Mode._SHORT) SpaceRoleByUserDTOMapper.Mode spaceRoleMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
@@ -115,7 +115,7 @@ public class SpaceRoleUserListController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
+            @MapperModeParam(def = MapperMode.UserMode.Fields.DETAILED) MapperMode.UserMode showUserMode,
             @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleByUserDTOMapper.Mode._SHORT) SpaceRoleByUserDTOMapper.Mode spaceRoleMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,

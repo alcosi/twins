@@ -49,7 +49,7 @@ public class AttachmentViewController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.DETAILED) MapperMode.AttachmentMode showAttachmentMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode) {
+            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             rs.setAttachment(

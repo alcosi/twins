@@ -114,10 +114,11 @@ public class TwinFieldSaveController extends ApiController {
                     @Schema(implementation = TwinRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/field_list/v1")
-    public ResponseEntity<?> twinFieldListUpdateV1(MapperContext mapperContext,
+    public ResponseEntity<?> twinFieldListUpdateV1(
+            MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = MapperMode.Mode._SHORT) MapperMode.Mode showUserMode,
+            @MapperModeParam(def = MapperMode.UserMode.Fields.SHORT) MapperMode.UserMode showUserMode,
             @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = MapperMode.StatusMode.Fields.SHORT) MapperModePointer.StatusMode showStatusMode,
             @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
