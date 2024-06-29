@@ -30,8 +30,10 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -121,7 +123,7 @@ public class TwinFieldSaveController extends ApiController {
             @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
+            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
             @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
             @RequestBody TwinFieldListUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();

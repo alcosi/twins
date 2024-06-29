@@ -1,7 +1,5 @@
 package org.twins.core.mappers.rest.twin;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -27,7 +25,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     public void map(TwinEntity src, TwinDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
 
-        switch (mapperContext.getModeOrUse(FieldsMode.ALL_FIELDS)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinFieldCollectionMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS, ALL_FIELDS_WITH_ATTACHMENTS:
@@ -47,22 +45,4 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
         return src.getId().toString();
     }
 
-    @AllArgsConstructor
-    public enum FieldsMode implements MapperMode {
-        NO_FIELDS(0),
-        NOT_EMPTY_FIELDS(1),
-        ALL_FIELDS(2),
-        NOT_EMPTY_FIELDS_WITH_ATTACHMENTS(3),
-        ALL_FIELDS_WITH_ATTACHMENTS(4);
-
-        public static final String _NO_FIELDS = "NO_FIELDS";
-        public static final String _ALL_FIELDS = "ALL_FIELDS";
-        public static final String _NOT_EMPTY_FIELDS = "NOT_EMPTY_FIELDS";
-        public static final String _ALL_FIELDS_WITH_ATTACHMENTS = "ALL_FIELDS_WITH_ATTACHMENTS";
-        public static final String _NOT_EMPTY_FIELDS_WITH_ATTACHMENTS = "NOT_EMPTY_FIELDS_WITH_ATTACHMENTS";
-
-        @Getter
-        final int priority;
-
-    }
 }

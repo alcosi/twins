@@ -2,13 +2,11 @@ package org.twins.core.controller.rest.annotation;
 
 import org.twins.core.mappers.rest.MapperMode;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
-@Target(ElementType.FIELD)
+@Target({ElementType.TYPE, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
 public @interface MapperModeBinding {
     Class<? extends MapperMode>[] modes();
 }

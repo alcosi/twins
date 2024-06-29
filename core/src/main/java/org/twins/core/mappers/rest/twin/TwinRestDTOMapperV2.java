@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
@@ -27,7 +28,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     public void map(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
         List<TwinField> twinFieldList;
-        switch (mapperContext.getModeOrUse(TwinRestDTOMapper.FieldsMode.NO_FIELDS)) {
+        switch (mapperContext.getModeOrUse(MapperMode.TwinFieldCollectionMode.NO_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS:
@@ -51,7 +52,7 @@ public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTO
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.ALL_FIELDS) || mapperContext.hasMode(TwinRestDTOMapper.FieldsMode.NOT_EMPTY_FIELDS))
+        if (mapperContext.hasMode(MapperMode.TwinFieldCollectionMode.ALL_FIELDS) || mapperContext.hasMode(MapperMode.TwinFieldCollectionMode.NOT_EMPTY_FIELDS))
             twinService.loadTwinFields(srcCollection); // bulk load (minimizing the number of db queries)
     }
 

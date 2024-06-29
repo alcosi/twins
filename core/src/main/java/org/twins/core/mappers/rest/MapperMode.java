@@ -119,6 +119,37 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum StarredMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum StarredTwinMode implements MapperModePointer<TwinMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinMode point() {
+            return switch (this) {
+                case HIDE -> TwinMode.HIDE;
+                case SHORT -> TwinMode.SHORT;
+                case DETAILED -> TwinMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum TransitionResultMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -880,4 +911,16 @@ public interface MapperMode {
         }
     }
 
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinFieldCollectionMode implements MapperMode {
+        @FieldNameConstants.Include NO_FIELDS(0),
+        @FieldNameConstants.Include NOT_EMPTY_FIELDS(1),
+        @FieldNameConstants.Include ALL_FIELDS(2),
+        @FieldNameConstants.Include NOT_EMPTY_FIELDS_WITH_ATTACHMENTS(3),
+        @FieldNameConstants.Include ALL_FIELDS_WITH_ATTACHMENTS(4);
+
+        final int priority;
+    }
 }

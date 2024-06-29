@@ -4,14 +4,16 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.cambium.i18n.dto.I18nDTOv1;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.mappers.rest.MapperMode;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @Schema(name =  "TwinStatusV1")
+@MapperModeBinding(modes = MapperMode.StatusMode.class)
 public class TwinStatusDTOv1 {
     @Schema(description = "uuid", example = DTOExamples.TWIN_STATUS_ID)
     public UUID id;

@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.twin.TwinStarredDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 
@@ -21,7 +20,7 @@ public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEnt
 
     @Override
     public void map(TwinStarredEntity src, TwinStarredDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.StatusMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.StarredMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
