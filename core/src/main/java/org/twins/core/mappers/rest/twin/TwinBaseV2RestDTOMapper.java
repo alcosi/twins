@@ -40,15 +40,11 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst
                     .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(MapperMode.TwinStatusMode.SHORT)))
                     .statusId(src.getTwinStatusId());
-        if (mapperContext.hasModeButNot(MapperMode.AssigneeMode.HIDE)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinUserMode.HIDE)) {
             dst
-                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.AssigneeMode.SHORT))))
-                    .assignerUserId(src.getAssignerUserId());
-        }
-        //TODO this user is taken from the cache if the same
-        if (mapperContext.hasModeButNot(MapperMode.CreatorMode.HIDE)) {
-            dst
-                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.CreatorMode.SHORT))))
+                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinUserMode.SHORT))))
+                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinUserMode.SHORT))))
+                    .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
         }
         if (mapperContext.hasModeButNot(MapperMode.TwinClassMode.HIDE))

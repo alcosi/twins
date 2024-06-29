@@ -51,33 +51,13 @@ public class TwinViewController extends ApiController {
                     @Schema(implementation = TwinRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/v1")
+
     public ResponseEntity<?> twinViewV1(
-            MapperContext mapperContext,
+            @BindParam(dto = TwinRsDTOv1.class,
+            block = {
+
+            }) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
     ) {
 
         TwinRsDTOv1 rs = new TwinRsDTOv1();
@@ -107,9 +87,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
             @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
+            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
@@ -121,11 +99,13 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
             @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
+            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
+            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
     ) {
@@ -156,9 +136,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
             @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
+            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
@@ -170,11 +148,13 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
             @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
+            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
+            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
     ) {
@@ -205,9 +185,7 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
             @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
+            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
@@ -219,11 +197,13 @@ public class TwinViewController extends ApiController {
             @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
             @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
             @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
+            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
             @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
+            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode
     ) {

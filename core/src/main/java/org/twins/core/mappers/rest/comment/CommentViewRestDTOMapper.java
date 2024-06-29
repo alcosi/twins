@@ -18,7 +18,7 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentViewDTOv1> {
-    final UserRestDTOMapper userDTOMapper;
+    final UserRestDTOMapper userRestDTOMapper;
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
     final CommentService commentService;
 
@@ -31,10 +31,15 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setText(src.getText());
                 break;
             case DETAILED:
+                if (mapperContext.hasModeButNot(MapperMode.SpaceUserMode.HIDE))
+                    dst
+                            .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.SpaceUserMode.SHORT))))
+
+
                 dst
                         .setId(src.getId())
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
+                        .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setText(src.getText());
                 if (src.getCreatedAt().toLocalDateTime() != null)

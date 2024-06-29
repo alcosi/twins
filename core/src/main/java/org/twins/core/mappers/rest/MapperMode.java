@@ -175,6 +175,7 @@ public interface MapperMode {
         final int priority;
     }
 
+
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
@@ -622,7 +623,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum OwnerMode implements MapperModePointer<UserMode> {
+    enum AttachmentUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -642,7 +643,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum AssigneeMode implements MapperModePointer<UserMode> {
+    enum CommentUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -662,7 +663,147 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum CreatorMode implements MapperModePointer<UserMode> {
+    enum HistoryUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TransitionUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum FieldUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum SpaceUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinLinkUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinflowUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

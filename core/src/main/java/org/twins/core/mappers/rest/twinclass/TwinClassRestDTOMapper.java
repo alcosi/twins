@@ -78,6 +78,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             dataListService.loadDataListOptions(markerDataListEntity);
             if (markerDataListEntity.getOptions() != null) {
                 MapperContext dataListMapperContext = mapperContext.cloneWithIsolatedModes()
+                        //todo fork on point
                         .setModeIfNotPresent(mapperContext.hasMode(MapperMode.TwinClassMarkerMode.SHORT) ? MapperMode.DataListOptionMode.SHORT : MapperMode.DataListOptionMode.DETAILED);
                 if (mapperContext.isLazyRelations())
                     dst.markerMap(dataListOptionRestDTOMapper.convertMap(markerDataListEntity.getOptions().getMap(), dataListMapperContext));

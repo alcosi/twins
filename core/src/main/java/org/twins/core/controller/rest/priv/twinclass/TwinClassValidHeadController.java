@@ -52,7 +52,7 @@ public class TwinClassValidHeadController extends ApiController {
             MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
+            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {

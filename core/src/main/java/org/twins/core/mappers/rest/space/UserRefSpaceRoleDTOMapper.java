@@ -7,6 +7,7 @@ import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -19,7 +20,11 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
     @Override
     public void map(UserRefSpaceRole src, UserWithinSpaceRolesRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst.setUserId(src.getUser().getId());
-        dst.setUser(userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext));
+
+        if (mapperContext.hasModeButNot(MapperMode.SpaceUserMode.HIDE))
+            dst.setUser(userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.SpaceUserMode.SHORT))));
+
+
         if (!spaceRoleByUserDTOMapper.hideMode(mapperContext))
             convertOrPostpone(new Kit<>(src.getRoles(), SpaceRoleUserEntity::getSpaceRoleId),
                     dst, spaceRoleByUserDTOMapper,

@@ -116,7 +116,7 @@ public class TwinFieldSaveController extends ApiController {
             MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam(def = MapperMode.UserMode.Fields.SHORT) MapperMode.UserMode showUserMode,
+            @MapperModeParam(def = MapperMode.FieldUserMode.Fields.SHORT) MapperMode.FieldUserMode showFieldUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
             @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,

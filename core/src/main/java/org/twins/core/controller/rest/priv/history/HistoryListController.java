@@ -60,7 +60,7 @@ public class HistoryListController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.HIDE) MapperMode.CreatorMode showCreatorMode,
+            @MapperModeParam(def = MapperMode.HistoryUserMode.Fields.HIDE) MapperMode.HistoryUserMode showHistoryUserMode,
             @MapperModeParam MapperMode.TwinMode showTwinMode,
             @MapperModeParam MapperMode.TwinClassMode showClassMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,

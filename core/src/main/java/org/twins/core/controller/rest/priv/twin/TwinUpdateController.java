@@ -64,9 +64,7 @@ public class TwinUpdateController extends ApiController {
             @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
             @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.AssigneeMode.Fields.SHORT) MapperMode.AssigneeMode showAssigneeMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam(def = MapperMode.OwnerMode.Fields.SHORT) MapperMode.OwnerMode showOwnerMode,
+            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
             @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
             @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
@@ -82,6 +80,7 @@ public class TwinUpdateController extends ApiController {
             @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
             @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
             @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
+            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
             @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
             @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinUpdateRqDTOv1 request) {

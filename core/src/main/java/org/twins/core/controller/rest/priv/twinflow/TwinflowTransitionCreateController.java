@@ -57,7 +57,7 @@ public class TwinflowTransitionCreateController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinflowId,
             @RequestParam(name = RestRequestParam.showTransitionMode, defaultValue = MapperMode.TransitionMode.Fields.SHORT) MapperMode.TransitionMode showTwinflowTransitionMode,
             @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
+            @MapperModeParam(def = MapperMode.TransitionUserMode.Fields.SHORT) MapperMode.TransitionUserMode showTransitionUserMode,
             @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode,
             @RequestBody TwinflowTransitionCreateRqDTOv1 request) {
         TwinflowTransitionCreateRsDTOv1 rs = new TwinflowTransitionCreateRsDTOv1();

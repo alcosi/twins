@@ -5,6 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.history.HistoryDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -24,9 +25,12 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
 
     @Override
     public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
+
+        if (mapperContext.hasModeButNot(MapperMode.HistoryUserMode.HIDE))
+            dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.HistoryUserMode.SHORT))));
+
         dst
                 .changeDescription(historyService.getChangeFreshestDescription(src))
-                .actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext))
                 .twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext.cloneWithIsolatedModes()))
                 .actorUserId(src.getActorUserId())
                 .twinId(src.getTwin().getId())
