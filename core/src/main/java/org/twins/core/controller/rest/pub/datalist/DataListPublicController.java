@@ -50,7 +50,7 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
@@ -75,7 +75,7 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
@@ -101,7 +101,7 @@ public class DataListPublicController extends ApiController {
     @PostMapping(value = "/public/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {

@@ -52,7 +52,7 @@ public class DomainListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/list/v1")
     public ResponseEntity<?> domainListV1(
-            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainListRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();

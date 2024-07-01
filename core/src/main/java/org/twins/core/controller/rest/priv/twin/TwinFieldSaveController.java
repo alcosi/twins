@@ -116,7 +116,7 @@ public class TwinFieldSaveController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/{twinId}/field_list/v1")
     public ResponseEntity<?> twinFieldListUpdateV1(
-            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinRsDTOv2.class) MapperContext mapperContext,
             @Parameter(name = "twinId", in = ParameterIn.PATH, required = true, example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinFieldListUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();

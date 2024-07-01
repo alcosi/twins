@@ -45,7 +45,7 @@ public class CommentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentV1(
-            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {

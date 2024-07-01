@@ -43,7 +43,7 @@ public class SpaceRoleUserManageController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/manage/v1")
     public ResponseEntity<?> spaceRoleUserManageV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
             @RequestBody SpaceRoleUserRqDTOv1 request) {

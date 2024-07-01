@@ -48,7 +48,7 @@ public class AttachmentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
-            @MapperContextBinding(roots = AttachmentViewRestDTOMapperV2.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = AttachmentViewRestDTOMapperV2.class, response = AttachmentViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {

@@ -52,7 +52,7 @@ public class CommentListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
-            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,

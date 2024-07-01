@@ -45,7 +45,7 @@ public class UserGroupListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/user/{userId}/user_group/v1")
     public ResponseEntity<?> userGroupForUserListV1(
-            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {

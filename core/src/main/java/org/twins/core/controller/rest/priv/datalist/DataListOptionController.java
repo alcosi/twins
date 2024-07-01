@@ -46,7 +46,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {
@@ -71,7 +71,7 @@ public class DataListOptionController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/data_list_option/map/v1", method = RequestMethod.POST)
     public ResponseEntity<?> dataListsOptionsMapV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionMapRsDTOv1.class) MapperContext mapperContext,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
         try {

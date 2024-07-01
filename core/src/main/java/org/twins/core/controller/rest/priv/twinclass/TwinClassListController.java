@@ -56,7 +56,7 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/search/v1")
     public ResponseEntity<?> twinClassSearchV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinClassSearchRqDTOv1 request) {
@@ -86,7 +86,7 @@ public class TwinClassListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/list/v1")
     public ResponseEntity<?> twinClassLstV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
