@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinCommentEntity;
@@ -25,6 +26,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 
 import java.util.UUID;
@@ -47,6 +49,7 @@ public class CommentEditController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentUpdateV1(
+            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId,
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
@@ -54,12 +57,7 @@ public class CommentEditController extends ApiController {
             EntityCUD<TwinAttachmentEntity> attachmentCUD = attachmentCUDRestDTOReverseMapperV2.convert(request.getAttachments());
             TwinCommentEntity twinComment = commentService.updateComment(commentId, request.getText(), attachmentCUD);
             rs
-                    .setComment(commentViewRestDTOMapper.
-                            convert(twinComment,
-                                    new MapperContext()
-                                            .setMode(MapperMode.CommentUserMode.DETAILED)
-                                            .setMode(MapperMode.AttachmentMode.DETAILED))
-                    );
+                    .setComment(commentViewRestDTOMapper.convert(twinComment, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
