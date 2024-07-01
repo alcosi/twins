@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.apiuser.*;
@@ -51,8 +52,7 @@ public class DomainListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/list/v1")
     public ResponseEntity<?> domainListV1(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.showDomainMode, defaultValue = DomainViewRestDTOMapper.DomainMode._SHORT) DomainViewRestDTOMapper.DomainMode showDomainMode,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.TwinField;
@@ -47,10 +48,9 @@ public class TwinFieldViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/field/{fieldKey}/v1")
     public ResponseEntity<?> twinFieldByKeyViewV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinFieldRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode) {
+            @Parameter(example = DTOExamples.TWIN_FIELD_KEY) @PathVariable String fieldKey) {
         TwinFieldRsDTOv1 rs = new TwinFieldRsDTOv1();
         try {
             TwinField twinField = twinService.wrapField(twinId, fieldKey);

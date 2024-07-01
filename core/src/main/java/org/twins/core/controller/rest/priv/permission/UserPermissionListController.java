@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
@@ -50,10 +51,8 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/user/{userId}/permission/v1")
     public ResponseEntity<?> userPermissionListV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @MapperContextBinding(roots = PermissionWithGroupRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
             rs.permissionList = permissionWithGroupRestDTOMapper.convertCollection(
@@ -75,16 +74,13 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionGroupedListV1(
-            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
             rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(
                     permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissionGroups(),
-                    new MapperContext()
-                            .setMode(showPermissionMode)
-                            .setMode(showPermissionGroupMode));
+                    mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

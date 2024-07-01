@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStarredEntity;
@@ -44,14 +45,13 @@ public class TwinStarredListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/starred/v1")
     public ResponseEntity<?> twinStarredListV1(
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
+            @MapperContextBinding(roots = TwinStarredRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinStarredListRsDTOv1 rs = new TwinStarredListRsDTOv1();
         try {
             List<TwinStarredEntity> twinStarredList = twinStarredService.findStarred(twinClassId);
             rs
-                    .setStarredTwins(twinStarredRestDTOMapper.convertCollection(twinStarredList, new MapperContext()
-                            .setMode(showTwinMode)));
+                    .setStarredTwins(twinStarredRestDTOMapper.convertCollection(twinStarredList, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

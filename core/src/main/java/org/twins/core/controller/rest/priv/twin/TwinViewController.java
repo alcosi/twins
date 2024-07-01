@@ -53,12 +53,12 @@ public class TwinViewController extends ApiController {
     @GetMapping(value = "/private/twin/{twinId}/v1")
 
     public ResponseEntity<?> twinViewV1(
-            @MapperContextBinding(root = TwinRestDTOMapper.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             rs
-                    .twin(twinRestDTOMapper.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setTwin(twinRestDTOMapper.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -77,12 +77,12 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin/{twinId}/v2")
     public ResponseEntity<?> twinViewV2(
-            @MapperContextBinding(root = TwinRestDTOMapperV2.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
             rs
-                    .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -101,12 +101,12 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v1")
     public ResponseEntity<?> twinViewByAliasV1(
-            @MapperContextBinding(root = TwinRestDTOMapper.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             rs
-                    .twin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
+                    .setTwin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -125,12 +125,12 @@ public class TwinViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_by_alias/{twinAlias}/v2")
     public ResponseEntity<?> twinViewByAliasV2(
-            @MapperContextBinding(root = TwinRestDTOMapper.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
             rs
-                    .twin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
+                    .setTwin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

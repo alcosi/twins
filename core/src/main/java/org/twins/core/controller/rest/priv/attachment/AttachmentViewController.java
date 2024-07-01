@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
@@ -46,10 +48,8 @@ public class AttachmentViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
-            @MapperModeParam(def = MapperMode.AttachmentMode.Fields.DETAILED) MapperMode.AttachmentMode showAttachmentMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode) {
+            @MapperContextBinding(roots = AttachmentViewRestDTOMapperV2.class, lazySupport = false) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             rs.setAttachment(

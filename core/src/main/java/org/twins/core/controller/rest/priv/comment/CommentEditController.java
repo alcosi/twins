@@ -57,8 +57,9 @@ public class CommentEditController extends ApiController {
                     .setComment(commentViewRestDTOMapper.
                             convert(twinComment,
                                     new MapperContext()
-                                            .setMode(CommentViewRestDTOMapper.Mode.DETAILED)
-                                            .setMode(MapperMode.AttachmentMode.DETAILED)));
+                                            .setMode(MapperMode.CommentUserMode.DETAILED)
+                                            .setMode(MapperMode.AttachmentMode.DETAILED))
+                    );
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

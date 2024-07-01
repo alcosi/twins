@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
@@ -42,7 +43,6 @@ public class TwinClassLinkListController extends ApiController {
     final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
     final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
-
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassLinkListV1", summary = "Returns twin class link list")
     @ApiResponses(value = {
@@ -52,11 +52,8 @@ public class TwinClassLinkListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/link/v1")
     public ResponseEntity<?> twinClassLinkListV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam MapperMode.TwinClassLinkMode showTwinClassLinkMode) {
+            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, lazySupport = true) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(twinClassId);

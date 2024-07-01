@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
@@ -72,28 +73,8 @@ public class TwinTransitionPerformController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/{transitionId}/v1")
     public ResponseEntity<?> twinTransitionPerformV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = MapperMode.TransitionResultMode.Fields.HIDE) MapperMode.TransitionResultMode showTwinflowTransitionResultMode,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -128,28 +109,8 @@ public class TwinTransitionPerformController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition_by_alias/{transitionAlias}/v1")
     public ResponseEntity<?> twinTransitionByAliasPerformV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = MapperMode.TransitionResultMode.Fields.HIDE) MapperMode.TransitionResultMode showTwinflowTransitionResultMode,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -183,28 +144,8 @@ public class TwinTransitionPerformController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionPerformBatchV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = MapperMode.TransitionResultMode.Fields.HIDE) MapperMode.TransitionResultMode showTwinflowTransitionResultMode,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {
@@ -243,28 +184,8 @@ public class TwinTransitionPerformController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition_by_alias/{transitionAlias}/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionByAliasPerformBatchV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinTransitionPerformRsRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ALIAS) @PathVariable String transitionAlias,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionResultMode, defaultValue = MapperMode.TransitionResultMode.Fields.HIDE) MapperMode.TransitionResultMode showTwinflowTransitionResultMode,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.CreatorMode.Fields.SHORT) MapperMode.CreatorMode showCreatorMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinTransitionPerformBatchRqDTOv1 request) {
         TwinTransitionPerformRsDTOv1 rs = new TwinTransitionPerformRsDTOv1();
         try {

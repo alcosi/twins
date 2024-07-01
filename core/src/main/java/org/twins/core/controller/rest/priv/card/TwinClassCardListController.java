@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
@@ -45,10 +46,8 @@ public class TwinClassCardListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/card/list/v1")
     public ResponseEntity<?> twinClassCardListV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardRestDTOMapper.Mode showCardMode,
-            @RequestParam(name = RestRequestParam.showCardWidgetMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardWidgetRestDTOMapper.Mode showCardWidgetMode) {
+            @MapperContextBinding(roots = CardRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

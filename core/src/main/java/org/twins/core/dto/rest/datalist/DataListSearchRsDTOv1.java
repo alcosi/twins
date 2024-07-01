@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Response;
 import java.util.List;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListSearchRsV1")
 public class DataListSearchRsDTOv1 extends Response {

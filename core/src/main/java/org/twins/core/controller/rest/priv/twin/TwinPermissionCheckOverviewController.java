@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.DTOExamples;
@@ -54,15 +55,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
     @PostMapping(value = "/private/twin/{twinId}/permisson_check_overview/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> permissonCheckOverview(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionCheckOverviewDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.showPermissionSchemaMode, defaultValue = PermissionSchemaRestDTOMapper.Mode._DETAILED) PermissionSchemaRestDTOMapper.Mode showPermissionSchemaMode,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode,
-            @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode,
-            @RequestParam(name = RestRequestParam.showSpaceRoleUserMode, defaultValue = SpaceRoleUserDTOMapper.Mode._DETAILED) SpaceRoleUserDTOMapper.Mode showSpaceRoleUserMode,
-            @RequestParam(name = RestRequestParam.showSpaceRoleUserGroupMode, defaultValue = SpaceRoleUserGroupDTOMapper.Mode._DETAILED) SpaceRoleUserGroupDTOMapper.Mode showSpaceRoleUserGroupMode,
-            @RequestParam(name = RestRequestParam.showSpaceRoleMode, defaultValue = SpaceRoleByUserDTOMapper.Mode._DETAILED) SpaceRoleByUserDTOMapper.Mode showSpaceRoleMode,
             @RequestBody PermissionCheckOverviewRqDTOv1 request) {
         PermissionCheckOverviewRsDTOv1 rs = new PermissionCheckOverviewRsDTOv1();
         try {

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
@@ -47,16 +48,15 @@ public class DataListOptionPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/public/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionPublicViewV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode) {
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
             DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
             rs
-                    .dataListId(dataListOptionEntity.getDataListId())
-                    .option(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
+                    .setDataListId(dataListOptionEntity.getDataListId())
+                    .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -74,14 +74,13 @@ public class DataListOptionPublicController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/map/v1")
     public ResponseEntity<?> dataListOptionsMapViewV1(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.showDataListOptionMode, defaultValue = MapperMode.DataListOptionMode.Fields.SHORT) MapperMode.DataListOptionMode showDataListOptionMode,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
             rs
-                    .dataListOptionMap(dataListOptionRestDTOMapper.convertMap(
+                    .setDataListOptionMap(dataListOptionRestDTOMapper.convertMap(
                             dataListService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

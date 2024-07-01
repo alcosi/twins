@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
@@ -59,30 +60,8 @@ public class TwinUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinUpdateV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = MapperMode.AttachmentMode.Fields.HIDE) MapperMode.AttachmentMode showAttachmentMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestBody TwinUpdateRqDTOv1 request) {
         TwinRsDTOv2 rs = new TwinRsDTOv2();
         try {
@@ -94,9 +73,8 @@ public class TwinUpdateController extends ApiController {
             // get twin by id and set result based on mapper context
 
             rs
-                    .twin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
+                    .setTwin(twinRestDTOMapperV2.convert(twinService.findEntitySafe(twinId), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
-
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

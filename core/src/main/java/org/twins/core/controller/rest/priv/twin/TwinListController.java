@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.search.BasicSearch;
@@ -75,31 +76,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -128,31 +105,7 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v2")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
@@ -181,33 +134,9 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/v3")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV3(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody List<TwinSearchRqDTOv1> request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
@@ -238,32 +167,8 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search_by_alias/{searchAlias}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByAliasV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,  //todo not use
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
@@ -292,32 +197,8 @@ public class TwinListController extends ApiController {
     @PostMapping(value = "/private/twin/search/{searchId}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByIdV1(
-            MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, lazySupport = true) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @MapperModeParam MapperMode.TwinByLinkMode showRelatedByLinkTwinMode,
-            @MapperModeParam MapperMode.TwinByHeadMode showRelatedByHeadTwinMode,
-            @MapperModeParam(def = MapperMode.TwinUserMode.Fields.SHORT) MapperMode.TwinUserMode showTwinUserMode,
-            @MapperModeParam MapperMode.TwinStatusMode showTwinStatusMode,
-            @MapperModeParam MapperMode.TransitionStatusMode showTransitionStatusMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = MapperMode.TwinFieldCollectionMode._ALL_FIELDS) MapperMode.TwinFieldCollectionMode showTwinFieldMode,
-            @MapperModeParam(def = MapperMode.TwinAttachmentCollectionMode.Fields.ALL) MapperMode.TwinAttachmentCollectionMode showTwinAttachmentCollectionMode,
-            @MapperModeParam MapperMode.TwinAttachmentMode showTwinAttachmentMode,
-            @MapperModeParam MapperMode.AttachmentUserMode showAttachmentUserMode,
-            @MapperModeParam MapperMode.TwinMarkerMode showTwinMarkerMode,
-            @MapperModeParam MapperMode.TwinTagMode showTwinTagMode,
-            @MapperModeParam MapperMode.TwinAliasMode showTwinAliasMode,
-            @MapperModeParam MapperMode.TwinLinkMode showTwinLinkMode,
-            @MapperModeParam MapperMode.TwinLinkOnLinkMode showTwinLinkOnLinkMode,
-            @MapperModeParam MapperMode.TwinLinkUserMode showTwinLinkUserMode,
-            @MapperModeParam MapperMode.TwinTransitionMode showTwinTransitionMode,
-            @MapperModeParam MapperMode.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {

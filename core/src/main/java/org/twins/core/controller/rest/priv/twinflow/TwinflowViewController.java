@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.MapperModeParam;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
@@ -47,15 +48,8 @@ public class TwinflowViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twinflow/{twinflowId}/v1")
     public ResponseEntity<?> twinflowViewV1(
-            MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showTwinflowMode, defaultValue = MapperMode.TwinflowMode.Fields.SHORT) MapperMode.TwinflowMode showTwinflowMode,
-            @RequestParam(name = RestRequestParam.showTwinflowTransitionMode, defaultValue = MapperMode.TwinflowTransitionMode.Fields.SHORT) MapperModePointer.TwinflowTransitionMode showTwinflowTransitionMode,
-            @MapperModeParam MapperMode.TwinflowInitStatusMode showTwinflowStatusMode,
-            @MapperModeParam(def = MapperMode.TwinflowUserMode.Fields.SHORT) MapperMode.TwinflowUserMode showTwinflowUserMode,
-            @MapperModeParam(def = MapperMode.TransitionUserMode.Fields.SHORT) MapperMode.TransitionUserMode showTransitionUserMode,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._HIDE) PermissionRestDTOMapper.Mode showPermissionMode) {
+            @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWINFLOW_ID) @PathVariable UUID twinflowId) {
         TwinflowViewRsDTOv1 rs = new TwinflowViewRsDTOv1();
         try {
             rs

@@ -32,6 +32,7 @@ import java.util.UUID;
 public class DomainUserDeleteController extends ApiController {
     final DomainService domainService;
     final AuthService authService;
+
     @ParameterChannelHeader
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")
     @ApiResponses(value = {

@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRqDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRsDTOv1;
@@ -46,19 +47,17 @@ public class FeaturerSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
-        MapperContext mapperContext,
-        @RequestParam(name = RestRequestParam.showFeaturerMode, defaultValue = FeaturerRestDTOMapper.Mode._SHORT) FeaturerRestDTOMapper.Mode showFeaturerMode,
-        @RequestParam(name = RestRequestParam.showFeaturerParamMode, defaultValue = FeaturerRestDTOMapper.ShowFeaturerParamMode._SHOW) FeaturerRestDTOMapper.ShowFeaturerParamMode showFeaturerParamMode,
+        @MapperContextBinding(roots = FeaturerRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
         @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
         @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
         @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
             FeaturerSearchResult featurers = featurerService
-                    .findFeaturers(featurerDTOReversMapper.convert(request), offset, limit);
+                .findFeaturers(featurerDTOReversMapper.convert(request), offset, limit);
             rs
-                    .setPagination(paginationMapper.convert(featurers))
-                    .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getFeaturerList(), mapperContext));
+                    .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getFeaturerList(), mapperContext))
+                    .setPagination(paginationMapper.convert(featurers));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

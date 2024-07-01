@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.Response;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListOptionRsV1")
 public class DataListOptionRsDTOv1 extends Response {
