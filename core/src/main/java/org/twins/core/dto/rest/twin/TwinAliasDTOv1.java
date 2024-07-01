@@ -3,16 +3,13 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.mappers.rest.MapperMode;
 
 import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "TwinAliasV1")
-@MapperModeBinding(modes = MapperMode.TwinAliasMode.class)
 public class TwinAliasDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID id;

@@ -4,10 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.mappers.rest.MapperMode;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -15,7 +13,6 @@ import java.util.UUID;
 @Data
 @Accessors(fluent = true)
 @Schema(name = "TwinBaseV1")
-@MapperModeBinding(modes = MapperMode.TwinMode.class)
 public class TwinBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_ID)
     public UUID id;

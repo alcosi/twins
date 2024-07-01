@@ -3,16 +3,13 @@ package org.twins.core.dto.rest.user;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.mappers.rest.MapperMode;
 
 import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
 @Schema(name =  "UserV1")
-@MapperModeBinding(modes = MapperMode.UserMode.class)
 public class UserDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_ID)
     public UUID id;
