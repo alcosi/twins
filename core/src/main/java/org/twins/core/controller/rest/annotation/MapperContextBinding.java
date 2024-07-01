@@ -1,5 +1,6 @@
 package org.twins.core.controller.rest.annotation;
 
+import org.twins.core.dto.rest.Response;
 import org.twins.core.mappers.rest.RestDTOMapper;
 
 import java.lang.annotation.ElementType;
@@ -11,6 +12,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MapperContextBinding {
     Class<? extends RestDTOMapper>[] roots();
-    boolean lazySupport() default true;
+    Class<? extends Response> response();
     Class<?>[] block() default {};
 }
