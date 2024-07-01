@@ -1,10 +1,10 @@
 package org.twins.core.mappers.rest.card;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.card.CardEntity;
 import org.twins.core.dto.rest.card.CardDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -15,14 +15,16 @@ import org.twins.core.service.card.CardService;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = MapperMode.CardMode.class)
 public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1> {
     final I18nService i18nService;
     final CardService cardService;
+    @MapperModePointerBinding(modes = MapperMode.CardWidgetMode.class)
     final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
 
     @Override
     public void map(CardEntity src, CardDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.CardMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -39,20 +41,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 break;
         }
         if (!cardWidgetRestDTOMapper.hideMode(mapperContext))
-            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId())));
+            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId()), mapperContext.forkOnPoint(MapperMode.CardWidgetMode.SHORT)));
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

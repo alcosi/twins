@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.datalist;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -14,6 +15,7 @@ import java.util.Hashtable;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = MapperMode.DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
     final I18nService i18nService;
 
@@ -46,7 +48,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             ret.put(src.getDataList().getAttribute3key(), src.getAttribute3value());
         if (src.getAttribute4value() != null && src.getDataList().getAttribute4key() != null)
             ret.put(src.getDataList().getAttribute4key(), src.getAttribute4value());
-        return ret.size() > 0 ? ret : null;
+        return !ret.isEmpty() ? ret : null;
     }
 
     @Override
