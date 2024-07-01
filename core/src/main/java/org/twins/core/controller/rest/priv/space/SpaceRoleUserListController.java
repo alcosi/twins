@@ -59,8 +59,8 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/role/{roleId}/users/v1")
     public ResponseEntity<?> spaceRoleForUserListV1(
-            @MapperContextBinding(roots = UserRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
-            @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
+            @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.SPACE_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
@@ -82,7 +82,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/space/{spaceId}/users/list/v1")
     public ResponseEntity<?> spaceUserListV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
@@ -110,7 +110,7 @@ public class SpaceRoleUserListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/users/search/v1")
     public ResponseEntity<?> spaceRoleUserSearchV1(
-            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = UserRefSpaceRoleDTOMapper.class, response = UserWithinSpaceRolesListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = "5d956a15-6858-40ba-b0aa-b123c54e250d") @PathVariable UUID spaceId,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,

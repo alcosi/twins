@@ -55,7 +55,7 @@ public class TwinClassCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/v1")
     public ResponseEntity<?> twinClassCreateV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv1.class) MapperContext mapperContext,
             @RequestBody TwinClassCreateRqDTOv1 request) {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {

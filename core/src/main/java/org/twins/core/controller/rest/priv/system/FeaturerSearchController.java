@@ -47,7 +47,7 @@ public class FeaturerSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
-        @MapperContextBinding(roots = FeaturerRestDTOMapper.class, lazySupport = false) MapperContext mapperContext,
+        @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) MapperContext mapperContext,
         @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
         @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
         @RequestBody FeaturerSearchRqDTOv1 request) {

@@ -52,7 +52,7 @@ public class TwinClassViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/v1")
     public ResponseEntity<?> twinClassViewV1(
-            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
@@ -77,17 +77,8 @@ public class TwinClassViewController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class_by_key/{twinClassKey}/v1")
     public ResponseEntity<?> twinClassViewByKeyV1(
-            MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey,
-            @MapperModeParam(def = MapperMode.TwinClassMode.Fields.SHORT) MapperMode.TwinClassMode showClassMode,
-            @MapperModeParam MapperMode.TwinClassStatusMode showClassStatusMode,
-            @MapperModeParam(def = MapperMode.TwinClassFieldMode.Fields.SHORT) MapperMode.TwinClassFieldMode showClassFieldMode,
-            @MapperModeParam MapperMode.TwinClassTagMode showClassTagMode,
-            @MapperModeParam MapperMode.TwinClassMarkerMode showClassMarkerMode,
-            @MapperModeParam MapperMode.TwinClassLinkMode showTwinClassLinkMode,
-            @RequestParam(name = RestRequestParam.showHeadClassMode, defaultValue = TwinClassRestDTOMapper.HeadClassMode._HIDE) TwinClassRestDTOMapper.HeadClassMode showHeadClassMode,
-            @RequestParam(name = RestRequestParam.showExtendsClassMode, defaultValue = TwinClassRestDTOMapper.ExtendsClassMode._HIDE) TwinClassRestDTOMapper.ExtendsClassMode showExtendsClassMode) {
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();

@@ -52,7 +52,7 @@ public class TwinClassLinkListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/link/v1")
     public ResponseEntity<?> twinClassLinkListV1(
-            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, lazySupport = true) MapperContext mapperContext,
+            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, response = LinkListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {
