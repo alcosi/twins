@@ -2,6 +2,8 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.MapperContext;
@@ -23,18 +25,24 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.TwinActionMode.class})
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinAttachmentMode.class, MapperMode.TwinAttachmentCollectionMode.class})
     final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinLinkMode.class})
+    final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinTransitionMode.class})
+    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinTagMode.class, MapperMode.TwinMarkerMode.class})
+    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+    final TwinActionService twinActionService;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
-    final TwinflowTransitionService twinflowTransitionService;
-    final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
-    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
     final TwinMarkerService twinMarkerService;
     final TwinTagService twinTagService;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final TwinActionService twinActionService;
+    final TwinflowTransitionService twinflowTransitionService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {

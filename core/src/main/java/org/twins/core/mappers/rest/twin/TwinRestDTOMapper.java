@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.TwinFieldCollectionMode.class})
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
     final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
     final TwinFieldRestDTOMapperV3 twinFieldRestDTOMapperV3;

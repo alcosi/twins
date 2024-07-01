@@ -4,9 +4,9 @@ import org.twins.core.mappers.rest.MapperMode;
 
 import java.lang.annotation.*;
 
-@Target(ElementType.TYPE)
+@Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface MapperModeBinding {
+public @interface MapperModePointerBinding {
     Class<? extends MapperMode>[] modes();
 }

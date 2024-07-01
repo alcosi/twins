@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
 import org.twins.core.mappers.rest.MapperContext;
@@ -19,10 +21,14 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.TwinByHeadMode.class})
 public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv2> {
     final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinUserMode.class})
     final UserRestDTOMapper userDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinStatusMode.class})
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    @MapperModePointerBinding(modes = {MapperMode.TwinAliasMode.class})
     final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
 
     final TwinService twinService;
@@ -31,6 +37,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @Lazy
     @Autowired
+    @MapperModePointerBinding(modes = {MapperMode.TwinClassMode.class})
     TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override

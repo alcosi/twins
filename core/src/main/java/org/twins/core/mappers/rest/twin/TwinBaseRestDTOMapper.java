@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.twin;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -11,6 +12,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.TwinMode.class})
 public class TwinBaseRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv1> {
     @Override
     public void map(TwinEntity src, TwinBaseDTOv1 dst, MapperContext mapperContext) throws Exception {

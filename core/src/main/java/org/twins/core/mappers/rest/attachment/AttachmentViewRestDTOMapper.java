@@ -3,15 +3,16 @@ package org.twins.core.mappers.rest.attachment;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinService;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.AttachmentMode.class, MapperMode.AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
     final UserRestDTOMapper userDTOMapper;
     final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
