@@ -1,11 +1,10 @@
 package org.twins.core.mappers.rest.featurer;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
@@ -15,13 +14,17 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {
+        MapperMode.FeaturerMode.class,
+        MapperMode.FeaturerParamMode.class
+})
 public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, FeaturerDTOv1> {
     final FeaturerParamRestDTOMapper featurerParamRestDTOMapper;
     final FeaturerService featurerService;
 
     @Override
     public void map(FeaturerEntity src, FeaturerDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.FeaturerMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -29,18 +32,18 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setDescription(src.getDescription())
                         .setFeaturerTypeId(src.getFeaturerTypeId())
                         .setDeprecated(src.isDeprecated());
-                if (showFeaturerParams(mapperContext))
-                    dst
-                        .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
             case SHORT:
                 dst
                         .setId(src.getId())
                         .setName(src.getName());
         }
+        if (showFeaturerParams(mapperContext))
+            dst
+                    .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
     }
 
     private static boolean showFeaturerParams(MapperContext mapperContext) {
-        return !mapperContext.hasModeOrEmpty(ShowFeaturerParamMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.FeaturerParamMode.HIDE);
     }
 
     @Override
@@ -52,30 +55,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.FeaturerMode.HIDE);
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    public enum ShowFeaturerParamMode implements MapperMode {
-        HIDE(0),
-        SHOW(1);
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-        @Getter
-        final int priority;
-    }
 }

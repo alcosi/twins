@@ -6,7 +6,6 @@ import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserGroupDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
@@ -19,7 +18,6 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
     final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
     final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
     final UserGroupRestDTOMapper userGroupRestDTOMapper;
-    final SpaceRoleByUserDTOMapper spaceRoleByUserDTOMapper;
     final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
     final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
 

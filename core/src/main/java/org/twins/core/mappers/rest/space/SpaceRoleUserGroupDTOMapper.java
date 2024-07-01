@@ -1,9 +1,9 @@
 package org.twins.core.mappers.rest.space;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -13,11 +13,14 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = MapperMode.SpaceRoleUserGroupMode.class)
 public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserGroupEntity, SpaceRoleUserGroupDTOv1> {
-    final SpaceRoleByGroupDTOMapper spaceRoleByGroupDTOMapper;
+    @MapperModePointerBinding(modes = MapperMode.SpaceRoleUserGroup2SpaceRoleMode.class)
+    final SpaceRoleDTOMapper spaceRoleDTOMapper;
+
     @Override
     public void map(SpaceRoleUserGroupEntity src, SpaceRoleUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.SpaceRoleUserGroupMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -25,7 +28,7 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
                         .setSpaceRoleId(src.getSpaceRoleId())
                         .setUserGroupId(src.getUserGroupId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setSpaceRole(spaceRoleByGroupDTOMapper.convert(src, mapperContext));
+                        .setSpaceRole(spaceRoleDTOMapper.convert(src.getSpaceRole(), mapperContext));
                 break;
             case SHORT:
                 dst
@@ -35,25 +38,15 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
                         .setUserGroupId(src.getUserGroupId());
                 break;
         }
+        if (mapperContext.hasModeButNot(MapperMode.SpaceRoleUserGroup2SpaceRoleMode.HIDE))
+            dst
+                    .setSpaceRole(spaceRoleDTOMapper.convert(src.getSpaceRole(), mapperContext
+                            .forkOnPoint(MapperMode.SpaceRoleUserGroup2SpaceRoleMode.SHORT)));
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
-    }
-
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
+        return mapperContext.hasModeOrEmpty(MapperMode.SpaceRoleUserGroupMode.HIDE);
     }
 
     @Override

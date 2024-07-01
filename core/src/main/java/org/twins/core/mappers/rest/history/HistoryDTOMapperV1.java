@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.history;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.history.HistoryDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -17,27 +18,32 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, HistoryDTOv1> {
+    @MapperModePointerBinding(modes = MapperMode.HistoryUserMode.class)
     final UserRestDTOMapper userRestDTOMapper;
+    @MapperModePointerBinding(modes = MapperMode.HistoryTwinMode.class)
     final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
     final TwinService twinService;
     final AuthService authService;
     final HistoryService historyService;
 
     @Override
     public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
-
-        if (mapperContext.hasModeButNot(MapperMode.HistoryUserMode.HIDE))
-            dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.HistoryUserMode.SHORT))));
-
         dst
                 .changeDescription(historyService.getChangeFreshestDescription(src))
-                .twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext.cloneWithIsolatedModes()))
                 .actorUserId(src.getActorUserId())
                 .twinId(src.getTwin().getId())
                 .batchId(src.getHistoryBatchId())
                 .type(src.getHistoryType())
                 .id(src.getId())
                 .createdAt(src.getCreatedAt().toLocalDateTime());
+
+        if (mapperContext.hasModeButNot(MapperMode.HistoryUserMode.HIDE))
+            dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext
+                    .forkOnPoint(mapperContext.getModeOrUse(MapperMode.HistoryUserMode.SHORT))));
+        if (mapperContext.hasModeButNot(MapperMode.HistoryTwinMode.HIDE))
+            dst.twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext
+                    .forkOnPoint(MapperMode.HistoryTwinMode.SHORT)));
     }
 
     @Override
