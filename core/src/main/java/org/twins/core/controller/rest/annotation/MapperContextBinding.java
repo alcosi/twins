@@ -11,4 +11,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MapperContextBinding {
     Class<? extends RestDTOMapper> root();
+    boolean lazySupport() default true;
 }
