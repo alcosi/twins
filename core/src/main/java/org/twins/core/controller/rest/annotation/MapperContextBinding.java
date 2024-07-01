@@ -10,6 +10,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MapperContextBinding {
-    Class<? extends RestDTOMapper> root();
+    Class<? extends RestDTOMapper>[] roots();
     boolean lazySupport() default true;
+    Class<?>[] block() default {};
 }
