@@ -76,10 +76,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
                     .setMode(showSpaceRoleMode);
             rs = permissionCheckOverviewDTOMapper.convert(permissionCheckOverviewResult, mapperContext);
         } catch (ServiceException se) {
-            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);

@@ -40,7 +40,6 @@ public class AppInfoController extends ApiController {
         try {
             rs.setAttributes(appInfoService.getManifestAttributes());
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
