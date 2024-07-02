@@ -24,17 +24,17 @@ public class DynamicMapperParameterService {
     private static final Map<Class<? extends RestDTOMapper>, Map<String, Class<? extends Enum<?>>>> MAPPER_PARAMETERS_CACHE = new HashMap<>();
 
     // Retrieve parameters from the mapper class, either from cache or by extracting
-    public Map<String, Class<? extends Enum<?>>> getParametersFromMapper(Class<? extends RestDTOMapper> mapperClass, Set<Class<?>> blocked) {
+    public Map<String, Class<? extends Enum<?>>> getParametersFromMapper(Class<? extends RestDTOMapper> mapperClass) {
         if (MAPPER_PARAMETERS_CACHE.containsKey(mapperClass)) return MAPPER_PARAMETERS_CACHE.get(mapperClass);
         Map<String, Class<? extends Enum<?>>> parameters = new HashMap<>();
-        scanMapper(mapperClass, parameters, new HashSet<>(), blocked, new HashSet<>());
+        scanMapper(mapperClass, parameters, new HashSet<>(), new HashSet<>());
         MAPPER_PARAMETERS_CACHE.put(mapperClass, parameters);
         return parameters;
     }
 
 
     // Recursively scan mappers and their fields for annotations
-    private void scanMapper(Class<? extends RestDTOMapper> mapperClass, Map<String, Class<? extends Enum<?>>> parameters, Set<Class<? extends RestDTOMapper>> visited, Set<Class<?>> blocked, Set<Class<? extends MapperMode>> parentModes) {
+    private void scanMapper(Class<? extends RestDTOMapper> mapperClass, Map<String, Class<? extends Enum<?>>> parameters, Set<Class<? extends RestDTOMapper>> visited, Set<Class<? extends MapperMode>> parentModes) {
         // Avoid infinite recursion
         if (visited.contains(mapperClass)) return;
         visited.add(mapperClass);
@@ -51,20 +51,18 @@ public class DynamicMapperParameterService {
         if (mapperClass.isAnnotationPresent(MapperModeBinding.class)) {
             MapperModeBinding classAnnotation = mapperClass.getAnnotation(MapperModeBinding.class);
             for (Class<? extends MapperMode> mode : classAnnotation.modes()) {
-                if (!blocked.contains(mode)) {
-                    if (!parentModes.isEmpty()) {
-                        boolean foundPointer = false;
-                        for (Class<? extends MapperMode> parentMode : parentModes) {
-                            if (isPointerMode(parentMode, mode)) {
-                                foundPointer = true;
-                                break;
-                            }
+                if (!parentModes.isEmpty()) {
+                    boolean foundPointer = false;
+                    for (Class<? extends MapperMode> parentMode : parentModes) {
+                        if (isPointerMode(parentMode, mode)) {
+                            foundPointer = true;
+                            break;
                         }
-                        if (!foundPointer)
-                            tempParameters.put("show" + mode.getSimpleName(), (Class<? extends Enum<?>>) mode);
-                    } else {
-                        tempParameters.put("show" + mode.getSimpleName(), (Class<? extends Enum<?>>) mode);
                     }
+                    if (!foundPointer)
+                        tempParameters.put("show" + mode.getSimpleName(), (Class<? extends Enum<?>>) mode);
+                } else {
+                    tempParameters.put("show" + mode.getSimpleName(), (Class<? extends Enum<?>>) mode);
                 }
             }
         }
@@ -80,13 +78,11 @@ public class DynamicMapperParameterService {
                 if (field.isAnnotationPresent(MapperModePointerBinding.class)) {
                     MapperModePointerBinding fieldAnnotation = field.getAnnotation(MapperModePointerBinding.class);
                     for (Class<? extends MapperMode> mode : fieldAnnotation.modes()) {
-                        if(!blocked.contains(mode)) {
                             tempParameters.put("show" + mode.getSimpleName(), (Class<? extends Enum<?>>) mode);
                             newParentModes.add(mode);
-                        }
                     }
                 }
-                scanMapper(fieldMapperClass, tempParameters, visited, blocked, newParentModes);
+                scanMapper(fieldMapperClass, tempParameters, visited, newParentModes);
             }
         }
         MAPPER_PARAMETERS_CACHE.put(mapperClass, tempParameters);
@@ -117,7 +113,7 @@ public class DynamicMapperParameterService {
         }
 
         for (Class<? extends RestDTOMapper> mapper : mappersToCache) {
-            getParametersFromMapper(mapper, Collections.emptySet());
+            getParametersFromMapper(mapper);
         }
         MAPPER_PARAMETERS_CACHE.entrySet().forEach(System.out::println);
     }

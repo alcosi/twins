@@ -52,18 +52,20 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
 
                 // Iterate through each root mapper class to extract parameters
                 for (Class<? extends RestDTOMapper> rootMapperClass : rootMapperClasses) {
-                    Map<String, Class<? extends Enum<?>>> mapperParameters = mapperParameterService.getParametersFromMapper(rootMapperClass, blockedMappers);
+                    Map<String, Class<? extends Enum<?>>> mapperParameters = mapperParameterService.getParametersFromMapper(rootMapperClass);
 
                     // Create Swagger parameters from the extracted mapper parameters
                     for (Map.Entry<String, Class<? extends Enum<?>>> entry : mapperParameters.entrySet()) {
-                        Parameter parameter = new Parameter()
-                                .name(entry.getKey())
-                                .in("query")
-                                .style(Parameter.StyleEnum.SIMPLE)
-                                .schema(new Schema<>()
-                                        ._enum(List.of(entry.getValue().getEnumConstants()))
-                                        ._default(entry.getValue().getEnumConstants()[0].name())); // Set default value to the first enum constant
-                        parameters.add(parameter);
+                        if (!blockedMappers.contains(entry.getValue())) {
+                            Parameter parameter = new Parameter()
+                                    .name(entry.getKey())
+                                    .in("query")
+                                    .style(Parameter.StyleEnum.SIMPLE)
+                                    .schema(new Schema<>()
+                                            ._enum(List.of(entry.getValue().getEnumConstants()))
+                                            ._default(entry.getValue().getEnumConstants()[0].name())); // Set default value to the first enum constant
+                            parameters.add(parameter);
+                        }
                     }
                 }
 

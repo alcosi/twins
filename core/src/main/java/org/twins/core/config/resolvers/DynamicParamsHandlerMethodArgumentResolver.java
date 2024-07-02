@@ -47,20 +47,22 @@ public class DynamicParamsHandlerMethodArgumentResolver implements HandlerMethod
 
             // Iterate over each root mapper class to get parameters
             for (Class<? extends RestDTOMapper> rootMapperClass : rootMapperClasses) {
-                Map<String, Class<? extends Enum<?>>> parameters = mapperParameterService.getParametersFromMapper(rootMapperClass, blockedMappers);
+                Map<String, Class<? extends Enum<?>>> parameters = mapperParameterService.getParametersFromMapper(rootMapperClass);
 
                 // For each parameter, get its value from the request and set it in the mapper context
                 for (Map.Entry<String, Class<? extends Enum<?>>> entry : parameters.entrySet()) {
-                    String paramValue = webRequest.getParameter(entry.getKey());
-                    Class<? extends Enum<?>> enumType = entry.getValue();
+                    if (!blockedMappers.contains(entry.getValue())) {
+                        String paramValue = webRequest.getParameter(entry.getKey());
+                        Class<? extends Enum<?>> enumType = entry.getValue();
 
-                    // Resolve the enum value from request parameter or use default if not provided
-                    Enum<?> enumValue = paramValue != null ?
-                            Enum.valueOf(enumType.asSubclass(Enum.class), paramValue) :
-                            enumType.getEnumConstants()[0]; // Default to the first enum constant
+                        // Resolve the enum value from request parameter or use default if not provided
+                        Enum<?> enumValue = paramValue != null ?
+                                Enum.valueOf(enumType.asSubclass(Enum.class), paramValue) :
+                                enumType.getEnumConstants()[0]; // Default to the first enum constant
 
-                    if (enumValue instanceof MapperMode) {
-                        mapperContext.setMode((MapperMode) enumValue);
+                        if (enumValue instanceof MapperMode) {
+                            mapperContext.setMode((MapperMode) enumValue);
+                        }
                     }
                 }
             }
