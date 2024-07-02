@@ -34,7 +34,7 @@ public class DynamicMapperParameterService {
 
 
     // Recursively scan mappers and their fields for annotations
-    private void scanMapper(Class<? extends RestDTOMapper<?, ?>> mapperClass, Map<String, Class<? extends Enum<?>>> parameters, Set<Class<? extends RestDTOMapper<?, ?>>> visited, Set<Class<? extends MapperMode>> parentModes) {
+    private void scanMapper(Class<? extends RestDTOMapper<?, ?>> mapperClass, Map<String, Class<? extends Enum<?>>> parameters, Set<Class<? extends RestDTOMapper<?, ?>>> visited, Set<Class<? extends MapperMode>> pointerModes) {
         // Avoid infinite recursion
         if (visited.contains(mapperClass)) return;
         visited.add(mapperClass);
@@ -47,14 +47,14 @@ public class DynamicMapperParameterService {
         // Temporary map to store parameters for the current mapper class
         Map<String, Class<? extends Enum<?>>> tempParameters = new HashMap<>();
 
-        // Check for class-level MapperModeBinding annotation if no parent mode pointers are present
+        // Check for class-level MapperModeBinding annotation if no pointer mode pointers are present
         if (mapperClass.isAnnotationPresent(MapperModeBinding.class)) {
             MapperModeBinding classAnnotation = mapperClass.getAnnotation(MapperModeBinding.class);
             for (Class<? extends MapperMode> mode : classAnnotation.modes()) {
-                if (!parentModes.isEmpty()) {
+                if (!pointerModes.isEmpty()) {
                     boolean foundPointer = false;
-                    for (Class<? extends MapperMode> parentMode : parentModes) {
-                        if (isPointerMode(parentMode, mode)) {
+                    for (Class<? extends MapperMode> pointerMode : pointerModes) {
+                        if (isPointerMode(pointerMode, mode)) {
                             foundPointer = true;
                             break;
                         }
@@ -72,17 +72,17 @@ public class DynamicMapperParameterService {
         for (Field field : fields) {
             if (RestDTOMapper.class.isAssignableFrom(field.getType())) {
                 Class<? extends RestDTOMapper<?, ?>> fieldMapperClass = (Class<? extends RestDTOMapper<?, ?>>) field.getType();
-                Set<Class<? extends MapperMode>> newParentModes = new HashSet<>(parentModes);
+                Set<Class<? extends MapperMode>> newPointerModes = new HashSet<>(pointerModes);
 
                 // Check for MapperModePointerBinding or MapperModeBinding on field
                 if (field.isAnnotationPresent(MapperModePointerBinding.class)) {
                     MapperModePointerBinding fieldAnnotation = field.getAnnotation(MapperModePointerBinding.class);
                     for (Class<? extends MapperMode> mode : fieldAnnotation.modes()) {
                         tempParameters.put(getParemeterName(mode), (Class<? extends Enum<?>>) mode);
-                        newParentModes.add(mode);
+                        newPointerModes.add(mode);
                     }
                 }
-                scanMapper(fieldMapperClass, tempParameters, visited, newParentModes);
+                scanMapper(fieldMapperClass, tempParameters, visited, newPointerModes);
             }
         }
         MAPPER_PARAMETERS_CACHE.put(mapperClass, tempParameters);
