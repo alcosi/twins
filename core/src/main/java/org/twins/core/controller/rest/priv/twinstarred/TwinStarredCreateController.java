@@ -17,13 +17,12 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.MapperModeParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinStarredRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
 import org.twins.core.service.twin.TwinStarredService;
 
@@ -47,13 +46,12 @@ public class TwinStarredCreateController extends ApiController {
     @PutMapping(value = "/private/twin/{twinId}/star/v1")
     public ResponseEntity<?> markTwinAsStarredV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @MapperModeParam MapperMode.TwinMode showTwinMode) {
+            @MapperContextBinding(roots = TwinStarredRestDTOMapper.class, response = TwinStarredRsDTOv1.class) MapperContext mapperContext) {
         TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
         try {
             TwinStarredEntity twinStarredEntity = twinStarredService.addStarred(twinId);
             rs
-                    .twinStarred(twinStarredRestDTOMapper.convert(twinStarredEntity, new MapperContext()
-                            .setMode(showTwinMode)));
+                    .twinStarred(twinStarredRestDTOMapper.convert(twinStarredEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

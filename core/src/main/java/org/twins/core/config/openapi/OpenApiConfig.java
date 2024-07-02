@@ -3,13 +3,17 @@ package org.twins.core.config.openapi;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
-import org.springdoc.core.customizers.ParameterCustomizer;
 import org.springdoc.core.models.GroupedOpenApi;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.twins.core.service.DynamicMapperParameterService;
 
 @Configuration
 public class OpenApiConfig {
+
+    @Autowired
+    private DynamicMapperParameterService mapperParameterService;
 
     @Bean
     public OpenAPI openApi() {
@@ -26,14 +30,10 @@ public class OpenApiConfig {
     }
 
     @Bean
-    public ParameterCustomizer mapperModeParamCustomizer() {
-        return new MapperModeParamCustomizer();
-    }
-
-    @Bean
     public GroupedOpenApi categoryApi() {
         return GroupedOpenApi.builder()
                 .group("twins-api")
+                .addOperationCustomizer(new DynamicParamsOperationCustomizer(mapperParameterService))
                 .addOperationCustomizer(new MapperContextParameterOperationCustomizer())
                 .addOperationCustomizer(new HeadersOperationCustomizer())
                 .packagesToScan("org.twins.core.controller.rest")
