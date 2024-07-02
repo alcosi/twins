@@ -29,8 +29,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class SpaceRoleUserManageController extends ApiController {
-    final UserRestDTOMapper userRestDTOMapper;
-    final SpaceUserRoleService spaceUserRoleService;
+    private final UserRestDTOMapper userRestDTOMapper;
+    private final SpaceUserRoleService spaceUserRoleService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleUserManageV1", summary = "Adding/removing a user to the space by role")

@@ -29,8 +29,8 @@ import org.twins.core.service.system.LogSupportService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class LogSubstitutionConfigController extends ApiController {
-    final LogSupportService logSupportService;
-    final AuthService authService;
+    private final LogSupportService logSupportService;
+    private final AuthService authService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "makeConfigForSubstitutions", summary = "Make config file for log substitutions")

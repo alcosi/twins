@@ -39,11 +39,11 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainListController extends ApiController {
-    final AuthService authService;
-    final UserResolverAuthToken userResolverAuthToken;
-    final DomainService domainService;
-    final DomainViewRestDTOMapper domainViewRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final AuthService authService;
+    private final UserResolverAuthToken userResolverAuthToken;
+    private final DomainService domainService;
+    private final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainListV1", summary = "Return a list of domains for current user")

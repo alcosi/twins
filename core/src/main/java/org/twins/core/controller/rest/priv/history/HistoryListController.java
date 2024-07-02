@@ -25,7 +25,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.pagination.PageableResult;
 
@@ -39,11 +38,10 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class HistoryListController extends ApiController {
-    final AuthService authService;
-    final HistoryService historyService;
-    final HistoryDTOMapperV1 historyDTOMapperV1;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final HistoryService historyService;
+    private final HistoryDTOMapperV1 historyDTOMapperV1;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "historyListV1", summary = "Returns twin history by id")

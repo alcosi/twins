@@ -33,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserDeleteController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserDeleteV1", summary = "Delete user from businessAccount")

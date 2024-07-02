@@ -24,7 +24,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassUpdateRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
@@ -34,11 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassUpdateController extends ApiController {
-    final AuthService authService;
-    final TwinClassService twinClassService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinClassUpdateRestDTOReverseMapper twinClassUpdateRestDTOReverseMapper;
+    private final TwinClassService twinClassService;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinClassUpdateRestDTOReverseMapper twinClassUpdateRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassUpdateV1", summary = "Update twin class by id")

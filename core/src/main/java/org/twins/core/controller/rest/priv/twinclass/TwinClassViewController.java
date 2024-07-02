@@ -37,10 +37,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassViewController extends ApiController {
-    final AuthService authService;
-    final TwinClassService twinClassService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final AuthService authService;
+    private final TwinClassService twinClassService;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassViewV1", summary = "Returns twin class by id")

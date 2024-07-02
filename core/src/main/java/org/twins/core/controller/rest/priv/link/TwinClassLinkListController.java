@@ -25,9 +25,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 
@@ -36,12 +34,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassLinkListController extends ApiController {
-    final AuthService authService;
-    final LinkService linkService;
-    final TwinClassService twinClassService;
-    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
-    final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final LinkService linkService;
+    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+    private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassLinkListV1", summary = "Returns twin class link list")

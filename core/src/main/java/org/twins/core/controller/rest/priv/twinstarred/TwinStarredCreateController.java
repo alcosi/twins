@@ -33,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStarredCreateController extends ApiController {
-    final TwinStarredService twinStarredService;
-    final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
+    private final TwinStarredService twinStarredService;
+    private final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "markTwinAsStarredV1", summary = "Mark given twin as starred for user")

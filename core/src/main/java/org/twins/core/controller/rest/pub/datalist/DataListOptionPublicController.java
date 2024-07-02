@@ -34,8 +34,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DataListOptionPublicController extends ApiController {
     private final AuthService authService;
-    final DataListService dataListService;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final DataListService dataListService;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserAnonymousHeaders
     @Operation(operationId = "dataListOptionPublicViewV1", summary = "Returns public list data")

@@ -36,10 +36,10 @@ import org.twins.core.service.user.UserService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserAddController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final DomainService domainService;
-    final UserService userService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final DomainService domainService;
+    private final UserService userService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +

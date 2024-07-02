@@ -36,12 +36,12 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassListController extends ApiController {
-    final AuthService authService;
-    final TwinClassService twinClassService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinClassSearchRestDTOReverseMapper twinClassSearchRestDTOReverseMapper;
-    final PaginationMapper paginationMapper;
+    private final AuthService authService;
+    private final TwinClassService twinClassService;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinClassSearchRestDTOReverseMapper twinClassSearchRestDTOReverseMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassSearchV1", summary = "Returns twin class search result")

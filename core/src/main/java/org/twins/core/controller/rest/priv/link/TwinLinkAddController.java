@@ -20,7 +20,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.TwinLinkAddRqDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
@@ -31,10 +30,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinLinkAddController extends ApiController {
-    final AuthService authService;
-    final TwinLinkService twinLinkService;
-    final TwinService twinService;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinLinkService twinLinkService;
+    private final TwinService twinService;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinLinkAddV1", summary = "Add link to twin")

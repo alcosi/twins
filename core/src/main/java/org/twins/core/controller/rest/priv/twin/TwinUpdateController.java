@@ -25,12 +25,9 @@ import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.dto.rest.twin.TwinUpdateRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinUpdateRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -39,14 +36,11 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinUpdateController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final UserService userService;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
+    private final TwinService twinService;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
 
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinUpdateV1", summary = "Update twin")

@@ -40,12 +40,12 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class SpaceRoleUserListController extends ApiController {
-    final UserRestDTOMapper userRestDTOMapper;
-    final UserRefSpaceRoleDTOMapper userRefSpaceRoleDTOMapper;
-    final PaginationMapper paginationMapper;
-    final SpaceUserRoleService spaceUserRoleService;
-    final SpaceRoleUserSearchRqDTOReverseMapper userSearchRqDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final UserRestDTOMapper userRestDTOMapper;
+    private final UserRefSpaceRoleDTOMapper userRefSpaceRoleDTOMapper;
+    private final PaginationMapper paginationMapper;
+    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserSearchRqDTOReverseMapper userSearchRqDTOReverseMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "spaceRoleByUserListV1", summary = "Returns user list by selected space and role")

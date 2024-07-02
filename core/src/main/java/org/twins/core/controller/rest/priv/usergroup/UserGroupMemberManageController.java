@@ -22,7 +22,6 @@ import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupMemberManageRqDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -33,10 +32,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserGroupMemberManageController extends ApiController {
-    final UserGroupRestDTOMapper userGroupDTOMapper;
-    final UserGroupService userGroupService;
-    final UserService userService;
-    final AuthService authService;
+    private final UserGroupRestDTOMapper userGroupDTOMapper;
+    private final UserGroupService userGroupService;
+    private final UserService userService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userGroupMemberManageV1", summary = "Assign or discharge some group to user")

@@ -24,9 +24,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -35,11 +33,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinflowTransitionCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinflowTransitionCreateRestDTOReverseMapper twinflowTransitionCreateRestDTOReverseMapper;
-    final TwinflowTransitionService twinflowTransitionService;
-    final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
+    private final TwinflowTransitionCreateRestDTOReverseMapper twinflowTransitionCreateRestDTOReverseMapper;
+    private final TwinflowTransitionService twinflowTransitionService;
+    private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "transitionCreateV1", summary = "Create new transition")

@@ -33,7 +33,6 @@ import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
@@ -44,13 +43,12 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinFieldSaveController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TwinService twinService;
+    private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
+    private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
 
     @ParametersApiUserHeaders

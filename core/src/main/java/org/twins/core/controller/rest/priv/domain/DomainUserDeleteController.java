@@ -33,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainUserDeleteController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
+    private final DomainService domainService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")

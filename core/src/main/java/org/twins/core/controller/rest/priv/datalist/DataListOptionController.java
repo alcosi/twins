@@ -32,8 +32,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DataListOptionController extends ApiController {
-    final DataListService dataListService;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final DataListService dataListService;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")

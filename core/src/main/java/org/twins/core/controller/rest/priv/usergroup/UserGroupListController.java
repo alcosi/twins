@@ -34,9 +34,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserGroupListController extends ApiController {
-    final UserGroupRestDTOMapper userGroupDTOMapper;
-    final UserGroupService userGroupService;
-    final UserService userService;
+    private final UserGroupRestDTOMapper userGroupDTOMapper;
+    private final UserGroupService userGroupService;
+    private final UserService userService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userGroupForUserListV1", summary = "Returns user group list for selected user")

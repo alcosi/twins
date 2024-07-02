@@ -34,9 +34,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentEditController extends ApiController {
-    final CommentService commentService;
-    final CommentViewRestDTOMapper commentViewRestDTOMapper;
-    final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
+    private final CommentService commentService;
+    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentUpdateV1", summary = "Update comment and it's attachments")

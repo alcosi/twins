@@ -34,8 +34,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStarredListController extends ApiController {
-    final TwinStarredService twinStarredService;
-    final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
+    private final TwinStarredService twinStarredService;
+    private final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStarredListV1", summary = "Return list of starred twins of given class ")

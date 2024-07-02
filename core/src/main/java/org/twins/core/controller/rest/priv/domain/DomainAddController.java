@@ -33,11 +33,11 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainAddController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
-    final DomainAddRestDTOReverseMapper domainAddRestDTOReverseMapper;
-    final DomainViewRestDTOMapper domainViewRestDTOMapper;
-    final UserResolverAuthToken userResolverAuthToken;
+    private final DomainService domainService;
+    private final AuthService authService;
+    private final DomainAddRestDTOReverseMapper domainAddRestDTOReverseMapper;
+    private final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    private final UserResolverAuthToken userResolverAuthToken;
 
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainAddV1", summary = "Add new domain.")

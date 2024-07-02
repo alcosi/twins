@@ -32,9 +32,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountUpdateController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
-    final UserResolverSystem userResolverSystem;
+    private final DomainService domainService;
+    private final AuthService authService;
+    private final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountUpdateV1", summary = "Update settings for businessAccount in domain")

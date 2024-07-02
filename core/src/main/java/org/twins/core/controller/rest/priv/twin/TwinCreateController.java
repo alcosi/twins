@@ -40,14 +40,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinCreateController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final UserService userService;
-    final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-    final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
+    private final AuthService authService;
+    private final TwinService twinService;
+    private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
+    private final UserService userService;
+    private final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")

@@ -31,8 +31,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUpdateController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUpdateV1", summary = "Update businessAccount")

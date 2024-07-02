@@ -34,10 +34,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStatusUpdateController extends ApiController {
-    final TwinStatusService twinStatusService;
-    final TwinStatusRestDTOReverseMapper twinStatusRestDTOReverseMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final TwinStatusService twinStatusService;
+    private final TwinStatusRestDTOReverseMapper twinStatusRestDTOReverseMapper;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusUpdateV1", summary = "Update twin status")

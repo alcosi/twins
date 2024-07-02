@@ -33,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainUserAddController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
+    private final DomainService domainService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainUserAddV1", summary = "Add user to domain" +

@@ -33,10 +33,10 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class FeaturerSearchController extends ApiController {
-    final FeaturerRestDTOMapper featurerRestDTOMapper;
-    final FeaturerDTOReversMapper featurerDTOReversMapper;
-    final FeaturerService featurerService;
-    final PaginationMapper paginationMapper;
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerDTOReversMapper featurerDTOReversMapper;
+    private final FeaturerService featurerService;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "featurerListV1", summary = "Featurer search")

@@ -23,7 +23,6 @@ import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountUserAddRqDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -32,9 +31,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserAddController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
-    final UserService userService;
+    private final BusinessAccountService businessAccountService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserAddV1", summary = "Add user to business account. " +

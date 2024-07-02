@@ -31,13 +31,8 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinSearchResult;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,18 +46,13 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinListController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final UserRestDTOMapper userRestDTOMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinRestDTOMapper twinRestDTOMapper;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
-    final PaginationMapper paginationMapper;
-    final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
+    private final TwinSearchService twinSearchService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinRestDTOMapper twinRestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
+    private final PaginationMapper paginationMapper;
+    private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchV1", summary = "Twins basic search")

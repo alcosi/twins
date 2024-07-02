@@ -24,9 +24,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -35,12 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassFieldCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinClassFieldService twinClassFieldService;
-    final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldCreateV1", summary = "Create new twin class field")

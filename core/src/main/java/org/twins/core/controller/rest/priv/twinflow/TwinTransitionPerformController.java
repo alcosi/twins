@@ -30,13 +30,9 @@ import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.mappers.rest.twin.TwinUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionPerformRsRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
-import org.twins.core.service.user.UserService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -48,18 +44,14 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinTransitionPerformController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final UserService userService;
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinflowTransitionService twinflowTransitionService;
-    final TwinUpdateRestDTOReverseMapper twinUpdateRestDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
-    final TwinLinkCUDRestDTOReverseMapperV2 twinLinkCUDRestDTOReverseMapperV2;
-    final TwinTransitionPerformRsRestDTOMapper twinTransitionPerformRsRestDTOMapper;
-    final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
+    private final TwinService twinService;
+    private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
+    private final TwinflowTransitionService twinflowTransitionService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
+    private final TwinLinkCUDRestDTOReverseMapperV2 twinLinkCUDRestDTOReverseMapperV2;
+    private final TwinTransitionPerformRsRestDTOMapper twinTransitionPerformRsRestDTOMapper;
+    private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition by transition id. Transition will be performed only if current twin status is correct for given transition")

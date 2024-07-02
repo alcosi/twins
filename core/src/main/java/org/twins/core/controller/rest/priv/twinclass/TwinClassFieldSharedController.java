@@ -23,9 +23,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.UUID;
 
@@ -34,10 +32,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassFieldSharedController extends ApiController {
-    final AuthService authService;
-    final DataListService dataListService;
-    final DataListRestDTOMapper dataListRestDTOMapper;
-    final TwinClassFieldService twinClassFieldService;
+    private final DataListService dataListService;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldDataListSharedInHeadV1", summary = "Returns twin class field options shared in head (free for select)")

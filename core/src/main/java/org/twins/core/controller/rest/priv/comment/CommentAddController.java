@@ -31,10 +31,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentAddController extends ApiController {
-    final CommentService commentService;
-    final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
-    final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final CommentService commentService;
+    private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
+    private final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentAddV1", summary = "Add comment and it's attachments by twin")

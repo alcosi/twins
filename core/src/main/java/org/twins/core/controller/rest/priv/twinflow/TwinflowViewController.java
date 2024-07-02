@@ -33,9 +33,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinflowViewController extends ApiController {
-    final TwinflowService twinflowService;
-    final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
+    private final TwinflowService twinflowService;
+    private final TwinflowBaseV3RestDTOMapper twinflowBaseV3RestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinflowViewV1", summary = "Returns twinflow details")

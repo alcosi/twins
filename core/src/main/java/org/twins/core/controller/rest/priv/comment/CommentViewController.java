@@ -33,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentViewController extends ApiController {
-    final CommentService commentService;
-    final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final CommentService commentService;
+    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentV1", summary = "Returns comment by comment id")

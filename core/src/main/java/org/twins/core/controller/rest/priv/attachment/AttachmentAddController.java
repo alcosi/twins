@@ -33,10 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AttachmentAddController extends ApiController {
-    final AuthService authService;
-    final AttachmentService attachmentService;
-    final TwinService twinService;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AuthService authService;
+    private final AttachmentService attachmentService;
+    private final TwinService twinService;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentAddV1", summary = "Add attachment to twin")

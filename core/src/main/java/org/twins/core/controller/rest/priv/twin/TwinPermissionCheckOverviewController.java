@@ -34,8 +34,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinPermissionCheckOverviewController extends ApiController {
 
-    final PermissionService permissionService;
-    final PermissionCheckOverviewDTOMapper permissionCheckOverviewDTOMapper;
+    private final PermissionService permissionService;
+    private final PermissionCheckOverviewDTOMapper permissionCheckOverviewDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissonCheckOverviewV1", summary = "Permisson check overview by twinId & userId")

@@ -29,7 +29,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStarredDeleteController extends ApiController {
-    final TwinStarredService twinStarredService;
+    private final TwinStarredService twinStarredService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "markTwinAsUnstarredV1", summary = "Unmark given twin as starred for user")

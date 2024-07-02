@@ -27,8 +27,8 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountDeleteController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
+    private final DomainService domainService;
+    private final AuthService authService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")

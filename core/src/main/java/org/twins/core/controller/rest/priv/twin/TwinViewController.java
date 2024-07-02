@@ -26,7 +26,6 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.UUID;
@@ -36,11 +35,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinViewController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinRestDTOMapper twinRestDTOMapper;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinService twinService;
+    private final TwinRestDTOMapper twinRestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @Deprecated
     @ParametersApiUserHeaders

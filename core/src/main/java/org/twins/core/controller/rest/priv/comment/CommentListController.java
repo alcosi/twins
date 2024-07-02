@@ -38,10 +38,10 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentListController extends ApiController {
-    final CommentService commentService;
-    final CommentViewRestDTOMapper commentViewRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final CommentService commentService;
+    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentListV1", summary = "Returns comment list by twin id")

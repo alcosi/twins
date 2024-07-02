@@ -25,9 +25,7 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinStatusService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -36,12 +34,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStatusCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinStatusCreateRestDTOReverseMapper twinStatusCreateRestDTOReverseMapper;
-    final TwinStatusService twinStatusService;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final TwinStatusCreateRestDTOReverseMapper twinStatusCreateRestDTOReverseMapper;
+    private final TwinStatusService twinStatusService;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStatusCreateV1", summary = "Create new twin status")

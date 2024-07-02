@@ -20,7 +20,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.comment.CommentService;
 
 import java.util.UUID;
@@ -30,8 +29,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentDeleteController extends ApiController {
-    final AuthService authService;
-    final CommentService commentService;
+    private final CommentService commentService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentDeleteV1", summary = "Delete comment with attachments")

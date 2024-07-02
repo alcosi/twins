@@ -35,9 +35,9 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassValidHeadController extends ApiController {
-    final TwinHeadService twinHeadService;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final PaginationMapper paginationMapper;
+    private final TwinHeadService twinHeadService;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassValidHeadV1", summary = "Get valid heads of given class")

@@ -27,22 +27,18 @@ import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.user.UserService;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinClassService twinClassService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final TwinClassService twinClassService;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassCreateV1", summary = "Create new twin class")
