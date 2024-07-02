@@ -44,6 +44,16 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
                 // Get blocked mappers
                 Set<Class<?>> blockedMappers = new HashSet<>(Set.of(contextBinding.block()));
 
+                // Add lazyRelation parameter if the response type inherits from ResponseRelatedObjectsDTOv1
+                if (ResponseRelatedObjectsDTOv1.class.isAssignableFrom(contextBinding.response())) {
+                    Parameter lazyRelationParam = new Parameter()
+                            .name("lazyRelation")
+                            .in("query")
+                            .style(Parameter.StyleEnum.SIMPLE)
+                            .schema(new Schema<>()._default(true).type("boolean"));
+                    parameters.add(lazyRelationParam);
+                }
+
                 // Iterate through each root mapper class to extract parameters
                 for (Class<? extends RestDTOMapper> rootMapperClass : rootMapperClasses) {
                     Map<String, Class<? extends Enum<?>>> mapperParameters = mapperParameterService.getParametersFromMapper(rootMapperClass, blockedMappers);
@@ -63,16 +73,6 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
 
                 // Add parameters to the operation
                 operation.getParameters().addAll(parameters);
-
-                // Add lazyRelation parameter if the response type inherits from ResponseRelatedObjectsDTOv1
-                if (ResponseRelatedObjectsDTOv1.class.isAssignableFrom(contextBinding.response())) {
-                    Parameter lazyRelationParam = new Parameter()
-                            .name("lazyRelation")
-                            .in("query")
-                            .style(Parameter.StyleEnum.SIMPLE)
-                            .schema(new Schema<>()._default(true).type("boolean"));
-                    parameters.add(lazyRelationParam);
-                }
                 break;
             }
         }
