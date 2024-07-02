@@ -14,11 +14,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestDTOMapper;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Component
 public class DynamicParamsOperationCustomizer implements OperationCustomizer {
@@ -39,7 +35,7 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
             if (contextBinding != null && methodParameter.getParameterType().equals(MapperContext.class)) {
                 // Get the root mapper classes specified in the annotation
                 Class<? extends RestDTOMapper>[] rootMapperClasses = contextBinding.roots();
-                List<Parameter> parameters = new ArrayList<>();
+                Set<Parameter> parameters = new TreeSet<>(Comparator.comparing(Parameter::getName));
 
                 // Get blocked mappers
                 Set<Class<?>> blockedMappers = new HashSet<>(Set.of(contextBinding.block()));
