@@ -12,7 +12,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface MapperContextBinding {
-    Class<? extends RestDTOMapper>[] roots();
+    Class<? extends RestDTOMapper<?, ?>>[] roots();
     Class<? extends Response> response();
     Class<? extends MapperMode>[] block() default {};
 }

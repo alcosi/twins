@@ -34,7 +34,7 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
             MapperContextBinding contextBinding = methodParameter.getParameterAnnotation(MapperContextBinding.class);
             if (contextBinding != null && methodParameter.getParameterType().equals(MapperContext.class)) {
                 // Get the root mapper classes specified in the annotation
-                Class<? extends RestDTOMapper>[] rootMapperClasses = contextBinding.roots();
+                Class<? extends RestDTOMapper<?, ?>>[] rootMapperClasses = contextBinding.roots();
                 Set<Parameter> parameters = new TreeSet<>(Comparator.comparing(Parameter::getName));
 
                 // Get blocked mappers
@@ -51,7 +51,7 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
                 }
 
                 // Iterate through each root mapper class to extract parameters
-                for (Class<? extends RestDTOMapper> rootMapperClass : rootMapperClasses) {
+                for (Class<? extends RestDTOMapper<?, ?>> rootMapperClass : rootMapperClasses) {
                     Map<String, Class<? extends Enum<?>>> mapperParameters = mapperParameterService.getParametersFromMapper(rootMapperClass);
 
                     // Create Swagger parameters from the extracted mapper parameters

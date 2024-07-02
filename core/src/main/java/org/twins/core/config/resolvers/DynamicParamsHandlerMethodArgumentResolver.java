@@ -2,6 +2,7 @@ package org.twins.core.config.resolvers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.MethodParameter;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -31,12 +32,12 @@ public class DynamicParamsHandlerMethodArgumentResolver implements HandlerMethod
     }
 
     @Override
-    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) throws Exception {
+    public Object resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, @Nullable NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         MapperContext mapperContext = new MapperContext();
         MapperContextBinding contextBinding = parameter.getParameterAnnotation(MapperContextBinding.class);
-        if (contextBinding != null) {
+        if (null != contextBinding && null != webRequest) {
             // Retrieve root mapper classes and blocked mappers from the annotation
-            Class<? extends RestDTOMapper>[] rootMapperClasses = contextBinding.roots();
+            Class<? extends RestDTOMapper<?, ?>>[] rootMapperClasses = contextBinding.roots();
             Set<Class<?>> blockedMappers = new HashSet<>(Set.of(contextBinding.block()));
 
             // Handle lazyRelation parameter if the response type inherits from ResponseRelatedObjectsDTOv1
@@ -46,7 +47,7 @@ public class DynamicParamsHandlerMethodArgumentResolver implements HandlerMethod
             }
 
             // Iterate over each root mapper class to get parameters
-            for (Class<? extends RestDTOMapper> rootMapperClass : rootMapperClasses) {
+            for (Class<? extends RestDTOMapper<?, ?>> rootMapperClass : rootMapperClasses) {
                 Map<String, Class<? extends Enum<?>>> parameters = mapperParameterService.getParametersFromMapper(rootMapperClass);
 
                 // For each parameter, get its value from the request and set it in the mapper context
