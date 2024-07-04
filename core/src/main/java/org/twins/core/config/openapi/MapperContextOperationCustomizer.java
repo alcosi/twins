@@ -8,22 +8,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
-import org.twins.core.service.DynamicMapperParameterService;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestDTOMapper;
+import org.twins.core.service.MapperModesResolveService;
 
 import java.util.*;
 
 @Component
-public class DynamicParamsOperationCustomizer implements OperationCustomizer {
+public class MapperContextOperationCustomizer implements OperationCustomizer {
 
-    private final DynamicMapperParameterService mapperParameterService;
+    private final MapperModesResolveService mapperParameterService;
 
     // Constructor for dependency injection
     @Autowired
-    public DynamicParamsOperationCustomizer(DynamicMapperParameterService mapperParameterService) {
+    public MapperContextOperationCustomizer(MapperModesResolveService mapperParameterService) {
         this.mapperParameterService = mapperParameterService;
     }
 
@@ -52,10 +52,10 @@ public class DynamicParamsOperationCustomizer implements OperationCustomizer {
 
                 // Iterate through each root mapper class to extract parameters
                 for (Class<? extends RestDTOMapper<?, ?>> rootMapperClass : rootMapperClasses) {
-                    Map<String, Class<? extends Enum<?>>> mapperParameters = mapperParameterService.getParametersFromMapper(rootMapperClass);
+                    Map<String, Class<? extends Enum<?>>> boundMapperModes = mapperParameterService.getModesFromMapper(rootMapperClass);
 
                     // Create Swagger parameters from the extracted mapper parameters
-                    for (Map.Entry<String, Class<? extends Enum<?>>> entry : mapperParameters.entrySet()) {
+                    for (Map.Entry<String, Class<? extends Enum<?>>> entry : boundMapperModes.entrySet()) {
                         if (!blockedMappers.contains(entry.getValue())) {
                             Parameter parameter = new Parameter()
                                     .name(entry.getKey())

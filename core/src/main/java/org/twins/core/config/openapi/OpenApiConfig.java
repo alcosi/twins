@@ -7,13 +7,13 @@ import org.springdoc.core.models.GroupedOpenApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.twins.core.service.DynamicMapperParameterService;
+import org.twins.core.service.MapperModesResolveService;
 
 @Configuration
 public class OpenApiConfig {
 
     @Autowired
-    private DynamicMapperParameterService mapperParameterService;
+    private MapperModesResolveService mapperParameterService;
 
     @Bean
     public OpenAPI openApi() {
@@ -33,7 +33,7 @@ public class OpenApiConfig {
     public GroupedOpenApi categoryApi() {
         return GroupedOpenApi.builder()
                 .group("twins-api")
-                .addOperationCustomizer(new DynamicParamsOperationCustomizer(mapperParameterService))
+                .addOperationCustomizer(new MapperContextOperationCustomizer(mapperParameterService))
                 .addOperationCustomizer(new MapperContextParameterOperationCustomizer())
                 .addOperationCustomizer(new HeadersOperationCustomizer())
                 .packagesToScan("org.twins.core.controller.rest")

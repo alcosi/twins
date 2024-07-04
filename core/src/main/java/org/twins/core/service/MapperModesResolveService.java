@@ -2,33 +2,39 @@ package org.twins.core.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.util.StringUtils;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.MapperModePointer;
 import org.twins.core.mappers.rest.RestDTOMapper;
-import org.twins.core.mappers.rest.MapperMode;
 
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-public class DynamicMapperParameterService {
+@Slf4j
+public class MapperModesResolveService {
 
     private final ApplicationContext applicationContext;
 
     // Cache for storing mapper parameters to avoid repetitive reflection calls
-    private static final Map<Class<? extends RestDTOMapper<?, ?>>, Map<String, Class<? extends Enum<?>>>> MAPPER_PARAMETERS_CACHE = new HashMap<>();
+    private static final Map<Class<? extends RestDTOMapper<?, ?>>, Map<String, Class<? extends Enum<?>>>> MAPPER_MODES_CACHE = new HashMap<>();
 
     // Retrieve parameters from the mapper class, either from cache or by extracting
-    public Map<String, Class<? extends Enum<?>>> getParametersFromMapper(Class<? extends RestDTOMapper<?, ?>> mapperClass) {
-        if (MAPPER_PARAMETERS_CACHE.containsKey(mapperClass)) return MAPPER_PARAMETERS_CACHE.get(mapperClass);
+    public Map<String, Class<? extends Enum<?>>> getModesFromMapper(Class<? extends RestDTOMapper<?, ?>> mapperClass) {
+        if (MAPPER_MODES_CACHE.containsKey(mapperClass)) return MAPPER_MODES_CACHE.get(mapperClass);
         Map<String, Class<? extends Enum<?>>> parameters = new HashMap<>();
         scanMapper(mapperClass, parameters, new HashSet<>(), new HashSet<>());
-        MAPPER_PARAMETERS_CACHE.put(mapperClass, parameters);
+        MAPPER_MODES_CACHE.put(mapperClass, parameters);
         return parameters;
     }
 
@@ -40,8 +46,8 @@ public class DynamicMapperParameterService {
         visited.add(mapperClass);
 
         // Check cache
-        if (MAPPER_PARAMETERS_CACHE.containsKey(mapperClass)) {
-            parameters.putAll(MAPPER_PARAMETERS_CACHE.get(mapperClass));
+        if (MAPPER_MODES_CACHE.containsKey(mapperClass)) {
+            parameters.putAll(MAPPER_MODES_CACHE.get(mapperClass));
             return;
         }
         // Temporary map to store parameters for the current mapper class
@@ -60,9 +66,9 @@ public class DynamicMapperParameterService {
                         }
                     }
                     if (!foundPointer)
-                        tempParameters.put(getParemeterName(mode), (Class<? extends Enum<?>>) mode);
+                        tempParameters.put(getParameterName(mode), (Class<? extends Enum<?>>) mode);
                 } else {
-                    tempParameters.put(getParemeterName(mode), (Class<? extends Enum<?>>) mode);
+                    tempParameters.put(getParameterName(mode), (Class<? extends Enum<?>>) mode);
                 }
             }
         }
@@ -78,14 +84,14 @@ public class DynamicMapperParameterService {
                 if (field.isAnnotationPresent(MapperModePointerBinding.class)) {
                     MapperModePointerBinding fieldAnnotation = field.getAnnotation(MapperModePointerBinding.class);
                     for (Class<? extends MapperMode> mode : fieldAnnotation.modes()) {
-                        tempParameters.put(getParemeterName(mode), (Class<? extends Enum<?>>) mode);
+                        tempParameters.put(getParameterName(mode), (Class<? extends Enum<?>>) mode);
                         newPointerModes.add(mode);
                     }
                 }
                 scanMapper(fieldMapperClass, tempParameters, visited, newPointerModes);
             }
         }
-        MAPPER_PARAMETERS_CACHE.put(mapperClass, tempParameters);
+        MAPPER_MODES_CACHE.put(mapperClass, tempParameters);
         parameters.putAll(tempParameters);
     }
 
@@ -97,12 +103,13 @@ public class DynamicMapperParameterService {
         return false;
     }
 
-    private static String getParemeterName(Class<? extends MapperMode> mode) {
+    private static String getParameterName(Class<? extends MapperMode> mode) {
         return  "show" + mode.getSimpleName();
     }
 
     @PostConstruct
     private void initializeCache() {
+        log.info("Mapper modes resolving started");
         Map<String, Object> controllers = applicationContext.getBeansWithAnnotation(RestController.class);
         Set<Class<? extends RestDTOMapper<?, ?>>> mappersToCache = new HashSet<>();
 
@@ -117,8 +124,9 @@ public class DynamicMapperParameterService {
         }
 
         for (Class<? extends RestDTOMapper<?,?>> mapper : mappersToCache) {
-            getParametersFromMapper(mapper);
+            Map<String, Class<? extends Enum<?>>> modes = getModesFromMapper(mapper);
+            log.info("{} modes were resolved for {}: {}", modes.size(), mapper.getSimpleName(), StringUtils.join(modes.keySet(), ","));
         }
-        MAPPER_PARAMETERS_CACHE.entrySet().forEach(System.out::println);
+        log.info("Mapper modes resolving finished");
     }
 }
