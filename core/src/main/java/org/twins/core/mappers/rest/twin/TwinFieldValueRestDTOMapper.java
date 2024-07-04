@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.mappers.rest.MapperContext;
@@ -16,7 +17,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue, TwinFieldValueDTO> {
 
-
+    @MapperModePointerBinding(modes = MapperMode.TwinFieldOptionsMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
@@ -37,7 +38,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .date(date.getDate());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertCollection(select.getOptions(), new MapperContext().setMode(MapperMode.DataListOptionMode.SHORT)));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertCollection(select.getOptions(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinFieldOptionsMode.SHORT))));
         return null;
     }
 }

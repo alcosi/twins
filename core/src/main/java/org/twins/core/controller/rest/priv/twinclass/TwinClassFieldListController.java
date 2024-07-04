@@ -25,7 +25,6 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.List;
@@ -36,7 +35,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassFieldListController extends ApiController {
-    private final AuthService authService;
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 

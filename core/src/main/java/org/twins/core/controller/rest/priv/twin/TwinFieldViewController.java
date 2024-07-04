@@ -24,7 +24,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.UUID;
@@ -34,7 +33,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinFieldViewController extends ApiController {
-    private final AuthService authService;
     private final TwinService twinService;
     private final TwinFieldRestDTOMapper twinFieldRestDTOMapper;
 

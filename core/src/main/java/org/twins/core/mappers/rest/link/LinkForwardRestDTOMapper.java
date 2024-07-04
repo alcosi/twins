@@ -24,7 +24,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
 
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.TwinClassLinkMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.LinkMode.DETAILED)) {
             case DETAILED:
                 dst
                         .dstTwinClassId(src.getDstTwinClassId())
@@ -44,7 +44,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.TwinClassLinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.LinkMode.HIDE);
     }
 
     @Override

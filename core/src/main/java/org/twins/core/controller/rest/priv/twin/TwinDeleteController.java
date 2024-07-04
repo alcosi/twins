@@ -21,8 +21,6 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
@@ -35,8 +33,6 @@ import java.util.UUID;
 public class TwinDeleteController extends ApiController {
     private final AuthService authService;
     private final TwinService twinService;
-    private final TwinRestDTOMapper twinRestDTOMapper;
-    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
 
 
     @ParametersApiUserHeaders

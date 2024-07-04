@@ -103,7 +103,7 @@ public class TwinViewController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
-            rs
+            rs //TODO ?????????????? v1
                     .setTwin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -127,7 +127,7 @@ public class TwinViewController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable String twinAlias) {
         TwinRsDTOv1 rs = new TwinRsDTOv1();
         try {
-            rs
+            rs  //TODO ?????????????? v1
                     .setTwin(twinRestDTOMapper.convert(twinService.findTwinByAlias(twinAlias), mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

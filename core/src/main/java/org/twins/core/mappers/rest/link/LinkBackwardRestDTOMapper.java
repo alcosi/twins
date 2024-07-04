@@ -43,7 +43,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.TwinClassLinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(MapperMode.LinkMode.HIDE);
     }
 
     @Override
