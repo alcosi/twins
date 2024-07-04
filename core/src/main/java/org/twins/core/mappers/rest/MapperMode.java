@@ -10,7 +10,6 @@ package org.twins.core.mappers.rest;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twin.RelationTwinMode;
 
 public interface MapperMode {
@@ -184,7 +183,29 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TransitionMode implements MapperMode {
+    enum PermissionMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum PermissionGroupMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum PermissionSchemaMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -270,6 +291,17 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TransitionMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum TransitionResultMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -328,6 +360,16 @@ public interface MapperMode {
         final int priority;
     }
 
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum UserGroupMode implements MapperMode {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+    }
 
     @Getter
     @AllArgsConstructor
@@ -447,6 +489,67 @@ public interface MapperMode {
         }
     }
 
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum ExtendsClassMode implements MapperModePointer<ClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public ClassMode point() {
+            return switch (this) {
+                case HIDE -> ClassMode.HIDE;
+                case SHORT -> ClassMode.SHORT;
+                case DETAILED -> ClassMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum FieldDescriptorUserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum FieldDescriptorOptionsMode implements MapperModePointer<DataListOptionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public DataListOptionMode point() {
+            return switch (this) {
+                case HIDE -> DataListOptionMode.HIDE;
+                case SHORT -> DataListOptionMode.SHORT;
+                case DETAILED -> DataListOptionMode.DETAILED;
+            };
+        }
+    }
+
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
@@ -463,6 +566,26 @@ public interface MapperMode {
                 case HIDE -> UserMode.HIDE;
                 case SHORT -> UserMode.SHORT;
                 case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum HeadClassMode implements MapperModePointer<ClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public ClassMode point() {
+            return switch (this) {
+                case HIDE -> ClassMode.HIDE;
+                case SHORT -> ClassMode.SHORT;
+                case DETAILED -> ClassMode.DETAILED;
             };
         }
     }
@@ -590,7 +713,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TransitionPermissionMode implements MapperModePointer<PermissionRestDTOMapper.Mode> {
+    enum TransitionPermissionMode implements MapperModePointer<PermissionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -598,11 +721,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public PermissionRestDTOMapper.Mode point() {
+        public PermissionMode point() {
             return switch (this) {
-                case HIDE -> PermissionRestDTOMapper.Mode.HIDE;
-                case SHORT -> PermissionRestDTOMapper.Mode.SHORT;
-                case DETAILED -> PermissionRestDTOMapper.Mode.DETAILED;
+                case HIDE -> PermissionMode.HIDE;
+                case SHORT -> PermissionMode.SHORT;
+                case DETAILED -> PermissionMode.DETAILED;
             };
         }
     }

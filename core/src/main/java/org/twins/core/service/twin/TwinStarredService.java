@@ -25,10 +25,10 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredEntity> {
-    final AuthService authService;
-    final TwinService twinService;
-    final UserGroupService userGroupService;
-    final TwinStarredRepository twinStarredRepository;
+    private final AuthService authService;
+    private final TwinService twinService;
+    private final UserGroupService userGroupService;
+    private final TwinStarredRepository twinStarredRepository;
 
     public List<TwinStarredEntity> findStarred(UUID twinClassId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

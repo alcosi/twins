@@ -12,7 +12,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class DomainAddRestDTOReverseMapper extends RestSimpleDTOMapper<DomainAddRqDTOv1, DomainEntity> {
-    final I18nService i18nService;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(DomainAddRqDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {

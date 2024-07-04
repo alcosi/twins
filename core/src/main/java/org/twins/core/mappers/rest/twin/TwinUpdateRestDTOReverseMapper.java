@@ -11,17 +11,15 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 @Component
 @RequiredArgsConstructor
 public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<TwinUpdateDTOv1, TwinEntity>, TwinUpdate> {
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final AttachmentCUDRestDTOReverseMapper twinAttachmentCUDRestDTOReverseMapper;
-    final TwinLinkCUDRestDTOReverseMapper twinLinkCUDRestDTOReverseMapper;
-    final TwinService twinService;
-    final UserService userService;
+    private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
+    private final AttachmentCUDRestDTOReverseMapper twinAttachmentCUDRestDTOReverseMapper;
+    private final TwinLinkCUDRestDTOReverseMapper twinLinkCUDRestDTOReverseMapper;
+    private final UserService userService;
 
     @Override
     public void map(Pair<TwinUpdateDTOv1, TwinEntity> src, TwinUpdate dst, MapperContext mapperContext) throws Exception {

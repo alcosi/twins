@@ -15,7 +15,9 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue, TwinFieldValueDTO> {
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
     public void map(FieldValue src, TwinFieldValueDTO dst, MapperContext mapperContext) throws Exception {

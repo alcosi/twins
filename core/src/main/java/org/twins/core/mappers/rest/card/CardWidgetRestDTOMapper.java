@@ -14,7 +14,8 @@ import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.WidgetMode.class)
 public class CardWidgetRestDTOMapper extends RestSimpleDTOMapper<CardWidgetEntity, CardWidgetDTOv1> {
-    final WidgetRestDTOMapper widgetRestDTOMapper;
+
+    private final WidgetRestDTOMapper widgetRestDTOMapper;
 
     @Override
     public void map(CardWidgetEntity src, CardWidgetDTOv1 dst, MapperContext mapperContext) throws Exception {

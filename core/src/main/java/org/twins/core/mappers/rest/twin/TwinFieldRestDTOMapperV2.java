@@ -15,8 +15,10 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinField, FieldValueText> {
-    final TwinService twinService;
-    final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
+
+    private final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
+
+    private final TwinService twinService;
 
     @Override
     public FieldValueText convert(TwinField src, MapperContext mapperContext) throws Exception {

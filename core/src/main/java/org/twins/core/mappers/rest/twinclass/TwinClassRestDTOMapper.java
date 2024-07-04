@@ -1,12 +1,9 @@
 package org.twins.core.mappers.rest.twinclass;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.kit.Kit;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -17,11 +14,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -33,25 +28,34 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
-    final TwinClassFieldService twinClassFieldService;
-    final TwinService twinService;
-    final TwinClassService twinClassService;
-    final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
-    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
-    final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final TwinStatusService twinStatusService;
-    final LinkService linkService;
-    final DataListService dataListService;
-    @Lazy
-    @Autowired
-    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    @MapperModePointerBinding(modes = {
+            MapperMode.TwinClassMode.class,
+            MapperMode.HeadClassMode.class,
+            MapperMode.ExtendsClassMode.class
+    })
+    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+
+    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+
+    private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
+
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
+    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassService twinClassService;
+    private final TwinStatusService twinStatusService;
+    private final LinkService linkService;
+    private final DataListService dataListService;
+
 
     @Override
     public void map(TwinClassEntity src, TwinClassDTOv1 dst, MapperContext mapperContext) throws Exception {
-        twinClassBaseRestDTOMapper.map(src, dst, mapperContext);
+        twinClassBaseRestDTOMapper.map(src, dst, mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassMode.SHORT)));
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext))
             dst.fields(
                     twinClassFieldRestDTOMapper.convertCollection(
@@ -101,15 +105,15 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                 }
             }
         }
-        if (mapperContext.hasMode(HeadClassMode.SHOW) && src.getHeadTwinClassId() != null) {
+        if (mapperContext.hasModeButNot(MapperMode.HeadClassMode.HIDE) && src.getHeadTwinClassId() != null) {
             twinClassService.loadHeadTwinClass(src);
             dst.headClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getHeadTwinClass(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassMode.SHORT))));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.HeadClassMode.SHORT))));
         }
-        if (mapperContext.hasMode(ExtendsClassMode.SHOW) && src.getExtendsTwinClassId() != null) {
+        if (mapperContext.hasModeButNot(MapperMode.ExtendsClassMode.HIDE) && src.getExtendsTwinClassId() != null) {
             twinClassService.loadExtendsTwinClass(src);
             dst.extendsClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(),
-                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassMode.SHORT))));
+                    mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.ExtendsClassMode.SHORT))));
         }
     }
 
@@ -122,13 +126,13 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (!twinClassFieldRestDTOMapper.hideMode(mapperContext)) {
             twinClassFieldService.loadTwinClassFields(srcCollection);
         }
-        if (mapperContext.hasMode(HeadClassMode.SHOW)) {
+        if (mapperContext.hasModeButNot(MapperMode.HeadClassMode.HIDE)) {
             twinClassService.loadHeadTwinClasses(srcCollection);
         }
-        if (mapperContext.hasMode(HeadClassMode.SHOW)) {
+        if (mapperContext.hasModeButNot(MapperMode.ExtendsClassMode.HIDE)) {
             twinClassService.loadExtendsTwinClasses(srcCollection);
         }
-        if (!mapperContext.hasModeOrEmpty(MapperMode.TwinClassMarkerMode.HIDE)) {
+        if (mapperContext.hasModeButNot(MapperMode.TwinClassMarkerMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
     }
@@ -141,25 +145,5 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     @Override
     public String getObjectCacheId(TwinClassEntity src) {
         return src.getId().toString();
-    }
-
-    @AllArgsConstructor
-    public enum HeadClassMode implements MapperMode {
-        HIDE(0),
-        SHOW(1);
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-        @Getter
-        final int priority;
-    }
-
-    @AllArgsConstructor
-    public enum ExtendsClassMode implements MapperMode {
-        HIDE(0),
-        SHOW(1);
-        public static final String _SHOW = "SHOW";
-        public static final String _HIDE = "HIDE";
-        @Getter
-        final int priority;
     }
 }

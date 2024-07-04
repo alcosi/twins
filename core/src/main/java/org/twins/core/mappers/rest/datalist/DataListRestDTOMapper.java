@@ -16,9 +16,10 @@ import org.twins.core.service.datalist.DataListService;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.DataListMode.class)
 public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, DataListDTOv1> {
-    private final DataListService dataListService;
-    @MapperModePointerBinding(modes = MapperMode.DataListOptionMode.class)
+
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+    private final DataListService dataListService;
 
     @Override
     public void map(DataListEntity src, DataListDTOv1 dst, MapperContext mapperContext) throws Exception {

@@ -11,7 +11,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class AttachmentAddRestDTOReverseMapper extends RestSimpleDTOMapper<AttachmentAddDTOv1, TwinAttachmentEntity> {
+
     final AttachmentBaseRestDTOReverseMapper attachmentBaseRestDTOReverseMapper;
+
     @Override
     public void map(AttachmentAddDTOv1 src, TwinAttachmentEntity dst, MapperContext mapperContext) throws Exception {
         attachmentBaseRestDTOReverseMapper.map(src, dst, mapperContext);

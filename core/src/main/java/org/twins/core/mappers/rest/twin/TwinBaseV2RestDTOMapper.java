@@ -21,24 +21,27 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {MapperMode.TwinByHeadMode.class})
+@MapperModeBinding(modes = { MapperMode.TwinByHeadMode.class })
 public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv2> {
-    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinUserMode.class})
     final UserRestDTOMapper userDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinStatusMode.class})
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinAliasMode.class})
-    final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
+    private final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
 
-    final TwinService twinService;
-    final TwinAliasService twinAliasService;
-
+    private final TwinService twinService;
+    private final TwinAliasService twinAliasService;
 
     @Lazy
     @Autowired
     @MapperModePointerBinding(modes = {MapperMode.TwinClassMode.class})
-    TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {

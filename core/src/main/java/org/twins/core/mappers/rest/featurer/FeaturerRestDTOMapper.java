@@ -19,8 +19,9 @@ import java.util.Collection;
         MapperMode.FeaturerParamMode.class
 })
 public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, FeaturerDTOv1> {
-    final FeaturerParamRestDTOMapper featurerParamRestDTOMapper;
-    final FeaturerService featurerService;
+
+    private final FeaturerParamRestDTOMapper featurerParamRestDTOMapper;
+    private final FeaturerService featurerService;
 
     @Override
     public void map(FeaturerEntity src, FeaturerDTOv1 dst, MapperContext mapperContext) throws Exception {

@@ -12,8 +12,10 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class AttachmentCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<AttachmentCudDTOv1, EntityCUD<TwinAttachmentEntity>> {
-    final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+
+    private final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+
     @Override
     public void map(AttachmentCudDTOv1 src, EntityCUD<TwinAttachmentEntity> dst, MapperContext mapperContext) throws Exception {
         dst

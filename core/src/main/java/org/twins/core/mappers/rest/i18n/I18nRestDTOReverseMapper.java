@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dto.I18nDTOv1;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -16,9 +15,9 @@ import java.util.HashMap;
 @Component
 @RequiredArgsConstructor
 public class I18nRestDTOReverseMapper extends RestSimpleDTOMapper<I18nDTOv1, I18nEntity> {
-    final AuthService authService;
-    @Autowired
-    I18nTranslationRestDTOReverseMapper i18nTranslationRestDTOReverseMapper;
+
+    private final I18nTranslationRestDTOReverseMapper i18nTranslationRestDTOReverseMapper;
+    private final AuthService authService;
 
     @Override
     public void map(I18nDTOv1 src, I18nEntity dst, MapperContext mapperContext) throws Exception {

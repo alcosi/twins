@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinField;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -22,14 +21,16 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {MapperMode.TwinFieldCollectionMode.class})
 public class TwinRestDTOMapperV2 extends RestSimpleDTOMapper<TwinEntity, TwinDTOv2> {
-    final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
-    final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
-    final TwinService twinService;
+
+    private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
+
+    private final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
+
+    private final TwinService twinService;
 
     @Override
     public void map(TwinEntity src, TwinDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
-        List<TwinField> twinFieldList;
         switch (mapperContext.getModeOrUse(MapperMode.TwinFieldCollectionMode.NO_FIELDS)) {
             case NO_FIELDS:
                 break;

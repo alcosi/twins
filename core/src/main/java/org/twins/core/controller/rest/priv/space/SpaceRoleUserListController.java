@@ -71,7 +71,7 @@ public class SpaceRoleUserListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleWithinUserMapV1", summary = "Return all users within roles of specific space")
+    @Operation(operationId = "spaceRoleWithinAllUsersMapV1", summary = "Return all users within roles of specific space")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
@@ -99,7 +99,7 @@ public class SpaceRoleUserListController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleWithinUserMapV1", summary = "Search users within their roles of specific space")
+    @Operation(operationId = "spaceRoleWithinUsersMapV1", summary = "Search users within their roles of specific space")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =

@@ -15,9 +15,11 @@ import org.twins.core.service.twinclass.TwinClassService;
 @Component
 @RequiredArgsConstructor
 public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassUpdateRqDTOv1, TwinClassUpdate> {
-    final TwinClassService twinClassService;
-    final BasicUpdateOperationRestDTOReverseMapper basicUpdateOperationRestDTOReverseMapper;
-    final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+
+    private final BasicUpdateOperationRestDTOReverseMapper basicUpdateOperationRestDTOReverseMapper;
+    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+
+    private final TwinClassService twinClassService;
 
     @Override
     public void map(TwinClassUpdateRqDTOv1 src, TwinClassUpdate dst, MapperContext mapperContext) throws Exception {

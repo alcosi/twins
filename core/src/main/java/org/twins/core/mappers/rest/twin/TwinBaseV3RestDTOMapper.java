@@ -27,15 +27,20 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {MapperMode.TwinActionMode.class})
 public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv3> {
-    final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
+    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinAttachmentMode.class, MapperMode.TwinAttachmentCollectionMode.class})
-    final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinLinkMode.class})
-    final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
+    private final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinTransitionMode.class})
-    final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+    private final TwinTransitionRestDTOMapper twinTransitionRestDTOMapper;
+
     @MapperModePointerBinding(modes = {MapperMode.TwinTagMode.class, MapperMode.TwinMarkerMode.class})
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     final TwinActionService twinActionService;
     final AttachmentService attachmentService;

@@ -16,8 +16,9 @@ import java.util.LinkedHashMap;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkService.FindTwinLinksResult, TwinLinkListDTOv1> {
-    final TwinLinkForwardRestDTOMapper twinLinkForwardRestDTOMapper;
-    final TwinLinkBackwardRestDTOMapper twinLinkBackwardRestDTOMapper;
+
+    private final TwinLinkForwardRestDTOMapper twinLinkForwardRestDTOMapper;
+    private final TwinLinkBackwardRestDTOMapper twinLinkBackwardRestDTOMapper;
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {

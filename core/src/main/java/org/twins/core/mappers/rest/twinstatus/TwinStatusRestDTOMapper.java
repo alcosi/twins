@@ -1,22 +1,22 @@
 package org.twins.core.mappers.rest.twinstatus;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
-import java.util.Collection;
-
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {MapperMode.StatusMode.class})
 public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
-    final I18nService i18nService;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperContext mapperContext) {

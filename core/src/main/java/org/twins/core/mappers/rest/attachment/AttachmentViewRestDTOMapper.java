@@ -12,7 +12,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinAttachmentService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,13 +25,14 @@ import java.util.stream.Collectors;
         MapperMode.AttachmentMode.class,
         MapperMode.AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
-    @MapperModePointerBinding(modes = MapperMode.AttachmentUserMode.class)
-    final UserRestDTOMapper userDTOMapper;
-    @MapperModePointerBinding(modes = MapperMode.AttachmentTransitionMode.class)
-    final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
-    final TwinService twinService;
-    final TwinAttachmentService twinAttachmentService;
+    @MapperModePointerBinding(modes = MapperMode.AttachmentUserMode.class)
+    private final UserRestDTOMapper userDTOMapper;
+
+    @MapperModePointerBinding(modes = MapperMode.AttachmentTransitionMode.class)
+    private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
+
+    private final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {

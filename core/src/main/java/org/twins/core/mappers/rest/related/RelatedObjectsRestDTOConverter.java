@@ -40,15 +40,16 @@ import java.util.function.Function;
 @Component
 @RequiredArgsConstructor
 public class RelatedObjectsRestDTOConverter {
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final UserRestDTOMapper userRestDTOMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
-    final DataListRestDTOMapper dataListRestDTOMapper;
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final UserRestDTOMapper userRestDTOMapper;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
+    private final DataListRestDTOMapper dataListRestDTOMapper;
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())

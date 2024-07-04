@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -12,9 +13,12 @@ import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = MapperMode.TransitionMode.class)
 public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final I18nService i18nService;
+
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {

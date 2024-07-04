@@ -18,10 +18,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {MapperMode.TwinFieldCollectionMode.class})
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
-    final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
-    final TwinFieldRestDTOMapperV3 twinFieldRestDTOMapperV3;
-    final TwinService twinService;
 
+    private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
+
+    private final TwinFieldRestDTOMapperV3 twinFieldRestDTOMapperV3;
+
+    private final TwinService twinService;
 
     @Override
     public void map(TwinEntity src, TwinDTOv1 dst, MapperContext mapperContext) throws Exception {

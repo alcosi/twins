@@ -50,8 +50,8 @@ public class TwinTransitionPerformController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final AttachmentCUDRestDTOReverseMapperV2 attachmentCUDRestDTOReverseMapperV2;
     private final TwinLinkCUDRestDTOReverseMapperV2 twinLinkCUDRestDTOReverseMapperV2;
-    private final TwinTransitionPerformRsRestDTOMapper twinTransitionPerformRsRestDTOMapper;
     private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
+    private final TwinTransitionPerformRsRestDTOMapper twinTransitionPerformRsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinTransitionPerformV1", summary = "Perform twin transition by transition id. Transition will be performed only if current twin status is correct for given transition")

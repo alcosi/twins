@@ -14,8 +14,8 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class PermissionGroupWithGroupRestDTOMapper extends RestSimpleDTOMapper<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>, PermissionGroupWithPermissionsDTOv1> {
-    final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
-    final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
 
     @Override
     public void map(ImmutablePair<PermissionGroupEntity, List<PermissionEntity>> src, PermissionGroupWithPermissionsDTOv1 dst, MapperContext mapperContext) throws Exception {

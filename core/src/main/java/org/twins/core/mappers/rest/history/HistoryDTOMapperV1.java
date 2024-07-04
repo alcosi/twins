@@ -10,22 +10,20 @@ import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.twin.TwinService;
 
 
 @Component
 @RequiredArgsConstructor
 public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, HistoryDTOv1> {
-    @MapperModePointerBinding(modes = MapperMode.HistoryUserMode.class)
-    final UserRestDTOMapper userRestDTOMapper;
-    @MapperModePointerBinding(modes = MapperMode.HistoryTwinMode.class)
-    final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
-    final TwinService twinService;
-    final AuthService authService;
-    final HistoryService historyService;
+    @MapperModePointerBinding(modes = MapperMode.HistoryUserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = MapperMode.HistoryTwinMode.class)
+    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
+    private final HistoryService historyService;
 
     @Override
     public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {

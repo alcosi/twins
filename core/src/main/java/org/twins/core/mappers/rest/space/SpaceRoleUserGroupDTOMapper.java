@@ -15,8 +15,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.SpaceRoleUserGroupMode.class)
 public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserGroupEntity, SpaceRoleUserGroupDTOv1> {
+
     @MapperModePointerBinding(modes = MapperMode.SpaceRoleUserGroup2SpaceRoleMode.class)
-    final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     @Override
     public void map(SpaceRoleUserGroupEntity src, SpaceRoleUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {

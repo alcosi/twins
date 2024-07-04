@@ -17,7 +17,8 @@ import java.util.Hashtable;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
-    final I18nService i18nService;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {

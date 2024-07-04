@@ -13,7 +13,8 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLinkUpdateDTOv1, TwinLinkEntity> {
-    final TwinService twinService;
+
+    private final TwinService twinService;
 
     @Override
     public void map(TwinLinkUpdateDTOv1 src, TwinLinkEntity dst, MapperContext mapperContext) throws Exception {

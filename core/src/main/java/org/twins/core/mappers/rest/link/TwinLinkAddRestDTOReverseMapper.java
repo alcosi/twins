@@ -15,8 +15,9 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkAddRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLinkAddDTOv1, TwinLinkEntity> {
-    final AuthService authService;
-    final TwinService twinService;
+
+    private final AuthService authService;
+    private final TwinService twinService;
 
     @Override
     public void map(TwinLinkAddDTOv1 src, TwinLinkEntity dst, MapperContext mapperContext) throws Exception {

@@ -12,8 +12,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<TwinLinkCudDTOv1, EntityCUD<TwinLinkEntity>> {
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-    final TwinLinkUpdateRestDTOReverseMapper twinLinkUpdateRestDTOReverseMapper;
+
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinLinkUpdateRestDTOReverseMapper twinLinkUpdateRestDTOReverseMapper;
 
     @Override
     public void map(TwinLinkCudDTOv1 src, EntityCUD<TwinLinkEntity> dst, MapperContext mapperContext) throws Exception {

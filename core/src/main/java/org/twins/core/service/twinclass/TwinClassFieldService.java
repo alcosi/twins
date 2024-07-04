@@ -37,15 +37,14 @@ import java.util.*;
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClassFieldEntity> {
-    final TwinClassFieldRepository twinClassFieldRepository;
+
+    private final TwinClassFieldRepository twinClassFieldRepository;
+    private final I18nService i18nService;
+    private final EntitySmartService entitySmartService;
+    private final PermissionRepository permissionRepository;
+    private final FeaturerRepository featurerRepository;
     @Lazy
-    final TwinClassService twinClassService;
-    final I18nService i18nService;
-    final EntitySmartService entitySmartService;
-    final PermissionRepository permissionRepository;
-    final FeaturerRepository featurerRepository;
-    @Lazy
-    final AuthService authService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {

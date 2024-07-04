@@ -13,7 +13,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.HashSet;
@@ -23,12 +22,13 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCreateRqDTOv2, TwinCreate> {
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-    final TwinService twinService;
-    final UserService userService;
-    final AuthService authService;
+
+    private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+
+    private final UserService userService;
+    private final AuthService authService;
 
     @Override
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {

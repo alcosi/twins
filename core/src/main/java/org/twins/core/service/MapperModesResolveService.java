@@ -45,11 +45,12 @@ public class MapperModesResolveService {
         if (visited.contains(mapperClass)) return;
         visited.add(mapperClass);
 
-        // Check cache
-        if (MAPPER_MODES_CACHE.containsKey(mapperClass)) {
-            parameters.putAll(MAPPER_MODES_CACHE.get(mapperClass));
-            return;
-        }
+//        // Check cache
+//        if (MAPPER_MODES_CACHE.containsKey(mapperClass)) {
+//            parameters.putAll(MAPPER_MODES_CACHE.get(mapperClass));
+//            return;
+//        }
+//   TODO     because UserRestDTOMapper cached with 0 params on any pointer found. But sometimes we need parametrized UserRestDTOMapper.
         // Temporary map to store parameters for the current mapper class
         Map<String, Class<? extends Enum<?>>> tempParameters = new HashMap<>();
 
@@ -91,7 +92,7 @@ public class MapperModesResolveService {
                 scanMapper(fieldMapperClass, tempParameters, visited, newPointerModes);
             }
         }
-        MAPPER_MODES_CACHE.put(mapperClass, tempParameters);
+//        if(!tempParameters.isEmpty()) MAPPER_MODES_CACHE.put(mapperClass, tempParameters);
         parameters.putAll(tempParameters);
     }
 

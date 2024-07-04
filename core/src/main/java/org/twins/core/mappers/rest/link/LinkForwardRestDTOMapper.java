@@ -16,9 +16,11 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.LinkMode.class)
 public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
-    final I18nService i18nService;
+
     @MapperModePointerBinding(modes = MapperMode.LinkDstClassMode.class)
-    final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -33,6 +35,7 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                         .id(src.getId())
                         .name(i18nService.translateToLocale(src.getForwardNameI18NId()));
         }
+
         if (mapperContext.hasModeButNot(MapperMode.LinkMode.HIDE))
             dst
                     .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext

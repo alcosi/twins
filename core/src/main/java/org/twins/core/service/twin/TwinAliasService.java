@@ -2,7 +2,6 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;

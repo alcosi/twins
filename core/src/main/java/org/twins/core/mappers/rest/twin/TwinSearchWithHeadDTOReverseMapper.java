@@ -11,7 +11,8 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinSearchWithHeadDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchWithHeadDTOv1, BasicSearch> {
-    final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
+
+    private final TwinSearchDTOReverseMapper twinSearchDTOReverseMapper;
 
     @Override
     public void map(TwinSearchWithHeadDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {

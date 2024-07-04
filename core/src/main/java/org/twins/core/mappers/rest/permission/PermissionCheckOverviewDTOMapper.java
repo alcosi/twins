@@ -14,12 +14,12 @@ import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 @RequiredArgsConstructor
 public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<PermissionCheckForTwinOverviewResult, PermissionCheckOverviewRsDTOv1> {
 
-    final PermissionRestDTOMapper permissionRestDTOMapper;
-    final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
-    final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
-    final UserGroupRestDTOMapper userGroupRestDTOMapper;
-    final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
-    final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
+    private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
+    private final UserGroupRestDTOMapper userGroupRestDTOMapper;
+    private final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
+    private final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
 
     @Override
     public void map(PermissionCheckForTwinOverviewResult src, PermissionCheckOverviewRsDTOv1 dst, MapperContext mapperContext) throws Exception {

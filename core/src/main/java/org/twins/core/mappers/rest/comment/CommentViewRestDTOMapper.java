@@ -19,11 +19,14 @@ import java.util.Collection;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.CommentMode.class)
 public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentViewDTOv1> {
+
     @MapperModePointerBinding(modes = MapperMode.CommentUserMode.class)
-    final UserRestDTOMapper userRestDTOMapper;
+    private final UserRestDTOMapper userRestDTOMapper;
+
     @MapperModePointerBinding(modes = MapperMode.CommentAttachmentMode.class)
-    final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
-    final CommentService commentService;
+    private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+
+    private final CommentService commentService;
 
     @Override
     public void map(TwinCommentEntity src, CommentViewDTOv1 dst, MapperContext mapperContext) throws Exception {

@@ -17,10 +17,12 @@ import org.twins.core.service.card.CardService;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.CardMode.class)
 public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1> {
-    final I18nService i18nService;
-    final CardService cardService;
+
     @MapperModePointerBinding(modes = MapperMode.CardWidgetMode.class)
-    final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
+    private final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
+
+    private final I18nService i18nService;
+    private final CardService cardService;
 
     @Override
     public void map(CardEntity src, CardDTOv1 dst, MapperContext mapperContext) throws Exception {

@@ -13,11 +13,15 @@ import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
-    final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
+
+    private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
+
     @MapperModePointerBinding(modes = MapperMode.TwinByLinkMode.class)
-    final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
     @MapperModePointerBinding(modes = MapperMode.TwinLinkOnLinkMode.class)
-    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinLinkRestDTOMapper.map(src, dst, mapperContext);

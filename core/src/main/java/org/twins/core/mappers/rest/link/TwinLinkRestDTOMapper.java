@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.link;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -14,7 +15,10 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = MapperMode.TwinLinkMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
-    final UserRestDTOMapper userDTOMapper;
+
+    @MapperModePointerBinding(modes = MapperMode.TwinLinkUserMode.class)
+    private final UserRestDTOMapper userDTOMapper;
+
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(MapperMode.TwinLinkMode.DETAILED)) {

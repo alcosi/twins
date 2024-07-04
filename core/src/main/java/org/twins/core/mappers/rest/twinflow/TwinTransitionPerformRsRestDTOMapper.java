@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
 import org.twins.core.mappers.rest.MapperContext;
@@ -16,8 +17,10 @@ import java.util.*;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = MapperMode.TransitionResultMode.class)
 public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionService.TransitionResult, TwinTransitionPerformRsDTOv1> {
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
 
     @Override
     public void map(TwinflowTransitionService.TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {

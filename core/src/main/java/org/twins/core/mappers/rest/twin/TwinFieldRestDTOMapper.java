@@ -9,17 +9,18 @@ import org.twins.core.mappers.rest.MapperContext;
 import org.twins.core.mappers.rest.MapperMode;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinField, TwinFieldDTOv1> {
-    final UserRestDTOMapper userDTOMapper;
-    final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    final TwinService twinService;
-    final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
+
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+
+    private final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
+
+    private final TwinService twinService;
 
     @Override
     public void map(TwinField src, TwinFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
