@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue, TwinFieldValueDTO> {
 
-    @MapperModePointerBinding(modes = DataListOptionMode.TwinFieldOnDataListOptionMode.class)
+    @MapperModePointerBinding(modes = DataListOptionMode.TwinField2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @Override
@@ -38,7 +38,7 @@ public class TwinFieldValueRestDTOMapper extends RestSimpleDTOMapper<FieldValue,
                     .date(date.getDate());
         if (fieldValue instanceof FieldValueSelect select)
             return new TwinFieldValueListDTOv1()
-                    .selectedOptions(dataListOptionRestDTOMapper.convertCollection(select.getOptions(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinFieldOnDataListOptionMode.SHORT))));
+                    .selectedOptions(dataListOptionRestDTOMapper.convertCollection(select.getOptions(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinField2DataListOptionMode.SHORT))));
         return null;
     }
 }

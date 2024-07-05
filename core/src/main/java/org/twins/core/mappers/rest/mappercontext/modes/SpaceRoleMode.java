@@ -19,7 +19,7 @@ public enum SpaceRoleMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum SpaceRoleUserOnSpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
+    public enum SpaceRoleUser2SpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum SpaceRoleMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum SpaceRoleUserGroupOnSpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
+    public enum SpaceRoleUserGroup2SpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

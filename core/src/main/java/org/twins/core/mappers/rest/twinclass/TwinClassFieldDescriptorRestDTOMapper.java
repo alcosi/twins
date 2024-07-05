@@ -28,10 +28,10 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
     @Autowired
     private TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
-    @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptorOnDataListOptionMode.class)
+    @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-    @MapperModePointerBinding(modes = UserMode.TwinClassFieldDescriptorOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.TwinClassFieldDescriptor2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
@@ -59,7 +59,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptorOnDataListOptionMode.SHORT))));
+                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
             }
         else if (fieldDescriptor instanceof FieldDescriptorUser userDescriptor)
             if (userDescriptor.userFilterId() != null) {
@@ -69,7 +69,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor = new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
-                        .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinClassFieldDescriptorOnUserMode.SHORT))
+                        .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinClassFieldDescriptor2UserMode.SHORT))
                                 .setLazyRelations(mapperContext.isLazyRelations())));
                 if (userFieldDescriptor.users == null)
                     userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());

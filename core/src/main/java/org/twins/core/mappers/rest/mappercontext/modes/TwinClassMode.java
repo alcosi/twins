@@ -20,7 +20,7 @@ public enum TwinClassMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public
-    enum TwinClassExtendsOnTwinClassMode implements MapperModePointer<TwinClassMode> {
+    enum TwinClassExtends2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -41,7 +41,7 @@ public enum TwinClassMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public
-    enum TwinClassHeadOnTwinClassMode implements MapperModePointer<TwinClassMode> {
+    enum TwinClassHead2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -62,7 +62,7 @@ public enum TwinClassMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public
-    enum LinkDstOnTwinClassMode implements MapperModePointer<TwinClassMode> {
+    enum LinkDst2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -83,7 +83,7 @@ public enum TwinClassMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public
-    enum TwinOnTwinClassMode implements MapperModePointer<TwinClassMode> {
+    enum Twin2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

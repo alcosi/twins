@@ -19,7 +19,7 @@ public enum AttachmentMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum CommentOnAttachmentMode implements MapperModePointer<AttachmentMode> {
+    public enum Comment2AttachmentMode implements MapperModePointer<AttachmentMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum AttachmentMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinOnAttachmentMode implements MapperModePointer<AttachmentMode> {
+    public enum Twin2AttachmentMode implements MapperModePointer<AttachmentMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

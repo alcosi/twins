@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum ClassFieldMode implements MapperMode {
+public enum TwinClassFieldMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum ClassFieldMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassOnClassFieldMode implements MapperModePointer<ClassFieldMode> {
+    public enum TwinClass2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum ClassFieldMode implements MapperMode {
         final int priority;
 
         @Override
-        public ClassFieldMode point() {
+        public TwinClassFieldMode point() {
             return switch (this) {
-                case HIDE -> ClassFieldMode.HIDE;
-                case SHORT -> ClassFieldMode.SHORT;
-                case DETAILED -> ClassFieldMode.DETAILED;
+                case HIDE -> TwinClassFieldMode.HIDE;
+                case SHORT -> TwinClassFieldMode.SHORT;
+                case DETAILED -> TwinClassFieldMode.DETAILED;
             };
         }
     }
@@ -39,7 +39,7 @@ public enum ClassFieldMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinFieldOnClassFieldMode implements MapperModePointer<ClassFieldMode> {
+    public enum TwinField2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -47,11 +47,11 @@ public enum ClassFieldMode implements MapperMode {
         final int priority;
 
         @Override
-        public ClassFieldMode point() {
+        public TwinClassFieldMode point() {
             return switch (this) {
-                case HIDE -> ClassFieldMode.HIDE;
-                case SHORT -> ClassFieldMode.SHORT;
-                case DETAILED -> ClassFieldMode.DETAILED;
+                case HIDE -> TwinClassFieldMode.HIDE;
+                case SHORT -> TwinClassFieldMode.SHORT;
+                case DETAILED -> TwinClassFieldMode.DETAILED;
             };
         }
     }

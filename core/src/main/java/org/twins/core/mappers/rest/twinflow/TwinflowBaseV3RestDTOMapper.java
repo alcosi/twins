@@ -17,7 +17,7 @@ public class TwinflowBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
 
     private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
 
-    @MapperModePointerBinding(modes = TransitionMode.TwinflowOnTransitionMode.class)
+    @MapperModePointerBinding(modes = TransitionMode.Twinflow2TransitionMode.class)
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
 
     private final TwinflowTransitionService twinflowTransitionService;
@@ -25,10 +25,10 @@ public class TwinflowBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
         twinflowBaseV2RestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(TransitionMode.TwinflowOnTransitionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TransitionMode.Twinflow2TransitionMode.HIDE)) {
                 twinflowTransitionService.loadAllTransitions(src);
                 dst
-                        .setTransitions(transitionBaseV2RestDTOMapper.convertMap(src.getTransitionsKit().getMap(), mapperContext.forkOnPoint(TransitionMode.TwinflowOnTransitionMode.HIDE)));
+                        .setTransitions(transitionBaseV2RestDTOMapper.convertMap(src.getTransitionsKit().getMap(), mapperContext.forkOnPoint(TransitionMode.Twinflow2TransitionMode.HIDE)));
         }
     }
 

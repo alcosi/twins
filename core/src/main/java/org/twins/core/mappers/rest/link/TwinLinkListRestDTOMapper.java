@@ -22,7 +22,7 @@ public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkServi
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(LinkRelationMode.TwinLinkOnLinkRelateonMode.HIDE);
+        return mapperContext.hasModeOrEmpty(LinkRelationMode.TwinLink2LinkRelateonMode.HIDE);
     }
 
     @Override

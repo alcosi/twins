@@ -19,7 +19,7 @@ public enum TransitionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum AttachmentOnTransitionMode implements MapperModePointer<TransitionMode> {
+    public enum Attachment2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum TransitionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinOnTransitionMode implements MapperModePointer<TransitionMode> {
+    public enum Twin2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -59,7 +59,7 @@ public enum TransitionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowOnTransitionMode implements MapperModePointer<TransitionMode> {
+    public enum Twinflow2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

@@ -21,7 +21,7 @@ public enum AttachmentCollectionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinOnAttachmentCollectionMode implements MapperModePointer<AttachmentCollectionMode> {
+    public enum Twin2AttachmentCollectionMode implements MapperModePointer<AttachmentCollectionMode> {
         @FieldNameConstants.Include DIRECT(0),
         @FieldNameConstants.Include FROM_TRANSITIONS(1),
         @FieldNameConstants.Include FROM_COMMENTS(1),

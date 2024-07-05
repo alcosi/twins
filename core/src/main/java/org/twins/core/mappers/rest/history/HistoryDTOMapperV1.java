@@ -18,10 +18,10 @@ import org.twins.core.service.history.HistoryService;
 @RequiredArgsConstructor
 public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, HistoryDTOv1> {
 
-    @MapperModePointerBinding(modes = UserMode.HistoryOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.History2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
-    @MapperModePointerBinding(modes = TwinMode.HistoryOnTwinMode.class)
+    @MapperModePointerBinding(modes = TwinMode.History2TwinMode.class)
     private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
     private final HistoryService historyService;
@@ -37,12 +37,12 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
                 .id(src.getId())
                 .createdAt(src.getCreatedAt().toLocalDateTime());
 
-        if (mapperContext.hasModeButNot(UserMode.HistoryOnUserMode.HIDE))
+        if (mapperContext.hasModeButNot(UserMode.History2UserMode.HIDE))
             dst.actorUser(userRestDTOMapper.convertOrPostpone(src.getActorUser(), mapperContext
-                    .forkOnPoint(mapperContext.getModeOrUse(UserMode.HistoryOnUserMode.SHORT))));
-        if (mapperContext.hasModeButNot(TwinMode.HistoryOnTwinMode.HIDE))
+                    .forkOnPoint(mapperContext.getModeOrUse(UserMode.History2UserMode.SHORT))));
+        if (mapperContext.hasModeButNot(TwinMode.History2TwinMode.HIDE))
             dst.twin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getTwin(), mapperContext
-                    .forkOnPoint(TwinMode.HistoryOnTwinMode.SHORT)));
+                    .forkOnPoint(TwinMode.History2TwinMode.SHORT)));
     }
 
     @Override

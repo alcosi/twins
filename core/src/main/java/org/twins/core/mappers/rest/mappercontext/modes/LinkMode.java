@@ -19,7 +19,7 @@ public enum LinkMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassOnLinkMode implements MapperModePointer<LinkMode> {
+    public enum TwinClass2LinkMode implements MapperModePointer<LinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum LinkMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinLinkOnLinkMode implements MapperModePointer<LinkMode> {
+    public enum TwinLink2LinkMode implements MapperModePointer<LinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

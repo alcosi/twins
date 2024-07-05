@@ -19,7 +19,7 @@ public enum LinkRelationMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinLinkOnLinkRelateonMode implements MapperModePointer<LinkRelationMode> {
+    public enum TwinLink2LinkRelateonMode implements MapperModePointer<LinkRelationMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

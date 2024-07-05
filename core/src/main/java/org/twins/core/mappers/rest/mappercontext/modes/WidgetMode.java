@@ -19,7 +19,7 @@ public enum WidgetMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum CardOnWidgetMode implements MapperModePointer<WidgetMode> {
+    public enum Card2WidgetMode implements MapperModePointer<WidgetMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

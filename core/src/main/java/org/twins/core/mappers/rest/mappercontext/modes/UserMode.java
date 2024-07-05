@@ -19,7 +19,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum AttachmentOnUserMode implements MapperModePointer<UserMode> {
+    public enum Attachment2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum CommentOnUserMode implements MapperModePointer<UserMode> {
+    public enum Comment2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -59,7 +59,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassFieldDescriptorOnUserMode implements MapperModePointer<UserMode> {
+    public enum TwinClassFieldDescriptor2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -79,7 +79,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum HistoryOnUserMode implements MapperModePointer<UserMode> {
+    public enum History2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -99,7 +99,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum SpaceOnUserMode implements MapperModePointer<UserMode> {
+    public enum Space2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -119,7 +119,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TransitionOnUserMode implements MapperModePointer<UserMode> {
+    public enum Transition2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -139,7 +139,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassOnUserMode implements MapperModePointer<UserMode> {
+    public enum TwinClass2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -159,7 +159,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinLinkOnUserMode implements MapperModePointer<UserMode> {
+    public enum TwinLink2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -179,7 +179,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowOnUserMode implements MapperModePointer<UserMode> {
+    public enum Twinflow2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -199,7 +199,7 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinOnUserMode implements MapperModePointer<UserMode> {
+    public enum Twin2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

@@ -20,7 +20,7 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
     @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
     private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
-    @MapperModePointerBinding(modes = LinkMode.TwinLinkOnLinkMode.class)
+    @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
     private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
 
     @Override
@@ -32,10 +32,10 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
             dst
                     .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getSrcTwin(), mapperContext
                             .forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN)));
-        if (mapperContext.hasModeButNot(LinkMode.TwinLinkOnLinkMode.HIDE))
+        if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE))
             dst
                     .setLink(linkBackwardRestDTOMapper.convertOrPostpone(src.getLink(), mapperContext
-                            .forkOnPoint(LinkMode.TwinLinkOnLinkMode.SHORT)));
+                            .forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT)));
     }
 
     @Override

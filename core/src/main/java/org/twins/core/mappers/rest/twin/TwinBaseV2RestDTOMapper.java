@@ -29,10 +29,10 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {UserMode.TwinOnUserMode.class})
+    @MapperModePointerBinding(modes = {UserMode.Twin2UserMode.class})
     final UserRestDTOMapper userDTOMapper;
 
-    @MapperModePointerBinding(modes = {StatusMode.TwinOnStatusMode.class})
+    @MapperModePointerBinding(modes = {StatusMode.Twin2StatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinAliasMode.class})
@@ -43,26 +43,26 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @Lazy
     @Autowired
-    @MapperModePointerBinding(modes = {TwinClassMode.TwinOnTwinClassMode.class})
+    @MapperModePointerBinding(modes = {TwinClassMode.Twin2TwinClassMode.class})
     private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(StatusMode.TwinOnStatusMode.HIDE))
+        if (mapperContext.hasModeButNot(StatusMode.Twin2StatusMode.HIDE))
             dst
-                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.TwinOnStatusMode.SHORT)))
+                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.Twin2StatusMode.SHORT)))
                     .statusId(src.getTwinStatusId());
-        if (mapperContext.hasModeButNot(UserMode.TwinOnUserMode.HIDE)) {
+        if (mapperContext.hasModeButNot(UserMode.Twin2UserMode.HIDE)) {
             dst
-                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinOnUserMode.SHORT))))
-                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinOnUserMode.SHORT))))
+                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT))))
+                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Twin2UserMode.SHORT))))
                     .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
         }
-        if (mapperContext.hasModeButNot(TwinClassMode.TwinOnTwinClassMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinClassMode.Twin2TwinClassMode.HIDE))
             dst
-                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinOnTwinClassMode.SHORT))) //todo deep recursion risk
+                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.Twin2TwinClassMode.SHORT))) //todo deep recursion risk
                     .twinClassId(src.getTwinClassId());
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
             twinService.loadHeadForTwin(src);

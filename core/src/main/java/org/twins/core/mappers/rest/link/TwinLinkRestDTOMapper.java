@@ -18,7 +18,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @MapperModeBinding(modes = LinkRelationMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
 
-    @MapperModePointerBinding(modes = UserMode.TwinLinkOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.TwinLink2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
     @Override
@@ -28,7 +28,7 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
                 dst
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLinkOnUserMode.SHORT))))
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLink2UserMode.SHORT))))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setLinkId(src.getLinkId());
                 break;
@@ -47,6 +47,6 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(LinkMode.TwinLinkOnLinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(LinkMode.TwinLink2LinkMode.HIDE);
     }
 }

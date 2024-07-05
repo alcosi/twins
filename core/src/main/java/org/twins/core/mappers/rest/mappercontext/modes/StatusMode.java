@@ -19,7 +19,7 @@ public enum StatusMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TransitionOnStatusMode implements MapperModePointer<StatusMode> {
+    public enum Transition2StatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum StatusMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassOnStatusMode implements MapperModePointer<StatusMode> {
+    public enum TwinClass2StatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -59,7 +59,7 @@ public enum StatusMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinOnStatusMode implements MapperModePointer<StatusMode> {
+    public enum Twin2StatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -79,7 +79,7 @@ public enum StatusMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinflowInitStatusOnStatusMode implements MapperModePointer<StatusMode> {
+    public enum TwinflowInitStatus2StatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

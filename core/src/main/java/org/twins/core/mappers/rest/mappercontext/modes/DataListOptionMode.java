@@ -19,7 +19,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassFieldDescriptorOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinClassFieldDescriptor2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -39,7 +39,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassMarkerModeOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinClassMarker2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -59,7 +59,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinClassTagOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinClassTag2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -79,7 +79,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinFieldOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinField2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -99,7 +99,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinMarkerOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinMarker2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -119,7 +119,7 @@ public enum DataListOptionMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinTagOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
+    public enum TwinTag2DataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
