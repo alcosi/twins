@@ -33,7 +33,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {AttachmentMode.Twin2AttachmentMode.class, AttachmentCollectionMode.Twin2AttachmentCollectionMode.class})
     private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {LinkRelationMode.TwinLink2LinkRelateonMode.class})
+    @MapperModePointerBinding(modes = {TwinLinkMode.Twin2TwinLinkMode.class})
     private final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;
 
     @MapperModePointerBinding(modes = {TransitionMode.Twin2TransitionMode.class})
@@ -62,7 +62,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         }
         if (showLinks(mapperContext)) {
             twinLinkService.loadTwinLinks(src);
-            dst.setLinks(twinLinkListRestDTOMapper.convert(src.getTwinLinks(), mapperContext.forkOnPoint(LinkRelationMode.TwinLink2LinkRelateonMode.SHORT)));
+            dst.setLinks(twinLinkListRestDTOMapper.convert(src.getTwinLinks(), mapperContext.forkOnPoint(TwinLinkMode.Twin2TwinLinkMode.SHORT)));
         }
         if (showTransitions(mapperContext)) {
             twinflowTransitionService.loadValidTransitions(src);
@@ -103,7 +103,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showLinks(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(LinkRelationMode.TwinLink2LinkRelateonMode.HIDE);
+        return mapperContext.hasModeButNot(TwinLinkMode.Twin2TwinLinkMode.HIDE);
     }
 
     @Override

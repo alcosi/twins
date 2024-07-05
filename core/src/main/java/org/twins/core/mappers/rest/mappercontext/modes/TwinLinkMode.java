@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum LinkRelationMode implements MapperMode {
+public enum TwinLinkMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum LinkRelationMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum TwinLink2LinkRelateonMode implements MapperModePointer<LinkRelationMode> {
+    public enum Twin2TwinLinkMode implements MapperModePointer<TwinLinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum LinkRelationMode implements MapperMode {
         final int priority;
 
         @Override
-        public LinkRelationMode point() {
+        public TwinLinkMode point() {
             return switch (this) {
-                case HIDE -> LinkRelationMode.HIDE;
-                case SHORT -> LinkRelationMode.SHORT;
-                case DETAILED -> LinkRelationMode.DETAILED;
+                case HIDE -> TwinLinkMode.HIDE;
+                case SHORT -> TwinLinkMode.SHORT;
+                case DETAILED -> TwinLinkMode.DETAILED;
             };
         }
     }

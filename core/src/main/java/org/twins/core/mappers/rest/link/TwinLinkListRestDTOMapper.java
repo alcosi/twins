@@ -5,7 +5,7 @@ import org.cambium.common.util.KitUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
-import org.twins.core.mappers.rest.mappercontext.modes.LinkRelationMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinLinkMode;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.link.TwinLinkService;
@@ -22,7 +22,7 @@ public class TwinLinkListRestDTOMapper extends RestSimpleDTOMapper<TwinLinkServi
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(LinkRelationMode.TwinLink2LinkRelateonMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinLinkMode.HIDE);
     }
 
     @Override
