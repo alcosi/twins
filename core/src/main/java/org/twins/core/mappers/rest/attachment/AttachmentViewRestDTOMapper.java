@@ -26,10 +26,10 @@ import java.util.stream.Collectors;
         MapperMode.AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.AttachmentUserMode.class)
+    @MapperModePointerBinding(modes = MapperMode.AttachmentOnUserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.AttachmentTransitionMode.class)
+    @MapperModePointerBinding(modes = MapperMode.AttachmentOnTransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
     private final TwinAttachmentService twinAttachmentService;
@@ -40,7 +40,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.AttachmentUserMode.SHORT))))
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.AttachmentOnUserMode.SHORT))))
                         .setTwinflowTransitionId(src.getTwinflowTransitionId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setTwinClassFieldId(src.getTwinClassFieldId())
@@ -53,10 +53,10 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
         }
-        if (mapperContext.hasModeButNot(MapperMode.AttachmentTransitionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(MapperMode.AttachmentOnTransitionMode.HIDE)) {
             dst
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperMode.AttachmentTransitionMode.SHORT)));
+                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperMode.AttachmentOnTransitionMode.SHORT)));
         }
     }
 

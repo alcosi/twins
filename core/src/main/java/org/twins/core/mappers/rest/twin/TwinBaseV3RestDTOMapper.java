@@ -30,7 +30,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TwinAttachmentMode.class, MapperMode.TwinAttachmentCollectionMode.class})
+    @MapperModePointerBinding(modes = {MapperMode.TwinOnAttachmentMode.class, MapperMode.TwinAttachmentCollectionMode.class})
     private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
 
     @MapperModePointerBinding(modes = {MapperMode.TwinLinkMode.class})
@@ -54,11 +54,11 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         twinBaseV2RestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasMode(MapperMode.TwinFieldCollectionMode.ALL_FIELDS_WITH_ATTACHMENTS) || mapperContext.hasMode(MapperMode.TwinFieldCollectionMode.NOT_EMPTY_FIELDS_WITH_ATTACHMENTS)) {
             mapperContext.setPriorityMinMode(MapperMode.TwinAttachmentCollectionMode.FROM_FIELDS);
-            mapperContext.setPriorityMinMode(MapperMode.TwinAttachmentMode.SHORT);
+            mapperContext.setPriorityMinMode(MapperMode.TwinOnAttachmentMode.SHORT);
         }
         if (showAttachments(mapperContext)) {
             attachmentService.loadAttachments(src);
-            dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperMode.TwinAttachmentMode.SHORT, MapperMode.TwinAttachmentCollectionMode.FROM_FIELDS)));
+            dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(MapperMode.TwinOnAttachmentMode.SHORT, MapperMode.TwinAttachmentCollectionMode.FROM_FIELDS)));
         }
         if (showLinks(mapperContext)) {
             twinLinkService.loadTwinLinks(src);
@@ -99,7 +99,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showAttachments(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperMode.TwinAttachmentMode.HIDE);
+        return mapperContext.hasModeButNot(MapperMode.TwinOnAttachmentMode.HIDE);
     }
 
     private static boolean showLinks(MapperContext mapperContext) {

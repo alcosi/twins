@@ -28,17 +28,6 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum AliasMode implements MapperMode {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
     enum AttachmentMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -74,7 +63,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum ClassMode implements MapperMode {
+    enum TwinClassMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -158,16 +147,16 @@ public interface MapperMode {
         final int priority;
     }
 
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum FieldMode implements MapperMode {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-    }
+//    @Getter
+//    @AllArgsConstructor
+//    @FieldNameConstants(onlyExplicitlyIncluded = true)
+//    enum FieldMode implements MapperMode {
+//        @FieldNameConstants.Include HIDE(0),
+//        @FieldNameConstants.Include SHORT(1),
+//        @FieldNameConstants.Include DETAILED(2);
+//
+//        final int priority;
+//    }
 
     @Getter
     @AllArgsConstructor
@@ -282,7 +271,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum StarredTwinMode implements MapperModePointer<TwinMode> {
+    enum StarredOnTwinMode implements MapperModePointer<TwinMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -403,7 +392,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum AttachmentTransitionMode implements MapperModePointer<TransitionMode> {
+    enum AttachmentOnTransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -423,7 +412,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum AttachmentUserMode implements MapperModePointer<UserMode> {
+    enum AttachmentOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -443,7 +432,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum CardWidgetMode implements MapperModePointer<WidgetMode> {
+    enum CardOnWidgetMode implements MapperModePointer<WidgetMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -463,7 +452,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum CommentUserMode implements MapperModePointer<UserMode> {
+    enum CommentOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -483,7 +472,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum CommentAttachmentMode implements MapperModePointer<AttachmentMode> {
+    enum CommentOnAttachmentMode implements MapperModePointer<AttachmentMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -504,7 +493,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum ExtendsClassMode implements MapperModePointer<ClassMode> {
+    enum TwinClassExtendsOnTwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -512,11 +501,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public ClassMode point() {
+        public TwinClassMode point() {
             return switch (this) {
-                case HIDE -> ClassMode.HIDE;
-                case SHORT -> ClassMode.SHORT;
-                case DETAILED -> ClassMode.DETAILED;
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
             };
         }
     }
@@ -524,7 +513,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum FieldDescriptorUserMode implements MapperModePointer<UserMode> {
+    enum TwinClassFieldDescriptorOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -544,7 +533,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum FieldDescriptorOptionsMode implements MapperModePointer<DataListOptionMode> {
+    enum TwinClassFieldDescriptorOnDataListOptionMode implements MapperModePointer<DataListOptionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -564,7 +553,27 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum FieldUserMode implements MapperModePointer<UserMode> {
+    enum TwinClassHeadOnTwinClassMode implements MapperModePointer<TwinClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinClassMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum HistoryOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -584,47 +593,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum HeadClassMode implements MapperModePointer<ClassMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public ClassMode point() {
-            return switch (this) {
-                case HIDE -> ClassMode.HIDE;
-                case SHORT -> ClassMode.SHORT;
-                case DETAILED -> ClassMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum HistoryUserMode implements MapperModePointer<UserMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public UserMode point() {
-            return switch (this) {
-                case HIDE -> UserMode.HIDE;
-                case SHORT -> UserMode.SHORT;
-                case DETAILED -> UserMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum HistoryTwinMode implements MapperModePointer<TwinMode> {
+    enum HistoryOnTwinMode implements MapperModePointer<TwinMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -644,7 +613,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum LinkDstClassMode implements MapperModePointer<ClassMode> {
+    enum LinkDstOnTwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -652,11 +621,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public ClassMode point() {
+        public TwinClassMode point() {
             return switch (this) {
-                case HIDE -> ClassMode.HIDE;
-                case SHORT -> ClassMode.SHORT;
-                case DETAILED -> ClassMode.DETAILED;
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
             };
         }
     }
@@ -664,27 +633,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum SpaceRoleUser2SpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public SpaceRoleMode point() {
-            return switch (this) {
-                case HIDE -> SpaceRoleMode.HIDE;
-                case SHORT -> SpaceRoleMode.SHORT;
-                case DETAILED -> SpaceRoleMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum SpaceRoleUserGroup2SpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
+    enum SpaceRoleUserOnSpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -704,7 +653,27 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum SpaceUserMode implements MapperModePointer<UserMode> {
+    enum SpaceRoleUserGroupOnSpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public SpaceRoleMode point() {
+            return switch (this) {
+                case HIDE -> SpaceRoleMode.HIDE;
+                case SHORT -> SpaceRoleMode.SHORT;
+                case DETAILED -> SpaceRoleMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum SpaceOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -724,7 +693,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TransitionPermissionMode implements MapperModePointer<PermissionMode> {
+    enum TransitionOnPermissionMode implements MapperModePointer<PermissionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -744,7 +713,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TransitionStatusMode implements MapperModePointer<StatusMode> {
+    enum TransitionOnStatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -764,7 +733,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TransitionUserMode implements MapperModePointer<UserMode> {
+    enum TransitionOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -802,27 +771,18 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinAliasMode implements MapperModePointer<AliasMode> {
+    enum TwinAliasMode implements MapperMode {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
 
         final int priority;
-
-        @Override
-        public AliasMode point() {
-            return switch (this) {
-                case HIDE -> AliasMode.HIDE;
-                case SHORT -> AliasMode.SHORT;
-                case DETAILED -> AliasMode.DETAILED;
-            };
-        }
     }
 
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinAttachmentMode implements MapperModePointer<AttachmentMode> {
+    enum TwinOnAttachmentMode implements MapperModePointer<AttachmentMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -928,7 +888,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassMode implements MapperModePointer<ClassMode> {
+    enum TwinOnTwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -936,11 +896,11 @@ public interface MapperMode {
         final int priority;
 
         @Override
-        public ClassMode point() {
+        public TwinClassMode point() {
             return switch (this) {
-                case HIDE -> ClassMode.HIDE;
-                case SHORT -> ClassMode.SHORT;
-                case DETAILED -> ClassMode.DETAILED;
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
             };
         }
     }
@@ -948,27 +908,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassFieldMode implements MapperModePointer<ClassFieldMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public ClassFieldMode point() {
-            return switch (this) {
-                case HIDE -> ClassFieldMode.HIDE;
-                case SHORT -> ClassFieldMode.SHORT;
-                case DETAILED -> ClassFieldMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassFieldOnTwinFieldMode implements MapperModePointer<ClassFieldMode> {
+    enum TwinClassOnClassFieldMode implements MapperModePointer<ClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -988,7 +928,27 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassLinkMode implements MapperModePointer<LinkMode> {
+    enum TwinFieldOnClassFieldMode implements MapperModePointer<ClassFieldMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public ClassFieldMode point() {
+            return switch (this) {
+                case HIDE -> ClassFieldMode.HIDE;
+                case SHORT -> ClassFieldMode.SHORT;
+                case DETAILED -> ClassFieldMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    enum TwinClassOnLinkMode implements MapperModePointer<LinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -1028,7 +988,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinClassStatusMode implements MapperModePointer<StatusMode> {
+    enum TwinClassOnStatusMode implements MapperModePointer<StatusMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -1085,25 +1045,25 @@ public interface MapperMode {
         }
     }
 
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinFieldMode implements MapperModePointer<FieldMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public FieldMode point() {
-            return switch (this) {
-                case HIDE -> FieldMode.HIDE;
-                case SHORT -> FieldMode.SHORT;
-                case DETAILED -> FieldMode.DETAILED;
-            };
-        }
-    }
+//    @Getter
+//    @AllArgsConstructor
+//    @FieldNameConstants(onlyExplicitlyIncluded = true)
+//    enum TwinFieldMode implements MapperModePointer<FieldMode> {
+//        @FieldNameConstants.Include HIDE(0),
+//        @FieldNameConstants.Include SHORT(1),
+//        @FieldNameConstants.Include DETAILED(2);
+//
+//        final int priority;
+//
+//        @Override
+//        public FieldMode point() {
+//            return switch (this) {
+//                case HIDE -> FieldMode.HIDE;
+//                case SHORT -> FieldMode.SHORT;
+//                case DETAILED -> FieldMode.DETAILED;
+//            };
+//        }
+//    }
 
     @Getter
     @AllArgsConstructor
@@ -1168,7 +1128,7 @@ public interface MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    enum TwinLinkUserMode implements MapperModePointer<UserMode> {
+    enum TwinLinkOnUserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

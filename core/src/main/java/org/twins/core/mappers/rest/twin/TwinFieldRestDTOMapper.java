@@ -17,7 +17,7 @@ import org.twins.core.service.twin.TwinService;
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinField, TwinFieldDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.TwinClassFieldOnTwinFieldMode.class)
+    @MapperModePointerBinding(modes = MapperMode.TwinFieldOnClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     private final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
@@ -27,8 +27,9 @@ public class TwinFieldRestDTOMapper extends RestSimpleDTOMapper<TwinField, TwinF
     @Override
     public void map(TwinField src, TwinFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
         FieldValue fieldValue = twinService.getTwinFieldValue(src);
-        dst
-                .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassFieldOnTwinFieldMode.HIDE))))
-                .value(twinFieldValueRestDTOMapper.convert(fieldValue));
+        dst.value(twinFieldValueRestDTOMapper.convert(fieldValue));
+        if (mapperContext.hasModeButNot(MapperMode.TwinFieldOnClassFieldMode.HIDE))
+            dst
+                    .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(MapperMode.TwinFieldOnClassFieldMode.SHORT)));
     }
 }

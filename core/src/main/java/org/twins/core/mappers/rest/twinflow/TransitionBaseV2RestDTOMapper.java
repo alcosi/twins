@@ -20,15 +20,15 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv2> {
 
 
-    @MapperModePointerBinding(modes = {MapperMode.TransitionStatusMode.class})
+    @MapperModePointerBinding(modes = {MapperMode.TransitionOnStatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TransitionPermissionMode.class})
+    @MapperModePointerBinding(modes = {MapperMode.TransitionOnPermissionMode.class})
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TransitionUserMode.class})
+    @MapperModePointerBinding(modes = {MapperMode.TransitionOnUserMode.class})
     private final UserRestDTOMapper userRestDTOMapper;
 
     private final TwinflowTransitionService twinflowTransitionService;
@@ -47,18 +47,18 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         }
 
 
-        if (mapperContext.hasModeButNot(MapperMode.TransitionStatusMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperMode.TransitionOnStatusMode.HIDE))
             dst
                     .setSrcTwinStatusId(src.getSrcTwinStatusId())
-                    .setSrcTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TransitionStatusMode.SHORT))));
-        if (mapperContext.hasModeButNot(MapperMode.TransitionPermissionMode.HIDE) && src.getPermissionId() != null)
+                    .setSrcTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getSrcTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TransitionOnStatusMode.SHORT))));
+        if (mapperContext.hasModeButNot(MapperMode.TransitionOnPermissionMode.HIDE) && src.getPermissionId() != null)
             dst
                     .setPermissionId(src.getPermissionId())
-                    .setPermission(permissionRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(MapperMode.TransitionPermissionMode.SHORT)));
-        if (mapperContext.hasModeButNot(MapperMode.TransitionUserMode.HIDE) && src.getCreatedByUserId() != null)
+                    .setPermission(permissionRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(MapperMode.TransitionOnPermissionMode.SHORT)));
+        if (mapperContext.hasModeButNot(MapperMode.TransitionOnUserMode.HIDE) && src.getCreatedByUserId() != null)
             dst
                     .setCreatedByUserId(src.getCreatedByUserId())
-                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TransitionUserMode.SHORT))));
+                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TransitionOnUserMode.SHORT))));
     }
 
     @Override

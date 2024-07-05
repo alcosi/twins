@@ -15,15 +15,16 @@ import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapperV3 extends RestSimpleDTOMapper<FieldValue, TwinFieldDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.TwinClassFieldOnTwinFieldMode.class)
+    @MapperModePointerBinding(modes = MapperMode.TwinFieldOnClassFieldMode.class)
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     private final TwinFieldValueRestDTOMapper twinFieldValueRestDTOMapper;
 
     @Override
     public void map(FieldValue src, TwinFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
-        dst
-                .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(MapperMode.TwinClassFieldMode.SHORT)))
-                .value(twinFieldValueRestDTOMapper.convert(src));
+        dst.value(twinFieldValueRestDTOMapper.convert(src));
+        if (mapperContext.hasModeButNot(MapperMode.TwinFieldOnClassFieldMode.HIDE))
+            dst
+                    .twinClassField(twinClassFieldRestDTOMapper.convert(src.getTwinClassField(), mapperContext.cloneWithIsolatedModes().setModeIfNotPresent(MapperMode.TwinFieldOnClassFieldMode.SHORT)));
     }
 }

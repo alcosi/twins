@@ -40,7 +40,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @Lazy
     @Autowired
-    @MapperModePointerBinding(modes = {MapperMode.TwinClassMode.class})
+    @MapperModePointerBinding(modes = {MapperMode.TwinOnTwinClassMode.class})
     private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
@@ -57,9 +57,9 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
                     .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
         }
-        if (mapperContext.hasModeButNot(MapperMode.TwinClassMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperMode.TwinOnTwinClassMode.HIDE))
             dst
-                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(MapperMode.TwinClassMode.SHORT))) //todo deep recursion risk
+                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(MapperMode.TwinOnTwinClassMode.SHORT))) //todo deep recursion risk
                     .twinClassId(src.getTwinClassId());
         if (mapperContext.hasModeButNot(MapperMode.TwinByHeadMode.WHITE)) {
             twinService.loadHeadForTwin(src);

@@ -18,7 +18,7 @@ import org.twins.core.service.card.CardService;
 @MapperModeBinding(modes = MapperMode.CardMode.class)
 public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.CardWidgetMode.class)
+    @MapperModePointerBinding(modes = MapperMode.CardOnWidgetMode.class)
     private final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
 
     private final I18nService i18nService;
@@ -43,7 +43,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 break;
         }
         if (!cardWidgetRestDTOMapper.hideMode(mapperContext))
-            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId()), mapperContext.forkOnPoint(MapperMode.CardWidgetMode.SHORT)));
+            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId()), mapperContext.forkOnPoint(MapperMode.CardOnWidgetMode.SHORT)));
     }
 
 }

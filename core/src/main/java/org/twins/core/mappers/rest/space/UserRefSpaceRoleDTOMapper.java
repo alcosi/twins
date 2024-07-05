@@ -17,7 +17,7 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceRole, UserWithinSpaceRolesRsDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.SpaceUserMode.class)
+    @MapperModePointerBinding(modes = MapperMode.SpaceOnUserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
@@ -26,8 +26,8 @@ public class UserRefSpaceRoleDTOMapper extends RestSimpleDTOMapper<UserRefSpaceR
     public void map(UserRefSpaceRole src, UserWithinSpaceRolesRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst.setUserId(src.getUser().getId());
 
-        if (mapperContext.hasModeButNot(MapperMode.SpaceUserMode.HIDE))
-            dst.setUser(userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.SpaceUserMode.SHORT))));
+        if (mapperContext.hasModeButNot(MapperMode.SpaceOnUserMode.HIDE))
+            dst.setUser(userRestDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.SpaceOnUserMode.SHORT))));
 
         if (mapperContext.hasModeButNot(MapperMode.SpaceRoleMode.HIDE))
             convertOrPostpone(new Kit<>(src.getRoles().stream().map(SpaceRoleUserEntity::getSpaceRole).toList(), SpaceRoleEntity::getId),

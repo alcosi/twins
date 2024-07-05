@@ -13,20 +13,20 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.TwinLinkMode.class)
+@MapperModeBinding(modes = MapperMode.LinkRelationMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.TwinLinkUserMode.class)
+    @MapperModePointerBinding(modes = MapperMode.TwinLinkOnUserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.TwinLinkMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(MapperMode.LinkRelationMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinLinkUserMode.SHORT))))
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinLinkOnUserMode.SHORT))))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setLinkId(src.getLinkId());
                 break;

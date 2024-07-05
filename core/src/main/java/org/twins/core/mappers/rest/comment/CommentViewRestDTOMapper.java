@@ -20,10 +20,10 @@ import java.util.Collection;
 @MapperModeBinding(modes = MapperMode.CommentMode.class)
 public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.CommentUserMode.class)
+    @MapperModePointerBinding(modes = MapperMode.CommentOnUserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.CommentAttachmentMode.class)
+    @MapperModePointerBinding(modes = MapperMode.CommentOnAttachmentMode.class)
     private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
 
     private final CommentService commentService;
@@ -45,20 +45,20 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setText(src.getText());
                 break;
         }
-        if (mapperContext.hasModeButNot(MapperMode.CommentUserMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperMode.CommentOnUserMode.HIDE))
             dst
                     .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext
-                            .forkOnPoint(MapperMode.CommentUserMode.SHORT)));
-        if (mapperContext.hasModeButNot(MapperMode.CommentAttachmentMode.HIDE))
+                            .forkOnPoint(MapperMode.CommentOnUserMode.SHORT)));
+        if (mapperContext.hasModeButNot(MapperMode.CommentOnAttachmentMode.HIDE))
             dst
                     .setAttachments(attachmentRestDTOMapper.convertCollection(commentService.loadAttachments(src).getCollection(), mapperContext
-                            .forkOnPoint(MapperMode.CommentAttachmentMode.SHORT).setMode(MapperMode.AttachmentCollectionMode.FROM_COMMENTS)));
+                            .forkOnPoint(MapperMode.CommentOnAttachmentMode.SHORT).setMode(MapperMode.AttachmentCollectionMode.FROM_COMMENTS)));
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinCommentEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(MapperMode.CommentAttachmentMode.HIDE))
+        if (mapperContext.hasModeButNot(MapperMode.CommentOnAttachmentMode.HIDE))
             commentService.loadAttachments(srcCollection);
     }
 
