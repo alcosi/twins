@@ -5,9 +5,10 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv2;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -16,24 +17,24 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 public class TwinflowBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowEntity, TwinflowBaseDTOv2> {
 
-    @MapperModePointerBinding(modes = MapperMode.TwinflowInitStatusMode.class)
+    @MapperModePointerBinding(modes = StatusMode.TwinflowInitStatusOnStatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.TwinflowUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.TwinflowOnUserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
     public void map(TwinflowEntity src, TwinflowBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinflowBaseV1RestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(MapperMode.TwinflowUserMode.HIDE) && src.getCreatedByUserId() != null)
+        if (mapperContext.hasModeButNot(UserMode.TwinflowOnUserMode.HIDE) && src.getCreatedByUserId() != null)
             dst
-                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinflowUserMode.SHORT))))
+                    .setCreatedByUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinflowOnUserMode.SHORT))))
                     .setCreatedByUserId(src.getCreatedByUserId());
-        if (mapperContext.hasModeButNot(MapperMode.TwinflowInitStatusMode.HIDE) && src.getCreatedByUserId() != null)
+        if (mapperContext.hasModeButNot(StatusMode.TwinflowInitStatusOnStatusMode.HIDE) && src.getCreatedByUserId() != null)
             dst
-                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinflowInitStatusMode.SHORT))))
+                    .setInitialStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getInitialTwinStatus(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinflowInitStatusOnStatusMode.SHORT))))
                     .setInitialStatusId(src.getInitialTwinStatusId());
     }
 

@@ -21,7 +21,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRqDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;

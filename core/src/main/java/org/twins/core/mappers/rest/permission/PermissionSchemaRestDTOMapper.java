@@ -4,16 +4,16 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
 
 @Component
-@MapperModeBinding(modes = MapperMode.PermissionSchemaMode.class)
+@MapperModeBinding(modes = PermissionSchemaMode.class)
 public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<PermissionSchemaEntity, PermissionSchemaDTOv1> {
     @Override
     public void map(PermissionSchemaEntity src, PermissionSchemaDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(MapperMode.PermissionSchemaMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(PermissionSchemaMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -32,7 +32,7 @@ public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<Permissio
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.PermissionSchemaMode.HIDE);
+        return mapperContext.hasModeOrEmpty(PermissionSchemaMode.HIDE);
     }
 
     @Override

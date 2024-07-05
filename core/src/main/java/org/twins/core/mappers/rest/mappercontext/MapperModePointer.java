@@ -5,7 +5,7 @@
  * ESAS Ltd. La propriété, c'est le vol!
  */
 
-package org.twins.core.mappers.rest;
+package org.twins.core.mappers.rest.mappercontext;
 
 public interface MapperModePointer<T extends MapperMode> extends MapperMode{
     T point();

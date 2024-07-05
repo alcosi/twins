@@ -7,24 +7,25 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.LinkMode.class)
+@MapperModeBinding(modes = LinkMode.class)
 public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.LinkDstOnTwinClassMode.class)
+    @MapperModePointerBinding(modes = TwinClassMode.LinkDstOnTwinClassMode.class)
     private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
 
     private final I18nService i18nService;
 
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.LinkMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(LinkMode.DETAILED)) {
             case DETAILED:
                 dst
                         .dstTwinClassId(src.getDstTwinClassId())
@@ -36,15 +37,15 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
                         .name(i18nService.translateToLocale(src.getForwardNameI18NId()));
         }
 
-        if (mapperContext.hasModeButNot(MapperMode.LinkMode.HIDE))
+        if (mapperContext.hasModeButNot(LinkMode.HIDE))
             dst
                     .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext
-                            .forkOnPoint(MapperMode.LinkDstOnTwinClassMode.SHORT)));
+                            .forkOnPoint(TwinClassMode.LinkDstOnTwinClassMode.SHORT)));
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.LinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(LinkMode.HIDE);
     }
 
     @Override

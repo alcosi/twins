@@ -6,8 +6,9 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerParamMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.Collection;
@@ -15,8 +16,8 @@ import java.util.Collection;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
-        MapperMode.FeaturerMode.class,
-        MapperMode.FeaturerParamMode.class
+        FeaturerMode.class,
+        FeaturerParamMode.class
 })
 public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, FeaturerDTOv1> {
 
@@ -25,7 +26,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
 
     @Override
     public void map(FeaturerEntity src, FeaturerDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.FeaturerMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(FeaturerMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -44,7 +45,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
     }
 
     private static boolean showFeaturerParams(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(MapperMode.FeaturerParamMode.HIDE);
+        return mapperContext.hasModeButNot(FeaturerParamMode.HIDE);
     }
 
     @Override
@@ -56,7 +57,7 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.FeaturerMode.HIDE);
+        return mapperContext.hasModeOrEmpty(FeaturerMode.HIDE);
     }
 
 }

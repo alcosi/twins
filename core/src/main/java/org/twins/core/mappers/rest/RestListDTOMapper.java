@@ -1,6 +1,8 @@
 package org.twins.core.mappers.rest;
 
 
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
 import java.util.*;
 
 public abstract class RestListDTOMapper<T, S> implements RestDTOMapper<T, S> {

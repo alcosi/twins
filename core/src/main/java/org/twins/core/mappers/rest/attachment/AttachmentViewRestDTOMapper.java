@@ -6,9 +6,12 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.AttachmentCollectionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.twin.TwinAttachmentService;
@@ -22,25 +25,25 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
-        MapperMode.AttachmentMode.class,
-        MapperMode.AttachmentCollectionMode.class})
+        AttachmentMode.class,
+        AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.AttachmentOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.AttachmentOnUserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.AttachmentOnTransitionMode.class)
+    @MapperModePointerBinding(modes = TransitionMode.AttachmentOnTransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
     private final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.AttachmentMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(AttachmentMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setAuthorUserId(src.getCreatedByUserId())
-                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.AttachmentOnUserMode.SHORT))))
+                        .setAuthorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.AttachmentOnUserMode.SHORT))))
                         .setTwinflowTransitionId(src.getTwinflowTransitionId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setTwinClassFieldId(src.getTwinClassFieldId())
@@ -53,17 +56,17 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                         .setId(src.getId())
                         .setStorageLink(src.getStorageLink());
         }
-        if (mapperContext.hasModeButNot(MapperMode.AttachmentOnTransitionMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TransitionMode.AttachmentOnTransitionMode.HIDE)) {
             dst
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
-                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(MapperMode.AttachmentOnTransitionMode.SHORT)));
+                    .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(TransitionMode.AttachmentOnTransitionMode.SHORT)));
         }
     }
 
     @Override
     public List<AttachmentViewDTOv1> convertCollection(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
-        switch (mapperContext.getModeOrUse(MapperMode.AttachmentCollectionMode.ALL)) {
+        switch (mapperContext.getModeOrUse(AttachmentCollectionMode.ALL)) {
             case DIRECT:
                 newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());
                 break;
@@ -90,7 +93,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.AttachmentMode.HIDE);
+        return mapperContext.hasModeOrEmpty(AttachmentMode.HIDE);
     }
 
 }

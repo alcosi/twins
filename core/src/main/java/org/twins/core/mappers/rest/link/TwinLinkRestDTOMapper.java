@@ -6,27 +6,29 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkRelationMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.LinkRelationMode.class)
+@MapperModeBinding(modes = LinkRelationMode.class)
 public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.TwinLinkOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.TwinLinkOnUserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.LinkRelationMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(LinkRelationMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinLinkOnUserMode.SHORT))))
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinLinkOnUserMode.SHORT))))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setLinkId(src.getLinkId());
                 break;
@@ -45,6 +47,6 @@ public class TwinLinkRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.TwinLinkOnLinkMode.HIDE);
+        return mapperContext.hasModeOrEmpty(LinkMode.TwinLinkOnLinkMode.HIDE);
     }
 }

@@ -5,19 +5,19 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dto.rest.domain.DomainViewDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.DomainMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.DomainMode.class)
+@MapperModeBinding(modes = DomainMode.class)
 public class DomainViewRestDTOMapper extends RestSimpleDTOMapper<DomainEntity, DomainViewDTOv1> {
 
     @Override
     public void map(DomainEntity src, DomainViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.DomainMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(DomainMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())

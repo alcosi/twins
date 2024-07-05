@@ -4,16 +4,16 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 
 @Component
-@MapperModeBinding(modes = {MapperMode.UserMode.class})
+@MapperModeBinding(modes = {UserMode.class})
 public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
     @Override
     public void map(UserEntity src, UserDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(MapperMode.UserMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(UserMode.DETAILED)) {
             case SHORT:
                 dst
                         .id(src.getId())
@@ -31,7 +31,7 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.UserMode.HIDE);
+        return mapperContext.hasModeOrEmpty(UserMode.HIDE);
     }
 
     @Override

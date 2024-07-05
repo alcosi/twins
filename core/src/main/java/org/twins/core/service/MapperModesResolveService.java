@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.mappers.rest.MapperMode;
-import org.twins.core.mappers.rest.MapperModePointer;
+import org.twins.core.mappers.rest.mappercontext.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 import org.twins.core.mappers.rest.RestDTOMapper;
 
 import java.lang.reflect.Field;

@@ -27,7 +27,7 @@ import org.twins.core.dto.rest.twin.TwinFieldRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinFieldUpdateRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinRsDTOv2;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapper;

@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGroupWithGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionWithGroupRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;

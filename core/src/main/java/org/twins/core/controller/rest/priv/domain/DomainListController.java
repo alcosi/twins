@@ -24,7 +24,7 @@ import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
 import org.twins.core.domain.apiuser.LocaleResolverEnglish;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;

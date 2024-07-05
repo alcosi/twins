@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionCreateRsDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowTransitionCreateRestDTOReverseMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;

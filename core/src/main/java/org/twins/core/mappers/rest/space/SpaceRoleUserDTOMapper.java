@@ -6,22 +6,23 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
+import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleUserMode;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.SpaceRoleUserMode.class)
+@MapperModeBinding(modes = SpaceRoleUserMode.class)
 public class SpaceRoleUserDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEntity, SpaceRoleUserDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.SpaceRoleUserOnSpaceRoleMode.class)
+    @MapperModePointerBinding(modes = SpaceRoleMode.SpaceRoleUserOnSpaceRoleMode.class)
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
 
     @Override
     public void map(SpaceRoleUserEntity src, SpaceRoleUserDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.SpaceRoleUserMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(SpaceRoleUserMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -38,15 +39,15 @@ public class SpaceRoleUserDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserEnt
                         .setUserId(src.getUserId());
                 break;
         }
-        if (mapperContext.hasModeButNot(MapperMode.SpaceRoleUserOnSpaceRoleMode.HIDE))
+        if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUserOnSpaceRoleMode.HIDE))
             dst
                     .setSpaceRole(spaceRoleDTOMapper.convert(src.getSpaceRole(), mapperContext
-                            .forkOnPoint(MapperMode.SpaceRoleUserOnSpaceRoleMode.SHORT)));
+                            .forkOnPoint(SpaceRoleMode.SpaceRoleUserOnSpaceRoleMode.SHORT)));
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.SpaceRoleUserMode.HIDE);
+        return mapperContext.hasModeOrEmpty(SpaceRoleUserMode.HIDE);
     }
 
     @Override

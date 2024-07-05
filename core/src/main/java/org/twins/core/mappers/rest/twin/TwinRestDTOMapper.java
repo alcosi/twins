@@ -6,9 +6,9 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinDTOv1;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinFieldCollectionMode;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {MapperMode.TwinFieldCollectionMode.class})
+@MapperModeBinding(modes = {TwinFieldCollectionMode.class})
 public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1> {
 
     private final TwinBaseV3RestDTOMapper twinBaseV3RestDTOMapper;
@@ -29,7 +29,7 @@ public class TwinRestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinDTOv1
     public void map(TwinEntity src, TwinDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinBaseV3RestDTOMapper.map(src, dst, mapperContext);
 
-        switch (mapperContext.getModeOrUse(MapperMode.TwinFieldCollectionMode.ALL_FIELDS)) {
+        switch (mapperContext.getModeOrUse(TwinFieldCollectionMode.ALL_FIELDS)) {
             case NO_FIELDS:
                 break;
             case ALL_FIELDS, ALL_FIELDS_WITH_ATTACHMENTS:

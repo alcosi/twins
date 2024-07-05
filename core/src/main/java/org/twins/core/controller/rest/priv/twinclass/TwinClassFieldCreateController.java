@@ -20,7 +20,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;

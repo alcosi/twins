@@ -6,10 +6,13 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dto.rest.comment.CommentViewDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.AttachmentCollectionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
+import org.twins.core.mappers.rest.mappercontext.modes.CommentMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 
@@ -17,20 +20,20 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.CommentMode.class)
+@MapperModeBinding(modes = CommentMode.class)
 public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEntity, CommentViewDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.CommentOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.CommentOnUserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.CommentOnAttachmentMode.class)
+    @MapperModePointerBinding(modes = AttachmentMode.CommentOnAttachmentMode.class)
     private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
 
     private final CommentService commentService;
 
     @Override
     public void map(TwinCommentEntity src, CommentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.CommentMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(CommentMode.SHORT)) {
             case SHORT:
                 dst
                         .setId(src.getId())
@@ -45,26 +48,26 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setText(src.getText());
                 break;
         }
-        if (mapperContext.hasModeButNot(MapperMode.CommentOnUserMode.HIDE))
+        if (mapperContext.hasModeButNot(UserMode.CommentOnUserMode.HIDE))
             dst
                     .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext
-                            .forkOnPoint(MapperMode.CommentOnUserMode.SHORT)));
-        if (mapperContext.hasModeButNot(MapperMode.CommentOnAttachmentMode.HIDE))
+                            .forkOnPoint(UserMode.CommentOnUserMode.SHORT)));
+        if (mapperContext.hasModeButNot(AttachmentMode.CommentOnAttachmentMode.HIDE))
             dst
                     .setAttachments(attachmentRestDTOMapper.convertCollection(commentService.loadAttachments(src).getCollection(), mapperContext
-                            .forkOnPoint(MapperMode.CommentOnAttachmentMode.SHORT).setMode(MapperMode.AttachmentCollectionMode.FROM_COMMENTS)));
+                            .forkOnPoint(AttachmentMode.CommentOnAttachmentMode.SHORT).setMode(AttachmentCollectionMode.FROM_COMMENTS)));
     }
 
     @Override
     public void beforeCollectionConversion(Collection<TwinCommentEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(MapperMode.CommentOnAttachmentMode.HIDE))
+        if (mapperContext.hasModeButNot(AttachmentMode.CommentOnAttachmentMode.HIDE))
             commentService.loadAttachments(srcCollection);
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.CommentMode.HIDE);
+        return mapperContext.hasModeOrEmpty(CommentMode.HIDE);
     }
 
     @Override

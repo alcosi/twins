@@ -8,9 +8,12 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinAliasMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -21,18 +24,18 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = { MapperMode.TwinByHeadMode.class })
+@MapperModeBinding(modes = { RelationTwinMode.TwinByHeadMode.class })
 public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, TwinBaseDTOv2> {
 
     private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TwinUserMode.class})
+    @MapperModePointerBinding(modes = {UserMode.TwinOnUserMode.class})
     final UserRestDTOMapper userDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TwinStatusMode.class})
+    @MapperModePointerBinding(modes = {StatusMode.TwinOnStatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {MapperMode.TwinAliasMode.class})
+    @MapperModePointerBinding(modes = {TwinAliasMode.class})
     private final TwinAliasRestDTOMapper twinAliasRestDTOMapper;
 
     private final TwinService twinService;
@@ -40,34 +43,34 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
 
     @Lazy
     @Autowired
-    @MapperModePointerBinding(modes = {MapperMode.TwinOnTwinClassMode.class})
+    @MapperModePointerBinding(modes = {TwinClassMode.TwinOnTwinClassMode.class})
     private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinBaseRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(MapperMode.TwinStatusMode.HIDE))
+        if (mapperContext.hasModeButNot(StatusMode.TwinOnStatusMode.HIDE))
             dst
-                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(MapperMode.TwinStatusMode.SHORT)))
+                    .status(twinStatusRestDTOMapper.convertOrPostpone(src.getTwinStatus(), mapperContext.forkOnPoint(StatusMode.TwinOnStatusMode.SHORT)))
                     .statusId(src.getTwinStatusId());
-        if (mapperContext.hasModeButNot(MapperMode.TwinUserMode.HIDE)) {
+        if (mapperContext.hasModeButNot(UserMode.TwinOnUserMode.HIDE)) {
             dst
-                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinUserMode.SHORT))))
-                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinUserMode.SHORT))))
+                    .assignerUser(userDTOMapper.convertOrPostpone(src.getAssignerUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinOnUserMode.SHORT))))
+                    .authorUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinOnUserMode.SHORT))))
                     .assignerUserId(src.getAssignerUserId())
                     .authorUserId(src.getCreatedByUserId());
         }
-        if (mapperContext.hasModeButNot(MapperMode.TwinOnTwinClassMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinClassMode.TwinOnTwinClassMode.HIDE))
             dst
-                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(MapperMode.TwinOnTwinClassMode.SHORT))) //todo deep recursion risk
+                    .twinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinOnTwinClassMode.SHORT))) //todo deep recursion risk
                     .twinClassId(src.getTwinClassId());
-        if (mapperContext.hasModeButNot(MapperMode.TwinByHeadMode.WHITE)) {
+        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByHeadMode.WHITE)) {
             twinService.loadHeadForTwin(src);
             dst
-                    .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(MapperMode.TwinByHeadMode.GREEN)))  //head twin will be much less detail
+                    .headTwin(this.convertOrPostpone(src.getHeadTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByHeadMode.GREEN)))  //head twin will be much less detail
                     .twinClassId(src.getTwinClassId());
         }
-        if (mapperContext.hasModeButNot(MapperMode.TwinAliasMode.HIDE)) {
+        if (mapperContext.hasModeButNot(TwinAliasMode.HIDE)) {
             twinAliasService.loadAliases(src);
             dst
                     .aliases(twinAliasRestDTOMapper.convertCollection(src.getTwinAliases().getCollection(), mapperContext));
@@ -77,7 +80,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (mapperContext.hasModeButNot(MapperMode.TwinAliasMode.HIDE))
+        if (mapperContext.hasModeButNot(TwinAliasMode.HIDE))
             twinAliasService.loadAliases(srcCollection);
 
         //todo load heads for collection

@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionCheckOverviewDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 

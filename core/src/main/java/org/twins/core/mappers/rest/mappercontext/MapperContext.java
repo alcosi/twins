@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest;
+package org.twins.core.mappers.rest.mappercontext;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;

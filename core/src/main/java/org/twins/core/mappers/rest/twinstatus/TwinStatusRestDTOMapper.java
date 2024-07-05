@@ -6,21 +6,21 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {MapperMode.StatusMode.class})
+@MapperModeBinding(modes = {StatusMode.class})
 public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
 
     private final I18nService i18nService;
 
     @Override
     public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(MapperMode.StatusMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(StatusMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -39,7 +39,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.StatusMode.HIDE);
+        return mapperContext.hasModeOrEmpty(StatusMode.HIDE);
     }
 
     @Override

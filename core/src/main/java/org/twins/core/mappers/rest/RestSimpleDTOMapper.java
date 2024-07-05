@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest;
 
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;

@@ -7,7 +7,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;

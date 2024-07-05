@@ -6,21 +6,21 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleMode;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.SpaceRoleMode.class)
+@MapperModeBinding(modes = SpaceRoleMode.class)
 public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, SpaceRoleDTOv1> {
 
     private final I18nService i18nService;
 
     @Override
     public void map(SpaceRoleEntity src, SpaceRoleDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.SpaceRoleMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(SpaceRoleMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -38,7 +38,7 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.SpaceRoleMode.HIDE);
+        return mapperContext.hasModeOrEmpty(SpaceRoleMode.HIDE);
     }
 
     @Override

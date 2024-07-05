@@ -4,16 +4,16 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.PermissionGroupMode;
 
 @Component
-@MapperModeBinding(modes = MapperMode.PermissionGroupMode.class)
+@MapperModeBinding(modes = PermissionGroupMode.class)
 public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<PermissionGroupEntity, PermissionGroupDTOv1> {
     @Override
     public void map(PermissionGroupEntity src, PermissionGroupDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(MapperMode.PermissionGroupMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(PermissionGroupMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -32,7 +32,7 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.PermissionGroupMode.HIDE);
+        return mapperContext.hasModeOrEmpty(PermissionGroupMode.HIDE);
     }
 
     @Override

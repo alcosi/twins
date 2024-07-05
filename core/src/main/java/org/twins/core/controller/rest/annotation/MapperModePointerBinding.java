@@ -1,6 +1,6 @@
 package org.twins.core.controller.rest.annotation;
 
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperMode;
 
 import java.lang.annotation.*;
 

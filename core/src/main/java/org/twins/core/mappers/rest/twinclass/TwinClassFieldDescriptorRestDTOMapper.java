@@ -10,10 +10,12 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -26,10 +28,10 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
     @Autowired
     private TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.TwinClassFieldDescriptorOnDataListOptionMode.class)
+    @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptorOnDataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-    @MapperModePointerBinding(modes = MapperMode.TwinClassFieldDescriptorOnUserMode.class)
+    @MapperModePointerBinding(modes = UserMode.TwinClassFieldDescriptorOnUserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
@@ -57,7 +59,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassFieldDescriptorOnDataListOptionMode.SHORT))));
+                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptorOnDataListOptionMode.SHORT))));
             }
         else if (fieldDescriptor instanceof FieldDescriptorUser userDescriptor)
             if (userDescriptor.userFilterId() != null) {
@@ -67,7 +69,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor = new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
-                        .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(MapperMode.TwinClassFieldDescriptorOnUserMode.SHORT))
+                        .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinClassFieldDescriptorOnUserMode.SHORT))
                                 .setLazyRelations(mapperContext.isLazyRelations())));
                 if (userFieldDescriptor.users == null)
                     userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());
@@ -101,7 +103,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(MapperMode.TwinMode.SHORT)));
+                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinMode.SHORT)));
             }
         return null;
     }

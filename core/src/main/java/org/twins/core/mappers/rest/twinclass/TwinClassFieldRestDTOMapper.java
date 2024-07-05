@@ -9,14 +9,14 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.ClassFieldMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.ClassFieldMode.class)
+@MapperModeBinding(modes = ClassFieldMode.class)
 public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFieldEntity, TwinClassFieldDTOv1> {
 
     private final TwinClassFieldDescriptorRestDTOMapper twinClassFieldDescriptorRestDTOMapper;
@@ -28,7 +28,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
         FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
         FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src);
-        switch (mapperContext.getModeOrUse(MapperMode.ClassFieldMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(ClassFieldMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -48,7 +48,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.ClassFieldMode.HIDE);
+        return mapperContext.hasModeOrEmpty(ClassFieldMode.HIDE);
     }
 
     @Override

@@ -4,9 +4,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAliasEntity;
 import org.twins.core.dto.rest.twin.TwinAliasDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinAliasMode;
 
 
 @Component
@@ -15,7 +15,7 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity,
 
     @Override
     public void map(TwinAliasEntity src,  TwinAliasDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(MapperMode.TwinAliasMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(TwinAliasMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -35,7 +35,7 @@ public class TwinAliasRestDTOMapper extends RestSimpleDTOMapper<TwinAliasEntity,
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(MapperMode.TwinAliasMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinAliasMode.HIDE);
     }
 
     @Override

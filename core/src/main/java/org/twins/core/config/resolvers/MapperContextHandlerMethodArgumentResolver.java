@@ -11,8 +11,8 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperMode;
 import org.twins.core.mappers.rest.RestDTOMapper;
 import org.twins.core.service.MapperModesResolveService;
 

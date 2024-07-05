@@ -7,18 +7,19 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.card.CardEntity;
 import org.twins.core.dto.rest.card.CardDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.CardMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.WidgetMode;
 import org.twins.core.service.card.CardService;
 
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = MapperMode.CardMode.class)
+@MapperModeBinding(modes = CardMode.class)
 public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1> {
 
-    @MapperModePointerBinding(modes = MapperMode.CardOnWidgetMode.class)
+    @MapperModePointerBinding(modes = WidgetMode.CardOnWidgetMode.class)
     private final CardWidgetRestDTOMapper cardWidgetRestDTOMapper;
 
     private final I18nService i18nService;
@@ -26,7 +27,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
 
     @Override
     public void map(CardEntity src, CardDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(MapperMode.CardMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(CardMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -43,7 +44,7 @@ public class CardRestDTOMapper extends RestSimpleDTOMapper<CardEntity, CardDTOv1
                 break;
         }
         if (!cardWidgetRestDTOMapper.hideMode(mapperContext))
-            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId()), mapperContext.forkOnPoint(MapperMode.CardOnWidgetMode.SHORT)));
+            dst.widgets(cardWidgetRestDTOMapper.convertCollection(cardService.findCardWidgets(src.getId()), mapperContext.forkOnPoint(WidgetMode.CardOnWidgetMode.SHORT)));
     }
 
 }

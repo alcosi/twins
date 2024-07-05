@@ -1,7 +1,7 @@
 package org.twins.core.controller.rest.annotation;
 
 import org.twins.core.dto.rest.Response;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperMode;
 import org.twins.core.mappers.rest.RestDTOMapper;
 
 import java.lang.annotation.ElementType;
