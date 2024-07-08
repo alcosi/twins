@@ -232,7 +232,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         }
         if (!permissionsSchemaTwinRoleEntities.isEmpty()) {
             for (PermissionSchemaTwinRoleEntity permissionSchemaTwinRoleEntity : permissionsSchemaTwinRoleEntities) {
-                if (twin.getAssignerUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
+                if (userId.equals(twin.getAssignerUserId()) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.assignee))
                     result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
                 if (twin.getCreatedByUserId().equals(userId) && permissionSchemaTwinRoleEntity.getTwinRole().equals(TwinRole.creator))
                     result.getGrantedByTwinRoles().add(permissionSchemaTwinRoleEntity.getTwinRole());
