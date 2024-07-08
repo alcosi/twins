@@ -1,11 +1,13 @@
 package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
@@ -48,9 +50,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                             .aliasSpace(src.isAliasSpace())
                             .ownerType(src.getOwnerType());
                 } else {
-                    dst
-                            .id(src.getId())
-                            .key(src.getKey());
+                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
                 }
                 break;
             case DETAILED:
