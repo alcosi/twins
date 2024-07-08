@@ -1,9 +1,8 @@
-package org.twins.core.mappers.rest.twin;
+package org.twins.core.mappers.rest.mappercontext;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 
 @Getter
