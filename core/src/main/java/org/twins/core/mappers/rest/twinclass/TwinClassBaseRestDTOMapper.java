@@ -26,7 +26,9 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
-                if(permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE.getId())) {
+                if(!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE.getId())) {
+                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
+                } else {
                     dst
                             .id(src.getId())
                             .key(src.getKey())
@@ -49,8 +51,6 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                             .permissionSchemaSpace(src.isPermissionSchemaSpace())
                             .aliasSpace(src.isAliasSpace())
                             .ownerType(src.getOwnerType());
-                } else {
-                    throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
                 }
                 break;
             case DETAILED:
