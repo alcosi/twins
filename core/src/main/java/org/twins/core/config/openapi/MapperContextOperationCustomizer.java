@@ -70,6 +70,7 @@ public class MapperContextOperationCustomizer implements OperationCustomizer {
                 }
 
                 // Add parameters to the operation
+                if (null == operation.getParameters()) operation.setParameters(new ArrayList<>());
                 operation.getParameters().addAll(parameters);
                 break;
             }
