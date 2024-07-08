@@ -312,6 +312,12 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return apiUser.getPermissions().contains(permissionId);
     }
 
+    public boolean currentUserHasPermission(Permissions permission) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        loadUserPermissions(apiUser);
+        return apiUser.getPermissions().contains(permission.getId());
+    }
+
     public void loadUserPermissions(ApiUser apiUser) throws ServiceException {
         if (apiUser.getPermissions() != null)
             return;

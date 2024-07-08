@@ -26,32 +26,30 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case MANAGED:
-                if(!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE.getId())) {
+                if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
-                } else {
-                    dst
-                            .id(src.getId())
-                            .key(src.getKey())
-                            .headClassId(src.getHeadTwinClassId())
-                            .abstractClass(src.isAbstractt())
-                            .markersDataListId(src.getMarkerDataListId())
-                            .tagsDataListId(src.getTagDataListId())
-                            .name(i18nService.translateToLocale(src.getNameI18NId()))
-                            .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                            .logo(src.getLogo())
-                            .createdAt(src.getCreatedAt().toLocalDateTime())
-                            .headHunterFeaturerId(src.getHeadHunterFeaturerId())
-                            .headHunterParams(src.getHeadHunterParams())
-                            .viewPermissionId(src.getViewPermissionId())
-                            .nameI18nId(src.getNameI18NId())
-                            .descriptionI18nId(src.getDescriptionI18NId())
-                            .extendsClassId(src.getExtendsTwinClassId())
-                            .twinflowSchemaSpace(src.isTwinflowSchemaSpace())
-                            .twinClassSchemaSpace(src.isTwinClassSchemaSpace())
-                            .permissionSchemaSpace(src.isPermissionSchemaSpace())
-                            .aliasSpace(src.isAliasSpace())
-                            .ownerType(src.getOwnerType());
-                }
+                dst
+                        .id(src.getId())
+                        .key(src.getKey())
+                        .headClassId(src.getHeadTwinClassId())
+                        .abstractClass(src.isAbstractt())
+                        .markersDataListId(src.getMarkerDataListId())
+                        .tagsDataListId(src.getTagDataListId())
+                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .logo(src.getLogo())
+                        .createdAt(src.getCreatedAt().toLocalDateTime())
+                        .headHunterFeaturerId(src.getHeadHunterFeaturerId())
+                        .headHunterParams(src.getHeadHunterParams())
+                        .viewPermissionId(src.getViewPermissionId())
+                        .nameI18nId(src.getNameI18NId())
+                        .descriptionI18nId(src.getDescriptionI18NId())
+                        .extendsClassId(src.getExtendsTwinClassId())
+                        .twinflowSchemaSpace(src.isTwinflowSchemaSpace())
+                        .twinClassSchemaSpace(src.isTwinClassSchemaSpace())
+                        .permissionSchemaSpace(src.isPermissionSchemaSpace())
+                        .aliasSpace(src.isAliasSpace())
+                        .ownerType(src.getOwnerType());
                 break;
             case DETAILED:
                 dst
