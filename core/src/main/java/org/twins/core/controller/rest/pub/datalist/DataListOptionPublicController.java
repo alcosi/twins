@@ -64,14 +64,14 @@ public class DataListOptionPublicController extends ApiController {
     }
 
     @ParametersApiUserAnonymousHeaders
-    @Operation(operationId = "dataListOptionsMapViewV1", summary = "Returns map option id ref list data option")
+    @Operation(operationId = "dataListOptionsMapViewPublicV1", summary = "Returns map option id ref list data option")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Map {option id/list data option} prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListOptionMapRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/public/data_list_option/map/v1")
-    public ResponseEntity<?> dataListOptionsMapViewV1(
+    public ResponseEntity<?> dataListOptionsMapViewPublicV1(
             @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionMapRsDTOv1.class) MapperContext mapperContext,
             @RequestBody DataListOptionMapRqDTOv1 request) {
         DataListOptionMapRsDTOv1 rs = new DataListOptionMapRsDTOv1();
