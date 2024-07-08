@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
 import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.RelationTwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
 @Component
