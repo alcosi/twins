@@ -15,14 +15,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupMemberManageRqDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -33,10 +32,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserGroupMemberManageController extends ApiController {
-    final UserGroupRestDTOMapper userGroupDTOMapper;
-    final UserGroupService userGroupService;
-    final UserService userService;
-    final AuthService authService;
+    private final UserGroupRestDTOMapper userGroupDTOMapper;
+    private final UserGroupService userGroupService;
+    private final UserService userService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userGroupMemberManageV1", summary = "Assign or discharge some group to user")
@@ -45,16 +43,16 @@ public class UserGroupMemberManageController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/user_group/manage/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/user/{userId}/user_group/manage/v1")
     public ResponseEntity<?> userGroupMemberManageV1(
+            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode,
             @RequestBody UserGroupMemberManageRqDTOv1 request) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             userGroupService.manageForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS), request.getUserGroupEnterList(), request.getUserGroupExitList());
-            rs.userGroupList = userGroupDTOMapper.convertList(
-                    userGroupService.findGroupsForUser(userId), new MapperContext().setMode(showUserGroupMode));
+            rs.userGroupList = userGroupDTOMapper.convertCollection(
+                    userGroupService.findGroupsForUser(userId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

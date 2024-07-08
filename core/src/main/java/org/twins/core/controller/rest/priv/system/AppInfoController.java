@@ -24,7 +24,7 @@ import org.twins.core.service.system.system.AppInfoService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AppInfoController extends ApiController {
-    final AppInfoService appInfoService;
+    private final AppInfoService appInfoService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "Application info", summary = "Returns application info: versions, etc...")

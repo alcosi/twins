@@ -40,14 +40,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinCreateController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
-    final UserService userService;
-    final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-    final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
+    private final AuthService authService;
+    private final TwinService twinService;
+    private final TwinFieldValueRestDTOReverseMapper twinFieldValueRestDTOReverseMapper;
+    private final UserService userService;
+    private final TwinCreateRsRestDTOMapper twinCreateRsRestDTOMapper;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinCreateRqRestDTOReverseMapper twinCreateRqRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCreateV1", summary = "Create new twin")
@@ -56,7 +56,7 @@ public class TwinCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/v1")
     public ResponseEntity<?> twinCreateV1(
             @RequestBody TwinCreateRqDTOv1 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
@@ -77,10 +77,10 @@ public class TwinCreateController extends ApiController {
                             .setHeadTwinId(request.getHeadTwinId())
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
                             .setDescription(request.getDescription()))
-                    .setFields(twinFieldValueRestDTOReverseMapper.convertList(fields));
+                    .setFields(twinFieldValueRestDTOReverseMapper.convertCollection(fields));
             twinCreate
-                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
+                    .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
+                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(apiUser, twinCreate));

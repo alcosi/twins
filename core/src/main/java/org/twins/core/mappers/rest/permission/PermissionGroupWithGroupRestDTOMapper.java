@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionGroupWithPermissionsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.List;
@@ -14,12 +14,12 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class PermissionGroupWithGroupRestDTOMapper extends RestSimpleDTOMapper<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>, PermissionGroupWithPermissionsDTOv1> {
-    final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
-    final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
 
     @Override
     public void map(ImmutablePair<PermissionGroupEntity, List<PermissionEntity>> src, PermissionGroupWithPermissionsDTOv1 dst, MapperContext mapperContext) throws Exception {
         permissionGroupRestDTOMapper.map(src.getLeft(), dst, mapperContext);
-        dst.permissions(permissionRestDTOMapper.convertList(src.getRight(), mapperContext));
+        dst.permissions(permissionRestDTOMapper.convertCollection(src.getRight(), mapperContext));
     }
 }

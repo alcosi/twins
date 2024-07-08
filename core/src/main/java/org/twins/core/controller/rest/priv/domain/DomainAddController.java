@@ -10,7 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
@@ -30,11 +33,11 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainAddController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
-    final DomainAddRestDTOReverseMapper domainAddRestDTOReverseMapper;
-    final DomainViewRestDTOMapper domainViewRestDTOMapper;
-    final UserResolverAuthToken userResolverAuthToken;
+    private final DomainService domainService;
+    private final AuthService authService;
+    private final DomainAddRestDTOReverseMapper domainAddRestDTOReverseMapper;
+    private final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    private final UserResolverAuthToken userResolverAuthToken;
 
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainAddV1", summary = "Add new domain.")
@@ -43,7 +46,7 @@ public class DomainAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DomainViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/domain/v1")
     public ResponseEntity<?> domainAddV1(
             @RequestBody DomainAddRqDTOv1 request) {
         DomainViewRsDTOv1 rs = new DomainViewRsDTOv1();

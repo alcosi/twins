@@ -12,7 +12,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
@@ -30,8 +33,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainUserDeleteController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
+    private final DomainService domainService;
+    private final AuthService authService;
+
     @ParameterChannelHeader
     @Operation(operationId = "domainUserDeleteV1", summary = "Delete user from domain")
     @ApiResponses(value = {
@@ -39,7 +43,7 @@ public class DomainUserDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/user/{userId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/domain/{domainId}/user/{userId}/v1")
     public ResponseEntity<?> domainUserDeleteV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {

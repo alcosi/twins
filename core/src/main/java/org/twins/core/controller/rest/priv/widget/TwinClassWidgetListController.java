@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
@@ -39,13 +42,13 @@ public class TwinClassWidgetListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = WidgetListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/widget/list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/widget/list/v1")
     public ResponseEntity<?> twinClassWidgetListV1(
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         WidgetListRsDTOv1 rs = new WidgetListRsDTOv1();
         try {
             rs.widgetList(
-                    widgetRestDTOMapper.convertList(
+                    widgetRestDTOMapper.convertCollection(
                             widgetService.findWidgets(twinClassId)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

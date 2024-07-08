@@ -1,28 +1,26 @@
 package org.twins.core.mappers.rest.twinstatus;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.cambium.i18n.dto.I18nDTOv1;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-
-import java.util.Collection;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = {StatusMode.class})
 public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntity, TwinStatusDTOv1> {
-    final I18nService i18nService;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(TwinStatusEntity src, TwinStatusDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(StatusMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -41,7 +39,7 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(StatusMode.HIDE);
     }
 
     @Override
@@ -49,17 +47,4 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
         return src.getId().toString();
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

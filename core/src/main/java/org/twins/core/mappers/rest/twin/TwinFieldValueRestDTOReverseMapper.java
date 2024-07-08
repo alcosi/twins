@@ -11,9 +11,8 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 
@@ -21,8 +20,8 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 @RequiredArgsConstructor
 @Deprecated
 public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<TwinFieldValueDTO, FieldValue> {
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final TwinClassFieldService twinClassFieldService;
+
+    private final TwinClassFieldService twinClassFieldService;
 
     @Override
     public void map(TwinFieldValueDTO src, FieldValue dst, MapperContext mapperContext) throws Exception {

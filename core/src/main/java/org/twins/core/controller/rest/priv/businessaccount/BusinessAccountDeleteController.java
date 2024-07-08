@@ -11,14 +11,15 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
-import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
 
 import java.util.UUID;
 
@@ -27,8 +28,6 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountDeleteController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountDeleteV1", summary = "Delete businessAccount")
@@ -37,7 +36,7 @@ public class BusinessAccountDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/business_account/{businessAccountId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/business_account/{businessAccountId}/v1")
     public ResponseEntity<?> businessAccountDeleteV1(
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId) {
         Response rs = new Response();
@@ -48,6 +47,5 @@ public class BusinessAccountDeleteController extends ApiController {
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }
-//        return new ResponseEntity<>(rs, HttpStatus.OK);
     }
 }

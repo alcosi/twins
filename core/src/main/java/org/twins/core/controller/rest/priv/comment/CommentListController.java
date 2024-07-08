@@ -16,16 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinCommentEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
 import org.twins.core.service.pagination.PageableResult;
 
@@ -39,10 +38,10 @@ import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentListController extends ApiController {
-    final CommentService commentService;
-    final CommentViewRestDTOMapper commentViewRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final CommentService commentService;
+    private final CommentViewRestDTOMapper commentViewRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentListV1", summary = "Returns comment list by twin id")
@@ -51,26 +50,18 @@ public class CommentListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
+            @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showCommentMode, defaultValue = CommentViewRestDTOMapper.Mode._SHORT) CommentViewRestDTOMapper.Mode showCommentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._SHORT) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
             PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showUserMode)
-                    .setMode(showCommentMode)
-                    .setMode(showAttachmentMode);
             rs
-                    .setComments(commentViewRestDTOMapper.convertList(commentList.getList(), mapperContext))
+                    .setComments(commentViewRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

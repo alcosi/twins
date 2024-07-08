@@ -15,15 +15,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupedListRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGroupWithGroupRestDTOMapper;
-import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionWithGroupRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserService;
@@ -35,11 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserPermissionListController extends ApiController {
-    final PermissionWithGroupRestDTOMapper permissionWithGroupRestDTOMapper;
-    final PermissionRestDTOMapper permissionRestDTOMapper;
-    final PermissionGroupWithGroupRestDTOMapper permissionGroupWithGroupRestDTOMapper;
-    final PermissionService permissionService;
-    final UserService userService;
+    private final PermissionWithGroupRestDTOMapper permissionWithGroupRestDTOMapper;
+    private final PermissionGroupWithGroupRestDTOMapper permissionGroupWithGroupRestDTOMapper;
+    private final PermissionService permissionService;
+    private final UserService userService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userPermissionListV1", summary = "Returns permission list for selected user")
@@ -48,18 +45,14 @@ public class UserPermissionListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/permission/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/user/{userId}/permission/v1")
     public ResponseEntity<?> userPermissionListV1(
-            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @MapperContextBinding(roots = PermissionWithGroupRestDTOMapper.class, response = PermissionListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionListRsDTOv1 rs = new PermissionListRsDTOv1();
         try {
-            rs.permissionList = permissionWithGroupRestDTOMapper.convertList(
-                    permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissions(),
-                    new MapperContext()
-                            .setMode(showPermissionMode)
-                            .setMode(showPermissionGroupMode));
+            rs.permissionList = permissionWithGroupRestDTOMapper.convertCollection(
+                    permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissions(), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -77,16 +70,13 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionGroupedListV1(
-            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showPermissionMode, defaultValue = PermissionRestDTOMapper.Mode._DETAILED) PermissionRestDTOMapper.Mode showPermissionMode,
-            @RequestParam(name = RestRequestParam.showPermissionGroupMode, defaultValue = PermissionGroupRestDTOMapper.Mode._DETAILED) PermissionGroupRestDTOMapper.Mode showPermissionGroupMode) {
+            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, response = PermissionGroupedListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
-            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertList(
+            rs.permissionGroups = permissionGroupWithGroupRestDTOMapper.convertCollection(
                     permissionService.findPermissionsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)).collectPermissionGroups(),
-                    new MapperContext()
-                            .setMode(showPermissionMode)
-                            .setMode(showPermissionGroupMode));
+                    mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

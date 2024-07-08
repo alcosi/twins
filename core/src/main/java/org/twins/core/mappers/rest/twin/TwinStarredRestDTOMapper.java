@@ -1,27 +1,25 @@
 package org.twins.core.mappers.rest.twin;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dto.rest.twin.TwinStarredDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.StarredMode;
 
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = StarredMode.class)
 public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEntity, TwinStarredDTOv1> {
-    final UserRestDTOMapper userRestDTOMapper;
-    final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
+
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public void map(TwinStarredEntity src, TwinStarredDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinStatusRestDTOMapper.Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(StarredMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
@@ -34,19 +32,5 @@ public class TwinStarredRestDTOMapper extends RestSimpleDTOMapper<TwinStarredEnt
                         .setTwinId(src.getTwinId());
                 break;
         }
-    }
-
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
     }
 }

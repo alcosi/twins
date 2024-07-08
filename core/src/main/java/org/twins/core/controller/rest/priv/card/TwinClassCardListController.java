@@ -11,17 +11,19 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.card.CardListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.card.CardRestDTOMapper;
-import org.twins.core.mappers.rest.card.CardWidgetRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
 
@@ -43,19 +45,16 @@ public class TwinClassCardListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CardListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/card/list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/card/list/v1")
     public ResponseEntity<?> twinClassCardListV1(
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.showCardMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardRestDTOMapper.Mode showCardMode,
-            @RequestParam(name = RestRequestParam.showCardWidgetMode, defaultValue = CardRestDTOMapper.Mode._DETAILED) CardWidgetRestDTOMapper.Mode showCardWidgetMode) {
+            @MapperContextBinding(roots = CardRestDTOMapper.class, response = CardListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         CardListRsDTOv1 rs = new CardListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.cardList(
-                    cardRestDTOMapper.convertList(
-                            cardService.findCards(apiUser, twinClassId), new MapperContext()
-                                    .setMode(showCardMode)
-                                    .setMode(showCardWidgetMode)));
+                    cardRestDTOMapper.convertCollection(
+                            cardService.findCards(apiUser, twinClassId), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

@@ -12,8 +12,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
@@ -28,8 +27,8 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountDeleteController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
+    private final DomainService domainService;
+    private final AuthService authService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "domainBusinessAccountDeleteV1", summary = "Delete businessAccount from domain")
@@ -38,7 +37,7 @@ public class DomainBusinessAccountDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/business_account/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/domain/business_account/v1")
     public ResponseEntity<?> domainBusinessAccountDeleteV1() {
         Response rs = new Response();
         try {

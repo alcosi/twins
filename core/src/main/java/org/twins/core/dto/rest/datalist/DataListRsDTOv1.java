@@ -7,7 +7,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListRsV1")
 public class DataListRsDTOv1 extends Response {

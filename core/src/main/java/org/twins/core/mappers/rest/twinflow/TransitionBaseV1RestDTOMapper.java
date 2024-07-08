@@ -1,30 +1,32 @@
 package org.twins.core.mappers.rest.twinflow;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final I18nService i18nService;
+@MapperModeBinding(modes = TransitionMode.class)
+public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv1> {
+
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(TwinflowTransitionMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
             case DETAILED:
                 dst
                         .setDstTwinStatusId(src.getDstTwinStatusId())
-                        .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext))
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
@@ -39,6 +41,10 @@ public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<T
                         .setId(src.getId());
                 break;
         }
+        if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE))
+            dst
+                    .setDstTwinStatusId(src.getDstTwinStatusId())
+                    .setDstTwinStatus(twinStatusRestDTOMapper.convertOrPostpone(src.getDstTwinStatus(), mapperContext.forkOnPoint(StatusMode.Transition2StatusMode.SHORT)));
     }
 
     @Override
@@ -48,20 +54,7 @@ public class TwinflowTransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<T
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(TwinflowTransitionMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TransitionMode.HIDE);
     }
 
-    @AllArgsConstructor
-    public enum TwinflowTransitionMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

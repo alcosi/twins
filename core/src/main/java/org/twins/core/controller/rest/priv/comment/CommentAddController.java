@@ -31,10 +31,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class CommentAddController extends ApiController {
-    final CommentService commentService;
-    final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
-    final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final CommentService commentService;
+    private final CommentCreateRsRestDTOMapper commentCreateRsRestDTOMapper;
+    private final CommentRestDTOReversedMapper commentRestDTOReverseMapper;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinCommentAddV1", summary = "Add comment and it's attachments by twin")
@@ -43,7 +43,7 @@ public class CommentAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = CommentCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/comment/twin/{twinId}/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentAddV1(
             @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID twinId,
             @RequestBody CommentCreateRqDTOv1 request) {
@@ -52,7 +52,7 @@ public class CommentAddController extends ApiController {
             TwinCommentEntity comment = commentRestDTOReverseMapper.convert(request.setTwinId(twinId));
             rs = commentCreateRsRestDTOMapper.convert(commentService
                     .createComment(comment, attachmentAddRestDTOReverseMapper.
-                            convertList(request.attachments)));
+                            convertCollection(request.attachments)));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

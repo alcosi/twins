@@ -31,8 +31,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUpdateController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUpdateV1", summary = "Update businessAccount")
@@ -41,7 +41,7 @@ public class BusinessAccountUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/business_account/{businessAccountId}/v1", method = RequestMethod.PUT)
+    @PutMapping(value = "/private/business_account/{businessAccountId}/v1")
     public ResponseEntity<?> businessAccountUpdateV1(
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
             @RequestBody BusinessAccountUpdateRqDTOv1 request) {

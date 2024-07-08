@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
+import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
@@ -36,7 +36,7 @@ public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
     public UUID twinflowTransitionId;
 
     @Schema(description = "twinflow transition")
-    public TwinTransitionViewDTOv1 twinflowTransition;
+    public TwinflowTransitionBaseDTOv1 twinflowTransition;
 
     @Schema(description = "comment")
     public CommentBaseDTOv2 comment;

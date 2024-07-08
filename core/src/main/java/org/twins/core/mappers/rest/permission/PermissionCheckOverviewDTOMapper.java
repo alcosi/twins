@@ -4,9 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.dto.rest.permission.PermissionCheckOverviewRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.space.SpaceRoleByUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserGroupDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
@@ -15,13 +14,12 @@ import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 @RequiredArgsConstructor
 public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<PermissionCheckForTwinOverviewResult, PermissionCheckOverviewRsDTOv1> {
 
-    final PermissionRestDTOMapper permissionRestDTOMapper;
-    final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
-    final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
-    final UserGroupRestDTOMapper userGroupRestDTOMapper;
-    final SpaceRoleByUserDTOMapper spaceRoleByUserDTOMapper;
-    final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
-    final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
+    private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
+    private final UserGroupRestDTOMapper userGroupRestDTOMapper;
+    private final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
+    private final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
 
     @Override
     public void map(PermissionCheckForTwinOverviewResult src, PermissionCheckOverviewRsDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -33,11 +31,11 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
                 .setPermissionGroup(permissionGroupRestDTOMapper.convert(src.getPermission().getPermissionGroup(), mapperContext))
                 .setGrantedByUser(src.isGrantedByUser())
                 .setGrantedByUserGroupIds(src.getGrantedByUserGroups().getIdSet())
-                .setGrantedByUserGroups(userGroupRestDTOMapper.convertList(src.getGrantedByUserGroups().getCollection(), mapperContext))
+                .setGrantedByUserGroups(userGroupRestDTOMapper.convertCollection(src.getGrantedByUserGroups().getCollection(), mapperContext))
                 .setGrantedByTwinRoles(src.getGrantedByTwinRoles())
                 .setGrantedBySpaceRoleUserIds(src.getGrantedBySpaceRoleUsers().getIdSet())
-                .setGrantedBySpaceRoleUsers(spaceRoleUserDTOMapper.convertList(src.getGrantedBySpaceRoleUsers().getCollection(), mapperContext))
+                .setGrantedBySpaceRoleUsers(spaceRoleUserDTOMapper.convertCollection(src.getGrantedBySpaceRoleUsers().getCollection(), mapperContext))
                 .setGrantedBySpaceRoleUserGroupIds(src.getGrantedBySpaceRoleUserGroups().getIdSet())
-                .setGrantedBySpaceRoleUserGroups(spaceRoleUserGroupDTOMapper.convertList(src.getGrantedBySpaceRoleUserGroups().getCollection(), mapperContext));
+                .setGrantedBySpaceRoleUserGroups(spaceRoleUserGroupDTOMapper.convertCollection(src.getGrantedBySpaceRoleUserGroups().getCollection(), mapperContext));
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.TwinField;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
@@ -15,8 +15,10 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinField, FieldValueText> {
-    final TwinService twinService;
-    final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
+
+    private final TwinFieldValueRestDTOMapperV2 twinFieldValueRestDTOMapperV2;
+
+    private final TwinService twinService;
 
     @Override
     public FieldValueText convert(TwinField src, MapperContext mapperContext) throws Exception {

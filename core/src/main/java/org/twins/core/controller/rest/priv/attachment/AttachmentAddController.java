@@ -33,10 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AttachmentAddController extends ApiController {
-    final AuthService authService;
-    final AttachmentService attachmentService;
-    final TwinService twinService;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final AuthService authService;
+    private final AttachmentService attachmentService;
+    private final TwinService twinService;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "attachmentAddV1", summary = "Add attachment to twin")
@@ -45,7 +45,7 @@ public class AttachmentAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/attachment/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/attachment/v1")
     public ResponseEntity<?> attachmentAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody AttachmentAddRqDTOv1 request) {
@@ -55,7 +55,7 @@ public class AttachmentAddController extends ApiController {
             rs.setAttachmentIdList(attachmentService.addAttachments(
                             twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
                             apiUser.getUser(),
-                            attachmentAddRestDTOReverseMapper.convertList(request.getAttachments()))
+                            attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .stream().map(TwinAttachmentEntity::getId).toList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

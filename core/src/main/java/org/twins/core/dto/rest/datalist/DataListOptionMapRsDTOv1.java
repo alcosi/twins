@@ -10,7 +10,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DataListOptionMapRsV1")
 public class DataListOptionMapRsDTOv1 extends Response {

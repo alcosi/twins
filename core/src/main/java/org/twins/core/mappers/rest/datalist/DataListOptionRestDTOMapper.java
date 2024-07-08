@@ -1,14 +1,13 @@
 package org.twins.core.mappers.rest.datalist;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.Hashtable;
@@ -16,12 +15,14 @@ import java.util.Hashtable;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = DataListOptionMode.class)
 public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOptionEntity, DataListOptionDTOv1> {
-    final I18nService i18nService;
+
+    private final I18nService i18nService;
 
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv1 dst, MapperContext mapperContext) {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(DataListOptionMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -48,26 +49,12 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
             ret.put(src.getDataList().getAttribute3key(), src.getAttribute3value());
         if (src.getAttribute4value() != null && src.getDataList().getAttribute4key() != null)
             ret.put(src.getDataList().getAttribute4key(), src.getAttribute4value());
-        return ret.size() > 0 ? ret : null;
-    }
-
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
+        return !ret.isEmpty() ? ret : null;
     }
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(Mode.HIDE);
+        return mapperContext.hasModeOrEmpty(DataListOptionMode.HIDE);
     }
 
     @Override

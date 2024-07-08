@@ -5,7 +5,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.service.twin.TwinService;
 
@@ -13,7 +13,8 @@ import org.twins.core.service.twin.TwinService;
 @Component
 @RequiredArgsConstructor
 public class TwinLinkUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<TwinLinkUpdateDTOv1, TwinLinkEntity> {
-    final TwinService twinService;
+
+    private final TwinService twinService;
 
     @Override
     public void map(TwinLinkUpdateDTOv1 src, TwinLinkEntity dst, MapperContext mapperContext) throws Exception {

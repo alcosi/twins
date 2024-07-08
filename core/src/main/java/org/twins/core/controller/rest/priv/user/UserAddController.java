@@ -11,7 +11,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
@@ -33,10 +36,10 @@ import org.twins.core.service.user.UserService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserAddController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final DomainService domainService;
-    final UserService userService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final DomainService domainService;
+    private final UserService userService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "userAddV1", summary = "Smart endpoint for adding new user. It will also" +
@@ -46,7 +49,7 @@ public class UserAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/user/v1")
     public ResponseEntity<?> userAddV1(
             @RequestBody UserAddRqDTOv1 request) {
         Response rs = new Response();

@@ -6,13 +6,16 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.twinclass.*;
 import org.twins.core.featurer.fieldtyper.descriptor.*;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -20,11 +23,16 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final UserRestDTOMapper userRestDTOMapper;
+
     @Lazy
     @Autowired
-    TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    private TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
+    @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+    @MapperModePointerBinding(modes = UserMode.TwinClassFieldDescriptor2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
     public void map(FieldDescriptor src, TwinClassFieldDescriptorDTO dst, MapperContext mapperContext) throws Exception {
@@ -51,7 +59,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
                 return new TwinClassFieldDescriptorListDTOv1()
                         .supportCustom(listDescriptor.supportCustom())
                         .multiple(listDescriptor.multiple())
-                        .options(dataListOptionRestDTOMapper.convertList(listDescriptor.options(), new MapperContext().setMode(DataListOptionRestDTOMapper.Mode.SHORT)));
+                        .options(dataListOptionRestDTOMapper.convertCollection(listDescriptor.options(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.SHORT))));
             }
         else if (fieldDescriptor instanceof FieldDescriptorUser userDescriptor)
             if (userDescriptor.userFilterId() != null) {
@@ -61,8 +69,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 TwinClassFieldDescriptorUserDTOv1 userFieldDescriptor = new TwinClassFieldDescriptorUserDTOv1()
                         .multiple(userDescriptor.multiple())
-                        .users(userRestDTOMapper.convertListPostpone(userDescriptor.validUsers(), mapperContext
-                                .setMode(UserRestDTOMapper.Mode.SHORT)
+                        .users(userRestDTOMapper.convertCollectionPostpone(userDescriptor.validUsers(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.TwinClassFieldDescriptor2UserMode.SHORT))
                                 .setLazyRelations(mapperContext.isLazyRelations())));
                 if (userFieldDescriptor.users == null)
                     userFieldDescriptor.userIdList(userDescriptor.validUsers().stream().map(UserEntity::getId).toList());
@@ -96,7 +103,7 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertList(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinBaseRestDTOMapper.TwinMode.SHORT)));
+                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinMode.SHORT)));
             }
         return null;
     }
