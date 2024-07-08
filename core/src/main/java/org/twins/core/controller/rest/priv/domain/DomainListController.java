@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -20,19 +21,16 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
-import org.twins.core.domain.apiuser.LocaleResolverEnglish;
-import org.twins.core.domain.apiuser.UserResolverAuthToken;
+import org.twins.core.domain.apiuser.*;
 import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.pagination.PageableResult;
+import org.cambium.common.pagination.PaginationResult;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.DOMAIN)
 @RestController
@@ -63,7 +61,8 @@ public class DomainListController extends ApiController {
                     .setUserResolver(userResolverAuthToken)
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
-            PageableResult<DomainEntity> domainList = domainService.findDomainListByUser(offset, limit);
+            PaginationResult<DomainEntity> domainList = domainService
+                    .findDomainListByUser(createSimplePagination(offset, limit, Sort.unsorted()));
             rs
                     .setDomainList(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainList));

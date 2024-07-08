@@ -26,12 +26,11 @@ import org.twins.core.mappers.rest.comment.CommentViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.comment.CommentService;
-import org.twins.core.service.pagination.PageableResult;
+import org.cambium.common.pagination.PaginationResult;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.COMMENT)
 @RestController
@@ -53,13 +52,13 @@ public class CommentListController extends ApiController {
     @GetMapping(value = "/private/comment/twin/{twinId}/v1")
     public ResponseEntity<?> twinCommentListV1(
             @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentListRsDTOv1.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction sortDirection,
+            @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction direction,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         CommentListRsDTOv1 rs = new CommentListRsDTOv1();
         try {
-            PageableResult<TwinCommentEntity> commentList = commentService.findComment(twinId, sortDirection, offset, limit);
+            PaginationResult<TwinCommentEntity> commentList = commentService.findComment(twinId, createSimplePagination(offset, limit, Sort.by(direction, TwinCommentEntity.Fields.createdAt)));
             rs
                     .setComments(commentViewRestDTOMapper.convertCollection(commentList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(commentList))

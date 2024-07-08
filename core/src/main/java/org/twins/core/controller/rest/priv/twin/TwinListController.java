@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
@@ -31,15 +32,14 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
-import org.twins.core.service.twin.TwinSearchResult;
+import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "", name = ApiTag.TWIN)
 @RestController
@@ -70,10 +70,10 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), offset, limit);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setTwinList(twinRestDTOMapper.convertCollection(twinSearchResult.getTwinList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinSearchResult))
+                    .setTwinList(twinRestDTOMapper.convertCollection(twins.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -99,10 +99,10 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), offset, limit);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinSearchResult))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -131,10 +131,10 @@ public class TwinListController extends ApiController {
             List<BasicSearch> basicSearches = new ArrayList<>();
             for (TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchWithHeadDTOReverseMapper.convert(dto));
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(basicSearches, offset, limit);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(basicSearches, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinSearchResult))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -162,10 +162,10 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), offset, limit);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinSearchResult))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -192,10 +192,10 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult twinSearchResult = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), offset, limit);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(twinSearchResult.getTwinList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinSearchResult))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

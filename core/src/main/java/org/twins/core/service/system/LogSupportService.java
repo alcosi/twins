@@ -14,6 +14,7 @@ import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.link.LinkService;
+import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -37,11 +38,11 @@ public class LogSupportService {
     final TwinflowService twinflowService;
     final TwinflowTransitionService twinflowTransitionService;
 
-    public String generateSubstitutionsConfig(ApiUser apiUser, String filename, int offset, int limit) throws Exception {
+    public String generateSubstitutionsConfig(ApiUser apiUser, String filename, SimplePagination pagination) throws Exception {
         if (ObjectUtils.isEmpty(filename)) filename = apiUser.getDomain().getKey() + ".conf";
 
         var domain = apiUser.getDomain();
-        var twinClasses = twinClassService.findTwinClasses(null, offset, limit).getTwinClassList();
+        var twinClasses = twinClassService.findTwinClasses(null, pagination).getList();
         twinStatusService.loadStatusesForTwinClasses(twinClasses);
         twinClassFieldService.loadTwinClassFields(twinClasses);
         linkService.loadLinksForTwinClasses(twinClasses);

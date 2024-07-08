@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Nullable;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -23,6 +25,8 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.system.CommandRsDTOv1;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.system.LogSupportService;
+
+import static org.cambium.common.util.PaginationUtils.createSimplePagination;
 
 @Tag(description = "Config substitution for log file", name = ApiTag.SYSTEM)
 @RestController
@@ -45,9 +49,8 @@ public class LogSubstitutionConfigController extends ApiController {
         CommandRsDTOv1 rs = new CommandRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, 0, 999));//todo add pagination
+            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, createSimplePagination(0, 999, Sort.unsorted())));//todo pagination
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);

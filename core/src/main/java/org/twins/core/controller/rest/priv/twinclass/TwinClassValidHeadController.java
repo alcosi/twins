@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,18 +18,21 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.twin.TwinHeadService;
-import org.twins.core.service.twin.TwinSearchResult;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
@@ -54,9 +58,9 @@ public class TwinClassValidHeadController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            TwinSearchResult validHeads = twinHeadService.findValidHeads(twinClassId, offset, limit);
+            PaginationResult<TwinEntity> validHeads = twinHeadService.findValidHeads(twinClassId, createSimplePagination(offset, limit, Sort.unsorted()));
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getTwinList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

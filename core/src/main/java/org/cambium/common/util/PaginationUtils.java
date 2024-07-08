@@ -1,9 +1,13 @@
 package org.cambium.common.util;
 
 import org.cambium.common.exception.ServiceException;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.cambium.common.pagination.PaginationResult;
+import org.springframework.data.domain.*;
+import org.cambium.common.pagination.SimplePagination;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Function;
 
 import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
@@ -25,14 +29,52 @@ public class PaginationUtils {
         return PageRequest.of(page, size, sort);
     }
 
-    public static Pageable paginationOffset(int offset, int limit, Sort sort) throws ServiceException {
-        if (offset % limit > 0) throw new ServiceException(PAGINATION_ERROR);
-        return PageRequest.of(offset / limit, limit, sort);
+    public static SimplePagination convertPagableInSimplePagination(Pageable pageable) {
+        return new SimplePagination().setOffset((int) pageable.getOffset()).setLimit(pageable.getPageSize());
     }
 
-    public static Pageable paginationOffsetUnsorted(int offset, int limit) throws ServiceException {
-        if (offset % limit > 0) throw new ServiceException(PAGINATION_ERROR);
-        return PageRequest.of(offset / limit, limit);
+    public static Pageable pageableOffset(SimplePagination pagination) throws ServiceException {
+        if (pagination.getOffset() % pagination.getLimit() > 0) throw new ServiceException(PAGINATION_ERROR);
+        return pagination.getSort() == null
+                ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
+                : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), pagination.getSort());
+    }
+
+    public static SimplePagination createSimplePagination(int offset, int limit, Sort sort) {
+        return new SimplePagination()
+                .setOffset(offset)
+                .setLimit(limit)
+                .setSort(sort);
+    }
+
+    public static <T> PaginationResult<T> convertInPaginationResult(SimplePagination pagination) throws ServiceException {
+        Page<T> emptyPage = new PageImpl<>(new ArrayList<>(), pageableOffset(pagination), 0);
+        return convertInPaginationResult(emptyPage, pagination);
+    }
+
+    public static <T> PaginationResult<T> convertInPaginationResult(Page<T> page, SimplePagination pagination) {
+        PaginationResult<T> result = new PaginationResult<>();
+        result
+            .setList(page.getContent())
+            .setTotal(page.getTotalElements())
+            .setOffset(pagination.getOffset())
+            .setLimit(pagination.getLimit());
+        return result;
+    }
+
+    public static <T> PaginationResult<T> convertInPaginationResult(Page<T> page, SimplePagination pagination, Function<T, Boolean> filterFunction) {
+        PaginationResult<T> result = new PaginationResult<>();
+        result
+            .setList(page.getContent().stream().filter(filterFunction::apply).toList())
+            .setTotal(page.getTotalElements())
+            .setOffset(pagination.getOffset())
+            .setLimit(pagination.getLimit());
+        return result;
+    }
+
+    public static <T> PaginationResult<T> convertInPaginationResult(List<T> list, SimplePagination pagination, long total) throws ServiceException {
+        Page<T> page = new PageImpl<>(list, pageableOffset(pagination), total);
+        return convertInPaginationResult(page, pagination);
     }
 
 }

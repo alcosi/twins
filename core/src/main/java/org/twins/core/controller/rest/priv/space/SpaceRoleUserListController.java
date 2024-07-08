@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +18,8 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.domain.space.UsersRefSpaceRolePageable;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.space.UserRefSpaceRole;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.space.UserRefSpaceRoleSearchDTOv1;
 import org.twins.core.dto.rest.space.UserWithinSpaceRolesListRsDTOv1;
@@ -32,8 +34,7 @@ import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -85,9 +86,9 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, offset, limit);
+            PaginationResult<UserRefSpaceRole> usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
+                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -114,10 +115,9 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestBody UserRefSpaceRoleSearchDTOv1 request) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            UsersRefSpaceRolePageable usersRefRoles = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, offset, limit);
-            rs
-                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getUsersRefRoles(), mapperContext))
-                    .setPagination(paginationMapper.convert(usersRefRoles))
+            PaginationResult<UserRefSpaceRole> usersRefRolesMap = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRolesMap.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(usersRefRolesMap))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

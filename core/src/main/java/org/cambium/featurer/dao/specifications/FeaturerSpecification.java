@@ -1,4 +1,4 @@
-package org.twins.core.dao.specifications.featurer;
+package org.cambium.featurer.dao.specifications;
 
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;

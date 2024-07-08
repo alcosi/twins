@@ -55,10 +55,8 @@ public class TwinPermissionCheckOverviewController extends ApiController {
             PermissionCheckForTwinOverviewResult permissionCheckOverviewResult = permissionService.checkTwinAndUserForPermissions(request.userId(), twinId, request.permissionId());
             rs = permissionCheckOverviewDTOMapper.convert(permissionCheckOverviewResult, mapperContext);
         } catch (ServiceException se) {
-            se.printStackTrace();
             return createErrorRs(se, rs);
         } catch (Exception e) {
-            e.printStackTrace();
             return createErrorRs(e, rs);
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);

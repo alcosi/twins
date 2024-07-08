@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,6 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
@@ -25,11 +27,10 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassSearchRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twinclass.TwinClassResult;
+import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_LIMIT;
-import static org.cambium.common.util.PaginationUtils.DEFAULT_VALUE_OFFSET;
+import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.TWIN_CLASS)
 @RestController
@@ -58,11 +59,11 @@ public class TwinClassListController extends ApiController {
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            TwinClassResult twinClasses = twinClassService
-                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), offset, limit);
+            PaginationResult<TwinClassEntity> twinClasses = twinClassService
+                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
             rs
                     .setTwinClassList(twinClassRestDTOMapper
-                            .convertCollection(twinClasses.getTwinClassList(), mapperContext))
+                            .convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -88,9 +89,9 @@ public class TwinClassListController extends ApiController {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            TwinClassResult twinClasses = twinClassService.findTwinClasses(null, offset, limit);
+            PaginationResult<TwinClassEntity> twinClasses = twinClassService.findTwinClasses(null, createSimplePagination(offset, limit, Sort.unsorted()));
             rs
-                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getTwinClassList(), mapperContext))
+                    .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
