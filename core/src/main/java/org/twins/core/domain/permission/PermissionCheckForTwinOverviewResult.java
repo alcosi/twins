@@ -10,7 +10,6 @@ import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.permission.TwinRole;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 

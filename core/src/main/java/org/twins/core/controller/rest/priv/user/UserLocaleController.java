@@ -26,8 +26,8 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserLocaleController extends ApiController {
-    final AuthService authService;
-    final DomainService domainService;
+    private final AuthService authService;
+    private final DomainService domainService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userLocaleUpdateV1", summary = "Update user locale")

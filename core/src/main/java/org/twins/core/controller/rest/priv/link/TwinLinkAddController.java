@@ -20,7 +20,6 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.TwinLinkAddRqDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkAddRsDTOv1;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinService;
 
@@ -31,10 +30,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinLinkAddController extends ApiController {
-    final AuthService authService;
-    final TwinLinkService twinLinkService;
-    final TwinService twinService;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+    private final TwinLinkService twinLinkService;
+    private final TwinService twinService;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinLinkAddV1", summary = "Add link to twin")
@@ -43,7 +41,7 @@ public class TwinLinkAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinLinkAddRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/link/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/{twinId}/link/v1")
     public ResponseEntity<?> twinLinkAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @RequestBody TwinLinkAddRqDTOv1 request) {
@@ -51,7 +49,7 @@ public class TwinLinkAddController extends ApiController {
         try {
             twinLinkService.addLinks(
                     twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
-                    twinLinkAddRestDTOReverseMapper.convertList(request.getLinks()));
+                    twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

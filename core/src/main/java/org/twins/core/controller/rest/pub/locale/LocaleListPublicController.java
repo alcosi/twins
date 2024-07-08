@@ -27,9 +27,9 @@ import org.twins.core.service.domain.DomainService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class LocaleListPublicController extends ApiController {
-    final AuthService authService;
-    final LocaleRestDTOMapper localeRestDTOMapper;
-    final DomainService domainService;
+    private final AuthService authService;
+    private final LocaleRestDTOMapper localeRestDTOMapper;
+    private final DomainService domainService;
 
     @ParameterDomainHeader
     @Operation(operationId = "localeListPublicViewV1", summary = "Return list of locales")
@@ -45,7 +45,7 @@ public class LocaleListPublicController extends ApiController {
         try {
             authService.getApiUser().setAnonymousWithDefaultLocale();
             rs
-                    .setLocaleList(localeRestDTOMapper.convertList(domainService.getLocaleList()));
+                    .setLocaleList(localeRestDTOMapper.convertCollection(domainService.getLocaleList()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

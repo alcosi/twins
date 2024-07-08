@@ -12,14 +12,17 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.usergroup.UserGroupListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
@@ -31,9 +34,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class UserGroupListController extends ApiController {
-    final UserGroupRestDTOMapper userGroupDTOMapper;
-    final UserGroupService userGroupService;
-    final UserService userService;
+    private final UserGroupRestDTOMapper userGroupDTOMapper;
+    private final UserGroupService userGroupService;
+    private final UserService userService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "userGroupForUserListV1", summary = "Returns user group list for selected user")
@@ -42,14 +45,14 @@ public class UserGroupListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserGroupListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/user_group/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/user/{userId}/user_group/v1")
     public ResponseEntity<?> userGroupForUserListV1(
-            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
-            @RequestParam(name = RestRequestParam.showUserGroupMode, defaultValue = UserGroupRestDTOMapper.Mode._DETAILED) UserGroupRestDTOMapper.Mode showUserGroupMode) {
+            @MapperContextBinding(roots = UserGroupRestDTOMapper.class, response = UserGroupListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
-            rs.userGroupList = userGroupDTOMapper.convertList(
-                    userGroupService.findGroupsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), new MapperContext().setMode(showUserGroupMode));
+            rs.userGroupList = userGroupDTOMapper.convertCollection(
+                    userGroupService.findGroupsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

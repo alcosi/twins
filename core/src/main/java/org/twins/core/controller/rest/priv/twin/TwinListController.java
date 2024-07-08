@@ -16,6 +16,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
@@ -24,23 +25,15 @@ import org.twins.core.dto.rest.twin.TwinSearchByAliasRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
-import org.twins.core.mappers.rest.link.TwinLinkRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapper;
+import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
+import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
 import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,18 +46,13 @@ import static org.cambium.common.util.PaginationUtils.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinListController extends ApiController {
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final UserRestDTOMapper userRestDTOMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinRestDTOMapper twinRestDTOMapper;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
-    final PaginationMapper paginationMapper;
-    final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
+    private final TwinSearchService twinSearchService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinRestDTOMapper twinRestDTOMapper;
+    private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
+    private final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
+    private final PaginationMapper paginationMapper;
+    private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchV1", summary = "Twins basic search")
@@ -73,58 +61,18 @@ public class TwinListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
-            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.TwinAttachmentMode._ALL) AttachmentViewRestDTOMapper.TwinAttachmentMode showTwinAttachmentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
-            @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinSearchRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
             PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapper.convertList(twins.getList(), mapperContext))
+                    .setTwinList(twinRestDTOMapper.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -142,58 +90,18 @@ public class TwinListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/v2", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/v2")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
-            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.TwinAttachmentMode._ALL) AttachmentViewRestDTOMapper.TwinAttachmentMode showTwinAttachmentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
-            @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twins.getList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -211,61 +119,21 @@ public class TwinListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/v3", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/v3")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV3(
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
-            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.TwinAttachmentMode._ALL) AttachmentViewRestDTOMapper.TwinAttachmentMode showTwinAttachmentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
-            @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = "0") int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = "10") int limit,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
+            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody List<TwinSearchRqDTOv1> request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             List<BasicSearch> basicSearches = new ArrayList<>();
-            for(TwinSearchRqDTOv1 dto : request)
+            for (TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchWithHeadDTOReverseMapper.convert(dto));
             PaginationResult<TwinEntity> twins = twinSearchService.findTwins(basicSearches, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twins.getList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -284,59 +152,19 @@ public class TwinListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search_by_alias/{searchAlias}/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search_by_alias/{searchAlias}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByAliasV1(
-            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
-            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.TwinAttachmentMode._ALL) AttachmentViewRestDTOMapper.TwinAttachmentMode showTwinAttachmentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
-            @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,  //todo not use
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twins.getList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -354,59 +182,19 @@ public class TwinListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/{searchId}/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/{searchId}/v1")
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByIdV1(
+            @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.SEARCH_ID) @PathVariable UUID searchId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showRelatedByLinkTwinMode, defaultValue = RelatedByLinkTwinMode._WHITE) RelatedByLinkTwinMode showRelatedByLinkTwinMode,
-            @RequestParam(name = RestRequestParam.showRelatedByHeadTwinMode, defaultValue = RelatedByHeadTwinMode._WHITE) RelatedByHeadTwinMode showRelatedByHeadTwinMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._SHORT) TwinStatusRestDTOMapper.Mode showStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showTwinFieldMode, defaultValue = TwinRestDTOMapper.FieldsMode._ALL_FIELDS) TwinRestDTOMapper.FieldsMode showTwinFieldMode,
-            @RequestParam(name = RestRequestParam.showTwinAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.TwinAttachmentMode._ALL) AttachmentViewRestDTOMapper.TwinAttachmentMode showTwinAttachmentMode,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._HIDE) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showTwinAliasMode, defaultValue = TwinAliasRestDTOMapper.Mode._HIDE) TwinAliasRestDTOMapper.Mode showTwinAliasMode,
-            @RequestParam(name = RestRequestParam.showTwinMarkerMode, defaultValue = TwinBaseV3RestDTOMapper.TwinMarkerMode._HIDE) TwinBaseV3RestDTOMapper.TwinMarkerMode showTwinMarkerMode,
-            @RequestParam(name = RestRequestParam.showTwinTagMode, defaultValue = TwinBaseV3RestDTOMapper.TwinTagMode._HIDE) TwinBaseV3RestDTOMapper.TwinTagMode showTwinTagMode,
-            @RequestParam(name = RestRequestParam.showTwinLinkMode, defaultValue = TwinLinkRestDTOMapper.Mode._HIDE) TwinLinkRestDTOMapper.Mode showTwinLinkMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showTwinTransitionMode, defaultValue = TwinTransitionRestDTOMapper.Mode._HIDE) TwinTransitionRestDTOMapper.Mode showTwinTransitionMode,
-            @RequestParam(name = RestRequestParam.showTwinActionMode, defaultValue = TwinBaseV3RestDTOMapper.TwinActionMode._HIDE) TwinBaseV3RestDTOMapper.TwinActionMode showTwinActionMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showRelatedByHeadTwinMode)
-                    .setMode(showRelatedByLinkTwinMode)
-                    .setMode(showUserMode)
-                    .setMode(showStatusMode)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showTwinMode)
-                    .setMode(showTwinFieldMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showTwinAttachmentMode)
-                    .setMode(showAttachmentMode)
-                    .setMode(showTwinAliasMode)
-                    .setMode(showTwinMarkerMode)
-                    .setMode(showTwinTagMode)
-                    .setMode(showTwinLinkMode)
-                    .setMode(showLinkMode)
-                    .setMode(showTwinTransitionMode)
-                    .setMode(showTwinActionMode);
             rs
-                    .setTwinList(twinRestDTOMapperV2.convertList(twins.getList(), mapperContext))
+                    .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

@@ -8,12 +8,11 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinCreate;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinTagAddDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentAddRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkAddRestDTOReverseMapper;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserService;
 
 import java.util.HashSet;
@@ -23,12 +22,13 @@ import java.util.Optional;
 @Component
 @RequiredArgsConstructor
 public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCreateRqDTOv2, TwinCreate> {
-    final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
-    final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
-    final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
-    final TwinService twinService;
-    final UserService userService;
-    final AuthService authService;
+
+    private final TwinFieldValueRestDTOReverseMapperV2 twinFieldValueRestDTOReverseMapperV2;
+    private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
+    private final TwinLinkAddRestDTOReverseMapper twinLinkAddRestDTOReverseMapper;
+
+    private final UserService userService;
+    private final AuthService authService;
 
     @Override
     public void map(TwinCreateRqDTOv2 src, TwinCreate dst, MapperContext mapperContext) throws Exception {
@@ -44,8 +44,8 @@ public class TwinCreateRqRestDTOReverseMapper extends RestSimpleDTOMapper<TwinCr
                         .setDescription(src.getDescription()))
                 .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(src.getClassId(), src.getFields()));
         dst
-                .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertList(src.getAttachments()))
-                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertList(src.getLinks()))
+                .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(src.getAttachments()))
+                .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getLinks()))
                 .setNewTags(Optional.ofNullable(src.getTags())
                         .map(TwinTagAddDTOv1::newTags)
                         .orElseGet(HashSet::new))

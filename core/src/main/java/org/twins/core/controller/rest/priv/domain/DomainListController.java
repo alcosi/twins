@@ -18,11 +18,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.apiuser.*;
 import org.twins.core.dto.rest.domain.DomainListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.domain.DomainViewRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
@@ -36,11 +37,11 @@ import static org.cambium.common.util.PaginationUtils.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainListController extends ApiController {
-    final AuthService authService;
-    final UserResolverAuthToken userResolverAuthToken;
-    final DomainService domainService;
-    final DomainViewRestDTOMapper domainViewRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final AuthService authService;
+    private final UserResolverAuthToken userResolverAuthToken;
+    private final DomainService domainService;
+    private final DomainViewRestDTOMapper domainViewRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserNoDomainHeaders
     @Operation(operationId = "domainListV1", summary = "Return a list of domains for current user")
@@ -51,7 +52,7 @@ public class DomainListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/list/v1")
     public ResponseEntity<?> domainListV1(
-            @RequestParam(name = RestRequestParam.showDomainMode, defaultValue = DomainViewRestDTOMapper.DomainMode._SHORT) DomainViewRestDTOMapper.DomainMode showDomainMode,
+            @MapperContextBinding(roots = DomainViewRestDTOMapper.class, response = DomainListRsDTOv1.class) MapperContext mapperContext,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         DomainListRsDTOv1 rs = new DomainListRsDTOv1();
@@ -62,10 +63,8 @@ public class DomainListController extends ApiController {
                     .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
             PaginationResult<DomainEntity> domainList = domainService
                     .findDomainListByUser(createSimplePagination(offset, limit, Sort.unsorted()));
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showDomainMode);
             rs
-                    .setDomainList(domainViewRestDTOMapper.convertList(domainList.getList(), mapperContext))
+                    .setDomainList(domainViewRestDTOMapper.convertCollection(domainList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

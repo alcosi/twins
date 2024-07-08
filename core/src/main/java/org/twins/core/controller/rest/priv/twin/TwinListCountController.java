@@ -10,22 +10,19 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.dto.rest.twin.*;
-import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.*;
-import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
+import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -36,18 +33,9 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TwinListCountController extends ApiController {
 
-    final AuthService authService;
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final UserRestDTOMapper userRestDTOMapper;
-    final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final TwinRestDTOMapper twinRestDTOMapper;
-    final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    final TwinSearchWithHeadDTOReverseMapper twinSearchRqDTOMapper;
-    final PaginationMapper paginationMapper;
-    final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
+    private final TwinSearchService twinSearchService;
+    private final TwinSearchWithHeadDTOReverseMapper twinSearchRqDTOMapper;
+    private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinSearchCountV1", summary = "Count twins by frontendId")
@@ -56,7 +44,7 @@ public class TwinListCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchBatchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search/count/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search/count/v1")
     public ResponseEntity<?> twinSearchCountInBatchV1(@RequestBody TwinSearchBatchRqDTOv1 request) {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {
@@ -79,7 +67,7 @@ public class TwinListCountController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchBatchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/search_by_alias/count/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin/search_by_alias/count/v1")
     public ResponseEntity<?> twinSearchByAliasCountInBatchV1(@RequestBody TwinSearchByAliasBatchRqDTOv1 request) {
         TwinSearchBatchRsDTOv1 rs = new TwinSearchBatchRsDTOv1();
         try {

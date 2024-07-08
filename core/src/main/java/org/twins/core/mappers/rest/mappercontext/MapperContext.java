@@ -1,11 +1,11 @@
-package org.twins.core.mappers.rest;
+package org.twins.core.mappers.rest.mappercontext;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.space.SpaceRoleUserEntity;
+import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -37,7 +37,7 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
     @Getter
-    private Map<UUID, RelatedObject<SpaceRoleUserEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
+    private Map<UUID, RelatedObject<SpaceRoleEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -139,7 +139,7 @@ public class MapperContext {
             smartPut(relatedDataListMap, dataList, dataList.getId());
         else if (relatedObject instanceof DataListOptionEntity dataListOption)
             smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
-        else if (relatedObject instanceof SpaceRoleUserEntity spaceRole)
+        else if (relatedObject instanceof SpaceRoleEntity spaceRole)
             smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
@@ -210,12 +210,20 @@ public class MapperContext {
             return false;
     }
 
+    public <T extends MapperMode> boolean hasMode(Class<T> modeClass) {
+        return modes.containsKey(modeClass);
+    }
+
     public <T extends MapperMode> boolean hasModeOrEmpty(T mode) {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode != null)
             return configuredMode.equals(mode);
         else
             return true;
+    }
+
+    public <T extends MapperMode> boolean hasModeButNot(T mode) {
+        return !hasModeOrEmpty(mode);
     }
 
     public <T extends MapperMode> boolean hasEmpty(T mode) {
@@ -277,6 +285,26 @@ public class MapperContext {
         MapperContext mapperContext = cloneIgnoreRelatedObjects();
         linkToRelatedObjects(this, mapperContext);
         return mapperContext;
+    }
+
+    public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
+        MapperContext fork = null;
+        for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
+            MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
+            MapperMode pointedMode = configuredPointer.point();
+            if (pointedMode == null)
+                continue;
+            else if (pointedMode instanceof MapperModeCollection modeCollection) {
+                if (fork == null)
+                    fork = cloneWithIsolatedModes();
+                fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
+            } else {
+                if (fork == null)
+                    fork = cloneWithIsolatedModes();
+                fork.setMode(pointedMode);
+            }
+        }
+        return fork != null ? fork : this;
     }
 
     public MapperContext cloneWithFlushedModes() {

@@ -15,16 +15,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassDuplicateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -40,7 +37,6 @@ public class TwinClassDuplicateController extends ApiController {
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
 
-
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassDuplicateV1", summary = "Duplicates twin class by id")
     @ApiResponses(value = {
@@ -48,22 +44,14 @@ public class TwinClassDuplicateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/duplicate/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/{twinClassId}/duplicate/v1")
     public ResponseEntity<?> twinClassDuplicateV1(
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
             @RequestBody TwinClassDuplicateRqDTOv1 request) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showLinkMode);
             rs.setTwinClass(
                     twinClassRestDTOMapper.convert(
                             twinClassService.duplicateTwinClass(apiUser, twinClassId, request.newKey), mapperContext));

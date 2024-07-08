@@ -2,16 +2,9 @@ package org.twins.core.dto.rest.twinflow;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.attachment.AttachmentAddDTOv1;
 import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentUpdateDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkAddDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkCudDTOv1;
-import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 
 import java.util.List;

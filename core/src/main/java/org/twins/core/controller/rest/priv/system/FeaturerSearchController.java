@@ -17,10 +17,11 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRqDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.featurer.FeaturerDTOReversMapper;
 import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -33,10 +34,10 @@ import static org.cambium.common.util.PaginationUtils.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class FeaturerSearchController extends ApiController {
-    final FeaturerRestDTOMapper featurerRestDTOMapper;
-    final FeaturerDTOReversMapper featurerDTOReversMapper;
-    final FeaturerService featurerService;
-    final PaginationMapper paginationMapper;
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+    private final FeaturerDTOReversMapper featurerDTOReversMapper;
+    private final FeaturerService featurerService;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "featurerListV1", summary = "Featurer search")
@@ -47,20 +48,16 @@ public class FeaturerSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
-        @RequestParam(name = RestRequestParam.showFeaturerMode, defaultValue = FeaturerRestDTOMapper.Mode._SHORT) FeaturerRestDTOMapper.Mode showFeaturerMode,
-        @RequestParam(name = RestRequestParam.showFeaturerParamMode, defaultValue = FeaturerRestDTOMapper.ShowFeaturerParamMode._SHOW) FeaturerRestDTOMapper.ShowFeaturerParamMode showFeaturerParamMode,
+        @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) MapperContext mapperContext,
         @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
         @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
         @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showFeaturerMode)
-                    .setMode(showFeaturerParamMode);
             PaginationResult<FeaturerEntity> featurers = featurerService
                     .findFeaturers(featurerDTOReversMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
             rs
-                    .setFeaturerList(featurerRestDTOMapper.convertList(featurers.getList(), mapperContext))
+                    .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(featurers));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

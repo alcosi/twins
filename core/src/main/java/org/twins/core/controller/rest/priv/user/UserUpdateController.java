@@ -38,7 +38,7 @@ public class UserUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/user/{userId}/v1", method = RequestMethod.PUT)
+    @PutMapping(value = "/private/user/{userId}/v1")
     public ResponseEntity<?> userCreate(
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId,
             @RequestBody UserUpdateRqDTOv1 request) {

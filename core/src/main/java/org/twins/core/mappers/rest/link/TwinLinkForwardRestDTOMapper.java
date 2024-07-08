@@ -2,27 +2,40 @@ package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dto.rest.link.TwinLinkViewDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.twin.RelatedByLinkTwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.RelationTwinMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
 public class TwinLinkForwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkEntity, TwinLinkViewDTOv1> {
-    final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
-    final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
-    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+
+    private final TwinLinkRestDTOMapper twinLinkRestDTOMapper;
+
+    @MapperModePointerBinding(modes = RelationTwinMode.TwinByLinkMode.class)
+    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+
+    @MapperModePointerBinding(modes = LinkMode.TwinLink2LinkMode.class)
+    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+
     @Override
     public void map(TwinLinkEntity src, TwinLinkViewDTOv1 dst, MapperContext mapperContext) throws Exception {
         twinLinkRestDTOMapper.map(src, dst, mapperContext);
         dst
-                .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getDstTwin(), mapperContext
-                        .cloneWithIsolatedModes(RelatedByLinkTwinMode.GREEN)))
-                .setLink(linkForwardRestDTOMapper.convert(src.getLink(), mapperContext))
                 .setDstTwinId(src.getDstTwinId());
+        if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE))
+            dst
+                    .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getDstTwin(), mapperContext
+                            .forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN)));
+        if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE))
+            dst
+                    .setLink(linkForwardRestDTOMapper.convertOrPostpone(src.getLink(), mapperContext
+                            .forkOnPoint(LinkMode.TwinLink2LinkMode.SHORT)));
     }
 
     @Override

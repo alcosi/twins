@@ -16,18 +16,15 @@ import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.history.HistoryListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.history.HistoryDTOMapperV1;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
 import org.cambium.common.pagination.PaginationResult;
 
@@ -40,11 +37,10 @@ import static org.cambium.common.util.PaginationUtils.*;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class HistoryListController extends ApiController {
-    final AuthService authService;
-    final HistoryService historyService;
-    final HistoryDTOMapperV1 historyDTOMapperV1;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final PaginationMapper paginationMapper;
+    private final HistoryService historyService;
+    private final HistoryDTOMapperV1 historyDTOMapperV1;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "historyListV1", summary = "Returns twin history by id")
@@ -53,27 +49,19 @@ public class HistoryListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = HistoryListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin/{twinId}/history/list/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin/{twinId}/history/list/v1")
     public ResponseEntity<?> historyListV1(
+            @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
             @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
             @RequestParam(name = RestRequestParam.sortDirection, defaultValue = "DESC") Sort.Direction direction,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._HIDE) UserRestDTOMapper.Mode showUserMode,
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._HIDE) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
             @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
             PaginationResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, createSimplePagination(offset, limit, Sort.by(direction, HistoryEntity.Fields.createdAt)));
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showUserMode)
-                    .setMode(showTwinMode)
-                    .setMode(showClassMode);
             rs
-                    .setHistoryList(historyDTOMapperV1.convertList(historyList.getList(), mapperContext))
+                    .setHistoryList(historyDTOMapperV1.convertCollection(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

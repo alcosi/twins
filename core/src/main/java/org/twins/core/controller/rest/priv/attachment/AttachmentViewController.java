@@ -12,17 +12,18 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
-import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
@@ -44,18 +45,15 @@ public class AttachmentViewController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/attachment/{attachmentId}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/attachment/{attachmentId}/v1")
     public ResponseEntity<?> attachmentViewV1(
-            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId,
-            @RequestParam(name = RestRequestParam.showAttachmentMode, defaultValue = AttachmentViewRestDTOMapper.Mode._DETAILED) AttachmentViewRestDTOMapper.Mode showAttachmentMode,
-            @RequestParam(name = RestRequestParam.showUserMode, defaultValue = UserRestDTOMapper.Mode._SHORT) UserRestDTOMapper.Mode showUserMode) {
+            @MapperContextBinding(roots = AttachmentViewRestDTOMapperV2.class, response = AttachmentViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.ATTACHMENT_ID) @PathVariable UUID attachmentId) {
         AttachmentViewRsDTOv1 rs = new AttachmentViewRsDTOv1();
         try {
             rs.setAttachment(
                     attachmentRestDTOMapperV2.convert(
-                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), new MapperContext()
-                                    .setMode(showUserMode)
-                                    .setMode(showAttachmentMode)
+                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), mapperContext
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

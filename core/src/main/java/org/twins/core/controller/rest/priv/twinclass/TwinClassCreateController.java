@@ -11,39 +11,34 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.dao.I18nEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassCreateRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassCreateRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.user.UserService;
 
 @Tag(description = "", name = ApiTag.TWIN_CLASS)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinClassService twinClassService;
-    final TwinClassRestDTOMapper twinClassRestDTOMapper;
-    final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
+    private final TwinClassService twinClassService;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final TwinClassCreateRestDTOReverseMapper twinClassCreateRestDTOReverseMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassCreateV1", summary = "Create new twin class")
@@ -52,29 +47,13 @@ public class TwinClassCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/v1")
     public ResponseEntity<?> twinClassCreateV1(
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
-            @RequestParam(name = RestRequestParam.showClassStatusMode, defaultValue = TwinClassRestDTOMapper.StatusMode._HIDE) TwinClassRestDTOMapper.StatusMode showClassStatusMode,
-            @RequestParam(name = RestRequestParam.showClassMarkerMode, defaultValue = TwinClassRestDTOMapper.MarkerMode._HIDE) TwinClassRestDTOMapper.MarkerMode showClassMarkerMode,
-            @RequestParam(name = RestRequestParam.showClassTagMode, defaultValue = TwinClassRestDTOMapper.TagMode._HIDE) TwinClassRestDTOMapper.TagMode showClassTagMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._HIDE) LinkRestDTOMapper.Mode showLinkMode,
-            @RequestParam(name = RestRequestParam.showStatusMode, defaultValue = TwinStatusRestDTOMapper.Mode._HIDE) TwinStatusRestDTOMapper.Mode showStatusMode,
+            @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassCreateRsDTOv1.class) MapperContext mapperContext,
             @RequestBody TwinClassCreateRqDTOv1 request) {
         TwinClassCreateRsDTOv1 rs = new TwinClassCreateRsDTOv1();
         try {
             TwinClassEntity twinClassEntity = twinClassCreateRestDTOReverseMapper.convert(request);
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showClassMode)
-                    .setMode(showClassFieldMode)
-                    .setMode(showClassStatusMode)
-                    .setMode(showClassMarkerMode)
-                    .setMode(showClassTagMode)
-                    .setMode(showLinkMode)
-                    .setMode(showStatusMode);
             I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
             twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, nameI18n, descriptionsI18n);

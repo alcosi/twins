@@ -12,7 +12,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
@@ -30,8 +33,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class BusinessAccountUserDeleteController extends ApiController {
-    final BusinessAccountService businessAccountService;
-    final AuthService authService;
+    private final BusinessAccountService businessAccountService;
+    private final AuthService authService;
 
     @ParameterChannelHeader
     @Operation(operationId = "businessAccountUserDeleteV1", summary = "Delete user from businessAccount")
@@ -40,7 +43,7 @@ public class BusinessAccountUserDeleteController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/business_account/{businessAccountId}/user/{userId}/v1", method = RequestMethod.DELETE)
+    @DeleteMapping(value = "/private/business_account/{businessAccountId}/user/{userId}/v1")
     public ResponseEntity<?> businessAccountUserDeleteV1(
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable UUID businessAccountId,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {

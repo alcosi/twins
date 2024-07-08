@@ -1,24 +1,25 @@
 package org.twins.core.mappers.rest.card;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.card.CardWidgetEntity;
 import org.twins.core.dto.rest.card.CardWidgetDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.WidgetMode;
 import org.twins.core.mappers.rest.widget.WidgetRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = WidgetMode.class)
 public class CardWidgetRestDTOMapper extends RestSimpleDTOMapper<CardWidgetEntity, CardWidgetDTOv1> {
-    final WidgetRestDTOMapper widgetRestDTOMapper;
+
+    private final WidgetRestDTOMapper widgetRestDTOMapper;
 
     @Override
     public void map(CardWidgetEntity src, CardWidgetDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(Mode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(WidgetMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -38,17 +39,4 @@ public class CardWidgetRestDTOMapper extends RestSimpleDTOMapper<CardWidgetEntit
 
     }
 
-    @AllArgsConstructor
-    public enum Mode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

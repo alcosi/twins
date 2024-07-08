@@ -3,13 +3,11 @@ package org.twins.core.mappers.rest;
 
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.BiConsumer;
 
 public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> {
@@ -54,7 +52,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         return convert(src, mapperContext);
     }
 
-    public List<S> convertListPostpone(List<T> srcList, MapperContext mapperContext) throws Exception {
+    public List<S> convertCollectionPostpone(Collection<T> srcList, MapperContext mapperContext) throws Exception {
         if (srcList == null)
             return null;
         List<S> ret = null;
@@ -77,7 +75,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
     public <F, Y> void convertOrPostpone(Kit<F, UUID> kit, S dst, RestSimpleDTOMapper<F, Y> lazyModeMapper, MapperContext mapperContext, BiConsumer<S, List<Y>> lazyModeFunction, BiConsumer<S, Set<UUID>> noLazyModeFunction) throws Exception {
         if (kit != null) {
             if (mapperContext.isLazyRelations())
-                lazyModeFunction.accept(dst, lazyModeMapper.convertList(kit.getCollection(), mapperContext));
+                lazyModeFunction.accept(dst, lazyModeMapper.convertCollection(kit.getCollection(), mapperContext));
             else {
                 noLazyModeFunction.accept(dst, kit.getIdSet());
                 mapperContext.addRelatedObjectCollection(kit.getCollection());

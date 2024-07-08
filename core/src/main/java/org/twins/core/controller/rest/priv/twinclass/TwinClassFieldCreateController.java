@@ -14,19 +14,17 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldCreateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
-import org.twins.core.service.user.UserService;
 
 import java.util.UUID;
 
@@ -35,12 +33,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassFieldCreateController extends ApiController {
-    final AuthService authService;
-    final UserService userService;
-    final TwinClassFieldService twinClassFieldService;
-    final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
-    final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldCreateRestDTOReverseMapper twinClassFieldCreateRestDTOReverseMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldCreateV1", summary = "Create new twin class field")
@@ -49,17 +45,15 @@ public class TwinClassFieldCreateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/field/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/twin_class/{twinClassId}/field/v1")
     public ResponseEntity<?> twinClassFieldCreateV1(
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.showClassFieldMode, defaultValue = TwinClassFieldRestDTOMapper.Mode._SHORT) TwinClassFieldRestDTOMapper.Mode showClassFieldMode,
             @RequestBody TwinClassFieldCreateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldEntity = twinClassFieldCreateRestDTOReverseMapper.convert(request)
                     .setTwinClassId(twinClassId);
-            MapperContext mapperContext = new MapperContext()
-                    .setMode(showClassFieldMode);
             twinClassFieldEntity = twinClassFieldService.createSimpleField(twinClassFieldEntity, request.getName(), request.getDescription());
             rs
                     .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext));

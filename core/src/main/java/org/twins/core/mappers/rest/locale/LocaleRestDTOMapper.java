@@ -3,7 +3,7 @@ package org.twins.core.mappers.rest.locale;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.domain.DomainLocaleEntity;
 import org.twins.core.dto.rest.domain.LocaleDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 @Component

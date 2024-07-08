@@ -11,22 +11,21 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.LinkListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
-import org.twins.core.mappers.rest.link.LinkRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.UUID;
 
@@ -35,13 +34,10 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassLinkListController extends ApiController {
-    final AuthService authService;
-    final LinkService linkService;
-    final TwinClassService twinClassService;
-    final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
-    final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
-    final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-
+    private final LinkService linkService;
+    private final LinkForwardRestDTOMapper linkForwardRestDTOMapper;
+    private final LinkBackwardRestDTOMapper linkBackwardRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassLinkListV1", summary = "Returns twin class link list")
@@ -50,18 +46,12 @@ public class TwinClassLinkListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = LinkListRsDTOv1.class)) }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/twin_class/{twinClassId}/link/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/twin_class/{twinClassId}/link/v1")
     public ResponseEntity<?> twinClassLinkListV1(
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.lazyRelation, defaultValue = "true") boolean lazyRelation,
-            @RequestParam(name = RestRequestParam.showClassMode, defaultValue = TwinClassBaseRestDTOMapper.ClassMode._SHORT) TwinClassBaseRestDTOMapper.ClassMode showClassMode,
-            @RequestParam(name = RestRequestParam.showLinkMode, defaultValue = LinkRestDTOMapper.Mode._SHORT) LinkRestDTOMapper.Mode showLinkMode) {
+            @MapperContextBinding(roots = {LinkForwardRestDTOMapper.class, LinkBackwardRestDTOMapper.class}, response = LinkListRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         LinkListRsDTOv1 rs = new LinkListRsDTOv1();
         try {
-            MapperContext mapperContext = new MapperContext()
-                    .setLazyRelations(lazyRelation)
-                    .setMode(showClassMode)
-                    .setMode(showLinkMode);
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(twinClassId);
             rs
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext))

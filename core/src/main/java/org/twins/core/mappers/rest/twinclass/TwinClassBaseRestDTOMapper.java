@@ -1,25 +1,25 @@
 package org.twins.core.mappers.rest.twinclass;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.MapperMode;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
 
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = TwinClassMode.class)
 public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassBaseDTOv1> {
-    final I18nService i18nService;
+    private final I18nService i18nService;
 
     @Override
     public void map(TwinClassEntity src, TwinClassBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(ClassMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(TwinClassMode.DETAILED)) {
             case DETAILED:
                 dst
                         .id(src.getId())
@@ -44,7 +44,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
 
     @Override
     public boolean hideMode(MapperContext mapperContext) {
-        return mapperContext.hasModeOrEmpty(ClassMode.HIDE);
+        return mapperContext.hasModeOrEmpty(TwinClassMode.HIDE);
     }
 
     @Override
@@ -53,17 +53,4 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
     }
 
 
-    @AllArgsConstructor
-    public enum ClassMode implements MapperMode {
-        HIDE(0),
-        SHORT(1),
-        DETAILED(2);
-
-        public static final String _HIDE = "HIDE";
-        public static final String _SHORT = "SHORT";
-        public static final String _DETAILED = "DETAILED";
-
-        @Getter
-        final int priority;
-    }
 }

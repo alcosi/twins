@@ -18,9 +18,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -33,10 +32,10 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<FieldValueText, FieldValue> {
-    final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    final TwinClassFieldService twinClassFieldService;
-    final TwinService twinService;
-    final FeaturerService featurerService;
+
+    private final TwinClassFieldService twinClassFieldService;
+    private final TwinService twinService;
+    private final FeaturerService featurerService;
 
     @Override
     public void map(FieldValueText src, FieldValue dst, MapperContext mapperContext) throws Exception {
@@ -134,7 +133,7 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                 CollectionUtils.addIgnoreNull(
                         fields,
                         createValueByClassIdAndFieldKey(twinClassId, entry.getKey(), entry.getValue()));
-        return convertList(fields);
+        return convertCollection(fields);
     }
 
     public List<FieldValue> mapFields(Map<UUID, String> fieldsMap) throws Exception { // map key is twinClassFieldId
@@ -147,6 +146,6 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
                         fields,
                         createValueByTwinClassFieldId(entry.getKey(), entry.getValue()));
             }
-        return convertList(fields);
+        return convertCollection(fields);
     }
 }

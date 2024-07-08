@@ -33,9 +33,9 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountAddController extends ApiController {
-    final DomainService domainService;
-    final AuthService authService;
-    final UserResolverSystem userResolverSystem;
+    private final DomainService domainService;
+    private final AuthService authService;
+    private final UserResolverSystem userResolverSystem;
 
     @ParameterChannelHeader
     @Operation(operationId = "domainBusinessAccountAddV1", summary = "Add businessAccount to domain. " +
@@ -45,7 +45,7 @@ public class DomainBusinessAccountAddController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/domain/{domainId}/business_account/v1", method = RequestMethod.POST)
+    @PostMapping(value = "/private/domain/{domainId}/business_account/v1")
     public ResponseEntity<?> domainBusinessAccountAddV1(
             @Parameter(example = DTOExamples.DOMAIN_ID) @PathVariable UUID domainId,
             @RequestBody DomainBusinessAccountAddRqDTOv1 request) {

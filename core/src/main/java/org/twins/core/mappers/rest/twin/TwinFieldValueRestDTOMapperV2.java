@@ -8,9 +8,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,7 +19,6 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValue, FieldValueText> {
-    final TwinService twinService;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -55,8 +53,8 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
     }
 
     @Override
-    public List<FieldValueText> convertList(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
-        return super.convertList(srcList
+    public List<FieldValueText> convertCollection(Collection<FieldValue> srcList, MapperContext mapperContext) throws Exception {
+        return super.convertCollection(srcList
                 .stream().filter(v -> !(v instanceof FieldValueInvisible)).toList(), mapperContext);
     }
 

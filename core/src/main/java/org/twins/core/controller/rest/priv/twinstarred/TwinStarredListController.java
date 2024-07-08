@@ -11,16 +11,18 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinStarredEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinStarredListRsDTOv1;
-import org.twins.core.mappers.rest.MapperContext;
-import org.twins.core.mappers.rest.twin.TwinBaseRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
 import org.twins.core.service.twin.TwinStarredService;
 
@@ -32,8 +34,8 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStarredListController extends ApiController {
-    final TwinStarredService twinStarredService;
-    final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
+    private final TwinStarredService twinStarredService;
+    private final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinStarredListV1", summary = "Return list of starred twins of given class ")
@@ -44,14 +46,13 @@ public class TwinStarredListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_class/{twinClassId}/starred/v1")
     public ResponseEntity<?> twinStarredListV1(
-            @RequestParam(name = RestRequestParam.showTwinMode, defaultValue = TwinBaseRestDTOMapper.TwinMode._DETAILED) TwinBaseRestDTOMapper.TwinMode showTwinMode,
+            @MapperContextBinding(roots = TwinStarredRestDTOMapper.class, response = TwinStarredListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinStarredListRsDTOv1 rs = new TwinStarredListRsDTOv1();
         try {
             List<TwinStarredEntity> twinStarredList = twinStarredService.findStarred(twinClassId);
             rs
-                    .setStarredTwins(twinStarredRestDTOMapper.convertList(twinStarredList, new MapperContext()
-                            .setMode(showTwinMode)));
+                    .setStarredTwins(twinStarredRestDTOMapper.convertCollection(twinStarredList, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
