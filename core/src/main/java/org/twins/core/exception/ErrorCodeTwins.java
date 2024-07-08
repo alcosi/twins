@@ -75,7 +75,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_PARAM_MISSED(11602, "twin search params count incorrect"),
     TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
     TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
-    TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect");
+    TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect"),
+    SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied");
 
 
     private final int code;

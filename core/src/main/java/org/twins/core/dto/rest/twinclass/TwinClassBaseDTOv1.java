@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -63,4 +64,21 @@ public class TwinClassBaseDTOv1 {
 
     @Schema(description = "")
     public Boolean aliasSpace;
+
+    @Schema(description = "head hunter featurer id")
+    private Integer headHunterFeaturerId;
+
+    @Schema(description = "head hunter featurer params")
+    private Map<String, String> headHunterParams;
+
+    @Schema(description = "view permission id")
+    private UUID viewPermissionId;
+
+    @Schema(description = "uuid of name in I18n table")
+    private UUID nameI18nId;
+
+    @Schema(description = "uuid of description in I18n table")
+    private UUID descriptionI18nId;
+
+
 }
