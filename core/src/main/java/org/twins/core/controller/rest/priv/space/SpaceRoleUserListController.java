@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,7 +30,6 @@ import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.space.SpaceRoleUserSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.space.UserRefSpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.cambium.common.pagination.PaginationResult;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
@@ -88,7 +88,7 @@ public class SpaceRoleUserListController extends ApiController {
         try {
             PaginationResult<UserRefSpaceRole> usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
             rs
-                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertList(usersRefRoles.getList(), mapperContext))
+                    .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
