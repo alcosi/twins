@@ -12,7 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 public enum TwinClassFieldMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
-    @FieldNameConstants.Include DETAILED(2);
+    @FieldNameConstants.Include DETAILED(2),
+    @FieldNameConstants.Include MANAGED(3);
 
     final int priority;
 
@@ -22,7 +23,8 @@ public enum TwinClassFieldMode implements MapperMode {
     public enum TwinClass2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -32,6 +34,7 @@ public enum TwinClassFieldMode implements MapperMode {
                 case HIDE -> TwinClassFieldMode.HIDE;
                 case SHORT -> TwinClassFieldMode.SHORT;
                 case DETAILED -> TwinClassFieldMode.DETAILED;
+                case MANAGED -> TwinClassFieldMode.MANAGED;
             };
         }
     }
@@ -42,7 +45,9 @@ public enum TwinClassFieldMode implements MapperMode {
     public enum TwinField2TwinClassFieldMode implements MapperModePointer<TwinClassFieldMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
 
         final int priority;
 
@@ -52,6 +57,7 @@ public enum TwinClassFieldMode implements MapperMode {
                 case HIDE -> TwinClassFieldMode.HIDE;
                 case SHORT -> TwinClassFieldMode.SHORT;
                 case DETAILED -> TwinClassFieldMode.DETAILED;
+                case MANAGED -> TwinClassFieldMode.MANAGED;
             };
         }
     }
