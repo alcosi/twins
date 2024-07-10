@@ -110,11 +110,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     @Transactional
     public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n) throws ServiceException {
-        if (nameI18n == null)
-            nameI18n = new I18nEntity();
         twinStatusEntity.setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId());
-        if (descriptionsI18n == null)
-            descriptionsI18n = new I18nEntity();
         twinStatusEntity.setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
         return entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }

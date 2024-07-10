@@ -15,7 +15,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -205,15 +204,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     }
 
-    public boolean isFieldsOfTwinClassFieldExists(FeaturerEntity fieldTyperFeaturer, UUID twinClassFieldId) throws ServiceException {
+    public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
         boolean result = false;
-        FieldTyper fieldTyper = featurerService.getFeaturer(fieldTyperFeaturer, FieldTyper.class);
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
         if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
-            result = twinFieldSimpleRepository.existsByTwinClassFieldId(twinClassFieldId);
+            result = twinFieldSimpleRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
-            result = twinFieldUserRepository.existsByTwinClassFieldId(twinClassFieldId);
+            result = twinFieldUserRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
         } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
-            result = twinFieldDataListRepository.existsByTwinClassFieldId(twinClassFieldId);
+            result = twinFieldDataListRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
         }
         return result;
     }

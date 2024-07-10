@@ -48,7 +48,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final EntitySmartService entitySmartService;
     private final PermissionRepository permissionRepository;
     private final FeaturerRepository featurerRepository;
+    @Lazy
     private final TwinService twinService;
+    @Lazy
+    private final TwinClassService twinClassService;
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
@@ -185,10 +188,6 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
         FeaturerEntity fieldTyperSimple = featurerRepository.getById(1301);
-        if (nameI18n == null)
-            nameI18n = new I18nEntity();
-        if (descriptionI18n == null)
-            descriptionI18n = new I18nEntity();
         twinClassFieldEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
@@ -217,24 +216,37 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public TwinClassFieldEntity updateField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinClassFieldEntity dbTwinClassFieldEntity = findEntitySafe(twinClassFieldEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
+        updateTwinClassFieldTwinClass(dbTwinClassFieldEntity, twinClassFieldEntity.getTwinClassId(), changesHelper);
         updateTwinClassField_FieldTyperFeaturerId(dbTwinClassFieldEntity, twinClassFieldEntity.getFieldTyperFeaturerId(), twinClassFieldEntity.getFieldTyperParams(), changesHelper);
         updateTwinClassFieldName(dbTwinClassFieldEntity, nameI18n, changesHelper);
         updateTwinClassFieldDescription(dbTwinClassFieldEntity, descriptionI18n, changesHelper);
         updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
-        twinClassFieldEntity.setNameI18NId(nameI18n.getId());
-        twinClassFieldEntity.setDescriptionI18NId(descriptionI18n.getId());
         updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.isRequired(), changesHelper);
         entitySmartService.saveAndLogChanges(dbTwinClassFieldEntity, twinClassFieldRepository, changesHelper);
         return twinClassFieldEntity;
     }
 
     @Transactional
+    public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("twinClassId", dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
+            return;
+        if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
+                if(!twinClassService.findExtendedClasses(dbTwinClassFieldEntity.getTwinClass(), true).contains(newTwinClassId))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "twin-class of twin-class-field can not be updated, because some twins with fields of given class are already exist, " +
+                    "and you can only change the class to the parent class from which the current class inherits.");
+        dbTwinClassFieldEntity
+                .setTwinClassId(newTwinClassId)
+                .setTwinClass(twinClassService.findEntitySafe(newTwinClassId));
+    }
+
+
+    @Transactional
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("fieldTyperFeaturerId", dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId))
             return;
-        if (twinService.isFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity.getFieldTyperFeaturer(), dbTwinClassFieldEntity.getId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not checnge fieldtyper featurer, because some twins with fields of given class are already exist");
+        if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
         FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
             dbTwinClassFieldEntity
                     .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
@@ -273,7 +285,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional
     public void updateTwinClassFieldEditPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newEditPermissionId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("viewPermissionId", dbTwinClassFieldEntity.getEditPermissionId(), newEditPermissionId))
+        if (!changesHelper.isChanged("editPermissionId", dbTwinClassFieldEntity.getEditPermissionId(), newEditPermissionId))
             return;
         dbTwinClassFieldEntity.setEditPermissionId(UuidUtils.nullifyIfNecessary(newEditPermissionId));
     }

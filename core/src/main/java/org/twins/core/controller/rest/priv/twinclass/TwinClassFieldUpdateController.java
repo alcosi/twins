@@ -47,7 +47,7 @@ public class TwinClassFieldUpdateController extends ApiController {
                     @Schema(implementation = TwinClassFieldRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin_class_field/{twinClassFieldId}/v1")
-    public ResponseEntity<?> twinClassFieldCreateV1(
+    public ResponseEntity<?> twinClassFieldUpdateV1(
             @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_FIELD_ID) @PathVariable UUID twinClassFieldId,
             @RequestBody TwinClassFieldUpdateRqDTOv1 request) {
