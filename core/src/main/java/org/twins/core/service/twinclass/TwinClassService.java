@@ -352,7 +352,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
-        twinClassRepository.save(twinClassUpdate.getDbTwinClassEntity());
+        entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
         evictCache(twinClassUpdate.getDbTwinClassEntity().getId());
     }
 
