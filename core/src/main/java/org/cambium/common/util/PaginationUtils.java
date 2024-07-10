@@ -12,13 +12,14 @@ import java.util.function.Function;
 import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
 public class PaginationUtils {
-    public static final String DEFAULT_VALUE_LIMIT = "10";
     public static final String DEFAULT_VALUE_OFFSET = "0";
+    public static final String DEFAULT_VALUE_LIMIT = "10";
+    public static final String SORT_UNSORTED = "unsorted";
 
-    public static Sort sort(boolean asc, String field) {
-        Sort.Direction direction = Sort.Direction.DESC;
-        if (asc) direction = Sort.Direction.ASC;
-        return Sort.by(direction, field);
+    public static Sort sortType(boolean sortAsc, String sortField) {
+        if (sortField.equals(SORT_UNSORTED))
+            return Sort.unsorted();
+        return Sort.by(sortAsc ? Sort.Direction.ASC : Sort.Direction.DESC, sortField);
     }
 
     public static Pageable pagination(int page, int size) {
@@ -35,16 +36,26 @@ public class PaginationUtils {
 
     public static Pageable pageableOffset(SimplePagination pagination) throws ServiceException {
         if (pagination.getOffset() % pagination.getLimit() > 0) throw new ServiceException(PAGINATION_ERROR);
-        return pagination.getSort() == null
+        Sort sort = sortType(pagination.isSortAsc(), pagination.getSortField());
+        return sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
-                : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), pagination.getSort());
+                : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), sort);
     }
 
+    //todo delete (replace where method in use)
     public static SimplePagination createSimplePagination(int offset, int limit, Sort sort) {
         return new SimplePagination()
                 .setOffset(offset)
+                .setLimit(limit);
+    }
+
+    //todo delete (replace where method in use)
+    public static SimplePagination createSimplePagination(int offset, int limit, boolean sortAsc, String sortField) {
+        return new SimplePagination()
+                .setOffset(offset)
                 .setLimit(limit)
-                .setSort(sort);
+                .setSortAsc(sortAsc)
+                .setSortField(sortField);
     }
 
     public static <T> PaginationResult<T> convertInPaginationResult(SimplePagination pagination) throws ServiceException {

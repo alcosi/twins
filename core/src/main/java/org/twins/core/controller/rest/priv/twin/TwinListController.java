@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.dto.rest.DTOExamples;
@@ -65,12 +67,11 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV1(
             @MapperContextBinding(roots = TwinRestDTOMapper.class, response = TwinSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+            @SimplePaginationParams(sortAsc = false, sortField = "createAt") SimplePagination pagination,
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv1 rs = new TwinSearchRsDTOv1();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinList(twinRestDTOMapper.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
@@ -94,12 +95,12 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchV2(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+//            @SimplePaginationParams(sortAsc = false, sortField = "createAt") SimplePagination pagination,
+            @SimplePaginationParams SimplePagination pagination, //todo delete row (just for example)
             @RequestBody TwinSearchRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchWithHeadDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
@@ -131,7 +132,7 @@ public class TwinListController extends ApiController {
             List<BasicSearch> basicSearches = new ArrayList<>();
             for (TwinSearchRqDTOv1 dto : request)
                 basicSearches.add(twinSearchWithHeadDTOReverseMapper.convert(dto));
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(basicSearches, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(basicSearches, createSimplePagination(offset, limit, sortType(false, TwinEntity.Fields.createdAt)));
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
@@ -162,7 +163,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), createSimplePagination(offset, limit, sortType(false, TwinEntity.Fields.createdAt)));
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
@@ -192,7 +193,7 @@ public class TwinListController extends ApiController {
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(searchId, request.getParams(), twinSearchWithHeadDTOReverseMapper.convert(request.getNarrow()), createSimplePagination(offset, limit, sortType(false, TwinEntity.Fields.createdAt)));
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))

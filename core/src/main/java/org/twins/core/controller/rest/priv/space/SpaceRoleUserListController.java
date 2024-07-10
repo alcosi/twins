@@ -86,7 +86,7 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            PaginationResult<UserRefSpaceRole> usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<UserRefSpaceRole> usersRefRoles = spaceUserRoleService.getAllUsersRefRolesBySpaceIdMap(spaceId, createSimplePagination(offset, limit, sortType(false, TwinEntity.Fields.createdAt)));
             rs
                     .setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRoles.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRoles))
@@ -115,7 +115,7 @@ public class SpaceRoleUserListController extends ApiController {
             @RequestBody UserRefSpaceRoleSearchDTOv1 request) {
         UserWithinSpaceRolesListRsDTOv1 rs = new UserWithinSpaceRolesListRsDTOv1();
         try {
-            PaginationResult<UserRefSpaceRole> usersRefRolesMap = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sort(false, TwinEntity.Fields.createdAt)));
+            PaginationResult<UserRefSpaceRole> usersRefRolesMap = spaceUserRoleService.getUsersRefRolesMap(userSearchRqDTOReverseMapper.convert(request), spaceId, createSimplePagination(offset, limit, sortType(false, TwinEntity.Fields.createdAt)));
             rs.setUsersRefSpaceRolesList(userRefSpaceRoleDTOMapper.convertCollection(usersRefRolesMap.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(usersRefRolesMap))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
