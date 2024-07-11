@@ -105,6 +105,9 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "tag_data_list_id")
     private UUID tagDataListId;
 
+    @Column(name = "delete_twin_factory_id")
+    private UUID deleteTwinFactoryId;
+
     @Column(name = "twin_class_owner_type_id")
     @Convert(converter = TwinClassOwnerTypeConverter.class)
     private OwnerType ownerType;
