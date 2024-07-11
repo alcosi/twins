@@ -37,8 +37,7 @@ public class SimplePaginationParamsOperationCustomizer implements OperationCusto
                         .in("query")
                         .schema(new Schema<>().type("boolean")._default(paginationParams.sortAsc())));
 
-                if (operation.getParameters() == null)
-                    operation.setParameters(parameters);
+                if (null == operation.getParameters()) operation.setParameters(new ArrayList<>());
                 operation.getParameters().addAll(parameters);
                 break;
             }
