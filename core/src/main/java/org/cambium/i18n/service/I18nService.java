@@ -205,7 +205,11 @@ public abstract class I18nService  {
 
     @Transactional(rollbackFor = Throwable.class)
     public I18nEntity createI18nAndTranslations(I18nType i18nType, I18nEntity i18nEntity) throws ServiceException {
-        if (i18nEntity.getType() != null && !i18nEntity.getType().equals(i18nType))
+        if(null == i18nType)
+            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type not specified");
+        if(null == i18nEntity)
+            i18nEntity = new I18nEntity();
+        if (!i18nEntity.getType().equals(i18nType))
             throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type mismatch");
         i18nEntity
                 .setType(i18nType)

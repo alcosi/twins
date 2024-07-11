@@ -63,33 +63,32 @@ import static org.twins.core.dao.specifications.twin_class.TwinClassSpecificatio
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntity> {
-    final TwinRepository twinRepository;
-    final TwinClassRepository twinClassRepository;
-    final TwinClassSchemaRepository twinClassSchemaRepository;
-    final TwinClassFieldService twinClassFieldService;
-    final EntitySmartService entitySmartService;
-    final I18nService i18nService;
-    final EntityManager entityManager;
-    final DataListRepository dataListRepository;
-    final PermissionRepository permissionRepository;
+    private final TwinRepository twinRepository;
+    private final TwinClassRepository twinClassRepository;
+    private final TwinClassSchemaRepository twinClassSchemaRepository;
+    private final TwinClassFieldService twinClassFieldService;
+    private final EntitySmartService entitySmartService;
+    private final I18nService i18nService;
+    private final DataListRepository dataListRepository;
+    private final PermissionRepository permissionRepository;
     @Lazy
-    final TwinStatusService twinStatusService;
+    private final TwinStatusService twinStatusService;
     @Lazy
-    final TwinflowService twinflowService;
+    private final TwinflowService twinflowService;
     @Lazy
-    final DomainService domainService;
+    private final DomainService domainService;
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
     @Lazy
-    final FeaturerService featurerService;
+    private final FeaturerService featurerService;
     @Lazy
-    final TwinMarkerService twinMarkerService;
+    private final TwinMarkerService twinMarkerService;
     @Lazy
-    final TwinTagService twinTagService;
+    private final TwinTagService twinTagService;
     @Lazy
-    final DataListService dataListService;
+    private final DataListService dataListService;
     @Lazy
-    final TwinService twinService;
+    private final TwinService twinService;
     @Autowired
     private CacheManager cacheManager;
 
@@ -184,31 +183,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return duplicateTwinClassEntity;
     }
 
-    public Set<UUID> findExtendedClasses(UUID twinClassId, boolean includeSelf) throws ServiceException {
-        return findExtendedClasses(findEntitySafe(twinClassId), includeSelf);
-    }
-
-    public Set<UUID> findExtendedClasses(TwinClassEntity twinClassEntity, boolean includeSelf) {
-        Set<UUID> ret = new LinkedHashSet<>();
-        if (includeSelf)
-            ret.add(twinClassEntity.getId());
-        if (twinClassEntity.getExtendsTwinClassId() == null)
-            return ret;
-        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
-        ret.add(extendedTwinClassId);
-        for (int i = 0; i <= 10; i++) {
-            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
-            if (extendedTwinClassId == null)
-                break;
-            if (ret.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.logShort() + " inheritance recursion");
-                break;
-            }
-            ret.add(extendedTwinClassId);
-        }
-        return ret;
-    }
-
     public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getChildClassIdSet() != null)
             return twinClassEntity.getChildClassIdSet();
@@ -220,17 +194,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return childClassIdSet;
     }
 
-    public boolean isInstanceOf(UUID instanceClassId, UUID ofClass) throws ServiceException {
-        Set<UUID> parentClasses;
-        if (!instanceClassId.equals(ofClass)) {
-            parentClasses = findExtendedClasses(instanceClassId, true);
-            return parentClasses.contains(ofClass);
-        }
-        return true;
-    }
-
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
-        Set<UUID> parentClasses;
         if (!instanceClass.getId().equals(ofClass)) {
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }
@@ -268,10 +232,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (twinClassEntity.getViewPermissionId() != null
                 && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + twinClassEntity.getViewPermissionId() + "]");
-        if (nameI18n == null)
-            nameI18n = new I18nEntity();
-        if (descriptionI18n == null)
-            descriptionI18n = new I18nEntity();
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
@@ -352,7 +312,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
-        twinClassRepository.save(twinClassUpdate.getDbTwinClassEntity());
+        entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
         evictCache(twinClassUpdate.getDbTwinClassEntity().getId());
     }
 
