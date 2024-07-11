@@ -15,13 +15,10 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Autowired
     private MapperModesResolveService mapperModesResolveService;
-    @Autowired
-    private SimplePaginationParamsHandlerMethodArgumentResolver simplePaginationParamsHandlerMethodArgumentResolver;
-
 
     @Override
     public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
         resolvers.add(new MapperContextHandlerMethodArgumentResolver(mapperModesResolveService));
-        resolvers.add(simplePaginationParamsHandlerMethodArgumentResolver);
+        resolvers.add(new SimplePaginationParamsHandlerMethodArgumentResolver());
     }
 }

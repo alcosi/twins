@@ -3,6 +3,7 @@ package org.twins.core.config.openapi;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.Schema;
+import org.cambium.common.util.PaginationUtils;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -36,16 +37,9 @@ public class SimplePaginationParamsOperationCustomizer implements OperationCusto
                         .in("query")
                         .schema(new Schema<>().type("boolean")._default(paginationParams.sortAsc())));
 
-                parameters.add(new Parameter()
-                        .name("field")
-                        .in("query")
-                        .schema(new Schema<>().type("string")._default(paginationParams.sortField())));
-
-                if (operation.getParameters() == null) {
+                if (operation.getParameters() == null)
                     operation.setParameters(parameters);
-                } else {
-                    operation.getParameters().addAll(parameters);
-                }
+                operation.getParameters().addAll(parameters);
                 break;
             }
         }
