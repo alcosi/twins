@@ -183,31 +183,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return duplicateTwinClassEntity;
     }
 
-    public Set<UUID> findExtendedClasses(UUID twinClassId, boolean includeSelf) throws ServiceException {
-        return findExtendedClasses(findEntitySafe(twinClassId), includeSelf);
-    }
-
-    public Set<UUID> findExtendedClasses(TwinClassEntity twinClassEntity, boolean includeSelf) {
-        Set<UUID> ret = new LinkedHashSet<>();
-        if (includeSelf)
-            ret.add(twinClassEntity.getId());
-        if (twinClassEntity.getExtendsTwinClassId() == null)
-            return ret;
-        UUID extendedTwinClassId = twinClassEntity.getExtendsTwinClassId();
-        ret.add(extendedTwinClassId);
-        for (int i = 0; i <= 10; i++) {
-            extendedTwinClassId = twinClassRepository.findExtendedClassId(extendedTwinClassId);
-            if (extendedTwinClassId == null)
-                break;
-            if (ret.contains(extendedTwinClassId)) {
-                log.warn(twinClassEntity.logShort() + " inheritance recursion");
-                break;
-            }
-            ret.add(extendedTwinClassId);
-        }
-        return ret;
-    }
-
     public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getChildClassIdSet() != null)
             return twinClassEntity.getChildClassIdSet();
@@ -219,17 +194,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return childClassIdSet;
     }
 
-    public boolean isInstanceOf(UUID instanceClassId, UUID ofClass) throws ServiceException {
-        Set<UUID> parentClasses;
-        if (!instanceClassId.equals(ofClass)) {
-            parentClasses = findExtendedClasses(instanceClassId, true);
-            return parentClasses.contains(ofClass);
-        }
-        return true;
-    }
-
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
-        Set<UUID> parentClasses;
         if (!instanceClass.getId().equals(ofClass)) {
             return instanceClass.getExtendedClassIdSet().contains(ofClass);
         }

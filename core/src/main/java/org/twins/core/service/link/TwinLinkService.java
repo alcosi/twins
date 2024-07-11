@@ -82,9 +82,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 if (entity.getLinkId() != entity.getLink().getId())
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect link object");
             default:
-                if (!twinClassService.isInstanceOf(entity.getSrcTwin().getTwinClassId(), entity.getLink().getSrcTwinClassId()))
+                if (!twinClassService.isInstanceOf(entity.getSrcTwin().getTwinClass(), entity.getLink().getSrcTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect srcTwinId");
-                if (!twinClassService.isInstanceOf(entity.getDstTwin().getTwinClassId(), entity.getLink().getDstTwinClassId()))
+                if (!twinClassService.isInstanceOf(entity.getDstTwin().getTwinClass(), entity.getLink().getDstTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwinId");
         }
         return true;

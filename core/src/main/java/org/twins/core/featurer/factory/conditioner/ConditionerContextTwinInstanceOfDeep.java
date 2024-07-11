@@ -40,7 +40,7 @@ public class ConditionerContextTwinInstanceOfDeep extends Conditioner {
         FactoryItem contextItem = factoryItem.checkNotMultiplyContextItem();
         if (contextItem == null)
             return false;
-        if (twinClassService.isInstanceOf(contextItem.getTwin().getTwinClassId(), instanceOfTwinClassId.extract(properties)))
+        if (twinClassService.isInstanceOf(contextItem.getTwin().getTwinClass(), instanceOfTwinClassId.extract(properties)))
             return true;
         // we will try to look deeper
         return check(properties, factoryItem.checkNotMultiplyContextItem(), recursionCounter - 1);

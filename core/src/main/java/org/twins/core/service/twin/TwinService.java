@@ -144,7 +144,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 if (entity.getTwinStatus() == null)
                     entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
             default:
-                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getTwinStatus().getTwinClassId()))
+                if (!twinClassService.isInstanceOf(entity.getTwinClass(), entity.getTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
         }
         return true;
