@@ -30,6 +30,6 @@ public class ConditionerFactoryItemTwinInstanceOf extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClassId(), instanceOfTwinClassId.extract(properties));
+        return twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), instanceOfTwinClassId.extract(properties));
     }
 }

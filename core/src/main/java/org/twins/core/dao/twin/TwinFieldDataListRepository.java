@@ -15,6 +15,9 @@ import java.util.UUID;
 
 @Repository
 public interface TwinFieldDataListRepository extends CrudRepository<TwinFieldDataListEntity, UUID>, JpaSpecificationExecutor<TwinFieldDataListEntity> {
+
+    boolean existsByTwinClassFieldId(UUID twinClassFieldId);
+
     List<TwinFieldDataListEntity> findByTwinIdAndTwinClassFieldId(UUID twinId, UUID twinClassFieldId);
 
     List<TwinFieldDataListEntity> findByTwinId(UUID twinId);

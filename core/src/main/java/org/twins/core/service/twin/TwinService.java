@@ -1,6 +1,5 @@
 package org.twins.core.service.twin;
 
-import jakarta.persistence.EntityManager;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
@@ -29,7 +28,6 @@ import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
@@ -57,37 +55,35 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
-    final TwinRepository twinRepository;
-    final TwinFieldSimpleRepository twinFieldSimpleRepository;
-    final TwinFieldUserRepository twinFieldUserRepository;
-    final TwinFieldDataListRepository twinFieldDataListRepository;
-    final TwinClassFieldRepository twinClassFieldRepository;
-    final TwinClassFieldService twinClassFieldService;
-    final EntityManager entityManager;
-    final EntitySmartService entitySmartService;
-    final TwinflowService twinflowService;
-    final TwinClassService twinClassService;
+    private final TwinRepository twinRepository;
+    private final TwinFieldSimpleRepository twinFieldSimpleRepository;
+    private final TwinFieldUserRepository twinFieldUserRepository;
+    private final TwinFieldDataListRepository twinFieldDataListRepository;
+    private final TwinClassFieldService twinClassFieldService;
+    private final EntitySmartService entitySmartService;
+    private final TwinflowService twinflowService;
+    private final TwinClassService twinClassService;
     @Lazy
-    final TwinHeadService twinHeadService;
-    final TwinStatusService twinStatusService;
-    final FeaturerService featurerService;
-    final AttachmentService attachmentService;
+    private final TwinHeadService twinHeadService;
+    private final TwinStatusService twinStatusService;
+    private final FeaturerService featurerService;
+    private final AttachmentService attachmentService;
     @Lazy
-    final TwinLinkService twinLinkService;
+    private final TwinLinkService twinLinkService;
     @Lazy
-    final TwinMarkerService twinMarkerService;
+    private final TwinMarkerService twinMarkerService;
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
     @Lazy
-    final SystemEntityService systemEntityService;
-    final TwinChangesService twinChangesService;
+    private final SystemEntityService systemEntityService;
+    private final TwinChangesService twinChangesService;
     @Lazy
-    final HistoryService historyService;
-    final I18nService i18nService;
+    private final HistoryService historyService;
+    private final I18nService i18nService;
     @Lazy
-    final TwinTagService twinTagService;
+    private final TwinTagService twinTagService;
     @Lazy
-    final TwinAliasService twinAliasService;
+    private final TwinAliasService twinAliasService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -148,7 +144,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 if (entity.getTwinStatus() == null)
                     entity.setTwinStatus(twinStatusService.findEntitySafe(entity.getTwinStatusId()));
             default:
-                if (!twinClassService.isInstanceOf(entity.getTwinClassId(), entity.getTwinStatus().getTwinClassId()))
+                if (!twinClassService.isInstanceOf(entity.getTwinClass(), entity.getTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect twinStatusId[" + entity.getTwinStatusId() + "]");
         }
         return true;
@@ -206,6 +202,19 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             twinEntity.setTwinFieldDatalistKit(
                     new KitGrouped<>(hasDatalistFields ? twinFieldDataListRepository.findByTwinId(twinEntity.getId()) : null, TwinFieldDataListEntity::getId, TwinFieldDataListEntity::getTwinClassFieldId));
 
+    }
+
+    public boolean areFieldsOfTwinClassFieldExists(TwinClassFieldEntity twinClassFieldEntity) throws ServiceException {
+        boolean result = false;
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
+        if (fieldTyper.getStorageType() == TwinFieldSimpleEntity.class) {
+            result = twinFieldSimpleRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldUserEntity.class) {
+            result = twinFieldUserRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
+        } else if (fieldTyper.getStorageType() == TwinFieldDataListEntity.class) {
+            result = twinFieldDataListRepository.existsByTwinClassFieldId(twinClassFieldEntity.getId());
+        }
+        return result;
     }
 
     /**
