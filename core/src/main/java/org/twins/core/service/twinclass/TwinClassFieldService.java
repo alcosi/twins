@@ -231,8 +231,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("twinClassId", dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
             return;
-        if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
-                if(dbTwinClassFieldEntity.getTwinClass().getExtendedClassIdSet().contains(newTwinClassId))
+        if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity) &&
+                !twinClassService.isInstanceOf(dbTwinClassFieldEntity.getTwinClass(), newTwinClassId))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "twin-class of twin-class-field can not be updated, because some twins with fields of given class are already exist, " +
                     "and you can only change the class to the parent class from which the current class inherits.");
         dbTwinClassFieldEntity
@@ -248,9 +248,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
         FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
-            dbTwinClassFieldEntity
-                    .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
-                    .setFieldTyperFeaturer(newFieldTyperFeaturer);
+        dbTwinClassFieldEntity
+                .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
+                .setFieldTyperFeaturer(newFieldTyperFeaturer);
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams))
             dbTwinClassFieldEntity
                     .setFieldTyperParams(newFeaturerParams);
