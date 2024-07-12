@@ -30,6 +30,7 @@ import java.util.UUID;
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
 
     @MapperModePointerBinding(modes = {
+            TwinClassMode.class,
             TwinClassMode.TwinClassHead2TwinClassMode.class,
             TwinClassMode.TwinClassExtends2TwinClassMode.class
     })
