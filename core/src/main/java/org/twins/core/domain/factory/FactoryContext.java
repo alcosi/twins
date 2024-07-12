@@ -51,6 +51,9 @@ public class FactoryContext {
                                 .setTwinClass(inputTwin.getTwinClass())
                                 .setTwinClassId(inputTwin.getTwinClassId())
                         ));
+        // we have to do so, because all data for items can be looked up only from context
+        // see TwinFactoryService.lookupFieldValue
+        factoryItem.setContextFactoryItemList(List.of(factoryItem));
         factoryItemList.add(factoryItem);
     }
 
