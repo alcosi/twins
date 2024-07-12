@@ -24,9 +24,9 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformBatchRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapperV2;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapperV2;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twin.TwinCreateRqRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twin.TwinFieldValueRestDTOReverseMapperV2;
@@ -194,8 +194,8 @@ public class TwinTransitionPerformController extends ApiController {
                             .setNewTwinList(twinCreateRqRestDTOReverseMapper.convertCollection(request.getBatchContext().getNewTwins()));
                 TwinflowTransitionService.TransitionResult transitionResult = twinflowTransitionService.performTransition(transitionContext);
                 commonTransitionResult
-                        .addTransitionedTwin(transitionResult.getTransitionedTwinList())
-                        .addProcessedTwin(transitionResult.getProcessedTwinList());
+                        .addTransitionedTwins(transitionResult.getTransitionedTwinList())
+                        .addProcessedTwins(transitionResult.getProcessedTwinList());
             }
             twinTransitionPerformRsRestDTOMapper.map(commonTransitionResult, rs, mapperContext);
             rs

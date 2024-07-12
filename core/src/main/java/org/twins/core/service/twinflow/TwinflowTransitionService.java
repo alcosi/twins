@@ -34,6 +34,8 @@ import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryResultCommited;
+import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
@@ -454,9 +456,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public TransitionResult performTransition(TransitionContext transitionContext) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         validateTransition(transitionContext);
-        TransitionResult ret = new TransitionResult();
+        TransitionResult transitionResult = new TransitionResult();
         if (transitionContext.getAttachmentCUD() != null && CollectionUtils.isNotEmpty(transitionContext.getAttachmentCUD().getCreateList())) {
             transitionContext.getAttachmentCUD().getCreateList().forEach(a -> a
                     .setTwinflowTransitionId(transitionContext.getTransitionEntity().getId())
@@ -476,38 +477,50 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 }
             }
             LoggerUtils.traceTreeStart();
-            List<TwinOperation> twinFactoryOutput;
+            FactoryResultUncommited factoryResultUncommited;
             try {
-                twinFactoryOutput = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
+                factoryResultUncommited = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
             } finally {
                 LoggerUtils.traceTreeEnd();
             }
-            for (TwinOperation twinOperation : twinFactoryOutput) {
-                if (twinOperation instanceof TwinCreate twinCreate) {
-                    TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
-                    ret.addProcessedTwin(twinCreateResult.getCreatedTwin());
-                } else if (twinOperation instanceof TwinUpdate twinUpdate) {
-                    boolean isProcessedTwin = true;
-                    if (transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinUpdate.getTwinEntity().getId())) {// case when twin was taken from input, we have to force update status from transition
-                        if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
-                            twinUpdate.getTwinEntity()
-                                    .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
-                                    .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
-                        isProcessedTwin = false;
-                    }
-                    twinService.updateTwin(twinUpdate);
-                    if (isProcessedTwin) {
-                        ret.addProcessedTwin(twinUpdate.getDbTwinEntity());
-                    } else
-                        ret.addTransitionedTwin(twinUpdate.getDbTwinEntity());
-                }
-            }
+            transitionToDstStatus(transitionContext, factoryResultUncommited);
+            commitResult(transitionContext, factoryResultUncommited, transitionResult);
         } else {
             twinService.changeStatus(transitionContext.getTargetTwinList().values(), transitionContext.getTransitionEntity().getDstTwinStatus());
-            ret.setTransitionedTwinList(transitionContext.getTargetTwinList().values().stream().toList());
+            transitionResult.setTransitionedTwinList(transitionContext.getTargetTwinList().values().stream().toList());
         }
         runTriggers(transitionContext);
-        return ret;
+        return transitionResult;
+    }
+
+    @Transactional
+    public void transitionToDstStatus(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited) throws ServiceException {
+        for (TwinOperation twinOperation : factoryResultUncommited.getOperations()) {
+            if (twinOperation instanceof TwinUpdate twinUpdate) {
+                if (isTransitionedTwin(transitionContext, twinUpdate.getTwinEntity())) {// case when twin was taken from input, we have to force update status from transition
+                    if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
+                        twinUpdate.getTwinEntity()
+                                .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
+                                .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
+                }
+            }
+        }
+    }
+
+    @Transactional
+    public void commitResult(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited, TransitionResult transitionResult) throws ServiceException {
+        FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(factoryResultUncommited);
+        transitionResult.addProcessedTwins(factoryResultCommited.getCreatedTwinList());
+        for (TwinEntity twinUpdated : factoryResultCommited.getUpdatedTwinList()) {
+            if (isTransitionedTwin(transitionContext, twinUpdated))
+                transitionResult.addTransitionedTwin(twinUpdated);
+            else
+                transitionResult.addProcessedTwin(twinUpdated);
+        }
+    }
+
+    public static boolean isTransitionedTwin(TransitionContext transitionContext, TwinEntity twinEntity) {
+        return transitionContext.getTargetTwinList() != null && transitionContext.getTargetTwinList().containsKey(twinEntity.getId());
     }
 
     @Transactional
@@ -533,18 +546,16 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public static class TransitionResult {
         private List<TwinEntity> transitionedTwinList;
         private List<TwinEntity> processedTwinList;
+        private List<TwinEntity> deletedTwinList;
+        boolean commited = false;
 
         public TransitionResult addTransitionedTwin(TwinEntity twinEntity) {
             transitionedTwinList = org.cambium.common.util.CollectionUtils.safeAdd(transitionedTwinList, twinEntity);
             return this;
         }
 
-        public TransitionResult addTransitionedTwin(List<TwinEntity> twinEntityList) {
-            if (CollectionUtils.isEmpty(twinEntityList))
-                return this;
-            if (transitionedTwinList == null)
-                transitionedTwinList = new ArrayList<>();
-            transitionedTwinList.addAll(twinEntityList);
+        public TransitionResult addTransitionedTwins(List<TwinEntity> twinEntityList) {
+            transitionedTwinList = org.cambium.common.util.CollectionUtils.safeAdd(transitionedTwinList, twinEntityList);
             return this;
         }
 
@@ -553,12 +564,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             return this;
         }
 
-        public TransitionResult addProcessedTwin(List<TwinEntity> twinEntityList) {
-            if (CollectionUtils.isEmpty(twinEntityList))
-                return this;
-            if (processedTwinList == null)
-                processedTwinList = new ArrayList<>();
-            processedTwinList.addAll(twinEntityList);
+        public TransitionResult addProcessedTwins(List<TwinEntity> twinEntityList) {
+            processedTwinList = org.cambium.common.util.CollectionUtils.safeAdd(processedTwinList, twinEntityList);
             return this;
         }
     }

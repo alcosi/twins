@@ -12,17 +12,24 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.TwinOperation;
+import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.factory.FactoryResultCommited;
+import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -41,6 +48,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryRepository twinFactoryRepository;
     @Lazy
     final FeaturerService featurerService;
+    @Lazy
+    final AuthService authService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -57,16 +66,16 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return true;
     }
 
-    public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
+    public FactoryResultUncommited runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
         return runFactory(factoryId, factoryContext, null);
     }
 
-    public List<TwinOperation> runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+    public FactoryResultUncommited runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
         TwinFactoryEntity factoryEntity = findEntitySafe(factoryId);
         return runFactory(factoryEntity, factoryContext, factoryRunTrace);
     }
 
-    public List<TwinOperation> runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+    public FactoryResultUncommited runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
         log.info("Running " + factoryEntity.logNormal() + " current trace[" + factoryRunTrace + "]");
         if (factoryRunTrace == null) factoryRunTrace = "";
         if (factoryRunTrace.contains(factoryEntity.getId().toString()))
@@ -162,7 +171,23 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         }
         LoggerUtils.traceTreeLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
-        return factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutput).toList();
+        return new FactoryResultUncommited().setOperations(factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutput).toList());
+    }
+
+    @Transactional
+    public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        FactoryResultCommited factoryResultCommited = new FactoryResultCommited();
+        for (TwinOperation twinOperation : factoryResultUncommited.getOperations()) {
+            if (twinOperation instanceof TwinCreate twinCreate) {
+                TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
+                factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
+            } else if (twinOperation instanceof TwinUpdate twinUpdate) {
+                twinService.updateTwin(twinUpdate);
+                factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
+            }
+        }
+        return factoryResultCommited;
     }
 
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {

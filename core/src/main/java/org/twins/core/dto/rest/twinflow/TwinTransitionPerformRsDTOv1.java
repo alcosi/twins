@@ -21,4 +21,7 @@ public class TwinTransitionPerformRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "list of twins processed by transition (some new can be created or updated). Key is twinClassId")
     public Map<UUID, List<TwinDTOv2>> processedTwinList;
+
+    @Schema(description = "list of twins deleted by transition (some new can be created or updated). Key is twinClassId")
+    public Map<UUID, List<TwinDTOv2>> deletedTwinList;
 }

@@ -13,6 +13,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> List<T> safeAdd(List<T> list, T element) {
+        if (element == null)
+            return null;
         if (list == null)
             list = new ArrayList<>();
         list.add(element);
@@ -20,6 +22,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> List<T> safeAdd(List<T> list, Collection<T> elements) {
+        if (isEmpty(elements))
+            return null;
         if (list == null)
             list = new ArrayList<>();
         list.addAll(elements);
@@ -27,6 +31,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> Set<T> safeAdd(Set<T> set, T element) {
+        if (element == null)
+            return null;
         if (set == null)
             set = new HashSet<>();
         set.add(element);
@@ -34,6 +40,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> Set<T> safeAdd(Set<T> set, Collection<T> elements) {
+        if (isEmpty(elements))
+            return null;
         if (set == null)
             set = new HashSet<>();
         set.addAll(elements);
@@ -41,6 +49,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> Collection<T> safeAdd(Collection<T> list, T element) {
+        if (element == null)
+            return null;
         if (list == null)
             list = new ArrayList<>();
         list.add(element);
@@ -48,6 +58,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> Collection<T> safeAdd(Collection<T> list, Collection<T> elements) {
+        if (isEmpty(elements))
+            return null;
         if (list == null)
             list = new ArrayList<>();
         list.addAll(elements);
