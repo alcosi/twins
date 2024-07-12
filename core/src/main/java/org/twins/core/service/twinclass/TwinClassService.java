@@ -1,12 +1,13 @@
 package org.twins.core.service.twinclass;
 
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -44,8 +45,6 @@ import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -296,6 +295,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Transactional(rollbackFor = Throwable.class)
     public void updateTwinClass(TwinClassUpdate twinClassUpdate) throws ServiceException {
         TwinClassEntity dbTwinClassEntity = twinClassUpdate.getDbTwinClassEntity();
+        if (dbTwinClassEntity.getOwnerType().isSystemLevel())
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "system class can be edited");
         ChangesHelper changesHelper = new ChangesHelper();
         updateTwinClassName(dbTwinClassEntity, twinClassUpdate.getNameI18n(), changesHelper);
         updateTwinClassDescription(dbTwinClassEntity, twinClassUpdate.getDescriptionI18n(), changesHelper);
