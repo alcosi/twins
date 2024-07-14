@@ -123,10 +123,15 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) {
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
+                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true))
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
-                        .and(hasOwnerType(twinClassSearch.getOwnerType()))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), true, false))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true, true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))

@@ -14,10 +14,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinClassSearch {
     Set<UUID> twinClassIdList;
+    Set<UUID> twinClassIdExcludeList;
     Set<String> twinClassKeyLikeList;
     Set<UUID> headTwinClassIdList;
+    Set<UUID> headTwinClassIdExcludeList;
     Set<UUID> extendsTwinClassIdList;
-    TwinClassEntity.OwnerType ownerType;
+    Set<UUID> extendsTwinClassIdExcludeList;
+    Set<TwinClassEntity.OwnerType> ownerTypeList;
+    Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
     Ternary abstractt;
     Ternary twinflowSchemaSpace;
     Ternary twinClassSchemaSpace;
