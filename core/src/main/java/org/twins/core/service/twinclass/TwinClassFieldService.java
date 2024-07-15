@@ -190,7 +190,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         FeaturerEntity fieldTyper;
         HashMap<String, String> params;
-        if(null == twinClassFieldEntity.getFieldTyperFeaturerId()) {
+        if(null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
             params = twinClassFieldEntity.getFieldTyperParams();
             fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
         } else {
