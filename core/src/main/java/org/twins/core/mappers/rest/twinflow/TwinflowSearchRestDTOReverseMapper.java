@@ -7,8 +7,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import java.util.List;
-import java.util.Set;
+import static org.cambium.common.util.CollectionUtils.convertSafe;
 
 @Component
 @RequiredArgsConstructor
@@ -23,11 +22,5 @@ public class TwinflowSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                 .setDescriptionLikeList(convertSafe(src.getDescriptionLikeList()))
                 .setInitialStatusIdList(convertSafe(src.getInitialStatusIdList()))
                 .setInitialStatusIdExcludeList(convertSafe(src.getInitialStatusIdExcludeList()));
-    }
-
-    private <T> Set<T> convertSafe(List<T> list) {
-        if (list == null)
-            return null;
-        return Set.copyOf(list);
     }
 }

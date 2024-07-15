@@ -7,8 +7,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
-import java.util.List;
-import java.util.Set;
+import static org.cambium.common.util.CollectionUtils.convertSafe;
 
 @Component
 @RequiredArgsConstructor
@@ -26,11 +25,5 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setTwinClassSchemaSpace(src.getTwinClassSchemaSpace())
                 .setPermissionSchemaSpace(src.getPermissionSchemaSpace())
                 .setAliasSpace(src.getAliasSpace());
-    }
-
-    private <T> Set<T> convertSafe(List<T> list) {
-        if (list == null)
-            return null;
-        return Set.copyOf(list);
     }
 }
