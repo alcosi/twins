@@ -58,7 +58,7 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     public static <T> Set<T> convertToSetSafe(Collection<T> collection) {
         if (collection == null)
             return null;
-        return Set.copyOf(collection);
+        return new HashSet<>(collection);
     }
 
 }
