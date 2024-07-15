@@ -36,7 +36,7 @@ public abstract class TwinClassFieldSaveRqDTOv1 extends Request {
     public Boolean required;
 
     @Schema(description = "Field typer featurer ID", example = "1")
-    public int fieldTyperFeaturerId;
+    public Integer fieldTyperFeaturerId;
 
     @Schema(description = "Field typer parameters", example = "{}")
     public HashMap<String, String> fieldTyperParams;

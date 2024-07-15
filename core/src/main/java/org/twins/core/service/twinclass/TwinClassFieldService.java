@@ -187,13 +187,25 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (twinClassFieldEntity.getEditPermissionId() != null
                 && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
-        FeaturerEntity fieldTyperSimple = featurerRepository.getById(1301);
+
+        FeaturerEntity fieldTyper;
+        HashMap<String, String> params;
+        if(null == twinClassFieldEntity.getFieldTyperFeaturerId()) {
+            params = twinClassFieldEntity.getFieldTyperParams();
+            fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
+        } else {
+            params = SIMPLE_FIELD_PARAMS;
+            fieldTyper = featurerRepository.getById(1301);
+        }
+
         twinClassFieldEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
-                .setFieldTyperFeaturerId(fieldTyperSimple.getId())
-                .setFieldTyperFeaturer(fieldTyperSimple)
-                .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
+                .setFieldTyperFeaturerId(fieldTyper.getId())
+                .setFieldTyperFeaturer(fieldTyper)
+                .setFieldTyperParams(params);
+
+
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         twinClassService.evictCache(twinClassFieldEntity.getTwinClassId());
         return twinClassFieldEntity;
