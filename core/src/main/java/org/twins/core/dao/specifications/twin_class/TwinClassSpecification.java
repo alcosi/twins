@@ -44,7 +44,7 @@ public class TwinClassSpecification {
         };
     }
 
-    public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<TwinClassEntity.OwnerType> ownerTypes, final boolean or, final boolean not) {
+    public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<TwinClassEntity.OwnerType> ownerTypes, final boolean not) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(ownerTypes)) {
@@ -54,7 +54,7 @@ public class TwinClassSpecification {
                     predicates.add(predicate);
                 }
             }
-            return getPredicate(cb, predicates, or);
+            return getPredicate(cb, predicates, true);
         };
     }
 
