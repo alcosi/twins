@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.twin.TwinSearchDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
-import static org.cambium.common.util.CollectionUtils.convertSafe;
+import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
 @Component
 @RequiredArgsConstructor
@@ -17,25 +17,25 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
         dst
-                .setTwinClassIdList(convertSafe(src.getTwinClassIdList()))
-                .setTwinClassIdExcludeList(convertSafe(src.getTwinClassIdExcludeList()))
-                .setStatusIdList(convertSafe(src.getStatusIdList()))
-                .setAssigneeUserIdList(convertSafe(src.getAssignerUserIdList()))
-                .setAssigneeUserIdExcludeList(convertSafe(src.getAssignerUserIdExcludeList()))
-                .setHeaderTwinIdList(convertSafe(src.getHeadTwinIdList()))
-                .setHeadTwinClassIdList(convertSafe(src.getHeadTwinClassIdList()))
-                .setExtendsTwinClassIdList(convertSafe(src.getExtendsTwinClassIdList()))
-                .setTwinIdList(convertSafe(src.getTwinIdList()))
-                .setTwinIdExcludeList(convertSafe(src.getTwinIdExcludeList()))
-                .setTwinNameLikeList(convertSafe(src.getTwinNameLikeList()))
-                .setCreatedByUserIdList(convertSafe(src.getCreatedByUserIdList()))
-                .setCreatedByUserIdExcludeList(convertSafe(src.getCreatedByUserIdExcludeList()))
-                .setHierarchyTreeContainsIdList(convertSafe(src.getHierarchyTreeContainsIdList()))
-                .setStatusIdExcludeList(convertSafe(src.getStatusIdExcludeList()))
-                .setTagDataListOptionIdList(convertSafe(src.getTagDataListOptionIdList()))
-                .setTagDataListOptionIdExcludeList(convertSafe(src.getTagDataListOptionIdExcludeList()))
-                .setMarkerDataListOptionIdList(convertSafe(src.getMarkerDataListOptionIdList()))
-                .setMarkerDataListOptionIdExcludeList(convertSafe(src.getMarkerDataListOptionIdExcludeList()));
+                .setTwinClassIdList(convertToSetSafe(src.getTwinClassIdList()))
+                .setTwinClassIdExcludeList(convertToSetSafe(src.getTwinClassIdExcludeList()))
+                .setStatusIdList(convertToSetSafe(src.getStatusIdList()))
+                .setAssigneeUserIdList(convertToSetSafe(src.getAssignerUserIdList()))
+                .setAssigneeUserIdExcludeList(convertToSetSafe(src.getAssignerUserIdExcludeList()))
+                .setHeaderTwinIdList(convertToSetSafe(src.getHeadTwinIdList()))
+                .setHeadTwinClassIdList(convertToSetSafe(src.getHeadTwinClassIdList()))
+                .setExtendsTwinClassIdList(convertToSetSafe(src.getExtendsTwinClassIdList()))
+                .setTwinIdList(convertToSetSafe(src.getTwinIdList()))
+                .setTwinIdExcludeList(convertToSetSafe(src.getTwinIdExcludeList()))
+                .setTwinNameLikeList(convertToSetSafe(src.getTwinNameLikeList()))
+                .setCreatedByUserIdList(convertToSetSafe(src.getCreatedByUserIdList()))
+                .setCreatedByUserIdExcludeList(convertToSetSafe(src.getCreatedByUserIdExcludeList()))
+                .setHierarchyTreeContainsIdList(convertToSetSafe(src.getHierarchyTreeContainsIdList()))
+                .setStatusIdExcludeList(convertToSetSafe(src.getStatusIdExcludeList()))
+                .setTagDataListOptionIdList(convertToSetSafe(src.getTagDataListOptionIdList()))
+                .setTagDataListOptionIdExcludeList(convertToSetSafe(src.getTagDataListOptionIdExcludeList()))
+                .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
+                .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false);

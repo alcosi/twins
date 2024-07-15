@@ -55,10 +55,10 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         return list;
     }
 
-    public static <T> Set<T> convertSafe(List<T> list) {
-        if (list == null)
+    public static <T> Set<T> convertToSetSafe(Collection<T> collection) {
+        if (collection == null)
             return null;
-        return Set.copyOf(list);
+        return Set.copyOf(collection);
     }
 
 }

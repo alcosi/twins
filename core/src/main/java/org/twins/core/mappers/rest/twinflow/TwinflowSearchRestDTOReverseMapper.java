@@ -7,7 +7,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
-import static org.cambium.common.util.CollectionUtils.convertSafe;
+import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
 @Component
 @RequiredArgsConstructor
@@ -16,11 +16,11 @@ public class TwinflowSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
     @Override
     public void map(TwinflowSearchRqDTOv1 src, TwinflowSearch dst, MapperContext mapperContext) throws Exception {
         dst
-                .setTwinClassIdList(convertSafe(src.getTwinClassIdList()))
-                .setTwinClassIdExcludeList(convertSafe(src.getTwinClassIdExcludeList()))
-                .setNameLikeList(convertSafe(src.getNameLikeList()))
-                .setDescriptionLikeList(convertSafe(src.getDescriptionLikeList()))
-                .setInitialStatusIdList(convertSafe(src.getInitialStatusIdList()))
-                .setInitialStatusIdExcludeList(convertSafe(src.getInitialStatusIdExcludeList()));
+                .setTwinClassIdList(convertToSetSafe(src.getTwinClassIdList()))
+                .setTwinClassIdExcludeList(convertToSetSafe(src.getTwinClassIdExcludeList()))
+                .setNameLikeList(convertToSetSafe(src.getNameLikeList()))
+                .setDescriptionLikeList(convertToSetSafe(src.getDescriptionLikeList()))
+                .setInitialStatusIdList(convertToSetSafe(src.getInitialStatusIdList()))
+                .setInitialStatusIdExcludeList(convertToSetSafe(src.getInitialStatusIdExcludeList()));
     }
 }
