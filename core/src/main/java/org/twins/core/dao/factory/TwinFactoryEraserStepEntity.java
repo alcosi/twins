@@ -10,7 +10,7 @@ import java.util.UUID;
 @Table(name = "twin_factory_eraser_step")
 @Accessors(chain = true)
 @Data
-public class TwinFactoryEraserStep {
+public class TwinFactoryEraserStepEntity {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -35,13 +35,13 @@ public class TwinFactoryEraserStep {
 
     @Column(name = "on_passed_twin_factory_eraser_action_id")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private TwinFactoryEraser.Action onPassedTwinFactoryEraserAction;
+    private TwinFactoryEraserEntity.Action onPassedTwinFactoryEraserAction;
 
     @Column(name = "on_failed_twin_factory_eraser_action_id")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private TwinFactoryEraser.Action onFailedTwinFactoryEraserAction;
+    private TwinFactoryEraserEntity.Action onFailedTwinFactoryEraserAction;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_factory_eraser_id", insertable = false, updatable = false)
-    private TwinFactoryEraser twinFactoryEraser;
+    private TwinFactoryEraserEntity twinFactoryEraser;
 }

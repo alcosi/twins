@@ -4,14 +4,14 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 @Converter
-public class TwinFactoryEraserActionConverter implements AttributeConverter<TwinFactoryEraser.Action, String> {
+public class TwinFactoryEraserActionConverter implements AttributeConverter<TwinFactoryEraserEntity.Action, String> {
     @Override
-    public String convertToDatabaseColumn(TwinFactoryEraser.Action action) {
+    public String convertToDatabaseColumn(TwinFactoryEraserEntity.Action action) {
         return action.getId();
     }
 
     @Override
-    public TwinFactoryEraser.Action convertToEntityAttribute(String id) {
-        return TwinFactoryEraser.Action.valueOd(id);
+    public TwinFactoryEraserEntity.Action convertToEntityAttribute(String id) {
+        return TwinFactoryEraserEntity.Action.valueOd(id);
     }
 }

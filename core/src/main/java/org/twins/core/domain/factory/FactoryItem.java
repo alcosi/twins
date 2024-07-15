@@ -21,6 +21,7 @@ public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
     private TwinOperation output;
     private List<FactoryItem> contextFactoryItemList;
+    private DeletionMarker deletionMaker = DeletionMarker.FALSE;
 
     public TwinEntity getTwin() {
         if (output == null)
@@ -105,5 +106,18 @@ public class FactoryItem implements EasyLoggable {
                     .append(factoryItem.toString(currentDepth + 1, limit));
         }
         return ret + "]";
+    }
+
+    public void setDeletionMaker(DeletionMarker newDeletionMaker) {
+        if (deletionMaker == null || deletionMaker == DeletionMarker.FALSE || deletionMaker == DeletionMarker.TRUE)
+            this.deletionMaker = newDeletionMaker;
+        // all other markers can not be overridden
+    }
+
+    public enum DeletionMarker {
+        TRUE,
+        FALSE,
+        CURRENT_ITEM_LOCKED,
+        GLOBALLY_LOCKED
     }
 }

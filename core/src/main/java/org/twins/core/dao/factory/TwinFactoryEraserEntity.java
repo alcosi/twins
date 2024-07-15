@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Table(name = "twin_factory_eraser")
 @Accessors(chain = true)
 @Data
-public class TwinFactoryEraser {
+public class TwinFactoryEraserEntity implements EasyLoggable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @Column(name = "id", nullable = false)
@@ -39,6 +40,14 @@ public class TwinFactoryEraser {
     @Column(name = "final_twin_factory_eraser_action_id")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
     private Action action;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinFactoryEraserEntity[" + id + "]";
+            default -> "twinFactoryEraserEntity[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
+        };
+    }
 
     @Getter
     public enum Action {
