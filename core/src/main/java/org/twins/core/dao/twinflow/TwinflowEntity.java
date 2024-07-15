@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow")
+@FieldNameConstants
 public class TwinflowEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")

@@ -20,6 +20,7 @@ public class TwinflowBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowEnt
             case DETAILED:
                 dst
                         .setId(src.getId())
+                        .setTwinClassId(src.getTwinClassId())
                         .setName(src.getName())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId())

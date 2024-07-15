@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
+
     public static List<String> singletonListOrNull(String string) {
         if (StringUtils.isNotBlank(string))
             return Collections.singletonList(string);
@@ -53,4 +54,11 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         list.addAll(elements);
         return list;
     }
+
+    public static <T> Set<T> convertToSetSafe(Collection<T> collection) {
+        if (collection == null)
+            return null;
+        return new HashSet<>(collection);
+    }
+
 }
