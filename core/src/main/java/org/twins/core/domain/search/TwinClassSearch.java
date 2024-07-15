@@ -48,4 +48,8 @@ public class TwinClassSearch {
         return this;
     }
 
+    public TwinClassSearch addOwnerTypeExclude() {
+        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, TwinClassEntity.OwnerType.SYSTEM);
+        return this;
+    }
 }

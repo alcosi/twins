@@ -28,7 +28,8 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setExtendsTwinClassIdList(convertSafe(src.getExtendsTwinClassIdList()))
                 .setExtendsTwinClassIdExcludeList(convertSafe(src.getExtendsTwinClassIdExcludeList()))
                 .setOwnerTypeList(convertSafe(src.getOwnerTypeList()))
-                .setOwnerTypeExcludeList(addSystemOwnerTypeToExcludeList(src.getOwnerTypeExcludeList()))
+                .setOwnerTypeExcludeList(convertSafe(src.getOwnerTypeExcludeList()))
+                .addOwnerTypeExclude()
                 .setAbstractt(src.getAbstractt())
                 .setTwinflowSchemaSpace(src.getTwinflowSchemaSpace())
                 .setTwinClassSchemaSpace(src.getTwinClassSchemaSpace())
@@ -40,13 +41,5 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
         if (list == null)
             return null;
         return Set.copyOf(list);
-    }
-
-    private Set<TwinClassEntity.OwnerType> addSystemOwnerTypeToExcludeList(List<TwinClassEntity.OwnerType> list) {
-        Set<TwinClassEntity.OwnerType> set = convertSafe(list);
-        if (set == null) set = new HashSet<>();
-        else set = new HashSet<>(set);
-        set.add(TwinClassEntity.OwnerType.SYSTEM);
-        return set;
     }
 }
