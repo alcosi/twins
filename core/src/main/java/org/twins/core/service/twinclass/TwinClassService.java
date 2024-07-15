@@ -522,9 +522,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
-        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams))
+        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
+            changesHelper.add("headHunterParams", dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity
                     .setHeadHunterParams(headHunterParams);
+        }
     }
 
     @Transactional
