@@ -296,7 +296,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
     private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
         UUID permissionSchemaId;
-        if (apiUser.getBusinessAccount() != null) {
+        if (apiUser.isBusinessAccountSpecified() && apiUser.getBusinessAccount() != null) {
             DomainBusinessAccountEntity domainBusinessAccountEntity = domainService.getDomainBusinessAccountEntitySafe(apiUser.getDomain().getId(), apiUser.getBusinessAccount().getId());
             checkPermissionSchemaAllowed(domainBusinessAccountEntity);
             permissionSchemaId = domainBusinessAccountEntity.getPermissionSchemaId();
