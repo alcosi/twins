@@ -178,8 +178,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassFieldEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT);
-        if (twinClassFieldRepository.existsByKey(twinClassFieldEntity.getKey()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldEntity.getKey() + "] already exists");
+        if (twinClassFieldRepository.existsByKeyAndTwinClassId(twinClassFieldEntity.getKey(), twinClassFieldEntity.getTwinClassId()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldEntity.getKey() + "] already exists for twin class: " + twinClassFieldEntity.getTwinClassId());
         twinClassFieldEntity.setKey(twinClassFieldEntity.getKey().trim().replaceAll("\\s", ""));
         if (twinClassFieldEntity.getTwinClassId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
