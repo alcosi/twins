@@ -40,7 +40,7 @@ public class TwinClassFieldDTOv1 {
     public UUID descriptionI18nId;
 
     @Schema(description = "field typer featurer id", example = "")
-    public int fieldTyperFeaturerId;
+    public Integer fieldTyperFeaturerId;
 
     @Schema(description = "field typer params", example = "")
     public Map<String, String> fieldTyperParams;
