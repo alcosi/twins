@@ -6,7 +6,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;

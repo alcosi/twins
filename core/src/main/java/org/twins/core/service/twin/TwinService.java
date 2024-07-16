@@ -30,7 +30,12 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.*;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -594,7 +599,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             for (TwinLinkEntity link : links)
                 if (deletionSet.add(link.getSrcTwinId())) deeperLinksFound = true;
         } while (deeperLinksFound);
-        entitySmartService.deleteAllAndLog(deletionSet, twinRepository);// all linked data will be deleted by fk cascading
+        deleteTwins(deletionSet);
+    }
+
+    public void deleteTwins(Collection<UUID> twinIds) throws ServiceException {
+        entitySmartService.deleteAllAndLog(twinIds, twinRepository);// all linked data will be deleted by fk cascading
     }
 
     public TwinEntity cloneTwin(TwinEntity twinEntity) {

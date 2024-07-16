@@ -1,4 +1,4 @@
-package org.twins.core.domain;
+package org.twins.core.domain.twinoperation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -13,7 +13,7 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinCreate extends TwinOperation {
+public class TwinCreate extends TwinSave {
     private List<TwinAttachmentEntity> attachmentEntityList;
     private List<TwinLinkEntity> linksEntityList;
 

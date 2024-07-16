@@ -17,13 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinCreate;
-import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinUpdate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.factory.FactoryResultCommited;
 import org.twins.core.domain.factory.FactoryResultUncommited;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinDelete;
+import org.twins.core.domain.twinoperation.TwinOperation;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
 import org.twins.core.featurer.factory.filler.FieldLookupMode;
@@ -71,7 +72,26 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     public FactoryResultUncommited runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
         runFactory(factoryId, factoryContext, null);
-        return new FactoryResultUncommited().setOperations(factoryContext.getFactoryItemList().stream().map(FactoryItem::getOutput).toList());
+        FactoryResultUncommited factoryResultUncommited = new FactoryResultUncommited();
+        for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
+            switch (factoryItem.getDeletionMaker()) {
+                case FALSE:
+                case CURRENT_ITEM_LOCKED:
+                    factoryResultUncommited.addOperation(factoryItem.getOutput());
+                    continue;
+                case TRUE:
+                    if (factoryItem.getOutput() instanceof TwinUpdate)
+                        factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin()));
+                    // else we can simply skip such item, because it was created and deleted at once
+                    continue;
+                case GLOBALLY_LOCKED:
+                    factoryResultUncommited
+                            .addOperation(factoryItem.getOutput())
+                            .setCommittable(false); // this factory result can not be commited because of lock
+            }
+
+        }
+        return factoryResultUncommited;
     }
 
     private void runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
@@ -254,16 +274,22 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         FactoryResultCommited factoryResultCommited = new FactoryResultCommited();
+        Set<UUID> deletionTwinIds = new HashSet<>();
         for (TwinOperation twinOperation : factoryResultUncommited.getOperations()) {
             if (twinOperation instanceof TwinCreate twinCreate) {
-
                 TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
                 factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
             } else if (twinOperation instanceof TwinUpdate twinUpdate) {
                 twinService.updateTwin(twinUpdate);
                 factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
-            }
+            } else if (twinOperation instanceof TwinDelete twinDelete) {
+                deletionTwinIds.add(twinDelete.getTwinEntity().getId());
+                factoryResultCommited.addDeletedTwin(twinDelete.getTwinEntity());
+            } else
+                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, twinOperation + " unknown twin operation");
         }
+        if (!deletionTwinIds.isEmpty())
+            twinService.deleteTwins(deletionTwinIds);
         return factoryResultCommited;
     }
 

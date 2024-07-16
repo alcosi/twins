@@ -8,7 +8,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.domain.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.HashMap;

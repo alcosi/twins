@@ -7,9 +7,9 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinCreate;
-import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinSave;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import java.util.List;
 @Accessors(chain = true)
 public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
-    private TwinOperation output;
+    private TwinSave output;
     private List<FactoryItem> contextFactoryItemList;
     private DeletionMarker deletionMaker = DeletionMarker.FALSE;
 

@@ -1,4 +1,4 @@
-package org.twins.core.domain;
+package org.twins.core.domain.twinoperation;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.domain.EntityCUD;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,8 +17,7 @@ import static org.cambium.common.util.UuidUtils.NULLIFY_MARKER;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-public class TwinUpdate extends TwinOperation {
-
+public class TwinUpdate extends TwinSave {
     private TwinEntity dbTwinEntity; // entity loaded from db without changes
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;

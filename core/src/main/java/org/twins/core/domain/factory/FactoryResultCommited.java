@@ -33,4 +33,14 @@ public class FactoryResultCommited {
         createdTwinList = CollectionUtils.safeAdd(createdTwinList, twinEntityList);
         return this;
     }
+
+    public FactoryResultCommited addDeletedTwin(TwinEntity twinEntity) {
+        deletedTwinList = CollectionUtils.safeAdd(deletedTwinList, twinEntity);
+        return this;
+    }
+
+    public FactoryResultCommited addDeletedTwins(List<TwinEntity> twinEntityList) {
+        deletedTwinList = CollectionUtils.safeAdd(deletedTwinList, twinEntityList);
+        return this;
+    }
 }
