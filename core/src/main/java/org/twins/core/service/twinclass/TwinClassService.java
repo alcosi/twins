@@ -40,6 +40,8 @@ import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twinclass.HeadHunter;
+import org.twins.core.featurer.twinclass.HeadHunterImpl;
+import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
@@ -209,13 +211,22 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey())) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
         }
-        if (twinClassEntity.getHeadTwinClassId() != null
-                && !twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
+        if (twinClassEntity.getHeadTwinClassId() == null || SystemEntityService.isSystemClass(twinClassEntity.getHeadTwinClassId())) {
+            twinClassEntity
+                    .setHeadHunterFeaturerId(null)
+                    .setHeadHunterParams(null);
+        } else {
+            if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId())) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
+            }
+            if (twinClassEntity.getHeadHunterFeaturerId() == null) { // we will use default
+                twinClassEntity
+                        .setHeadHunterFeaturerId(HeadHunterImpl.ID_2601)
+                        .setHeadHunterParams(null);
+            }
+        }
         if (twinClassEntity.getHeadHunterFeaturerId() != null)
             featurerService.checkValid(twinClassEntity.getHeadHunterFeaturerId(), twinClassEntity.getHeadHunterParams(), HeadHunter.class);
-        else
-            twinClassEntity.setHeadHunterParams(null);
         if (twinClassEntity.getExtendsTwinClassId() != null) {
             if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getExtendsTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown extends twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
@@ -522,9 +533,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
-        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams))
+        if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
+            changesHelper.add("headHunterParams", dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity
                     .setHeadHunterParams(headHunterParams);
+        }
     }
 
     @Transactional

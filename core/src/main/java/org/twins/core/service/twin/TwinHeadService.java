@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
@@ -22,12 +24,12 @@ import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -50,7 +52,6 @@ public class TwinHeadService {
         if (twinClassEntity.getHeadTwinClassId() == null)
             return PaginationUtils.convertInPaginationResult(pagination);
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
-        HeadHunter headHunter = featurerService.getFeaturer(headTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
                 Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pagination);
@@ -61,6 +62,9 @@ public class TwinHeadService {
             }
             log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
         }
+        if (twinClassEntity.getHeadHunterFeaturer() == null) //headhunter should not be empty if head twin is specified and head class is not USER and BA
+            return PaginationUtils.convertInPaginationResult(pagination);
+        HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
         return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, pagination);
     }
 

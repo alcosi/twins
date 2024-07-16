@@ -209,8 +209,8 @@ public abstract class I18nService  {
             throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type not specified");
         if(null == i18nEntity)
             i18nEntity = new I18nEntity();
-        if (!i18nEntity.getType().equals(i18nType))
-            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type mismatch");
+//        if (!i18nType.equals(i18nEntity.getType()))
+//            throw new ServiceException(ErrorCodeI18n.INCORRECT_CONFIGURATION, "i18n type mismatch");
         i18nEntity
                 .setType(i18nType)
                 .setId(null)

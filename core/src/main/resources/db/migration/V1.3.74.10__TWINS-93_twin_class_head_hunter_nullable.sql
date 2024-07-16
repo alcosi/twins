@@ -1,0 +1,1 @@
+alter table twin_class alter column head_hunter_featurer_id drop not null;

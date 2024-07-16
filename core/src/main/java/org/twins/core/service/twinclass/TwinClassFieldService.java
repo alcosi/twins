@@ -187,14 +187,27 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (twinClassFieldEntity.getEditPermissionId() != null
                 && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
-        FeaturerEntity fieldTyperSimple = featurerRepository.getById(1301);
+
+        FeaturerEntity fieldTyper;
+        HashMap<String, String> params;
+        if(null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
+            params = twinClassFieldEntity.getFieldTyperParams();
+            fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
+        } else {
+            params = SIMPLE_FIELD_PARAMS;
+            fieldTyper = featurerRepository.getById(1301);
+        }
+
         twinClassFieldEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
-                .setFieldTyperFeaturerId(fieldTyperSimple.getId())
-                .setFieldTyperFeaturer(fieldTyperSimple)
-                .setFieldTyperParams(SIMPLE_FIELD_PARAMS);
+                .setFieldTyperFeaturerId(fieldTyper.getId())
+                .setFieldTyperFeaturer(fieldTyper)
+                .setFieldTyperParams(params);
+
+
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        twinClassService.evictCache(twinClassFieldEntity.getTwinClassId());
         return twinClassFieldEntity;
     }
 
@@ -224,6 +237,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
         updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.isRequired(), changesHelper);
         entitySmartService.saveAndLogChanges(dbTwinClassFieldEntity, twinClassFieldRepository, changesHelper);
+        if(changesHelper.hasChanges()) twinClassService.evictCache(dbTwinClassFieldEntity.getTwinClassId());
         return twinClassFieldEntity;
     }
 
@@ -243,15 +257,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Transactional
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("fieldTyperFeaturerId", dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId))
-            return;
-        if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
-        FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
-        dbTwinClassFieldEntity
-                .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
-                .setFieldTyperFeaturer(newFieldTyperFeaturer);
+        if (changesHelper.isChanged("fieldTyperFeaturerId", dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
+            if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
+            FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
+            dbTwinClassFieldEntity
+                    .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
+                    .setFieldTyperFeaturer(newFieldTyperFeaturer);
+        }
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams))
+            changesHelper.add("fieldTyperParams", dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
             dbTwinClassFieldEntity
                     .setFieldTyperParams(newFeaturerParams);
     }

@@ -6,11 +6,16 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,7 @@ import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.TwinflowSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
@@ -35,6 +41,10 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+
+import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -214,6 +224,26 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setTwinflowId(twinflowEntity.getId())
                 .setTwinflow(twinflowEntity);
         return entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    public PaginationResult<TwinflowEntity> search(TwinflowSearch twinflowSearch, SimplePagination pagination) throws ServiceException {
+        if (twinflowSearch == null)
+            twinflowSearch = new TwinflowSearch(); //no filters
+        Page<TwinflowEntity> twinflowList = twinflowRepository.findAll(
+                createTwinClassEntitySearchSpecification(twinflowSearch),
+                PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(twinflowList, pagination);
+    }
+
+    private Specification<TwinflowEntity> createTwinClassEntitySearchSpecification(TwinflowSearch twinflowSearch) {
+        return where(
+                checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false)
+                        .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true))
+                        .and(checkFieldLikeIn(TwinflowEntity.Fields.name, twinflowSearch.getNameLikeList(), true))
+                        .and(checkFieldLikeIn(TwinflowEntity.Fields.description, twinflowSearch.getDescriptionLikeList(), true))
+                        .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false))
+                        .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true))
+        );
     }
 }
 
