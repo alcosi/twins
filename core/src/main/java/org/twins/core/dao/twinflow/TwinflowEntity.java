@@ -39,6 +39,13 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "initial_twin_status_id")
     private UUID initialTwinStatusId;
 
+    // if null, then it will be not possible to undo deletion, cause twin will be removed from db
+    @Column(name = "erase_twin_status_id")
+    private UUID eraseTwinStatusId;
+
+    @Column(name = "erase_twin_factory_id")
+    private UUID eraseTwinFactoryId;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 

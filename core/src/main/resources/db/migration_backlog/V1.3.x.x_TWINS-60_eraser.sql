@@ -78,16 +78,24 @@ create index if not exists twin_factory_eraser_step_twin_factory_condition_set_i
 create unique index if not exists twin_factory_eraser_step_twin_factory_eraser_id_order_uinde
     on twin_factory_eraser_step (twin_factory_eraser_id, "order");
 
-alter table twin_class
-    add if not exists delete_twin_factory_id uuid;
+alter table twinflow
+    add if not exists erase_twin_factory_id uuid;
+alter table twinflow
+    add if not exists erase_twin_status_id uuid;
 
-alter table twin_class
-    drop constraint if exists twin_class_delete_twin_factory_id_fk;
+alter table twinflow
+    drop constraint if exists twinflow_erase_twin_factory_id_fk;
+alter table twinflow
+    drop constraint if exists twinflow_erase_twin_status_id_fk;
 
-alter table twin_class
-    add constraint twin_class_delete_twin_factory_id_fk
-        foreign key (delete_twin_factory_id) references twin_factory
+alter table twinflow
+    add constraint twinflow_erase_twin_factory_id_fk
+        foreign key (erase_twin_factory_id) references twin_factory
             on update cascade on delete restrict;
+alter table twinflow
+    add constraint twinflow_erase_twin_status_id_fk
+        foreign key (erase_twin_status_id) references twin_status
+            on update cascade on delete restrict ;
 -- creating 3 basic deletion logic
 INSERT INTO twin_factory (id, key, domain_id, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0006-000000000001', 'eraseSimple', null, null, null) on conflict (id) do nothing;
 INSERT INTO twin_factory (id, key, domain_id, name_i18n_id, description_i18n_id) VALUES ('00000000-0000-0000-0006-000000000002', 'eraseIfNoChildren', null, null, null) on conflict (id) do nothing;
@@ -96,4 +104,74 @@ INSERT INTO twin_factory (id, key, domain_id, name_i18n_id, description_i18n_id)
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id, twin_factory_condition_invert, active, final_twin_factory_eraser_action_id, description) VALUES ('ac877359-5b54-4062-84df-13f95ca1674b', '00000000-0000-0000-0006-000000000001', null, null, DEFAULT, DEFAULT, 'ERASE', 'simple deletion logic - this eraser will delete current twin, all children (by db FK cascading), all links  (by db FK cascading)') on conflict (id) do nothing;
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id, twin_factory_condition_invert, active, final_twin_factory_eraser_action_id, description) VALUES ('aa5c49fa-a4d7-4990-a039-22c7aa142183', '00000000-0000-0000-0006-000000000002', null, null, DEFAULT, DEFAULT, 'ERASE', 'this eraser will delete current twin only if there is no children for it') on conflict (id) do nothing;
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id, twin_factory_condition_invert, active, final_twin_factory_eraser_action_id, description) VALUES ('8948a756-4c4c-4414-9bb5-7094d571186a', '00000000-0000-0000-0006-000000000003', null, null, DEFAULT, DEFAULT, 'RESTRICT', 'this eraser will restrict deletion') on conflict (id) do nothing;
+
+
+
+create table if not exists  twin_eraser_transaction
+(
+    id                         uuid not null
+        constraint twin_eraser_transaction_pk
+            primary key,
+    created_by_user_id          uuid                   not null
+        constraint  twin_eraser_transaction_created_by_user_id_fk
+            references "user"
+            on update cascade,
+    twins_count integer,
+    commited boolean default false not null ,
+    created_at                 timestamp default CURRENT_TIMESTAMP
+);
+
+create table if not exists twin_eraser_transaction_scope
+(
+    twin_eraser_transaction_id uuid                  not null
+        constraint twin_eraser_transaction_scope_twin_eraser_transaction_id_fk
+            references twin_eraser_transaction
+            on update cascade on delete cascade,
+    twin_id                    uuid                  not null
+        constraint twin_eraser_transaction_scope_twin_id_fk
+            references twin
+            on update cascade on delete cascade,
+    self_scope_loaded          boolean default false not null,
+    reason_twin_id                    uuid                  not null
+        constraint twin_eraser_transaction_scope_reason_twin_id_fk
+            references twin
+            on update cascade on delete cascade,
+    twin_eraser_reason_id      varchar
+        constraint twin_eraser_transaction_scope_twin_eraser_reason_id_fk
+            references twin_eraser_reason
+            on update cascade,
+    constraint twin_eraser_transaction_scope_pk
+        primary key (twin_eraser_transaction_id, twin_id)
+);
+
+alter table twin_eraser_transaction_scope
+    drop constraint if exists twin_eraser_transaction_scope_pk;
+
+alter table twin_eraser_transaction_scope
+    add constraint twin_eraser_transaction_scope_pk
+        primary key (twin_eraser_transaction_id, twin_id);
+
+alter table twin_eraser_transaction_scope
+    drop constraint if exists twin_eraser_transaction_scope_twin_eraser_reason_id_fk;
+
+alter table twin_eraser_transaction_scope
+    add constraint twin_eraser_transaction_scope_twin_eraser_reason_id_fk
+        foreign key (twin_eraser_reason_id) references twin_eraser_reason
+            on update cascade;
+
+create table if not exists twin_eraser_reason
+(
+    id varchar(255) not null
+        constraint twin_eraser_reason_pk
+            primary key
+);
+
+INSERT INTO public.twin_eraser_reason (id) VALUES ('TARGET') on conflict (id) do nothing;
+INSERT INTO public.twin_eraser_reason (id) VALUES ('TARGET_CHILD') on conflict (id) do nothing;
+INSERT INTO public.twin_eraser_reason (id) VALUES ('TARGET_LINK') on conflict (id) do nothing;
+INSERT INTO public.twin_eraser_reason (id) VALUES ('TARGET_CHILD_LINK') on conflict (id) do nothing;
+INSERT INTO public.twin_eraser_reason (id) VALUES ('TARGET_LINK_CHILD') on conflict (id) do nothing;
+
+
+
 

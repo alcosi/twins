@@ -22,7 +22,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinEraserService;
 
 import java.util.UUID;
 
@@ -32,7 +32,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinDeleteController extends ApiController {
     private final AuthService authService;
-    private final TwinService twinService;
+    private final TwinEraserService twinEraserService;
 
 
     @ParametersApiUserHeaders
@@ -48,7 +48,7 @@ public class TwinDeleteController extends ApiController {
         Response rs = new Response();
         try {
             ApiUser apiUser = authService.getApiUser();
-            twinService.deleteTwin(twinId);
+            twinEraserService.deleteTwin(twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

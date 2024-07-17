@@ -32,6 +32,7 @@ import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -47,6 +48,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
     final TwinFactoryEraserStepRepository twinFactoryEraserStepRepository;
     final TwinService twinService;
+    final TwinEraserService twinEraserService;
     final TwinClassService twinClassService;
     final TwinFactoryConditionRepository twinFactoryConditionRepository;
     final TwinFactoryRepository twinFactoryRepository;
@@ -289,7 +291,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, twinOperation + " unknown twin operation");
         }
         if (!deletionTwinIds.isEmpty())
-            twinService.deleteTwins(deletionTwinIds);
+            twinEraserService.deleteTwins(deletionTwinIds);
         return factoryResultCommited;
     }
 
