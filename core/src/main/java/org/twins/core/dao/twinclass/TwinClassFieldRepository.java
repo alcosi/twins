@@ -33,4 +33,6 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     Set<UUID> findInheritedTwinClassFieldIds(UUID twinClassId);
 
     List<TwinClassFieldEntity> findByIdIn(Collection<UUID> ids);
+
+    boolean existsByKeyAndTwinClassId(String key, UUID twinClassId);
 }
