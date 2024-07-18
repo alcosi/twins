@@ -10,12 +10,15 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2323,
@@ -33,6 +36,10 @@ public class FillerFieldFromContext extends Filler {
     @Autowired
     TwinService twinService;
 
+    @Lazy
+    @Autowired
+    TwinClassService twinClassService;
+
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
@@ -40,8 +47,11 @@ public class FillerFieldFromContext extends Filler {
     }
 
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookupMode fieldLookupMode) throws ServiceException {
+        UUID extractedTwinClass = dstTwinClassFieldId.extract(properties);
         FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, srcTwinClassFieldId.extract(properties), fieldLookupMode);
-        FieldValue clone = twinService.copyToField(fieldValue, dstTwinClassFieldId.extract(properties));
+        FieldValue clone = twinService.copyToField(fieldValue, extractedTwinClass);
+        if (!twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField().getTwinClassId()))
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedTwinClass +"]");
         factoryItem.getOutput().addField(clone);
     }
 }

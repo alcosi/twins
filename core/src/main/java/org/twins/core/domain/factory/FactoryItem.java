@@ -12,8 +12,7 @@ import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Data
 @Accessors(chain = true)
@@ -72,20 +71,22 @@ public class FactoryItem implements EasyLoggable {
         String operation = output instanceof TwinCreate ? "createTwin" : "updateTwin";
         return switch (level) {
             case NORMAL -> "factoryItem[" + System.identityHashCode(this) + "] " + operation;
-            default -> toString(1, 5);
+            default -> toString(1, 5, new HashSet<>());
         };
     }
 
 
     @Override
     public String toString() {
-        return toString(1, 1);
+        return toString(1, 1, new HashSet<>());
     }
 
-    public String toString(int currentDepth, int limit) {
-        if (currentDepth > limit)
+    public String toString(int currentDepth, int limit, Set<Integer> visited) {
+        int hashCode = System.identityHashCode(this);
+        if (currentDepth > limit || visited.contains(hashCode))
             return "";
-        StringBuilder ret = new StringBuilder("factoryItem[" + System.identityHashCode(this) + "]: " + (output instanceof TwinCreate ? "createTwin" : "updateTwin"));
+        visited.add(hashCode);
+        StringBuilder ret = new StringBuilder("factoryItem[" + hashCode + "]: " + (output instanceof TwinCreate ? "createTwin" : "updateTwin"));
         if (output.getTwinEntity() != null) {
             ret.append("[class:").append(output.getTwinEntity().getTwinClassId());
             ret.append(output instanceof TwinUpdate ? ", id:" + output.getTwinEntity().getId() : "");
@@ -102,7 +103,7 @@ public class FactoryItem implements EasyLoggable {
                     .append(StringUtils.tabs(currentDepth))
                     .append(i)
                     .append(" -> ")
-                    .append(factoryItem.toString(currentDepth + 1, limit));
+                    .append(factoryItem.toString(currentDepth + 1, limit, visited));
         }
         return ret + "]";
     }
