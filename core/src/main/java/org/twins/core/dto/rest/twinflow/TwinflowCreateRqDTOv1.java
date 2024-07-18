@@ -9,7 +9,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinClassCreateRqV1")
+@Schema(name =  "TwinflowCreateRqV1")
 public class TwinflowCreateRqDTOv1 extends TwinflowSaveRqDTOv1 {
 
 

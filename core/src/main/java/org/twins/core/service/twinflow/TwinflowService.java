@@ -207,6 +207,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     @Transactional
     public TwinflowEntity createTwinflow(TwinClassEntity twinClassEntity, TwinStatusEntity twinStatusEntity) throws ServiceException {
+        if(!twinClassService.isStatusAllowedForTwinClass(twinClassEntity, twinStatusEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + twinStatusEntity.getId() + "] is not allowed for twinClass[" + twinClassEntity.getId() + "]");
         String twinflowName = "Default " + twinClassEntity.getKey() + " twinflow";
         TwinflowEntity twinflowEntity = new TwinflowEntity()
                 .setTwinClassId(twinClassEntity.getId())
