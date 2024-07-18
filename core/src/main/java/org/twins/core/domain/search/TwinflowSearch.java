@@ -13,8 +13,6 @@ import java.util.UUID;
 public class TwinflowSearch {
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
-    Set<String> nameLikeList;
-    Set<String> descriptionLikeList;
     Set<UUID> initialStatusIdList;
     Set<UUID> initialStatusIdExcludeList;
 
@@ -26,16 +24,6 @@ public class TwinflowSearch {
 
     public TwinflowSearch addTwinClassIdExlude(Collection<UUID> twinClassIdExcludeSet) {
         twinClassIdExcludeList = CollectionUtils.safeAdd(twinClassIdExcludeList, twinClassIdExcludeSet);
-        return this;
-    }
-
-    public TwinflowSearch addNameLike(Collection<String> nameLikeSet) {
-        nameLikeList = CollectionUtils.safeAdd(nameLikeList, nameLikeSet);
-        return this;
-    }
-
-    public TwinflowSearch addDescriptionLike(Collection<String> descriptionLikeSet) {
-        descriptionLikeList = CollectionUtils.safeAdd(descriptionLikeList, descriptionLikeSet);
         return this;
     }
 

@@ -27,11 +27,11 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "name_i18n_id")
+    private UUID nameI18NId;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "description_i18n_id")
+    private UUID descriptionI18NId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
