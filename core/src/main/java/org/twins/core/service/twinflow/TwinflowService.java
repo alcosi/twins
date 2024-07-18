@@ -212,8 +212,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         String twinflowName = "Default " + twinClassEntity.getKey() + " twinflow";
         TwinflowEntity twinflowEntity = new TwinflowEntity()
                 .setTwinClassId(twinClassEntity.getId())
-                .setNameI18NId(i18nService.buildI18nEntity(I18nType.TWINFLOW_NAME, twinflowName).getId())
-                .setDescriptionI18NId(i18nService.buildI18nEntity(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
