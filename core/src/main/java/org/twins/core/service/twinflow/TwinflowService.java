@@ -8,9 +8,13 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -33,7 +37,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -43,29 +46,26 @@ import java.time.Instant;
 import java.util.*;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity> {
-    final TwinflowRepository twinflowRepository;
-    final TwinflowSchemaRepository twinflowSchemaRepository;
-    final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
-    final TwinflowTransitionRepository twinflowTransitionRepository;
-    final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
-    final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    private final TwinflowRepository twinflowRepository;
+    private final TwinflowSchemaRepository twinflowSchemaRepository;
+    private final TwinflowSchemaMapRepository twinflowSchemaMapRepository;
+    private final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
+    private final TwinClassService twinClassService;
+    private final TwinStatusService twinStatusService;
+    private final I18nService i18nService;
     @Lazy
-    final DomainService domainService;
-    final TwinClassService twinClassService;
-    final TwinStatusService twinStatusService;
+    private final FeaturerService featurerService;
     @Lazy
-    final FeaturerService featurerService;
+    private final AuthService authService;
     @Lazy
-    final AuthService authService;
-    @Lazy
-    final TwinService twinService;
+    private final TwinService twinService;
+
 
     @Override
     public CrudRepository<TwinflowEntity, UUID> entityRepository() {
@@ -133,7 +133,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         //looks like new twin creation
         twinService.loadHeadForTwin(twinEntity);
         if (twinEntity.getHeadTwin() != null)
-            return  twinEntity.getHeadTwin().getTwinflowSchemaSpaceId();
+            return twinEntity.getHeadTwin().getTwinflowSchemaSpaceId();
         return null;
     }
 
@@ -207,12 +207,30 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
     @Transactional
     public TwinflowEntity createTwinflow(TwinClassEntity twinClassEntity, TwinStatusEntity twinStatusEntity) throws ServiceException {
+        if(!twinClassService.isStatusAllowedForTwinClass(twinClassEntity, twinStatusEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, twinStatusEntity.logShort() + " is not allowed for " + twinClassEntity.logShort());
+        String twinflowName = "Default " + twinClassEntity.getKey() + " twinflow";
         TwinflowEntity twinflowEntity = new TwinflowEntity()
                 .setTwinClassId(twinClassEntity.getId())
-                .setName("Default " + twinClassEntity.getKey() + " twinflow")
+                .setNameI18NId(i18nService.buildI18nEntity(I18nType.TWINFLOW_NAME, twinflowName).getId())
+                .setDescriptionI18NId(i18nService.buildI18nEntity(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
+        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    @Transactional
+    public TwinflowEntity createTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        if(!twinClassService.isStatusAllowedForTwinClass(twinflowEntity.getTwinClassId(), twinflowEntity.getInitialTwinStatusId()))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + twinflowEntity.getInitialTwinStatusId() + "] is not allowed for twinClass[" + twinflowEntity.getTwinClassId() + "]");
+
+        ApiUser apiUser = authService.getApiUser();
+        twinflowEntity
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(apiUser.getUserId());
         return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
@@ -230,20 +248,61 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         if (twinflowSearch == null)
             twinflowSearch = new TwinflowSearch(); //no filters
         Page<TwinflowEntity> twinflowList = twinflowRepository.findAll(
-                createTwinClassEntitySearchSpecification(twinflowSearch),
+                createTwinflowEntitySearchSpecification(twinflowSearch),
                 PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(twinflowList, pagination);
     }
 
-    private Specification<TwinflowEntity> createTwinClassEntitySearchSpecification(TwinflowSearch twinflowSearch) {
+    private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch twinflowSearch) {
         return where(
                 checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false)
                         .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true))
-                        .and(checkFieldLikeIn(TwinflowEntity.Fields.name, twinflowSearch.getNameLikeList(), true))
-                        .and(checkFieldLikeIn(TwinflowEntity.Fields.description, twinflowSearch.getDescriptionLikeList(), true))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true))
         );
     }
+
+    @Transactional
+    public TwinflowEntity updateTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        TwinflowEntity dbTwinflowEntity = findEntitySafe(twinflowEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
+        updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
+        updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
+        dbTwinflowEntity = entitySmartService.saveAndLogChanges(dbTwinflowEntity, twinflowRepository, changesHelper);
+        twinClassService.evictCache(dbTwinflowEntity.getTwinClassId());
+        return dbTwinflowEntity;
+    }
+
+    @Transactional
+    public void updateTwinflowDescription(TwinflowEntity dbTwinflowEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbTwinflowEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbTwinflowEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
+        dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+
+    @Transactional
+    public void updateTwinflowName(TwinflowEntity dbTwinflowEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbTwinflowEntity.getNameI18NId() != null)
+            nameI18n.setId(dbTwinflowEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
+        dbTwinflowEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    @Transactional
+    public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("initialStatusId", dbTwinflowEntity.getInitialTwinStatusId(), initStatusId))
+            return;
+        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowEntity.getTwinClassId(), initStatusId))
+            throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + initStatusId + "] is not allowed for twinClass[" + dbTwinflowEntity.getTwinClassId() + "]");
+        dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
+    }
+
 }
 
