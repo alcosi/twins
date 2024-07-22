@@ -38,7 +38,6 @@ BEGIN
         DROP TABLE temp_twinflow_updates;
     END IF;
 END $$;
-alter table public.twinflow drop column if exists description;
 
 DROP VIEW public.twinflow_transition_lazy;
 CREATE OR REPLACE VIEW public.twinflow_transition_lazy AS
@@ -74,5 +73,5 @@ FROM twinflow_transition tft
          LEFT JOIN twinflow_transition_alias tfta ON tft.twinflow_transition_alias_id = tfta.id;
 
 
-
+alter table public.twinflow drop column if exists description;
 alter table public.twinflow drop column if exists name;
