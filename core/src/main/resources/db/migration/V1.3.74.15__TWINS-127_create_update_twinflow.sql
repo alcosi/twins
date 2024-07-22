@@ -39,7 +39,7 @@ BEGIN
     END IF;
 END $$;
 
-DROP VIEW public.twinflow_transition_lazy;
+DROP VIEW if exists public.twinflow_transition_lazy;
 CREATE OR REPLACE VIEW public.twinflow_transition_lazy AS
 SELECT tft.id,
        tft.twinflow_id,
@@ -72,6 +72,38 @@ FROM twinflow_transition tft
          LEFT JOIN twin_class tc2 ON ts1.twins_class_id = tc2.id
          LEFT JOIN twinflow_transition_alias tfta ON tft.twinflow_transition_alias_id = tfta.id;
 
+DROP VIEW if exists public.twinflow_lazy;
+CREATE OR REPLACE VIEW public.twinflow_lazy AS
+SELECT tf.id,
+       tf.twin_class_id,
+       tf.created_by_user_id,
+       tf.created_at,
+       tf.initial_twin_status_id,
+       tc.key         AS fk_twin_class_key,
+       i1.translation AS fk_status_name_i18n_translation
+FROM twinflow tf,
+     twin_class tc,
+     twin_status ts,
+     i18n_translation i1
+WHERE tf.twin_class_id = tc.id
+  AND tf.initial_twin_status_id = ts.id
+  AND ts.name_i18n_id = i1.i18n_id;
+
+DROP VIEW if exists public.twinflow_schema_map_lazy;
+CREATE OR REPLACE VIEW public.twinflow_schema_map_lazy AS
+SELECT tfsm.id,
+       tfsm.twinflow_schema_id,
+       tfsm.twin_class_id,
+       tfsm.twinflow_id,
+       tfs.name AS fk_twinflow_schema_name,
+       tc.key   AS fk_twin_class_key
+FROM twinflow tf,
+     twin_class tc,
+     twinflow_schema tfs,
+     twinflow_schema_map tfsm
+WHERE tfsm.twin_class_id = tc.id
+  AND tfsm.twinflow_id = tf.id
+  AND tfsm.twinflow_schema_id = tfs.id;
 
 alter table public.twinflow drop column if exists description;
 alter table public.twinflow drop column if exists name;
