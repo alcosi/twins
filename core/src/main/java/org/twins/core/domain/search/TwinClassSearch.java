@@ -15,6 +15,8 @@ import java.util.UUID;
 public class TwinClassSearch {
     Set<UUID> twinClassIdList;
     Set<String> twinClassKeyLikeList;
+    Set<String> nameI18nLikeList;
+    Set<String> descriptionI18nLikeList;
     Set<UUID> headTwinClassIdList;
     Set<UUID> extendsTwinClassIdList;
     TwinClassEntity.OwnerType ownerType;

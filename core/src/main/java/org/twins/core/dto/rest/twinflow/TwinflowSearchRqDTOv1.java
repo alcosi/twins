@@ -20,6 +20,12 @@ public class TwinflowSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id exclude list")
     public List<UUID> twinClassIdExcludeList;
 
+    @Schema(description = "name i18n keyword list")
+    public List<String> nameI18nLikeList;
+
+    @Schema(description = "description i18n keyword list")
+    public List<String> descriptionI18nLikeList;
+
     @Schema(description = "initial status id list")
     public List<UUID> initialStatusIdList;
 

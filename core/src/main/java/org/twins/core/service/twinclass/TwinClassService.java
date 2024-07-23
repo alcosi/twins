@@ -56,6 +56,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
 
@@ -122,10 +123,13 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
     }
 
-    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) {
+    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18NId, twinClassSearch.getNameI18nLikeList(), locale, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18NId, twinClassSearch.getDescriptionI18nLikeList(), locale, false))
                         .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
                         .and(hasOwnerType(twinClassSearch.getOwnerType()))
