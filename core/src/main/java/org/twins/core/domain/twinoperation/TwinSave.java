@@ -11,8 +11,8 @@ import java.util.*;
 public abstract class TwinSave extends TwinOperation {
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
     protected Set<UUID> markersAdd;
-    protected Set<String> newTags;
-    protected Set<UUID> existingTags;
+    protected Set<String> tagsAddNew;
+    protected Set<UUID> tagsAddExisted;
 
     public TwinSave addField(FieldValue fieldValue) {
         if (fields == null)

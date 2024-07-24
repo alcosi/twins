@@ -117,7 +117,7 @@ public class FactoryItem implements EasyLoggable {
     public enum DeletionMarker {
         TRUE,
         FALSE,
-        CURRENT_ITEM_LOCKED,
+        CURRENT_ITEM_SKIPPED,
         GLOBALLY_LOCKED
     }
 }

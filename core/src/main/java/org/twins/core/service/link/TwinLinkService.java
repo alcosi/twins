@@ -280,7 +280,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     @Transactional
-    public void deleteTwinLinks(UUID twinId, List<UUID> twinLinksDeleteUUIDList) throws ServiceException {
+    public void deleteTwinLinks(UUID twinId, Set<UUID> twinLinksDeleteUUIDList) throws ServiceException {
         if (CollectionUtils.isEmpty(twinLinksDeleteUUIDList))
             return;
         TwinLinkEntity twinLinkEntity;

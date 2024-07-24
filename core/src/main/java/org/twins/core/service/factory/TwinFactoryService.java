@@ -23,7 +23,6 @@ import org.twins.core.domain.factory.FactoryResultCommited;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
-import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
@@ -78,17 +77,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
             switch (factoryItem.getDeletionMaker()) {
                 case FALSE:
-                case CURRENT_ITEM_LOCKED:
+                case CURRENT_ITEM_SKIPPED:
                     factoryResultUncommited.addOperation(factoryItem.getOutput());
                     continue;
                 case TRUE:
                     if (factoryItem.getOutput() instanceof TwinUpdate)
-                        factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin()));
+                        factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin(), false));
                     // else we can simply skip such item, because it was created and deleted at once
                     continue;
                 case GLOBALLY_LOCKED:
                     factoryResultUncommited
-                            .addOperation(factoryItem.getOutput())
+                            .addOperation(new TwinDelete(factoryItem.getTwin(), true))
                             .setCommittable(false); // this factory result can not be commited because of lock
             }
 
@@ -242,7 +241,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     case NEXT:
                         continue;
                     case SKIP:
-                        eraserInput.setDeletionMaker(FactoryItem.DeletionMarker.CURRENT_ITEM_LOCKED);
+                        eraserInput.setDeletionMaker(FactoryItem.DeletionMarker.CURRENT_ITEM_SKIPPED);
                         continue;
                     case ERASE:
                         eraserInput.setDeletionMaker(FactoryItem.DeletionMarker.TRUE);
@@ -277,18 +276,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         ApiUser apiUser = authService.getApiUser();
         FactoryResultCommited factoryResultCommited = new FactoryResultCommited();
         Set<UUID> deletionTwinIds = new HashSet<>();
-        for (TwinOperation twinOperation : factoryResultUncommited.getOperations()) {
-            if (twinOperation instanceof TwinCreate twinCreate) {
-                TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
-                factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
-            } else if (twinOperation instanceof TwinUpdate twinUpdate) {
-                twinService.updateTwin(twinUpdate);
-                factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
-            } else if (twinOperation instanceof TwinDelete twinDelete) {
-                deletionTwinIds.add(twinDelete.getTwinEntity().getId());
-                factoryResultCommited.addDeletedTwin(twinDelete.getTwinEntity());
-            } else
-                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, twinOperation + " unknown twin operation");
+        for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
+            TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
+            factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
+        }
+        for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {
+            twinService.updateTwin(twinUpdate);
+            factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
+        }
+        for (TwinDelete twinDelete : factoryResultUncommited.getDeletes()) {
+            deletionTwinIds.add(twinDelete.getTwinEntity().getId());
+            factoryResultCommited.addDeletedTwin(twinDelete.getTwinEntity());
         }
         if (!deletionTwinIds.isEmpty())
             twinEraserService.deleteTwins(deletionTwinIds);

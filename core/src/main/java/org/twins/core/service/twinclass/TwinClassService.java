@@ -497,10 +497,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     // we can refresh tree from code. because db trigger will do this only after transaction commit, but perhaps we will need this field earlier
     public void refreshExtendsHierarchyTree(TwinClassEntity twinClassEntity) throws ServiceException {
         if (twinClassEntity.getExtendsTwinClassId() == null) {
-            twinClassEntity.setExtendsHierarchyTree(TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+            twinClassEntity.setExtendsHierarchyTree(LTreeUtils.convertToLTreeFormat(twinClassEntity.getId()));
         } else {
             loadExtendsTwinClass(twinClassEntity);
-            twinClassEntity.setExtendsHierarchyTree(twinClassEntity.getExtendsTwinClass().getExtendsHierarchyTree() + "." + TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+            twinClassEntity.setExtendsHierarchyTree(twinClassEntity.getExtendsTwinClass().getExtendsHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twinClassEntity.getId()));
         }
         twinClassEntity.setExtendedClassIdSet(null);
     }
@@ -516,10 +516,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     // we can refresh tree from code. because db trigger will do this only after transaction commit, but perhaps we will need this field earlier
     public void refreshHeadHierarchyTree(TwinClassEntity twinClassEntity) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null) {
-            twinClassEntity.setHeadHierarchyTree(TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+            twinClassEntity.setHeadHierarchyTree(LTreeUtils.convertToLTreeFormat(twinClassEntity.getId()));
         } else {
             loadHeadTwinClass(twinClassEntity);
-            twinClassEntity.setHeadHierarchyTree(twinClassEntity.getHeadTwinClass().getHeadHierarchyTree() + "." + TwinClassEntity.convertUuidToLtreeFormat(twinClassEntity.getId()));
+            twinClassEntity.setHeadHierarchyTree(twinClassEntity.getHeadTwinClass().getHeadHierarchyTree() + "." + LTreeUtils.convertToLTreeFormat(twinClassEntity.getId()));
         }
         twinClassEntity.setHeadHierarchyClassIdSet(null);
     }

@@ -5,9 +5,7 @@ import lombok.experimental.Accessors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.PublicCloneable;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * CD - create, delete
@@ -16,7 +14,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<EntityCD<T>> {
     protected List<T> createList;
-    protected List<UUID> deleteUUIDList;
+    protected Set<UUID> deleteUUIDList;
 
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(createList) && CollectionUtils.isEmpty(deleteUUIDList);
@@ -26,7 +24,7 @@ public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<E
     public EntityCD<T> clone() {
         EntityCD<T> clone = new EntityCD<>();
         clone.createList = cloneCreateList();
-        clone.deleteUUIDList = cloneDeleteList();
+        clone.deleteUUIDList = cloneDeleteSet();
         return clone;
     }
 
@@ -41,9 +39,9 @@ public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<E
         return null;
     }
 
-    protected List<UUID> cloneDeleteList() {
+    protected Set<UUID> cloneDeleteSet() {
         if (CollectionUtils.isNotEmpty(deleteUUIDList)) {
-            List<UUID> ret = new ArrayList<>(this.deleteUUIDList);
+            Set<UUID> ret = new HashSet<>(this.deleteUUIDList);
             return ret;
         }
         return null;

@@ -58,7 +58,7 @@ public class TwinUpdateController extends ApiController {
         try {
             // update twin
             TwinEntity dbTwinEntity = twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-            TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request, dbTwinEntity));
+            TwinUpdate twinUpdate = twinUpdateRestDTOReverseMapper.convert(Pair.of(request.setTwinId(twinId), dbTwinEntity));
             twinService.updateTwin(twinUpdate);
 
             // get twin by id and set result based on mapper context

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
@@ -109,7 +110,7 @@ public class TwinSpecification {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
             List<Predicate> predicates = new ArrayList<>();
             for (UUID id : hierarchyTreeContainsIdList) {
-                String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
+                String ltreeId = LTreeUtils.matchInTheMiddle(id);
                 Expression<String> hierarchyTreeExpression = root.get(field);
                 predicates.add(cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
             }

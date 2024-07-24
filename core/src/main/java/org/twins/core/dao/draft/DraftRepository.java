@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.draft;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface TwinEraserTransactionRepository extends CrudRepository<TwinEraserTransactionEntity, UUID>, JpaSpecificationExecutor<TwinEraserTransactionEntity> {
+public interface DraftRepository extends CrudRepository<DraftEntity, UUID>, JpaSpecificationExecutor<DraftEntity> {
 }

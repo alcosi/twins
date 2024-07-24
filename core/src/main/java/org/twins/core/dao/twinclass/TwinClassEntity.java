@@ -217,10 +217,6 @@ public class TwinClassEntity implements EasyLoggable {
         return uuidLtreeFormat.replace("_", "-");
     }
 
-    public static String convertUuidToLtreeFormat(UUID uuid) {
-        return uuid.toString().replace("-", "_");
-    }
-
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinClass[" + key + "]";

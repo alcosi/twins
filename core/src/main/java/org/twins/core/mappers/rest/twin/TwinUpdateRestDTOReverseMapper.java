@@ -49,8 +49,8 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
             if (twinUpdateDTO.getTagsUpdate() != null) {
                 dst
                         .setTagsDelete(twinUpdateDTO.getTagsUpdate().deleteTags())
-                        .setExistingTags(twinUpdateDTO.getTagsUpdate().existingTags())
-                        .setNewTags(twinUpdateDTO.getTagsUpdate().newTags());
+                        .setTagsAddExisted(twinUpdateDTO.getTagsUpdate().existingTags())
+                        .setTagsAddNew(twinUpdateDTO.getTagsUpdate().newTags());
             }
         }
     }

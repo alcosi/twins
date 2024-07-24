@@ -35,7 +35,6 @@ import org.twins.core.domain.factory.FactoryResultCommited;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
@@ -495,14 +494,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public void transitionToDstStatus(TransitionContext transitionContext, FactoryResultUncommited factoryResultUncommited) throws ServiceException {
-        for (TwinOperation twinOperation : factoryResultUncommited.getOperations()) {
-            if (twinOperation instanceof TwinUpdate twinUpdate) {
-                if (isTransitionedTwin(transitionContext, twinUpdate.getTwinEntity())) {// case when twin was taken from input, we have to force update status from transition
-                    if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
-                        twinUpdate.getTwinEntity()
-                                .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
-                                .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
-                }
+        for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {
+            if (isTransitionedTwin(transitionContext, twinUpdate.getTwinEntity())) {// case when twin was taken from input, we have to force update status from transition
+                if (twinUpdate.getTwinEntity().getTwinStatusId() == null || twinUpdate.getDbTwinEntity().getTwinStatusId().equals(twinUpdate.getTwinEntity().getTwinStatusId()))
+                    twinUpdate.getTwinEntity()
+                            .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
+                            .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
             }
         }
     }

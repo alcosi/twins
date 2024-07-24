@@ -165,7 +165,7 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
+    public void deleteAttachments(UUID twinId, Set<UUID> attachmentDeleteUUIDList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
         List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history

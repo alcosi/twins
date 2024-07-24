@@ -1,10 +1,11 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.hibernate.Hibernate;
+import org.twins.core.dao.twin.TwinEntity;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -14,40 +15,47 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Entity
-@Table(name = "twin_eraser_transaction_scope")
-@IdClass(TwinEraserTransactionScopeEntity.PK.class)
-public class TwinEraserTransactionScopeEntity {
+@Table(name = "draft_twin_erase")
+@IdClass(DraftTwinEraseEntity.PK.class)
+public class DraftTwinEraseEntity {
     @Id
-    @Column(name = "twin_eraser_transaction_id", nullable = false)
-    private UUID twinEraserTransactionId;
+    @Column(name = "draft_id")
+    private UUID draftId;
 
     @Id
-    @Column(name = "twin_id", nullable = false)
+    @Column(name = "twin_id")
     private UUID twinId;
 
-    @Column(name = "self_scope_loaded")
-    private boolean selfScopeLoaded;
+    @Column(name = "erase_ready")
+    private boolean eraseReady = false;
 
     @Column(name = "reason_twin_id")
-    private UUID reasonTwinTd;
+    private UUID reasonTwinId;
 
-    @Column(name = "twin_eraser_reason_id")
-    @Convert(converter = TwinEraserReasonConverter.class)
+    @Column(name = "twin_erase_reason_id")
+    @Convert(converter = DraftTwinEraseReasonConverter.class)
     private Reason reason;
 
     @Column(name = "erase_twin_status_id")
     private UUID eraseTwinStatusId;
 
-    @ManyToOne
-    @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twin;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "draft_id")
+    private DraftEntity draft;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "twin_id")
+    private TwinEntity twin;
+//
+//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @JoinColumn(name = "reason_twin_id")
+//    private TwinEntity reasonTwin;
 
     @Data
     public static class PK implements java.io.Serializable {
         @Serial
         private static final long serialVersionUID = -8233976855305006652L;
-        private UUID twinEraserTransactionId;
+        private UUID draftId;
 
         private UUID twinId;
 
@@ -55,16 +63,15 @@ public class TwinEraserTransactionScopeEntity {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-            PK entity = (PK) o;
+            DraftTwinEraseEntity.PK entity = (DraftTwinEraseEntity.PK) o;
             return Objects.equals(this.twinId, entity.twinId) &&
-                    Objects.equals(this.twinEraserTransactionId, entity.twinEraserTransactionId);
+                    Objects.equals(this.draftId, entity.draftId);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(twinId, twinEraserTransactionId);
+            return Objects.hash(twinId, draftId);
         }
-
     }
 
     @Getter
@@ -72,11 +79,7 @@ public class TwinEraserTransactionScopeEntity {
         TARGET("TARGET"),
         CHILD("CHILD"),
         LINK("LINK"),
-//        TARGET_CHILD("TARGET_CHILD"),
-//        TARGET_LINK("TARGET_LINK"),
-//        TARGET_CHILD_LINK("TARGET_CHILD_LINK"),
-//        TARGET_LINK_CHILD("TARGET_LINK_CHILD"),
-        UNKNOWN("UNKNOWN");
+        FACTORY("FACTORY");
 
         private final String id;
 
@@ -85,8 +88,9 @@ public class TwinEraserTransactionScopeEntity {
         }
 
         public static Reason valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(UNKNOWN);
+            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElseThrow();
         }
 
     }
+
 }

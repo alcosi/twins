@@ -77,7 +77,10 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_ALIAS_UNKNOWN(11603, "twin search alias unknown"),
     TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
     TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect"),
-    SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied");
+    SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied"),
+    TWIN_ERASE_LOCKED(11801, "erase locked"),
+    TWIN_DRAFT_GENERAL_ERROR(11901, "erase locked"),
+    TWIN_DRAFT_CASCADE_ERASE_LIMIT(11902, "cascade erase reaches current limit"),;
 
 
     private final int code;

@@ -5,8 +5,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 
 @Component
@@ -22,5 +22,6 @@ public class TwinLinkCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpd
                 .setUpdateList(twinLinkUpdateRestDTOReverseMapper.convertCollection(src.getTwinLinksUpdate()))
                 .setCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getTwinLinksAdd()))
                 .setDeleteUUIDList(src.getTwinLinksDelete());
+        dst.getCreateList().forEach(tl -> tl.setSrcTwinId(src.getTwinId()));
     }
 }

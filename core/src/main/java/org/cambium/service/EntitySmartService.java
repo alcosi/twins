@@ -254,7 +254,7 @@ public class EntitySmartService {
         log.info(entityShortName(repository) + "[" + StringUtils.join(uuidList, ",") +  "] perhaps was deleted");
     }
 
-    public <T> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
+    public <T, K> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, K> repository) {
         Iterable<T> result = repository.saveAll(entities);
         List<String> messages = new ArrayList<>();
         for(T e : result) {
@@ -270,7 +270,7 @@ public class EntitySmartService {
         return result;
     }
 
-    public <T> void saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, UUID> repository) {
+    public <T, K> void saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
         saveAllAndLog(entityChangesMap.keySet(), repository);
         //todo collect an log changes
     }

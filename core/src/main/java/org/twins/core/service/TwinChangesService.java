@@ -11,8 +11,8 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -42,7 +42,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
         deleteEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
         if (!twinChangesCollector.getDeleteEntityIdMap().isEmpty())
-            for (Map.Entry<Class<?>, List<UUID>> classChanges : twinChangesCollector.getDeleteEntityIdMap().entrySet()) {
+            for (Map.Entry<Class<?>, Set<UUID>> classChanges : twinChangesCollector.getDeleteEntityIdMap().entrySet()) {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for deletion");
             }
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
@@ -57,7 +57,7 @@ public class TwinChangesService {
     }
 
     private <T> void deleteEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository) {
-        List<UUID> entitiesId = twinChangesCollector.getDeleteEntityIdMap().get(entityClass);
+        Set<UUID> entitiesId = twinChangesCollector.getDeleteEntityIdMap().get(entityClass);
         if (entitiesId != null) {
             entitySmartService.deleteAllAndLog(entitiesId, repository);
             twinChangesCollector.getDeleteEntityIdMap().remove(entityClass);
