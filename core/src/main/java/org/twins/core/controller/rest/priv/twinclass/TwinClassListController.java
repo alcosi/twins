@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -88,7 +87,6 @@ public class TwinClassListController extends ApiController {
             @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             PaginationResult<TwinClassEntity> twinClasses = twinClassService.findTwinClasses(null, createSimplePagination(offset, limit, Sort.unsorted()));
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))

@@ -10,5 +10,5 @@ public interface TwinflowTransitionAliasRepository extends CrudRepository<Twinfl
     TwinflowTransitionAliasEntity findByDomainIdAndAlias(UUID domainId, String alias);
 
     @Query("select tta.id from TwinflowTransitionAliasEntity tta where tta.domainId = :domainId and tta.alias = :aliasId")
-    UUID findIdByDomainIdAndAlias(@Param("domainId") UUID domainId, @Param("alias") String aliasId);
+    UUID findIdByDomainIdAndAlias(@Param("domainId") UUID domainId, @Param("aliasId") String aliasId);
 }

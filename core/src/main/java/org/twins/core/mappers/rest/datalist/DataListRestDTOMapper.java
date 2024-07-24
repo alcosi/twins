@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.service.datalist.DataListService;
 
 
@@ -36,9 +37,9 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setName(src.getName());
                 break;
         }
-        if (mapperContext.hasModeButNot(DataListMode.HIDE)) {
+        if (mapperContext.hasModeButNot(DataListOptionMode.HIDE)) {
             dataListService.loadDataListOptions(src);
-            dst.setOptions(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
+//            dst.setOptions(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
             convertMapOrPostpone(src.getOptions(), dst, dataListOptionRestDTOMapper, mapperContext, DataListDTOv1::setOptions, DataListDTOv1::setOptionIdList);
         }
     }

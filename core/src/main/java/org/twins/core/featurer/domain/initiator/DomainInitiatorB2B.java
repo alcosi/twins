@@ -76,9 +76,11 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME,"Active").getId());
         twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
+        String twinflowName = "Default business account twinflow";
         TwinflowEntity twinflowEntity = new TwinflowEntity()
                 .setTwinClassId(twinClassEntity.getId())
-                .setName("Default business account twinflow")
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());

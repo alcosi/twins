@@ -45,6 +45,21 @@ public class TwinClassSpecification {
         };
     }
 
+    public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<TwinClassEntity.OwnerType> ownerTypes, final boolean not) {
+        return (root, query, cb) -> {
+            ArrayList<Predicate> predicates = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(ownerTypes)) {
+                for (TwinClassEntity.OwnerType ownerType : ownerTypes) {
+                    Predicate predicate = cb.equal(root.get(TwinClassEntity.Fields.ownerType), ownerType);
+                    if (not) predicate.not();
+                    predicates.add(predicate);
+                }
+            }
+            return getPredicate(cb, predicates, true);
+        };
+    }
+
+    //todo maybe delete
     public static Specification<TwinClassEntity> hasOwnerType(TwinClassEntity.OwnerType ownerType) {
         return (root, query, cb) -> {
             if (ownerType == null) {

@@ -20,17 +20,41 @@ public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id list")
     public List<UUID> twinClassIdList;
 
+    @Schema(description = "twin class id exclude list")
+    public List<UUID> twinClassIdExcludeList;
+
     @Schema(description = "twin class key list")
     public List<String> twinClassKeyLikeList;
+
+    @Schema(description = "name i18n keyword list(AND)")
+    public List<String> nameI18nLikeList;
+
+    @Schema(description = "name i18n keyword exclude list(OR)")
+    public List<String> nameI18nNotLikeList;
+
+    @Schema(description = "description i18n keyword list(AND)")
+    public List<String> descriptionI18nLikeList;
+
+    @Schema(description = "description i18n exclude keyword list(OR)")
+    public List<String> descriptionI18nNotLikeList;
 
     @Schema(description = "head twin class id list")
     public List<UUID> headTwinClassIdList;
 
+    @Schema(description = "head twin class id exclude list")
+    public List<UUID> headTwinClassIdExcludeList;
+
     @Schema(description = "extends twin class id list")
     public List<UUID> extendsTwinClassIdList;
 
-    @Schema(description = "owner type", example = DTOExamples.TWIN_CLASS_OWNER_TYPE)
-    public TwinClassEntity.OwnerType ownerType;
+    @Schema(description = "extends twin class id exclude list")
+    public List<UUID> extendsTwinClassIdExcludeList;
+
+    @Schema(description = "owner type list")
+    public List<TwinClassEntity.OwnerType> ownerTypeList;
+
+    @Schema(description = "owner type exclude list")
+    public List<TwinClassEntity.OwnerType> ownerTypeExcludeList;
 
     @Schema(description = "twin class is abstract", example = DTOExamples.TERNARY)
     public Ternary abstractt;

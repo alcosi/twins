@@ -14,10 +14,18 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class TwinClassSearch {
     Set<UUID> twinClassIdList;
+    Set<UUID> twinClassIdExcludeList;
     Set<String> twinClassKeyLikeList;
+    Set<String> nameI18nLikeList;
+    Set<String> nameI18nNotLikeList;
+    Set<String> descriptionI18nLikeList;
+    Set<String> descriptionI18nNotLikeList;
     Set<UUID> headTwinClassIdList;
+    Set<UUID> headTwinClassIdExcludeList;
     Set<UUID> extendsTwinClassIdList;
-    TwinClassEntity.OwnerType ownerType;
+    Set<UUID> extendsTwinClassIdExcludeList;
+    Set<TwinClassEntity.OwnerType> ownerTypeList;
+    Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
     Ternary abstractt;
     Ternary twinflowSchemaSpace;
     Ternary twinClassSchemaSpace;
@@ -44,4 +52,8 @@ public class TwinClassSearch {
         return this;
     }
 
+    public TwinClassSearch addOwnerTypeExclude() {
+        ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, TwinClassEntity.OwnerType.SYSTEM);
+        return this;
+    }
 }

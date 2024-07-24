@@ -56,6 +56,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
 
@@ -122,13 +123,23 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
     }
 
-    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) {
+    public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
+                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true))
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
                         .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
-                        .and(hasOwnerType(twinClassSearch.getOwnerType()))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(),  false))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(),  true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
@@ -618,6 +629,16 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         Cache cache = cacheManager.getCache(TwinClassRepository.CACHE_TWIN_CLASS_BY_ID);
         if (cache != null)
             cache.evictIfPresent(twinClassId);
+    }
+
+    public boolean isStatusAllowedForTwinClass(UUID twinClassId, UUID twinStatusId) throws ServiceException {
+        TwinClassEntity twinClassEntity = findEntitySafe(twinClassId);
+        return isStatusAllowedForTwinClass(twinClassEntity, twinStatusId);
+    }
+
+    public boolean isStatusAllowedForTwinClass(TwinClassEntity twinClassEntity, UUID twinStatusId) throws ServiceException {
+        twinStatusService.loadStatusesForTwinClasses(twinClassEntity);
+        return twinClassEntity.getTwinStatusKit().getIdSet().contains(twinStatusId);
     }
 }
 
