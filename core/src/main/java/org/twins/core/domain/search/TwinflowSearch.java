@@ -14,7 +14,9 @@ public class TwinflowSearch {
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Set<String> nameI18nLikeList;
+    Set<String> nameI18nNotLikeList;
     Set<String> descriptionI18nLikeList;
+    Set<String> descriptionI18nNotLikeList;
     Set<UUID> initialStatusIdList;
     Set<UUID> initialStatusIdExcludeList;
 

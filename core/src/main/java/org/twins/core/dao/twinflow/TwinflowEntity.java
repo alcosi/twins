@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinflow;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,6 +8,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -51,6 +53,16 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private I18nEntity nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private I18nEntity descriptionI18n;
 
     @ManyToOne
     @EqualsAndHashCode.Exclude

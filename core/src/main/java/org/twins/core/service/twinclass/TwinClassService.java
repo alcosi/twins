@@ -128,8 +128,10 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return where(
                 checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
-                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18NId, twinClassSearch.getNameI18nLikeList(), locale, false))
-                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18NId, twinClassSearch.getDescriptionI18nLikeList(), locale, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
                         .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
                         .and(hasOwnerType(twinClassSearch.getOwnerType()))

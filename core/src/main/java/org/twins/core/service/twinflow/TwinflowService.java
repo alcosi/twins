@@ -259,8 +259,10 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return where(
                 checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false)
                         .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true))
-                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18NId, twinflowSearch.getNameI18nLikeList(), locale, false))
-                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18NId, twinflowSearch.getDescriptionI18nLikeList(), locale, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nNotLikeList(), locale, false, true))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true))
         );

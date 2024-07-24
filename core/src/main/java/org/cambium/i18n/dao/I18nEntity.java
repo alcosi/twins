@@ -1,11 +1,15 @@
 package org.cambium.i18n.dao;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -32,14 +36,21 @@ public class I18nEntity {
     @Column(name = "key")
     private String key;
 
+    @OneToMany(fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    @JoinColumn(name = "i18n_id", insertable = false, updatable = false)
+    @JsonIgnore
+    private List<I18nTranslationEntity> translations;
+
     @Transient
-    private Kit<I18nTranslationEntity, Locale> translations;
+    private Kit<I18nTranslationEntity, Locale> translationsKit;
 
     @Transient
     public I18nEntity addTranslation(I18nTranslationEntity translationEntity) {
-        if (translations == null)
-            translations = new Kit<>(I18nTranslationEntity::getLocale);
-        translations.add(translationEntity);
+        if (translationsKit == null)
+            translationsKit = new Kit<>(I18nTranslationEntity::getLocale);
+        translationsKit.add(translationEntity);
         return this;
     }
 
