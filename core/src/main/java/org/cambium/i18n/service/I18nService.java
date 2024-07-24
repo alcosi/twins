@@ -125,9 +125,9 @@ public abstract class I18nService  {
         if (i18nEntity.getType().isImage()) {
             i18nEntity.setTranslationsBin(new Kit<>(i18nTranslationBinRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationBinEntity::getLocale));
         } else {
-            i18nEntity.setTranslations(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
+            i18nEntity.setTranslationsKit(new Kit<>(i18nTranslationRepository.findByI18nAndLocaleIn(i18nEntity, locales), I18nTranslationEntity::getLocale));
             if (i18nEntity.getType().isStyledText()) {
-                for (I18nTranslationEntity translation : i18nEntity.getTranslations().getCollection()) {
+                for (I18nTranslationEntity translation : i18nEntity.getTranslationsKit().getCollection()) {
                     translation.setStyles(i18nTranslationStyleRepository.findByI18nAndLocale(translation.getI18n(), translation.getLocale()));
                 }
             }
@@ -215,15 +215,15 @@ public abstract class I18nService  {
                 .setType(i18nType)
                 .setId(null)
                 .setId(i18nRepository.save(i18nEntity).getId());
-        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+        if (KitUtils.isEmpty(i18nEntity.getTranslationsKit()))
             return i18nEntity;
-        for (var entry : i18nEntity.getTranslations().getCollection()) {
+        for (var entry : i18nEntity.getTranslationsKit().getCollection()) {
             entry
                     .setI18n(i18nEntity)
                     .setI18nId(i18nEntity.getId())
                     .setTranslation(StringUtils.defaultString(entry.getTranslation()));
         }
-        i18nTranslationRepository.saveAll(i18nEntity.getTranslations().getCollection());
+        i18nTranslationRepository.saveAll(i18nEntity.getTranslationsKit().getCollection());
         return i18nEntity;
     }
 
@@ -261,11 +261,11 @@ public abstract class I18nService  {
     public I18nEntity updateTranslations(I18nEntity i18nEntity) throws ServiceException {
         if (i18nEntity.getId() == null)
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "id can not be empty");
-        if (KitUtils.isEmpty(i18nEntity.getTranslations()))
+        if (KitUtils.isEmpty(i18nEntity.getTranslationsKit()))
             return i18nEntity;
         //todo all translations are currently being updated. you can update only the ones you need (obtain from the database)
         List<I18nTranslationEntity> entitiesToSave = new ArrayList<>();
-        for (var entry : i18nEntity.getTranslations().getMap().entrySet()) {
+        for (var entry : i18nEntity.getTranslationsKit().getMap().entrySet()) {
             if (entry.getValue().getTranslation() == null)
                 continue;
             if (entry.getValue().getI18nId() == null) {

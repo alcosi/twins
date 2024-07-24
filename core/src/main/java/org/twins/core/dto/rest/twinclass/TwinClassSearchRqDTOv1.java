@@ -26,6 +26,18 @@ public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class key list")
     public List<String> twinClassKeyLikeList;
 
+    @Schema(description = "name i18n keyword list(AND)")
+    public List<String> nameI18nLikeList;
+
+    @Schema(description = "name i18n keyword exclude list(OR)")
+    public List<String> nameI18nNotLikeList;
+
+    @Schema(description = "description i18n keyword list(AND)")
+    public List<String> descriptionI18nLikeList;
+
+    @Schema(description = "description i18n exclude keyword list(OR)")
+    public List<String> descriptionI18nNotLikeList;
+
     @Schema(description = "head twin class id list")
     public List<UUID> headTwinClassIdList;
 

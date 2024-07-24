@@ -16,6 +16,10 @@ public class TwinClassSearch {
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Set<String> twinClassKeyLikeList;
+    Set<String> nameI18nLikeList;
+    Set<String> nameI18nNotLikeList;
+    Set<String> descriptionI18nLikeList;
+    Set<String> descriptionI18nNotLikeList;
     Set<UUID> headTwinClassIdList;
     Set<UUID> headTwinClassIdExcludeList;
     Set<UUID> extendsTwinClassIdList;

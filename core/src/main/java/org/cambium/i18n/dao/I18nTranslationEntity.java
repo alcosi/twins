@@ -3,6 +3,7 @@ package org.cambium.i18n.dao;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.util.StringUtils;
@@ -17,6 +18,7 @@ import java.util.*;
 @Accessors(chain = true)
 @Table(name = "i18n_translation")
 @IdClass(I18nTranslationEntity.PK.class)
+@FieldNameConstants
 public class I18nTranslationEntity {
     @Id
     @Column(name = "i18n_id")

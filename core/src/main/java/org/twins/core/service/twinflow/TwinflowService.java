@@ -45,6 +45,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
@@ -253,10 +254,15 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return PaginationUtils.convertInPaginationResult(twinflowList, pagination);
     }
 
-    private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch twinflowSearch) {
+    private Specification<TwinflowEntity> createTwinflowEntitySearchSpecification(TwinflowSearch twinflowSearch) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false)
                         .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nNotLikeList(), locale, false, true))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false))
                         .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true))
         );
