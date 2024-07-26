@@ -14,13 +14,11 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.factory.FactoryContext;
-import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.domain.factory.FactoryResultCommited;
-import org.twins.core.domain.factory.FactoryResultUncommited;
+import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
@@ -31,6 +29,7 @@ import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -55,6 +54,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final FeaturerService featurerService;
     @Lazy
     final AuthService authService;
+    @Lazy
+    final DraftService draftService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -274,23 +275,26 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Transactional
     public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        FactoryResultCommited factoryResultCommited = new FactoryResultCommited();
-        Set<UUID> deletionTwinIds = new HashSet<>();
-        for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
-            TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
-            factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
+        if (!factoryResultUncommited.isCommittable())
+            throw new ServiceException(ErrorCodeTwins.FACTORY_RESULT_LOCKED);
+        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
+            //we had to draft it cause cascade deletion can affect to many twins. it's not safe to keep them all in memory
+            DraftEntity draftEntity = draftService.draftFactoryResult(factoryResultUncommited);
+            draftService.commit(draftEntity.getId());
+            //todo we can check draft size and if it's not to big we can use FactoryResultCommitedMinor
+            return new FactoryResultCommitedMajor().setCommitedDraftEntity(draftEntity);
+        } else { //we will not draft it because this can extra load db
+            FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();
+            for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
+                TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
+                factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
+            }
+            for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {
+                twinService.updateTwin(twinUpdate);
+                factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
+            }
+            return factoryResultCommited;
         }
-        for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {
-            twinService.updateTwin(twinUpdate);
-            factoryResultCommited.addUpdatedTwin(twinUpdate.getDbTwinEntity());
-        }
-        for (TwinDelete twinDelete : factoryResultUncommited.getDeletes()) {
-            deletionTwinIds.add(twinDelete.getTwinEntity().getId());
-            factoryResultCommited.addDeletedTwin(twinDelete.getTwinEntity());
-        }
-        if (!deletionTwinIds.isEmpty())
-            twinEraserService.deleteTwins(deletionTwinIds);
-        return factoryResultCommited;
     }
 
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {
@@ -391,5 +395,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 break;
         }
         return fieldValue;
+    }
+
+    public void draftResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
+        draftService.draftFactoryResult(factoryResultUncommited);
     }
 }

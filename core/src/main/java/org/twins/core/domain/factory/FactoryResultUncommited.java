@@ -31,4 +31,16 @@ public class FactoryResultUncommited {
             throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, twinOperation + " unknown twin operation");
         return this;
     }
+
+    public FactoryResultUncommited join(FactoryResultUncommited joinResult) {
+        creates.addAll(joinResult.getCreates());
+        updates.addAll(joinResult.getUpdates());
+        deletes.addAll(joinResult.getDeletes());
+        committable = committable && joinResult.committable;
+        return this;
+    }
+
+    public boolean isBlank() {
+        return creates.isEmpty() && updates.isEmpty() && deletes.isEmpty();
+    }
 }

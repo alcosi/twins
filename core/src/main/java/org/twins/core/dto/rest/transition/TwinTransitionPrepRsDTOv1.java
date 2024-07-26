@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.transition;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinTransitionDraftRsV1")
-public class TwinTransitionDraftRsDTOv1 extends Request {
-    @Schema(description = "some extra data draft to perform transition")
+@Schema(name =  "TwinTransitionPrepRsV1")
+public class TwinTransitionPrepRsDTOv1 extends Request {
+    @Schema(description = "some extra data to prepare transition")
     public TwinTransitionContextDTOv1 draftContext;
 }

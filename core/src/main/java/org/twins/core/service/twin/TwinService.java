@@ -328,6 +328,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
         invalidateFields(twinEntity);
         twinflowService.runTwinStatusTransitionTriggers(twinEntity, null, twinEntity.getTwinStatus());
+        //todo mark all uncommited drafts as out-of-dated if they have current twin head deletion
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
                 .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity));
@@ -464,7 +465,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
 
         entitySmartService.saveAndLogChanges(dbTwinEntity, twinRepository, changesHelper);
-
+        //todo mark all uncommited drafts as out-of-dated
         if (changesHelper.hasChanges())
             historyService.saveHistory(dbTwinEntity, historyCollector);
         if (MapUtils.isNotEmpty(fields))

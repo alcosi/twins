@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Entity
 @Table(name = "draft")
-public class DraftEntity {
+public class DraftEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -25,6 +26,12 @@ public class DraftEntity {
             this.id = UUID.randomUUID();
         }
     }
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    @Column(name = "business_account_id")
+    private UUID businessAccountId;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
@@ -49,8 +56,19 @@ public class DraftEntity {
     @JoinColumn(name = "created_by_user_id")
     private UserEntity createdByUser;
 
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "draft[" + id + "]";
+            case NORMAL -> "draft[id:" + id + ", status:" + status + "]";
+            default -> "draft[id:" + id + ", status:" + status + ", createdBy:" + createdByUserId + "]";
+        };
+
+    }
+
     @Getter
     public enum Status {
+        UNDER_CONSTRUCTION("UNDER_CONSTRUCTION"),
         UNCOMMITED("UNCOMMITED"),
         LOCKED("LOCKED"),
         COMMITED("COMMITED");

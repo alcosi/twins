@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twin;
+package org.twins.core.controller.rest.priv.draft;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,8 +12,8 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
@@ -21,58 +21,37 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.draft.DraftRsDTOv1;
 import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.service.twin.TwinEraserService;
+import org.twins.core.service.draft.DraftService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.TWIN)
+@Tag(name = ApiTag.DRAFT)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class TwinDeleteController extends ApiController {
-    private final TwinEraserService twinEraserService;
+public class DraftCommitController extends ApiController {
     private final DraftRestDTOMapper draftRestDTOMapper;
+    private final DraftService draftService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinDeleteV1", summary = "Delete twin by id")
+    @Operation(operationId = "draftCommitV1", summary = "Commit draft by id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @DeleteMapping(value = "/private/twin/{twinId}/v1")
-    public ResponseEntity<?> twinDeleteV1(
-            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
-        Response rs = new Response();
-        try {
-            twinEraserService.deleteTwin(twinId);
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "twinDeleteDraftedV1", summary = "Delete twin by id")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+            @ApiResponse(responseCode = "200", description = "Twinflow prepared", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DraftRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @DeleteMapping(value = "/private/twin/{twinId}/delete_drafted/v1")
-    public ResponseEntity<?> twinDeleteDraftedV1(
+    @PutMapping(value = "/private/draft/{draftId}/commit/v1")
+    public ResponseEntity<?> draftCommitV1(
             @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
+            @Parameter(example = DTOExamples.DRAFT_ID) @PathVariable UUID draftId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
-            DraftEntity draftEntity = twinEraserService.deleteTwinDrafted(twinId);
-            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
+            DraftEntity draftEntity = draftService.commit(draftId);
+            rs
+                    .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -80,4 +59,5 @@ public class TwinDeleteController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
+
 }

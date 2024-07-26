@@ -67,6 +67,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     FACTORY_INCORRECT(11001, "twin factory config is incorrect"),
     FACTORY_PIPELINE_STEP_ERROR(11002, "twin factory pipeline step error"),
     FACTORY_MULTIPLIER_ERROR(11003, "twin factory multiplier error"),
+    FACTORY_RESULT_LOCKED(11004, "twin factory result was locked by eraser"),
     TWIN_STATUS_INCORRECT(11101, "twin status is incorrect"),
     PAGINATION_ERROR(11201, "the offset must be a multiple of the size"),
     TWIN_COMMENT_FIELD_TEXT_IS_NULL(11301, "twin comment field is null"),

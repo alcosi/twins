@@ -35,6 +35,14 @@ create table if not exists draft
     id                 uuid                    not null
         constraint draft_pk
             primary key,
+    domain_id            uuid not null
+        constraint domain_business_account_domain_id_fk
+            references domain
+            on update cascade on delete cascade,
+    business_account_id  uuid
+        constraint domain_business_account_business_account_id_fk
+            references business_account
+            on update cascade on delete cascade,
     created_by_user_id uuid                    not null
         constraint draft_created_by_user_id_fk
             references "user"

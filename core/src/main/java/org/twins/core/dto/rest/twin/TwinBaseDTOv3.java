@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
-import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionViewDTOv1;
 
 import java.util.List;
 import java.util.Set;

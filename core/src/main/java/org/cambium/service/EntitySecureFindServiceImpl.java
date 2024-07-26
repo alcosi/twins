@@ -55,6 +55,11 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.EntityValidateMode.afterRead);
     }
 
+    public T checkEntityReadAllow(T entity) throws ServiceException {
+        isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        return entity;
+    }
+
     public boolean isEntityReadDenied(T entity) {
         try {
             return isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
@@ -77,13 +82,13 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
-    public boolean validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
-            return true;
+            return entity;
         if (!validateEntity(entity, entityValidateMode)) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, getValidationErrorMessage(entity));
         }
-        return true;
+        return entity;
     }
 
     @Override

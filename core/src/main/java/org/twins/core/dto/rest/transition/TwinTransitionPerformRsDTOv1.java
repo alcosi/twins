@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.transition;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

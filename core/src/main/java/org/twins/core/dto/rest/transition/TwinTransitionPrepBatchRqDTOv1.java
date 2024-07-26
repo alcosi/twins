@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinflow;
+package org.twins.core.dto.rest.transition;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinTransitionDraftBatchRqV1")
-public class TwinTransitionDraftBatchRqDTOv1 extends Request {
+@Schema(name =  "TwinTransitionPrepBatchRqV1")
+public class TwinTransitionPrepBatchRqDTOv1 extends Request {
     @Schema
     public List<UUID> twinIdList;
 }

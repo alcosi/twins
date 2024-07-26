@@ -4,14 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.domain.transition.TransitionResult;
+import org.twins.core.dto.rest.transition.TwinTransitionPerformRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twinflow.TwinTransitionPerformRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionResultMode;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
-import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.*;
 
@@ -19,12 +19,12 @@ import java.util.*;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TransitionResultMode.class)
-public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionService.TransitionResult, TwinTransitionPerformRsDTOv1> {
+public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<TransitionResult, TwinTransitionPerformRsDTOv1> {
 
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
 
     @Override
-    public void map(TwinflowTransitionService.TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TransitionResultMode.DETAILED)) {
             case DETAILED:
                 List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertCollection(src.getProcessedTwinList(), mapperContext);
