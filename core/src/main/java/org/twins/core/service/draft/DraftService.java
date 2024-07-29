@@ -76,7 +76,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         twinflowService.loadTwinflow(twinEntity);
-        draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET);
+        draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false);
         runFactoryAndDraftResult(draftCollector, twinEntity);
         flush(draftCollector);
         draftCascadeErase(draftCollector);
@@ -90,7 +90,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         2. child twins can also have links
         scope will be loaded when all items will have eraseReady = true
         */
-        List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
+        List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftId());
         int cascadeDepth = 0;
         while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
@@ -104,14 +104,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     case LINK:
                         // after running erase factory we can have updated child twins with new heads (not current twin)
                         // so we should exclude them from deletion, this will be done in db query
-                        draftTwinEraseRepository.addChildTwins(draftCollector.getDraftEntity().getId(), eraseItem.getTwinId(), LTreeUtils.matchInTheMiddle(eraseItem.getTwinId()));
+                        draftTwinEraseRepository.addChildTwins(draftCollector.getDraftId(), eraseItem.getTwinId(), LTreeUtils.matchInTheMiddle(eraseItem.getTwinId()));
                         // after running erase factory we can have some link updates (dst twin was changed from current twin)
                         // so we should exclude them from deletion
-                        draftTwinEraseRepository.addLinked(draftCollector.getDraftEntity().getId(), eraseItem.getTwinId());
+                        draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseItem.getTwinId());
                         break;
                     case CHILD:
                         // we do not need to add child of child, because it's already done, so we will add only links
-                        draftTwinEraseRepository.addLinked(draftCollector.getDraftEntity().getId(), eraseItem.getTwinId());
+                        draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseItem.getTwinId());
                         break;
                     default:
                         throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "something went wrong");
@@ -121,10 +121,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 eraseItem
                         .setEraseReady(true)
                         .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId());
-
+                if (eraseItem.getEraseTwinStatusId() == null)
+                    draftCollector.getCounters().incrementTwinEraseIrrevocable();
             }
             draftTwinEraseRepository.saveAll(eraseNotReadyList);
-            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftId());
         }
     }
 
@@ -174,12 +175,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 draftUpdate(draftCollector, twinUpdate);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
             for (TwinDelete twinDelete : factoryResultUncommited.getDeletes())
-                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY);
+                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.isCauseGlobalLock());
         return draftCollector;
     }
 
-    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason) throws ServiceException {
-        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason));
+    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
+        if (causeGlobalLock) //adding extra lock
+            draftCollector.getDraftEntity().setStatus(DraftEntity.Status.LOCKED);
+        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock));
     }
 
     public DraftCollector draftUpdate(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
@@ -321,7 +324,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setDraftId(draftEntity.getId());
     }
 
-    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason) throws ServiceException {
+    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
         return new DraftTwinEraseEntity()
                 .setTwinId(twinService.checkEntityReadAllow(twinEntity).getId())
                 .setTwin(twinEntity)
@@ -329,6 +332,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setDraftId(draftEntity.getId())
                 .setReasonTwinId(reasonTwin != null ? reasonTwin.getId() : null)
                 .setReason(reason)
+                .setCauseGlobalLock(causeGlobalLock)
                 .setEraseTwinStatusId(null); //we will fill it later
     }
 
@@ -517,7 +521,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     public void flush(DraftCollector draftCollector) throws ServiceException {
-        if (!draftCollector.isOnceFlushed()) { // we still do not store draftEntity to DB
+        if (!draftCollector.isOnceFlushed()) { // if we still do not store draftEntity to DB, let's do it
             entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
             draftCollector.setOnceFlushed(true);
         }
@@ -552,16 +556,58 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftEntity commit(UUID draftId) throws ServiceException {
         DraftEntity draftEntity = findEntitySafe(draftId);
         if (draftEntity.getStatus() != DraftEntity.Status.UNCOMMITED)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, "current draft can not be commited");
         //todo
+
         return draftEntity;
     }
 
     public void endDraft(DraftCollector draftCollector) throws ServiceException {
         flush(draftCollector);
-        draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
+        if (draftCollector.getDraftEntity().getStatus() == DraftEntity.Status.UNDER_CONSTRUCTION) // only such status can be changed to UNCOMMITED
+            draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
         //todo set counters
+        normalizeDraft(draftCollector);
+        checkConflicts(draftCollector);
         entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    }
+
+    // let's try to clean some possible garbage (updates ot twins that will be fully deleted)
+    private void normalizeDraft(DraftCollector draftCollector) {
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_persist");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_tag");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_marker");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_attachment");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_field_simple");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_field_user");
+//        draftRepository.normalizeDraft(draftCollector.getDraftId(), "draft_twin_field_data_list");
+        if (draftCollector.getCounters().getTwinEraseIrrevocableCount() == 0)
+            return; //nothing need to be normalized
+
+        if (draftCollector.getCounters().getTwinPersistCount() > 0)
+            draftTwinPersistRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinTagCount() > 0)
+            draftTwinTagRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinMarkerCount() > 0)
+            draftTwinMarkerRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinAttachmentCount() > 0)
+            draftTwinAttachmentRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinTwinFieldSimpleCount() > 0)
+            draftTwinFieldSimpleRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinTwinFieldUserCount() > 0)
+            draftTwinFieldUserRepository.normalizeDraft(draftCollector.getDraftId());
+        if (draftCollector.getCounters().getTwinTwinFieldDataListCount() > 0)
+            draftTwinFieldDataListRepository.normalizeDraft(draftCollector.getDraftId());
+        //we can clean only links, which must be deleted, all other should be checked during commit.
+        if (draftCollector.getCounters().getTwinLinkDeleteCount() > 0)
+            draftTwinLinkRepository.normalizeDraft(draftCollector.getDraftId());
+
+    }
+
+    private void checkConflicts(DraftCollector draftCollector) {
+        if (draftCollector.getCounters().getTwinEraseIrrevocableCount() == 0)
+            return; //hope we will have no conflicts in such case
+
     }
 
     @Override

@@ -140,6 +140,7 @@ create table if not exists draft_twin_erase
             references twin_erase_reason
             on update cascade,
     erase_twin_status_id uuid,                          -- if null, then twin will be force deleted from db
+    cause_global_lock      boolean not null default false,
     constraint draft_twin_erase_pk
         primary key (draft_id, twin_id)
 );

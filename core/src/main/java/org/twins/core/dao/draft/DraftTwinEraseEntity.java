@@ -39,6 +39,9 @@ public class DraftTwinEraseEntity {
     @Column(name = "erase_twin_status_id")
     private UUID eraseTwinStatusId;
 
+    @Column(name = "cause_global_lock")
+    private boolean causeGlobalLock;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "draft_id")
     private DraftEntity draft;

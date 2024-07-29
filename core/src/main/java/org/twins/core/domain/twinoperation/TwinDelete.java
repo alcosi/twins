@@ -5,10 +5,10 @@ import org.twins.core.dao.twin.TwinEntity;
 
 @Getter
 public class TwinDelete extends TwinOperation {
-    boolean globalLock = false;
+    boolean causeGlobalLock;
 
-    public TwinDelete(TwinEntity twin, boolean globalLock) {
+    public TwinDelete(TwinEntity twin, boolean causeGlobalLock) {
         this.twinEntity = twin;
-        this.globalLock = globalLock;
+        this.causeGlobalLock = causeGlobalLock;
     }
 }
