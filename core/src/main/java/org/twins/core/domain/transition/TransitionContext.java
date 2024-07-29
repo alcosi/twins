@@ -24,6 +24,8 @@ public class TransitionContext extends TransitionDraftContext {
     private List<TwinCreate> newTwinList;
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
+    private boolean validated = false;
+    private boolean attachmentsFilled = false;
 
     public boolean isSimple() {
         return MapUtils.isEmpty(fields)

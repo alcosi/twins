@@ -71,6 +71,7 @@ public class DraftEntity implements EasyLoggable {
         UNDER_CONSTRUCTION("UNDER_CONSTRUCTION"),
         UNCOMMITED("UNCOMMITED"),
         LOCKED("LOCKED"),
+        OUT_OF_DATE("OUT_OF_DATE"),
         COMMITED("COMMITED");
 
         private final String id;

@@ -9,7 +9,6 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.service.draft.DraftService;
 
-import java.util.Collection;
 import java.util.UUID;
 
 @Service
@@ -24,12 +23,6 @@ public class TwinEraserService {
 
     public void deleteTwin(UUID twinId) throws ServiceException {
         deleteTwin(twinService.findEntitySafe(twinId));
-    }
-
-    public void deleteTwins(Collection<UUID> twinIds) throws ServiceException {
-        for (UUID twinId : twinIds) {
-            deleteTwin(twinId);
-        }
     }
 
     public DraftEntity deleteTwinDrafted(UUID twinId) throws ServiceException {

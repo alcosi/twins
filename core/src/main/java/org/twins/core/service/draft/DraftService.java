@@ -18,6 +18,7 @@ import org.twins.core.dao.draft.*;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -58,7 +59,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     @Lazy
     private final TwinFactoryService twinFactoryService;
 
-    public DraftCollector createDraftCollector() throws ServiceException {
+    public DraftCollector beginDraft() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return new DraftCollector(
                 new DraftEntity()
@@ -73,12 +74,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
-        DraftCollector draftCollector = createDraftCollector();
+        DraftCollector draftCollector = beginDraft();
         twinflowService.loadTwinflow(twinEntity);
         draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET);
-        runEraseFactory(draftCollector, twinEntity);
-        save(draftCollector); //flush
+        runFactoryAndDraftResult(draftCollector, twinEntity);
+        flush(draftCollector);
         draftCascadeErase(draftCollector);
+        endDraft(draftCollector);
         return draftCollector.getDraftEntity();
     }
 
@@ -88,20 +90,20 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         2. child twins can also have links
         scope will be loaded when all items will have eraseReady = true
         */
-        List<DraftTwinEraseEntity> erseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
+        List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
         int cascadeDepth = 0;
-        while (CollectionUtils.isNotEmpty(erseNotReadyList)) {
+        while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
             if (cascadeDepth >= 5)
                 throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CASCADE_ERASE_LIMIT);
-            twinflowService.loadTwinflow(erseNotReadyList.stream().map(DraftTwinEraseEntity::getTwin).toList()); //bulk detect
-            for (DraftTwinEraseEntity eraseItem : erseNotReadyList) {
+            twinflowService.loadTwinflow(eraseNotReadyList.stream().map(DraftTwinEraseEntity::getTwin).toList()); //bulk detect
+            for (DraftTwinEraseEntity eraseItem : eraseNotReadyList) {
                 switch (eraseItem.getReason()) { // switch is more clear here
                     case TARGET:
                     case FACTORY:
                     case LINK:
                         // after running erase factory we can have updated child twins with new heads (not current twin)
-                        // so we should exclude them from deletion
+                        // so we should exclude them from deletion, this will be done in db query
                         draftTwinEraseRepository.addChildTwins(draftCollector.getDraftEntity().getId(), eraseItem.getTwinId(), LTreeUtils.matchInTheMiddle(eraseItem.getTwinId()));
                         // after running erase factory we can have some link updates (dst twin was changed from current twin)
                         // so we should exclude them from deletion
@@ -114,34 +116,29 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     default:
                         throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "something went wrong");
                 }
-                runEraseFactory(draftCollector, eraseItem.getTwin());
-                save(draftCollector); //flush
+                runFactoryAndDraftResult(draftCollector, eraseItem.getTwin());
+                flush(draftCollector);
                 eraseItem
                         .setEraseReady(true)
                         .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId());
 
             }
-            draftTwinEraseRepository.saveAll(erseNotReadyList);
-            erseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
+            draftTwinEraseRepository.saveAll(eraseNotReadyList);
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftEntity().getId());
         }
-        draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
-        //todo set counters
-        //todo save to DB
     }
 
     public DraftEntity draftFactoryResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
-        DraftCollector draftCollector = createDraftCollector();
+        DraftCollector draftCollector = beginDraft();
         draftFactoryResult(draftCollector, factoryResultUncommited, null);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
             draftCascadeErase(draftCollector);
-        } else {
-            draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
-            save(draftCollector);
         }
+        endDraft(draftCollector);
         return draftCollector.getDraftEntity();
     }
 
-    public DraftCollector runEraseFactory(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
+    public DraftCollector runFactoryAndDraftResult(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
         UUID eraseFactoryId = twinEntity.getTwinflow().getEraseTwinFactoryId();
         if (eraseFactoryId == null)
             return draftCollector;
@@ -519,10 +516,15 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftTwinFieldDataListEntity;
     }
 
-    public void save(DraftCollector draftCollector) throws ServiceException {
+    public void flush(DraftCollector draftCollector) throws ServiceException {
+        if (!draftCollector.isOnceFlushed()) { // we still do not store draftEntity to DB
+            entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+            draftCollector.setOnceFlushed(true);
+        }
         if (!draftCollector.hasChanges())
             return;
-        entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        if (!draftCollector.isWritable())
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
         saveEntities(draftCollector, DraftTwinPersistEntity.class, draftTwinPersistRepository);
         saveEntities(draftCollector, DraftTwinEraseEntity.class, draftTwinEraseRepository);
         saveEntities(draftCollector, DraftTwinAttachmentEntity.class, draftTwinAttachmentRepository);
@@ -546,11 +548,20 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         }
     }
 
-    // can not be done by db function< because we need to create history
+    // can not be done by db function, because we need to create history
     public DraftEntity commit(UUID draftId) throws ServiceException {
         DraftEntity draftEntity = findEntitySafe(draftId);
+        if (draftEntity.getStatus() != DraftEntity.Status.UNCOMMITED)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
+        //todo
+        return draftEntity;
+    }
 
-        return null;
+    public void endDraft(DraftCollector draftCollector) throws ServiceException {
+        flush(draftCollector);
+        draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
+        //todo set counters
+        entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     @Override

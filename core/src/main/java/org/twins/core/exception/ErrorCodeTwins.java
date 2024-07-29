@@ -82,7 +82,10 @@ public enum ErrorCodeTwins implements ErrorCode {
     SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied"),
     TWIN_ERASE_LOCKED(11801, "erase locked"),
     TWIN_DRAFT_GENERAL_ERROR(11901, "erase locked"),
-    TWIN_DRAFT_CASCADE_ERASE_LIMIT(11902, "cascade erase reaches current limit"),;
+    TWIN_DRAFT_CASCADE_ERASE_LIMIT(11902, "cascade erase reaches current limit"),
+    TWIN_DRAFT_NOT_STARTED(11903, "draft was not started correctly"),
+    TWIN_DRAFT_NOT_WRITABLE(11904, "draft is already not writable"),
+    TWIN_DRAFT_CAN_NOT_BE_COMMITED(11905, "draft can not be commited"),;
 
 
     private final int code;

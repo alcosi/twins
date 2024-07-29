@@ -21,10 +21,16 @@ create table if not exists draft_status
 );
 
 INSERT INTO draft_status (id)
+VALUES ('UNDER_CONSTRUCTION')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
 VALUES ('UNCOMMITED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
 VALUES ('LOCKED')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
+VALUES ('OUT_OF_DATE')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
 VALUES ('COMMITED')
