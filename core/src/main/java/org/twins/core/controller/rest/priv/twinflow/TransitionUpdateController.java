@@ -30,7 +30,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.TWINFLOW)
+@Tag(description = "", name = ApiTag.TRANSITION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -57,7 +57,8 @@ public class TransitionUpdateController extends ApiController {
             I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
             TwinflowTransitionEntity twinflowTransitionEntity = transitionUpdateRestDTOReverseMapper.convert(request);
-            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, transitionId);
+            twinflowTransitionEntity.setId(transitionId);
+            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n);
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
         } catch (ServiceException se) {

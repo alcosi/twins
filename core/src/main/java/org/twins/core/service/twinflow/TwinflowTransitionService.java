@@ -10,6 +10,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -246,10 +247,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return triples;
     }
 
-    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, UUID transitionId) {
-
-    }
-
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         twinflowTransitionEntity
@@ -277,6 +274,85 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private TwinflowTransitionAliasEntity saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
         return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
+
+    @Transactional
+    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
+        updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
+        updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
+        updateTransitionDraftingFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDraftingTwinFactoryId(), changesHelper);
+        updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
+        updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
+        updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
+        dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
+        twinClassService.evictCache(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        return dbTwinflowTransitionEntity;
+    }
+
+    @Transactional
+    public void updateTransitionDescription(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbTwinflowTransitionEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbTwinflowTransitionEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
+        dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+
+    @Transactional
+    public void updateTransitionName(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbTwinflowTransitionEntity.getNameI18NId() != null)
+            nameI18n.setId(dbTwinflowTransitionEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
+        dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    @Transactional
+    public void updateTransitionInBuildFactory(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID factoryId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("inbuiltTwinFactoryId", dbTwinflowTransitionEntity.getInbuiltTwinFactoryId(), factoryId))
+            return;
+        dbTwinflowTransitionEntity.setInbuiltTwinFactoryId(factoryId);
+    }
+
+    @Transactional
+    public void updateTransitionDraftingFactory(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID factoryId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("draftingTwinFactoryId", dbTwinflowTransitionEntity.getDraftingTwinFactoryId(), factoryId))
+            return;
+        dbTwinflowTransitionEntity.setDraftingTwinFactoryId(factoryId);
+    }
+
+    @Transactional
+    public void updateTransitionPermission(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID permissionId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("permissionId", dbTwinflowTransitionEntity.getPermissionId(), permissionId))
+            return;
+        dbTwinflowTransitionEntity.setPermissionId(permissionId);
+    }
+
+    @Transactional
+    public void updateTransitionSrcStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("srcStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
+            return;
+        if(null != statusId && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+            throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
+        dbTwinflowTransitionEntity.setSrcTwinStatusId(statusId);
+    }
+
+    @Transactional
+    public void updateTransitionDstStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged("dstStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
+            return;
+        if(null == statusId)
+            throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "Dst status for transition can't be null");
+        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+            throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
+        dbTwinflowTransitionEntity.setDstTwinStatusId(statusId);
+    }
+
 
     @Getter
     @RequiredArgsConstructor

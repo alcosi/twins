@@ -305,7 +305,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("initialStatusId", dbTwinflowEntity.getInitialTwinStatusId(), initStatusId))
             return;
-        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowEntity.getTwinClassId(), initStatusId))
+        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowEntity.getTwinClass(), initStatusId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + initStatusId + "] is not allowed for twinClass[" + dbTwinflowEntity.getTwinClassId() + "]");
         dbTwinflowEntity.setInitialTwinStatusId(initStatusId);
     }
