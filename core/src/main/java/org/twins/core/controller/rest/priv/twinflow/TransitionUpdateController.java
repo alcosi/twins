@@ -21,7 +21,6 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinflow.TransitionUpdateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TransitionUpdateRsDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusCreateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
@@ -45,12 +44,12 @@ public class TransitionUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transition prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusCreateRsDTOv1.class))}),
+                    @Schema(implementation = TransitionUpdateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/{transitionId}/v1")
     public ResponseEntity<?> transitionUpdateV1(
             @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionUpdateRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID transitionId,
+            @Parameter(example = DTOExamples.TWINFLOW_TRANSITION_ID) @PathVariable UUID transitionId,
             @RequestBody TransitionUpdateRqDTOv1 request) {
         TransitionUpdateRsDTOv1 rs = new TransitionUpdateRsDTOv1();
         try {

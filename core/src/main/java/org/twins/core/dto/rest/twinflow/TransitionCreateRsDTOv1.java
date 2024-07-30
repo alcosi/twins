@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.Response;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinflowTransitionCreateRsV1")
+@Schema(name = "TransitionCreateRsV1")
 public class TransitionCreateRsDTOv1 extends Response {
     @Schema(description = "result - twinflow transition")
     public TwinflowTransitionBaseDTOv2 transition;
