@@ -73,6 +73,7 @@ create table if not exists draft_twin_persist
         constraint draft_twin_persist_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     create_else_update         boolean      not null, -- true for create, false for update
 --     persist_type_id            varchar      not null
 --         constraint draft_twin_persist_persist_type_fk
@@ -126,6 +127,7 @@ create table if not exists draft_twin_erase
         constraint draft_erase_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     twin_id              uuid                  not null -- fk here, because deletion only of existed twins
         constraint draft_twin_erase_twin_id_fk
             references twin
@@ -160,6 +162,7 @@ create table if not exists draft_twin_link
         constraint draft_twin_link_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     cud_id       varchar not null
         constraint draft_twin_link_cud_id_fk
             references cud
@@ -184,6 +187,7 @@ create table if not exists draft_twin_attachment
         constraint draft_twin_attachment_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     cud_id                 varchar not null
         constraint draft_twin_attachment_cud_id_fk
             references cud
@@ -215,6 +219,7 @@ create table if not exists draft_twin_marker
         constraint draft_twin_marker_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     twin_id                    uuid    not null,               -- no FW, cause twin can be in creation state
     create_else_delete         boolean not null default false, -- true for create, false for delete
     marker_data_list_option_id uuid
@@ -235,6 +240,7 @@ create table if not exists draft_twin_tag
         constraint draft_twin_tag_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     twin_id                 uuid    not null,               -- no FW, cause twin can be in creation state
     create_else_delete      boolean not null default false, -- true for create, false for delete
     tag_data_list_option_id uuid                            -- new tags must be created before
@@ -254,6 +260,7 @@ create table if not exists draft_twin_field_data_list
         constraint draft_twin_field_data_list_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     cud_id                  varchar not null
         constraint draft_twin_field_data_list_cud_id_fk
             references cud
@@ -278,6 +285,7 @@ create table if not exists draft_twin_field_simple
         constraint draft_twin_field_simple_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     cud_id               varchar not null
         constraint draft_twin_field_simple_cud_id_fk
             references cud
@@ -302,6 +310,7 @@ create table if not exists draft_twin_field_user
         constraint draft_twin_field_user_draft_id_fk
             references draft
             on update cascade on delete cascade,
+    time_in_millis         bigint  not null,
     cud_id              varchar not null
         constraint draft_twin_field_user_cud_id_fk
             references cud

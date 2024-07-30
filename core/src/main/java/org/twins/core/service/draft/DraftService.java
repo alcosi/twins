@@ -307,6 +307,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftTwinPersistEntity createTwinPersistDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
         return new DraftTwinPersistEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinService.checkEntityReadAllow(twinEntity).getId())
                 .setDescription(twinEntity.getDescription())
                 .setName(twinEntity.getName())
@@ -319,17 +322,16 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 //                .setTwinClassId()
 //                .setOwnerUserId()
 //                .setOwnerBusinessAccountId()
-                .setCreateElseUpdate(false)
-                .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setCreateElseUpdate(false);
     }
 
     public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
         return new DraftTwinEraseEntity()
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinService.checkEntityReadAllow(twinEntity).getId())
                 .setTwin(twinEntity)
                 .setEraseReady(false)
-                .setDraftId(draftEntity.getId())
                 .setReasonTwinId(reasonTwin != null ? reasonTwin.getId() : null)
                 .setReason(reason)
                 .setCauseGlobalLock(causeGlobalLock)
@@ -338,30 +340,33 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftTwinTagEntity createTagDraft(DraftEntity draftEntity, UUID twinId, UUID tagId, boolean createElseDelete) throws ServiceException {
         return new DraftTwinTagEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinId)
                 .setTagDataListOptionId(tagId)
-                .setCreateElseDelete(createElseDelete)
-                .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setCreateElseDelete(createElseDelete);
     }
 
     public DraftTwinMarkerEntity createMarkerDraft(DraftEntity draftEntity, UUID twinId, UUID markerId, boolean createElseDelete) throws ServiceException {
         return new DraftTwinMarkerEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinId)
                 .setMarkerDataListOptionId(markerId)
-                .setCreateElseDelete(createElseDelete)
-                .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setCreateElseDelete(createElseDelete);
     }
 
     public DraftTwinFieldSimpleEntity createFieldDraft(DraftEntity draftEntity, TwinFieldSimpleEntity twinFieldSimpleEntity) throws ServiceException {
         CUD cud = twinFieldSimpleEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
         DraftTwinFieldSimpleEntity draftTwinFieldSimpleEntity = new DraftTwinFieldSimpleEntity()
-                .setTwinId(twinFieldSimpleEntity.getTwinId()) // can we guarantee that it's not null?
-                .setCud(cud)
                 .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldSimpleEntity.getTwinId()) // can we guarantee that it's not null?
+                .setCud(cud);
         switch (cud) {
             case CREATE:
                 if (twinFieldSimpleEntity.getTwinClassFieldId() == null)
@@ -385,10 +390,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         CUD cud = twinFieldUserEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
         DraftTwinFieldUserEntity draftTwinFieldUserEntity = new DraftTwinFieldUserEntity()
-                .setTwinId(twinFieldUserEntity.getTwinId())
-                .setCud(cud)
                 .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldUserEntity.getTwinId())
+                .setCud(cud);
         switch (cud) {
             case CREATE:
                 if (twinFieldUserEntity.getTwinClassFieldId() == null)
@@ -413,9 +419,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         CUD cud = twinLinkEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
         DraftTwinLinkEntity draftTwinLinkEntity = new DraftTwinLinkEntity()
-                .setCud(cud)
                 .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setCud(cud);
         switch (cud) {
             case CREATE:
                 if (twinLinkEntity.getLinkId() == null || twinLinkEntity.getSrcTwinId() == null || twinLinkEntity.getDstTwinId() == null)
@@ -442,10 +449,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         CUD cud = twinAttachmentEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
         DraftTwinAttachmentEntity draftTwinAttachmentEntity = new DraftTwinAttachmentEntity()
-                .setTwinId(twinAttachmentEntity.getTwinId()) // not sure that we need it
-                .setCud(cud)
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinAttachmentEntity.getTwinId()) // not sure that we need it
+                .setCud(cud)
                 .setExternalId(twinAttachmentEntity.getExternalId())
                 .setTitle(twinAttachmentEntity.getTitle())
                 .setDescription(twinAttachmentEntity.getDescription())
@@ -469,6 +477,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setCud(CUD.DELETE)
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
                 .setTwinFieldUserId(twinFieldUserId);
     }
 
@@ -476,9 +485,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (twinFieldDataListId == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_field_data_list.id required for field deletion");
         return new DraftTwinFieldDataListEntity()
-                .setCud(CUD.DELETE)
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setCud(CUD.DELETE)
                 .setTwinFieldDataListId(twinFieldDataListId);
     }
 
@@ -486,10 +496,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (twinLinkId == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_link.id required for link  deletion");
         return new DraftTwinLinkEntity()
-                .setCud(CUD.DELETE)
-                // .setSrcTwinId() we don't need it here?
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setCud(CUD.DELETE)
                 .setTwinLinkId(twinLinkId);
     }
 
@@ -497,10 +507,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         CUD cud = twinFieldDataListEntity.getId() == null ? CUD.CREATE : CUD.UPDATE;
 
         DraftTwinFieldDataListEntity draftTwinFieldDataListEntity = new DraftTwinFieldDataListEntity()
-                .setTwinId(twinFieldDataListEntity.getTwinId())
-                .setCud(cud)
                 .setDraft(draftEntity)
-                .setDraftId(draftEntity.getId());
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinFieldDataListEntity.getTwinId())
+                .setCud(cud);
         switch (cud) {
             case CREATE:
                 if (twinFieldDataListEntity.getTwinClassFieldId() == null)
@@ -589,7 +600,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (draftCollector.getCounters().getTwinTagCount() > 0)
             draftTwinTagRepository.normalizeDraft(draftCollector.getDraftId());
         if (draftCollector.getCounters().getTwinMarkerCount() > 0)
-            draftTwinMarkerRepository.normalizeDraft(draftCollector.getDraftId());
+            draftTwinMarkerRepository.normalizeDraftByTwinDeletion(draftCollector.getDraftId());
         if (draftCollector.getCounters().getTwinAttachmentCount() > 0)
             draftTwinAttachmentRepository.normalizeDraft(draftCollector.getDraftId());
         if (draftCollector.getCounters().getTwinTwinFieldSimpleCount() > 0)
@@ -602,6 +613,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (draftCollector.getCounters().getTwinLinkDeleteCount() > 0)
             draftTwinLinkRepository.normalizeDraft(draftCollector.getDraftId());
 
+        if (draftCollector.getCounters().getTwinMarkerCreateCount() > 0 && draftCollector.getCounters().getTwinMarkerDeleteCount() > 0)
+            draftTwinMarkerRepository.normalizeDraftByTwinDeletion(draftCollector.getDraftId());
     }
 
     private void checkConflicts(DraftCollector draftCollector) {

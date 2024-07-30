@@ -19,6 +19,9 @@ public class DraftTwinTagEntity {
     @Column(name = "draft_id")
     private UUID draftId;
 
+    @Column(name = "time_in_millis")
+    private long timeInMillis;
+
     @Column(name = "twin_id")
     private UUID twinId;
 

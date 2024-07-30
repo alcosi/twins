@@ -20,6 +20,9 @@ public class DraftTwinPersistEntity {
     @Column(name = "draft_id")
     private UUID draftId;
 
+    @Column(name = "time_in_millis")
+    private long timeInMillis;
+
     @Column(name = "create_else_update")
     private boolean createElseUpdate = false;
 

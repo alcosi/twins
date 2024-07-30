@@ -26,6 +26,9 @@ public class DraftTwinEraseEntity {
     @Column(name = "twin_id")
     private UUID twinId;
 
+    @Column(name = "time_in_millis")
+    private long timeInMillis;
+
     @Column(name = "erase_ready")
     private boolean eraseReady = false;
 

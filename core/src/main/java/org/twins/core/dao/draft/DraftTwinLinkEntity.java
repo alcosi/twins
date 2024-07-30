@@ -21,6 +21,9 @@ public class DraftTwinLinkEntity {
     @Column(name = "draft_id")
     private UUID draftId;
 
+    @Column(name = "time_in_millis")
+    private long timeInMillis;
+
     @Column(name = "cud_id")
     @Convert(converter = CUDConverter.class)
     private CUD cud;
