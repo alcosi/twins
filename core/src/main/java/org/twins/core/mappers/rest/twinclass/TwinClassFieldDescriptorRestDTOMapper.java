@@ -3,8 +3,6 @@ package org.twins.core.mappers.rest.twinclass;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.user.UserEntity;
@@ -24,9 +22,8 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<FieldDescriptor, TwinClassFieldDescriptorDTO> {
 
-    @Lazy
-    @Autowired
-    private TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
+    @MapperModePointerBinding(modes = TwinMode.TwinClassFieldDescriptor2TwinMode.class)
+    private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
     @MapperModePointerBinding(modes = DataListOptionMode.TwinClassFieldDescriptor2DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -103,7 +100,9 @@ public class TwinClassFieldDescriptorRestDTOMapper extends RestSimpleDTOMapper<F
             } else {
                 return new TwinClassFieldDescriptorLinkDTOv1()
                         .multiple(linkDescriptor.multiple())
-                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(), new MapperContext().setMode(TwinMode.SHORT)));
+                        .dstTwins(twinBaseV2RestDTOMapper.convertCollection(linkDescriptor.dstTwins(),
+                                mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinMode.TwinClassFieldDescriptor2TwinMode.SHORT))
+                                ));
             }
         return null;
     }

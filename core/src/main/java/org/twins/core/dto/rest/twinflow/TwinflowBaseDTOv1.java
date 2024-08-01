@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -16,6 +17,9 @@ import java.util.UUID;
 public class TwinflowBaseDTOv1 {
     @Schema(example = DTOExamples.TWINFLOW_ID)
     public UUID id;
+
+    @Schema(example = DTOExamples.TWIN_CLASS_ID)
+    public UUID twinClassId;
 
     @Schema(description = "name", example = "Project")
     public String name;
@@ -32,4 +36,8 @@ public class TwinflowBaseDTOv1 {
 
     @Schema(description = "initialStatusId")
     public UUID initialStatusId;
+
+    @Schema(description = "twin class")
+    public TwinClassBaseDTOv1 twinClass;
+
 }

@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -12,6 +13,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -125,13 +127,17 @@ public class TwinClassEntity implements EasyLoggable {
 //    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
 //    private DomainEntity domain;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity nameI18n;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    private I18nEntity nameI18n;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity descriptionI18n;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    private I18nEntity descriptionI18n;
 
 //    @ManyToOne
 //    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

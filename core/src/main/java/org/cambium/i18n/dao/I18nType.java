@@ -9,17 +9,20 @@ import java.util.stream.Collectors;
 @Getter
 public enum I18nType  {
     TWIN_CLASS_NAME("twinClassName", "Twin class name", Category.TEXT),
+    TWIN_CLASS_DESCRIPTION("twinClassDescription", "Twin class description", Category.TEXT),
     TWIN_STATUS_NAME("twinStatusName", "Twin status name", Category.TEXT),
     TWIN_STATUS_DESCRIPTION("twinStatusDescription", "Twin status description", Category.TEXT),
     TWIN_CLASS_FIELD_NAME("twinClassFieldName", "Twin class field name", Category.TEXT),
     TWIN_CLASS_FIELD_DESCRIPTION("twinClassFieldDescription", "Twin class field description", Category.TEXT),
-    TWIN_CLASS_DESCRIPTION("twinClassDescription", "Twin class description", Category.TEXT),
     CARD_NAME("cardName", "Twin card name", Category.TEXT),
     UNKNOWN("unknown", "Unknown", Category.TEXT),
     DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
     LINK_FORWARD_NAME("linkForwardName", "Twin link forward name", Category.TEXT),
     LINK_BACKWARD_NAME("linkBackwardName", "Twin link backward name", Category.TEXT),
+    TWINFLOW_NAME("twinflowName", "Twinflow name", Category.TEXT),
+    TWINFLOW_DESCRIPTION("twinflowDescriptiontwinflowDescription", "Twinflow description", Category.TEXT),
     TWINFLOW_TRANSITION_NAME("twinflowTransitionName", "Twinflow transition name", Category.TEXT),
+    TWINFLOW_TRANSITION_DESCRIPTION("twinflowTransitionDescription", "Twinflow transition description", Category.TEXT),
     SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT)
         ;
 

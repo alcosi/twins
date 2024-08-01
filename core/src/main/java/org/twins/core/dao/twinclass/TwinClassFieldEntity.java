@@ -35,7 +35,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private UUID descriptionI18NId;
 
     @Column(name = "field_typer_featurer_id")
-    private int fieldTyperFeaturerId;
+    private Integer fieldTyperFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "field_typer_params", columnDefinition = "hstore")

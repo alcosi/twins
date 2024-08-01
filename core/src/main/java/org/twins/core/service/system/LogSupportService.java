@@ -106,7 +106,7 @@ public class LogSupportService {
     }
 
     private String twinflowReadable(TwinflowEntity item, boolean next) {
-        return (next ? "." : "=") + "twinflow[" + item.getName() + "]";
+        return (next ? "." : "=") + "twinflow[" + item.getTwinClass().getKey() + "/" + item.getTwinClass().getDomainId() + "]";
     }
 
     private String transitionReadable(TwinflowTransitionEntity item, boolean next) {

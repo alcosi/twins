@@ -30,6 +30,7 @@ import java.util.UUID;
 public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity, TwinClassDTOv1> {
 
     @MapperModePointerBinding(modes = {
+            TwinClassMode.class,
             TwinClassMode.TwinClassHead2TwinClassMode.class,
             TwinClassMode.TwinClassExtends2TwinClassMode.class
     })
@@ -77,10 +78,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         if (mapperContext.hasModeButNot(StatusMode.TwinClass2StatusMode.HIDE)) {
             Kit<TwinStatusEntity, UUID> statusKit = twinStatusService.loadStatusesForTwinClasses(src);
             if (statusKit != null) {
+                MapperContext statusMapperContext = mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinClass2StatusMode.SHORT));
                 if (mapperContext.isLazyRelations())
-                    dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(StatusMode.TwinClass2StatusMode.SHORT))));
+                    dst.statusMap(twinStatusRestDTOMapper.convertMap(statusKit.getMap(), statusMapperContext));
                 else {
-                    dst.statusList(mapperContext.addRelatedObjectMap(statusKit.getMap()));
+                    dst.statusList(statusMapperContext.addRelatedObjectMap(statusKit.getMap()));
                 }
             }
         }
