@@ -12,8 +12,8 @@ import java.util.function.Function;
 import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
 
 public class PaginationUtils {
-    public static final String DEFAULT_VALUE_OFFSET = "0";
-    public static final String DEFAULT_VALUE_LIMIT = "10";
+    public static final int DEFAULT_VALUE_OFFSET = 0;
+    public static final int DEFAULT_VALUE_LIMIT = 10;
     public static final String SORT_UNSORTED = "unsorted";
 
     public static Sort sortType(boolean sortAsc, String sortField) {
@@ -40,22 +40,6 @@ public class PaginationUtils {
         return sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())
                 : PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit(), sort);
-    }
-
-    //todo delete (replace where method in use)
-    public static SimplePagination createSimplePagination(int offset, int limit, Sort sort) {
-        return new SimplePagination()
-                .setOffset(offset)
-                .setLimit(limit);
-    }
-
-    //todo delete (replace where method in use)
-    public static SimplePagination createSimplePagination(int offset, int limit, boolean sortAsc, String sortField) {
-        return new SimplePagination()
-                .setOffset(offset)
-                .setLimit(limit)
-                .setSortAsc(sortAsc)
-                .setSortField(sortField);
     }
 
     public static <T> PaginationResult<T> convertInPaginationResult(SimplePagination pagination) throws ServiceException {

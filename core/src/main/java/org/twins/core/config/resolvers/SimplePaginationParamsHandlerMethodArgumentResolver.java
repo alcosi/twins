@@ -3,7 +3,6 @@ package org.twins.core.config.resolvers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.pagination.SimplePagination;
-import org.cambium.common.util.PaginationUtils;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -25,19 +24,19 @@ public class SimplePaginationParamsHandlerMethodArgumentResolver implements Hand
     @Override
     public SimplePagination resolveArgument(MethodParameter parameter, ModelAndViewContainer mavContainer, NativeWebRequest webRequest, WebDataBinderFactory binderFactory) {
         SimplePaginationParams paginationParams = parameter.getParameterAnnotation(SimplePaginationParams.class);
-        if (paginationParams == null) {
+        if (paginationParams == null)
             return null;
-        }
-
-        int offset = parseParameter(webRequest, "offset", paginationParams.offset());
-        int limit = parseParameter(webRequest, "limit", paginationParams.limit());
-        boolean sortAsc = parseParameter(webRequest, "sortAsc", paginationParams.sortAsc());
-        String sortField = webRequest.getParameter("sortField");
-        if (sortField == null || sortField.isEmpty()) {
+        int offset = parseParameter(webRequest, SimplePagination.Fields.offset, paginationParams.offset());
+        int limit = parseParameter(webRequest, SimplePagination.Fields.limit, paginationParams.limit());
+        boolean sortAsc = parseParameter(webRequest, SimplePagination.Fields.sortAsc, paginationParams.sortAsc());
+        String sortField = webRequest.getParameter(SimplePagination.Fields.sortField);
+        if (sortField == null || sortField.isEmpty())
             sortField = paginationParams.sortField();
-        }
-        //todo cut the method createSimplePagination
-        return PaginationUtils.createSimplePagination(offset, limit, sortAsc, sortField);
+        return new SimplePagination()
+                .setOffset(offset)
+                .setLimit(limit)
+                .setSortAsc(sortAsc)
+                .setSortField(sortField);
     }
 
     private int parseParameter(NativeWebRequest webRequest, String paramName, int defaultValue) {

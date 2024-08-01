@@ -3,7 +3,7 @@ package org.twins.core.config.openapi;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.media.Schema;
-import org.cambium.common.util.PaginationUtils;
+import org.cambium.common.pagination.SimplePagination;
 import org.springdoc.core.customizers.OperationCustomizer;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -23,17 +23,17 @@ public class SimplePaginationParamsOperationCustomizer implements OperationCusto
                 List<Parameter> parameters = new ArrayList<>();
 
                 parameters.add(new Parameter()
-                        .name("offset")
+                        .name(SimplePagination.Fields.offset)
                         .in("query")
                         .schema(new Schema<>().type("integer")._default(paginationParams.offset())));
 
                 parameters.add(new Parameter()
-                        .name("limit")
+                        .name(SimplePagination.Fields.limit)
                         .in("query")
                         .schema(new Schema<>().type("integer")._default(paginationParams.limit())));
 
                 parameters.add(new Parameter()
-                        .name("sortAsc")
+                        .name(SimplePagination.Fields.sortAsc)
                         .in("query")
                         .schema(new Schema<>().type("boolean")._default(paginationParams.sortAsc())));
 
