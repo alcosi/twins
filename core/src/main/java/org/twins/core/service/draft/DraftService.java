@@ -33,6 +33,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -263,22 +264,22 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftCollector.add(createTwinAttachmentDraft(draftCollector.getDraftEntity(), twinLinkEntity));
     }
 
-    public void draftFieldUserDelete(DraftCollector draftCollector, Set<TwinFieldUserEntity> fieldUserDeleteList) throws ServiceException {
+    public void draftFieldUserDelete(DraftCollector draftCollector, Collection<TwinFieldUserEntity> fieldUserDeleteList) throws ServiceException {
         for (TwinFieldUserEntity twinFieldUser : fieldUserDeleteList)
             draftCollector.add(createFieldUserDeleteDraft(draftCollector.getDraftEntity(), twinFieldUser));
     }
 
-    public void draftFieldDataListDelete(DraftCollector draftCollector, Set<TwinFieldDataListEntity> fieldDataListDeleteList) throws ServiceException {
+    public void draftFieldDataListDelete(DraftCollector draftCollector, Collection<TwinFieldDataListEntity> fieldDataListDeleteList) throws ServiceException {
         for (TwinFieldDataListEntity twinFieldDataList : fieldDataListDeleteList)
             draftCollector.add(createFieldDataListDeleteDraft(draftCollector.getDraftEntity(), twinFieldDataList));
     }
 
-    public void draftLinkDelete(DraftCollector draftCollector, List<TwinLinkEntity> twinLinkDeleteList) throws ServiceException {
+    public void draftLinkDelete(DraftCollector draftCollector, Collection<TwinLinkEntity> twinLinkDeleteList) throws ServiceException {
         for (TwinLinkEntity twinLink : twinLinkDeleteList)
             draftCollector.add(createLinkDeleteDraft(draftCollector.getDraftEntity(), twinLink));
     }
 
-    public void draftAttachmentDelete(DraftCollector draftCollector, List<TwinAttachmentEntity> twinAttachmentDeleteList) throws ServiceException {
+    public void draftAttachmentDelete(DraftCollector draftCollector, Collection<TwinAttachmentEntity> twinAttachmentDeleteList) throws ServiceException {
         for (TwinAttachmentEntity twinAttachment : twinAttachmentDeleteList)
             draftCollector.add(createAttachmentDeleteDraft(draftCollector.getDraftEntity(), twinAttachment));
     }
@@ -650,6 +651,11 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     @Override
     public CrudRepository<DraftEntity, UUID> entityRepository() {
         return draftRepository;
+    }
+
+    @Override
+    public Function<DraftEntity, UUID> entityGetIdFunction() {
+        return DraftEntity::getId;
     }
 
     @Override

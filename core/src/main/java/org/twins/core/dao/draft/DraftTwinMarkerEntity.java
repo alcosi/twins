@@ -32,7 +32,7 @@ public class DraftTwinMarkerEntity {
     private UUID markerDataListOptionId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "draft_id")
+    @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
 }

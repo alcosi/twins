@@ -46,11 +46,11 @@ public class DraftTwinEraseEntity {
     private boolean causeGlobalLock;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "draft_id")
+    @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "twin_id")
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private TwinEntity twin;
 //
 //    @ManyToOne(fetch = FetchType.LAZY, optional = false)

@@ -281,6 +281,11 @@ public class EntitySmartService {
         log.info(entityShortName(repository) + "[" + StringUtils.join(uuidList, ",") + "] perhaps was deleted");
     }
 
+    public <T> void deleteAllEntitiesAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
+        repository.deleteAll(entities);
+        log.info(entityShortName(repository) + "[" + StringUtils.join(entities, ",") + "] perhaps was deleted");
+    }
+
     public <T, K> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, K> repository) {
         Iterable<T> result = repository.saveAll(entities);
         List<String> messages = new ArrayList<>();

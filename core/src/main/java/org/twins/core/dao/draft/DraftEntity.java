@@ -53,7 +53,7 @@ public class DraftEntity implements EasyLoggable {
     private Timestamp createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "created_by_user_id")
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
 
     @Override

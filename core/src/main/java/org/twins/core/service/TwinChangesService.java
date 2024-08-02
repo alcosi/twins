@@ -41,8 +41,8 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
         deleteEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
-        if (!twinChangesCollector.getDeleteEntityIdMap().isEmpty())
-            for (Map.Entry<Class<?>, Set<UUID>> classChanges : twinChangesCollector.getDeleteEntityIdMap().entrySet()) {
+        if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
+            for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for deletion");
             }
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
@@ -57,10 +57,10 @@ public class TwinChangesService {
     }
 
     private <T> void deleteEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository) {
-        Set<UUID> entitiesId = twinChangesCollector.getDeleteEntityIdMap().get(entityClass);
-        if (entitiesId != null) {
-            entitySmartService.deleteAllAndLog(entitiesId, repository);
-            twinChangesCollector.getDeleteEntityIdMap().remove(entityClass);
+        Set<T> entities = (Set<T>) twinChangesCollector.getDeleteEntityMap().get(entityClass);
+        if (entities != null) {
+            entitySmartService.deleteAllEntitiesAndLog(entities, repository);
+            twinChangesCollector.getDeleteEntityMap().remove(entityClass);
         }
     }
 }
