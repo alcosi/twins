@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -29,6 +30,9 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Column(name = "name_i18n_id")
     private UUID nameI18NId;
+
+    @Column(name = "description_i18n_id")
+    private UUID descriptionI18NId;
 
     @Column(name = "src_twin_status_id")
     private UUID srcTwinStatusId;
@@ -79,9 +83,17 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @JoinColumn(name = "twinflow_id", insertable = false, updatable = false, nullable = false)
     private TwinflowEntity twinflow;
 
-//    @ManyToOne
-//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity nameI18n;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    private I18nEntity nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    private I18nEntity descriptionI18n;
 
     @ManyToOne
     @JoinColumn(name = "src_twin_status_id", insertable = false, updatable = false)
