@@ -35,6 +35,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -60,6 +61,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
         return twinFactoryRepository;
+    }
+
+    @Override
+    public Function<TwinFactoryEntity, UUID> entityGetIdFunction() {
+        return TwinFactoryEntity::getId;
     }
 
     @Override

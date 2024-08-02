@@ -7,12 +7,13 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.attachment.AttachmentService;
 
 
 @Component
 @RequiredArgsConstructor
 public class AttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpdateDTOv1, EntityCUD<TwinAttachmentEntity>> {
-
+    private final AttachmentService attachmentService;
     private final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
     private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
@@ -25,6 +26,6 @@ public class AttachmentCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinU
         dst
                 .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getAttachments().getUpdate()))
                 .setCreateList(attachmentAddRestDTOReverseMapper.convertCollection(src.getAttachments().getCreate()))
-                .setDeleteUUIDList(src.getAttachments().getDelete());
+                .setDeleteList(attachmentService.findEntitiesSafe(src.getAttachments().getDelete()).getList());
     }
 }

@@ -201,19 +201,19 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftFieldDataListUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldDataListEntity.class));
             draftLinkUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinLinkEntity.class));
 
-            draftFieldUserDelete(draftCollector, twinChangesCollector.getDeleteIds(TwinFieldUserEntity.class));
-            draftFieldDataListDelete(draftCollector, twinChangesCollector.getDeleteIds(TwinFieldDataListEntity.class));
-            draftLinkDelete(draftCollector, twinChangesCollector.getDeleteIds(TwinLinkEntity.class));
+            draftFieldUserDelete(draftCollector, twinChangesCollector.getDeletes(TwinFieldUserEntity.class));
+            draftFieldDataListDelete(draftCollector, twinChangesCollector.getDeletes(TwinFieldDataListEntity.class));
+            draftLinkDelete(draftCollector, twinChangesCollector.getDeletes(TwinLinkEntity.class));
         }
         if (twinUpdate.getTwinLinkCUD() != null) {
             draftLinkUpdate(draftCollector, twinUpdate.getTwinLinkCUD().getUpdateList());
             draftLinkUpdate(draftCollector, twinUpdate.getTwinLinkCUD().getCreateList());
-            draftLinkDelete(draftCollector, twinUpdate.getTwinLinkCUD().getDeleteUUIDList());
+            draftLinkDelete(draftCollector, twinUpdate.getTwinLinkCUD().getDeleteList());
         }
         if (twinUpdate.getAttachmentCUD() != null) {
             draftAttachmentUpdate(draftCollector, twinUpdate.getAttachmentCUD().getUpdateList());
             draftAttachmentUpdate(draftCollector, twinUpdate.getAttachmentCUD().getCreateList());
-            draftLinkDelete(draftCollector, twinUpdate.getTwinLinkCUD().getDeleteUUIDList());
+            draftAttachmentDelete(draftCollector, twinUpdate.getAttachmentCUD().getDeleteList());
         }
         return draftCollector;
     }
@@ -263,19 +263,24 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftCollector.add(createTwinAttachmentDraft(draftCollector.getDraftEntity(), twinLinkEntity));
     }
 
-    public void draftFieldUserDelete(DraftCollector draftCollector, Set<UUID> fieldUserIds) throws ServiceException {
-        for (UUID twinFieldUserId : fieldUserIds)
-            draftCollector.add(createFieldUserDeleteDraft(draftCollector.getDraftEntity(), twinFieldUserId));
+    public void draftFieldUserDelete(DraftCollector draftCollector, Set<TwinFieldUserEntity> fieldUserDeleteList) throws ServiceException {
+        for (TwinFieldUserEntity twinFieldUser : fieldUserDeleteList)
+            draftCollector.add(createFieldUserDeleteDraft(draftCollector.getDraftEntity(), twinFieldUser));
     }
 
-    public void draftFieldDataListDelete(DraftCollector draftCollector, Set<UUID> fieldDataListIds) throws ServiceException {
-        for (UUID twinFieldDataListId : fieldDataListIds)
-            draftCollector.add(createFieldDataListDeleteDraft(draftCollector.getDraftEntity(), twinFieldDataListId));
+    public void draftFieldDataListDelete(DraftCollector draftCollector, Set<TwinFieldDataListEntity> fieldDataListDeleteList) throws ServiceException {
+        for (TwinFieldDataListEntity twinFieldDataList : fieldDataListDeleteList)
+            draftCollector.add(createFieldDataListDeleteDraft(draftCollector.getDraftEntity(), twinFieldDataList));
     }
 
-    public void draftLinkDelete(DraftCollector draftCollector, Set<UUID> twinLinkIds) throws ServiceException {
-        for (UUID twinLinkId : twinLinkIds)
-            draftCollector.add(createLinkDeleteDraft(draftCollector.getDraftEntity(), twinLinkId));
+    public void draftLinkDelete(DraftCollector draftCollector, List<TwinLinkEntity> twinLinkDeleteList) throws ServiceException {
+        for (TwinLinkEntity twinLink : twinLinkDeleteList)
+            draftCollector.add(createLinkDeleteDraft(draftCollector.getDraftEntity(), twinLink));
+    }
+
+    public void draftAttachmentDelete(DraftCollector draftCollector, List<TwinAttachmentEntity> twinAttachmentDeleteList) throws ServiceException {
+        for (TwinAttachmentEntity twinAttachment : twinAttachmentDeleteList)
+            draftCollector.add(createAttachmentDeleteDraft(draftCollector.getDraftEntity(), twinAttachment));
     }
 
     public void draftTagsUpdate(DraftCollector draftCollector, UUID twinId, Set<UUID> tagsAddExisted, Set<UUID> tagsDelete) throws ServiceException {
@@ -470,37 +475,56 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftTwinAttachmentEntity;
     }
 
-    public DraftTwinFieldUserEntity createFieldUserDeleteDraft(DraftEntity draftEntity, UUID twinFieldUserId) throws ServiceException {
-        if (twinFieldUserId == null)
+    public DraftTwinFieldUserEntity createFieldUserDeleteDraft(DraftEntity draftEntity, TwinFieldUserEntity twinFieldUser) throws ServiceException {
+        if (twinFieldUser == null || twinFieldUser.getId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_field_user.id required for field deletion");
         return new DraftTwinFieldUserEntity()
                 .setCud(CUD.DELETE)
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
-                .setTwinFieldUserId(twinFieldUserId);
+                .setTwinFieldUserId(twinFieldUser.getUserId())
+                .setUserId(twinFieldUser.getUserId())
+                .setTwinId(twinFieldUser.getTwinId())
+                .setTwinClassFieldId(twinFieldUser.getTwinClassFieldId());
     }
 
-    public DraftTwinFieldDataListEntity createFieldDataListDeleteDraft(DraftEntity draftEntity, UUID twinFieldDataListId) throws ServiceException {
-        if (twinFieldDataListId == null)
+    public DraftTwinFieldDataListEntity createFieldDataListDeleteDraft(DraftEntity draftEntity, TwinFieldDataListEntity twinFieldDataList) throws ServiceException {
+        if (twinFieldDataList == null || twinFieldDataList.getId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_field_data_list.id required for field deletion");
         return new DraftTwinFieldDataListEntity()
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
                 .setCud(CUD.DELETE)
-                .setTwinFieldDataListId(twinFieldDataListId);
+                .setTwinFieldDataListId(twinFieldDataList.getId())
+                .setTwinId(twinFieldDataList.getTwinId())
+                .setTwinClassFieldId(twinFieldDataList.getTwinClassFieldId());
     }
 
-    public DraftTwinLinkEntity createLinkDeleteDraft(DraftEntity draftEntity, UUID twinLinkId) throws ServiceException {
-        if (twinLinkId == null)
+    public DraftTwinLinkEntity createLinkDeleteDraft(DraftEntity draftEntity, TwinLinkEntity twinLink) throws ServiceException {
+        if (twinLink == null || twinLink.getId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_link.id required for link  deletion");
         return new DraftTwinLinkEntity()
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
                 .setCud(CUD.DELETE)
-                .setTwinLinkId(twinLinkId);
+                .setTwinLinkId(twinLink.getId())
+                .setSrcTwinId(twinLink.getSrcTwinId())
+                .setDstTwinId(twinLink.getDstTwinId());
+    }
+
+    public DraftTwinAttachmentEntity createAttachmentDeleteDraft(DraftEntity draftEntity, TwinAttachmentEntity attachmentEntity) throws ServiceException {
+        if (attachmentEntity == null || attachmentEntity.getId() == null)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin_attachment.id required for deletion");
+        return new DraftTwinAttachmentEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setCud(CUD.DELETE)
+                .setTwinAttachmentId(attachmentEntity.getId())
+                .setTwinId(attachmentEntity.getTwinId());
     }
 
     public DraftTwinFieldDataListEntity createFieldDraft(DraftEntity draftEntity, TwinFieldDataListEntity twinFieldDataListEntity) throws ServiceException {

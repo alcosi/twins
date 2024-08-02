@@ -1,12 +1,14 @@
 package org.cambium.common.kit;
 
 import lombok.Getter;
+import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class Kit<E, K> {
+public class Kit<E, K> implements Collection<E> {
     @Getter
     protected Collection<E> collection;
     protected Map<K, E> map;
@@ -27,20 +29,31 @@ public class Kit<E, K> {
         return Collections.EMPTY_LIST;
     }
 
-    public Kit<E, K> add(E e) {
+    public List<E> getList() {
         if (collection == null)
-            collection = new ArrayList<>();
-        collection.add(e);
-        map = null; //invalidate
-        return this;
+            return Collections.EMPTY_LIST;
+        if (collection instanceof List)
+            return (List<E>) collection;
+        else
+            return new ArrayList<>(collection);
     }
 
-    public Kit<E, K> addAll(Collection<E> e) {
+    public boolean add(E e) {
         if (collection == null)
             collection = new ArrayList<>();
-        collection.addAll(e);
+        boolean ret = collection.add(e);
+        if (map != null) {
+            map.put(functionGetId.apply(e), e);
+        }
+        return ret;
+    }
+
+    public boolean addAll(Collection<? extends E> e) {
+        if (collection == null)
+            collection = new ArrayList<>();
+        boolean ret = collection.addAll(e);
         map = null; //invalidate
-        return this;
+        return ret;
     }
 
     public Map<K, E> getMap() {
@@ -75,11 +88,104 @@ public class Kit<E, K> {
         return map.keySet();
     }
 
+    //collection stuff
+
+    @Override
+    public boolean remove(Object o) {
+        boolean ret =  collection.remove(o);
+        if (map != null) {
+            map.remove(functionGetId.apply((E) o));
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean containsAll(Collection<?> c) {
+        return collection.containsAll(c);
+    }
+
+
+    @Override
+    public boolean removeAll(Collection<?> c) {
+        boolean ret = collection.removeAll(c);
+        if (map != null) {
+            for (Object o : c) {
+                map.remove(functionGetId.apply((E) o));
+            }
+        }
+        return ret;
+    }
+
+    @Override
+    public boolean retainAll(Collection<?> c) {
+        map = null; //invalidating
+        return collection.retainAll(c);
+    }
+
+    @Override
+    public void clear() {
+        map = null; //invalidating
+        collection.clear();
+    }
+
+    @Override
+    public int size() {
+        return CollectionUtils.size(collection);
+    }
+
     public boolean isEmpty() {
         return collection == null || collection.isEmpty();
     }
 
+    @Override
+    public boolean contains(Object o) {
+        return collection != null && collection.contains(o);
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new KitIterator();
+    }
+
+    @Override
+    public Object[] toArray() {
+        return collection != null ? collection.toArray() : null;
+    }
+
+    @Override
+    public <T> T[] toArray(T[] a) {
+        return collection != null ? collection.toArray(a) : null;
+    }
+
     public boolean isNotEmpty() {
         return !isEmpty();
+    }
+
+    private class KitIterator implements Iterator<E> {
+        Iterator<E> collectionIterator = collection.iterator();
+        E currentItem;
+
+        @Override
+        public boolean hasNext() {
+            return collectionIterator.hasNext();
+        }
+
+        @Override
+        public E next() {
+            currentItem = collectionIterator.next();
+            return currentItem;
+        }
+
+        @Override
+        public void remove() {
+            collectionIterator.remove();
+            if (map != null)
+                map.remove(functionGetId.apply(currentItem));
+        }
+
+        @Override
+        public void forEachRemaining(Consumer<? super E> action) {
+            collectionIterator.forEachRemaining(action);
+        }
     }
 }

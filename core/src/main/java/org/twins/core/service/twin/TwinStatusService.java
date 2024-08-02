@@ -22,6 +22,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Lazy
 @Slf4j
@@ -35,6 +36,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
         return twinStatusRepository;
+    }
+
+    @Override
+    public Function<TwinStatusEntity, UUID> entityGetIdFunction() {
+        return TwinStatusEntity::getId;
     }
 
     @Override

@@ -55,6 +55,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
     }
 
     @Override
+    public Function<TwinTagEntity, UUID> entityGetIdFunction() {
+        return TwinTagEntity::getId;
+    }
+
+    @Override
     public boolean isEntityReadDenied(TwinTagEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }

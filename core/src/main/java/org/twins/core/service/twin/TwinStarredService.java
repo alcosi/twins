@@ -18,6 +18,7 @@ import org.twins.core.service.user.UserGroupService;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -67,6 +68,11 @@ public class TwinStarredService extends EntitySecureFindServiceImpl<TwinStarredE
     @Override
     public CrudRepository<TwinStarredEntity, UUID> entityRepository() {
         return null;
+    }
+
+    @Override
+    public Function<TwinStarredEntity, UUID> entityGetIdFunction() {
+        return TwinStarredEntity::getId;
     }
 
     @Override

@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 @Lazy
 @Slf4j
@@ -26,6 +27,11 @@ public class TwinAttachmentService extends EntitySecureFindServiceImpl<TwinAttac
     @Override
     public CrudRepository<TwinAttachmentEntity, UUID> entityRepository() {
         return null;
+    }
+
+    @Override
+    public Function<TwinAttachmentEntity, UUID> entityGetIdFunction() {
+        return TwinAttachmentEntity::getId;
     }
 
     @Override

@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinTransitionViewV1")
+@Schema(name =  "TwinTransitionViewV1", )
 public class TwinTransitionViewDTOv1 extends TwinflowTransitionBaseDTOv1 {
 
 }

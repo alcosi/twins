@@ -5,14 +5,15 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.attachment.AttachmentService;
 
 
 @Component
 @RequiredArgsConstructor
 public class AttachmentCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<AttachmentCudDTOv1, EntityCUD<TwinAttachmentEntity>> {
-
+    private final AttachmentService attachmentService;
     private final AttachmentUpdateRestDTOReverseMapper attachmentUpdateRestDTOReverseMapper;
     private final AttachmentAddRestDTOReverseMapper attachmentAddRestDTOReverseMapper;
 
@@ -21,6 +22,6 @@ public class AttachmentCUDRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Att
         dst
                 .setUpdateList(attachmentUpdateRestDTOReverseMapper.convertCollection(src.getUpdate()))
                 .setCreateList(attachmentAddRestDTOReverseMapper.convertCollection(src.getCreate()))
-                .setDeleteUUIDList(src.getDelete());
+                .setDeleteList(attachmentService.findEntitiesSafe(src.getDelete()).getList());
     }
 }

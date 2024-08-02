@@ -15,7 +15,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -53,6 +52,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Lazy
 @Slf4j
@@ -78,12 +78,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinMarkerService twinMarkerService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final SystemEntityService systemEntityService;
     private final TwinChangesService twinChangesService;
     @Lazy
     private final HistoryService historyService;
-    private final I18nService i18nService;
     @Lazy
     private final TwinTagService twinTagService;
     @Lazy
@@ -102,6 +99,11 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     @Override
     public CrudRepository<TwinEntity, UUID> entityRepository() {
         return twinRepository;
+    }
+
+    @Override
+    public Function<TwinEntity, UUID> entityGetIdFunction() {
+        return TwinEntity::getId;
     }
 
     @Override
@@ -481,8 +483,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
             attachmentService.updateAttachments(attachmentCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteUUIDList())) {
-            attachmentService.deleteAttachments(twinEntity.getId(), attachmentCUD.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
+            attachmentService.deleteAttachments(twinEntity.getId(), attachmentCUD.getDeleteList());
         }
     }
 
@@ -495,8 +497,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (CollectionUtils.isNotEmpty(twinLinkCUD.getUpdateList())) {
             twinLinkService.updateTwinLinks(twinEntity, twinLinkCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteUUIDList())) {
-            twinLinkService.deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteList())) {
+            twinLinkService.deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteList());
         }
     }
 

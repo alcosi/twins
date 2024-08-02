@@ -21,6 +21,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -37,6 +38,11 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     @Override
     public CrudRepository<LinkEntity, UUID> entityRepository() {
         return linkRepository;
+    }
+
+    @Override
+    public Function<LinkEntity, UUID> entityGetIdFunction() {
+        return LinkEntity::getId;
     }
 
     @Override

@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -21,13 +23,12 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -77,7 +78,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         TwinEntity twinEntity = twinService.findEntitySafe(currentComment.getTwinId());
         attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentCUD.getCreateList());
         attachmentService.updateAttachments(attachmentCUD.getUpdateList());
-        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteUUIDList());
+        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteList());
         return currentComment;
     }
 
@@ -140,6 +141,11 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     @Override
     public CrudRepository<TwinCommentEntity, UUID> entityRepository() {
         return commentRepository;
+    }
+
+    @Override
+    public Function<TwinCommentEntity, UUID> entityGetIdFunction() {
+        return TwinCommentEntity::getId;
     }
 
     @Override

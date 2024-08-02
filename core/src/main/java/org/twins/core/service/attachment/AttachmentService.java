@@ -7,7 +7,9 @@ import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.history.HistoryType;
@@ -27,18 +29,15 @@ import org.twins.core.service.history.HistoryService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AttachmentService {
-    final EntitySmartService entitySmartService;
+public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
     final TwinAttachmentRepository twinAttachmentRepository;
     final HistoryService historyService;
 
-    public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
-    }
 
     public TwinAttachmentEntity findAttachment(UUID attachmentId, EntitySmartService.FindMode findMode) throws ServiceException {
         return entitySmartService.findById(attachmentId, twinAttachmentRepository, findMode);
@@ -165,22 +164,41 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, Set<UUID> attachmentDeleteUUIDList) throws ServiceException {
-        if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
-            return;
-        List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
-        if (CollectionUtils.isEmpty(deleteEntityList))
+    public void deleteAttachments(UUID twinId, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
         HistoryCollector historyCollector = new HistoryCollector();
         TwinEntity twinEntity = null;
-        for (TwinAttachmentEntity attachmentEntity : deleteEntityList) {
+        Set<UUID> ids = new HashSet<>();
+        for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
             if (twinEntity == null)
                 twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
             log.info(attachmentEntity.logDetailed() + " will be deleted");
             historyCollector.add(historyService.attachmentDelete(attachmentEntity));
+            ids.add(attachmentEntity.getId());
         }
-        twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
+        twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, ids);
         historyService.saveHistory(twinEntity, historyCollector);
+    }
+
+    @Override
+    public CrudRepository<TwinAttachmentEntity, UUID> entityRepository() {
+        return twinAttachmentRepository;
+    }
+
+    @Override
+    public Function<TwinAttachmentEntity, UUID> entityGetIdFunction() {
+        return TwinAttachmentEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinAttachmentEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinAttachmentEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
     }
 
     public enum CommentRelinkMode {

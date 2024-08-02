@@ -48,6 +48,7 @@ import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
+import java.util.function.Function;
 
 
 @Slf4j
@@ -79,6 +80,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Override
     public CrudRepository<TwinflowTransitionEntity, UUID> entityRepository() {
         return twinflowTransitionRepository;
+    }
+
+    @Override
+    public Function<TwinflowTransitionEntity, UUID> entityGetIdFunction() {
+        return TwinflowTransitionEntity::getId;
     }
 
     @Override

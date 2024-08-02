@@ -29,7 +29,10 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.user.UserFilterService;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -110,12 +113,10 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             }
         }
         if (FieldValueChangeHelper.hasOutOfDateValues(storedFieldUsers)) {// old values must be deleted
-            List<UUID> deletedUserIdList = new ArrayList<>();
             for (TwinFieldUserEntity deleteField : storedFieldUsers.values()) {
-                deletedUserIdList.add(deleteField.getId()); // we have to delete fields by id, not by userId
                 historyItem.getContext().shotDeletedUserId(deleteField.getUserId());
             }
-            twinChangesCollector.deleteAll(TwinFieldUserEntity.class, deletedUserIdList);
+            twinChangesCollector.deleteAll(storedFieldUsers.values());
         }
         if (historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);

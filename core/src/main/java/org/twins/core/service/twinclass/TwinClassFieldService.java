@@ -35,6 +35,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
+import java.util.function.Function;
 
 
 @Slf4j
@@ -59,6 +60,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
         return twinClassFieldRepository;
+    }
+
+    @Override
+    public Function<TwinClassFieldEntity, UUID> entityGetIdFunction() {
+        return TwinClassFieldEntity::getId;
     }
 
     @Override

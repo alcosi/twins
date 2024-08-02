@@ -7,6 +7,8 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -32,14 +34,13 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Service
 @Slf4j
@@ -57,6 +58,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     @Override
     public CrudRepository<HistoryEntity, UUID> entityRepository() {
         return historyRepository;
+    }
+
+    @Override
+    public Function<HistoryEntity, UUID> entityGetIdFunction() {
+        return HistoryEntity::getId;
     }
 
     @Override

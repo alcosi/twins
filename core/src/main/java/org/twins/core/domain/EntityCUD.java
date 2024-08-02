@@ -26,7 +26,7 @@ public class EntityCUD<T extends PublicCloneable<T>> extends EntityCD<T> {
     public EntityCUD<T> clone() {
         EntityCUD<T> clone = new EntityCUD<>();
         clone.createList = cloneCreateList();
-        clone.deleteUUIDList = cloneDeleteSet();
+        clone.deleteList = cloneDeleteList();
         if (CollectionUtils.isNotEmpty(updateList)) {
             clone.updateList = new ArrayList<>();
             for (T entity : this.updateList) {

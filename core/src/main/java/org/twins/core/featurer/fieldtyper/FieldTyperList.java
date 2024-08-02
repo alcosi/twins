@@ -23,7 +23,10 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -96,12 +99,10 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             }
         }
         if (FieldValueChangeHelper.hasOutOfDateValues(storedOptions)) { // old values must be deleted
-            List<UUID> deleteIds = new ArrayList<>();
             for (TwinFieldDataListEntity deleteField : storedOptions.values()) {
-                deleteIds.add(deleteField.getId());
                 historyItem.getContext().shotDeletedDataListOption(deleteField.getDataListOption(), i18nService);
             }
-            twinChangesCollector.deleteAll(TwinFieldDataListEntity.class, deleteIds);
+            twinChangesCollector.deleteAll(storedOptions.values());
         }
         if (historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);

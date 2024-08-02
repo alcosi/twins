@@ -37,6 +37,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -134,6 +135,11 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Override
     public CrudRepository<PermissionEntity, UUID> entityRepository() {
         return permissionRepository;
+    }
+
+    @Override
+    public Function<PermissionEntity, UUID> entityGetIdFunction() {
+        return PermissionEntity::getId;
     }
 
     @Override

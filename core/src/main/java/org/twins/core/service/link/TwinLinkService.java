@@ -34,6 +34,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -52,6 +53,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
         return twinLinkRepository;
+    }
+
+    @Override
+    public Function<TwinLinkEntity, UUID> entityGetIdFunction() {
+        return TwinLinkEntity::getId;
     }
 
     @Override
@@ -280,14 +286,11 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     @Transactional
-    public void deleteTwinLinks(UUID twinId, Set<UUID> twinLinksDeleteUUIDList) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinLinksDeleteUUIDList))
+    public void deleteTwinLinks(UUID twinId, List<TwinLinkEntity> twinLinksDeleteList) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinLinksDeleteList))
             return;
-        TwinLinkEntity twinLinkEntity;
-        for (UUID twinLinkId : twinLinksDeleteUUIDList) {
-            twinLinkEntity = findEntity(twinLinkId, EntitySmartService.FindMode.ifEmptyNull, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
-            if (twinLinkEntity == null)
-                continue;
+        Set<UUID> ids = new HashSet<>();
+        for (TwinLinkEntity twinLinkEntity : twinLinksDeleteList) {
             if (!twinLinkEntity.getSrcTwinId().equals(twinId) && !twinLinkEntity.getDstTwinId().equals(twinId)) {
                 log.error(twinLinkEntity.logShort() + " can not be delete because it's from other twin");
                 continue;
@@ -296,8 +299,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 log.error(twinLinkEntity.logShort() + " can not be deleted because link is mandatory");
                 continue;
             }
-            entitySmartService.deleteAndLog(twinLinkId, twinLinkRepository);
+            ids.add(twinLinkEntity.getId());
         }
+        entitySmartService.deleteAllAndLog(ids, twinLinkRepository);
     }
 
     public List<TwinEntity> findValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {

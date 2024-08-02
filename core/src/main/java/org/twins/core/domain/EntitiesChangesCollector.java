@@ -8,7 +8,8 @@ import java.util.*;
 @Getter
 public class EntitiesChangesCollector {
     Map<Class<?>, Map<Object, ChangesHelper>> saveEntityMap = new HashMap<>();
-    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>();
+//    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
+    Map<Class<?>, Set<Object>> deleteEntityMap = new HashMap<>();
 
     private ChangesHelper detectChangesHelper(Object entity) {
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
@@ -50,21 +51,21 @@ public class EntitiesChangesCollector {
     }
 
     public boolean hasChanges() {
-        return !saveEntityMap.isEmpty() || !deleteEntityIdMap.isEmpty();
+        return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
     }
 
-    public void deleteAll(Class entityClass, Collection<UUID> entitiesIds) {
-        for (UUID id : entitiesIds)
-            delete(entityClass, id);
+    public void deleteAll(Collection<?> entitiesIds) {
+        for (Object entity : entitiesIds)
+            delete(entity);
     }
 
-    public void delete(Class entityClass, UUID entity) {
-        Set<UUID> entityClassDeletions = deleteEntityIdMap.computeIfAbsent(entityClass, k -> new HashSet<>());
+    public void delete(Object entity) {
+        Set<Object> entityClassDeletions = deleteEntityMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
         entityClassDeletions.add(entity);
     }
 
-    public Set<UUID> getDeleteIds(Class<?> entityClass) {
-        Set<UUID> deleteIds = deleteEntityIdMap.get(entityClass);
-        return deleteIds != null ? deleteIds : Collections.emptySet();
+    public <T> Set<T> getDeletes(Class<T> entityClass) {
+        Set<Object> deleteEntities = deleteEntityMap.get(entityClass);
+        return deleteEntities != null ? (Set<T>) deleteEntities : Collections.emptySet();
     }
 }

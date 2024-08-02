@@ -54,6 +54,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -97,6 +98,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Override
     public CrudRepository<TwinClassEntity, UUID> entityRepository() {
         return twinClassRepository;
+    }
+
+    @Override
+    public Function<TwinClassEntity, UUID> entityGetIdFunction() {
+        return TwinClassEntity::getId;
     }
 
     @Override

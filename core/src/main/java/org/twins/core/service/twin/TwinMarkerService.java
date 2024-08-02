@@ -29,6 +29,7 @@ import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Lazy
@@ -47,6 +48,11 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     @Override
     public CrudRepository<TwinMarkerEntity, UUID> entityRepository() {
         return twinMarkerRepository;
+    }
+
+    @Override
+    public Function<TwinMarkerEntity, UUID> entityGetIdFunction() {
+        return TwinMarkerEntity::getId;
     }
 
     @Override
