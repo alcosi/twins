@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Response;
 @Schema(name =  "TwinStarredRsV1")
 public class TwinStarredRsDTOv1 extends Response {
     @Schema(description = "twin starred")
-    public TwinStarredDTOv1 twinStarred;
+    public TwinTouchDTOv1 twinStarred;
 }

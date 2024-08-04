@@ -12,5 +12,5 @@ import java.util.List;
 @Schema(name = "TwinStarredListRsV1")
 public class TwinStarredListRsDTOv1 extends Response {
     @Schema(description = "starred twins data")
-    public List<TwinStarredDTOv1> starredTwins;
+    public List<TwinTouchDTOv1> starredTwins;
 }

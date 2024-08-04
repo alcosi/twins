@@ -3,13 +3,11 @@ package org.twins.core.dao.specifications.twin;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinMarkerEntity;
-import org.twins.core.dao.twin.TwinTagEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSearch;
@@ -74,6 +72,21 @@ public class TwinSpecification {
                 return cb.or(noMarkers, cb.not(markerIdIn));
             } else {
                 return cb.and(cb.isNotNull(markerJoin.get(TwinMarkerEntity.Fields.twinId)), markerIdIn);
+            }
+        };
+    }
+
+    public static Specification<TwinEntity> checkTouchIds(final Collection<Touch> touchIds, final boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
+            Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
+            Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
+            query.distinct(true);
+            if (exclude) {
+                Predicate noTouches = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.twinId));
+                return cb.or(noTouches, cb.not(touchIdIn));
+            } else {
+                return cb.and(cb.isNotNull(touchJoin.get(TwinTouchEntity.Fields.twinId)), touchIdIn);
             }
         };
     }
