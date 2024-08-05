@@ -35,7 +35,9 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTagDataListOptionIdList(convertToSetSafe(src.getTagDataListOptionIdList()))
                 .setTagDataListOptionIdExcludeList(convertToSetSafe(src.getTagDataListOptionIdExcludeList()))
                 .setMarkerDataListOptionIdList(convertToSetSafe(src.getMarkerDataListOptionIdList()))
-                .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()));
+                .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
+                .setTouchList(convertToSetSafe(src.getTouchList()))
+                .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()));
         if (src.getLinksList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false);

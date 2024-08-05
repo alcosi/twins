@@ -84,6 +84,8 @@ public class TwinSearchService {
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
                         .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
                         .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
+                        .and(checkTouchIds(twinSearch.getTouchList(), authService.getApiUser().getUserId(), false))
+                        .and(checkTouchIds(twinSearch.getTouchExcludeList(), authService.getApiUser().getUserId(), true))
         );
     }
 

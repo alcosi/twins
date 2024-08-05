@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
@@ -15,17 +16,22 @@ import java.util.UUID;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
-@Table(name = "twin_starred")
-public class TwinStarredEntity implements EasyLoggable {
+@Table(name = "twin_touch")
+@FieldNameConstants
+public class TwinTouchEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "user_id")
-    private UUID userId;
-
     @Column(name = "twin_id")
     private UUID twinId;
+
+    @Column(name = "touch_id")
+    @Enumerated(EnumType.STRING)
+    private Touch touchId;
+
+    @Column(name = "user_id")
+    private UUID userId;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
@@ -44,7 +50,13 @@ public class TwinStarredEntity implements EasyLoggable {
     public String easyLog(Level level) {
         switch (level) {
             default:
-                return "TwinStarred{" + id + ", userId:" + userId + ", twinId:" + twinId + "}";
+                return "TwinTouch{" + id + ", twinId:" + twinId+ ", touchId:" + touchId + ", userId:" + userId + "}";
         }
+    }
+
+    public enum Touch {
+        WATCHED,
+        STARRED,
+        REVIEWED
     }
 }

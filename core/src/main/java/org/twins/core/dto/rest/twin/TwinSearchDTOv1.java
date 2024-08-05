@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.twin;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twin.TwinTouchEntity;
 
 import java.util.List;
 import java.util.UUID;
@@ -73,5 +74,11 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "Head twin class list ids")
     public List<UUID> headTwinClassIdList;
+
+    @Schema(description = "Twin touch list ids")
+    public List<TwinTouchEntity.Touch> touchList;
+
+    @Schema(description = "Twin touch exclude list ids")
+    public List<TwinTouchEntity.Touch> touchExcludeList;
 
 }
