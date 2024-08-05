@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowSearchRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSearchRsDTOv1;
@@ -51,13 +53,12 @@ public class TwinflowListController extends ApiController {
     @PostMapping(value = "/private/twinflow/search/v1")
     public ResponseEntity<?> twinflowSearchV1(
             @MapperContextBinding(roots = TwinflowBaseV3RestDTOMapper.class, response = TwinflowSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinflowSearchRqDTOv1 request) {
         TwinflowSearchRsDTOv1 rs = new TwinflowSearchRsDTOv1();
         try {
             PaginationResult<TwinflowEntity> twinflowList = twinflowService
-                    .search(twinflowSearchRestDTOReverseMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
+                    .search(twinflowSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinflowList(twinflowBaseV3RestDTOMapper
                             .convertCollection(twinflowList.getList(), mapperContext))

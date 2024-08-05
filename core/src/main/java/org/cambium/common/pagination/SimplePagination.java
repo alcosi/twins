@@ -2,12 +2,14 @@ package org.cambium.common.pagination;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.springframework.data.domain.Sort;
+import lombok.experimental.FieldNameConstants;
 
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 public class SimplePagination {
     protected int offset;
     protected int limit;
-    protected Sort sort;
+    protected boolean sortAsc;
+    protected String sortField;
 }
