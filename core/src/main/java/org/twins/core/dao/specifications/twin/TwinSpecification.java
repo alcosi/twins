@@ -83,7 +83,6 @@ public class TwinSpecification {
             Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
             Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
             Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
-            query.distinct(true);
             if (exclude) {
                 return cb.and(cb.not(touchIdIn), userIdEqual);
             } else {
