@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twin.Touch;
+import org.twins.core.dao.twin.TwinTouchEntity;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -39,8 +39,8 @@ public class TwinSearch {
     Set<UUID> tagDataListOptionIdExcludeList;
     Set<UUID> markerDataListOptionIdList;
     Set<UUID> markerDataListOptionIdExcludeList;
-    Set<Touch> touchList;
-    Set<Touch> touchExcludeList;
+    Set<TwinTouchEntity.Touch> touchList;
+    Set<TwinTouchEntity.Touch> touchExcludeList;
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
         if (exclude)
@@ -154,7 +154,7 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addTouchId(Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
+    public TwinSearch addTouchId(TwinTouchEntity.Touch touchId, boolean exclude) {//todo need use in SearchCriteriaBuilderSingleUUID ???
         if (exclude)
             touchExcludeList = CollectionUtils.safeAdd(touchExcludeList, touchId);
         else

@@ -11,8 +11,8 @@ import java.util.UUID;
 
 @Repository
 public interface TwinTouchRepository extends CrudRepository<TwinTouchEntity, UUID> {
-    void deleteByTwinIdAndTouchIdAndUserId(UUID twinId, Touch touchId, UUID userId);
+    void deleteByTwinIdAndTouchIdAndUserId(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId);
 
-    TwinTouchEntity findByTwinIdAndTouchIdAndUserId(UUID twinId, Touch touchId, UUID userId);
+    TwinTouchEntity findByTwinIdAndTouchIdAndUserId(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId);
 
 }

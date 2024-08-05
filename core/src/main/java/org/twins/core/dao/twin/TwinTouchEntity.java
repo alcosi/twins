@@ -50,7 +50,13 @@ public class TwinTouchEntity implements EasyLoggable {
     public String easyLog(Level level) {
         switch (level) {
             default:
-                return "TwinStarred{" + id + ", twinId:" + twinId+ ", touchId:" + touchId + ", userId:" + userId + "}";
+                return "TwinTouch{" + id + ", twinId:" + twinId+ ", touchId:" + touchId + ", userId:" + userId + "}";
         }
+    }
+
+    public enum Touch {
+        WATCHED,
+        STARRED,
+        REVIEWED
     }
 }

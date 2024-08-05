@@ -19,10 +19,9 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.Touch;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinStarredRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinTouchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twin.TwinTouchRestDTOMapper;
 import org.twins.core.service.twin.TwinTouchService;
@@ -44,18 +43,18 @@ public class TwinTouchCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStarredRsDTOv1.class))}),
+                    @Schema(implementation = TwinTouchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/touch/{touchId}/v1")
     public ResponseEntity<?> twinTouchV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable String touchId,
-            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinStarredRsDTOv1.class) MapperContext mapperContext) {
-        TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
+            @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) MapperContext mapperContext) {
+        TwinTouchRsDTOv1 rs = new TwinTouchRsDTOv1();
         try {
             TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, touchId);
             rs
-                    .twinStarred(twinTouchRestDTOMapper.convert(twinTouchEntity, mapperContext));
+                    .twinTouch(twinTouchRestDTOMapper.convert(twinTouchEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
