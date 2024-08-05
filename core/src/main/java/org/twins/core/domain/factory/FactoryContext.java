@@ -6,6 +6,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinBasicFields;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
@@ -17,6 +18,7 @@ public class FactoryContext {
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
     private List<FactoryItem> factoryItemList = new ArrayList<>();
+    private TwinBasicFields basics = null;
 
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
 

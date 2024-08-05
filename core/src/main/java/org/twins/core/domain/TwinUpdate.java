@@ -35,4 +35,14 @@ public class TwinUpdate extends TwinOperation {
         markersDelete.add(marker);
         return this;
     }
+
+    public boolean isChanged() {
+        return !(dbTwinEntity.equals(getTwinEntity()) &&
+                attachmentCUD.isEmpty() &&
+                twinLinkCUD.isEmpty() &&
+                tagsDelete.isEmpty() &&
+                markersDelete.isEmpty() &&
+                super.isChanged());
+    }
+
 }

@@ -401,13 +401,15 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
-        updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
-        cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
-        cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
-        twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd());
-        twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete());
-        twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getNewTags(), twinUpdate.getExistingTags());
-        invalidateFields(twinUpdate.getDbTwinEntity());
+        if (twinUpdate.isChanged()) {
+            updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
+            cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
+            cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
+            twinMarkerService.addMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersAdd());
+            twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete());
+            twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getNewTags(), twinUpdate.getExistingTags());
+            invalidateFields(twinUpdate.getDbTwinEntity());
+        }
     }
 
     @Transactional

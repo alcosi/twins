@@ -51,7 +51,9 @@ public abstract class TwinOperation {
         return this;
     }
 
-
+    public boolean isChanged() {
+        return !(markersAdd.isEmpty() && newTags.isEmpty());
+    }
 
     public abstract UUID nullifyUUID();
 }
