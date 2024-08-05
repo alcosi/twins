@@ -43,24 +43,6 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
         return twinTouchEntityFromDB;
     }
 
-//    public static Specification<TwinEntity> checkTouchIds(final Collection<TwinTouchEntity.Touch> touchIds, final UUID userId, final boolean exclude) {
-//        return (root, query, cb) -> {
-//            if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
-//
-//            Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
-//            Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
-//            Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
-//            query.distinct(true);
-//
-//            if (exclude) {
-//                Predicate noTouches = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.twinId));
-//                return cb.or(noTouches, cb.not(cb.and(touchIdIn, userIdEqual)));
-//            } else {
-//                return cb.and(cb.isNotNull(touchJoin.get(TwinTouchEntity.Fields.twinId)), touchIdIn, userIdEqual);
-//            }
-//        };
-//    }
-
     @Transactional
     public void deleteTouch(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

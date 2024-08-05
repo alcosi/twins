@@ -14,6 +14,7 @@ import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
 
+import static java.util.function.Predicate.not;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
@@ -84,10 +85,9 @@ public class TwinSpecification {
             Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
             query.distinct(true);
             if (exclude) {
-                Predicate noTouches = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.twinId));
-                return cb.or(noTouches, cb.not(cb.and(touchIdIn, userIdEqual)));
+                return cb.and(cb.not(touchIdIn), userIdEqual);
             } else {
-                return cb.and(cb.isNotNull(touchJoin.get(TwinTouchEntity.Fields.twinId)), touchIdIn, userIdEqual);
+                return cb.and(touchIdIn, userIdEqual);
             }
         };
     }
