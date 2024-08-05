@@ -151,6 +151,12 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksByDstTwinId;
 
+    //needed for specification
+    @Deprecated
+    @OneToMany
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinTouchEntity> touches;
+
 
     @Transient
     @EqualsAndHashCode.Exclude

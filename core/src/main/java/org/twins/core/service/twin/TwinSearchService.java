@@ -39,8 +39,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import static org.cambium.common.util.MapUtils.narrowMapOfSets;
-import static org.cambium.common.util.PaginationUtils.convertInPaginationResult;
-import static org.cambium.common.util.PaginationUtils.sort;
+import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
@@ -85,6 +84,8 @@ public class TwinSearchService {
                         .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
                         .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
                         .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
+                        .and(checkTouchIds(twinSearch.getTouchList(), authService.getApiUser().getUserId(), false))
+                        .and(checkTouchIds(twinSearch.getTouchExcludeList(), authService.getApiUser().getUserId(), true))
         );
     }
 
@@ -113,7 +114,7 @@ public class TwinSearchService {
     }
 
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
-        List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sort(false, TwinEntity.Fields.createdAt));
+        List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sortType(false, TwinEntity.Fields.createdAt));
         //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
         return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
     }

@@ -66,19 +66,19 @@ public class TwinClassBaseDTOv1 {
     public Boolean aliasSpace;
 
     @Schema(description = "head hunter featurer id")
-    private Integer headHunterFeaturerId;
+    public Integer headHunterFeaturerId;
 
     @Schema(description = "head hunter featurer params")
-    private Map<String, String> headHunterParams;
+    public Map<String, String> headHunterParams;
 
     @Schema(description = "view permission id")
-    private UUID viewPermissionId;
+    public UUID viewPermissionId;
 
     @Schema(description = "uuid of name in I18n table")
-    private UUID nameI18nId;
+    public UUID nameI18nId;
 
     @Schema(description = "uuid of description in I18n table")
-    private UUID descriptionI18nId;
+    public UUID descriptionI18nId;
 
 
 }

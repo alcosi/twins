@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Response;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinStarredRsV1")
-public class TwinStarredRsDTOv1 extends Response {
-    @Schema(description = "twin starred")
-    public TwinStarredDTOv1 twinStarred;
+@Schema(name =  "TwinTouchRsV1")
+public class TwinTouchRsDTOv1 extends Response {
+    @Schema(description = "twin touch")
+    public TwinTouchDTOv1 twinTouch;
 }

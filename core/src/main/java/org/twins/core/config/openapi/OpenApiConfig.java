@@ -34,7 +34,8 @@ public class OpenApiConfig {
         return GroupedOpenApi.builder()
                 .group("twins-api")
                 .addOperationCustomizer(new MapperContextOperationCustomizer(mapperParameterService))
-                .addOperationCustomizer(new MapperContextParameterOperationCustomizer())
+                .addOperationCustomizer(new SimplePaginationParamsOperationCustomizer())
+                .addOperationCustomizer(new ParameterExcludeOperationCustomizer())
                 .addOperationCustomizer(new HeadersOperationCustomizer())
                 .packagesToScan("org.twins.core.controller.rest")
                 .build();
