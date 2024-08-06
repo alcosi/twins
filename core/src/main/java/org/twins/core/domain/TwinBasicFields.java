@@ -10,8 +10,17 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Accessors(chain = true)
 public class TwinBasicFields {
-    private UUID assignerUserId;
+
+    private UUID assigneeUserId;
     private UUID createdByUserId;
     private String name;
     private String description;
+
+    public enum Basics {
+        assigneeUserId,
+        createdByUserId,
+        name,
+        description
+    }
+
 }

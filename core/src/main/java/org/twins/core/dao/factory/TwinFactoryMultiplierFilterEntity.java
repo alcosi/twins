@@ -35,8 +35,8 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryMultiplierFilter[" + id + "]";
-            case NORMAL -> "twinFactoryMultiplierFilter[id:" + id + "]";
-            default -> "**" + comment + "** twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplier:" + twinFactoryMultiplierId + "]";
+            case NORMAL -> "twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + "]";
+            default -> "**" + comment + "** twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + ", twinFactoryConditionSetId:" + twinFactoryConditionSetId + ", invert:" + twinFactoryConditionInvert + "]";
         };
     }
 }

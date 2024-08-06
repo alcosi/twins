@@ -15,7 +15,7 @@ public class TwinBasicFieldsRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
     public void map(TwinBasicFieldsDTOv1 src, TwinBasicFields dst, MapperContext mapperContext) throws Exception {
         dst
                 .setCreatedByUserId(src.getCreatedByUserId())
-                .setAssignerUserId(src.getAssignerUserId())
+                .setAssigneeUserId(src.getAssigneeUserId())
                 .setName(src.getName())
                 .setDescription(src.getDescription());
     }

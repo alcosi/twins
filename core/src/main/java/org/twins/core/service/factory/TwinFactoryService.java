@@ -106,15 +106,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                             }
                         }
                     }
-                    if (allowed) multiplierOutputFiltered.add(factoryItem);
+                    if (allowed) {
+                        log.info(factoryItem.logDetailed());
+                        multiplierOutputFiltered.add(factoryItem);
+                    }
                 }
                 log.info("Filtered result:" + multiplierOutputFiltered.size() + " factoryItems");
             } else
                 multiplierOutputFiltered.addAll(multiplierOutput);
-
-            for (FactoryItem factoryItem : multiplierOutputFiltered) {
-                log.info(factoryItem.logDetailed());
-            }
             LoggerUtils.traceTreeLevelUp();
             factoryContext.getFactoryItemList().addAll(multiplierOutput);
         }

@@ -14,7 +14,7 @@ import java.util.UUID;
 public class TwinBasicFieldsDTOv1 {
 
     @Schema(description = "assignee user id", example = DTOExamples.USER_ID)
-    public UUID assignerUserId;
+    public UUID assigneeUserId;
 
     @Schema(description = "created by user_id", example = DTOExamples.USER_ID)
     public UUID createdByUserId;

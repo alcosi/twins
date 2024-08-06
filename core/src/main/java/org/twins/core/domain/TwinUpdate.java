@@ -40,9 +40,12 @@ public class TwinUpdate extends TwinOperation {
         return !(dbTwinEntity.equals(getTwinEntity()) &&
                 attachmentCUD.isEmpty() &&
                 twinLinkCUD.isEmpty() &&
+                fields.isEmpty() &&
                 tagsDelete.isEmpty() &&
                 markersDelete.isEmpty() &&
-                super.isChanged());
+                markersAdd.isEmpty() &&
+                newTags.isEmpty() &&
+                existingTags.isEmpty());
     }
 
 }

@@ -31,9 +31,9 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2208,
-        name = "MultiplierIsolatedRelativesByLink",
+        name = "MultiplierIsolatedByLink",
         description = "Output list of twin relatives for each input. Output twin list will be loaded by link and filtered by statusIds")
-public class MultiplierIsolatedRelativesByLink extends Multiplier {
+public class MultiplierIsolatedByLink extends Multiplier {
 
     @FeaturerParam(name = "linkId", description = "Link from sought twin to factory input twin")
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
@@ -69,7 +69,6 @@ public class MultiplierIsolatedRelativesByLink extends Multiplier {
             BasicSearch search = new BasicSearch();
             search
                     .addLinkDstTwinsId(linkId.extract(properties), List.of(inputTwin.getId()), false)
-//                    .addHeaderTwinId(inputTwin.getHeadTwinId())
                     .addStatusId(statusIds.extract(properties), excludeStatuses.extract(properties));
             List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {
