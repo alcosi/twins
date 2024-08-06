@@ -21,6 +21,8 @@ ALTER TABLE ONLY public.twin_factory_multiplier_filter
 ALTER TABLE ONLY public.twin_factory_multiplier_filter
     ADD CONSTRAINT twin_factory_multiplier_filter_twin_factory_multiplier_id_fk FOREIGN KEY (twin_factory_multiplier_id) REFERENCES public.twin_factory_multiplier(id);
 
+create index if not exists twin_factory_multiplier_filter_condition_set_id_index on twin_factory_multiplier_filter (twin_factory_condition_set_id);
+create index if not exists twin_factory_multiplier_filter_multiplier_id_index on twin_factory_multiplier_filter (twin_factory_multiplier_id);
 
 -- conditioner for check output twin field equals value
 INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2419, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerOutputTwinFieldValueEquals', 'ConditionerContextTwinFieldValueEquals', '', false) on conflict (id) do nothing;
