@@ -25,7 +25,7 @@ create index if not exists twin_factory_multiplier_filter_condition_set_id_index
 create index if not exists twin_factory_multiplier_filter_multiplier_id_index on twin_factory_multiplier_filter (twin_factory_multiplier_id);
 
 -- conditioner for check output twin field equals value
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2419, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerOutputTwinFieldValueEquals', 'ConditionerContextTwinFieldValueEquals', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2421, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerOutputTwinFieldValueEquals', 'ConditionerContextTwinFieldValueEquals', '', false) on conflict (id) do nothing;
 
 -- multiplier for get twins by link
 INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2208, 22, 'org.twins.core.featurer.factory.multiplier.MultiplierIsolatedByLink', 'MultiplierIsolatedByLink', 'Output list of twin relatives for each input. Output twin list will be loaded by link and filtered by statusIds', false) on conflict (id) do nothing;
@@ -37,4 +37,4 @@ INSERT INTO public.featurer (id, featurer_type_id, class, name, description, dep
 INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2209, 22, 'org.twins.core.featurer.factory.multiplier.MultiplierIsolatedCreate', 'MultiplierIsolatedCreate', 'New output twin for each input. Output class in param.', false) on conflict (id) do nothing;
 
 -- conditioner checks context twin basic field equals context basics
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2420, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerContextTwinBasicFieldValueEqualsContextBasics', 'ConditionerContextTwinBasicFieldValueEqualsContextBasics', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2422, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerContextTwinBasicFieldValueEqualsContextBasics', 'ConditionerContextTwinBasicFieldValueEqualsContextBasics', '', false) on conflict (id) do nothing;
