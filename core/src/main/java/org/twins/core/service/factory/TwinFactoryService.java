@@ -33,6 +33,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
     final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
+    final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
     final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinService twinService;
@@ -89,9 +90,30 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             List<FactoryItem> multiplierOutput = multiplier.multiply(factoryMultiplierEntity, multiplierInput, factoryContext);
             log.info("Result:" + multiplierOutput.size() + " factoryItems");
             LoggerUtils.traceTreeLevelDown();
-            for (FactoryItem factoryItem : multiplierOutput) {
-                log.info(factoryItem.logDetailed());
-            }
+
+            List<FactoryItem> multiplierOutputFiltered = new ArrayList<>();
+            List<TwinFactoryMultiplierFilterEntity> multiplierFilters = twinFactoryMultiplierFilterRepository.findByTwinFactoryMultiplierId(factoryMultiplierEntity.getId());
+            if (!multiplierFilters.isEmpty()) {
+                log.info("Filtering multiplier output...");
+                for (FactoryItem factoryItem : multiplierOutput) {
+                    boolean allowed = true;
+                    for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
+                        if (filter.isActive()) {
+                            allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
+                            if (!allowed) {
+                                log.info(factoryItem.logNormal() + " was skipped");
+                                break;
+                            }
+                        }
+                    }
+                    if (allowed) {
+                        log.info(factoryItem.logDetailed());
+                        multiplierOutputFiltered.add(factoryItem);
+                    }
+                }
+                log.info("Filtered result:" + multiplierOutputFiltered.size() + " factoryItems");
+            } else
+                multiplierOutputFiltered.addAll(multiplierOutput);
             LoggerUtils.traceTreeLevelUp();
             factoryContext.getFactoryItemList().addAll(multiplierOutput);
         }
@@ -218,7 +240,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = null;
-        TwinEntity contextTwin;
+        TwinEntity contextTwin, outputTwin;
         switch (fieldLookupMode) {
             case fromContextFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
@@ -260,6 +282,12 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
                 if (!TwinService.isFilled(fieldValue))
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                break;
+            case fromItemOutputFields:
+                outputTwin = factoryItem.getOutput().getTwinEntity();
+                fieldValue = twinService.getTwinFieldValue(outputTwin, twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in output twin fields twinclass[" + outputTwin.getTwinClassId() + "]");
                 break;
         }
         return fieldValue;
