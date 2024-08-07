@@ -43,21 +43,25 @@ public class FactoryContext {
     }
 
     private void addFactoryItem(TwinEntity inputTwin) { // inputTwins can be updated in pipelines, so we have to wrap them to FactoryItem
-        FactoryItem factoryItem = new FactoryItem();
-        factoryItem
+        TwinUpdate twinUpdate = new TwinUpdate();
+        twinUpdate
+                .setDbTwinEntity(inputTwin)
+                .setTwinEntity(new TwinEntity()
+                        .setId(inputTwin.getId())
+                        .setTwinClass(inputTwin.getTwinClass())
+                        .setTwinClassId(inputTwin.getTwinClassId()));
+        FactoryItem factoryItem = new FactoryItem()
                 .setFactoryContext(this)
-                .setOutput(new TwinUpdate()
-                        .setDbTwinEntity(inputTwin)
-                        .setTwinEntity(new TwinEntity()
-                                .setId(inputTwin.getId())
-                                .setTwinClass(inputTwin.getTwinClass())
-                                .setTwinClassId(inputTwin.getTwinClassId())
-                        ));
+                .setOutput(twinUpdate);
+        FactoryItem rootItem = new FactoryItem()
+                .setFactoryContext(this)
+                .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
         // see TwinFactoryService.lookupFieldValue
-        factoryItem.setContextFactoryItemList(List.of(factoryItem));
+        factoryItem.setContextFactoryItemList(List.of(rootItem));
         factoryItemList.add(factoryItem);
     }
+
 
     public Map<UUID, FieldValue> getFields() {
         if (fields == null)
