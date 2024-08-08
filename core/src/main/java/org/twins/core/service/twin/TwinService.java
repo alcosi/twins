@@ -15,7 +15,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
-import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -45,6 +44,7 @@ import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -74,16 +74,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinMarkerService twinMarkerService;
     @Lazy
     private final AuthService authService;
-    @Lazy
-    private final SystemEntityService systemEntityService;
     private final TwinChangesService twinChangesService;
     @Lazy
     private final HistoryService historyService;
-    private final I18nService i18nService;
     @Lazy
     private final TwinTagService twinTagService;
     @Lazy
     private final TwinAliasService twinAliasService;
+    private final UserService userService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -309,6 +307,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         }
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
+        checkAssignee(twinEntity);
         twinEntity = saveTwin(twinEntity);
         saveTwinFields(twinEntity, twinCreate.getFields());
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -361,6 +360,31 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setOwnerBusinessAccountId(null);
         }
         return twinEntity;
+    }
+
+    public void checkAssignee(TwinEntity twinEntity) throws ServiceException {
+        UUID userId = twinEntity.getAssignerUserId();
+        if (null != userId) {
+            TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
+            switch (twinClassEntity.getOwnerType()) {
+                case DOMAIN:
+                    if (!userService.checkUserRegisteredInDomain(userId, twinClassEntity.getDomainId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in domain[" + twinClassEntity.getDomainId() + "]");
+                    break;
+                case BUSINESS_ACCOUNT:
+                    if (!userService.checkUserRegisteredInBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId()))
+                        throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "]");
+                    break;
+                case DOMAIN_BUSINESS_ACCOUNT:
+                    if (!userService.checkUserRegisteredInDomainAndBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId(), twinClassEntity.getDomainId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "] or in domain[" + twinClassEntity.getDomainId() + "]");
+                    break;
+                case USER:
+                case DOMAIN_USER:
+                    if (!userId.equals(twinEntity.getOwnerUserId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "] - user[" + userId + "] - is not the owner of the twin");
+            }
+        }
     }
 
     @Transactional
@@ -443,6 +467,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setAssignerUserId(updateTwinEntity.getAssignerUserId())
                         .setAssignerUser(updateTwinEntity.getAssignerUser() != null ? updateTwinEntity.getAssignerUser() : null);
             }
+            checkAssignee(dbTwinEntity);
         }
         if (changesHelper.isChanged("status", dbTwinEntity.getTwinStatusId(), updateTwinEntity.getTwinStatusId())) {
             historyCollector.add(historyService.statusChanged(dbTwinEntity.getTwinStatus(), updateTwinEntity.getTwinStatus()));
