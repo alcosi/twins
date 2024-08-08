@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.SimplePagination;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twin.TwinSearchRsDTOv2;
@@ -54,11 +56,10 @@ public class TwinClassValidHeadController extends ApiController {
     public ResponseEntity<?> twinClassValidHeadsV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
+            @SimplePaginationParams SimplePagination pagination) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> validHeads = twinHeadService.findValidHeads(twinClassId, createSimplePagination(offset, limit, Sort.unsorted()));
+            PaginationResult<TwinEntity> validHeads = twinHeadService.findValidHeads(twinClassId, pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));

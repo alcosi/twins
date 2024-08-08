@@ -419,6 +419,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
+        if (!twinUpdate.isChanged())
+            return;
         updateTwin(twinUpdate.getTwinEntity(), twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
         cudAttachments(twinUpdate.getDbTwinEntity(), twinUpdate.getAttachmentCUD());
         cudTwinLinks(twinUpdate.getDbTwinEntity(), twinUpdate.getTwinLinkCUD());
@@ -426,6 +428,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinMarkerService.deleteMarkers(twinUpdate.getDbTwinEntity(), twinUpdate.getMarkersDelete());
         twinTagService.updateTwinTags(twinUpdate.getDbTwinEntity(), twinUpdate.getTagsDelete(), twinUpdate.getTagsAddNew(), twinUpdate.getTagsAddExisted());
         invalidateFields(twinUpdate.getDbTwinEntity());
+
     }
 
     @Transactional

@@ -3,20 +3,19 @@ package org.twins.core.dao.specifications.twin;
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinMarkerEntity;
-import org.twins.core.dao.twin.TwinTagEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
 
+import static java.util.function.Predicate.not;
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
@@ -75,6 +74,20 @@ public class TwinSpecification {
                 return cb.or(noMarkers, cb.not(markerIdIn));
             } else {
                 return cb.and(cb.isNotNull(markerJoin.get(TwinMarkerEntity.Fields.twinId)), markerIdIn);
+            }
+        };
+    }
+
+    public static Specification<TwinEntity> checkTouchIds(final Collection<TwinTouchEntity.Touch> touchIds, final UUID userId, final boolean exclude) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
+            Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
+            Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
+            Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
+            if (exclude) {
+                return cb.and(cb.not(touchIdIn), userIdEqual);
+            } else {
+                return cb.and(touchIdIn, userIdEqual);
             }
         };
     }

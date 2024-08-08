@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.data.domain.Sort;
@@ -19,6 +20,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRqDTOv1;
 import org.twins.core.dto.rest.featurer.FeaturerSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -49,13 +51,12 @@ public class FeaturerSearchController extends ApiController {
     @PostMapping(value = "/private/featurer/v1")
     public ResponseEntity<?> featurerListV1(
         @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) MapperContext mapperContext,
-        @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-        @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+        @SimplePaginationParams SimplePagination pagination,
         @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
             PaginationResult<FeaturerEntity> featurers = featurerService
-                    .findFeaturers(featurerDTOReversMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
+                    .findFeaturers(featurerDTOReversMapper.convert(request), pagination);
             rs
                     .setFeaturerList(featurerRestDTOMapper.convertCollection(featurers.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(featurers));

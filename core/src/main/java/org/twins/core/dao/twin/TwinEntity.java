@@ -94,6 +94,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_class_id", referencedColumnName = "id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
     private TwinClassEntity twinClass;
 
 //    @ManyToOne(fetch = FetchType.EAGER)
@@ -110,6 +111,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @ManyToOne
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false, nullable = false)
+    @EqualsAndHashCode.Exclude
     private TwinStatusEntity twinStatus;
 
     @ManyToOne
@@ -118,31 +120,42 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @ManyToOne
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private UserEntity assignerUser;
 
     //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinTagEntity> tags;
 
     //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinMarkerEntity> markers;
 
     //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "src_twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksBySrcTwinId;
 
     //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksByDstTwinId;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    private Collection<TwinTouchEntity> touches;
 
 
     @Transient

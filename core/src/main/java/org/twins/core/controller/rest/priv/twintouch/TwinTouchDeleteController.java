@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinstarred;
+package org.twins.core.controller.rest.priv.twintouch;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,14 +17,11 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dao.twin.TwinStarredEntity;
+import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinStarredRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.twin.TwinStarredRestDTOMapper;
-import org.twins.core.service.twin.TwinStarredService;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.service.twin.TwinTouchService;
 
 import java.util.UUID;
 
@@ -32,28 +29,23 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class TwinStarredCreateController extends ApiController {
-
-    private final TwinStarredRestDTOMapper twinStarredRestDTOMapper;
-
-    private final TwinStarredService twinStarredService;
+public class TwinTouchDeleteController extends ApiController {
+    private final TwinTouchService twinTouchService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "markTwinAsStarredV1", summary = "Mark given twin as starred for user")
+    @Operation(operationId = "twinUntouchV1", summary = "Unmark twin as touched for user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStarredRsDTOv1.class))}),
+                    @Schema(implementation = Response.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/twin/{twinId}/star/v1")
-    public ResponseEntity<?> markTwinAsStarredV1(
+    @PutMapping(value = "/private/twin/{twinId}/untouch/{touchId}/v1")
+    public ResponseEntity<?> twinUntouchV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @MapperContextBinding(roots = TwinStarredRestDTOMapper.class, response = TwinStarredRsDTOv1.class) MapperContext mapperContext) {
-        TwinStarredRsDTOv1 rs = new TwinStarredRsDTOv1();
+            @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable TwinTouchEntity.Touch touchId) {
+        Response rs = new Response();
         try {
-            TwinStarredEntity twinStarredEntity = twinStarredService.addStarred(twinId);
-            rs
-                    .twinStarred(twinStarredRestDTOMapper.convert(twinStarredEntity, mapperContext));
+            twinTouchService.deleteTouch(twinId, touchId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -61,5 +53,4 @@ public class TwinStarredCreateController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
 }

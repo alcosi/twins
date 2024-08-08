@@ -11,6 +11,7 @@ public interface DTOExamples {
     String TWIN_STATUS_KEY = "toDo";
     String TWIN_STATUS_NAME = "To Do";
     String TWIN_STATUS_DESCRIPTION = "Need to be done";
+    String TWIN_TOUCH = "WATCHED";
     String HEAD_TWIN_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String TWIN_CLASS_FIELD_ID = "2fe95272-afcb-40ee-a6a8-87c5da4d5b8d";
     String TWIN_CLASS_FIELD_KEY = "serialNumber";

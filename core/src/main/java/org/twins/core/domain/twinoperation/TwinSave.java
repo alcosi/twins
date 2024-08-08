@@ -49,7 +49,5 @@ public abstract class TwinSave extends TwinOperation {
         return this;
     }
 
-
-
     public abstract UUID nullifyUUID();
 }

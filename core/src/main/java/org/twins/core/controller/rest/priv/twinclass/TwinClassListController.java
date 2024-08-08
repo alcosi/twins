@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.SimplePagination;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRsDTOv1;
@@ -53,13 +55,12 @@ public class TwinClassListController extends ApiController {
     @PostMapping(value = "/private/twin_class/search/v1")
     public ResponseEntity<?> twinClassSearchV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
             PaginationResult<TwinClassEntity> twinClasses = twinClassService
-                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), createSimplePagination(offset, limit, Sort.unsorted()));
+                    .findTwinClasses(twinClassSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setTwinClassList(twinClassRestDTOMapper
                             .convertCollection(twinClasses.getList(), mapperContext))
@@ -83,11 +84,10 @@ public class TwinClassListController extends ApiController {
     @GetMapping(value = "/private/twin_class/list/v1")
     public ResponseEntity<?> twinClassLstV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestParam(name = RestRequestParam.paginationOffset, defaultValue = DEFAULT_VALUE_OFFSET) int offset,
-            @RequestParam(name = RestRequestParam.paginationLimit, defaultValue = DEFAULT_VALUE_LIMIT) int limit) {
+            @SimplePaginationParams SimplePagination pagination) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {
-            PaginationResult<TwinClassEntity> twinClasses = twinClassService.findTwinClasses(null, createSimplePagination(offset, limit, Sort.unsorted()));
+            PaginationResult<TwinClassEntity> twinClasses = twinClassService.findTwinClasses(null, pagination);
             rs
                     .setTwinClassList(twinClassRestDTOMapper.convertCollection(twinClasses.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twinClasses))
