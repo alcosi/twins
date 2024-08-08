@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.attachment.AttachmentCudDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkCudDTOv1;
+import org.twins.core.dto.rest.twin.TwinBasicFieldsDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 
 import java.util.List;
@@ -26,4 +27,8 @@ public class TwinTransitionContextDTOv1 {
 
     @Schema(description = "list of twins, that must be created during transition")
     public List<TwinCreateRqDTOv2> newTwins;
+
+    @Schema(description = "list of basic twin fields")
+    public TwinBasicFieldsDTOv1 basics;
+
 }

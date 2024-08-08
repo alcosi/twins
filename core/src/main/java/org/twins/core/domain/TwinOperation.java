@@ -51,7 +51,5 @@ public abstract class TwinOperation {
         return this;
     }
 
-
-
     public abstract UUID nullifyUUID();
 }
