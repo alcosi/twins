@@ -51,6 +51,19 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
         log.info("Touch[{}] perhaps were deleted", StringUtils.join(twinId, ",", touchId, ",", userId));
     }
 
+    @Transactional
+    public void deleteTouchs(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
+        deleteTouchs(twinId, touchId, null);
+    }
+
+    public void deleteTouchs(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId) throws ServiceException {
+        if (userId == null)
+            twinTouchRepository.deleteByTwinIdAndTouchId(twinId, touchId.name());
+        else
+            twinTouchRepository.deleteByTwinIdAndTouchIdAndUserId(twinId, touchId, userId);
+        log.info("Touch[{}] perhaps were deleted", StringUtils.join(twinId, ",", touchId, ",", userId));
+    }
+
     @Override
     public CrudRepository<TwinTouchEntity, UUID> entityRepository() {
         return null;
