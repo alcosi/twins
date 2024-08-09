@@ -9,7 +9,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
@@ -32,14 +31,15 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
-    final UserRepository userRepository;
-    final DomainUserRepository domainUserRepository;
-    final EntitySmartService entitySmartService;
+
+    private final UserRepository userRepository;
+    private final EntitySmartService entitySmartService;
+    private final SystemEntityService systemEntityService;
+
     @Lazy
-    final TwinService twinService;
-    final SystemEntityService systemEntityService;
+    private final TwinService twinService;
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
 
     @Override
     public CrudRepository<UserEntity, UUID> entityRepository() {
@@ -164,5 +164,17 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         if (data.length() < 2)
             return data;
         return data.charAt(0) + "***" + data.charAt(data.length() - 1);
+    }
+
+    public boolean checkUserRegisteredInDomain(UUID userId, UUID domainId) {
+        return userRepository.existsUserInDomain(userId, domainId);
+    }
+
+    public boolean checkUserRegisteredInBusinessAccount(UUID userId, UUID businessAccountId) {
+        return userRepository.existsUserInBusinessAccount(userId, businessAccountId);
+    }
+
+    public boolean checkUserRegisteredInDomainAndBusinessAccount(UUID userId, UUID businessAccountId, UUID domainId) {
+        return userRepository.existsUserInBusinessAccountAndInDomain(userId, businessAccountId, domainId);
     }
 }

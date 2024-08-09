@@ -20,7 +20,7 @@ public class TransitionSaveRestDTOReverseMapper extends RestSimpleDTOMapper<Tran
                 .setDstTwinStatusId(src.getDstStatusId())
                 .setPermissionId(src.getPermissionId())
                 .setTwinflowId(src.getTwinflowId())
-                .setInbuiltTwinFactoryId(src.getInbuiltTtwinFactoryId())
+                .setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId())
                 .setDraftingTwinFactoryId(src.getDraftingTwinFactoryId())
                 .setTwinflowTransitionAlias(new TwinflowTransitionAliasEntity().setAlias(src.getAlias()));
 

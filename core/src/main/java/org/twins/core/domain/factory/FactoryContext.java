@@ -43,7 +43,6 @@ public class FactoryContext {
     }
 
     private void addFactoryItem(TwinEntity inputTwin) { // inputTwins can be updated in pipelines, so we have to wrap them to FactoryItem
-        FactoryItem factoryItem = new FactoryItem();
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate
                 .setDbTwinEntity(inputTwin)
@@ -51,12 +50,15 @@ public class FactoryContext {
                         .setId(inputTwin.getId())
                         .setTwinClass(inputTwin.getTwinClass())
                         .setTwinClassId(inputTwin.getTwinClassId()));
-        factoryItem
+        FactoryItem factoryItem = new FactoryItem()
+                .setFactoryContext(this)
+                .setOutput(twinUpdate);
+        FactoryItem rootItem = new FactoryItem()
                 .setFactoryContext(this)
                 .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
         // see TwinFactoryService.lookupFieldValue
-        factoryItem.setContextFactoryItemList(List.of(factoryItem));
+        factoryItem.setContextFactoryItemList(List.of(rootItem));
         factoryItemList.add(factoryItem);
     }
 

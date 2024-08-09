@@ -47,6 +47,7 @@ import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -84,6 +85,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     private final TwinTagService twinTagService;
     @Lazy
     private final TwinAliasService twinAliasService;
+    private final UserService userService;
 
 
     public static Map<UUID, List<TwinEntity>> toClassMap(List<TwinEntity> twinEntityList) {
@@ -314,6 +316,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         }
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
+        checkAssignee(twinEntity);
         twinEntity = saveTwin(twinEntity);
         saveTwinFields(twinEntity, twinCreate.getFields());
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -367,6 +370,31 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setOwnerBusinessAccountId(null);
         }
         return twinEntity;
+    }
+
+    public void checkAssignee(TwinEntity twinEntity) throws ServiceException {
+        UUID userId = twinEntity.getAssignerUserId();
+        if (null != userId) {
+            TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
+            switch (twinClassEntity.getOwnerType()) {
+                case DOMAIN:
+                    if (!userService.checkUserRegisteredInDomain(userId, twinClassEntity.getDomainId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in domain[" + twinClassEntity.getDomainId() + "]");
+                    break;
+                case BUSINESS_ACCOUNT:
+                    if (!userService.checkUserRegisteredInBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId()))
+                        throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "]");
+                    break;
+                case DOMAIN_BUSINESS_ACCOUNT:
+                    if (!userService.checkUserRegisteredInDomainAndBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId(), twinClassEntity.getDomainId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "] or in domain[" + twinClassEntity.getDomainId() + "]");
+                    break;
+                case USER:
+                case DOMAIN_USER:
+                    if (!userId.equals(twinEntity.getOwnerUserId()))
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " - user[" + userId + "] - is not the owner of the twin");
+            }
+        }
     }
 
     @Transactional
@@ -470,6 +498,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                         .setAssignerUserId(updateTwinEntity.getAssignerUserId())
                         .setAssignerUser(updateTwinEntity.getAssignerUser() != null ? updateTwinEntity.getAssignerUser() : null);
             }
+            checkAssignee(dbTwinEntity);
         }
         updateTwinStatus(dbTwinEntity, updateTwinEntity.getTwinStatus(), twinChangesCollector);
         if (MapUtils.isNotEmpty(fields))

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.experimental.Accessors;
 import org.cambium.i18n.dto.I18nDTOv1;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
@@ -38,7 +37,7 @@ public class TransitionSaveRqDTOv1 extends Request {
     public UUID permissionId;
 
     @Schema(description = "Inbuilt TwinFactory Id", example = "")
-    public UUID inbuiltTtwinFactoryId;
+    public UUID inbuiltTwinFactoryId;
 
     @Schema(description = "Drafting TwinFactory Id", example = "")
     public UUID draftingTwinFactoryId;
