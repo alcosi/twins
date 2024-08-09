@@ -30,6 +30,6 @@ public class TransitionTriggerClearAllUsersTouch extends TransitionTrigger {
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        twinTouchService.deleteAllUsersTouchs(twinEntity.getId(), touchId.extract(properties));
+        twinTouchService.deleteAllUsersTouch(twinEntity.getId(), touchId.extract(properties));
     }
 }

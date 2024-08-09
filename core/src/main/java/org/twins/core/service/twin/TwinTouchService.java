@@ -53,15 +53,15 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     }
 
     @Transactional
-    public void deleteAllUsersTouchs(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
+    public void deleteAllUsersTouch(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
         twinTouchRepository.deleteByTwinIdAndTouchId(twinId, touchId);
-        log.info(new TwinTouchEntity().setTwinId(twinId).easyLog(EasyLoggable.Level.SHORT) + " perhaps were deleted");
+        log.info("Touch[{}] perhaps were deleted", StringUtils.join(twinId, ",", touchId));
     }
 
     @Transactional
-    public void deleteCurrentUserTouchs(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId) throws ServiceException {
+    public void deleteCurrentUserTouch(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId) throws ServiceException {
         twinTouchRepository.deleteByTwinIdAndTouchIdAndUserId(twinId, touchId, userId);
-        log.info(new TwinTouchEntity().setTwinId(twinId).easyLog(EasyLoggable.Level.SHORT) + " perhaps were deleted");
+        log.info("Touch[{}] perhaps were deleted", StringUtils.join(twinId, ",", touchId, ",", userId));
     }
 
     @Override

@@ -51,10 +51,8 @@ public class TwinTouchEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         switch (level) {
-            case SHORT :
-                return  "TwinTouch[" + twinId + "]";
             default:
-                return "TwinTouch{" + id + ", twinId:" + twinId+ ", touchId:" + touchId + ", userId:" + userId + "}";
+                return "twinTouch{" + id + ", twinId:" + twinId+ ", touchId:" + touchId + ", userId:" + userId + "}";
         }
     }
 
