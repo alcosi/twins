@@ -249,26 +249,28 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        TwinflowTransitionAliasEntity twinflowTransitionAlias = creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias());
         twinflowTransitionEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_TRANSITION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_TRANSITION_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId())
-                .setTwinflowTransitionAliasId(creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias()));
+                .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
+                .setTwinflowTransitionAlias(twinflowTransitionAlias);
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    private UUID creatAliasIfNeeded(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
+    private TwinflowTransitionAliasEntity creatAliasIfNeeded(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
         if (transitionAlias.getDomainId() == null)
             transitionAlias.setDomainId(authService.getApiUser().getDomainId());
         if (transitionAlias.getId() != null)
-            return transitionAlias.getId();
-        UUID currentTransitionAliasId = twinflowTransitionAliasRepository.findIdByDomainIdAndAlias(transitionAlias.getDomainId(), transitionAlias.getAlias());
-        if (currentTransitionAliasId != null)
-            transitionAlias.setId(currentTransitionAliasId);
+            return transitionAlias;
+        TwinflowTransitionAliasEntity currentTransitionAlias = twinflowTransitionAliasRepository.findByDomainIdAndAlias(transitionAlias.getDomainId(), transitionAlias.getAlias());
+        if (currentTransitionAlias != null)
+            transitionAlias.setId(currentTransitionAlias.getId());
         else
             saveTwinflowTransitionAlias(transitionAlias);
-        return transitionAlias.getId();
+        return transitionAlias;
     }
 
     private TwinflowTransitionAliasEntity saveTwinflowTransitionAlias(TwinflowTransitionAliasEntity transitionAlias) throws ServiceException {
@@ -279,6 +281,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
+        updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
         updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
         updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
         updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
@@ -289,6 +292,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
         twinClassService.evictCache(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
         return dbTwinflowTransitionEntity;
+    }
+
+    @Transactional
+    public void updateTransitionAlias(TwinflowTransitionEntity dbTwinflowTransitionEntity, TwinflowTransitionAliasEntity twinflowTransitionAliasEntity, ChangesHelper changesHelper) throws ServiceException {
+        creatAliasIfNeeded(twinflowTransitionAliasEntity);
+        if (!changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
+            return;
+        dbTwinflowTransitionEntity.setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
+        dbTwinflowTransitionEntity.setTwinflowTransitionAlias(twinflowTransitionAliasEntity);
     }
 
     @Transactional
