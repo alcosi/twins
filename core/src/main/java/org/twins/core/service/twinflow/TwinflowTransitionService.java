@@ -40,6 +40,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.transition.trigger.TransitionTrigger;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.permission.PermissionService;
@@ -74,6 +75,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     final AuthService authService;
     @Lazy
     final DraftService draftService;
+    @Lazy
+    final DraftCommitService draftCommitService;
     final UserGroupService userGroupService;
     final PermissionService permissionService;
     final UserService userService;
@@ -583,7 +586,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         TransitionResult transitionResult = null;
         if (transitionContextBatch.isMustBeDrafted()) { // we will go to drafting
             DraftEntity draftEntity = draftTransitions(transitionContextBatch);
-            draftService.commitNowOrInQueue(draftEntity);
+            draftCommitService.commitNowOrInQueue(draftEntity);
             TransitionResultMajor transitionResultMajor = new TransitionResultMajor();
             transitionResultMajor.setCommitedDraftEntity(draftEntity);
             transitionResult = transitionResultMajor;

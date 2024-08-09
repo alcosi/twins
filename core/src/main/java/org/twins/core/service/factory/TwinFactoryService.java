@@ -29,6 +29,7 @@ import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
@@ -58,6 +59,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final AuthService authService;
     @Lazy
     final DraftService draftService;
+    final DraftCommitService draftCommitService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -309,7 +311,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             //we had to draft it cause cascade deletion can affect to many twins.
             //it's not safe to keep them all in memory
             DraftEntity draftEntity = draftService.draftFactoryResult(factoryResultUncommited);
-            draftService.commitNowOrInQueue(draftEntity);
+            draftCommitService.commitNowOrInQueue(draftEntity);
             return new FactoryResultCommitedMajor().setCommitedDraftEntity(draftEntity);
         } else { //we will not draft it because this can extra load db
             FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();

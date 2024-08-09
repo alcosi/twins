@@ -15,7 +15,7 @@ public class DraftCommitTask implements Runnable {
     private final DraftEntity draftEntity;
 
     @Autowired
-    private DraftService draftService;
+    private DraftCommitService draftCommitService;
 
 
     public DraftCommitTask(DraftEntity draftEntity) {
@@ -29,7 +29,7 @@ public class DraftCommitTask implements Runnable {
             LoggerUtils.logController("draftCommit$");
             LoggerUtils.logPrefix("DRAFT[" + draftEntity.getId() + "]:");
             log.info("Performing draft commit: {}", draftEntity.logNormal());
-            draftService.commitNow(draftEntity);
+            draftCommitService.commitNow(draftEntity);
         } catch (ServiceException e) {
             log.error(e.log());
         } catch (Throwable e) {

@@ -24,7 +24,6 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
@@ -57,7 +56,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
-        setAttachmentTwin(attachments, twinEntity);
+        checlAndSetAttachmentTwin(attachments, twinEntity);
         return addAttachments(attachments);
     }
 
@@ -85,7 +84,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         addAttachments(attachments, twinChangesCollector);
     }
 
-    public void setAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
+    public void checlAndSetAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             //twin relink is not security safe
             if (attachmentEntity.getTwinId() != null && !attachmentEntity.getTwinId().equals(twinEntity.getId()))
@@ -165,7 +164,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinEntity twinEntity) throws ServiceException {
-        setAttachmentTwin(attachmentEntityList, twinEntity);
+        checlAndSetAttachmentTwin(attachmentEntityList, twinEntity);
         updateAttachments(attachmentEntityList);
     }
 
@@ -225,27 +224,20 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
+    public void deleteAttachments(TwinEntity twinEntity, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
-        HistoryCollector historyCollector = new HistoryCollector();
-        TwinEntity twinEntity = null;
-        Set<UUID> ids = new HashSet<>();
-        for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
-            if (twinEntity == null)
-                twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
-            log.info(attachmentEntity.logDetailed() + " will be deleted");
-            historyCollector.add(historyService.attachmentDelete(attachmentEntity));
-            ids.add(attachmentEntity.getId());
-        }
-        twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, ids);
-        historyService.saveHistory(twinEntity, historyCollector);
+        checlAndSetAttachmentTwin(attachmentDeleteList, twinEntity);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        deleteAttachments(attachmentDeleteList, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
     }
 
     @Transactional
     public void deleteAttachments(List<TwinAttachmentEntity> attachmentDeleteList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
+        loadTwins(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
             twinChangesCollector.delete(attachmentEntity);
             twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));

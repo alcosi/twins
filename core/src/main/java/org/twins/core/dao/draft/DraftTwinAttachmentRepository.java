@@ -26,4 +26,10 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
     void normalizeDraft(@Param("draftId") UUID draftId);
 
     Slice<DraftTwinAttachmentEntity> findByDraftIdAndCud(UUID draftId, CUD cud, Pageable pageable);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "delete from twin_attachment where id in (select twin_attachment_id from draft_twin_attachment where draft_id = :draftId and draft_twin_attachment.cud_id = 'DELETE')")
+    void commitAttachmentDelete(@Param("draftId") UUID draftId);
 }

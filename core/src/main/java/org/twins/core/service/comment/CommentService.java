@@ -78,7 +78,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
             attachmentService.addAttachments(attachmentCUD.getCreateList(), currentComment.getTwin());
             attachmentService.updateAttachments(attachmentCUD.getUpdateList(), currentComment.getTwin());
-            attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteList());
+            attachmentService.deleteAttachments(currentComment.getTwin(), attachmentCUD.getDeleteList());
         }
         if (changesHelper.hasChanges())
             entitySmartService.saveAndLogChanges(currentComment, commentRepository, changesHelper);

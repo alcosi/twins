@@ -495,7 +495,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             attachmentService.updateAttachments(attachmentCUD.getUpdateList(), twinEntity);
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
-            attachmentService.deleteAttachments(twinEntity.getId(), attachmentCUD.getDeleteList());
+            attachmentService.deleteAttachments(twinEntity, attachmentCUD.getDeleteList());
         }
     }
 

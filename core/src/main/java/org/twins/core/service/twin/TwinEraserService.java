@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
 
 import java.util.Set;
@@ -23,6 +24,7 @@ public class TwinEraserService {
     private final TwinService twinService;
     @Lazy
     private final DraftService draftService;
+    private final DraftCommitService draftCommitService;
     private final TwinRepository twinRepository;
     private final EntitySmartService entitySmartService;
 
@@ -40,7 +42,7 @@ public class TwinEraserService {
 
     public void eraseTwin(TwinEntity twinEntity) throws ServiceException {
         DraftEntity draftEntity = draftService.draftErase(twinEntity);
-        draftService.commitNowOrInQueue(draftEntity);
+        draftCommitService.commitNowOrInQueue(draftEntity);
     }
 
     public void irrevocableDelete(Set<UUID> irrevocableDeleteTwinIds) {

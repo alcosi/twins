@@ -53,8 +53,11 @@ public class DraftEntity implements EasyLoggable {
     @Column(name = "twin_erase_irrevocable_count")
     private int twinEraseIrrevocableCount = 0;
 
-    @Column(name = "twin_persist_count")
-    private int twinPersistCount = 0;
+    @Column(name = "twin_persist_create_count")
+    private int twinPersistCreateCount = 0;
+
+    @Column(name = "twin_persist_update_count")
+    private int twinPersistUpdateCount = 0;
 
     @Column(name = "twin_link_create_count")
     private int twinLinkCreateCount = 0;
@@ -121,9 +124,14 @@ public class DraftEntity implements EasyLoggable {
         twinEraseIrrevocableCount++;
     }
 
-    public void incrementTwinPersist() {
-        twinPersistCount++;
+    public void incrementTwinPersistCreate() {
+        twinPersistCreateCount++;
     }
+
+    public void incrementTwinPersistUpdate() {
+        twinPersistUpdateCount++;
+    }
+
 
     public void incrementTwinLinkCreate() {
         twinLinkCreateCount++;
@@ -213,6 +221,10 @@ public class DraftEntity implements EasyLoggable {
         return twinEraseByStatusCount + twinEraseIrrevocableCount;
     }
 
+    public int getTwinPersistCount() {
+        return twinPersistCreateCount + twinPersistUpdateCount;
+    }
+
     public int getTwinMarkerCount() {
         return twinMarkerCreateCount + twinMarkerDeleteCount;
     }
@@ -255,7 +267,8 @@ public class DraftEntity implements EasyLoggable {
                 + twinFieldDataListCreateCount
                 + twinFieldDataListUpdateCount
                 + twinFieldDataListDeleteCount
-                + twinPersistCount;
+                + twinPersistCreateCount
+                + twinPersistUpdateCount;
 
     }
 

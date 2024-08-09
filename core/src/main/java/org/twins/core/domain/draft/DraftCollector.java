@@ -31,8 +31,11 @@ public class DraftCollector {
                 draftEntity.incrementTwinEraseIrrevocable();
             else
                 draftEntity.incrementTwinEraseByStatus();
-        } else if (entity instanceof DraftTwinPersistEntity)
-            draftEntity.incrementTwinPersist();
+        } else if (entity instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+            if (draftTwinPersistEntity.isCreateElseUpdate())
+                draftEntity.incrementTwinPersistCreate();
+            else
+                draftEntity.incrementTwinPersistUpdate();
         else if (entity instanceof DraftTwinLinkEntity twinLinkEntity) {
             switch (twinLinkEntity.getCud()) {
                 case CREATE -> draftEntity.incrementTwinLinkCreate();

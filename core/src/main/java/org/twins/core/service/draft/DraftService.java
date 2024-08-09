@@ -8,15 +8,11 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.twin.*;
@@ -603,223 +599,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         }
     }
 
-    public DraftEntity commitNowOrInQueue(UUID draftId) throws ServiceException {
-        return commitNowOrInQueue(findEntitySafe(draftId));
-    }
-
-    // commit can not be done by db function, because we need to create history
-    // also if draft is huge we won't do it in current thread because it can be costly (if there are a lot of twins)
-    public DraftEntity commitNowOrInQueue(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getStatus() != DraftEntity.Status.UNCOMMITED)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, "current draft can not be commited");
-        if (isMinor(draftEntity)) {
-            commitNow(draftEntity);
-        } else {
-            draftRepository.save(draftEntity.setStatus(DraftEntity.Status.COMMIT_NEED_START));
-        }
-        return draftEntity;
-    }
-
-    public static final int PAGE_SIZE = 30;
-
-    // all draft data should be normalized and check before (for best performance)
-    @Transactional
-    public void commitNow(DraftEntity draftEntity) throws ServiceException {
-        commitErase(draftEntity);
-        //todo persist first
-        commitMarkers(draftEntity);
-        commitTags(draftEntity);
-        commitAttachments(draftEntity);
-    }
-
-    private void commitErase(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinEraseCount() <= 0)
-            return;
-        log.info("commiting erase");
-        commitEraseIrrevocable(draftEntity);
-        commitEraseWithStatusChange(draftEntity);
-    }
-
-    private void commitEraseIrrevocable(DraftEntity draftEntity) {
-        if (draftEntity.getTwinEraseIrrevocableCount() <= 0)
-            return;
-        log.info("commiting erase irrevocable");
-        String irrevocableDeleteIds = draftTwinEraseRepository.getIrrevocableDeleteIds(draftEntity.getId());
-        if (StringUtils.isNotEmpty(irrevocableDeleteIds)) {
-            draftTwinEraseRepository.commitEraseIrrevocable(draftEntity.getId()); //this is the fastest way
-            log.info("twins[{}] perhaps were deleted", irrevocableDeleteIds);
-        }
-    }
-
-    private void commitEraseWithStatusChange(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinEraseByStatusCount() <= 0)
-            return;
-        log.info("commiting erase with status changes deletes");
-        Slice<DraftTwinEraseEntity> slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
-        boolean hasEraseStatusChange = slice.hasContent();
-        boolean hasNext;
-        List<DraftTwinEraseEntity> draftTwinEraseEntityList;
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            draftTwinEraseEntityList = slice.getContent();
-            if (draftTwinEraseEntityList.isEmpty())
-                break;
-            for (DraftTwinEraseEntity draftTwinErase : draftTwinEraseEntityList) {
-                if (draftTwinErase.isCauseGlobalLock() || !draftTwinErase.isEraseReady())
-                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftEntity.logShort() + " is locked by " + draftTwinErase);
-                twinService.updateTwinStatus(draftTwinErase.getTwin(), draftTwinErase.getEraseTwinStatus(), twinChangesCollector);
-            }
-            //we use twinChangeCollector only to collect history. Status change can be done in one query
-            twinChangesService.saveHistoryOnly(twinChangesCollector);
-            twinChangesCollector.clear();
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), slice.nextPageable());
-            }
-        } while (hasNext);
-        if (hasEraseStatusChange) //we will do update in one query
-            draftTwinEraseRepository.commitEraseWithStatusChange(draftEntity.getId());
-    }
-
-    private void commitMarkers(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinMarkerCount() <= 0)
-            return;
-        log.info("commiting markers");
-        //todo add to history (currently no implemented)
-        if (draftEntity.getTwinMarkerCreateCount() > 0)
-            draftTwinMarkerRepository.commitMarkersAdd(draftEntity.getId());
-        if (draftEntity.getTwinMarkerDeleteCount() > 0)
-            draftTwinMarkerRepository.commitMarkersDelete(draftEntity.getId());
-    }
-
-    private void commitTags(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinTagCount() <= 0)
-            return;
-        log.info("commiting tags");
-        //todo add to history (currently no implemented)
-        if (draftEntity.getTwinTagCreateCount() > 0)
-            draftTwinTagRepository.commitTagsAdd(draftEntity.getId());
-        if (draftEntity.getTwinTagDeleteCount() > 0)
-            draftTwinTagRepository.commitTagsDelete(draftEntity.getId());
-    }
-
-    // we can check if current draft it minor
-    private boolean isMinor(DraftEntity draftEntity) {
-        //todo move to properties
-        return draftEntity.getAllChangesCount() <= 20;
-    }
-
-    private void commitAttachments(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinAttachmentCount() <= 0)
-            return;
-        log.info("commiting attachments");
-        commitAttachmentsCreate(draftEntity);
-        commitAttachmentsUpdate(draftEntity);
-        commitAttachmentsDelete(draftEntity);
-    }
-
-    private void commitAttachmentsCreate(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinAttachmentCreateCount() <= 0)
-            return;
-        log.info("commiting attachments create");
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentAddList = new ArrayList<>();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentAddList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.addAttachments(attachmentAddList);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
-    }
-
-    private void commitAttachmentsUpdate(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinAttachmentUpdateCount() <= 0)
-            return;
-        log.info("commiting attachments update");
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentUpdateList = new ArrayList<>();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentUpdateList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.updateAttachments(attachmentUpdateList);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
-    }
-
-    private void commitAttachmentsDelete(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinAttachmentDeleteCount() <= 0)
-            return;
-        log.info("commiting attachments delete");
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentUpdateList = new ArrayList<>();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentUpdateList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.deleteAttachments(attachmentUpdateList);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
-    }
-
-    private TwinAttachmentEntity convertDraft(DraftTwinAttachmentEntity draftTwinAttachmentCreate) {
-        TwinAttachmentEntity ret = new TwinAttachmentEntity();
-        switch (draftTwinAttachmentCreate.getCud()) {
-            case UPDATE:
-                ret
-                        .setId(draftTwinAttachmentCreate.getId());
-                //no break here
-            case CREATE:
-                ret
-                        .setTwinId(draftTwinAttachmentCreate.getTwinId())
-//                      .setTwin(draftTwinAttachmentCreate.getT)
-                        .setCreatedByUser(draftTwinAttachmentCreate.getDraft().getCreatedByUser())
-                        .setCreatedByUserId(draftTwinAttachmentCreate.getDraft().getCreatedByUserId())
-                        .setExternalId(draftTwinAttachmentCreate.getExternalId())
-                        .setTitle(draftTwinAttachmentCreate.getTitle())
-                        .setDescription(draftTwinAttachmentCreate.getDescription())
-                        .setStorageLink(draftTwinAttachmentCreate.getStorageLink())
-                        .setCreatedAt(draftTwinAttachmentCreate.getDraft().getCreatedAt())
-                        .setTwinCommentId(draftTwinAttachmentCreate.getTwinCommentId())
-//                      .setTwinflowTransition(draftTwinAttachmentCreate.get)
-                        .setTwinflowTransitionId(draftTwinAttachmentCreate.getTwinflowTransitionId())
-//                      .setViewPermission(draftTwinAttachmentCreate.getViewPermissionId())
-                        .setViewPermissionId(draftTwinAttachmentCreate.getViewPermissionId());
-                break;
-            case DELETE:
-                ret
-                        .setId(draftTwinAttachmentCreate.getId())
-                        .setTwinId(draftTwinAttachmentCreate.getTwinId());
-                break;
-        }
-
-    }
-
     public void endDraft(DraftCollector draftCollector) throws ServiceException {
         flush(draftCollector);
         if (draftCollector.getDraftEntity().getStatus() == DraftEntity.Status.UNDER_CONSTRUCTION) // only such status can be changed to UNCOMMITED
@@ -835,7 +614,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
             return; //nothing need to be normalized
 
-        if (draftCollector.getDraftEntity().getTwinPersistCount() > 0)
+        if (draftCollector.getDraftEntity().getTwinPersistCreateCount() > 0)
             // we can delete all persisted draft twins, if they must be deleted in future
             draftTwinPersistRepository.normalizeDraft(draftCollector.getDraftId());
         if (draftCollector.getDraftEntity().getTwinTagCount() > 0)
