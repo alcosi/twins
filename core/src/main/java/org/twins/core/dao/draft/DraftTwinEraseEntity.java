@@ -4,8 +4,10 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -17,7 +19,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "draft_twin_erase")
 @IdClass(DraftTwinEraseEntity.PK.class)
-public class DraftTwinEraseEntity {
+public class DraftTwinEraseEntity implements EasyLoggable {
     @Id
     @Column(name = "draft_id")
     private UUID draftId;
@@ -52,6 +54,19 @@ public class DraftTwinEraseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private TwinEntity twin;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "erase_twin_status_id", insertable = false, updatable = false)
+    private TwinStatusEntity eraseTwinStatus;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "draftTwinErase[draftId:" + draftId + ", twinId:" + twinId + "]";
+            case NORMAL -> "draftTwinErase[draftId:" + draftId + ", twinId:" + twinId + ", reason:" + reason + "]";
+            default -> "draftTwinErase[draftId:" + draftId + ", twinId:" + twinId + ", reason:" + reason + "reasonTwinId:" + reasonTwinId + "]";
+        };
+    }
 //
 //    @ManyToOne(fetch = FetchType.LAZY, optional = false)
 //    @JoinColumn(name = "reason_twin_id")

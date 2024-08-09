@@ -42,9 +42,9 @@ public class EntitiesChangesCollector {
         return this;
     }
 
-    public boolean isChanged(Object entity, String field, Object oldValue, Object newValue) {
+    public boolean collectIfChanged(Object entity, String field, Object oldValue, Object newValue) {
         if (newValue != null && !newValue.equals(oldValue)) {
-            detectChangesHelper(entity).add(field, oldValue, newValue);
+            detectChangesHelper(entity).addWithNullifySupport(field, oldValue, newValue);
             return true;
         }
         return false;
@@ -52,6 +52,16 @@ public class EntitiesChangesCollector {
 
     public boolean hasChanges() {
         return !saveEntityMap.isEmpty() || !deleteEntityMap.isEmpty();
+    }
+
+    public boolean hasChanges(Object entity) {
+        if (!hasChanges())
+            return false;
+        if (saveEntityMap.containsKey(entity.getClass()) && saveEntityMap.get(entity.getClass()).containsKey(entity))
+            return true;
+        if (deleteEntityMap.containsKey(entity.getClass()) && deleteEntityMap.get(entity.getClass()).contains(entity))
+            return true;
+        return false;
     }
 
     public void deleteAll(Collection<?> entitiesIds) {
@@ -67,5 +77,10 @@ public class EntitiesChangesCollector {
     public <T> Set<T> getDeletes(Class<T> entityClass) {
         Set<Object> deleteEntities = deleteEntityMap.get(entityClass);
         return deleteEntities != null ? (Set<T>) deleteEntities : Collections.emptySet();
+    }
+
+    protected void clear() {
+        saveEntityMap.clear();
+        deleteEntityMap.clear();
     }
 }

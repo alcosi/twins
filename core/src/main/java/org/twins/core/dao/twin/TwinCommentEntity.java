@@ -42,7 +42,7 @@ public class TwinCommentEntity {
 
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = false)
-    private TwinEntity twinByTwinId;
+    private TwinEntity twin;
 
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)

@@ -305,11 +305,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         ApiUser apiUser = authService.getApiUser();
         if (!factoryResultUncommited.isCommittable())
             throw new ServiceException(ErrorCodeTwins.FACTORY_RESULT_LOCKED);
-        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
-            //we had to draft it cause cascade deletion can affect to many twins. it's not safe to keep them all in memory
+        if (mustBeDrafted(factoryResultUncommited)) {
+            //we had to draft it cause cascade deletion can affect to many twins.
+            //it's not safe to keep them all in memory
             DraftEntity draftEntity = draftService.draftFactoryResult(factoryResultUncommited);
-            draftService.commit(draftEntity.getId());
-            //todo we can check draft size and if it's not to big we can use FactoryResultCommitedMinor
+            draftService.commitNowOrInQueue(draftEntity);
             return new FactoryResultCommitedMajor().setCommitedDraftEntity(draftEntity);
         } else { //we will not draft it because this can extra load db
             FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();
@@ -323,6 +323,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             }
             return factoryResultCommited;
         }
+    }
+
+    public boolean mustBeDrafted(FactoryResultUncommited factoryResultUncommited) {
+        return CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes());
     }
 
     private Map<UUID, List<FactoryItem>> groupItemsByClass(FactoryContext factoryContext) {

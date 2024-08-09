@@ -11,6 +11,7 @@ package org.twins.core.config;
 import com.google.common.cache.CacheBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -23,9 +24,12 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.core.annotation.Order;
+import org.springframework.core.task.TaskDecorator;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 import org.twins.core.config.filter.LoggingFilter;
 
@@ -94,6 +98,18 @@ public class ApplicationConfig {
                 entitySmartService.setDaoPackages(new String[]{"org.twins.core.dao", "org.cambium.i18n.dao"});
         return entitySmartService;
     }
+
+    @Bean
+    public TaskExecutor draftCommitExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("draftCommitExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
 
 //    @Bean(name = "cacheManagerRequestScope")
 //    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)

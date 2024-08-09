@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -53,9 +52,7 @@ public class AttachmentAddController extends ApiController {
         try {
             ApiUser apiUser = authService.getApiUser();
             rs.setAttachmentIdList(attachmentService.addAttachments(
-                            twinService.findEntity(twinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows),
-                            apiUser.getUser(),
-                            attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
+                            attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()), twinService.findEntitySafe(twinId))
                     .stream().map(TwinAttachmentEntity::getId).toList());
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

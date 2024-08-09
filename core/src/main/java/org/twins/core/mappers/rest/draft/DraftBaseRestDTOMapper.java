@@ -23,9 +23,7 @@ public class DraftBaseRestDTOMapper extends RestSimpleDTOMapper<DraftEntity, Dra
                         .setId(src.getId())
                         .setStatus(src.getStatus())
                         .setCreatedByrUserId(src.getCreatedByUserId())
-                        .setTwinCreateCount(src.getTwinCreateCount())
-                        .setTwinUpdateCount(src.getTwinUpdateCount())
-                        .setTwinDeleteCount(src.getTwinEraseCount())
+                        //todo map counter
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:

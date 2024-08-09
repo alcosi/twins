@@ -15,8 +15,26 @@ public interface DraftTwinTagRepository extends CrudRepository<DraftTwinTagEntit
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from draft_twin_tag " +
-                    "where draft_id = :draftId " +
-                    "and twin_id in (select id from draft_twin_erase dte where dte.draft_id = :draftId and dte.erase_twin_status_id is null)")
+            "delete from draft_twin_tag dtp " +
+                    "using draft_twin_erase dte " +
+                    "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
+                    "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
+                    "and dtp.time_in_millis < dte.time_in_millis")
     void normalizeDraft(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "insert into twin_tag (id, twin_id, tag_data_list_option_id, created_at) " +
+                    "select gen_random_uuid(), twin_id, tag_data_list_option_id, now() " +
+                    "from draft_twin_tag where draft_id = :draftId and create_else_delete = true")
+    void commitTagsAdd(@Param("draftId") UUID draftId);
+
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "delete from twin_tag tt " +
+                    "using draft_twin_tag dtt where tt.twin_id = dtt.twin_id and tt.tag_data_list_option_id = dtt.tag_data_list_option_id and dtt.draft_id = :draftId and dtt.create_else_delete = false")
+    void commitTagsDelete(@Param("draftId") UUID draftId);
 }

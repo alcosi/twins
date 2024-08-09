@@ -2,6 +2,7 @@ package org.twins.core.dao.twin;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
@@ -43,6 +44,7 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "color")
     private String color;
 
+    @EqualsAndHashCode.Exclude
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;

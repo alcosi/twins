@@ -7,13 +7,18 @@ import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 @Getter
 public class TwinChangesCollector extends EntitiesChangesCollector {
+    HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
+
     public TwinChangesCollector() {
         super();
     }
 
-    HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
-
     public HistoryCollector getHistoryCollector(TwinEntity twinEntity) {
         return historyCollector.forTwin(twinEntity);
+    }
+
+    public void clear() {
+        super.clear();
+        historyCollector.clear();
     }
 }

@@ -9,6 +9,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -56,7 +57,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         if (CollectionUtils.isEmpty(attachmentList))
             return comment;
         addCommentIdInAttachments(comment.getId(), attachmentList);
-        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentList);
+        attachmentService.addAttachments(attachmentList, twinEntity);
         return comment.setAttachmentKit(new Kit<>(attachmentList, TwinAttachmentEntity::getId));
     }
 
@@ -66,19 +67,21 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         if (!apiUser.getUser().getId().equals(currentComment.getCreatedByUserId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_EDIT_ACCESS_DENIED, "This comment belongs to another user. Editing is not possible");
-        if (!currentComment.getText().equals(commentText)) {
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged("text", currentComment.getText(), commentText)) {
             currentComment
                     .setText(commentText)
                     .setChangedAt(Timestamp.from(Instant.now()));
         }
-        if (attachmentCUD == null)
-            return currentComment;
-        addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
-        addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
-        TwinEntity twinEntity = twinService.findEntitySafe(currentComment.getTwinId());
-        attachmentService.addAttachments(twinEntity, apiUser.getUser(), attachmentCUD.getCreateList());
-        attachmentService.updateAttachments(attachmentCUD.getUpdateList());
-        attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteList());
+        if (attachmentCUD != null) {
+            addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
+            addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
+            attachmentService.addAttachments(attachmentCUD.getCreateList(), currentComment.getTwin());
+            attachmentService.updateAttachments(attachmentCUD.getUpdateList(), currentComment.getTwin());
+            attachmentService.deleteAttachments(currentComment.getTwinId(), attachmentCUD.getDeleteList());
+        }
+        if (changesHelper.hasChanges())
+            entitySmartService.saveAndLogChanges(currentComment, commentRepository, changesHelper);
         return currentComment;
     }
 
@@ -133,7 +136,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     @Data
     @Accessors(chain = true)
-    public static class CommentCreateResult{
+    public static class CommentCreateResult {
         private UUID commentId;
         private List<UUID> attachments;
     }

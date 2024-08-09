@@ -8,6 +8,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.twin.*;
+import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.service.history.HistoryService;
 
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Slf4j
 @RequiredArgsConstructor
 public class TwinChangesService {
+    final TwinRepository twinRepository;
     final TwinFieldSimpleRepository twinFieldSimpleRepository;
     final TwinFieldDataListRepository twinFieldDataListRepository;
     final TwinLinkRepository twinLinkRepository;
@@ -26,17 +28,20 @@ public class TwinChangesService {
     final EntitySmartService entitySmartService;
     final HistoryService historyService;
 
-    public void saveEntities(TwinChangesCollector twinChangesCollector) throws ServiceException {
+    public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
         if (!twinChangesCollector.hasChanges())
-            return;
-        saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
-        saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
-        saveEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
-        saveEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository);
+            return changesApplyResult; ;
+        saveEntities(twinChangesCollector, TwinEntity.class, twinRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinFieldUserEntity.class, twinFieldUserRepository, changesApplyResult);
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for saving");
             }
+        deleteEntities(twinChangesCollector, TwinEntity.class, twinRepository);
         deleteEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         deleteEntities(twinChangesCollector, TwinFieldDataListEntity.class, twinFieldDataListRepository);
         deleteEntities(twinChangesCollector, TwinFieldSimpleEntity.class, twinFieldSimpleRepository);
@@ -46,12 +51,18 @@ public class TwinChangesService {
                 log.warn("Unsupported entity class[" + classChanges.getKey().getSimpleName() + "] for deletion");
             }
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
+        return changesApplyResult;
     }
 
-    private <T> void saveEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository) {
+    // in some cases we need to story history only, and all entities changes will be stored in other way (for best performance)
+    public void saveHistoryOnly(TwinChangesCollector twinChangesCollector) throws ServiceException {
+        historyService.saveHistory(twinChangesCollector.getHistoryCollector());
+    }
+
+    private <T> void saveEntities(TwinChangesCollector twinChangesCollector, Class<T> entityClass, CrudRepository<T, UUID> repository, TwinChangesApplyResult changesApplyResult) {
         Map<Object, ChangesHelper> entities = twinChangesCollector.getSaveEntityMap().get(entityClass);
         if (entities != null) {
-            entitySmartService.saveAllAndLogChanges((Map) entities, repository);
+            changesApplyResult.put(entityClass, entitySmartService.saveAllAndLogChanges((Map) entities, repository));
             twinChangesCollector.getSaveEntityMap().remove(entityClass);
         }
     }

@@ -583,7 +583,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         TransitionResult transitionResult = null;
         if (transitionContextBatch.isMustBeDrafted()) { // we will go to drafting
             DraftEntity draftEntity = draftTransitions(transitionContextBatch);
-            draftService.commit(draftEntity.getId());
+            draftService.commitNowOrInQueue(draftEntity);
             TransitionResultMajor transitionResultMajor = new TransitionResultMajor();
             transitionResultMajor.setCommitedDraftEntity(draftEntity);
             transitionResult = transitionResultMajor;
@@ -607,8 +607,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 continue;
             FactoryResultUncommited factoryResultUncommited = runTransitionFactory(entry.getKey());
             entry.setValue(factoryResultUncommited); //filling result
-            if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
-                transitionContextBatch.setMustBeDrafted(true);
+            if (twinFactoryService.mustBeDrafted(factoryResultUncommited))
+                transitionContextBatch.setMustBeDrafted(true); //this is batch decision for all results
         }
     }
 

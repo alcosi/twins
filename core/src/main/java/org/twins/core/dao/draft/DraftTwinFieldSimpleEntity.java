@@ -30,7 +30,8 @@ public class DraftTwinFieldSimpleEntity {
 
     @Column(name = "twin_field_simple_id")
     private UUID twinFieldSimpleId;
-    
+
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "twin_id")
     private UUID twinId;
 

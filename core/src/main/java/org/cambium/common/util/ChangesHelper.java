@@ -24,12 +24,17 @@ public class ChangesHelper {
         return add(field, String.valueOf(oldValue), String.valueOf(newValue));
     }
 
+    public ChangesHelper addWithNullifySupport(String field, Object oldValue, Object newValue) {
+        if (newValue instanceof UUID && UuidUtils.NULLIFY_MARKER.equals(newValue)) {
+            add(field, oldValue, null);
+        } else
+            add(field, oldValue, newValue);
+        return this;
+    }
+
     public boolean isChanged(String field, Object oldValue, Object newValue) {
         if (newValue != null && !newValue.equals(oldValue)) {
-            if (newValue instanceof UUID && UuidUtils.NULLIFY_MARKER.equals(newValue)) {
-                add(field, oldValue, null);
-            } else
-                add(field, oldValue, newValue);
+            addWithNullifySupport(field, oldValue, newValue);
             return true;
         }
         return false;

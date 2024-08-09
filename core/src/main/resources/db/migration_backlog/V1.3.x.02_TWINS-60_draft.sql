@@ -53,9 +53,28 @@ create table if not exists draft
         constraint draft_created_by_user_id_fk
             references "user"
             on update cascade,
-    twin_create_count  integer,
-    twin_update_count  integer,
-    twin_erase_count   integer,
+    twin_erase_count integer not null default 0,
+    twin_erase_irrevocable_count integer not null default 0,
+    twin_persist_count integer not null default 0,
+    twin_link_create_count integer not null default 0,
+    twin_link_update_count integer not null default 0,
+    twin_link_delete_count integer not null default 0,
+    twin_attachment_create_count integer not null default 0,
+    twin_attachment_update_count integer not null default 0,
+    twin_attachment_delete_count integer not null default 0,
+    twin_marker_create_count integer not null default 0,
+    twin_marker_delete_count integer not null default 0,
+    twin_tag_create_count integer not null default 0,
+    twin_tag_delete_count integer not null default 0,
+    twin_field_simple_create_count integer not null default 0,
+    twin_field_simple_update_count integer not null default 0,
+    twin_field_simple_delete_count integer not null default 0,
+    twin_field_user_create_count integer not null default 0,
+    twin_field_user_update_count integer not null default 0,
+    twin_field_user_delete_count integer not null default 0,
+    twin_field_data_list_create_count integer not null default 0,
+    twin_field_data_list_update_count integer not null default 0,
+    twin_field_data_list_delete_count integer not null default 0,
     draft_status_id varchar
         constraint draft_draft_status_id_fk
             references draft_status
@@ -133,7 +152,7 @@ create table if not exists draft_twin_erase
             references twin
             on update cascade on delete cascade,
     erase_ready          boolean default false not null,
-    reason_twin_id       uuid                  not null
+    reason_twin_id       uuid
         constraint draft_twin_erase_reason_twin_id_fk
             references twin
             on update cascade on delete cascade,

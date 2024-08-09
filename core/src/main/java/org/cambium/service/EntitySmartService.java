@@ -278,12 +278,19 @@ public class EntitySmartService {
 
     public <T> void deleteAllAndLog(Iterable<UUID> uuidList, CrudRepository<T, UUID> repository) {
         repository.deleteAllById(uuidList);
-        log.info(entityShortName(repository) + "[" + StringUtils.join(uuidList, ",") + "] perhaps was deleted");
+        log.info("{}[{}] perhaps were deleted", entityShortName(repository), StringUtils.join(uuidList, ","));
     }
 
     public <T> void deleteAllEntitiesAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
         repository.deleteAll(entities);
-        log.info(entityShortName(repository) + "[" + StringUtils.join(entities, ",") + "] perhaps was deleted");
+        StringJoiner  entityLog = new StringJoiner(", ");
+        for (T entity : entities) {
+            if (entity instanceof EasyLoggable prettyLoggable)
+                entityLog.add(prettyLoggable.logShort());
+            else
+                entityLog.add("<not loggable>");
+        }
+        log.info("{}[{}] perhaps were deleted", entityShortName(repository), entityLog);
     }
 
     public <T, K> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, K> repository) {
@@ -302,8 +309,8 @@ public class EntitySmartService {
         return result;
     }
 
-    public <T, K> void saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
-        saveAllAndLog(entityChangesMap.keySet(), repository);
+    public <T, K> Iterable<T>  saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
+        return saveAllAndLog(entityChangesMap.keySet(), repository);
         //todo collect an log changes
     }
 

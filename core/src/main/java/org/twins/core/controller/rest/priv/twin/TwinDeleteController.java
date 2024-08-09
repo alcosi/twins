@@ -49,7 +49,7 @@ public class TwinDeleteController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();
         try {
-            twinEraserService.deleteTwin(twinId);
+            twinEraserService.eraseTwin(twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -71,7 +71,7 @@ public class TwinDeleteController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
-            DraftEntity draftEntity = twinEraserService.deleteTwinDrafted(twinId);
+            DraftEntity draftEntity = twinEraserService.eraseTwinDrafted(twinId);
             rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

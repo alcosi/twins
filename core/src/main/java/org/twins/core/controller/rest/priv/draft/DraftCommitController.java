@@ -49,7 +49,7 @@ public class DraftCommitController extends ApiController {
             @Parameter(example = DTOExamples.DRAFT_ID) @PathVariable UUID draftId) {
         DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
-            DraftEntity draftEntity = draftService.commit(draftId);
+            DraftEntity draftEntity = draftService.commitNowOrInQueue(draftId);
             rs
                     .setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
         } catch (ServiceException se) {

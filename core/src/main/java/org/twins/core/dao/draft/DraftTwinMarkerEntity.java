@@ -22,6 +22,7 @@ public class DraftTwinMarkerEntity {
     @Column(name = "time_in_millis")
     private long timeInMillis;
 
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "twin_id")
     private UUID twinId;
 

@@ -31,6 +31,7 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "twin_attachment_id")
     private UUID twinAttachmentId;
 
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "twin_id")
     private UUID twinId;
 

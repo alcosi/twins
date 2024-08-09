@@ -1,6 +1,8 @@
 package org.twins.core.dao.draft;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -51,4 +53,26 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    void addLinked(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId);
 
    List<DraftTwinEraseEntity> findByDraftIdAndEraseReadyFalse(UUID draftId);
+
+   @Transactional
+   @Modifying
+   @Query(nativeQuery = true, value =
+           "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null)")
+   void commitEraseIrrevocable(@Param("draftId") UUID draftId);
+
+   @Query(nativeQuery = true, value =
+           "select string_agg(twin_id::varchar, ', ') AS ids " +
+                   "from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null " +
+                   "group by draft_id;")
+   String getIrrevocableDeleteIds(@Param("draftId") UUID draftId);
+
+   Slice<DraftTwinEraseEntity> findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(UUID draftId, Pageable pageable);
+
+   @Transactional
+   @Modifying
+   @Query(nativeQuery = true, value =
+           "update twin set twin_status_id = dte.erase_twin_status_id " +
+                   "from draft_twin_erase dte " +
+                   "where dte.twin_id = twin.id and dte.erase_twin_status_id is not null and dte.draft_id = :draftId ")
+   void commitEraseWithStatusChange(@Param("draftId") UUID draftId);
 }

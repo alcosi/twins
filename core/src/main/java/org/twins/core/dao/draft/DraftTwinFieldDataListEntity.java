@@ -31,6 +31,7 @@ public class DraftTwinFieldDataListEntity {
     @Column(name = "twin_field_data_list_id")
     private UUID twinFieldDataListId;
 
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "twin_id")
     private UUID twinId;
 

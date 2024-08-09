@@ -31,9 +31,11 @@ public class DraftTwinLinkEntity {
     @Column(name = "twin_link_id")
     private UUID twinLinkId;
 
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "src_twin_id")
     private UUID srcTwinId;
 
+    //we can not create @ManyToOne relation, because it can be new twin here, which is not in twin table yet
     @Column(name = "dst_twin_id")
     private UUID dstTwinId;
 

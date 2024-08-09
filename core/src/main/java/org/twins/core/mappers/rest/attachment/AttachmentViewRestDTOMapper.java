@@ -6,15 +6,15 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.AttachmentCollectionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.twin.TwinAttachmentService;
+import org.twins.core.service.attachment.AttachmentService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -35,7 +35,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     @MapperModePointerBinding(modes = TransitionMode.Attachment2TransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
-    private final TwinAttachmentService twinAttachmentService;
+    private final AttachmentService attachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -68,7 +68,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(AttachmentCollectionMode.ALL)) {
             case DIRECT:
-                newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());
+                newList = srcList.stream().filter(attachmentService::checkOnDirect).collect(Collectors.toList());
                 break;
             case FROM_TRANSITIONS:
                 newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());

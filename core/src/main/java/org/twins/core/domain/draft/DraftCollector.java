@@ -14,8 +14,6 @@ public class DraftCollector {
     Map<Class<?>, Set<Object>> saveEntityMap = new HashMap<>();
     @Setter
     boolean onceFlushed = false;
-    @Getter
-    DraftCounters counters = new DraftCounters();
 
     public DraftCollector(DraftEntity draftEntity) {
         this.draftEntity = draftEntity;
@@ -28,49 +26,52 @@ public class DraftCollector {
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
         saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
         saveEntityMap.get(entity.getClass()).add(entity);
-        if (entity instanceof DraftTwinEraseEntity)
-            counters.incrementTwinErase();
-        else if (entity instanceof DraftTwinPersistEntity)
-            counters.incrementTwinPersist();
+        if (entity instanceof DraftTwinEraseEntity draftTwinEraseEntity && draftTwinEraseEntity.isEraseReady()) { //we will increment counter if erase ready
+            if (draftTwinEraseEntity.getEraseTwinStatusId() == null)
+                draftEntity.incrementTwinEraseIrrevocable();
+            else
+                draftEntity.incrementTwinEraseByStatus();
+        } else if (entity instanceof DraftTwinPersistEntity)
+            draftEntity.incrementTwinPersist();
         else if (entity instanceof DraftTwinLinkEntity twinLinkEntity) {
             switch (twinLinkEntity.getCud()) {
-                case CREATE -> counters.incrementTwinLinkCreate();
-                case DELETE -> counters.incrementTwinLinkDelete();
-                case UPDATE -> counters.incrementTwinLinkUpdate();
+                case CREATE -> draftEntity.incrementTwinLinkCreate();
+                case DELETE -> draftEntity.incrementTwinLinkDelete();
+                case UPDATE -> draftEntity.incrementTwinLinkUpdate();
             }
         } else if (entity instanceof DraftTwinAttachmentEntity twinAttachmentEntity) {
             switch (twinAttachmentEntity.getCud()) {
-                case CREATE -> counters.incrementTwinAttachmentCreate();
-                case DELETE -> counters.incrementTwinAttachmentDelete();
-                case UPDATE -> counters.incrementTwinAttachmentUpdate();
+                case CREATE -> draftEntity.incrementTwinAttachmentCreate();
+                case DELETE -> draftEntity.incrementTwinAttachmentDelete();
+                case UPDATE -> draftEntity.incrementTwinAttachmentUpdate();
             }
         } else if (entity instanceof DraftTwinTagEntity twinTagEntity) {
             if (twinTagEntity.isCreateElseDelete())
-                counters.incrementTwinTagCreate();
+                draftEntity.incrementTwinTagCreate();
             else
-                counters.incrementTwinTagDelete();
+                draftEntity.incrementTwinTagDelete();
         } else if (entity instanceof DraftTwinMarkerEntity twinMarkerEntity) {
             if (twinMarkerEntity.isCreateElseDelete())
-                counters.incrementTwinMarkerCreate();
+                draftEntity.incrementTwinMarkerCreate();
             else
-                counters.incrementTwinMarkerDelete();
+                draftEntity.incrementTwinMarkerDelete();
         } else if (entity instanceof DraftTwinFieldSimpleEntity twinFieldSimpleEntity) {
             switch (twinFieldSimpleEntity.getCud()) {
-                case CREATE -> counters.incrementTwinTwinFieldSimpleCreate();
-                case DELETE -> counters.incrementTwinTwinFieldSimpleDelete();
-                case UPDATE -> counters.incrementTwinTwinFieldSimpleUpdate();
+                case CREATE -> draftEntity.incrementTwinFieldSimpleCreate();
+                case DELETE -> draftEntity.incrementTwinFieldSimpleDelete();
+                case UPDATE -> draftEntity.incrementTwinFieldSimpleUpdate();
             }
-        } else if (entity instanceof DraftTwinFieldDataListEntity twinFieldSimpleEntity) {
-            switch (twinFieldSimpleEntity.getCud()) {
-                case CREATE -> counters.incrementTwinTwinFieldSimpleCreate();
-                case DELETE -> counters.incrementTwinTwinFieldSimpleDelete();
-                case UPDATE -> counters.incrementTwinTwinFieldSimpleUpdate();
+        } else if (entity instanceof DraftTwinFieldDataListEntity twinFieldDataListEntity) {
+            switch (twinFieldDataListEntity.getCud()) {
+                case CREATE -> draftEntity.incrementTwinFieldDataListCreate();
+                case DELETE -> draftEntity.incrementTwinFieldDataListDelete();
+                case UPDATE -> draftEntity.incrementTwinFieldDataListUpdate();
             }
         } else if (entity instanceof DraftTwinFieldUserEntity twinFieldUserEntity) {
             switch (twinFieldUserEntity.getCud()) {
-                case CREATE -> counters.incrementTwinTwinFieldUserCreate();
-                case DELETE -> counters.incrementTwinTwinFieldUserDelete();
-                case UPDATE -> counters.incrementTwinTwinFieldUserUpdate();
+                case CREATE -> draftEntity.incrementTwinFieldUserCreate();
+                case DELETE -> draftEntity.incrementTwinFieldUserDelete();
+                case UPDATE -> draftEntity.incrementTwinFieldUserUpdate();
             }
         }
 

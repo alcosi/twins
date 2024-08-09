@@ -15,8 +15,10 @@ public interface DraftTwinFieldSimpleRepository extends CrudRepository<DraftTwin
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from draft_twin_field_simple " +
-                    "where draft_id = :draftId " +
-                    "and twin_id in (select id from draft_twin_erase dte where dte.draft_id = :draftId and dte.erase_twin_status_id is null)")
+            "delete from draft_twin_field_simple dtp " +
+                    "using draft_twin_erase dte " +
+                    "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
+                    "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
+                    "and dtp.time_in_millis < dte.time_in_millis")
     void normalizeDraft(@Param("draftId") UUID draftId);
 }

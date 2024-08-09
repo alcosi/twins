@@ -3,12 +3,15 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.service.draft.DraftService;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -20,21 +23,27 @@ public class TwinEraserService {
     private final TwinService twinService;
     @Lazy
     private final DraftService draftService;
+    private final TwinRepository twinRepository;
+    private final EntitySmartService entitySmartService;
 
-    public void deleteTwin(UUID twinId) throws ServiceException {
-        deleteTwin(twinService.findEntitySafe(twinId));
+    public void eraseTwin(UUID twinId) throws ServiceException {
+        eraseTwin(twinService.findEntitySafe(twinId));
     }
 
-    public DraftEntity deleteTwinDrafted(UUID twinId) throws ServiceException {
-        return deleteTwinDrafted(twinService.findEntitySafe(twinId));
+    public DraftEntity eraseTwinDrafted(UUID twinId) throws ServiceException {
+        return eraseTwinDrafted(twinService.findEntitySafe(twinId));
     }
 
-    public DraftEntity deleteTwinDrafted(TwinEntity twinEntity) throws ServiceException {
+    public DraftEntity eraseTwinDrafted(TwinEntity twinEntity) throws ServiceException {
         return draftService.draftErase(twinEntity);
     }
 
-    public void deleteTwin(TwinEntity twinEntity) throws ServiceException {
+    public void eraseTwin(TwinEntity twinEntity) throws ServiceException {
         DraftEntity draftEntity = draftService.draftErase(twinEntity);
-        draftService.commit(draftEntity.getId());
+        draftService.commitNowOrInQueue(draftEntity);
+    }
+
+    public void irrevocableDelete(Set<UUID> irrevocableDeleteTwinIds) {
+        entitySmartService.deleteAllAndLog(irrevocableDeleteTwinIds, twinRepository);
     }
 }
