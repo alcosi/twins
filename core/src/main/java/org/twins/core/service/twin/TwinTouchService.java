@@ -3,7 +3,6 @@ package org.twins.core.service.twin;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -44,11 +43,20 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     }
 
     @Transactional
-    public void deleteTouch(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID userId = apiUser.getUserId();
+    public void deleteAllUsersTouch(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
+        twinTouchRepository.deleteByTwinIdAndTouchId(twinId, touchId);
+        log.info("Touch[{}] on twin[{}] perhaps was deleted for all users", touchId, twinId);
+    }
+
+    @Transactional
+    public void deleteCurrentUserTouch(UUID twinId, TwinTouchEntity.Touch touchId) throws ServiceException {
+        deleteTouch(twinId, touchId, authService.getApiUser().getUserId());
+    }
+
+    @Transactional
+    public void deleteTouch(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId) throws ServiceException {
         twinTouchRepository.deleteByTwinIdAndTouchIdAndUserId(twinId, touchId, userId);
-        log.info("Touch[{}] perhaps were deleted", StringUtils.join(twinId, ",", touchId, ",", userId));
+        log.info("Touch[{}] on twin[{}] perhaps was deleted for user[{}]", touchId, twinId, userId);
     }
 
     @Override

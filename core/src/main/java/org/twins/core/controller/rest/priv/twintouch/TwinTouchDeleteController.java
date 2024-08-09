@@ -45,7 +45,7 @@ public class TwinTouchDeleteController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable TwinTouchEntity.Touch touchId) {
         Response rs = new Response();
         try {
-            twinTouchService.deleteTouch(twinId, touchId);
+            twinTouchService.deleteCurrentUserTouch(twinId, touchId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
