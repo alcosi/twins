@@ -369,20 +369,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             switch (twinClassEntity.getOwnerType()) {
                 case DOMAIN:
                     if (!userService.checkUserRegisteredInDomain(userId, twinClassEntity.getDomainId()))
-                        throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in domain[" + twinClassEntity.getDomainId() + "]");
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in domain[" + twinClassEntity.getDomainId() + "]");
                     break;
                 case BUSINESS_ACCOUNT:
                     if (!userService.checkUserRegisteredInBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId()))
-                        throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "]");
+                        throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "]");
                     break;
                 case DOMAIN_BUSINESS_ACCOUNT:
                     if (!userService.checkUserRegisteredInDomainAndBusinessAccount(userId, twinEntity.getOwnerBusinessAccountId(), twinClassEntity.getDomainId()))
-                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "]  user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "] or in domain[" + twinClassEntity.getDomainId() + "]");
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " user[" + userId + "] does not registered in business account[" + twinEntity.getOwnerBusinessAccountId() + "] or in domain[" + twinClassEntity.getDomainId() + "]");
                     break;
                 case USER:
                 case DOMAIN_USER:
                     if (!userId.equals(twinEntity.getOwnerUserId()))
-                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for twin[" + twinEntity.getId() + "] - user[" + userId + "] - is not the owner of the twin");
+                        throw new ServiceException(ErrorCodeTwins.DOMAIN_OR_BUSINESS_ACCOUNT_USER_NOT_EXISTS, "Assignee for " + twinEntity.logNormal() + " - user[" + userId + "] - is not the owner of the twin");
             }
         }
     }
