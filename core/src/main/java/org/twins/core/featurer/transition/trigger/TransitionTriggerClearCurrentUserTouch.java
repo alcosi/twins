@@ -5,13 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.twins.core.featurer.params.FeaturerParamStringTouchId;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.params.FeaturerParamStringTouchId;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinTouchService;
 
@@ -35,7 +34,6 @@ public class TransitionTriggerClearCurrentUserTouch extends TransitionTrigger {
 
     @Override
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        twinTouchService.deleteCurrentUserTouch(twinEntity.getId(), touchId.extract(properties), apiUser.getUserId());
+        twinTouchService.deleteCurrentUserTouch(twinEntity.getId(), touchId.extract(properties));
     }
 }
