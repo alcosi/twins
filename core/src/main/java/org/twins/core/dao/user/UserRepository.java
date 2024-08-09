@@ -34,6 +34,27 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and user.id = :userId")
     UserEntity findUserByUserIdAndBusinessAccountIdAndDomainId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
+    @Query(value = "select exists(" +
+            "select 1 from BusinessAccountUserEntity ba_user " +
+            "join DomainUserEntity d_user on d_user.userId = :userId " +
+            "where ba_user.businessAccountId = :businessAccountId " +
+            "and d_user.domainId = :domainId " +
+            "and ba_user.userId = :userId)")
+    boolean existsUserInBusinessAccountAndInDomain(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
+    @Query(value = "select exists(" +
+            "select 1 from BusinessAccountUserEntity ba_user " +
+            "where ba_user.businessAccountId = :businessAccountId " +
+            "and ba_user.userId = :userId)")
+    boolean existsUserInBusinessAccount(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId);
+
+    @Query(value = "select exists(" +
+            "select 1 from DomainUserEntity d_user " +
+            "where d_user.domainId = :domainId " +
+            "and d_user.userId = :userId)")
+    boolean existsUserInDomain(@Param("userId") UUID userId, @Param("domainId") UUID domainId);
+
+
     @Query(value = "select dba.domain, dba.businessAccount, user from UserEntity user " +
             "join DomainUserEntity domainUser on user.id = domainUser.userId " +
             "join BusinessAccountUserEntity businessAccountUser on user.id = businessAccountUser.userId " +
@@ -42,6 +63,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId " +
             "and user.id = :userId")
     List<Object[]> findDBU_ByUserIdAndBusinessAccountIdAndDomainId(@Param("userId") UUID userId, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
+
 
     @Query(value = "select user from UserEntity user join DomainUserEntity domainUser on user.id = domainUser.userId " +
             "where domainUser.domainId = :domainId " +
