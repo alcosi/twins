@@ -13,17 +13,11 @@ import java.util.UUID;
 
 @Repository
 public interface TwinTouchRepository extends CrudRepository<TwinTouchEntity, UUID> {
+    @Transactional
+    void deleteByTwinIdAndTouchId(UUID twinId, TwinTouchEntity.Touch touchId);
+
+    @Transactional
     void deleteByTwinIdAndTouchIdAndUserId(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId);
-
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM twin_touch WHERE twin_id = :twinId AND touch_id = :touchId", nativeQuery = true)
-    void deleteByTwinIdAndTouchId(@Param("twinId") UUID twinId, @Param("touchId") String touchId);
-
-    @Modifying
-    @Transactional
-    @Query(value = "DELETE FROM twin_touch WHERE twin_id = :twinId AND touch_id = :touchId AND user_id = :userId", nativeQuery = true)
-    void deleteByTwinIdAndTouchIdAndUserId(@Param("twinId") UUID twinId, @Param("touchId") String touchId, @Param("userId") UUID userId);
 
     TwinTouchEntity findByTwinIdAndTouchIdAndUserId(UUID twinId, TwinTouchEntity.Touch touchId, UUID userId);
 
