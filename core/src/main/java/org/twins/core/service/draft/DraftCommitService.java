@@ -3,6 +3,7 @@ package org.twins.core.service.draft;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.StringUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
@@ -142,14 +144,52 @@ public class DraftCommitService {
         if (draftEntity.getTwinPersistUpdateCount() <= 0)
             return;
         log.info("commiting updated twins");
-
+        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
+        boolean hasNext;
+        List<DraftTwinPersistEntity> draftTwinUpdateEntityList;
+        Kit<TwinEntity, UUID> dbEntities;
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        do {
+            draftTwinUpdateEntityList = slice.getContent();
+            if (draftTwinUpdateEntityList.isEmpty())
+                break;
+            // bulk load
+            dbEntities = twinService.findEntitiesSafe(draftTwinUpdateEntityList.stream().map(DraftTwinPersistEntity::getTwinId).toList());
+            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinUpdateEntityList) {
+                twinService.updateTwinBasics(convertDraft(draftTwinPersistEntity), dbEntities.get(draftTwinPersistEntity.getTwinId()), twinChangesCollector);
+            }
+            twinChangesService.applyChanges(twinChangesCollector);
+            hasNext = slice.hasNext();
+            if (hasNext) {
+                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), slice.nextPageable());
+            }
+        } while (hasNext);
     }
 
     private void commitPersistCreate(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinPersistCreateCount() <= 0)
             return;
         log.info("commiting created twins");
-
+        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
+        boolean hasNext;
+        List<DraftTwinPersistEntity> draftTwinCreateEntityList;
+        Kit<TwinEntity, UUID> dbEntities;
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        do {
+            draftTwinCreateEntityList = slice.getContent();
+            if (draftTwinCreateEntityList.isEmpty())
+                break;
+            // bulk load
+            dbEntities = twinService.findEntitiesSafe(draftTwinCreateEntityList.stream().map(DraftTwinPersistEntity::getTwinId).toList());
+            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinCreateEntityList) {
+                twinService.updateTwinBasics(convertDraft(draftTwinPersistEntity), dbEntities.get(draftTwinPersistEntity.getTwinId()), twinChangesCollector);
+            }
+            twinChangesService.applyChanges(twinChangesCollector);
+            hasNext = slice.hasNext();
+            if (hasNext) {
+                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), slice.nextPageable());
+            }
+        }
     }
 
     private void commitMarkers(DraftEntity draftEntity) throws ServiceException {
@@ -275,7 +315,7 @@ public class DraftCommitService {
             case CREATE:
                 ret
                         .setTwinId(draftTwinAttachmentCreate.getTwinId())
-//                      .setTwin(draftTwinAttachmentCreate.getT)
+//                      .setTwin(draftTwinAttachmentCreate.getT) it can be new twin, not stored it twin table
                         .setCreatedByUser(draftTwinAttachmentCreate.getDraft().getCreatedByUser())
                         .setCreatedByUserId(draftTwinAttachmentCreate.getDraft().getCreatedByUserId())
                         .setExternalId(draftTwinAttachmentCreate.getExternalId())
@@ -296,5 +336,38 @@ public class DraftCommitService {
                 break;
         }
         return ret;
+    }
+
+    private TwinEntity convertDraft(DraftTwinPersistEntity draftTwinPersistEntity) {
+        TwinEntity twinEntity = new TwinEntity()
+                .setTwinStatusId(draftTwinPersistEntity.getTwinStatusId())
+                .setTwinStatus(draftTwinPersistEntity.getTwinStatus())
+                .setName(draftTwinPersistEntity.getName())
+                .setAssignerUserId(draftTwinPersistEntity.getAssignerUserId())
+                .setAssignerUser(draftTwinPersistEntity.getAssigneeUser())
+                .setCreatedByUserId(draftTwinPersistEntity.getCreatedByUserId())
+                .setCreatedByUser(draftTwinPersistEntity.getCreatedByUser())
+                .setCreatedAt(draftTwinPersistEntity.getDraft().getCreatedAt()) // not sure
+                .setHeadTwinId(draftTwinPersistEntity.getHeadTwinId())
+// it's difficult to fill headTwin, because it can be not present in twin table
+//                .setHeadTwin(headTwin)
+// we should not fill owner* fields, because they system level, anc can not be changes
+//                .setOwnerUserId(draftTwinPersistEntity.getOwnerUserId())
+//                .setOwnerBusinessAccountId(draftTwinPersistEntity.getOwnerUserId())
+// we should not fill any *spaceId field, because they are calculated based on head
+//                .setPermissionSchemaSpaceId(draftTwinPersistEntity.)
+//                .setTwinflowSchemaSpaceId(twinflowSchemaSpaceId)
+//                .setTwinClassSchemaSpaceId(twinClassSchemaSpaceId)
+//                .setAliasSpaceId(aliasSpaceId)
+                .setViewPermissionId(draftTwinPersistEntity.getViewPermissionId())
+                .setExternalId(draftTwinPersistEntity.getExternalId())
+                .setDescription(draftTwinPersistEntity.getDescription());
+
+        if (!draftTwinPersistEntity.isCreateElseUpdate()) { // class must be filled only for creation
+            twinEntity
+                    .setTwinClassId(draftTwinPersistEntity.getTwinClassId())
+                    .setTwinClass(draftTwinPersistEntity.getTwinClass());
+        }
+        return twinEntity;
     }
 }

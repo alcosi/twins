@@ -313,7 +313,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             DraftEntity draftEntity = draftService.draftFactoryResult(factoryResultUncommited);
             draftCommitService.commitNowOrInQueue(draftEntity);
             return new FactoryResultCommitedMajor().setCommitedDraftEntity(draftEntity);
-        } else { //we will not draft it because this can extra load db
+        } else { //we can save result without drafting
             FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
                 TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);

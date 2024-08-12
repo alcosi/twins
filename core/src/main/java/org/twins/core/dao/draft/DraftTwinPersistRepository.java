@@ -1,6 +1,8 @@
 package org.twins.core.dao.draft;
 
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +23,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
     long normalizeDraft(@Param("draftId") UUID draftId);
+
+    Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateTrue(UUID draftId, Pageable pageable);
+    Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateFalse(UUID draftId, Pageable pageable);
 }

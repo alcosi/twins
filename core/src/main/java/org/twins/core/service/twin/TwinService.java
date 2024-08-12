@@ -306,18 +306,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(ApiUser apiUser, TwinCreate twinCreate) throws ServiceException {
-        TwinEntity twinEntity = twinCreate.getTwinEntity();
-        if (twinEntity.getTwinClass() == null)
-            twinEntity.setTwinClass(twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
-        twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
-        if (twinEntity.getTwinStatusId() == null) {
-            TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
-            twinEntity.setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
-                    .setTwinStatus(twinflowEntity.getInitialTwinStatus());
-        }
-        fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
-        checkAssignee(twinEntity);
-        twinEntity = saveTwin(twinEntity);
+        TwinEntity twinEntity = createTwinEntity(apiUser, twinCreate.getTwinEntity());
         saveTwinFields(twinEntity, twinCreate.getFields());
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
             attachmentService.addAttachments(twinCreate.getAttachmentEntityList(), twinEntity);
@@ -336,6 +325,22 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return new TwinCreateResult()
                 .setCreatedTwin(twinEntity)
                 .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity));
+    }
+
+    private TwinEntity createTwinEntity(ApiUser apiUser, TwinEntity twinEntity) throws ServiceException {
+        if (twinEntity.getTwinClass() == null)
+            twinEntity.setTwinClass(twinClassService.findEntity(twinEntity.getTwinClassId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows));
+        twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
+        if (twinEntity.getTwinStatusId() == null) {
+            TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
+            twinEntity
+                    .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
+                    .setTwinStatus(twinflowEntity.getInitialTwinStatus());
+        }
+        fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
+        checkAssignee(twinEntity);
+        twinEntity = saveTwin(twinEntity);
+        return twinEntity;
     }
 
     public void invalidateFields(TwinEntity twinEntity) {
@@ -472,20 +477,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional
     public void updateTwin(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, Map<UUID, FieldValue> fields, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinChangesCollector.collectIfChanged(dbTwinEntity, "headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
-            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.headChanged(dbTwinEntity.getHeadTwin(), updateTwinEntity.getHeadTwin()));
-            dbTwinEntity
-                    .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()))
-                    .setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
-        }
-        if (twinChangesCollector.collectIfChanged(dbTwinEntity,"name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
-            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.nameChanged(dbTwinEntity.getName(), updateTwinEntity.getName()));
-            dbTwinEntity.setName(updateTwinEntity.getName());
-        }
-        if (twinChangesCollector.collectIfChanged(dbTwinEntity,"description", dbTwinEntity.getDescription(), updateTwinEntity.getDescription())) {
-            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.descriptionChanged(dbTwinEntity.getDescription(), updateTwinEntity.getDescription()));
-            dbTwinEntity.setDescription(updateTwinEntity.getDescription());
-        }
+        updateTwinBasics(updateTwinEntity, dbTwinEntity, twinChangesCollector);
+        if (MapUtils.isNotEmpty(fields))
+            updateTwinFields(dbTwinEntity, fields.values().stream().toList(), twinChangesCollector);
+    }
+
+    public void updateTwinBasics(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        updateTwinHead(updateTwinEntity, dbTwinEntity, twinChangesCollector);
+        updateTwinName(updateTwinEntity, dbTwinEntity, twinChangesCollector);
+        updateTwinDescription(updateTwinEntity, dbTwinEntity, twinChangesCollector);
+        updateTwinAssignee(updateTwinEntity, dbTwinEntity, twinChangesCollector);
+        updateTwinStatus(dbTwinEntity, updateTwinEntity.getTwinStatus(), twinChangesCollector);
+    }
+
+    public void updateTwinAssignee(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinChangesCollector.collectIfChanged(dbTwinEntity,"assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
             if (updateTwinEntity.getAssignerUserId().equals(UuidUtils.NULLIFY_MARKER)) {
                 twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), null));
@@ -500,9 +505,29 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             }
             checkAssignee(dbTwinEntity);
         }
-        updateTwinStatus(dbTwinEntity, updateTwinEntity.getTwinStatus(), twinChangesCollector);
-        if (MapUtils.isNotEmpty(fields))
-            updateTwinFields(dbTwinEntity, fields.values().stream().toList(), twinChangesCollector);
+    }
+
+    public void updateTwinHead(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinChangesCollector.collectIfChanged(dbTwinEntity, "headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
+            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.headChanged(dbTwinEntity.getHeadTwin(), updateTwinEntity.getHeadTwin()));
+            dbTwinEntity
+                    .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()))
+                    .setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
+        }
+    }
+
+    public void updateTwinDescription(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) {
+        if (twinChangesCollector.collectIfChanged(dbTwinEntity,"description", dbTwinEntity.getDescription(), updateTwinEntity.getDescription())) {
+            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.descriptionChanged(dbTwinEntity.getDescription(), updateTwinEntity.getDescription()));
+            dbTwinEntity.setDescription(updateTwinEntity.getDescription());
+        }
+    }
+
+    public void updateTwinName(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) {
+        if (twinChangesCollector.collectIfChanged(dbTwinEntity,"name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
+            twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.nameChanged(dbTwinEntity.getName(), updateTwinEntity.getName()));
+            dbTwinEntity.setName(updateTwinEntity.getName());
+        }
     }
 
     public void updateTwinStatus(TwinEntity dbTwinEntity, TwinStatusEntity newTwinStatus, TwinChangesCollector twinChangesCollector) {
@@ -629,25 +654,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    public TwinEntity cloneTwin(TwinEntity twinEntity) {
-        return new TwinEntity()
-                .setTwinClass(twinEntity.getTwinClass())
-                .setTwinClassId(twinEntity.getTwinClassId())
-                .setTwinStatus(twinEntity.getTwinStatus())
-                .setTwinStatusId(twinEntity.getTwinStatusId())
-                .setName(twinEntity.getName())
-                .setDescription(twinEntity.getDescription())
-                .setHeadTwinId(twinEntity.getHeadTwinId())
-                .setSpaceTwin(twinEntity.getSpaceTwin())
-                .setAssignerUser(twinEntity.getAssignerUser())
-                .setAssignerUserId(twinEntity.getAssignerUserId())
-                .setCreatedByUser(twinEntity.getCreatedByUser())
-                .setCreatedByUserId(twinEntity.getCreatedByUserId())
-                .setOwnerBusinessAccountId(twinEntity.getOwnerBusinessAccountId())
-                .setOwnerUserId(twinEntity.getOwnerUserId())
-                ;
-    }
-
     public CloneFieldsResult cloneTwinFieldListAndSave(TwinEntity srcTwin, TwinEntity dstTwinEntity) throws ServiceException {
         CloneFieldsResult cloneFieldsResult = cloneTwinFieldList(srcTwin, dstTwinEntity);
         if (CollectionUtils.isNotEmpty(cloneFieldsResult.getFieldEntityList()))
@@ -699,7 +705,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public TwinEntity duplicateTwin(TwinEntity srcTwin, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
-        TwinEntity duplicateEntity = cloneTwin(srcTwin);
+        TwinEntity duplicateEntity = srcTwin.clone();
         fillOwner(duplicateEntity, businessAccountEntity, userEntity);
         duplicateEntity
                 .setId(newTwinId)

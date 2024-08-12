@@ -23,7 +23,7 @@ import org.twins.core.domain.transition.TransitionContext;
 import org.twins.core.domain.transition.TransitionContextBatch;
 import org.twins.core.domain.transition.TransitionResult;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinflow.TwinTransitionContextDTOv1;
+import org.twins.core.dto.rest.transition.TwinTransitionContextDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformBatchRqDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformRqDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformRsDTOv1;

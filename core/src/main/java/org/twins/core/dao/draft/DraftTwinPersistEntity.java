@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.util.UUID;
 
@@ -61,6 +64,7 @@ public class DraftTwinPersistEntity {
     @Column(name = "owner_user_id")
     private UUID ownerUserId;
 
+    //we can not create @ManyToOne relation, because we can have nullify marker here
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
@@ -68,4 +72,19 @@ public class DraftTwinPersistEntity {
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity twinClass;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "twin_status_id", insertable = false, updatable = false)
+    private TwinStatusEntity twinStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
+    private UserEntity assigneeUser;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUser;
 }
