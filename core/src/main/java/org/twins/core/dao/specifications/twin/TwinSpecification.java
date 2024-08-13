@@ -80,14 +80,28 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkTouchIds(final Collection<TwinTouchEntity.Touch> touchIds, final UUID userId, final boolean exclude) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
+
             Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
+
             Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
             Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
-            if (exclude) {
-                return cb.and(cb.not(touchIdIn), userIdEqual);
-            } else {
+            Predicate touchIsNull = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.touchId));
+
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<TwinEntity> subRoot = subquery.from(TwinEntity.class);
+            Join<TwinEntity, TwinTouchEntity> subTouchJoin = subRoot.join(TwinEntity.Fields.touches);
+
+            subquery.select(subRoot.get(TwinEntity.Fields.id))
+                    .where(
+                            cb.equal(subTouchJoin.get(TwinTouchEntity.Fields.userId), userId),
+                            subTouchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds)
+                    );
+
+            Predicate notInSubquery = cb.not(root.get(TwinEntity.Fields.id).in(subquery));
+            if (exclude)
+                return cb.or(touchIsNull, notInSubquery);
+            else
                 return cb.and(touchIdIn, userIdEqual);
-            }
         };
     }
 
