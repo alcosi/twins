@@ -80,14 +80,18 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkTouchIds(final Collection<TwinTouchEntity.Touch> touchIds, final UUID userId, final boolean exclude) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
+
             Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
-            Predicate touchIdIn = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
-            Predicate userIdEqual = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
-            if (exclude) {
-                return cb.and(cb.not(touchIdIn), userIdEqual);
-            } else {
-                return cb.and(touchIdIn, userIdEqual);
-            }
+
+            Predicate onUserId = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
+            Predicate onTouchId = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
+            touchJoin.on(cb.and(onUserId, onTouchId));
+
+            Predicate touchIsNull = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.touchId));
+            if (exclude)
+                return cb.and(touchIsNull);
+            else
+                return cb.and(cb.not(touchIsNull));
         };
     }
 
