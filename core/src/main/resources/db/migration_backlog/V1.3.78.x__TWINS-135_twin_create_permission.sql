@@ -8,38 +8,39 @@ CREATE OR REPLACE FUNCTION detect_create_permission_id(
 )
     RETURNS UUID AS $$
 DECLARE
-    create_permission_id UUID;
+    twin_class_schema_uuid UUID;
+    create_permission_uuid UUID;
 BEGIN
-    -- check if head_twin_id not NULL, try to find create permission in head-twin space class schema map
+    -- check if head_twin_id not NULL, try to find twin_class_schema_id in head-twin space
     IF head_twin_uuid IS NOT NULL THEN
-        SELECT tcsm.create_permission_id INTO create_permission_id
-        FROM twin_class_schema_map tcsm
-            JOIN space ON space.twin_id = head_twin_uuid
-        WHERE space.twin_class_schema_id = tcsm.twin_class_schema_id and  tcsm.twin_class_id = twin_class_uuid
+        SELECT twin_class_schema_id into twin_class_schema_uuid from space where twin_id = head_twin_uuid
         LIMIT 1;
     END IF;
 
-    -- if not found by head_twin_id, check in domain_business_account
-    IF create_permission_id IS NULL AND business_account_uuid IS NOT NULL AND domain_uuid IS NOT NULL THEN
-        SELECT tcsm.create_permission_id INTO create_permission_id
-        FROM twin_class_schema_map tcsm
-                 JOIN domain_business_account dba
-                     ON dba.domain_id = domain_uuid AND dba.business_account_id = business_account_uuid
-        WHERE tcsm.id = dba.twin_class_schema_id and tcsm.twin_class_id = twin_class_uuid
+    -- if schema_id not found by head_twin_id, check in domain_business_account
+    IF twin_class_schema_uuid IS NULL AND business_account_uuid IS NOT NULL AND domain_uuid IS NOT NULL THEN
+        SELECT twin_class_schema_id into twin_class_schema_uuid
+        FROM domain_business_account
+        where domain_id = domain_uuid
+        AND business_account_id = business_account_uuid
         LIMIT 1;
     END IF;
 
-    -- if chema not found in first two cases, find it in domain
-    IF create_permission_id IS NULL THEN
-        SELECT tcsm.create_permission_id INTO create_permission_id
+    -- if schema not found in first two cases, find it in domain
+    IF twin_class_schema_uuid IS NULL THEN
+        SELECT d.twin_class_schema_id INTO twin_class_schema_uuid
+        FROM domain d WHERE d.id = domain_uuid LIMIT 1;
+    END IF;
+
+    IF twin_class_schema_uuid IS NOT NULL THEN
+        SELECT tcsm.create_permission_id INTO create_permission_uuid
         FROM twin_class_schema_map tcsm
-        JOIN domain d on d.id = domain_uuid
-        WHERE tcsm.id = d.twin_class_schema_id and tcsm.twin_class_id = twin_class_uuid
+        WHERE tcsm.twin_class_schema_id = twin_class_schema_id and tcsm.twin_class_id = twin_class_uuid
         LIMIT 1;
     END IF;
 
-    -- return schema id
-    RETURN create_permission_id;
+    -- return create permission id
+    RETURN create_permission_uuid;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
