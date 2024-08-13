@@ -68,6 +68,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
+    private final TwinClassSchemaMapRepository twinClassSchemaMapRepository;
     private final TwinClassFieldService twinClassFieldService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
@@ -160,6 +161,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             throw new ServiceException(ErrorCodeTwins.PERMISSION_SCHEMA_NOT_ALLOWED, "twinClassSchemaId[" + twinClassSchemaId + "] is not allows in domain[" + domainId + "]");
         return twinClassSchemaId;
     }
+
+    public TwinClassSchemaMapEntity findTwinClassSchemaMap(UUID twinClassSchemaId, UUID twinClassId) {
+        Optional<TwinClassSchemaMapEntity> twinClassSchemaMapEntity = twinClassSchemaMapRepository.findByTwinClassSchemaIdAndTwinClassId(twinClassSchemaId, twinClassId);
+        return twinClassSchemaMapEntity.orElse(null);
+    }
+
 
     @Transactional
     public TwinClassEntity duplicateTwinClass(ApiUser apiUser, UUID twinClassId, String newKey) throws ServiceException {

@@ -54,4 +54,11 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
 
     @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId")
     Set<UUID> findIdByTwinClassId(@Param("twinClassId") UUID twinClassId);
+
+    @Query(value = "SELECT detect_twin_class_schema(:headTwinId, :businessAccountId, :domainId)")
+    UUID detectTwinClassSchema(
+            @Param("headTwinId") TypedParameterValue<UUID> headTwinId,
+            @Param("businessAccountId") TypedParameterValue<UUID> domainBusinessAccountId,
+            @Param("domainId") TypedParameterValue<UUID> domainId);
+
 }
