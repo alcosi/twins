@@ -332,20 +332,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setTwinAliasEntityList(twinAliasService.createAliases(twinEntity));
     }
 
-    public TwinClassSchemaMapEntity detectTwinClassSchema(TwinCreate twinCreate, ApiUser apiUser) throws ServiceException {
-        UUID twinClassSchemaId = twinRepository.detectTwinClassSchema(
+    public UUID detectCreatePermissionId(TwinCreate twinCreate, ApiUser apiUser) throws ServiceException {
+        return twinRepository.detectCreatePermissionId(
                 TypedParameterTwins.uuidNullable(twinCreate.getTwinEntity().getHeadTwinId()),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
-                TypedParameterTwins.uuidNullable(apiUser.getDomainId())
+                TypedParameterTwins.uuidNullable(apiUser.getDomainId()),
+                TypedParameterTwins.uuidNullable(twinCreate.getTwinEntity().getTwinClassId())
         );
-        return twinClassService.findTwinClassSchemaMap(twinClassSchemaId, twinCreate.getTwinEntity().getTwinClassId());
     }
 
     public void checkCreatePermission(TwinCreate twinCreate, ApiUser apiUser) throws ServiceException {
-        TwinClassSchemaMapEntity twinClassSchemaMap = detectTwinClassSchema(twinCreate, apiUser);
-        if (null == twinClassSchemaMap || null == twinClassSchemaMap.getCreatePermissionId())
+        UUID createPermissionId = detectCreatePermissionId(twinCreate, apiUser);
+        if (null == createPermissionId)
             return;
-        boolean hasPermission = permissionService.hasPermission(twinCreate.getTwinEntity(), twinClassSchemaMap.getCreatePermissionId());
+        boolean hasPermission = permissionService.hasPermission(twinCreate.getTwinEntity(), createPermissionId);
         if (!hasPermission)
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinCreate.getTwinEntity().logNormal());
     }
