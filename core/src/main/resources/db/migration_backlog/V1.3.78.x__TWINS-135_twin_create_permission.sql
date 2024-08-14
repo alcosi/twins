@@ -1,15 +1,16 @@
 DROP FUNCTION IF EXISTS public.detect_twin_class_schema(UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.detect_twin_class_schema_id(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.detect_create_permission_id(UUID, UUID, UUID, UUID);
-CREATE OR REPLACE FUNCTION detect_create_permission_id(
+DROP FUNCTION IF EXISTS public.detect_create_permission_id(UUID, UUID, UUID);
+
+CREATE OR REPLACE FUNCTION detect_twin_class_schema_id(
     IN head_twin_uuid UUID,
     IN business_account_uuid UUID,
-    IN domain_uuid UUID,
-    IN twin_class_uuid UUID
+    IN domain_uuid UUID
 )
     RETURNS UUID AS $$
 DECLARE
     twin_class_schema_uuid UUID;
-    create_permission_uuid UUID;
 BEGIN
     -- check if head_twin_id not NULL, try to find twin_class_schema_id in head-twin space
     IF head_twin_uuid IS NOT NULL THEN
@@ -32,10 +33,29 @@ BEGIN
         FROM domain d WHERE d.id = domain_uuid LIMIT 1;
     END IF;
 
+    -- return create permission id
+    RETURN twin_class_schema_uuid;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+
+CREATE OR REPLACE FUNCTION detect_create_permission_id(
+    IN head_twin_uuid UUID,
+    IN business_account_uuid UUID,
+    IN domain_uuid UUID,
+    IN twin_class_uuid UUID
+)
+    RETURNS UUID AS $$
+DECLARE
+    twin_class_schema_uuid UUID;
+    create_permission_uuid UUID;
+BEGIN
+    twin_class_schema_uuid := detect_twin_class_schema_id(head_twin_uuid, business_account_uuid, domain_uuid);
+
     IF twin_class_schema_uuid IS NOT NULL THEN
         SELECT tcsm.create_permission_id INTO create_permission_uuid
         FROM twin_class_schema_map tcsm
-        WHERE tcsm.twin_class_schema_id = twin_class_schema_id and tcsm.twin_class_id = twin_class_uuid
+        WHERE tcsm.twin_class_schema_id = twin_class_schema_uuid and tcsm.twin_class_id = twin_class_uuid
         LIMIT 1;
     END IF;
 
@@ -43,6 +63,7 @@ BEGIN
     RETURN create_permission_uuid;
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
+
 
 
 alter table public.twin_class_schema_map add if not exists create_permission_id uuid;
