@@ -44,9 +44,13 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     }
 
     @Override
-    public void beforeCollectionConversion(Collection<TwinflowTransitionEntity> srcCollection, MapperContext mapperContext) {
-        twinflowTransitionService.loadValidators(srcCollection);
-        twinflowTransitionService.loadTriggers(srcCollection);
+    public void beforeCollectionConversion(Collection<TwinflowTransitionEntity> srcCollection, MapperContext mapperContext) throws ServiceException {
+        if (mapperContext.hasMode(TransitionMode.MANAGED)) {
+            if (!permissionService.currentUserHasPermission(Permissions.TRANSITION_MANAGE))
+                throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TransitionMode.MANAGED + "] is not allowed for current user");
+            twinflowTransitionService.loadValidators(srcCollection);
+            twinflowTransitionService.loadTriggers(srcCollection);
+        }
     }
 
     @Override
