@@ -1,9 +1,11 @@
 DROP FUNCTION IF EXISTS public.detect_twin_class_schema(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.detect_twin_class_schema_id(UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.twin_class_schema_id_detect(UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.create_permission_id_detect(UUID, UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.detect_create_permission_id(UUID, UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.detect_create_permission_id(UUID, UUID, UUID);
 
-CREATE OR REPLACE FUNCTION detect_twin_class_schema_id(
+CREATE OR REPLACE FUNCTION twin_class_schema_id_detect(
     IN head_twin_uuid UUID,
     IN business_account_uuid UUID,
     IN domain_uuid UUID
@@ -39,7 +41,7 @@ END;
 $$ LANGUAGE plpgsql IMMUTABLE;
 
 
-CREATE OR REPLACE FUNCTION detect_create_permission_id(
+CREATE OR REPLACE FUNCTION create_permission_id_detect(
     IN head_twin_uuid UUID,
     IN business_account_uuid UUID,
     IN domain_uuid UUID,
@@ -50,7 +52,7 @@ DECLARE
     twin_class_schema_uuid UUID;
     create_permission_uuid UUID;
 BEGIN
-    twin_class_schema_uuid := detect_twin_class_schema_id(head_twin_uuid, business_account_uuid, domain_uuid);
+    twin_class_schema_uuid := twin_class_schema_id_detect(head_twin_uuid, business_account_uuid, domain_uuid);
 
     IF twin_class_schema_uuid IS NOT NULL THEN
         SELECT tcsm.create_permission_id INTO create_permission_uuid
