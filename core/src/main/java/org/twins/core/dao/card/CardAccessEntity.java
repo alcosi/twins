@@ -17,7 +17,8 @@ public class CardAccessEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private int order;
 
     @Column(name = "card_id")

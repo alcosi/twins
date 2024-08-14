@@ -10,5 +10,9 @@ import lombok.experimental.Accessors;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "TransitionUpdateRqV1")
 public class TransitionUpdateRqDTOv1 extends TransitionSaveRqDTOv1 {
+    @Schema(description = "validators cud operations")
+    public ValidatorCudDTOv1 validators;
 
+    @Schema(description = "triggers cud operations")
+    public TriggerCudDTOv1 triggers;
 }

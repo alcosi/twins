@@ -22,7 +22,8 @@ public class LinkValidatorEntity {
     @Column(name = "link_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "link_validator_featurer_id")

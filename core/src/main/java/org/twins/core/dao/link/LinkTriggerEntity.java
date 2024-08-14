@@ -22,7 +22,8 @@ public class LinkTriggerEntity {
     @Column(name = "link_id")
     private UUID linkId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "link_trigger_featurer_id")
