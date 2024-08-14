@@ -26,7 +26,8 @@ public class TwinflowTransitionValidatorEntity implements EasyLoggable, PublicCl
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "invert")
@@ -50,8 +51,10 @@ public class TwinflowTransitionValidatorEntity implements EasyLoggable, PublicCl
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionValidator[" + id + "]";
-            case NORMAL -> "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
-            default -> "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + twinValidatorFeaturerId + ", isActive: " + isActive + ", invert: " + invert + "]";
+            case NORMAL ->
+                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+            default ->
+                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + twinValidatorFeaturerId + ", isActive: " + isActive + ", invert: " + invert + "]";
         };
     }
 

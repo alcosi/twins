@@ -26,7 +26,8 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     @Column(name = "twinflow_transition_id")
     private UUID twinflowTransitionId;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "transition_trigger_featurer_id")
@@ -47,8 +48,10 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicClon
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionTrigger[" + id + "]";
-            case NORMAL -> "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
-            default -> "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
+            case NORMAL ->
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+            default ->
+                    "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
         };
     }
 

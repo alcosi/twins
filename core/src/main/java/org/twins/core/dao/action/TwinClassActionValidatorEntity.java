@@ -27,7 +27,8 @@ public class TwinClassActionValidatorEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private TwinAction twinAction;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "invert")
@@ -53,7 +54,8 @@ public class TwinClassActionValidatorEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinClassActionValidator[" + id + "]";
             case NORMAL -> "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
-            default -> "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+            default ->
+                    "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
         };
     }
 }
