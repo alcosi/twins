@@ -12,7 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 public enum TransitionMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
-    @FieldNameConstants.Include DETAILED(2);
+    @FieldNameConstants.Include DETAILED(2),
+    @FieldNameConstants.Include MANAGED(3);
 
     final int priority;
 
@@ -22,7 +23,8 @@ public enum TransitionMode implements MapperMode {
     public enum Attachment2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -32,6 +34,7 @@ public enum TransitionMode implements MapperMode {
                 case HIDE -> TransitionMode.HIDE;
                 case SHORT -> TransitionMode.SHORT;
                 case DETAILED -> TransitionMode.DETAILED;
+                case MANAGED -> TransitionMode.MANAGED;
             };
         }
     }
@@ -42,7 +45,8 @@ public enum TransitionMode implements MapperMode {
     public enum Twin2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -52,6 +56,7 @@ public enum TransitionMode implements MapperMode {
                 case HIDE -> TransitionMode.HIDE;
                 case SHORT -> TransitionMode.SHORT;
                 case DETAILED -> TransitionMode.DETAILED;
+                case MANAGED -> TransitionMode.MANAGED;
             };
         }
     }
@@ -62,7 +67,8 @@ public enum TransitionMode implements MapperMode {
     public enum Twinflow2TransitionMode implements MapperModePointer<TransitionMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -72,6 +78,7 @@ public enum TransitionMode implements MapperMode {
                 case HIDE -> TransitionMode.HIDE;
                 case SHORT -> TransitionMode.SHORT;
                 case DETAILED -> TransitionMode.DETAILED;
+                case MANAGED -> TransitionMode.MANAGED;
             };
         }
     }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.PublicCloneable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition_trigger")
-public class TwinflowTransitionTriggerEntity implements EasyLoggable {
+public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicCloneable<TwinflowTransitionTriggerEntity> {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -44,13 +45,21 @@ public class TwinflowTransitionTriggerEntity implements EasyLoggable {
     private boolean isActive;
 
     public String easyLog(EasyLoggable.Level level) {
-        switch (level) {
-            case SHORT:
-                return "twinflowTransitionTrigger[" + id + "]";
-            case NORMAL:
-                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive +  "]";
-            default:
-                return "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId +  ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
-        }
+        return switch (level) {
+            case SHORT -> "twinflowTransitionTrigger[" + id + "]";
+            case NORMAL -> "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+            default -> "twinflowTransitionTrigger[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + ", isActive: " + isActive + "]";
+        };
+    }
+
+    @Override
+    public TwinflowTransitionTriggerEntity clone() {
+        return new TwinflowTransitionTriggerEntity()
+                .setTwinflowTransitionId(twinflowTransitionId)
+                .setOrder(order)
+                .setTransitionTriggerFeaturerId(transitionTriggerFeaturerId)
+                .setTransitionTriggerFeaturer(transitionTriggerFeaturer)
+                .setTransitionTriggerParams(transitionTriggerParams)
+                .setActive(isActive);
     }
 }

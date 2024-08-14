@@ -24,7 +24,7 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
-            case DETAILED:
+            case DETAILED, MANAGED:
                 dst
                         .setDstTwinStatusId(src.getDstTwinStatusId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
