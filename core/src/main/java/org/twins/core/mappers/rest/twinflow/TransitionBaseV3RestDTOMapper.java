@@ -8,10 +8,12 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv3;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
+
+import java.util.Collection;
 
 
 @Component
@@ -39,6 +41,12 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 break;
         }
         transitionBaseV2RestDTOMapper.map(src, dst, mapperContext);
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinflowTransitionEntity> srcCollection, MapperContext mapperContext) {
+        twinflowTransitionService.loadValidators(srcCollection);
+        twinflowTransitionService.loadTriggers(srcCollection);
     }
 
     @Override

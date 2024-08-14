@@ -12,8 +12,8 @@ import java.util.List;
 public class TwinflowTransitionBaseDTOv3 extends TwinflowTransitionBaseDTOv2 {
 
     @Schema(description = "validators")
-    List<ValidatorDTOv1> validators;
+    public List<ValidatorDTOv1> validators;
 
     @Schema(description = "triggers")
-    List<TriggerDTOv1> triggers;
+    public List<TriggerDTOv1> triggers;
 }

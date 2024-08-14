@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ public interface TwinflowTransitionTriggerRepository extends CrudRepository<Twin
 
     @Cacheable(value = CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, key = "{#twinflowTransitionId}")
     List<TwinflowTransitionTriggerEntity> findByTwinflowTransitionIdOrderByOrder(UUID twinFlowId);
+
+    List<TwinflowTransitionTriggerEntity> findAllByTwinflowTransitionIdInOrderByOrder(Collection<UUID> twinflowTransitionIds);
 
     List<TwinflowTransitionTriggerEntity> findAllByTwinflowTransitionIdAndIdIn(UUID transitionId, List<UUID> idList);
 
