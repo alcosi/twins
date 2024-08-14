@@ -43,7 +43,7 @@ public class TransitionViewController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transition details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinflowViewRsDTOv1.class))}),
+                    @Schema(implementation = TransitionViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/transition/{transitionId}/v1")
     public ResponseEntity<?> transitionViewV1(
