@@ -46,8 +46,8 @@ public class TwinUpdate extends TwinSave {
                         (null == tagsDelete || tagsDelete.isEmpty()) &&
                         (null == markersDelete || markersDelete.isEmpty()) &&
                         (null == markersAdd || markersAdd.isEmpty()) &&
-                        (null == newTags || newTags.isEmpty()) &&
-                        (null == existingTags || existingTags.isEmpty())
+                        (null == tagsAddNew || tagsAddNew.isEmpty()) &&
+                        (null == tagsAddExisted || tagsAddExisted.isEmpty())
         );
     }
 

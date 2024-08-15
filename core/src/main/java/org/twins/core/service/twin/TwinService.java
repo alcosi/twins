@@ -25,10 +25,16 @@ import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
-import org.twins.core.dao.twinclass.*;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.*;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinChangesCollector;
+import org.twins.core.domain.TwinField;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -304,7 +310,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinCreateResult createTwin(TwinCreate twinCreate) throws ServiceException {
-        checkCreatePermission(twinCreate, apiUser);
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         TwinEntity twinEntity = twinCreate.getTwinEntity();
         createTwinEntity(twinEntity, twinChangesCollector);
@@ -333,33 +338,34 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getTwinClass() == null)
             twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
+        ApiUser apiUser = authService.getApiUser();
+        checkCreatePermission(twinEntity, apiUser);
         if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
                     .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                     .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         }
-        ApiUser apiUser = authService.getApiUser();
         fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
         createTwin(twinEntity, twinChangesCollector);
     }
 
-    public UUID detectCreatePermissionId(TwinCreate twinCreate, ApiUser apiUser) throws ServiceException {
+    public UUID detectCreatePermissionId(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
         return twinRepository.detectCreatePermissionId(
-                TypedParameterTwins.uuidNullable(twinCreate.getTwinEntity().getHeadTwinId()),
+                TypedParameterTwins.uuidNullable(twinEntity.getHeadTwinId()),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                 TypedParameterTwins.uuidNullable(apiUser.getDomainId()),
-                TypedParameterTwins.uuidNullable(twinCreate.getTwinEntity().getTwinClassId())
+                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId())
         );
     }
 
-    public void checkCreatePermission(TwinCreate twinCreate, ApiUser apiUser) throws ServiceException {
-        UUID createPermissionId = detectCreatePermissionId(twinCreate, apiUser);
+    public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        UUID createPermissionId = detectCreatePermissionId(twinEntity, apiUser);
         if (null == createPermissionId)
             return;
-        boolean hasPermission = permissionService.hasPermission(twinCreate.getTwinEntity(), createPermissionId);
+        boolean hasPermission = permissionService.hasPermission(twinEntity, createPermissionId);
         if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinCreate.getTwinEntity().logNormal());
+            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinEntity.logNormal());
     }
 
     public void invalidateFields(TwinEntity twinEntity) {

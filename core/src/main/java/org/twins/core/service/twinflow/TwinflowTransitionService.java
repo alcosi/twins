@@ -1,7 +1,8 @@
 package org.twins.core.service.twinflow;
 
-import lombok.*;
-import lombok.experimental.Accessors;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.EasyLoggable;
@@ -35,10 +36,10 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.transition.*;
-import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -325,24 +326,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(validatorCUD.getUpdateList())) {
             updateValidators(dbTwinflowTransitionEntity, validatorCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteUUIDList())) {
-            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
+            deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
         }
         evictCache(TwinflowTransitionValidatorRepository.CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
-    public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<UUID> validatorDeleteUUIDList) throws ServiceException {
-        Kit<TwinflowTransitionValidatorEntity, UUID> deleteEntityKit = new Kit<>(twinflowTransitionValidatorRepository.findAllByTwinflowTransitionIdAndIdIn(dbTwinflowTransitionEntity.getId(), validatorDeleteUUIDList), TwinflowTransitionValidatorEntity::getId);
-        if (CollectionUtils.isEmpty(deleteEntityKit.getCollection()))
-            return;
-        for (UUID validatorUuid : validatorDeleteUUIDList) {
-            TwinflowTransitionValidatorEntity validator = deleteEntityKit.get(validatorUuid);
-            if (null == validator)
-                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "cant find transitionValidator[" + validatorUuid + "] for delete operation");
-            log.info(validator.logDetailed() + " will be deleted");
-        }
-        twinflowTransitionValidatorRepository.deleteAllByTwinflowTransitionIdAndIdIn(dbTwinflowTransitionEntity.getId(), validatorDeleteUUIDList);
+    public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> validatorDeleteList) throws ServiceException {
+        entitySmartService.deleteAllEntitiesAndLog(validatorDeleteList, twinflowTransitionValidatorRepository);
     }
 
     @Transactional
@@ -377,6 +369,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
     }
 
+    @Transactional
     public void cudTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
         if (triggerCUD == null)
             return;
@@ -386,24 +379,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(triggerCUD.getUpdateList())) {
             updateTriggers(dbTwinflowTransitionEntity, triggerCUD.getUpdateList());
         }
-        if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteUUIDList())) {
-            deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteUUIDList());
+        if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteList())) {
+            deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteList());
         }
         evictCache(TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
-    public void deleteTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<UUID> triggerDeleteUUIDList) throws ServiceException {
-        Kit<TwinflowTransitionTriggerEntity, UUID> deleteEntityKit = new Kit<>(twinflowTransitionTriggerRepository.findAllByTwinflowTransitionIdAndIdIn(dbTwinflowTransitionEntity.getId(), triggerDeleteUUIDList), TwinflowTransitionTriggerEntity::getId);
-        if (CollectionUtils.isEmpty(deleteEntityKit.getCollection()))
-            return;
-        for (UUID triggerUuid : triggerDeleteUUIDList) {
-            TwinflowTransitionTriggerEntity trigger = deleteEntityKit.get(triggerUuid);
-            if (null == trigger)
-                throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "cant find transitionTrigger[" + triggerUuid + "] for delete operation");
-            log.info(trigger.logDetailed() + " will be deleted");
-        }
-        twinflowTransitionTriggerRepository.deleteAllByTwinflowTransitionIdAndIdIn(dbTwinflowTransitionEntity.getId(), triggerDeleteUUIDList);
+    public void deleteTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggerDeleteList) throws ServiceException {
+        entitySmartService.deleteAllEntitiesAndLog(triggerDeleteList, twinflowTransitionTriggerRepository);
     }
 
     @Transactional
@@ -907,5 +891,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             }
     }
 
+    public void evictCache(String cacheKey, UUID recordKey) {
+        Cache cache = cacheManager.getCache(cacheKey);
+        if (cache != null)
+            cache.evictIfPresent(recordKey);
+    }
 }
 
