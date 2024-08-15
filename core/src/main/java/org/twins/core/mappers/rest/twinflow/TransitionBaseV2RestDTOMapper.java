@@ -40,7 +40,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
         transitionBaseV1RestDTOMapper.map(src, dst, mapperContext);
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
-            case DETAILED:
+            case DETAILED, MANAGED:
                 dst
                         .setSrcTwinStatusId(src.getDstTwinStatusId())
                         .setPermissionId(src.getPermissionId())

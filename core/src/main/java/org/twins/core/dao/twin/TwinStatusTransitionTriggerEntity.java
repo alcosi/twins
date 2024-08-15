@@ -29,7 +29,8 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private TransitionType type;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "transition_trigger_featurer_id")
@@ -56,9 +57,9 @@ public class TwinStatusTransitionTriggerEntity implements EasyLoggable {
             case SHORT:
                 return "twinStatusTransitionTrigger[" + id + "]";
             case NORMAL:
-                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type +  "]";
+                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + "]";
             default:
-                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + ", order:" + order +  ", featurer:" + transitionTriggerFeaturerId + "]";
+                return "twinStatusTransitionTrigger[id:" + id + ", statusId:" + twinStatusId + ", type:" + type + ", order:" + order + ", featurer:" + transitionTriggerFeaturerId + "]";
         }
     }
 }

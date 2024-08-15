@@ -14,5 +14,5 @@ import java.util.UUID;
 @Schema(name = "TwinflowBaseV3")
 public class TwinflowBaseDTOv3 extends TwinflowBaseDTOv2 {
     @Schema(description = "transitions map")
-    public Map<UUID, TwinflowTransitionBaseDTOv2> transitions;
+    public Map<UUID, TwinflowTransitionBaseDTOv3> transitions;
 }

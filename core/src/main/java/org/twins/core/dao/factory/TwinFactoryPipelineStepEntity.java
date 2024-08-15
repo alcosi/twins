@@ -31,7 +31,8 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @Column(name = "twin_factory_condition_invert")
     private boolean twinFactoryConditionInvert;
 
-    @Column(name = "order")
+    @Column(name = "`order`")
+    @Basic
     private int order;
 
     @Column(name = "active")
@@ -59,7 +60,8 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryPipelineStep[" + id + "]";
             case NORMAL -> "twinFactoryPipelineStep[" + id + "] **" + comment + "**";
-            default -> "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
+            default ->
+                    "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
         };
 
     }

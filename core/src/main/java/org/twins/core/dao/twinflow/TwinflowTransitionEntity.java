@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -102,6 +103,15 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "dst_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity dstTwinStatus;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowTransitionValidatorEntity, UUID> validatorsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinflowTransitionTriggerEntity, UUID> triggersKit;
+
 
 
     @Transient // because field can be useful only in admin panel

@@ -194,7 +194,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     /**
     * Method for checking twin ref user permissions. Only for analyse.
     * Do not use it for checking permissions.
-    * You must use permissioncheck postgress routine instead
+    * You must use permissioncheck postgress routine instead (hasPermission method in this service)
     * */
     public PermissionCheckForTwinOverviewResult checkTwinAndUserForPermissions(UUID userId, UUID twinId, UUID permissionId) throws ServiceException {
         PermissionCheckForTwinOverviewResult result = new PermissionCheckForTwinOverviewResult();

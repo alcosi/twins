@@ -69,7 +69,7 @@ public class TwinTouchEntity implements EasyLoggable {
         }
 
         public static Touch valueOfId(String type) {
-            return Arrays.stream(Touch.values()).filter(t -> t.id.equalsIgnoreCase(type)).findAny().orElse(REVIEWED);
+            return Arrays.stream(Touch.values()).filter(t -> t.id.equalsIgnoreCase(type)).findAny().orElseThrow();
         }
     }
 }
