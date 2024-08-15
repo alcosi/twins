@@ -79,7 +79,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                     .setCreatedByUserId(apiUser.getUserId())
                     .setCreatedByUser(apiUser.getUser());
             twinChangesCollector.add(attachmentEntity);
-            twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
         }
         addAttachments(attachments, twinChangesCollector);
     }
@@ -213,7 +214,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }
-            if (twinChangesCollector.hasChanges(attachmentEntity)) {
+            if (twinChangesCollector.hasChanges(attachmentEntity) && twinChangesCollector.isHistoryCollectorEnabled()) {
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyItem);
             }
         }
@@ -240,7 +241,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         loadTwins(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
             twinChangesCollector.delete(attachmentEntity);
-            twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
         }
     }
 

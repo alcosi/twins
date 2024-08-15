@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -304,7 +303,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     @Transactional
     public FactoryResultCommited commitResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         if (!factoryResultUncommited.isCommittable())
             throw new ServiceException(ErrorCodeTwins.FACTORY_RESULT_LOCKED);
         if (mustBeDrafted(factoryResultUncommited)) {
@@ -316,7 +314,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         } else { //we can save result without drafting
             FactoryResultCommitedMinor factoryResultCommited = new FactoryResultCommitedMinor();
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates()) {
-                TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(apiUser, twinCreate);
+                TwinService.TwinCreateResult twinCreateResult = twinService.createTwin(twinCreate);
                 factoryResultCommited.addCreatedTwin(twinCreateResult.getCreatedTwin());
             }
             for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates()) {

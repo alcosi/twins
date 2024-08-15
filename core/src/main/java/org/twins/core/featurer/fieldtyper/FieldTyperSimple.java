@@ -14,8 +14,9 @@ import java.util.Properties;
 public abstract class FieldTyperSimple<D extends FieldDescriptor, T extends FieldValue> extends FieldTyper<D, T, TwinFieldSimpleEntity> {
     protected void detectValueChange(TwinFieldSimpleEntity twinFieldEntity, TwinChangesCollector twinChangesCollector, String newValue) {
         if (twinChangesCollector.collectIfChanged(twinFieldEntity, "field[" + twinFieldEntity.getTwinClassField().getKey() + "]", twinFieldEntity.getValue(), newValue)) {
-            twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(
-                    historyService.fieldChangeSimple(twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue(), newValue));
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(twinFieldEntity.getTwin()).add(
+                        historyService.fieldChangeSimple(twinFieldEntity.getTwinClassField(), twinFieldEntity.getValue(), newValue));
             twinFieldEntity.setValue(newValue);
         }
     }

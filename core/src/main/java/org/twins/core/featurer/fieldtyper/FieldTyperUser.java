@@ -76,7 +76,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             storedFieldUsers = twin.getTwinFieldUserKit().getGrouped(value.getTwinClassField().getId()).stream().collect(Collectors.toMap(TwinFieldUserEntity::getUserId, Function.identity()));
         if (FieldValueChangeHelper.isSingleValueAdd(selectedUserEntityList, storedFieldUsers)) {
             UserEntity userEntity = selectedUserEntityList.get(0);
-            twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), null, userEntity));
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), null, userEntity));
             twinChangesCollector.add(new TwinFieldUserEntity()
                     .setTwin(twin)
                     .setTwinId(twin.getId())
@@ -89,7 +90,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             UserEntity userEntity = selectedUserEntityList.get(0);
             TwinFieldUserEntity storeField = MapUtils.pullAny(storedFieldUsers);
             if (!storeField.getUserId().equals(userEntity.getId())) {
-                twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), storeField.getUser(), userEntity));
+                if (twinChangesCollector.isHistoryCollectorEnabled())
+                    twinChangesCollector.getHistoryCollector(twin).add(historyService.fieldChangeUser(value.getTwinClassField(), storeField.getUser(), userEntity));
                 twinChangesCollector.add(storeField //we can update existing record
                         .setUserId(checkUserAllowed(twin, value.getTwinClassField(), userEntity))
                         .setUser(userEntity));
@@ -101,7 +103,8 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
         for (UserEntity userEntity : selectedUserEntityList) {
             //todo check if user valid for current filter result
             if (FieldValueChangeHelper.notSaved(userEntity.getId(), storedFieldUsers)) { // no values were saved before
-                historyItem.getContext().shotAddedUserId(userEntity.getId());
+                if (twinChangesCollector.isHistoryCollectorEnabled())
+                    historyItem.getContext().shotAddedUserId(userEntity.getId());
                 twinChangesCollector.add(new TwinFieldUserEntity()
                         .setTwin(twin)
                         .setTwinId(twin.getId())
@@ -113,12 +116,13 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
             }
         }
         if (FieldValueChangeHelper.hasOutOfDateValues(storedFieldUsers)) {// old values must be deleted
-            for (TwinFieldUserEntity deleteField : storedFieldUsers.values()) {
-                historyItem.getContext().shotDeletedUserId(deleteField.getUserId());
-            }
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                for (TwinFieldUserEntity deleteField : storedFieldUsers.values()) {
+                    historyItem.getContext().shotDeletedUserId(deleteField.getUserId());
+                }
             twinChangesCollector.deleteAll(storedFieldUsers.values());
         }
-        if (historyItem.getContext().notEmpty())
+        if (twinChangesCollector.isHistoryCollectorEnabled() && historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);
     }
 

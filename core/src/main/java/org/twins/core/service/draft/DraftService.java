@@ -207,7 +207,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         draftTagsUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getTagsAddExisted(), twinUpdate.getTagsDelete());
         draftMarkersUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getMarkersAdd(), twinUpdate.getMarkersDelete());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
-            TwinChangesCollector twinChangesCollector = twinService.convertTwinFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields());
+            TwinChangesCollector twinChangesCollector = new TwinChangesCollector(false); //we will collect history on commit
+            twinService.convertTwinFields(twinUpdate.getDbTwinEntity(), twinUpdate.getFields(), twinChangesCollector);
             draftFieldSimpleUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldSimpleEntity.class));
             draftFieldUserUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldUserEntity.class));
             draftFieldDataListUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldDataListEntity.class));
@@ -235,7 +236,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         draftTagsUpdate(draftCollector, twinCreate.getTwinEntity().getId(), twinCreate.getTagsAddExisted(), null);
         draftMarkersUpdate(draftCollector, twinCreate.getTwinEntity().getId(), twinCreate.getMarkersAdd(), null);
         if (MapUtils.isNotEmpty(twinCreate.getFields())) {
-            TwinChangesCollector twinChangesCollector = twinService.convertTwinFields(twinCreate.getTwinEntity(), twinCreate.getFields());
+            TwinChangesCollector twinChangesCollector = new TwinChangesCollector(false);
+            twinService.convertTwinFields(twinCreate.getTwinEntity(), twinCreate.getFields(), twinChangesCollector);
             draftFieldSimpleUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldSimpleEntity.class));
             draftFieldUserUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldUserEntity.class));
             draftFieldDataListUpdate(draftCollector, twinChangesCollector.getSaveEntities(TwinFieldDataListEntity.class));

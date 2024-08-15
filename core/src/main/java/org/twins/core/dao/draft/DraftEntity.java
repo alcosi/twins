@@ -282,6 +282,10 @@ public class DraftEntity implements EasyLoggable {
 
     }
 
+    public int getTwinFieldCount() {
+        return getTwinFieldSimpleCount() + getTwinFieldDataListCount() + getTwinFieldUserCount();
+    }
+
     @Getter
     public enum Status {
         UNDER_CONSTRUCTION("UNDER_CONSTRUCTION"),

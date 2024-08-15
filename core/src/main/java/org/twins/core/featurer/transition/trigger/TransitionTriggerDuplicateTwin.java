@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinId;
 import org.twins.core.service.auth.AuthService;
@@ -38,11 +37,10 @@ public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
     public void run(Properties properties, TwinEntity twinEntity, TwinStatusEntity srcTwinStatus, TwinStatusEntity dstTwinStatus) throws ServiceException {
         TwinEntity srcTwin = twinService.findEntity(twinId.extract(properties), EntitySmartService.FindMode.ifEmptyNull, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
         if (srcTwin == null) {
-            log.error("Can not access twin by id[" + twinId.extract(properties) + "]. Please check database config");
+            log.error("Can not access twin by id[{}]. Please check database config", twinId.extract(properties));
             return;
         }
-        ApiUser apiUser = authService.getApiUser();
-        log.info(twinEntity.logShort() + " will be cloned");
-        twinService.duplicateTwin(srcTwin, apiUser.getBusinessAccount(), apiUser.getUser(), null);
+        log.info("{} will be cloned", twinEntity.logShort());
+        twinService.duplicateTwin(srcTwin);
     }
 }

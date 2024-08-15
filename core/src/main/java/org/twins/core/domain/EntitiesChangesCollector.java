@@ -13,12 +13,7 @@ public class EntitiesChangesCollector {
 
     private ChangesHelper detectChangesHelper(Object entity) {
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
-        ChangesHelper changesHelper = entityClassChanges.get(entity);
-        if (changesHelper == null) {
-            changesHelper = new ChangesHelper();
-            entityClassChanges.put(entity, changesHelper);
-        }
-        return changesHelper;
+        return entityClassChanges.computeIfAbsent(entity, k -> new ChangesHelper());
     }
 
     public List<Object> getSaveEntitiesAll() {
