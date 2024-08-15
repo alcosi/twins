@@ -32,13 +32,11 @@ public abstract class ApiController {
     private ResponseEntity<Response> createErrorRs(Exception ex, int statusCode, String defaultMsg, HttpStatus httpStatus, Response rs, Hashtable<String, String> context) {
         rs = rs == null ? new Response() : rs;
         rs.setStatus(statusCode);
+        rs.setStatusDetails(defaultMsg);
         logException(ex);
         ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(statusCode);
-        if (errorEntity != null) {
+        if (errorEntity != null)
             rs.setMsg(i18NService.translateToLocale(errorEntity.getClientMsgI18nId(), context));
-        } else
-            rs.setMsg(defaultMsg);
-
         return new ResponseEntity<>(rs, httpStatus);
     }
 
