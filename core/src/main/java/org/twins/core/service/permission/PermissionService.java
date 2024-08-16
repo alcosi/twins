@@ -44,28 +44,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
 
-    final PermissionRepository permissionRepository;
-    final PermissionSchemaRepository permissionSchemaRepository;
-    final PermissionSchemaUserRepository permissionSchemaUserRepository;
-    final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
-    final PermissionSchemaTwinRoleRepository permissionSchemaTwinRoleRepository;
-    final PermissionSchemaSpaceRolesRepository permissionSchemaSpaceRolesRepository;
-    final SpaceRepository spaceRepository;
-    final SpaceRoleService spaceRoleService;
-    final SpaceUserRoleService spaceUserRoleService;
-    final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
+    private final PermissionRepository permissionRepository;
+    private final PermissionSchemaRepository permissionSchemaRepository;
+    private final PermissionSchemaUserRepository permissionSchemaUserRepository;
+    private final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
+    private final PermissionSchemaTwinRoleRepository permissionSchemaTwinRoleRepository;
+    private final PermissionSchemaSpaceRolesRepository permissionSchemaSpaceRolesRepository;
+    private final SpaceRepository spaceRepository;
+    private final SpaceUserRoleService spaceUserRoleService;
+    private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
 
-    final TwinRepository twinRepository;
+    private final TwinRepository twinRepository;
     @Lazy
-    final TwinService twinService;
+    private final TwinService twinService;
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
     @Lazy
-    final DomainService domainService;
-    final UserGroupService userGroupService;
+    private final DomainService domainService;
+    private final UserGroupService userGroupService;
     @Lazy
-    final EntitySmartService entitySmartService;
-    final PermissionGroupService permissionGroupService;
+    private final EntitySmartService entitySmartService;
+    private final PermissionGroupService permissionGroupService;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
