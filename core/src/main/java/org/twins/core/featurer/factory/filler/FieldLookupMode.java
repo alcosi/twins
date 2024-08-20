@@ -5,5 +5,6 @@ public enum FieldLookupMode {
     fromContextTwinFields,
     fromContextFieldsAndContextTwinFields,
     fromContextTwinFieldsAndContextFields,
+    fromContextTwinHeadTwinFields,
     fromItemOutputFields
 }
