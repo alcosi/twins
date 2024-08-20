@@ -56,7 +56,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
-        checlAndSetAttachmentTwin(attachments, twinEntity);
+        checkAndSetAttachmentTwin(attachments, twinEntity);
         return addAttachments(attachments);
     }
 
@@ -85,7 +85,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         addAttachments(attachments, twinChangesCollector);
     }
 
-    public void checlAndSetAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
+    public void checkAndSetAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             //twin relink is not security safe
             if (attachmentEntity.getTwinId() != null && !attachmentEntity.getTwinId().equals(twinEntity.getId()))
@@ -165,7 +165,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     @Transactional
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinEntity twinEntity) throws ServiceException {
-        checlAndSetAttachmentTwin(attachmentEntityList, twinEntity);
+        checkAndSetAttachmentTwin(attachmentEntityList, twinEntity);
         updateAttachments(attachmentEntityList);
     }
 
@@ -228,7 +228,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void deleteAttachments(TwinEntity twinEntity, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
-        checlAndSetAttachmentTwin(attachmentDeleteList, twinEntity);
+        checkAndSetAttachmentTwin(attachmentDeleteList, twinEntity);
         TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
         deleteAttachments(attachmentDeleteList, twinChangesCollector);
         twinChangesService.applyChanges(twinChangesCollector);

@@ -727,9 +727,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         runFactories(transitionContextBatch);
         DraftCollector draftCollector = draftService.beginDraft();
         draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());
+        //simple transitions also must be drafted here
         for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
             for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
-                draftService.draftUpdate(draftCollector, new TwinEntity()
+                draftService.draftTwinUpdate(draftCollector, new TwinEntity()
                         .setId(twinEntity.getId())
                         .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()));
             }

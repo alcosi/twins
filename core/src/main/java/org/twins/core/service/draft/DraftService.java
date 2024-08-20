@@ -25,6 +25,7 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -181,10 +182,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftCollector.getDraftEntity().setStatus(DraftEntity.Status.LOCKED);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getCreates()))
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates())
-                draftCreate(draftCollector, twinCreate);
+                draftTwinCreate(draftCollector, twinCreate);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getUpdates()))
             for (TwinUpdate twinUpdate : factoryResultUncommited.getUpdates())
-                draftUpdate(draftCollector, twinUpdate);
+                draftTwinUpdate(draftCollector, twinUpdate);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
             for (TwinDelete twinDelete : factoryResultUncommited.getDeletes())
                 draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.isCauseGlobalLock());
@@ -197,13 +198,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock));
     }
 
-    public DraftCollector draftUpdate(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
-        draftCollector.add(createTwinPersistDraft(draftCollector.getDraftEntity(), twinEntity));
+    public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
+        draftCollector.add(createTwinUpdateDraft(draftCollector.getDraftEntity(), twinEntity));
         return draftCollector;
     }
 
-    public DraftCollector draftUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
-        draftUpdate(draftCollector, twinUpdate.getTwinEntity());
+    public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
+        draftTwinUpdate(draftCollector, twinUpdate.getTwinEntity());
         draftTagsUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getTagsAddExisted(), twinUpdate.getTagsDelete());
         draftMarkersUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getMarkersAdd(), twinUpdate.getMarkersDelete());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
@@ -231,8 +232,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftCollector;
     }
 
-    public DraftCollector draftCreate(DraftCollector draftCollector, TwinCreate twinCreate) throws ServiceException {
-        draftCollector.add(createTwinPersistDraft(draftCollector.getDraftEntity(), twinCreate.getTwinEntity()));
+    public DraftCollector draftTwinCreate(DraftCollector draftCollector, TwinCreate twinCreate) throws ServiceException {
+        draftCollector.add(createTwinCreateDraft(draftCollector.getDraftEntity(), twinCreate.getTwinEntity()));
         draftTagsUpdate(draftCollector, twinCreate.getTwinEntity().getId(), twinCreate.getTagsAddExisted(), null);
         draftMarkersUpdate(draftCollector, twinCreate.getTwinEntity().getId(), twinCreate.getMarkersAdd(), null);
         if (MapUtils.isNotEmpty(twinCreate.getFields())) {
@@ -324,7 +325,27 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                         createMarkerDraft(draftCollector.getDraftEntity(), twinId, markerId, false));
     }
 
-    public DraftTwinPersistEntity createTwinPersistDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
+    public DraftTwinPersistEntity createTwinCreateDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
+        return new DraftTwinPersistEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinEntity.getId())
+                .setDescription(twinEntity.getDescription())
+                .setName(twinEntity.getName())
+                .setAssignerUserId(twinEntity.getAssignerUserId())
+                .setCreatedByUserId(twinEntity.getCreatedByUserId())
+                .setHeadTwinId(twinEntity.getHeadTwinId())
+                .setExternalId(twinEntity.getExternalId())
+                .setViewPermissionId(twinEntity.getViewPermissionId())
+                .setTwinStatusId(twinEntity.getTwinStatusId())
+//                .setTwinClassId()
+//                .setOwnerUserId()
+//                .setOwnerBusinessAccountId()
+                .setCreateElseUpdate(true);
+    }
+
+    public DraftTwinPersistEntity createTwinUpdateDraft(DraftEntity draftEntity, TwinEntity twinEntity) throws ServiceException {
         return new DraftTwinPersistEntity()
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
@@ -400,6 +421,35 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 draftTwinFieldSimpleEntity
                         .setTwinFieldSimpleId(twinFieldSimpleEntity.getId())
                         .setValue(twinFieldSimpleEntity.getValue());
+                break;
+        }
+        return draftTwinFieldSimpleEntity;
+    }
+
+    public DraftTwinFieldSimpleEntity createFieldDraft(DraftEntity draftEntity, TwinEntity twinEntity, FieldValue fieldValue) throws ServiceException {
+        CUD cud = fieldValue.getId() == null ? CUD.CREATE : CUD.UPDATE;
+
+        DraftTwinFieldSimpleEntity draftTwinFieldSimpleEntity = new DraftTwinFieldSimpleEntity()
+                .setDraft(draftEntity)
+                .setDraftId(draftEntity.getId())
+                .setTimeInMillis(System.currentTimeMillis())
+                .setTwinId(twinEntity.getId())
+                .setTwinClassFieldId(fieldValue.getTwinClassFieldId())
+                .setCud(cud);
+        switch (cud) {
+            case CREATE:
+                if (fieldValue.getTwinClassFieldId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field is required for new field creation");
+                draftTwinFieldSimpleEntity
+                        .setTwinClassFieldId(fieldValue.getTwinClassFieldId())
+                        .setValue(fieldValue.getValue());
+                break;
+            case UPDATE:
+                if (fieldValue.getId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field id required for field update");
+                draftTwinFieldSimpleEntity
+                        .setTwinFieldSimpleId(fieldValue.getId())
+                        .setValue(fieldValue.getValue());
                 break;
         }
         return draftTwinFieldSimpleEntity;

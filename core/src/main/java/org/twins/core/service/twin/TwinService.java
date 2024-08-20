@@ -315,7 +315,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
-            attachmentService.checlAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
+            attachmentService.checkAndSetAttachmentTwin(twinCreate.getAttachmentEntityList(), twinEntity);
             attachmentService.addAttachments(twinCreate.getAttachmentEntityList(), twinChangesCollector);
         }
         if (CollectionUtils.isNotEmpty(twinCreate.getLinksEntityList()))
