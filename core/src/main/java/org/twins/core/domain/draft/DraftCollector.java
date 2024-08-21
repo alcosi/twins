@@ -4,14 +4,19 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.draft.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.history.HistoryCollector;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 import java.util.*;
 
 @Getter
-public class DraftCollector {
+public class DraftCollector extends TwinChangesCollector {
     final DraftEntity draftEntity;
-    Map<Class<?>, Set<Object>> saveEntityMap = new HashMap<>();
+    final Map<Class<?>, Set<Object>> saveEntityMap = new HashMap<>();
+    final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     @Setter
     boolean onceFlushed = false;
 
@@ -26,17 +31,22 @@ public class DraftCollector {
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
         saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
         saveEntityMap.get(entity.getClass()).add(entity);
+        updateCounters(entity);
+        return this;
+    }
+
+    private void updateCounters(Object entity) {
         if (entity instanceof DraftTwinEraseEntity draftTwinEraseEntity && draftTwinEraseEntity.isEraseReady()) { //we will increment counter if erase ready
             if (draftTwinEraseEntity.getEraseTwinStatusId() == null)
                 draftEntity.incrementTwinEraseIrrevocable();
             else
                 draftEntity.incrementTwinEraseByStatus();
-        } else if (entity instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+        } else if (entity instanceof DraftTwinPersistEntity draftTwinPersistEntity) {
             if (draftTwinPersistEntity.isCreateElseUpdate())
                 draftEntity.incrementTwinPersistCreate();
             else
                 draftEntity.incrementTwinPersistUpdate();
-        else if (entity instanceof DraftTwinLinkEntity twinLinkEntity) {
+        } else if (entity instanceof DraftTwinLinkEntity twinLinkEntity) {
             switch (twinLinkEntity.getCud()) {
                 case CREATE -> draftEntity.incrementTwinLinkCreate();
                 case DELETE -> draftEntity.incrementTwinLinkDelete();
@@ -77,8 +87,6 @@ public class DraftCollector {
                 case UPDATE -> draftEntity.incrementTwinFieldUserUpdate();
             }
         }
-
-        return this;
     }
 
     public UUID getDraftId() {
@@ -87,6 +95,10 @@ public class DraftCollector {
 
     public boolean hasChanges() {
         return !saveEntityMap.isEmpty();
+    }
+
+    public HistoryCollector getHistoryCollector(TwinEntity twinEntity) {
+        return historyCollector.forTwin(twinEntity);
     }
 
     public boolean isWritable() {

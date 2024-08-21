@@ -732,7 +732,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
                 draftService.draftTwinUpdate(draftCollector, new TwinEntity()
                         .setId(twinEntity.getId())
-                        .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()));
+                        .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()), twinUpdate.getTwinEntity());
             }
         }
         draftService.endDraft(draftCollector);

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -42,6 +43,7 @@ import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.TwinLinkService;
@@ -521,6 +523,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         updateTwinStatus(dbTwinEntity, updateTwinEntity.getTwinStatus(), twinChangesCollector);
     }
 
+    public void updateTwinBasics(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
+        updateTwinHead(changesRecorder);
+        updateTwinName(changesRecorder);
+        updateTwinDescription(changesRecorder);
+        updateTwinAssignee(changesRecorder);
+        updateTwinStatus(dbTwinEntity, updateTwinEntity.getTwinStatus(), twinChangesCollector);
+    }
+
     public void updateTwinAssignee(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinChangesCollector.collectIfChanged(dbTwinEntity, "assignerUser", dbTwinEntity.getAssignerUserId(), updateTwinEntity.getAssignerUserId())) {
             if (updateTwinEntity.getAssignerUserId().equals(UuidUtils.NULLIFY_MARKER)) {
@@ -540,6 +550,25 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public void updateTwinAssignee(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
+        if (changesRecorder.isChanged("assignerUser", changesRecorder.getDbEntity().getAssignerUserId(), changesRecorder.getUpdateEntity().getAssignerUserId())) {
+            if (updateTwinEntity.getAssignerUserId().equals(UuidUtils.NULLIFY_MARKER)) {
+                if (changesRecorder.isHistoryCollectorEnabled())
+                    twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), null));
+                dbTwinEntity
+                        .setAssignerUserId(null)
+                        .setAssignerUser(null);
+            } else {
+                if (changesRecorder.isHistoryCollectorEnabled())
+                    twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.assigneeChanged(dbTwinEntity.getAssignerUser(), updateTwinEntity.getAssignerUser()));
+                dbTwinEntity
+                        .setAssignerUserId(updateTwinEntity.getAssignerUserId())
+                        .setAssignerUser(updateTwinEntity.getAssignerUser() != null ? updateTwinEntity.getAssignerUser() : null);
+            }
+            checkAssignee(dbTwinEntity);
+        }
+    }
+
     public void updateTwinHead(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (twinChangesCollector.collectIfChanged(dbTwinEntity, "headTwinId", dbTwinEntity.getHeadTwinId(), updateTwinEntity.getHeadTwinId())) {
             if (twinChangesCollector.isHistoryCollectorEnabled())
@@ -547,6 +576,20 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             dbTwinEntity
                     .setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(updateTwinEntity.getHeadTwinId(), dbTwinEntity.getTwinClass()))
                     .setHeadTwin(updateTwinEntity.getHeadTwin() != null ? updateTwinEntity.getHeadTwin() : null);
+        }
+    }
+
+    public void updateTwinHead(ChangesRecorder<TwinEntity, ?> changesRecorder) throws ServiceException {
+        if (changesRecorder.isChanged("headTwinId", changesRecorder.getDbEntity().getHeadTwinId(), changesRecorder.getUpdateEntity().getHeadTwinId())) {
+            if (changesRecorder.isHistoryCollectorEnabled())
+                changesRecorder.getHistoryCollector().add(historyService.headChanged(changesRecorder.getDbEntity().getHeadTwin(), changesRecorder.getUpdateEntity().getHeadTwin()));
+            UUID headTwinId = twinHeadService.checkHeadTwinAllowedForClass(changesRecorder.getUpdateEntity().getHeadTwinId(), changesRecorder.getDbEntity().getTwinClass());
+            if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+                draftTwinPersistEntity
+                        .setHeadTwinId(headTwinId);
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
+                twinEntity
+                        .setHeadTwinId(headTwinId);
         }
     }
 
@@ -558,11 +601,36 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public void updateTwinDescription(ChangesRecorder<TwinEntity, ?> changesRecorder) {
+        if (changesRecorder.isChanged("description", changesRecorder.getDbEntity().getDescription(), changesRecorder.getUpdateEntity().getDescription())) {
+            if (changesRecorder.isHistoryCollectorEnabled())
+                changesRecorder.getHistoryCollector().add(historyService.descriptionChanged(changesRecorder.getDbEntity().getDescription(), changesRecorder.getUpdateEntity().getDescription()));
+            if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+                draftTwinPersistEntity
+                        .setDescription(changesRecorder.getUpdateEntity().getDescription());
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
+                twinEntity
+                        .setDescription(changesRecorder.getUpdateEntity().getDescription());
+        }
+    }
+
     public void updateTwinName(TwinEntity updateTwinEntity, TwinEntity dbTwinEntity, TwinChangesCollector twinChangesCollector) {
         if (twinChangesCollector.collectIfChanged(dbTwinEntity, "name", dbTwinEntity.getName(), updateTwinEntity.getName())) {
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(dbTwinEntity).add(historyService.nameChanged(dbTwinEntity.getName(), updateTwinEntity.getName()));
             dbTwinEntity.setName(updateTwinEntity.getName());
+        }
+    }
+
+    public void updateTwinName(ChangesRecorder<TwinEntity, ?> changesRecorder) {
+        if (changesRecorder.isChanged("name", changesRecorder.getDbEntity().getName(), changesRecorder.getUpdateEntity().getName())) {
+            changesRecorder.getHistoryCollector().add(historyService.nameChanged(changesRecorder.getDbEntity().getName(), changesRecorder.getUpdateEntity().getName()));
+            if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)
+                draftTwinPersistEntity
+                        .setName(changesRecorder.getUpdateEntity().getName());
+            if (changesRecorder.getRecorder() instanceof TwinEntity twinEntity)
+                twinEntity
+                        .setName(changesRecorder.getUpdateEntity().getName());
         }
     }
 

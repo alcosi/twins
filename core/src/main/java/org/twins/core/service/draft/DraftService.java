@@ -30,7 +30,10 @@ import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.service.history.ChangesRecorder;
+import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinEraserService;
+import org.twins.core.service.twin.TwinHeadService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinflow.TwinflowService;
 
@@ -69,6 +72,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final TwinChangesService twinChangesService;
     @Lazy
     private final AttachmentService attachmentService;
+    @Lazy
+    private final HistoryService historyService;
+    @Lazy
+    private final TwinHeadService twinHeadService;
 
     public DraftCollector beginDraft() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -198,13 +205,17 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock));
     }
 
-    public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinEntity twinEntity) throws ServiceException {
-        draftCollector.add(createTwinUpdateDraft(draftCollector.getDraftEntity(), twinEntity));
+    public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinEntity dbTwinEntity, TwinEntity updateTwinEntity) throws ServiceException {
+        DraftTwinPersistEntity draftTwinPersistEntity = new DraftTwinPersistEntity().setCreateElseUpdate(false);
+        ChangesRecorder<TwinEntity, DraftTwinPersistEntity> changesRecorder = new ChangesRecorder<>(dbTwinEntity, updateTwinEntity, draftTwinPersistEntity, draftCollector.getHistoryCollector(dbTwinEntity));
+        twinService.updateTwinBasics(changesRecorder);
+        if (changesRecorder.hasChanges())
+            draftCollector.add(draftTwinPersistEntity);
         return draftCollector;
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
-        draftTwinUpdate(draftCollector, twinUpdate.getTwinEntity());
+        draftTwinUpdate(draftCollector, twinUpdate.getDbTwinEntity(), twinUpdate.getTwinEntity());
         draftTagsUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getTagsAddExisted(), twinUpdate.getTagsDelete());
         draftMarkersUpdate(draftCollector, twinUpdate.getDbTwinEntity().getId(), twinUpdate.getMarkersAdd(), twinUpdate.getMarkersDelete());
         if (MapUtils.isNotEmpty(twinUpdate.getFields())) {
