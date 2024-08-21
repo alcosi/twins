@@ -1,5 +1,7 @@
 package org.twins.core.domain.factory;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.UUID;
 
 public class FactoryBranchId {
@@ -35,7 +37,7 @@ public class FactoryBranchId {
     public FactoryBranchId previous() {
         String newTrace;
         if (trace.contains(DELIMITER))
-            newTrace = trace.substring(0, trace.indexOf(DELIMITER));
+            newTrace = StringUtils.substringBeforeLast(trace, DELIMITER);
         else
             newTrace = "";
         return new FactoryBranchId(newTrace);
