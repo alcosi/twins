@@ -78,15 +78,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Lazy
     private final FeaturerService featurerService;
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
     @Lazy
-    final DraftService draftService;
+    private final DraftService draftService;
     @Lazy
-    final DraftCommitService draftCommitService;
-    final UserGroupService userGroupService;
-    final PermissionService permissionService;
-    final UserService userService;
-    final I18nService i18nService;
+    private final DraftCommitService draftCommitService;
+    private final UserGroupService userGroupService;
+    private final PermissionService permissionService;
+    private final UserService userService;
+    private final I18nService i18nService;
 
     @Autowired
     private CacheManager cacheManager;
@@ -784,7 +784,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext) throws ServiceException {
-        FactoryContext factoryContext = new FactoryContext()
+        FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltFactoryId);
+        FactoryContext factoryContext = new FactoryContext(factoryBranchId)
                 .setInputTwinList(transitionContext.getTargetTwinList().values())
                 .setFields(transitionContext.getFields())
                 .setAttachmentCUD(transitionContext.getAttachmentCUD())

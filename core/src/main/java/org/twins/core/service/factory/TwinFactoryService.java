@@ -6,7 +6,6 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LoggerUtils;
-import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -106,16 +105,17 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     private void runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
         TwinFactoryEntity factoryEntity = findEntitySafe(factoryId);
-        runFactory(factoryEntity, factoryContext, factoryRunTrace);
+        runFactory(factoryEntity, factoryContext);
     }
 
-    private void runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
-        log.info("Running " + factoryEntity.logNormal() + " current trace[" + factoryRunTrace + "]");
-        if (factoryRunTrace == null) factoryRunTrace = "";
-        if (factoryRunTrace.contains(factoryEntity.getId().toString()))
-            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current run trace[" + factoryRunTrace + "]");
+    private void runFactory(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+        log.info("Running " + factoryEntity.logNormal() + " current branch[" + factoryContext.getCurrentFactoryBranchId() + "]");
+        if (factoryContext.getCurrentFactoryBranchId() == null)   //we are in root factory
+            factoryContext.setCurrentFactoryBranchId(FactoryBranchId.root(factoryEntity.getId()));
+        else if (factoryContext.getCurrentFactoryBranchId().alreadyVisited(factoryEntity.getId()))
+            throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current branch[" + factoryContext.getCurrentFactoryBranchId() + "]");
         else
-            factoryRunTrace += StringUtils.isBlank(factoryRunTrace) ? factoryEntity.getId().toString() : " > " + factoryEntity.getId().toString();
+            factoryContext.setCurrentFactoryBranchId(factoryContext.getCurrentFactoryBranchId().next(factoryEntity.getId())); //branchId must be incremented
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext, factoryRunTrace);
         runErasers(factoryEntity, factoryContext);
@@ -164,7 +164,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             } else
                 multiplierOutputFiltered.addAll(multiplierOutput);
             LoggerUtils.traceTreeLevelUp();
-            factoryContext.getFactoryItemList().addAll(multiplierOutput);
+            factoryContext.addAll(multiplierOutput);
         }
         LoggerUtils.traceTreeLevelUp();
     }
