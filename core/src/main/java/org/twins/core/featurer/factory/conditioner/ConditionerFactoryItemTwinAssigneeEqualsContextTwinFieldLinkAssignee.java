@@ -48,8 +48,10 @@ public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigne
         FieldValueLink fieldValue = (FieldValueLink) factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextFields);
         TwinLinkEntity twinLinkEntity = fieldValue.getTwinLinks().get(0);
         TwinEntity dstTwin = twinLinkEntity.getDstTwin();
-        if (dstTwin == null)
+        if (dstTwin == null) {
             dstTwin = twinService.findEntitySafe(twinLinkEntity.getDstTwinId());
+            twinLinkEntity.setDstTwin(dstTwin);
+        }
         return dstTwin.getAssignerUserId().equals(factoryItem.getTwin().getAssignerUserId());
     }
 }
