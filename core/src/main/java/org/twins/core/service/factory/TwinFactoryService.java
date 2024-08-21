@@ -117,7 +117,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         else
             factoryContext.setCurrentFactoryBranchId(factoryContext.getCurrentFactoryBranchId().next(factoryEntity.getId())); //branchId must be incremented
         runMultipliers(factoryEntity, factoryContext);
-        runPipelines(factoryEntity, factoryContext, factoryRunTrace);
+        runPipelines(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
         log.info("Factory " + factoryEntity.logShort() + " ended");
     }
@@ -169,7 +169,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private void runPipelines(TwinFactoryEntity factoryEntity, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+    private void runPipelines(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
         List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
         log.info("Loaded " + factoryPipelineEntityList.size() + " pipelines");
         LoggerUtils.traceTreeLevelDown();
@@ -184,7 +184,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info(factoryPipelineEntity.logShort() + " has nextFactoryId configured");
                 LoggerUtils.traceTreeLevelDown();
-                runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext, factoryRunTrace);
+                runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext);
                 LoggerUtils.traceTreeLevelUp();
             }
         }

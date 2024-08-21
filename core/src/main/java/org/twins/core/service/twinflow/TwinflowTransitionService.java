@@ -732,7 +732,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
                 draftService.draftTwinUpdate(draftCollector, new TwinEntity()
                         .setId(twinEntity.getId())
-                        .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()), twinUpdate.getTwinEntity());
+                        .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()));
             }
         }
         draftService.endDraft(draftCollector);
@@ -784,7 +784,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 
     private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext) throws ServiceException {
-        FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltFactoryId);
+        UUID inbuiltTwinFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
+        FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
         FactoryContext factoryContext = new FactoryContext(factoryBranchId)
                 .setInputTwinList(transitionContext.getTargetTwinList().values())
                 .setFields(transitionContext.getFields())
@@ -801,7 +802,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         LoggerUtils.traceTreeStart();
         FactoryResultUncommited factoryResultUncommited;
         try {
-            factoryResultUncommited = twinFactoryService.runFactory(transitionContext.getTransitionEntity().getInbuiltTwinFactoryId(), factoryContext);
+            factoryResultUncommited = twinFactoryService.runFactory(inbuiltTwinFactoryId, factoryContext);
         } finally {
             LoggerUtils.traceTreeEnd();
         }
