@@ -12,11 +12,15 @@ import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
 public class FactoryItem implements EasyLoggable {
+    private FactoryBranchId factoryBranchId;
     private FactoryContext factoryContext;
     private TwinOperation output;
     private List<FactoryItem> contextFactoryItemList;

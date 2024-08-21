@@ -1,6 +1,9 @@
 package org.twins.core.service.twinflow;
 
-import lombok.*;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.IterableUtils;
@@ -32,11 +35,8 @@ import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinCreate;
-import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinUpdate;
-import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.*;
+import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.transition.TransitionContext;
@@ -725,15 +725,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                     .setTwinflowTransitionId(transitionContext.getTransitionEntity().getId())
                     .setTwinflowTransition(transitionContext.getTransitionEntity()));
         }
-        if (transitionContext.getTransitionEntity().getInbuiltTwinFactoryId() != null) {
-            FactoryContext factoryContext = new FactoryContext()
+        UUID inbuiltFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
+        if (inbuiltFactoryId != null) {
+            FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltFactoryId);
+            FactoryContext factoryContext = new FactoryContext(factoryBranchId)
                     .setInputTwinList(transitionContext.getTargetTwinList().values())
                     .setFields(transitionContext.getFields())
                     .setAttachmentCUD(transitionContext.getAttachmentCUD())
                     .setBasics(transitionContext.getBasics());
             if (CollectionUtils.isNotEmpty(transitionContext.getNewTwinList())) { //new twins must be added to factory content for having possibility to run pipelines for them
                 for (TwinCreate twinCreate : transitionContext.getNewTwinList()) {
-                    factoryContext.getFactoryItemList().add(new FactoryItem()
+                    factoryContext.add(new FactoryItem()
                             .setOutput(twinCreate)
                             .setFactoryContext(factoryContext));
 //                            .setContextFactoryItemList(transitionContext.getTargetTwinList().values().stream().toList())); //fixme

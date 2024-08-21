@@ -19,6 +19,12 @@ public class FactoryContext {
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
     private List<FactoryItem> factoryItemList = new ArrayList<>();
     private TwinBasicFields basics = null;
+    private FactoryBranchId rootFactoryBranchId;
+    private FactoryBranchId currentFactoryBranchId;
+
+    public FactoryContext(FactoryBranchId rootFactoryBranchId) {
+        this.rootFactoryBranchId = rootFactoryBranchId;
+    }
 
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
 
@@ -42,6 +48,14 @@ public class FactoryContext {
         return this;
     }
 
+    public List<FactoryItem> getFactoryItemList() {
+        return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
+    }
+
+    public List<FactoryItem> getAllFactoryItemList() {
+        return factoryItemList;
+    }
+
     private void addFactoryItem(TwinEntity inputTwin) { // inputTwins can be updated in pipelines, so we have to wrap them to FactoryItem
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate
@@ -59,7 +73,11 @@ public class FactoryContext {
         // we have to do so, because all data for items can be looked up only from context
         // see TwinFactoryService.lookupFieldValue
         factoryItem.setContextFactoryItemList(List.of(rootItem));
-        factoryItemList.add(factoryItem);
+        add(factoryItem);
+    }
+
+    public void add(FactoryItem factoryItem) {
+        factoryItemList.add(factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId));
     }
 
 
@@ -71,6 +89,12 @@ public class FactoryContext {
 
     @Override
     public String toString() {
-        return "FactoryContext";
+        return "FactoryContext[" + currentFactoryBranchId + "]";
+    }
+
+    public void addAll(List<FactoryItem> multiplierOutput) {
+        for (FactoryItem factoryItem : multiplierOutput) {
+            add(factoryItem);
+        }
     }
 }
