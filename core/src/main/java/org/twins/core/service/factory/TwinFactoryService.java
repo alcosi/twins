@@ -180,6 +180,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             }
         }
         LoggerUtils.traceTreeLevelUp();
+        factoryContext.currentFactoryBranchLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
         return factoryContext.getAllFactoryItemList().stream().map(FactoryItem::getOutput).toList();
     }
