@@ -119,6 +119,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
+        factoryContext.currentFactoryBranchLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
     }
 

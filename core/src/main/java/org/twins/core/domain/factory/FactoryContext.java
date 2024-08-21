@@ -96,4 +96,8 @@ public class FactoryContext {
             add(factoryItem);
         }
     }
+
+    public void currentFactoryBranchLevelUp() {
+        currentFactoryBranchId = currentFactoryBranchId.previous();
+    }
 }
