@@ -37,6 +37,8 @@ public abstract class ApiController {
         ErrorEntity errorEntity = errorRepository.findByErrorCodeLocal(statusCode);
         if (errorEntity != null)
             rs.setMsg(i18NService.translateToLocale(errorEntity.getClientMsgI18nId(), context));
+        else
+            rs.setMsg("error");
         return new ResponseEntity<>(rs, httpStatus);
     }
 
