@@ -45,7 +45,6 @@ public class TwinDeleteController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
         Response rs = new Response();
         try {
-            ApiUser apiUser = authService.getApiUser();
             twinService.deleteTwin(twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -67,7 +66,6 @@ public class TwinDeleteController extends ApiController {
             @RequestBody TwinDeleteRqDTOv1 twinDeleteRqDTOv1) {
         Response rs = new Response();
         try {
-            ApiUser apiUser = authService.getApiUser();
             for (UUID twinId : twinDeleteRqDTOv1.twinIds)
                 twinService.deleteTwin(twinId);
         } catch (ServiceException se) {
