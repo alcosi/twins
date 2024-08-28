@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -23,6 +20,7 @@ import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.draft.DraftRsDTOv1;
+import org.twins.core.dto.rest.twin.TwinDeleteRqDTOv1;
 import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.twin.TwinEraserService;
@@ -50,6 +48,28 @@ public class TwinDeleteController extends ApiController {
         Response rs = new Response();
         try {
             twinEraserService.eraseTwin(twinId);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "twinDeleteBatchV1", summary = "Delete twins by self id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Twin data", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/twin/delete/v1")
+    public ResponseEntity<?> twinDeleteBatchV1(
+            @RequestBody TwinDeleteRqDTOv1 twinDeleteRqDTOv1) {
+        Response rs = new Response();
+        try {
+            for (UUID twinId : twinDeleteRqDTOv1.twinIds)
+                twinEraserService.eraseTwin(twinId);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
