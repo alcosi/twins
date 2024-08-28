@@ -475,7 +475,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void updateTransitionSrcStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("srcStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
-        if(null != statusId && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+        if (null != statusId && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setSrcTwinStatusId(statusId);
     }
@@ -484,9 +484,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void updateTransitionDstStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("dstStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
-        if(null == statusId)
+        if (null == statusId)
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "Dst status for transition can't be null");
-        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+        if (!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setDstTwinStatusId(statusId);
     }
@@ -728,11 +728,17 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         DraftCollector draftCollector = draftService.beginDraft();
         draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());
         //simple transitions also must be drafted here
+        TwinUpdate twinUpdate;
         for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
             for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
-                draftService.draftTwinUpdate(draftCollector, new TwinEntity()
-                        .setId(twinEntity.getId())
-                        .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId()));
+                twinUpdate = new TwinUpdate();
+                twinUpdate
+                        .setDbTwinEntity(twinEntity)
+                        .setTwinEntity(new TwinEntity()
+                                .setId(twinEntity.getId())
+                                .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
+                                .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus()));
+                draftService.draftTwinUpdate(draftCollector, twinUpdate);
             }
         }
         draftService.endDraft(draftCollector);

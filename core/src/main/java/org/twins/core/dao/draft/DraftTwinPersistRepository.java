@@ -26,4 +26,44 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
 
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateTrue(UUID draftId, Pageable pageable);
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateFalse(UUID draftId, Pageable pageable);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin " +
+                    "set twin_status_id     = nullifyIfNecessary(dtp.twin_status_id, twin_status_id), " +
+                    "    head_twin_id       = nullifyIfNecessary(dtp.head_twin_id, head_twin_id), " +
+                    "    external_id        = nullifyIfNecessary(dtp.external_id, external_id), " +
+                    "    name               = nullifyIfNecessary(dtp.name, name), " +
+                    "    description        = nullifyIfNecessary(dtp.description, description), " +
+                    "    assigner_user_id   = nullifyIfNecessary(dtp.assigner_user_id, assigner_user_id), " +
+                    "    view_permission_id = nullifyIfNecessary(dtp.view_permission_id, view_permission_id) " +
+                    "from draft_twin_persist dtp " +
+                    "where draft_id = :draftId " +
+                    "  and dtp.twin_id = twin.id " +
+                    "  and dtp.create_else_update = false;")
+    long commitTwinsUpdates(UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "insert into twin (id, twin_class_id, head_twin_id, external_id, twin_status_id, name, description, created_by_user_id, " +
+                    "                  assigner_user_id, created_at, owner_business_account_id, owner_user_id, view_permission_id) " +
+                    "select id, " +
+                    "       twin_class_id, " +
+                    "       head_twin_id, " +
+                    "       external_id, " +
+                    "       twin_status_id, " +
+                    "       name, " +
+                    "       description, " +
+                    "       created_by_user_id, " +
+                    "       assigner_user_id, " +
+                    "       current_timestamp, " +
+                    "       owner_business_account_id, " +
+                    "       owner_user_id, " +
+                    "       view_permission_id " +
+                    "from draft_twin_persist " +
+                    "where draft_id = :draftId " +
+                    "  and create_else_update = true;")
+    long commitTwinsCreates(UUID draftId);
 }

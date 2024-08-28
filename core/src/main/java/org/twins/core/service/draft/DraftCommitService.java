@@ -2,29 +2,18 @@ package org.twins.core.service.draft;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.util.StringUtils;
-import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Slice;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.TwinChangesService;
-import org.twins.core.service.attachment.AttachmentService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.twin.TwinService;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -42,16 +31,7 @@ public class DraftCommitService {
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
-    private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
-    @Lazy
-    private final AuthService authService;
-    @Lazy
-    private final TwinService twinService;
-    @Lazy
-    private final TwinChangesService twinChangesService;
-    @Lazy
-    private final AttachmentService attachmentService;
     @Lazy
     private final DraftService draftService;
 
@@ -81,9 +61,15 @@ public class DraftCommitService {
         commitTwinErase(draftEntity);
         commitTwinPersist(draftEntity);
         commitTwinFields(draftEntity);
+        commitTwinLinks(draftEntity);
         commitTwinMarkers(draftEntity);
         commitTwinTags(draftEntity);
         commitTwinAttachments(draftEntity);
+        commitHistory(draftEntity);
+    }
+
+    private void commitHistory(DraftEntity draftEntity) {
+
     }
 
     private void commitTwinErase(DraftEntity draftEntity) throws ServiceException {
@@ -109,30 +95,31 @@ public class DraftCommitService {
         if (draftEntity.getTwinEraseByStatusCount() <= 0)
             return;
         log.info("commiting {} erase by status changes", draftEntity.getTwinEraseByStatusCount());
-        Slice<DraftTwinEraseEntity> slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
-        boolean hasEraseStatusChange = slice.hasContent();
-        boolean hasNext;
-        List<DraftTwinEraseEntity> draftTwinEraseEntityList;
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            draftTwinEraseEntityList = slice.getContent();
-            if (draftTwinEraseEntityList.isEmpty())
-                break;
-            for (DraftTwinEraseEntity draftTwinErase : draftTwinEraseEntityList) {
-                if (draftTwinErase.isCauseGlobalLock() || !draftTwinErase.isEraseReady())
-                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftEntity.logShort() + " is locked by " + draftTwinErase);
-                twinService.updateTwinStatus(draftTwinErase.getTwin(), draftTwinErase.getEraseTwinStatus(), twinChangesCollector);
-            }
-            //we use twinChangeCollector only to collect history. Status change can be done in one query
-            twinChangesService.saveHistoryOnly(twinChangesCollector);
-            twinChangesCollector.clear();
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), slice.nextPageable());
-            }
-        } while (hasNext);
-        if (hasEraseStatusChange) //we will do update in one query
-            draftTwinEraseRepository.commitEraseWithStatusChange(draftEntity.getId());
+        draftTwinEraseRepository.commitEraseByStatus(draftEntity.getId());
+//        Slice<DraftTwinEraseEntity> slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
+//        boolean hasEraseStatusChange = slice.hasContent();
+//        boolean hasNext;
+//        List<DraftTwinEraseEntity> draftTwinEraseEntityList;
+//        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+//        do {
+//            draftTwinEraseEntityList = slice.getContent();
+//            if (draftTwinEraseEntityList.isEmpty())
+//                break;
+//            for (DraftTwinEraseEntity draftTwinErase : draftTwinEraseEntityList) {
+//                if (draftTwinErase.isCauseGlobalLock() || !draftTwinErase.isEraseReady())
+//                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftEntity.logShort() + " is locked by " + draftTwinErase);
+//                twinService.updateTwinStatus(draftTwinErase.getTwin(), draftTwinErase.getEraseTwinStatus(), twinChangesCollector);
+//            }
+//            //we use twinChangeCollector only to collect history. Status change can be done in one query
+//            twinChangesService.saveHistoryOnly(twinChangesCollector);
+//            twinChangesCollector.clear();
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinEraseRepository.findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(draftEntity.getId(), slice.nextPageable());
+//            }
+//        } while (hasNext);
+//        if (hasEraseStatusChange) //we will do update in one query
+//            draftTwinEraseRepository.commitEraseWithStatusChange(draftEntity.getId());
     }
 
     private void commitTwinPersist(DraftEntity draftEntity) throws ServiceException {
@@ -147,52 +134,54 @@ public class DraftCommitService {
         if (draftEntity.getTwinPersistUpdateCount() <= 0)
             return;
         log.info("commiting {} updated twins", draftEntity.getTwinPersistUpdateCount());
-        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinPersistEntity> draftTwinUpdateEntityList;
-        Kit<TwinEntity, UUID> dbEntities;
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            draftTwinUpdateEntityList = slice.getContent();
-            if (draftTwinUpdateEntityList.isEmpty())
-                break;
-            // bulk load
-            dbEntities = twinService.findEntitiesSafe(draftTwinUpdateEntityList.stream().map(DraftTwinPersistEntity::getTwinId).toList());
-            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinUpdateEntityList) {
-                twinService.updateTwinBasics(convertDraft(draftTwinPersistEntity), dbEntities.get(draftTwinPersistEntity.getTwinId()), twinChangesCollector);
-            }
-            twinChangesService.applyChanges(twinChangesCollector);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), slice.nextPageable());
-            }
-        } while (hasNext);
+        draftTwinPersistRepository.commitTwinsUpdates(draftEntity.getId());
+//        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        List<DraftTwinPersistEntity> draftTwinUpdateEntityList;
+//        Kit<TwinEntity, UUID> dbEntities;
+//        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+//        do {
+//            draftTwinUpdateEntityList = slice.getContent();
+//            if (draftTwinUpdateEntityList.isEmpty())
+//                break;
+//            // bulk load
+//            dbEntities = twinService.findEntitiesSafe(draftTwinUpdateEntityList.stream().map(DraftTwinPersistEntity::getTwinId).toList());
+//            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinUpdateEntityList) {
+//                twinService.updateTwinBasics(convertDraft(draftTwinPersistEntity), dbEntities.get(draftTwinPersistEntity.getTwinId()), twinChangesCollector);
+//            }
+//            twinChangesService.applyChanges(twinChangesCollector);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateFalse(draftEntity.getId(), slice.nextPageable());
+//            }
+//        } while (hasNext);
     }
 
     private void commitTwinPersistCreate(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinPersistCreateCount() <= 0)
             return;
         log.info("commiting {} created twins", draftEntity.getTwinPersistCreateCount());
-        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinPersistEntity> draftTwinCreateEntityList;
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            draftTwinCreateEntityList = slice.getContent();
-            if (draftTwinCreateEntityList.isEmpty())
-                break;
-            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinCreateEntityList) {
-                twinService.createTwinEntity(convertDraft(draftTwinPersistEntity), twinChangesCollector);
-            }
-            twinChangesService.applyChanges(twinChangesCollector);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), slice.nextPageable());
-            }
-        } while (hasNext);
+        draftTwinPersistRepository.commitTwinsCreates(draftEntity.getId());
+//        Slice<DraftTwinPersistEntity> slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        List<DraftTwinPersistEntity> draftTwinCreateEntityList;
+//        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+//        do {
+//            draftTwinCreateEntityList = slice.getContent();
+//            if (draftTwinCreateEntityList.isEmpty())
+//                break;
+//            for (DraftTwinPersistEntity draftTwinPersistEntity : draftTwinCreateEntityList) {
+//                twinService.createTwinEntity(convertDraft(draftTwinPersistEntity), twinChangesCollector);
+//            }
+//            twinChangesService.applyChanges(twinChangesCollector);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), slice.nextPageable());
+//            }
+//        } while (hasNext);
     }
 
-    private void commitTwinFields(DraftEntity draftEntity) {
+    private void commitTwinFields(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinFieldCount() <= 0)
             return;
         log.info("commiting {} twin fields", draftEntity.getTwinFieldCount());
@@ -202,7 +191,7 @@ public class DraftCommitService {
     }
 
 
-    private void commitTwinFieldSimple(DraftEntity draftEntity) {
+    private void commitTwinFieldSimple(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinFieldSimpleCount() <= 0)
             return;
         log.info("commiting {} twin fields simple", draftEntity.getTwinFieldSimpleCount());
@@ -211,43 +200,131 @@ public class DraftCommitService {
         commitTwinFieldSimpleUpdate(draftEntity);
     }
 
-    private void commitTwinFieldSimpleDelete(DraftEntity draftEntity) {
-
+    private void commitTwinFieldSimpleDelete(DraftEntity draftEntity) throws ServiceException {
+        if (draftEntity.getTwinFieldSimpleDeleteCount() <= 0)
+            return;
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "twin simple fields deletion is not implemented");
     }
 
     private void commitTwinFieldSimpleCreate(DraftEntity draftEntity) {
         if (draftEntity.getTwinFieldSimpleCreateCount() <= 0)
             return;
         log.info("commiting {} twin fields simple: created", draftEntity.getTwinFieldSimpleCreateCount());
-        Slice<DraftTwinFieldSimpleEntity> slice = draftTwinFieldSimpleRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinFieldSimpleEntity> draftTwinFieldSimpleCreateEntityList;
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            draftTwinFieldSimpleCreateEntityList = slice.getContent();
-            if (draftTwinFieldSimpleCreateEntityList.isEmpty())
-                break;
-            for (DraftTwinFieldSimpleEntity draftTwinPersistEntity : draftTwinFieldSimpleCreateEntityList) {
-                twinChangesCollector.getHistoryCollector(fgdfg).add(historyService.fieldChangeSimple());
-            }
-            twinChangesService.applyChanges(twinChangesCollector);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), slice.nextPageable());
-            }
-        } while (hasNext);
+        draftTwinFieldSimpleRepository.commitCreates(draftEntity.getId());
+//        Slice<DraftTwinFieldSimpleEntity> slice = draftTwinFieldSimpleRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        List<DraftTwinFieldSimpleEntity> draftTwinFieldSimpleCreateEntityList;
+//        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+//        do {
+//            draftTwinFieldSimpleCreateEntityList = slice.getContent();
+//            if (draftTwinFieldSimpleCreateEntityList.isEmpty())
+//                break;
+//            for (DraftTwinFieldSimpleEntity draftTwinPersistEntity : draftTwinFieldSimpleCreateEntityList) {
+//                twinChangesCollector.getHistoryCollector(fgdfg).add(historyService.fieldChangeSimple());
+//            }
+//            twinChangesService.applyChanges(twinChangesCollector);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinPersistRepository.findByDraftIdAndCreateElseUpdateTrue(draftEntity.getId(), slice.nextPageable());
+//            }
+//        } while (hasNext);
     }
 
     private void commitTwinFieldSimpleUpdate(DraftEntity draftEntity) {
-
+        if (draftEntity.getTwinFieldSimpleUpdateCount() <= 0)
+            return;
+        log.info("commiting {} twin fields simple: updated", draftEntity.getTwinFieldSimpleUpdateCount());
+        draftTwinFieldSimpleRepository.commitUpdates(draftEntity.getId());
     }
 
     private void commitTwinFieldUser(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldUserCount() <= 0)
+            return;
+        log.info("commiting {} twin fields simple", draftEntity.getTwinFieldUserCount());
+        commitTwinFieldUserDelete(draftEntity);
+        commitTwinFieldUserCreate(draftEntity);
+        commitTwinFieldUserUpdate(draftEntity);
+    }
 
+    private void commitTwinFieldUserUpdate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldUserUpdateCount() <= 0)
+            return;
+        log.info("commiting {} twin fields user: updated", draftEntity.getTwinFieldUserUpdateCount());
+        draftTwinFieldUserRepository.commitUpdates(draftEntity.getId());
+    }
+
+    private void commitTwinFieldUserCreate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldUserCreateCount() <= 0)
+            return;
+        log.info("commiting {} twin fields user: created", draftEntity.getTwinFieldUserCreateCount());
+        draftTwinFieldUserRepository.commitCreates(draftEntity.getId());
+    }
+
+    private void commitTwinFieldUserDelete(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldUserDeleteCount() <= 0)
+            return;
+        log.info("commiting {} twin fields user: deleted", draftEntity.getTwinFieldUserDeleteCount());
+        draftTwinFieldUserRepository.commitDeletes(draftEntity.getId());
     }
 
     private void commitTwinFieldDataList(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldDataListCount() <= 0)
+            return;
+        log.info("commiting {} twin fields simple", draftEntity.getTwinFieldDataListCount());
+        commitTwinFieldDataListDelete(draftEntity);
+        commitTwinFieldDataListCreate(draftEntity);
+        commitTwinFieldDataListUpdate(draftEntity);
+    }
 
+    private void commitTwinFieldDataListDelete(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldDataListDeleteCount() <= 0)
+            return;
+        log.info("commiting {} twin fields data list: deleted", draftEntity.getTwinFieldDataListDeleteCount());
+        draftTwinFieldDataListRepository.commitDeletes(draftEntity.getId());
+    }
+
+    private void commitTwinFieldDataListCreate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldDataListCreateCount() <= 0)
+            return;
+        log.info("commiting {} twin fields data list: created", draftEntity.getTwinFieldDataListCreateCount());
+        draftTwinFieldDataListRepository.commitCreates(draftEntity.getId());
+    }
+
+    private void commitTwinFieldDataListUpdate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinFieldDataListUpdateCount() <= 0)
+            return;
+        log.info("commiting {} twin fields data list: updated", draftEntity.getTwinFieldDataListUpdateCount());
+        draftTwinFieldDataListRepository.commitUpdates(draftEntity.getId());
+    }
+
+    private void commitTwinLinks(DraftEntity draftEntity) {
+        if (draftEntity.getTwinLinkCount() <= 0)
+            return;
+        log.info("commiting {} twin links", draftEntity.getTwinLinkCount());
+        commitTwinLinksDelete(draftEntity);
+        commitTwinLinksCreate(draftEntity);
+        commitTwinLinksUpdate(draftEntity);
+    }
+
+    private void commitTwinLinksDelete(DraftEntity draftEntity) {
+        if (draftEntity.getTwinLinkDeleteCount() <= 0)
+            return;
+        log.info("commiting {} twin links: deleted", draftEntity.getTwinLinkDeleteCount());
+        draftTwinLinkRepository.commitDeletes(draftEntity.getId());
+    }
+
+    private void commitTwinLinksCreate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinLinkCreateCount() <= 0)
+            return;
+        log.info("commiting {} twin links: create", draftEntity.getTwinLinkCreateCount());
+        draftTwinLinkRepository.commitCreates(draftEntity.getId());
+    }
+
+    private void commitTwinLinksUpdate(DraftEntity draftEntity) {
+        if (draftEntity.getTwinLinkUpdateCount() <= 0)
+            return;
+        log.info("commiting {} twin links: update", draftEntity.getTwinLinkUpdateCount());
+        draftTwinLinkRepository.commitUpdates(draftEntity.getId());
     }
 
     private void commitTwinMarkers(DraftEntity draftEntity) throws ServiceException {
@@ -291,76 +368,79 @@ public class DraftCommitService {
         if (draftEntity.getTwinAttachmentCreateCount() <= 0)
             return;
         log.info("commiting {} attachments create", draftEntity.getTwinAttachmentCreateCount());
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentAddList = new ArrayList<>();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentAddList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.addAttachments(attachmentAddList);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
+        draftTwinAttachmentRepository.commitAttachmentsCreate(draftEntity.getId());
+//        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        List<DraftTwinAttachmentEntity> attachmentEntityList;
+//        List<TwinAttachmentEntity> attachmentAddList = new ArrayList<>();
+//        do {
+//            attachmentEntityList = slice.getContent();
+//            if (attachmentEntityList.isEmpty())
+//                break;
+//            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
+//                attachmentAddList.add(convertDraft(draftTwinAttachmentCreate));
+//            }
+//            attachmentService.addAttachments(attachmentAddList);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.CREATE, PageRequest.of(0, PAGE_SIZE));
+//            }
+//        } while (hasNext);
     }
 
     private void commitAttachmentsUpdate(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinAttachmentUpdateCount() <= 0)
             return;
         log.info("commiting {} attachments update", draftEntity.getTwinAttachmentUpdateCount());
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentUpdateList = new ArrayList<>();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentUpdateList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.updateAttachments(attachmentUpdateList);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
+        draftTwinAttachmentRepository.commitAttachmentsUpdate(draftEntity.getId());
+//        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        List<DraftTwinAttachmentEntity> attachmentEntityList;
+//        List<TwinAttachmentEntity> attachmentUpdateList = new ArrayList<>();
+//        do {
+//            attachmentEntityList = slice.getContent();
+//            if (attachmentEntityList.isEmpty())
+//                break;
+//            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
+//                attachmentUpdateList.add(convertDraft(draftTwinAttachmentCreate));
+//            }
+//            attachmentService.updateAttachments(attachmentUpdateList);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.UPDATE, PageRequest.of(0, PAGE_SIZE));
+//            }
+//        } while (hasNext);
     }
 
     private void commitAttachmentsDelete(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getTwinAttachmentDeleteCount() <= 0)
             return;
         log.info("commiting {} attachments delete", draftEntity.getTwinAttachmentDeleteCount());
-        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
-        boolean hasNext;
-        boolean hasAttachmentsToDelete = slice.hasContent();
-        List<DraftTwinAttachmentEntity> attachmentEntityList;
-        List<TwinAttachmentEntity> attachmentDeleteList = new ArrayList<>();
-        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
-        do {
-            attachmentEntityList = slice.getContent();
-            if (attachmentEntityList.isEmpty())
-                break;
-            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
-                attachmentDeleteList.add(convertDraft(draftTwinAttachmentCreate));
-            }
-            attachmentService.deleteAttachments(attachmentDeleteList, twinChangesCollector);
-            //we use twinChangeCollector only to collect history. Deletes be done in one query
-            twinChangesService.saveHistoryOnly(twinChangesCollector);
-            hasNext = slice.hasNext();
-            if (hasNext) {
-                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
-            }
-        } while (hasNext);
-        //now we are ready to bulk delete
-        if (hasAttachmentsToDelete)
-            draftTwinAttachmentRepository.commitAttachmentDelete(draftEntity.getId());
+        draftTwinAttachmentRepository.commitAttachmentsDelete(draftEntity.getId());
+//        Slice<DraftTwinAttachmentEntity> slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
+//        boolean hasNext;
+//        boolean hasAttachmentsToDelete = slice.hasContent();
+//        List<DraftTwinAttachmentEntity> attachmentEntityList;
+//        List<TwinAttachmentEntity> attachmentDeleteList = new ArrayList<>();
+//        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+//        do {
+//            attachmentEntityList = slice.getContent();
+//            if (attachmentEntityList.isEmpty())
+//                break;
+//            for (DraftTwinAttachmentEntity draftTwinAttachmentCreate : attachmentEntityList) {
+//                attachmentDeleteList.add(convertDraft(draftTwinAttachmentCreate));
+//            }
+//            attachmentService.deleteAttachments(attachmentDeleteList, twinChangesCollector);
+//            //we use twinChangeCollector only to collect history. Deletes be done in one query
+//            twinChangesService.saveHistoryOnly(twinChangesCollector);
+//            hasNext = slice.hasNext();
+//            if (hasNext) {
+//                slice = draftTwinAttachmentRepository.findByDraftIdAndCud(draftEntity.getId(), CUD.DELETE, PageRequest.of(0, PAGE_SIZE));
+//            }
+//        } while (hasNext);
+//        //now we are ready to bulk delete
+//        if (hasAttachmentsToDelete)
+//            draftTwinAttachmentRepository.commitAttachmentsDelete(draftEntity.getId());
     }
 
     private TwinAttachmentEntity convertDraft(DraftTwinAttachmentEntity draftTwinAttachmentCreate) {

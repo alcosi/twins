@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TwinChangesApplyResult extends EntitiesChangesCollector {
+public class TwinChangesApplyResult {
     Map<Class<?>, Iterable<Object>> result = new HashMap<>();
 
     public TwinChangesApplyResult put(Class<?> clazz, Iterable<Object> entities) {

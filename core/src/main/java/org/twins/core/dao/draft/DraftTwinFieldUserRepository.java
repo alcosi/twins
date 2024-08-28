@@ -21,4 +21,37 @@ public interface DraftTwinFieldUserRepository extends CrudRepository<DraftTwinFi
                     "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
     void normalizeDraft(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "insert into twin_field_user (id, twin_id, twin_class_field_id, user_id) " +
+                    "select gen_random_uuid(), " +
+                    "       twin_id, " +
+                    "       twin_class_field_id, " +
+                    "       user_id " +
+                    "from draft_twin_field_user " +
+                    "where draft_id = :draftId " +
+                    "  and cud_id = 'CREATE';")
+    long commitCreates(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin_field_user " +
+                    "set user_id        = dta.user_id " +
+                    "from draft_twin_field_user dta " +
+                    "where draft_id = :draftId " +
+                    "  and dta.twin_field_user_id = twin_field_user.id " +
+                    "  and dta.cud_id = 'UPDATE';")
+    long commitUpdates(@Param("draftId") UUID id);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "delete from twin_field_user ta " +
+                    "using draft_twin_field_user dta " +
+                    "where dta.draft_id = :draftId " +
+                    "and dta.twin_field_user_id = ta.id and cud_id = 'DELETE'")
+    long commitDeletes(@Param("draftId") UUID id);
 }

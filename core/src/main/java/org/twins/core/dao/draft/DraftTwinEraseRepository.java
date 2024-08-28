@@ -66,6 +66,12 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                    "group by draft_id;")
    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId);
 
+   @Transactional
+   @Modifying
+   @Query(nativeQuery = true, value =
+           "update twin set twin_status_id = erase_twin_status_id from draft_twin_erase dte where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.erase_twin_status_id is not null;")
+   void commitEraseByStatus(@Param("draftId") UUID draftId);
+
    Slice<DraftTwinEraseEntity> findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(UUID draftId, Pageable pageable);
 
    @Transactional

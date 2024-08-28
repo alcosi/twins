@@ -4,18 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 import org.cambium.common.exception.ServiceException;
 import org.twins.core.dao.draft.*;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 
 import java.util.*;
 
 @Getter
-public class DraftCollector extends TwinChangesCollector {
+public class DraftCollector {
     final DraftEntity draftEntity;
-    final Map<Class<?>, Set<Object>> saveEntityMap = new HashMap<>();
+    final Map<Class<?>, Set<Object>> draftEntitiesMap = new HashMap<>();
     final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
     @Setter
     boolean onceFlushed = false;
@@ -29,8 +26,8 @@ public class DraftCollector extends TwinChangesCollector {
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_STARTED, "current draft was not started");
         if (!isWritable())
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
-        saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
-        saveEntityMap.get(entity.getClass()).add(entity);
+        draftEntitiesMap.computeIfAbsent(entity.getClass(), k -> new HashSet<>());
+        draftEntitiesMap.get(entity.getClass()).add(entity);
         updateCounters(entity);
         return this;
     }
@@ -94,11 +91,7 @@ public class DraftCollector extends TwinChangesCollector {
     }
 
     public boolean hasChanges() {
-        return !saveEntityMap.isEmpty();
-    }
-
-    public HistoryCollector getHistoryCollector(TwinEntity twinEntity) {
-        return historyCollector.forTwin(twinEntity);
+        return !draftEntitiesMap.isEmpty();
     }
 
     public boolean isWritable() {

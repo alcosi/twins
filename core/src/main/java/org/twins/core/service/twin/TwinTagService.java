@@ -4,10 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -24,6 +24,7 @@ import org.twins.core.dao.twin.TwinTagEntity;
 import org.twins.core.dao.twin.TwinTagRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
@@ -31,7 +32,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -122,78 +122,74 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
     }
 
-    public Kit<DataListOptionEntity, UUID> createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    public void createTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(newTags) && CollectionUtils.isEmpty(existingTags))
-            return null;
+            return;
         if (twinEntity.getTwinClass().getTagDataListId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "tags are not allowed for " + twinEntity.logNormal());
-        Kit<DataListOptionEntity, UUID> savedTags = saveTags(twinEntity,
-                Optional.ofNullable(newTags)
-                        .orElse(new HashSet<>()),
-                Optional.ofNullable(existingTags)
-                        .orElse(new HashSet<>()));
-        twinEntity.setTwinTagKit(null);
-        return savedTags;
+        saveTags(twinEntity, newTags, existingTags, twinChangesCollector);
     }
 
-    public void removeTags(TwinEntity twinEntity, Set<UUID> tags) {
+    public void removeTags(TwinEntity twinEntity, Set<UUID> tags, TwinChangesCollector twinChangesCollector) {
         if (CollectionUtils.isEmpty(tags))
             return;
-        log.info(String.format("%s tags[%s] perhaps will be deleted", twinEntity.getId(), StringUtils.join(tags, ",")));
-        twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tags);
-        twinEntity.setTwinTagKit(null);
+        // it's not possible to delete it in such way, because we need to write history
+        // twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tags);
+        loadTags(twinEntity);
+        for (UUID tag : tags) {
+            if (twinEntity.getTwinTagKit().containsKey(tag)) {
+                //todo add history
+                twinChangesCollector.delete(twinEntity.getTwinTagKit().get(tag));
+            }
+        }
     }
 
-    public void updateTwinTags(TwinEntity twinEntity, Set<UUID> tagsToRemove, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
-        removeTags(twinEntity, tagsToRemove);
-        createTags(twinEntity, newTags, existingTags);
+    public void updateTwinTags(TwinEntity twinEntity, Set<UUID> tagsToRemove, Set<String> newTags, Set<UUID> existingTags, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        removeTags(twinEntity, tagsToRemove, twinChangesCollector);
+        createTags(twinEntity, newTags, existingTags, twinChangesCollector);
     }
 
-    private Kit<DataListOptionEntity, UUID> saveTags(TwinEntity twinEntity, Set<String> newTags, Set<UUID> existingTags) throws ServiceException {
+    private void saveTags(TwinEntity twinEntity, Set<String> newTagsStrings, Set<UUID> existingTagsIds, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(newTagsStrings) && CollectionUtils.isEmpty(existingTagsIds))
+            return;
         UUID businessAccountId = null;
-
-        if (authService.getApiUser().isBusinessAccountSpecified()) {
-            businessAccountId = authService.getApiUser().getBusinessAccount().getId();
+        if (authService.getApiUser().isBusinessAccountSpecified())
+            businessAccountId = authService.getApiUser().getBusinessAccountId();
+        Kit<TwinTagEntity, UUID> tagsToSave = new Kit<>(TwinTagEntity::getTagDataListOptionId); //we will use kit to guaranty uniq
+        if (CollectionUtils.isNotEmpty(newTagsStrings)) {
+            List<DataListOptionEntity> newTags = dataListService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTagsStrings, businessAccountId);
+            for (var option : newTags) {
+                tagsToSave.add(createTagEntity(twinEntity, option.getId(), option));
+            }
         }
-
-        List<DataListOptionEntity> tagOptions = dataListService.processNewOptions(twinEntity.getTwinClass().getTagDataListId(), newTags, businessAccountId);
-        List<DataListOptionEntity> filteredExistingTags;
-        if (businessAccountId != null)
-            filteredExistingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTags);
-        else
-            filteredExistingTags = twinTagRepository.findTagsOutOfBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), existingTags);
-
-        List<TwinTagEntity> tagsToSave = new ArrayList<>();
-        tagOptions.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), option)));
-        filteredExistingTags.forEach(option -> tagsToSave.add(createTagEntity(twinEntity, option.getId(), null)));
-
-        // remove duplicates if any
-        List<TwinTagEntity> distinctTags = new ArrayList<>(tagsToSave.stream()
-                .collect(Collectors.toMap(TwinTagEntity::getTagDataListOptionId,
-                        Function.identity(),
-                        (first, second) -> first))
-                .values());
-
-        List<UUID> tagListOptionIds = new ArrayList<>();
-        for (TwinTagEntity tag : distinctTags) {
-            validateEntityAndThrow(tag, EntitySmartService.EntityValidateMode.beforeSave);
-            tagListOptionIds.add(tag.getTagDataListOptionId());
+        if (CollectionUtils.isNotEmpty(existingTagsIds)) {
+            List<DataListOptionEntity> existingTags;
+            if (businessAccountId != null)
+                existingTags = twinTagRepository.findForBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), businessAccountId, existingTagsIds);
+            else
+                existingTags = twinTagRepository.findTagsOutOfBusinessAccount(twinEntity.getTwinClass().getTagDataListId(), existingTagsIds);
+            for (var option : existingTags) {
+                tagsToSave.add(createTagEntity(twinEntity, option.getId(), option));
+            }
         }
-        //  Checking for duplicate tags by twin
-        List<TwinTagEntity> existingTagsOption = twinTagRepository.findAllByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagListOptionIds);
-        distinctTags.removeIf(distinctTag -> existingTagsOption.stream().anyMatch(existTag -> distinctTag.getTagDataListOptionId().equals(existTag.getTagDataListOptionId())));
-
-        entitySmartService.saveAllAndLog(distinctTags, twinTagRepository);
-        return new Kit<>(tagOptions, DataListOptionEntity::getId);
+        if (KitUtils.isEmpty(tagsToSave))
+            return;
+        loadTags(twinEntity);
+        for (TwinTagEntity tagToSave : tagsToSave.getMap().values()) {
+            if (!twinEntity.getTwinTagKit().containsKey(tagToSave.getTagDataListOptionId())) {
+                //todo add history
+                twinChangesCollector.add(tagToSave);
+            }
+        }
     }
 
-    private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) {
+    private TwinTagEntity createTagEntity(TwinEntity twinEntity, UUID optionId, DataListOptionEntity option) throws ServiceException {
         TwinTagEntity newTag = new TwinTagEntity();
         newTag.setTwin(twinEntity);
         newTag.setTwinId(twinEntity.getId());
         newTag.setTagDataListOptionId(optionId);
         newTag.setTagDataListOption(option);
-
+        validateEntityAndThrow(newTag, EntitySmartService.EntityValidateMode.beforeSave);
         return newTag;
     }
 

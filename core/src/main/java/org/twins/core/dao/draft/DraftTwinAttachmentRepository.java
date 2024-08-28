@@ -30,6 +30,65 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from twin_attachment where id in (select twin_attachment_id from draft_twin_attachment where draft_id = :draftId and draft_twin_attachment.cud_id = 'DELETE')")
-    void commitAttachmentDelete(@Param("draftId") UUID draftId);
+            "insert into twin_attachment (id, twin_id, twinflow_transition_id, storage_link, view_permission_id, created_by_user_id, " +
+                    "                             created_at, external_id, title, description, twin_comment_id, twin_class_field_id) " +
+                    "select gen_random_uuid (), " +
+                    "       twin_id, " +
+                    "       twinflow_transition_id, " +
+                    "       storage_link, view_permission_id, " +
+                    "       created_by_user_id, " +
+                    "       current_timestamp, " +
+                    "       external_id, " +
+                    "       title, " +
+                    "       description,  " +
+                    "       twin_comment_id, " +
+                    "       twin_class_field_id " +
+                    "       from draft_twin_attachment " +
+                    "where draft_id = :draftId " +
+                    "  and cud_id = 'CREATE';")
+    long commitAttachmentsCreate(UUID draftId);
+
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin_attachment " +
+                    "set storage_link        = nullifyIfNecessary(dta.storage_link, storage_link), " +
+                    "    view_permission_id  = nullifyIfNecessary(dta.view_permission_id,view_permission_id), " +
+                    "    external_id         = nullifyIfNecessary(dta.external_id,external_id), " +
+                    "    title               = nullifyIfNecessary(dta.title,title), " +
+                    "    description         = nullifyIfNecessary(dta.description,description), " +
+                    "    twin_class_field_id = nullifyIfNecessary(dta.twin_class_field_id,twin_class_field_id), " +
+                    "    twin_comment_id     = nullifyIfNecessary(dta.twin_comment_id, twin_comment_id) " +
+                    "from draft_twin_attachment dta " +
+                    "where draft_id = :draftId " +
+                    "  and dta.twin_attachment_id = twin_attachment.id " +
+                    "  and dta.cud_id = 'UPDATE';")
+    long commitAttachmentsUpdateDelta(@Param("draftId") UUID draftId); //todo use me if only delta will stored in db
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin_attachment " +
+                    "set storage_link        = dta.storage_link, " +
+                    "    view_permission_id  = dta.view_permission_id, " +
+                    "    external_id         = dta.external_id, " +
+                    "    title               = dta.title, " +
+                    "    description         = dta.description, " +
+                    "    twin_class_field_id = dta.twin_class_field_id, " +
+                    "    twin_comment_id     = dta.twin_comment_id " +
+                    "from draft_twin_attachment dta " +
+                    "where draft_id = :draftId " +
+                    "  and dta.twin_attachment_id = twin_attachment.id " +
+                    "  and dta.cud_id = 'UPDATE';")
+    long commitAttachmentsUpdate(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "delete from twin_attachment ta " +
+                    "using draft_twin_attachment dta " +
+                    "where dta.draft_id = :draftId " +
+                    "and dta.twin_attachment_id = ta.id and cud_id = 'DELETE'")
+    long commitAttachmentsDelete(@Param("draftId") UUID draftId);
 }

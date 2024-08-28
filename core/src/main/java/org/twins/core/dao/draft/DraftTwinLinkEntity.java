@@ -42,6 +42,9 @@ public class DraftTwinLinkEntity {
     @Column(name = "link_id")
     private UUID linkId;
 
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;

@@ -21,4 +21,39 @@ public interface DraftTwinLinkRepository extends CrudRepository<DraftTwinLinkEnt
                     "and dtp.dst_twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
                     "and dtp.cud_id = 'DELETE'")
     void normalizeDraft(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "insert into twin_link (id, src_twin_id, dst_twin_id, link_id, created_by_user_id)  " +
+                    "select gen_random_uuid(), " +
+                    "       src_twin_id, " +
+                    "       dst_twin_id, " +
+                    "       link_id, " +
+                    "       created_by_user_id " +
+                    "from draft_twin_link " +
+                    "where draft_id = :draftId " +
+                    "  and cud_id = 'CREATE';")
+    long commitCreates(@Param("draftId") UUID draftId);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin_link " +
+                    "set src_twin_id = dtl.src_twin_id, " +
+                    "dst_twin_id = dtl.dst_twin_id " +
+                    "from draft_twin_link dtl " +
+                    "where draft_id = :draftId " +
+                    "  and dtl.twin_link_id = twin_link.id " +
+                    "  and dtl.cud_id = 'UPDATE';")
+    long commitUpdates(@Param("draftId") UUID id);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "delete from twin_link ta " +
+                    "using draft_twin_link dtl " +
+                    "where dtl.draft_id = :draftId " +
+                    "and dtl.twin_link_id = ta.id and cud_id = 'DELETE'")
+    long commitDeletes(@Param("draftId") UUID id);
 }

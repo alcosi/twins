@@ -19,6 +19,7 @@ import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -68,7 +69,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return changesApplyResult.getForClassAsList(TwinAttachmentEntity.class);
     }
 
-    @Transactional
     public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
@@ -180,7 +180,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         }
     }
 
-    @Transactional
+    //todo collect only delta for correct drafting (minimize lockers)
     public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
@@ -234,7 +234,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    @Transactional
     public void deleteAttachments(List<TwinAttachmentEntity> attachmentDeleteList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
@@ -243,6 +242,23 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             twinChangesCollector.delete(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
+        }
+    }
+
+    public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (attachmentCUD == null)
+            return;
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getCreateList(), twinEntity);
+            addAttachments(attachmentCUD.getCreateList(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getUpdateList(), twinEntity);
+            updateAttachments(attachmentCUD.getUpdateList(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getDeleteList(), twinEntity);
+            deleteAttachments(attachmentCUD.getDeleteList(), twinChangesCollector);
         }
     }
 

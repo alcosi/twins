@@ -87,11 +87,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {
-        HistoryEntity historyEntity = createEntity(twinEntity, type, context, getActor());
+        HistoryEntity historyEntity = createEntity(twinEntity, type, context, getActor(), null);
         entitySmartService.save(historyEntity, historyRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+    public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor, UUID draftId) throws ServiceException {
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -99,7 +99,8 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUser(actor)
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
-                .setContext(context);
+                .setContext(context)
+                .setDraft(draftId != null);
         if (context != null) {
             if (context.getField() != null) {
                 historyEntity.setTwinClassFieldId(context.getField().getId());
@@ -117,7 +118,9 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 }
             }
         }
-        if (authService.getApiUser() != null)
+        if (draftId != null)
+            historyEntity.setHistoryBatchId(draftId);
+        else if (authService.getApiUser() != null)
             historyEntity.setHistoryBatchId(authService.getApiUser().getRequestId());
         fillSnapshotMessage(historyEntity);
         return historyEntity;
@@ -133,13 +136,13 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return actor;
     }
 
-    public void saveHistory(TwinEntity twinEntity, HistoryCollector historyCollector) throws ServiceException {
+    public void saveHistory(TwinEntity twinEntity, HistoryCollector historyCollector, UUID draftId) throws ServiceException {
         if (historyCollector == null || CollectionUtils.isEmpty(historyCollector.getHistoryList()))
             return;
         List<HistoryEntity> historyEntityList = new ArrayList<>();
         UserEntity actor = getActor();
         for (Pair<HistoryType, HistoryContext> pair : historyCollector.getHistoryList()) {
-            HistoryEntity historyEntity = createEntity(twinEntity, pair.getKey(), pair.getValue(), actor);
+            HistoryEntity historyEntity = createEntity(twinEntity, pair.getKey(), pair.getValue(), actor, draftId);
             historyEntityList.add(historyEntity);
         }
         if (CollectionUtils.isNotEmpty(historyEntityList))
@@ -147,6 +150,10 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
+        saveHistory(multiTwinHistoryCollector, null);
+    }
+
+    public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector, UUID draftId) throws ServiceException {
         if (MapUtils.isEmpty(multiTwinHistoryCollector.getMultiTwinHistory()))
             return;
         List<HistoryEntity> historyEntityList = new ArrayList<>();
@@ -155,7 +162,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             if (twinHistory.getValue() == null || CollectionUtils.isEmpty(twinHistory.getValue().getHistoryList()))
                 continue;
             for (Pair<HistoryType, HistoryContext> pair : twinHistory.getValue().getHistoryList()) {
-                HistoryEntity historyEntity = createEntity(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor);
+                HistoryEntity historyEntity = createEntity(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor, draftId);
                 historyEntityList.add(historyEntity);
             }
         }

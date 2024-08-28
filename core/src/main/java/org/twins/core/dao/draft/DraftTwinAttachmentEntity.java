@@ -41,6 +41,9 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "storage_link")
     private String storageLink;
 
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 

@@ -26,5 +26,29 @@ public interface DraftTwinFieldSimpleRepository extends CrudRepository<DraftTwin
     void normalizeDraft(@Param("draftId") UUID draftId);
 
     Slice<DraftTwinFieldSimpleEntity> findByDraftIdAndCud(UUID id, CUD cud, PageRequest of);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "insert into twin_field_simple (id, twin_id, twin_class_field_id, value) " +
+                    "select gen_random_uuid(), " +
+                    "       twin_id, " +
+                    "       twin_class_field_id, " +
+                    "       value " +
+                    "from draft_twin_field_simple " +
+                    "where draft_id = :draftId " +
+                    "  and cud_id = 'CREATE';")
+    long commitCreates(@Param("draftId") UUID id);
+
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update twin_field_simple " +
+                    "set value        = dta.value " +
+                    "from draft_twin_field_simple dta " +
+                    "where draft_id = :draftId " +
+                    "  and dta.twin_field_simple_id = twin_field_simple.id " +
+                    "  and dta.cud_id = 'UPDATE';")
+    long commitUpdates(@Param("draftId") UUID id);
 }
 

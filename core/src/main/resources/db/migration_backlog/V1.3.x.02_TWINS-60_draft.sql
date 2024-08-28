@@ -189,7 +189,8 @@ create table if not exists draft_twin_link
     twin_link_id uuid    not null, -- no FK possible to twin_link if it's creation
     src_twin_id  uuid,             -- do we need to set in not null???
     dst_twin_id  uuid,             -- do we need to set in not null???
-    link_id      uuid              -- do we need to set in not null???
+    link_id      uuid,              -- do we need to set in not null???
+    created_by_user_id uuid
 );
 
 create index if not exists draft_twin_link_draft_id_index
@@ -216,6 +217,7 @@ create table if not exists draft_twin_attachment
     twinflow_transition_id uuid,
     storage_link           varchar(255),
     view_permission_id     uuid,
+    created_by_user_id         uuid,
     external_id            varchar,
     title                  varchar,
     description            varchar,
@@ -345,6 +347,23 @@ create index if not exists draft_twin_field_user_draft_id_index
 create index if not exists draft_twin_field_user_twin_id_index
     on draft_twin_field_user (twin_id);
 
+
+CREATE OR REPLACE FUNCTION nullifyIfNecessary(newValue ANYELEMENT, oldValue ANYELEMENT) RETURNS ANYELEMENT AS
+$$
+BEGIN
+    IF -- nullify marker
+        LOWER(newValue::varchar) = 'ffffffff-ffff-ffff-ffff-ffffffffffff'
+    THEN
+        RETURN null;
+    ELSEIF -- no changes marker
+        newValue is null
+    THEN
+        RETURN oldValue;
+    ELSE
+        RETURN newValue;
+    END IF;
+END;
+$$ LANGUAGE plpgsql;
 
 
 

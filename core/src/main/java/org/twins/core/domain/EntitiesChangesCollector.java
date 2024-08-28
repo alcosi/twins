@@ -11,7 +11,7 @@ public class EntitiesChangesCollector {
 //    Map<Class<?>, Set<UUID>> deleteEntityIdMap = new HashMap<>(); id's is not enough for drafting
     Map<Class<?>, Set<Object>> deleteEntityMap = new HashMap<>();
 
-    private ChangesHelper detectChangesHelper(Object entity) {
+    protected ChangesHelper detectChangesHelper(Object entity) {
         Map<Object, ChangesHelper> entityClassChanges = saveEntityMap.computeIfAbsent(entity.getClass(), k -> new HashMap<>());
         return entityClassChanges.computeIfAbsent(entity, k -> new ChangesHelper());
     }
@@ -34,6 +34,13 @@ public class EntitiesChangesCollector {
 
     public EntitiesChangesCollector add(Object entity) {
         detectChangesHelper(entity);
+        return this;
+    }
+
+    public EntitiesChangesCollector addAll(Collection<?> entities) {
+        for (Object entity : entities) {
+            detectChangesHelper(entity);
+        }
         return this;
     }
 

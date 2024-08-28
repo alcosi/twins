@@ -1,6 +1,5 @@
 package org.twins.core.dao.twinflow;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -77,6 +76,11 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity initialTwinStatus;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @JoinColumn(name = "erase_twin_status_id", insertable = false, updatable = false, nullable = false)
+    private TwinStatusEntity eraseTwinStatus;
 
     @Transient
     @EqualsAndHashCode.Exclude
