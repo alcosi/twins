@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2426,
+@Featurer(id = FeaturerTwins.ID_1607,
         name = "TwinValidatorApiUserIsMemberOfGroup",
         description = "")
 @Slf4j
