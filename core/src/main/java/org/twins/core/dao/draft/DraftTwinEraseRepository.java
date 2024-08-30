@@ -19,10 +19,10 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    @Transactional
    @Modifying
    @Query(nativeQuery = true, value =
-           "insert into draft_twin_erase (draft_id, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
-                   "select :draftId, id, false, :twinId, 'CHILD' " +
+           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
+                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, id, false, :twinId, 'CHILD' " +
                    "from twin " +
-                   "where hierarchy_tree ~ :twin_ltree::lquery " +
+                   "where hierarchy_tree ~ cast(:twin_ltree as lquery) " +
                    "  and not hierarchy_tree <@ " + // we will exclude childes with changed head
                    "    any (select t.hierarchy_tree " +
                    "         from draft_twin_persist dtp, " +
@@ -37,8 +37,8 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    @Transactional
    @Modifying
    @Query(nativeQuery = true, value =
-           "insert into draft_twin_erase (draft_id, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
-                   "select :draftId, tl.src_twin_id, false, :twinId, 'LINK' " +
+           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
+                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, tl.src_twin_id, false, :twinId, 'LINK' " +
                    "from twin_link tl, " +
                    "     link l " +
                    "where tl.dst_twin_id = :twinId " +
@@ -58,10 +58,10 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    @Modifying
    @Query(nativeQuery = true, value =
            "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null)")
-   void commitEraseIrrevocable(@Param("draftId") UUID draftId);
+   long commitEraseIrrevocable(@Param("draftId") UUID draftId);
 
    @Query(nativeQuery = true, value =
-           "select string_agg(twin_id::varchar, ', ') AS ids " +
+           "select string_agg(cast(twin_id as varchar), ', ') AS ids " +
                    "from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null " +
                    "group by draft_id;")
    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId);
@@ -69,16 +69,11 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    @Transactional
    @Modifying
    @Query(nativeQuery = true, value =
-           "update twin set twin_status_id = erase_twin_status_id from draft_twin_erase dte where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.erase_twin_status_id is not null;")
-   void commitEraseByStatus(@Param("draftId") UUID draftId);
+           "update twin set twin_status_id = erase_twin_status_id " +
+                   "from draft_twin_erase dte " +
+                   "where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.erase_twin_status_id is not null;")
+   long commitEraseByStatus(@Param("draftId") UUID draftId);
 
    Slice<DraftTwinEraseEntity> findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(UUID draftId, Pageable pageable);
 
-   @Transactional
-   @Modifying
-   @Query(nativeQuery = true, value =
-           "update twin set twin_status_id = dte.erase_twin_status_id " +
-                   "from draft_twin_erase dte " +
-                   "where dte.twin_id = twin.id and dte.erase_twin_status_id is not null and dte.draft_id = :draftId ")
-   void commitEraseWithStatusChange(@Param("draftId") UUID draftId);
 }

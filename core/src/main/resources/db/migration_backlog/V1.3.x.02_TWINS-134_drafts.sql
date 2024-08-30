@@ -27,6 +27,12 @@ INSERT INTO draft_status (id)
 VALUES ('UNCOMMITED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
+VALUES ('COMMIT_NEED_START');
+INSERT INTO draft_status (id)
+VALUES ('COMMIT_IN_PROGRESS');
+INSERT INTO draft_status (id)
+VALUES ('COMMIT_EXCEPTION');
+INSERT INTO draft_status (id)
 VALUES ('LOCKED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
@@ -55,7 +61,10 @@ create table if not exists draft
             on update cascade,
     twin_erase_count integer not null default 0,
     twin_erase_irrevocable_count integer not null default 0,
+    twin_erase_status_count integer not null default 0,
     twin_persist_count integer not null default 0,
+    twin_persist_create_count integer not null default 0,
+    twin_persist_update_count integer not null default 0,
     twin_link_create_count integer not null default 0,
     twin_link_update_count integer not null default 0,
     twin_link_delete_count integer not null default 0,
@@ -364,6 +373,9 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
+
+alter table public.history
+    add if not exists draft boolean default false;
 
 
 

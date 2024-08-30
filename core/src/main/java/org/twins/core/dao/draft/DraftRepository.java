@@ -22,5 +22,6 @@ public interface DraftRepository extends CrudRepository<DraftEntity, UUID>, JpaS
                     "and twin_id in (select dte.id from draft_twin_erase dte where dte.draft_id = :draftId and dte.erase_twin_status_id is null)")
     void normalizeDraft(@Param("draftId") UUID draftId, @Param("tableName") String tableName);
 
-    List<DraftEntity> findByStatusIdIn(Collection<DraftEntity.Status> statusIds);
+    @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")
+    List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftEntity.Status> statusIds);
 }

@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "DraftBaseV1")
+@Schema(name = "DraftBaseV1")
 public class DraftBaseDTOv1 {
     @Schema(description = "draft id")
     public UUID id;
@@ -33,6 +33,69 @@ public class DraftBaseDTOv1 {
 
     @Schema(description = "count of deleted twins")
     public Integer twinDeleteCount;
+
+    @Schema(description = "count of deleted 'by status change' twins")
+    public Integer twinDeletedByStatusCount;
+
+    @Schema(description = "count of irrevocable deleted twins")
+    public Integer twinDeletedIrrevocableCount;
+
+    @Schema(description = "markers added count")
+    public Integer twinMarkerCreateCount;
+
+    @Schema(description = "markers deleted count")
+    public Integer twinMarkerDeleteCount;
+
+    @Schema(description = "tags added count")
+    public Integer twinTagCreateCount;
+
+    @Schema(description = "tags deleted count")
+    public Integer twinTagDeleteCount;
+
+    @Schema(description = "links created count")
+    public Integer twinLinkCreateCount;
+
+    @Schema(description = "links updated count")
+    public Integer twinLinkUpdateCount;
+
+    @Schema(description = "links deleted count")
+    public Integer twinLinkDeleteCount;
+
+    @Schema(description = "attachment created count")
+    public Integer twinAttachmentCreateCount;
+
+    @Schema(description = "attachment updated count")
+    public Integer twinAttachmentUpdateCount;
+
+    @Schema(description = "attachment deleted count")
+    public Integer twinAttachmentDeleteCount;
+
+    @Schema(description = "simple field created count")
+    public Integer twinFieldSimpleCreateCount;
+
+    @Schema(description = "simple field updated count")
+    public Integer twinFieldSimpleUpdateCount;
+
+    @Schema(description = "simple field deleted count")
+    public Integer twinFieldSimpleDeleteCount;
+
+    @Schema(description = "user field created count")
+    public Integer twinFieldUserCreateCount;
+
+    @Schema(description = "user field updated count")
+    public Integer twinFieldUserUpdateCount;
+
+    @Schema(description = "user field deleted count")
+    public Integer twinFieldUserDeleteCount;
+
+    @Schema(description = "data_list field created count")
+    public Integer twinFieldDataListCreateCount;
+
+    @Schema(description = "data_list field updated count")
+    public Integer twinFieldDataListUpdateCount;
+
+    @Schema(description = "data_list field deleted count")
+    public Integer twinFieldDataListDeleteCount;
 
     @Schema(description = "draft status")
     public DraftEntity.Status status;

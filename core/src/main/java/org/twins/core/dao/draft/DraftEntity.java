@@ -292,6 +292,7 @@ public class DraftEntity implements EasyLoggable {
         UNCOMMITED("UNCOMMITED"),
         COMMIT_NEED_START("COMMIT_IN_QUEUE"),
         COMMIT_IN_PROGRESS("COMMIT_IN_PROGRESS"),
+        COMMIT_EXCEPTION("COMMIT_EXCEPTION"),
         LOCKED("LOCKED"),
         OUT_OF_DATE("OUT_OF_DATE"),
         COMMITED("COMMITED");

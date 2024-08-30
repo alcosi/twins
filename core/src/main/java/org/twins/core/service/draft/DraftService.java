@@ -135,7 +135,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                         throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "something went wrong");
                 }
                 runEraseFactoryAndDraftResult(draftCollector, eraseItem.getTwin());
-                flush(draftCollector);
+                flush(draftCollector); //we will flush here, because factory also can generate some deletes
                 eraseItem
                         .setEraseReady(true)
                         .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId());
@@ -626,9 +626,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     private <T, K> void saveEntities(DraftCollector draftCollector, Class<T> entityClass, CrudRepository<T, K> repository) {
-        Set<Object> entities = draftCollector.getDraftEntitiesMap().get(entityClass);
+        Set<T> entities = (Set<T>) draftCollector.getDraftEntitiesMap().get(entityClass);
         if (entities != null) {
-            entitySmartService.saveAllAndLogChanges((Map) entities, repository);
+            entitySmartService.saveAllAndLog(entities, repository);
             draftCollector.getDraftEntitiesMap().remove(entityClass);
         }
     }

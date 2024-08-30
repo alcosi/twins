@@ -17,4 +17,7 @@ public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, 
     @Query(value = "select he from HistoryEntity he where he.twinId = :twinId " +
             "or he.twinId in (select child.id from TwinEntity child where child.headTwinId = :twinId)")
     Page<HistoryEntity> findByTwinIdIncludeFirstLevelChildren(@Param("twinId") UUID twinId, Pageable pageable);
+
+    @Query(value = "update HistoryEntity set draft = false, createdAt = current_timestamp() where historyBatchId = :batchId")
+    long removeDraftFlag(@Param("batchId") String batchId);
 }

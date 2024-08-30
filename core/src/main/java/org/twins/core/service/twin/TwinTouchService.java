@@ -15,6 +15,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -62,6 +63,11 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     @Override
     public CrudRepository<TwinTouchEntity, UUID> entityRepository() {
         return null;
+    }
+
+    @Override
+    public Function<TwinTouchEntity, UUID> entityGetIdFunction() {
+        return TwinTouchEntity::getId;
     }
 
     @Override

@@ -32,7 +32,7 @@ public interface DraftTwinMarkerRepository extends CrudRepository<DraftTwinMarke
             "insert into twin_marker (id, twin_id, marker_data_list_option_id, created_at) " +
                     "select gen_random_uuid(), twin_id, marker_data_list_option_id, now() " +
                     "from draft_twin_marker where draft_id = :draftId and create_else_delete = true")
-    void commitMarkersAdd(UUID draftId);
+    long commitMarkersAdd(UUID draftId);
 
 
     @Transactional
@@ -40,5 +40,5 @@ public interface DraftTwinMarkerRepository extends CrudRepository<DraftTwinMarke
     @Query(nativeQuery = true, value =
             "delete from twin_marker tm " +
                     "using draft_twin_marker dtm where tm.twin_id = dtm.twin_id and tm.marker_data_list_option_id = dtm.marker_data_list_option_id and dtm.draft_id = :draftId and dtm.create_else_delete = false")
-    void commitMarkersDelete(UUID draftId);
+    long commitMarkersDelete(UUID draftId);
 }
