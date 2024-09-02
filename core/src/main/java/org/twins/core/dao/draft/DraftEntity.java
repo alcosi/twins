@@ -40,6 +40,9 @@ public class DraftEntity implements EasyLoggable {
     @Convert(converter = DraftStatusConverter.class)
     private Status status;
 
+    @Column(name = "draft_status_details")
+    private String statusDetails;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -289,6 +292,7 @@ public class DraftEntity implements EasyLoggable {
     @Getter
     public enum Status {
         UNDER_CONSTRUCTION("UNDER_CONSTRUCTION"),
+        CONSTRUCTION_EXCEPTION("CONSTRUCTION_EXCEPTION"),
         UNCOMMITED("UNCOMMITED"),
         COMMIT_NEED_START("COMMIT_IN_QUEUE"),
         COMMIT_IN_PROGRESS("COMMIT_IN_PROGRESS"),

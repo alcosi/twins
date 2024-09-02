@@ -31,6 +31,7 @@ import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
+import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinHeadService;
@@ -93,12 +94,20 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
-        twinflowService.loadTwinflow(twinEntity);
-        draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false);
-        runEraseFactoryAndDraftResult(draftCollector, twinEntity);
-        flush(draftCollector);
-        draftCascadeErase(draftCollector);
-        endDraft(draftCollector);
+        try {
+            twinflowService.loadTwinflow(twinEntity);
+            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false);
+            runEraseFactoryAndDraftResult(draftCollector, twinEntity);
+            flush(draftCollector);
+            draftCascadeErase(draftCollector);
+            endDraft(draftCollector);
+        } catch (ServiceException e) {
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatusDetails(e.log());
+            endDraft(draftCollector);
+            throw e;
+        }
         return draftCollector.getDraftEntity();
     }
 
@@ -110,6 +119,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         */
         List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftId());
         int cascadeDepth = 0;
+        // we should use separate historyCollector (not from draftCollector), because of batch save delete items. HistoryCollector from draftCollector is flushing more often
+        HistoryCollectorMultiTwin historyCollectorDeletes = new HistoryCollectorMultiTwin();
         while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
             if (cascadeDepth >= 5)
@@ -135,32 +146,42 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                         throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "something went wrong");
                 }
                 runEraseFactoryAndDraftResult(draftCollector, eraseItem.getTwin());
-                flush(draftCollector); //we will flush here, because factory also can generate some deletes
                 eraseItem
                         .setEraseReady(true)
-                        .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId());
+                        .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId())
+                        .setEraseTwinStatus(eraseItem.getTwin().getTwinflow().getEraseTwinStatus());
                 if (eraseItem.getEraseTwinStatusId() == null) {
-                    draftCollector.getHistoryCollector().forTwin(eraseItem.getTwin())
-                            .add(HistoryType.twinDeleted, null);
+                    historyCollectorDeletes.forTwin(eraseItem.getTwin()).add(HistoryType.twinDeleted, null);
                     draftCollector.getDraftEntity().incrementTwinEraseIrrevocable();
                 } else {
-                    draftCollector.getHistoryCollector().forTwin(eraseItem.getTwin())
-                            .add(historyService.statusChanged(eraseItem.getTwin().getTwinStatus(), eraseItem.getEraseTwinStatus()));
+                    historyCollectorDeletes.forTwin(eraseItem.getTwin()).add(historyService.statusChanged(eraseItem.getTwin().getTwinStatus(), eraseItem.getEraseTwinStatus()));
                     draftCollector.getDraftEntity().incrementTwinEraseByStatus();
                 }
+//                draftCollector.add(eraseItem);
+                flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
             draftTwinEraseRepository.saveAll(eraseNotReadyList);
+            historyService.saveHistory(historyCollectorDeletes, draftCollector.getDraftId());
+            historyCollectorDeletes.clear();
             eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndEraseReadyFalse(draftCollector.getDraftId());
         }
     }
 
     public DraftEntity draftFactoryResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
-        draftFactoryResult(draftCollector, factoryResultUncommited, null);
-        if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
-            draftCascadeErase(draftCollector);
+        try {
+            draftFactoryResult(draftCollector, factoryResultUncommited, null);
+            if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
+                draftCascadeErase(draftCollector);
+            }
+            endDraft(draftCollector);
+        } catch (ServiceException e) {
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatusDetails(e.log());
+            endDraft(draftCollector);
+            throw e;
         }
-        endDraft(draftCollector);
         return draftCollector.getDraftEntity();
     }
 
@@ -207,7 +228,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
         if (causeGlobalLock) //adding extra lock
-            draftCollector.getDraftEntity().setStatus(DraftEntity.Status.LOCKED);
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.LOCKED)
+                    .setStatusDetails("locked by: " + twinEntity.logNormal());
         return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock));
     }
 
@@ -623,6 +646,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             for (Map.Entry<Class<?>, Set<Object>> classChanges : draftCollector.getDraftEntitiesMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
+        historyService.saveHistory(draftCollector.getHistoryCollector(), draftCollector.getDraftId());
+        draftCollector.clear();
     }
 
     private <T, K> void saveEntities(DraftCollector draftCollector, Class<T> entityClass, CrudRepository<T, K> repository) {

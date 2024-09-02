@@ -58,6 +58,7 @@ public class TwinChangesService {
             }
         invalidate(twinChangesCollector.getInvalidationMap());
         historyService.saveHistory(twinChangesCollector.getHistoryCollector());
+        twinChangesCollector.clear();
         return changesApplyResult;
     }
 

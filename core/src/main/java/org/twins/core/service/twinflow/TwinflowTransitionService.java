@@ -726,22 +726,30 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         }
         runFactories(transitionContextBatch);
         DraftCollector draftCollector = draftService.beginDraft();
-        draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());
-        //simple transitions also must be drafted here
-        TwinUpdate twinUpdate;
-        for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
-            for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
-                twinUpdate = new TwinUpdate();
-                twinUpdate
-                        .setDbTwinEntity(twinEntity)
-                        .setTwinEntity(new TwinEntity()
-                                .setId(twinEntity.getId())
-                                .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
-                                .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus()));
-                draftService.draftTwinUpdate(draftCollector, twinUpdate);
+        try {
+            draftService.draftFactoryResult(draftCollector, transitionContextBatch.getFactoried().values());
+            //simple transitions also must be drafted here
+            TwinUpdate twinUpdate;
+            for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
+                for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values()) {
+                    twinUpdate = new TwinUpdate();
+                    twinUpdate
+                            .setDbTwinEntity(twinEntity)
+                            .setTwinEntity(new TwinEntity()
+                                    .setId(twinEntity.getId())
+                                    .setTwinStatusId(transitionContext.getTransitionEntity().getDstTwinStatusId())
+                                    .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus()));
+                    draftService.draftTwinUpdate(draftCollector, twinUpdate);
+                }
             }
+            draftService.endDraft(draftCollector);
+        } catch (ServiceException e) {
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatusDetails(e.log());
+            draftService.endDraft(draftCollector);
+            throw e;
         }
-        draftService.endDraft(draftCollector);
         return draftCollector.getDraftEntity();
     }
 

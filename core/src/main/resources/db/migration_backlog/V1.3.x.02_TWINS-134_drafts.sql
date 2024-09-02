@@ -24,14 +24,20 @@ INSERT INTO draft_status (id)
 VALUES ('UNDER_CONSTRUCTION')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
+VALUES ('CONSTRUCTION_EXCEPTION')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
 VALUES ('UNCOMMITED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
-VALUES ('COMMIT_NEED_START');
+VALUES ('COMMIT_NEED_START')
+on conflict (id) do nothing;
 INSERT INTO draft_status (id)
-VALUES ('COMMIT_IN_PROGRESS');
+VALUES ('COMMIT_IN_PROGRESS')
+on conflict (id) do nothing;
 INSERT INTO draft_status (id)
-VALUES ('COMMIT_EXCEPTION');
+VALUES ('COMMIT_EXCEPTION')
+on conflict (id) do nothing;
 INSERT INTO draft_status (id)
 VALUES ('LOCKED')
 on conflict (id) do nothing;
@@ -59,6 +65,12 @@ create table if not exists draft
         constraint draft_created_by_user_id_fk
             references "user"
             on update cascade,
+    draft_status_id varchar
+        constraint draft_draft_status_id_fk
+            references draft_status
+            on update cascade,
+    draft_status_details varchar,
+    created_at         timestamp default CURRENT_TIMESTAMP,
     twin_erase_count integer not null default 0,
     twin_erase_irrevocable_count integer not null default 0,
     twin_erase_status_count integer not null default 0,
@@ -83,12 +95,7 @@ create table if not exists draft
     twin_field_user_delete_count integer not null default 0,
     twin_field_data_list_create_count integer not null default 0,
     twin_field_data_list_update_count integer not null default 0,
-    twin_field_data_list_delete_count integer not null default 0,
-    draft_status_id varchar
-        constraint draft_draft_status_id_fk
-            references draft_status
-            on update cascade,
-    created_at         timestamp default CURRENT_TIMESTAMP
+    twin_field_data_list_delete_count integer not null default 0
 );
 
 

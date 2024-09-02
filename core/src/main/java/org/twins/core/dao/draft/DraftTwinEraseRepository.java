@@ -49,7 +49,7 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                    "                         twin_link tl " +
                    "                    where dtl.twin_link_id = tl.id " +
                    "                      and dtl.dst_twin_id != tl.dst_twin_id " +
-                   "                    and dtl.cud_id = 'UPDATE')")
+                   "                    and dtl.cud_id = 'UPDATE') on conflict do nothing;")
    void addLinked(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId);
 
    List<DraftTwinEraseEntity> findByDraftIdAndEraseReadyFalse(UUID draftId);

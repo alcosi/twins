@@ -104,6 +104,8 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             default:
                 if (!twinClassService.isInstanceOf(entity.getTwinClass(), entity.getInitialTwinStatus().getTwinClassId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect initialTwinStatusId[" + entity.getInitialTwinStatusId() + "]");
+                if (entity.getEraseTwinStatus() != null && !twinClassService.isInstanceOf(entity.getTwinClass(), entity.getEraseTwinStatus().getTwinClassId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect initialTwinStatusId[" + entity.getInitialTwinStatusId() + "]");
         }
         return true;
     }
@@ -164,7 +166,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
             if (twinflowEntity == null)
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, twinEntity.logNormal() + " can not detect twinflow");
-            twinEntity.setTwinflow(twinflowEntity);
+            twinEntity.setTwinflow(validateEntityAndThrow(twinflowEntity, EntitySmartService.EntityValidateMode.afterRead));
         }
     }
 

@@ -97,4 +97,9 @@ public class DraftCollector {
     public boolean isWritable() {
         return draftEntity != null && (draftEntity.getStatus() == DraftEntity.Status.UNDER_CONSTRUCTION || draftEntity.getStatus() == DraftEntity.Status.LOCKED);
     }
+
+    public void clear() {
+        draftEntitiesMap.clear();
+        historyCollector.clear();
+    }
 }

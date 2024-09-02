@@ -67,7 +67,9 @@ public class DraftCommitService {
             commitHistory(draftEntity);
             draftEntity.setStatus(DraftEntity.Status.COMMITED);
         } catch (ServiceException e) {
-            draftEntity.setStatus(DraftEntity.Status.COMMIT_EXCEPTION);
+            draftEntity
+                    .setStatus(DraftEntity.Status.COMMIT_EXCEPTION)
+                    .setStatusDetails(e.log());
         } finally {
             draftRepository.save(draftEntity);
         }
