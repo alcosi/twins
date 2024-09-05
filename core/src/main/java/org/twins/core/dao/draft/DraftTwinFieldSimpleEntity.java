@@ -41,7 +41,7 @@ public class DraftTwinFieldSimpleEntity {
     @Column(name = "value", length = Integer.MAX_VALUE)
     private String value;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 }

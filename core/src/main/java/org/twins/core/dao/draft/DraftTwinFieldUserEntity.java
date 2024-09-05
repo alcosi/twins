@@ -40,7 +40,7 @@ public class DraftTwinFieldUserEntity {
     @Column(name = "user_id")
     private UUID userId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 

@@ -24,7 +24,7 @@ public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
     private TwinSave output;
     private List<FactoryItem> contextFactoryItemList;
-    private DeletionMarker deletionMaker = DeletionMarker.FALSE;
+    private EraseMarker eraseMarker = EraseMarker.DO_NOT_ERASE;
 
     public TwinEntity getTwin() {
         if (output == null)
@@ -113,15 +113,15 @@ public class FactoryItem implements EasyLoggable {
         return ret + "]";
     }
 
-    public void setDeletionMaker(DeletionMarker newDeletionMaker) {
-        if (deletionMaker == null || deletionMaker == DeletionMarker.FALSE || deletionMaker == DeletionMarker.TRUE)
-            this.deletionMaker = newDeletionMaker;
+    public void setEraseMarker(EraseMarker newDeletionMaker) {
+        if (eraseMarker == null || eraseMarker == EraseMarker.DO_NOT_ERASE || eraseMarker == EraseMarker.ERASE)
+            this.eraseMarker = newDeletionMaker;
         // all other markers can not be overridden
     }
 
-    public enum DeletionMarker {
-        TRUE,
-        FALSE,
+    public enum EraseMarker {
+        ERASE,
+        DO_NOT_ERASE,
         CURRENT_ITEM_SKIPPED,
         GLOBALLY_LOCKED
     }

@@ -39,7 +39,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
 
     @Column(name = "final_twin_factory_eraser_action_id")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private Action action;
+    private Action finalEraserAction;
 
     @Override
     public String easyLog(Level level) {

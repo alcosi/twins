@@ -1,6 +1,5 @@
 package org.twins.core.dao.draft;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -16,11 +17,11 @@ import java.util.UUID;
 @Repository
 public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseEntity, DraftTwinEraseEntity.PK>, JpaSpecificationExecutor<DraftTwinEraseEntity> {
 
-   @Transactional
+   @Transactional(propagation = Propagation.REQUIRES_NEW)
    @Modifying
    @Query(nativeQuery = true, value =
-           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
-                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, id, false, :twinId, 'CHILD' " +
+           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, draft_twin_erase_status_id, reason_twin_id, twin_erase_reason_id) " +
+                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, id, 'UNDETECTED', :twinId, 'CHILD' " +
                    "from twin " +
                    "where hierarchy_tree ~ cast(:twin_ltree as lquery) " +
                    "  and not hierarchy_tree <@ " + // we will exclude childes with changed head
@@ -34,11 +35,11 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                    "           and dtp.head_twin_id != t.head_twin_id) on conflict do nothing;")
    void addChildTwins(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId, @Param("twin_ltree") String twinLTree);
 
-   @Transactional
+   @Transactional(propagation = Propagation.REQUIRES_NEW)
    @Modifying
    @Query(nativeQuery = true, value =
-           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, erase_ready, reason_twin_id, twin_erase_reason_id) " +
-                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, tl.src_twin_id, false, :twinId, 'LINK' " +
+           "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, draft_twin_erase_status_id, reason_twin_id, twin_erase_reason_id) " +
+                   "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, tl.src_twin_id, 'UNDETECTED', :twinId, 'LINK' " +
                    "from twin_link tl, " +
                    "     link l " +
                    "where tl.dst_twin_id = :twinId " +
@@ -52,7 +53,7 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                    "                    and dtl.cud_id = 'UPDATE') on conflict do nothing;")
    void addLinked(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId);
 
-   List<DraftTwinEraseEntity> findByDraftIdAndEraseReadyFalse(UUID draftId);
+   List<DraftTwinEraseEntity> findByDraftIdAndStatus(UUID draftId, DraftTwinEraseEntity.Status status);
 
    @Transactional
    @Modifying

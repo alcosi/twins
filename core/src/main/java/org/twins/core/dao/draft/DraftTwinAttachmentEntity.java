@@ -62,7 +62,7 @@ public class DraftTwinAttachmentEntity {
     @Column(name = "twin_class_field_id")
     private UUID twinClassFieldId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 

@@ -31,9 +31,6 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Column(name = "time_in_millis")
     private long timeInMillis;
 
-    @Column(name = "erase_ready")
-    private boolean eraseReady = false;
-
     @Column(name = "reason_twin_id")
     private UUID reasonTwinId;
 
@@ -41,21 +38,22 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Convert(converter = DraftTwinEraseReasonConverter.class)
     private Reason reason;
 
+    @Column(name = "draft_twin_erase_status_id")
+    @Convert(converter = DraftTwinEraseStatusConverter.class)
+    private Status status;
+
     @Column(name = "erase_twin_status_id")
     private UUID eraseTwinStatusId;
 
-    @Column(name = "cause_global_lock")
-    private boolean causeGlobalLock;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private TwinEntity twin;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "erase_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity eraseTwinStatus;
 
@@ -67,8 +65,12 @@ public class DraftTwinEraseEntity implements EasyLoggable {
             default -> "draftTwinErase[draftId:" + draftId + ", twinId:" + twinId + ", reason:" + reason + "reasonTwinId:" + reasonTwinId + "]";
         };
     }
+
+    public boolean isEraseReady() {
+        return status != Status.UNDETECTED;
+    }
 //
-//    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+//    @ManyToOne(fetch = FetchType.EAGER, optional = false)
 //    @JoinColumn(name = "reason_twin_id")
 //    private TwinEntity reasonTwin;
 
@@ -109,6 +111,25 @@ public class DraftTwinEraseEntity implements EasyLoggable {
         }
 
         public static Reason valueOd(String type) {
+            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElseThrow();
+        }
+
+    }
+
+    @Getter
+    public enum Status {
+        UNDETECTED("UNDETECTED"),
+        DETECTED_IRREVOCABLE_ERASE("DETECTED_IRREVOCABLE_ERASE"),
+        DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
+        DETECTED_LOCK("DETECTED_LOCK");
+
+        private final String id;
+
+        Status(String id) {
+            this.id = id;
+        }
+
+        public static Status valueOd(String type) {
             return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElseThrow();
         }
 

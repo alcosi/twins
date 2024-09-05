@@ -156,6 +156,26 @@ VALUES ('FACTORY')
 on conflict (id) do nothing;
 
 
+create table if not exists draft_twin_erase_status
+(
+    id varchar(255) not null
+        constraint draft_twin_erase_status_pk
+            primary key
+);
+
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('UNDETECTED')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('DETECTED_IRREVOCABLE_ERASE')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('DETECTED_STATUS_CHANGE_ERASE')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('DETECTED_LOCK')
+on conflict (id) do nothing;
+
 create table if not exists draft_twin_erase
 (
     draft_id             uuid                  not null
@@ -167,7 +187,10 @@ create table if not exists draft_twin_erase
         constraint draft_twin_erase_twin_id_fk
             references twin
             on update cascade on delete cascade,
-    erase_ready          boolean default false not null,
+    draft_twin_erase_status_id varchar
+        constraint draft_twin_erase_draft_twin_erase_status_fk
+            references draft_twin_erase_status
+            on update cascade,
     reason_twin_id       uuid
         constraint draft_twin_erase_reason_twin_id_fk
             references twin
@@ -177,7 +200,6 @@ create table if not exists draft_twin_erase
             references twin_erase_reason
             on update cascade,
     erase_twin_status_id uuid,                          -- if null, then twin will be force deleted from db
-    cause_global_lock      boolean not null default false,
     constraint draft_twin_erase_pk
         primary key (draft_id, twin_id)
 );

@@ -32,7 +32,7 @@ public class DraftTwinTagEntity {
     @Column(name = "tag_data_list_option_id")
     private UUID tagDataListOptionId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 

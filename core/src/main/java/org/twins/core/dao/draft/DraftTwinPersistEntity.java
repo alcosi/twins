@@ -68,23 +68,23 @@ public class DraftTwinPersistEntity {
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity twinClass;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity twinStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "assigner_user_id", insertable = false, updatable = false)
     private UserEntity assigneeUser;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
 }
