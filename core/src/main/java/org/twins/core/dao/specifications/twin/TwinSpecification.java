@@ -137,7 +137,9 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? cb.or(root.get(uuidField).in(uuids).not(), ifNotIsTrueIncludeNullValues ? root.get(uuidField).isNull() : cb.conjunction()) : root.get(uuidField).in(uuids);
+            return not ?
+                    (ifNotIsTrueIncludeNullValues ? cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull()) : root.get(uuidField).in(uuids).not())
+                    : root.get(uuidField).in(uuids);
         };
     }
 
