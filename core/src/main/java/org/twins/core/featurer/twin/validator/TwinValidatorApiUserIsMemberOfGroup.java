@@ -41,7 +41,7 @@ public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroups(apiUser);
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
-        boolean isValid = null == apiUser.getUserGroups() && apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
+        boolean isValid = apiUser.getUserGroups() != null && apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
         return buildResult(
                 isValid,
                 invert,
