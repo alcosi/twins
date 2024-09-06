@@ -115,23 +115,36 @@ INSERT INTO twin_factory (id, key, domain_id, name_i18n_id, description_i18n_id)
 VALUES ('00000000-0000-0000-0006-000000000003', 'eraseRestrict', null, null, null)
 on conflict (id) do nothing;
 
+INSERT INTO twin_factory_condition_set (id, name, description)
+VALUES ('00000000-0000-0000-0008-000000000001', 'hasChildren', null) on conflict (id) do nothing;
+
+INSERT INTO twin_factory_condition (id, twin_factory_condition_set_id, conditioner_featurer_id, conditioner_params,
+                                    invert, active, description)
+VALUES ('00000000-0000-0000-0009-000000000001', '00000000-0000-0000-0008-000000000001', 2407,
+        'excludeFactoryInput => false, statusIds => ""', false, true,
+        'If current factory item has children') on conflict (id) do nothing;
+
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id,
                                  twin_factory_condition_invert, active, final_twin_factory_eraser_action_id,
                                  description)
-VALUES ('ac877359-5b54-4062-84df-13f95ca1674b', '00000000-0000-0000-0006-000000000001', null, null, DEFAULT, DEFAULT,
+VALUES ('00000000-0000-0000-0007-000000000001', '00000000-0000-0000-0006-000000000001', null, null, false, true,
         'ERASE',
-        'simple deletion logic - this eraser will delete current twin, all children (by db FK cascading), all links  (by db FK cascading)')
+        'simple deletion logic - all input items will be selected for erase')
 on conflict (id) do nothing;
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id,
                                  twin_factory_condition_invert, active, final_twin_factory_eraser_action_id,
                                  description)
-VALUES ('aa5c49fa-a4d7-4990-a039-22c7aa142183', '00000000-0000-0000-0006-000000000002', null, null, DEFAULT, DEFAULT,
-        'ERASE', 'this eraser will delete current twin only if there is no children for it')
+VALUES ('00000000-0000-0000-0007-000000000002', '00000000-0000-0000-0006-000000000002', null, null, false, true,
+        'ERASE', 'this eraser will delete current twin only if there is no children for it. Otherwise deletion will be locked')
 on conflict (id) do nothing;
+
+INSERT INTO twin_factory_eraser_step (id, twin_factory_eraser_id, "order", twin_factory_condition_set_id, twin_factory_condition_invert, active, description, on_passed_twin_factory_eraser_action_id, on_failed_twin_factory_eraser_action_id)
+VALUES ('00000000-0000-0000-0008-000000000001', '00000000-0000-0000-0007-000000000002', 1, '00000000-0000-0000-0008-000000000001', false, true, 'Restrict erase of twins with children', 'NEXT', 'RESTRICT');
+
 INSERT INTO twin_factory_eraser (id, twin_factory_id, input_twin_class_id, twin_factory_condition_set_id,
                                  twin_factory_condition_invert, active, final_twin_factory_eraser_action_id,
                                  description)
-VALUES ('8948a756-4c4c-4414-9bb5-7094d571186a', '00000000-0000-0000-0006-000000000003', null, null, DEFAULT, DEFAULT,
+VALUES ('00000000-0000-0000-0007-000000000003', '00000000-0000-0000-0006-000000000003', null, null, false, true,
         'RESTRICT', 'this eraser will restrict deletion')
 on conflict (id) do nothing;
 

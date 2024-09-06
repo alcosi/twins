@@ -84,7 +84,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         DraftCollector draftCollector = beginDraft();
         try {
 //            twinflowService.loadTwinflow(twinEntity);
-            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false);
+            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false, "");
 //            runEraseFactoryAndDraftResult(draftCollector, twinEntity);
             flush(draftCollector);
             draftCascadeErase(draftCollector);
@@ -190,12 +190,16 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         //if factory has some configured eraser, we should fish current twin from result, because it can be locked or skipped
         if (factoryResultUncommited.getSkippedDeletes().contains(eraseEntity.getTwinId())) {
             log.warn("{} was marked by eraser as 'skipped'. This provokes draft lock", eraseEntity.getTwin().logShort());
-            eraseEntity.setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK);
+            eraseEntity
+                    .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
+                    .setStatusDetails("skipped");
         }
         TwinDelete twinDelete = factoryResultUncommited.getDeletes().get(eraseEntity.getTwinId());
         if (twinDelete != null && twinDelete.isCauseGlobalLock()) {
             log.warn("{} was marked by eraser as 'locked'. This provokes draft lock", eraseEntity.getTwin().logShort());
-            eraseEntity.setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK);
+            eraseEntity
+                    .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
+                    .setStatusDetails(twinDelete.getEraseDetails());
         }
         draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
         return draftCollector;
@@ -223,17 +227,17 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     log.debug("{} is already drafted for erase", twinDelete.getTwinEntity());
                     continue;
                 }
-                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.isCauseGlobalLock());
+                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.isCauseGlobalLock(), twinDelete.getEraseDetails());
             }
         return draftCollector;
     }
 
-    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
+    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock, String statusDetails) throws ServiceException {
         if (causeGlobalLock) //adding extra lock
             draftCollector.getDraftEntity()
                     .setStatus(DraftEntity.Status.LOCKED)
                     .setStatusDetails("locked by: " + twinEntity.logNormal());
-        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock));
+        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock, statusDetails));
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
@@ -400,13 +404,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setCreateElseUpdate(true);
     }
 
-    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock) throws ServiceException {
+    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock, String statusDetails) throws ServiceException {
         return new DraftTwinEraseEntity()
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinService.checkEntityReadAllow(twinEntity).getId())
                 .setTwin(twinEntity)
                 .setStatus(causeGlobalLock ? DraftTwinEraseEntity.Status.DETECTED_LOCK : DraftTwinEraseEntity.Status.UNDETECTED)
+                .setStatusDetails(statusDetails)
                 .setReasonTwinId(reasonTwin != null ? reasonTwin.getId() : null)
                 .setReason(reason)
 //                .setCauseGlobalLock(causeGlobalLock)

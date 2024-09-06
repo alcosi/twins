@@ -42,6 +42,9 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Convert(converter = DraftTwinEraseStatusConverter.class)
     private Status status;
 
+    @Column(name = "status_details")
+    private String statusDetails;
+
     @Column(name = "erase_twin_status_id")
     private UUID eraseTwinStatusId;
 

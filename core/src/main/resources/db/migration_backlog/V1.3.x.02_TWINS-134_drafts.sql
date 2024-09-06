@@ -191,6 +191,7 @@ create table if not exists draft_twin_erase
         constraint draft_twin_erase_draft_twin_erase_status_fk
             references draft_twin_erase_status
             on update cascade,
+    status_details                       varchar(255),
     reason_twin_id       uuid
         constraint draft_twin_erase_reason_twin_id_fk
             references twin

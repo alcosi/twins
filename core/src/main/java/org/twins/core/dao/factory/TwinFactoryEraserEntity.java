@@ -44,8 +44,9 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinFactoryEraserEntity[" + id + "]";
-            default -> "twinFactoryEraserEntity[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + "]";
+            case SHORT -> "twinFactoryEraser[" + id + "]";
+            case NORMAL -> "twinFactoryEraser[" + id + ", twinFactoryId:" + twinFactoryId + "]";
+            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", finalEraserAction" + finalEraserAction + "]";
         };
     }
 

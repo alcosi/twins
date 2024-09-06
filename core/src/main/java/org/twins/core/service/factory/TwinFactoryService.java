@@ -93,12 +93,12 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     continue;
                 case ERASE:
                     if (factoryItem.getOutput() instanceof TwinUpdate)
-                        factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin(), false));
+                        factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin(), false, factoryItem.getEraseMarkerReason()));
                     // else we can simply skip such item, because it was created and deleted at once
                     continue;
                 case GLOBALLY_LOCKED:
                     factoryResultUncommited
-                            .addOperation(new TwinDelete(factoryItem.getTwin(), true))
+                            .addOperation(new TwinDelete(factoryItem.getTwin(), true, factoryItem.getEraseMarkerReason()))
                             .setCommittable(false); // this factory result can not be commited because of lock
             }
 
@@ -273,31 +273,37 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 else
                     action = eraserStepEntity.getOnFailedTwinFactoryEraserAction();
                 log.info("{} was passed[{}] detected action: {}", stepOrder, passed, action);
-                setItemEraseAction(eraserInput, action);
+                setItemEraseAction(eraserInput, action, eraserStepEntity.logDetailed());
                 if (action != TwinFactoryEraserEntity.Action.NEXT) // all other actions will interrupt eraser
                     break;
             }
             LoggerUtils.traceTreeLevelUp();
             if (action == TwinFactoryEraserEntity.Action.NEXT) {
                 log.info("{} final erase action: {}", eraserInput.logDetailed(), factoryEraserEntity.getFinalEraserAction());
-                setItemEraseAction(eraserInput, factoryEraserEntity.getFinalEraserAction());
+                setItemEraseAction(eraserInput, factoryEraserEntity.getFinalEraserAction(), factoryEraserEntity.logDetailed());
             }
         }
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private static void setItemEraseAction(FactoryItem eraserInput, TwinFactoryEraserEntity.Action action) throws ServiceException {
+    private static void setItemEraseAction(FactoryItem eraserInput, TwinFactoryEraserEntity.Action action, String actionReason) throws ServiceException {
         switch (action) {
             case NEXT:
                 return;
             case SKIP:
-                eraserInput.setEraseMarker(FactoryItem.EraseMarker.CURRENT_ITEM_SKIPPED);
+                eraserInput
+                        .setEraseMarker(FactoryItem.EraseMarker.CURRENT_ITEM_SKIPPED)
+                        .setEraseMarkerReason(actionReason);
                 return;
             case ERASE:
-                eraserInput.setEraseMarker(FactoryItem.EraseMarker.ERASE);
+                eraserInput
+                        .setEraseMarker(FactoryItem.EraseMarker.ERASE)
+                        .setEraseMarkerReason(actionReason);
                 return;
             case RESTRICT:
-                eraserInput.setEraseMarker(FactoryItem.EraseMarker.GLOBALLY_LOCKED);
+                eraserInput
+                        .setEraseMarker(FactoryItem.EraseMarker.GLOBALLY_LOCKED)
+                        .setEraseMarkerReason(actionReason);
                 return;
             default:
                 throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "unknown action: " + action);
@@ -307,9 +313,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     private List<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
         List<FactoryItem> filtered = new ArrayList<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
-            if (inputTwinClassId == null) // now this is possible only for erasers. In pipelines inputTwinClass is required
-                filtered.add(factoryItem);
-            else if (twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), inputTwinClassId)) {
+            // inputTwinClassId == null - now this is possible only for erasers. In pipelines inputTwinClass is required
+            if (inputTwinClassId == null || twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), inputTwinClassId)) {
                 if (checkCondition(twinFactoryConditionSetId, conditionInvert, factoryItem))
                     filtered.add(factoryItem);
                 else

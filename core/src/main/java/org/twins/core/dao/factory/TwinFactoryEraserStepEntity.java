@@ -3,6 +3,7 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
@@ -10,7 +11,7 @@ import java.util.UUID;
 @Table(name = "twin_factory_eraser_step")
 @Accessors(chain = true)
 @Data
-public class TwinFactoryEraserStepEntity {
+public class TwinFactoryEraserStepEntity implements EasyLoggable {
     @Id
     @Column(name = "id")
     private UUID id;
@@ -44,4 +45,13 @@ public class TwinFactoryEraserStepEntity {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_factory_eraser_id", insertable = false, updatable = false)
     private TwinFactoryEraserEntity twinFactoryEraser;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinFactoryEraserStep[" + id + "]";
+            case NORMAL -> "twinFactoryEraserStep[id:" + id + ", twinFactoryEraser:" + twinFactoryEraserId + "]";
+            default -> "twinFactoryEraserStep[id:" + id + ", twinFactoryEraser:" + twinFactoryEraserId + ", description:" + description + "]";
+        };
+    }
 }
