@@ -125,7 +125,7 @@ public enum RelationTwinMode implements MapperModeCollection {
     @FieldNameConstants.Include MAGENTA(6,
             TwinMode.DETAILED,
             DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
-            DataListOptionMode.TwinTag2DataListOptionMode.DETAILED,
+            DataListOptionMode.TwinTag2DataListOptionMode.HIDE,
             TwinFieldCollectionMode.NOT_EMPTY_FIELDS,
             AttachmentMode.HIDE,
             TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
