@@ -36,6 +36,6 @@ public class SearchCriteriaBuilderLink extends SearchCriteriaBuilder {
     public void concat(TwinSearch twinSearch, SearchPredicateEntity searchPredicateEntity, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         if (searchPredicateEntity.getSearchField() != SearchField.linkId)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Incorrect criteria builder[" + this.getClass().getSimpleName() + "] for field[" + searchPredicateEntity.getSearchField() + "]");
-        twinSearch.addLinkDstTwinsId(linkId.extract(properties), dstTwinId.extract(properties), searchPredicateEntity.isExclude());
+        twinSearch.addLinkDstTwinsId(linkId.extract(properties), dstTwinId.extract(properties), searchPredicateEntity.isExclude(), true);
     }
 }

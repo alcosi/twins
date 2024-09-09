@@ -65,7 +65,7 @@ public class TwinSearchService {
     private Specification<TwinEntity> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch) throws ServiceException {
 
         return where(
-                checkTwinLinks(twinSearch.getTwinLinksMap(), twinSearch.getTwinNoLinksMap())
+                checkTwinLinks(twinSearch.getLinksAnyOfList(), twinSearch.getLinksNoAnyOfList(), twinSearch.getLinksAllOfList(), twinSearch.getLinksNoAllOfList())
                         .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdList(), false, false))
                         .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdExcludeList(), true, false))
                         .and(checkFieldLikeIn(TwinEntity.Fields.name, twinSearch.getTwinNameLikeList(), true))
@@ -258,7 +258,7 @@ public class TwinSearchService {
             functioPair.getValue().accept(mainSearch, narrowSet(mainSet, narrowSet));
         }
         mainSearch.setTwinNameLikeList(narrowSet(mainSearch.getTwinNameLikeList(), narrowSearch.getTwinNameLikeList()));
-        mainSearch.setTwinLinksMap(narrowMapOfSets(mainSearch.getTwinLinksMap(), narrowSearch.getTwinLinksMap()));
-        mainSearch.setTwinNoLinksMap(narrowMapOfSets(mainSearch.getTwinNoLinksMap(), narrowSearch.getTwinNoLinksMap()));
+        mainSearch.setLinksAnyOfList(narrowMapOfSets(mainSearch.getLinksAnyOfList(), narrowSearch.getLinksAnyOfList()));
+        mainSearch.setLinksNoAnyOfList(narrowMapOfSets(mainSearch.getLinksNoAnyOfList(), narrowSearch.getLinksNoAnyOfList()));
     }
 }
