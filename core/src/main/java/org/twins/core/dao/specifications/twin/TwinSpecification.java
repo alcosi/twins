@@ -245,7 +245,7 @@ public class TwinSpecification {
             }
             List<Predicate> predicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksAllOfList)) {
-                for (Map.Entry<UUID, Set<UUID>> entry : linksAnyOfList.entrySet()) {
+                for (Map.Entry<UUID, Set<UUID>> entry : linksAllOfList.entrySet()) {
                     Predicate linkCondition = cb.equal(linkSrcTwinInner.get(TwinLinkEntity.Fields.linkId), entry.getKey());
                     Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInner.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
                     predicatesAll.add(cb.and(linkCondition, dstTwinCondition));
@@ -276,7 +276,7 @@ public class TwinSpecification {
             }
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksNoAllOfList)) {
-                for (Map.Entry<UUID, Set<UUID>> entry : linksNoAnyOfList.entrySet()) {
+                for (Map.Entry<UUID, Set<UUID>> entry : linksNoAllOfList.entrySet()) {
                     Subquery<UUID> subQuery = query.subquery(UUID.class);
                     Root<TwinLinkEntity> subRoot = subQuery.from(TwinLinkEntity.class);
                     subQuery.select(subRoot.get(TwinLinkEntity.Fields.srcTwinId));
