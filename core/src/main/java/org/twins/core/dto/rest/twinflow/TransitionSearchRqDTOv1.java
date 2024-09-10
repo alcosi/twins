@@ -38,8 +38,8 @@ public class TransitionSearchRqDTOv1 extends Request {
     @Schema(description = "destination status id exclude list")
     public List<UUID> dstStatusIdExcludeList;
 
-    @Schema(description = "name like list")
-    public List<String> nameLikeList;
+    @Schema(description = "alias like list")
+    public List<String> aliasLikeList;
 
     @Schema(description = "permission id list")
     public List<UUID> permissionIdList;

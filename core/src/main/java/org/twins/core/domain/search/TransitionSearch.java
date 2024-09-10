@@ -21,7 +21,7 @@ public class TransitionSearch {
     List<UUID> srcStatusIdExcludeList;
     List<UUID> dstStatusIdList;
     List<UUID> dstStatusIdExcludeList;
-    List<String> nameLikeList;
+    List<String> aliasLikeList;
     List<UUID> permissionIdList;
     List<UUID> permissionIdExcludeList;
     List<UUID> inbuiltTwinFactoryIdList;
@@ -94,7 +94,7 @@ public class TransitionSearch {
     }
 
     public TransitionSearch addTransitionNameLike(String transitionNameLike) {
-        nameLikeList = CollectionUtils.safeAdd(nameLikeList, transitionNameLike);
+        aliasLikeList = CollectionUtils.safeAdd(aliasLikeList, transitionNameLike);
         return this;
     }
 

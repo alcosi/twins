@@ -25,7 +25,7 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
                 .setSrcStatusIdExcludeList(src.srcStatusIdExcludeList)
                 .setDstStatusIdList(src.dstStatusIdList)
                 .setDstStatusIdExcludeList(src.dstStatusIdExcludeList)
-                .setNameLikeList(src.nameLikeList)
+                .setAliasLikeList(src.aliasLikeList)
                 .setPermissionIdList(src.permissionIdList)
                 .setPermissionIdExcludeList(src.permissionIdExcludeList)
                 .setInbuiltTwinFactoryIdList(src.inbuiltTwinFactoryIdList)

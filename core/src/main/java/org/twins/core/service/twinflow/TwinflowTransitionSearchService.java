@@ -14,7 +14,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.search.TransitionSearch;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twin.TransitionSpecification.*;
+import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.*;
 
 
 @Service
@@ -27,19 +27,19 @@ public class TwinflowTransitionSearchService {
         return where(
                 (checkUuidTwinClassIn(transitionSearch.getTwinClassIdList(), false))
                         .and(checkUuidTwinClassIn(transitionSearch.getTwinClassIdExcludeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.twinflowId, transitionSearch.getTwinflowIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.twinflowId, transitionSearch.getTwinflowIdExcludeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.srcTwinStatusId, transitionSearch.getSrcStatusIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.srcTwinStatusId, transitionSearch.getSrcStatusIdExcludeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.dstTwinStatusId, transitionSearch.getDstStatusIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.dstTwinStatusId, transitionSearch.getDstStatusIdExcludeList(), true))
-                        .and(checkAliasLikeIn(transitionSearch.getNameLikeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.permissionId, transitionSearch.getPermissionIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.permissionId, transitionSearch.getPermissionIdExcludeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, transitionSearch.getInbuiltTwinFactoryIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, transitionSearch.getInbuiltTwinFactoryIdExcludeList(), true))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.draftingTwinFactoryId, transitionSearch.getDraftingTwinFactoryIdList(), false))
-                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.draftingTwinFactoryId, transitionSearch.getDraftingTwinFactoryIdExcludeList(), true))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.twinflowId, transitionSearch.getTwinflowIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.twinflowId, transitionSearch.getTwinflowIdExcludeList(), true, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.srcTwinStatusId, transitionSearch.getSrcStatusIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.srcTwinStatusId, transitionSearch.getSrcStatusIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.dstTwinStatusId, transitionSearch.getDstStatusIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.dstTwinStatusId, transitionSearch.getDstStatusIdExcludeList(), true, false))
+                        .and(checkAliasLikeIn(transitionSearch.getAliasLikeList(), true))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.permissionId, transitionSearch.getPermissionIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.permissionId, transitionSearch.getPermissionIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, transitionSearch.getInbuiltTwinFactoryIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, transitionSearch.getInbuiltTwinFactoryIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.draftingTwinFactoryId, transitionSearch.getDraftingTwinFactoryIdList(), false, false))
+                        .and(checkUuidIn(TwinflowTransitionEntity.Fields.draftingTwinFactoryId, transitionSearch.getDraftingTwinFactoryIdExcludeList(), true, true))
         );
     }
 
