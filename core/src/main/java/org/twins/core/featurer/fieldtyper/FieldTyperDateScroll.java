@@ -50,8 +50,9 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @Override
     protected FieldValueDate deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
+
         return new FieldValueDate(twinField.getTwinClassField())
-                .setDate(twinFieldEntity != null && twinFieldEntity.getValue() != null ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
+                .setDate(twinFieldEntity != null && !StringUtils.isEmpty(twinFieldEntity.getValue()) ? validDateOrEmpty(twinFieldEntity.getValue(), properties) : null);
     }
 
     public String validDateOrEmpty(String dateStr, Properties properties) {
