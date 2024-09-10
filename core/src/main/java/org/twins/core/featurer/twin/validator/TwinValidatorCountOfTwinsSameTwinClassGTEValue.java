@@ -21,8 +21,8 @@ import java.util.*;
         name = "TwinValidatorCountOfTwinsSameTwinClassGTEValue",
         description = "")
 public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidator {
-    @FeaturerParam(name = "value", description = "")
-    public static final FeaturerParamInt value = new FeaturerParamInt("value");
+    @FeaturerParam(name = "GTEvalue", description = "")
+    public static final FeaturerParamInt GTEvalue = new FeaturerParamInt("GTEvalue");
 
     @Lazy
     @Autowired
@@ -30,7 +30,7 @@ public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidato
 
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
-        Integer val = value.extract(properties);
+        Integer val = GTEvalue.extract(properties);
         BasicSearch search = new BasicSearch();
         search
                 .addTwinClassId(twinEntity.getTwinClassId(), false);
