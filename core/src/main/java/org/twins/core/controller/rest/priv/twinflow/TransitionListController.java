@@ -41,14 +41,14 @@ public class TransitionListController extends ApiController {
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionListV1", summary = "List of transitions")
+    @Operation(operationId = "transitionSearchV1", summary = "List of transitions")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transition data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TransitionSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/transition/search/v1")
-    public ResponseEntity<?> transitionListV1(
+    public ResponseEntity<?> transitionSearchV1(
             @MapperContextBinding(roots = TransitionBaseV2RestDTOMapper.class, response = TransitionSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TransitionSearchRqDTOv1 request) {
