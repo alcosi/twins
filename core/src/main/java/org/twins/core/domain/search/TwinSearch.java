@@ -31,8 +31,10 @@ public class TwinSearch {
     Set<UUID> createdByUserIdExcludeList;
     Set<UUID> ownerUserIdList;
     Set<UUID> ownerBusinessAccountIdList;
-    Map<UUID, Set<UUID>> twinLinksMap;
-    Map<UUID, Set<UUID>> twinNoLinksMap;
+    Map<UUID, Set<UUID>> linksAnyOfList;
+    Map<UUID, Set<UUID>> linksNoAnyOfList;
+    Map<UUID, Set<UUID>> linksAllOfList;
+    Map<UUID, Set<UUID>> linksNoAllOfList;
     Set<UUID> hierarchyTreeContainsIdList;
     Set<UUID> statusIdExcludeList;
     Set<UUID> tagDataListOptionIdList;
@@ -128,14 +130,24 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addLinkDstTwinsId(UUID linkId, Collection<UUID> dstTwinIdList, boolean exclude) {
+    public TwinSearch addLinkDstTwinsId(UUID linkId, Collection<UUID> dstTwinIdList, boolean exclude, boolean or) {
         Map<UUID, Set<UUID>> map = null;
         if (exclude) {
-            if (twinNoLinksMap == null) twinNoLinksMap = new HashMap<>();
-            map = twinNoLinksMap;
+            if(or) {
+                if (linksNoAnyOfList == null) linksNoAnyOfList = new HashMap<>();
+                map = linksNoAnyOfList;
+            } else {
+                if (linksNoAllOfList == null) linksNoAllOfList = new HashMap<>();
+                map = linksNoAllOfList;
+            }
         } else {
-            if (twinLinksMap == null) twinLinksMap = new HashMap<>();
-            map = twinLinksMap;
+            if(or) {
+                if (linksAnyOfList == null) linksAnyOfList = new HashMap<>();
+                map = linksAnyOfList;
+            } else {
+                if (linksAllOfList == null) linksAllOfList = new HashMap<>();
+                map = linksAllOfList;
+            }
         }
         map.computeIfAbsent(linkId, k -> new HashSet<>()).addAll(null != dstTwinIdList ? dstTwinIdList : Collections.emptySet());
         return this;

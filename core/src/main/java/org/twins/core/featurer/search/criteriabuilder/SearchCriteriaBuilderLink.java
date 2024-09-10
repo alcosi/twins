@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
 import org.springframework.context.annotation.Lazy;
@@ -32,10 +33,13 @@ public class SearchCriteriaBuilderLink extends SearchCriteriaBuilder {
     @FeaturerParam(name = "dstTwinId", description = "")
     public static final FeaturerParamUUIDSet dstTwinId = new FeaturerParamUUIDSetTwinsTwinId("dstTwinId");
 
+    @FeaturerParam(name = "anyOfList", description = "")
+    public static final FeaturerParamBoolean anyOfList = new FeaturerParamBoolean("anyOfList");
+
     @Override
     public void concat(TwinSearch twinSearch, SearchPredicateEntity searchPredicateEntity, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         if (searchPredicateEntity.getSearchField() != SearchField.linkId)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Incorrect criteria builder[" + this.getClass().getSimpleName() + "] for field[" + searchPredicateEntity.getSearchField() + "]");
-        twinSearch.addLinkDstTwinsId(linkId.extract(properties), dstTwinId.extract(properties), searchPredicateEntity.isExclude());
+        twinSearch.addLinkDstTwinsId(linkId.extract(properties), dstTwinId.extract(properties), searchPredicateEntity.isExclude(), anyOfList.extract(properties));
     }
 }

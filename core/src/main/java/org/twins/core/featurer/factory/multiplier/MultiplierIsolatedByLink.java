@@ -68,7 +68,7 @@ public class MultiplierIsolatedByLink extends Multiplier {
             }
             BasicSearch search = new BasicSearch();
             search
-                    .addLinkDstTwinsId(linkId.extract(properties), List.of(inputTwin.getId()), false)
+                    .addLinkDstTwinsId(linkId.extract(properties), List.of(inputTwin.getId()), false, true)
                     .addStatusId(statusIds.extract(properties), excludeStatuses.extract(properties));
             List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
             if (CollectionUtils.isEmpty(relativesTwinEntityList)) {

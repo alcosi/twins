@@ -40,6 +40,9 @@ public class SearchCriteriaBuilderParamLinkDst extends SearchCriteriaBuilder {
     @FeaturerParam(name = "required", description = "")
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
+    @FeaturerParam(name = "anyOfList", description = "")
+    public static final FeaturerParamBoolean anyOfList = new FeaturerParamBoolean("anyOfList");
+
     @Override
     public void concat(TwinSearch twinSearch, SearchPredicateEntity searchPredicateEntity, Properties properties, Map<String, String> namedParamsMap) throws ServiceException {
         String paramKeyStr = paramKey.extract(properties);
@@ -53,6 +56,6 @@ public class SearchCriteriaBuilderParamLinkDst extends SearchCriteriaBuilder {
 
         if (searchPredicateEntity.getSearchField() != SearchField.linkId)
             throw new ServiceException(ErrorCodeTwins.TWIN_SEARCH_CONFIG_INCORRECT, "Incorrect criteria builder[" + this.getClass().getSimpleName() + "] for field[" + searchPredicateEntity.getSearchField() + "]");
-        twinSearch.addLinkDstTwinsId(linkId.extract(properties), List.of(UUID.fromString(namedParamsMap.get(paramKeyStr))), searchPredicateEntity.isExclude());
+        twinSearch.addLinkDstTwinsId(linkId.extract(properties), List.of(UUID.fromString(namedParamsMap.get(paramKeyStr))), searchPredicateEntity.isExclude(), anyOfList.extract(properties));
     }
 }

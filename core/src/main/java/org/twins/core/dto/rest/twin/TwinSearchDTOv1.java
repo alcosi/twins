@@ -45,11 +45,17 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Reporter id exclude list")
     public List<UUID> createdByUserIdExcludeList;
 
-    @Schema(description = "Include dst twins with given links")
-    public List<TwinSearchByLinkDTOv1> linksList;
+    @Schema(description = "Include dst twins with given links. OR join")
+    public List<TwinSearchByLinkDTOv1> linksAnyOfList;
 
-    @Schema(description = "Exclude dst twins with given links")
-    public List<TwinSearchByLinkDTOv1> noLinksList;
+    @Schema(description = "Exclude dst twins with given links. OR join")
+    public List<TwinSearchByLinkDTOv1> linksNoAnyOfList;
+
+    @Schema(description = "Include dst twins with given links. AND join")
+    public List<TwinSearchByLinkDTOv1> linksAllOfList;
+
+    @Schema(description = "Exclude dst twins with given links. AND join")
+    public List<TwinSearchByLinkDTOv1> linksNoAllOfList;
 
     @Schema(description = "Hierarchy ids filter")
     public List<UUID>  hierarchyTreeContainsIdList;
