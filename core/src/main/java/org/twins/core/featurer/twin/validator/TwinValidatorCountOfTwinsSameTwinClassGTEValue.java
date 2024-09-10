@@ -19,10 +19,10 @@ import java.util.*;
 @Component
 @Featurer(id = FeaturerTwins.ID_1608,
         name = "TwinValidatorCountOfTwinsSameTwinClassGTEValue",
-        description = "")
+        description = "Count twins with twin-class same to input twin and compare with GTEvalue(great or equals)")
 public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidator {
 
-    @FeaturerParam(name = "GTEvalue", description = "Count twins with twin-class same to input twin and compare with GTEvalue(great or equals)")
+    @FeaturerParam(name = "GTEvalue", description = "count of twins must be great or equals to this value")
     public static final FeaturerParamInt GTEvalue = new FeaturerParamInt("GTEvalue");
 
     @Lazy
