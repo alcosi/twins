@@ -21,7 +21,8 @@ import java.util.*;
         name = "TwinValidatorCountOfTwinsSameTwinClassGTEValue",
         description = "")
 public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidator {
-    @FeaturerParam(name = "GTEvalue", description = "")
+
+    @FeaturerParam(name = "GTEvalue", description = "Count twins with twin-class same to input twin and compare with GTEvalue(great or equals)")
     public static final FeaturerParamInt GTEvalue = new FeaturerParamInt("GTEvalue");
 
     @Lazy
