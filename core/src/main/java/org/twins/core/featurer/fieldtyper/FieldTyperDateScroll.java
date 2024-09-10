@@ -30,14 +30,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
     @FeaturerParam(name = "pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
-    @FeaturerParam(name = "clearable", description = "if twinClassField.required==true then clearable value not actual")
-    public static final FeaturerParamBoolean clearable = new FeaturerParamBoolean("clearable");
-
     @Override
     public FieldDescriptorDate getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorDate()
-                .pattern(pattern.extract(properties))
-                .clearable(clearable.extract(properties));
+                .pattern(pattern.extract(properties));
     }
 
     @Override
@@ -45,7 +41,7 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
         if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String datePatter = pattern.extract(properties);
-        boolean clearedValue = clearable.extract(properties) && StringUtils.isEmpty(value.getDate());
+        boolean clearedValue = !twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate());
         if (!GenericValidator.isDate(value.getDate(), datePatter, false) && !clearedValue)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.getDate() + "] does not match pattern[" + datePatter + "]");
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
