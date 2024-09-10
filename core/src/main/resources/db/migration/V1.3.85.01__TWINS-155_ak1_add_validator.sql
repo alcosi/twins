@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (1608, 16, 'org.twins.core.featurer.twin.validator.TwinValidatorCountOfTwinsSameTwinClassGTEValue', 'TwinValidatorCountOfTwinsSameTwinClassGTEValue', '', false) on conflict(id) do nothing;
