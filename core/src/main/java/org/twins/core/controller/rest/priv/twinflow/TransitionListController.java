@@ -41,7 +41,7 @@ public class TransitionListController extends ApiController {
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionSearchV1", summary = "Returns twinflow search result")
+    @Operation(operationId = "transitionSearchV1", summary = "Returns transition search result")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transition data", content = {
                     @Content(mediaType = "application/json", schema =
