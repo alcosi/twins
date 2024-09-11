@@ -29,7 +29,7 @@ import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionSearchRestDTOReverseMapper;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
-@Tag(description = "", name = ApiTag.TWINFLOW)
+@Tag(description = "", name = ApiTag.TRANSITION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
@@ -41,7 +41,7 @@ public class TransitionListController extends ApiController {
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "transitionSearchV1", summary = "List of transitions")
+    @Operation(operationId = "transitionSearchV1", summary = "Returns twinflow search result")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Transition data", content = {
                     @Content(mediaType = "application/json", schema =
