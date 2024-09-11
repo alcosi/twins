@@ -162,7 +162,7 @@ public class Kit<E, K> implements Collection<E> {
     }
 
     private class KitIterator implements Iterator<E> {
-        Iterator<E> collectionIterator = collection.iterator();
+        Iterator<E> collectionIterator = collection != null ? collection.iterator() : Collections.emptyIterator();;
         E currentItem;
 
         @Override

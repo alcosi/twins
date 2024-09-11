@@ -17,7 +17,7 @@ import java.util.UUID;
 @Repository
 public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseEntity, DraftTwinEraseEntity.PK>, JpaSpecificationExecutor<DraftTwinEraseEntity> {
 
-   @Transactional(propagation = Propagation.REQUIRES_NEW)
+   @Transactional
    @Modifying
    @Query(nativeQuery = true, value =
            "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, draft_twin_erase_status_id, reason_twin_id, twin_erase_reason_id) " +
@@ -59,7 +59,7 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
    @Modifying
    @Query(nativeQuery = true, value =
            "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null)")
-   long commitEraseIrrevocable(@Param("draftId") UUID draftId);
+   int commitEraseIrrevocable(@Param("draftId") UUID draftId);
 
    @Query(nativeQuery = true, value =
            "select string_agg(cast(twin_id as varchar), ', ') AS ids " +
@@ -73,7 +73,7 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
            "update twin set twin_status_id = erase_twin_status_id " +
                    "from draft_twin_erase dte " +
                    "where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.erase_twin_status_id is not null;")
-   long commitEraseByStatus(@Param("draftId") UUID draftId);
+   int commitEraseByStatus(@Param("draftId") UUID draftId);
 
    Slice<DraftTwinEraseEntity> findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(UUID draftId, Pageable pageable);
 

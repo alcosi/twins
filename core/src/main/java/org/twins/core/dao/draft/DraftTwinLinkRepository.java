@@ -1,12 +1,12 @@
 package org.twins.core.dao.draft;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -34,7 +34,7 @@ public interface DraftTwinLinkRepository extends CrudRepository<DraftTwinLinkEnt
                     "from draft_twin_link " +
                     "where draft_id = :draftId " +
                     "  and cud_id = 'CREATE';")
-    long commitCreates(@Param("draftId") UUID draftId);
+    int commitCreates(@Param("draftId") UUID draftId);
 
     @Transactional
     @Modifying
@@ -46,7 +46,7 @@ public interface DraftTwinLinkRepository extends CrudRepository<DraftTwinLinkEnt
                     "where draft_id = :draftId " +
                     "  and dtl.twin_link_id = twin_link.id " +
                     "  and dtl.cud_id = 'UPDATE';")
-    long commitUpdates(@Param("draftId") UUID id);
+    int commitUpdates(@Param("draftId") UUID id);
 
     @Transactional
     @Modifying
@@ -55,5 +55,5 @@ public interface DraftTwinLinkRepository extends CrudRepository<DraftTwinLinkEnt
                     "using draft_twin_link dtl " +
                     "where dtl.draft_id = :draftId " +
                     "and dtl.twin_link_id = ta.id and cud_id = 'DELETE'")
-    long commitDeletes(@Param("draftId") UUID id);
+    int commitDeletes(@Param("draftId") UUID id);
 }

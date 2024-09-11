@@ -1,5 +1,6 @@
 package org.twins.core.service.draft;
 
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -55,6 +56,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
     private final EntitySmartService entitySmartService;
+    private final EntityManager entityManager;
     @Lazy
     private final TwinflowService twinflowService;
     @Lazy
@@ -83,9 +85,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         try {
-//            twinflowService.loadTwinflow(twinEntity);
             draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false, "");
-//            runEraseFactoryAndDraftResult(draftCollector, twinEntity);
             flush(draftCollector);
             draftCascadeErase(draftCollector);
             endDraft(draftCollector);
@@ -137,7 +137,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 runEraseFactoryAndDraftResult(draftCollector, eraseItem);
 
                 eraseItem
-//                        .setEraseReady(true)
                         .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId())
                         .setEraseTwinStatus(eraseItem.getTwin().getTwinflow().getEraseTwinStatus());
                 if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED) {
@@ -164,10 +163,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftEntity draftFactoryResult(FactoryResultUncommited factoryResultUncommited) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         try {
-            draftFactoryResult(draftCollector, factoryResultUncommited, null);
-            if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes())) {
-                draftCascadeErase(draftCollector);
-            }
+            draftFactoryResult(draftCollector, List.of(factoryResultUncommited));
             endDraft(draftCollector);
         } catch (ServiceException e) {
             draftCollector.getDraftEntity()
@@ -208,11 +204,15 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftCollector draftFactoryResult(DraftCollector draftCollector, Collection<FactoryResultUncommited> factoryResultsUncommited) throws ServiceException {
         for (FactoryResultUncommited factoryResult : factoryResultsUncommited) {
             draftFactoryResult(draftCollector, factoryResult, null);
+            flush(draftCollector);
+            if (CollectionUtils.isNotEmpty(factoryResult.getDeletes())) {
+                draftCascadeErase(draftCollector);
+            }
         }
         return draftCollector;
     }
 
-    public DraftCollector draftFactoryResult(DraftCollector draftCollector, FactoryResultUncommited factoryResultUncommited, TwinEntity reasonTwin) throws ServiceException {
+    private DraftCollector draftFactoryResult(DraftCollector draftCollector, FactoryResultUncommited factoryResultUncommited, TwinEntity reasonTwin) throws ServiceException {
         if (!factoryResultUncommited.isCommittable()) // we will anyway create draft to show locked twin
             draftCollector.getDraftEntity().setStatus(DraftEntity.Status.LOCKED);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getCreates()))
@@ -223,7 +223,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 draftTwinUpdate(draftCollector, twinUpdate);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
             for (TwinDelete twinDelete : factoryResultUncommited.getDeletes()) {
-                if (twinDelete.getTwinId().equals(reasonTwin.getId())) {
+                if (reasonTwin != null && twinDelete.getTwinId().equals(reasonTwin.getId())) {
                     log.debug("{} is already drafted for erase", twinDelete.getTwinEntity());
                     continue;
                 }
@@ -654,6 +654,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
         historyService.saveHistory(draftCollector.getHistoryCollector(), draftCollector.getDraftId());
+//        entityManager.flush();
         draftCollector.clear();
     }
 

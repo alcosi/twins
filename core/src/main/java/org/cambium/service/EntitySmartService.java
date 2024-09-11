@@ -11,6 +11,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
@@ -303,6 +304,16 @@ public class EntitySmartService {
         return result;
     }
 
+    public <T, K> Iterable<T> saveAllAndFlushAndLog(Iterable<T> entities, JpaRepository<T, K> repository) {
+        Iterable<T> result  = repository.saveAllAndFlush(entities);
+        List<String> messages = new ArrayList<>();
+        for (T e : result) {
+            messages.add(createSaveLogMsg(null, e));
+        }
+        log.info(String.join(System.lineSeparator(), messages));
+        return result;
+    }
+
     public <T> Iterable<T> saveAllAndLogChanges(Iterable<T> entities, CrudRepository<T, UUID> repository, ChangesHelper changesHelper) {
         Iterable<T> result = repository.saveAll(entities);
         log.info("Changes: " + changesHelper.collectForLog());
@@ -311,6 +322,11 @@ public class EntitySmartService {
 
     public <T, K> Iterable<T>  saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
         return saveAllAndLog(entityChangesMap.keySet(), repository);
+        //todo collect an log changes
+    }
+
+    public <T, K> Iterable<T>  saveAllAndFlushAndLogChanges(Map<T, ChangesHelper> entityChangesMap, JpaRepository<T, K> repository) {
+        return saveAllAndFlushAndLog(entityChangesMap.keySet(), repository);
         //todo collect an log changes
     }
 

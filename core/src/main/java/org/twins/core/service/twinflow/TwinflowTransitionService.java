@@ -753,12 +753,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return draftCollector.getDraftEntity();
     }
 
-    @Transactional
     public TransitionResult performTransition(TransitionContext transitionContext) throws ServiceException {
         return performTransitions(new TransitionContextBatch(List.of(transitionContext)));
     }
 
-    @Transactional
     public TransitionResult performTransitions(TransitionContextBatch transitionContextBatch) throws ServiceException {
         for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
             validateTransition(transitionContext);
@@ -767,23 +765,33 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         runFactories(transitionContextBatch);
         TransitionResult transitionResult = null;
         if (transitionContextBatch.isMustBeDrafted()) { // we will go to drafting
-            DraftEntity draftEntity = draftTransitions(transitionContextBatch);
-            draftCommitService.commitNowOrInQueue(draftEntity);
-            TransitionResultMajor transitionResultMajor = new TransitionResultMajor();
-            transitionResultMajor.setCommitedDraftEntity(draftEntity);
-            transitionResult = transitionResultMajor;
+            transitionResult = storeMajorTransition(transitionContextBatch);
         } else {
-            TransitionResultMinor transitionResultMinor = new TransitionResultMinor();
-            for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
-                twinService.changeStatus(transitionContext.getTargetTwinList().values(), transitionContext.getTransitionEntity().getDstTwinStatus());
-                transitionResultMinor.setTransitionedTwinList(transitionContext.getTargetTwinList().values().stream().toList());
-            }
-            commitFactoriesResult(transitionContextBatch.getFactoried(), transitionResultMinor); // without "drafting" we can get only minor results
+            transitionResult = storeMinorTransitions(transitionContextBatch);
         }
         for (TransitionContext transitionContext : transitionContextBatch.getAll()) {
             runTriggers(transitionContext);
         }
         return transitionResult;
+    }
+
+    private TransitionResult storeMajorTransition(TransitionContextBatch transitionContextBatch) throws ServiceException {
+        DraftEntity draftEntity = draftTransitions(transitionContextBatch);
+        draftCommitService.commitNowOrInQueue(draftEntity);
+        TransitionResultMajor transitionResultMajor = new TransitionResultMajor();
+        transitionResultMajor.setCommitedDraftEntity(draftEntity);
+        return transitionResultMajor;
+    }
+
+    @Transactional
+    public TransitionResult storeMinorTransitions(TransitionContextBatch transitionContextBatch) throws ServiceException {
+        TransitionResultMinor transitionResultMinor = new TransitionResultMinor();
+        for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
+            twinService.changeStatus(transitionContext.getTargetTwinList().values(), transitionContext.getTransitionEntity().getDstTwinStatus());
+            transitionResultMinor.setTransitionedTwinList(transitionContext.getTargetTwinList().values().stream().toList());
+        }
+        commitFactoriesResult(transitionContextBatch.getFactoried(), transitionResultMinor); // without "drafting" we can get only minor results
+        return transitionResultMinor;
     }
 
     public void runFactories(TransitionContextBatch transitionContextBatch) throws ServiceException {
@@ -844,6 +852,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                             .setTwinStatus(transitionContext.getTransitionEntity().getDstTwinStatus());
             }
         }
+        if (factoryResultUncommited.getUpdates() == null)
+            System.out.println();
     }
 
     @Transactional

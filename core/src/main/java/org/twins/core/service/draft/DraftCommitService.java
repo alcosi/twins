@@ -195,7 +195,7 @@ public class DraftCommitService {
         commit(draftEntity, draftEntity.getTwinAttachmentDeleteCount(), draftTwinAttachmentRepository::commitAttachmentsDelete, "attachments: deletion");
     }
 
-    private void commit(DraftEntity draftEntity, long expectedCounter, Function<UUID, Long> commitFunction, String what) {
+    private void commit(DraftEntity draftEntity, int expectedCounter, Function<UUID, Integer> commitFunction, String what) {
         if (expectedCounter <= 0)
             return;
         log.info("commiting {} {}", expectedCounter, what);

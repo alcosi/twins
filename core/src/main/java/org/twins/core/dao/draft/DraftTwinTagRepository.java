@@ -1,12 +1,12 @@
 package org.twins.core.dao.draft;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public interface DraftTwinTagRepository extends CrudRepository<DraftTwinTagEntit
             "insert into twin_tag (id, twin_id, tag_data_list_option_id, created_at) " +
                     "select gen_random_uuid(), twin_id, tag_data_list_option_id, now() " +
                     "from draft_twin_tag where draft_id = :draftId and create_else_delete = true")
-    long commitTagsAdd(@Param("draftId") UUID draftId);
+    int commitTagsAdd(@Param("draftId") UUID draftId);
 
 
     @Transactional
@@ -36,5 +36,5 @@ public interface DraftTwinTagRepository extends CrudRepository<DraftTwinTagEntit
     @Query(nativeQuery = true, value =
             "delete from twin_tag tt " +
                     "using draft_twin_tag dtt where tt.twin_id = dtt.twin_id and tt.tag_data_list_option_id = dtt.tag_data_list_option_id and dtt.draft_id = :draftId and dtt.create_else_delete = false")
-    long commitTagsDelete(@Param("draftId") UUID draftId);
+    int commitTagsDelete(@Param("draftId") UUID draftId);
 }

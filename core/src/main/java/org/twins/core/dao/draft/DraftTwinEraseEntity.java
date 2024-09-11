@@ -124,6 +124,7 @@ public class DraftTwinEraseEntity implements EasyLoggable {
         UNDETECTED("UNDETECTED"),
         DETECTED_IRREVOCABLE_ERASE("DETECTED_IRREVOCABLE_ERASE"),
         DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
+//        DETECTED_SKIP("DETECTED_SKIP"),
         DETECTED_LOCK("DETECTED_LOCK");
 
         private final String id;

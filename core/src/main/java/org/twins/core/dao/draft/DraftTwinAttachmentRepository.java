@@ -1,6 +1,5 @@
 package org.twins.core.dao.draft;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.CUD;
 
 import java.util.UUID;
@@ -46,7 +46,7 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
                     "       from draft_twin_attachment " +
                     "where draft_id = :draftId " +
                     "  and cud_id = 'CREATE';")
-    long commitAttachmentsCreate(UUID draftId);
+    int commitAttachmentsCreate(UUID draftId);
 
 
     @Transactional
@@ -64,7 +64,7 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
                     "where draft_id = :draftId " +
                     "  and dta.twin_attachment_id = twin_attachment.id " +
                     "  and dta.cud_id = 'UPDATE';")
-    long commitAttachmentsUpdateDelta(@Param("draftId") UUID draftId); //todo use me if only delta will stored in db
+    int commitAttachmentsUpdateDelta(@Param("draftId") UUID draftId); //todo use me if only delta will stored in db
 
     @Transactional
     @Modifying
@@ -81,7 +81,7 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
                     "where draft_id = :draftId " +
                     "  and dta.twin_attachment_id = twin_attachment.id " +
                     "  and dta.cud_id = 'UPDATE';")
-    long commitAttachmentsUpdate(@Param("draftId") UUID draftId);
+    int commitAttachmentsUpdate(@Param("draftId") UUID draftId);
 
     @Transactional
     @Modifying
@@ -90,5 +90,5 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
                     "using draft_twin_attachment dta " +
                     "where dta.draft_id = :draftId " +
                     "and dta.twin_attachment_id = ta.id and cud_id = 'DELETE'")
-    long commitAttachmentsDelete(@Param("draftId") UUID draftId);
+    int commitAttachmentsDelete(@Param("draftId") UUID draftId);
 }

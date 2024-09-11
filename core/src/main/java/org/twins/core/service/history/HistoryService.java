@@ -380,6 +380,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public void removeDraftFlag(UUID draftId) {
-        historyRepository.removeDraftFlag(draftId.toString());
+        historyRepository.removeDraftFlag(draftId);
     }
 }

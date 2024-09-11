@@ -1,6 +1,5 @@
 package org.twins.core.dao.draft;
 
-import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -9,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -42,7 +42,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "where draft_id = :draftId " +
                     "  and dtp.twin_id = twin.id " +
                     "  and dtp.create_else_update = false;")
-    long commitTwinsUpdates(UUID draftId);
+    int commitTwinsUpdates(UUID draftId);
 
     @Transactional
     @Modifying
@@ -65,5 +65,5 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "from draft_twin_persist " +
                     "where draft_id = :draftId " +
                     "  and create_else_update = true;")
-    long commitTwinsCreates(UUID draftId);
+    int commitTwinsCreates(UUID draftId);
 }
