@@ -38,13 +38,21 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setMarkerDataListOptionIdExcludeList(convertToSetSafe(src.getMarkerDataListOptionIdExcludeList()))
                 .setTouchList(convertToSetSafe(src.getTouchList()))
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()));
-        if (src.getLinksList() != null)
-            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksList()) {
-                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false);
+        if (src.getLinksAnyOfList() != null)
+            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksAnyOfList()) {
+                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
             }
-        if (src.getNoLinksList() != null)
-            for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getNoLinksList()) {
-                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true);
+        if (src.getLinksNoAnyOfList() != null)
+            for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAnyOfList()) {
+                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
+            }
+        if (src.getLinksAllOfList() != null)
+            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksAllOfList()) {
+                dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
+            }
+        if (src.getLinksNoAllOfList() != null)
+            for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAllOfList()) {
+                dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
             }
     }
 }

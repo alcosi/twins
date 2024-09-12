@@ -10,10 +10,9 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.LoggerUtils;
-import org.cambium.common.util.MapUtils;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.*;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
@@ -72,6 +71,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
     private final TwinStatusService twinStatusService;
+    private final TwinflowTransitionSearchService twinflowTransitionSearchService;
     @Lazy
     private final TwinService twinService;
     private final TwinflowService twinflowService;
@@ -191,6 +191,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 TwinService.isCreator(twinEntity, apiUser));
         filterTransitions(twinEntity, twinflowTransitionEntityList);
         return twinEntity.getValidTransitionsKit();
+    }
+
+    public PaginationResult<TwinflowTransitionEntity> search(TransitionSearch transitionSearch, SimplePagination pagination) throws ServiceException {
+        return twinflowTransitionSearchService.findTransitions(transitionSearch, pagination);
     }
 
     private void filterTransitions(TwinEntity twinEntity, List<TwinflowTransitionEntity> twinflowTransitionEntityList) throws ServiceException {

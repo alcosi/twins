@@ -112,8 +112,6 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionTriggerEntity, UUID> triggersKit;
 
-
-
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
     private PermissionEntity permission;
