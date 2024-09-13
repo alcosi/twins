@@ -294,7 +294,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         ChangesHelper changesHelper = new ChangesHelper();
         cudValidators(dbTwinflowTransitionEntity, validatorCUD);
         cudTriggers(dbTwinflowTransitionEntity, triggerCUD);
-        updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
+        if(null != twinflowTransitionEntity.getTwinflowTransitionAlias()) updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
         updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
         updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
         updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
