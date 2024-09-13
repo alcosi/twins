@@ -42,7 +42,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
             case DETAILED, MANAGED:
                 dst
-                        .setSrcTwinStatusId(src.getDstTwinStatusId())
+                        .setSrcTwinStatusId(src.getSrcTwinStatusId())
                         .setPermissionId(src.getPermissionId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId());
