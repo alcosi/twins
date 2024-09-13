@@ -430,8 +430,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
     @Transactional
     public void updateTransitionAlias(TwinflowTransitionEntity dbTwinflowTransitionEntity, TwinflowTransitionAliasEntity twinflowTransitionAliasEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (twinflowTransitionAliasEntity.getAlias() == null)
+            return;
         creatAliasIfNeeded(twinflowTransitionAliasEntity);
-        if (twinflowTransitionAliasEntity.getAlias() == null || !changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
+        if (!changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
             return;
         dbTwinflowTransitionEntity.setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
         dbTwinflowTransitionEntity.setTwinflowTransitionAlias(twinflowTransitionAliasEntity);
