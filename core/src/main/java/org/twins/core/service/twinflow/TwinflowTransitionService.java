@@ -294,7 +294,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         ChangesHelper changesHelper = new ChangesHelper();
         cudValidators(dbTwinflowTransitionEntity, validatorCUD);
         cudTriggers(dbTwinflowTransitionEntity, triggerCUD);
-        if(null != twinflowTransitionEntity.getTwinflowTransitionAlias()) updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
+        updateTransitionAlias(dbTwinflowTransitionEntity, twinflowTransitionEntity.getTwinflowTransitionAlias(), changesHelper);
         updateTransitionName(dbTwinflowTransitionEntity, nameI18n, changesHelper);
         updateTransitionDescription(dbTwinflowTransitionEntity, descriptionI18n, changesHelper);
         updateTransitionInBuildFactory(dbTwinflowTransitionEntity, twinflowTransitionEntity.getInbuiltTwinFactoryId(), changesHelper);
@@ -431,7 +431,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     @Transactional
     public void updateTransitionAlias(TwinflowTransitionEntity dbTwinflowTransitionEntity, TwinflowTransitionAliasEntity twinflowTransitionAliasEntity, ChangesHelper changesHelper) throws ServiceException {
         creatAliasIfNeeded(twinflowTransitionAliasEntity);
-        if (!changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
+        if (twinflowTransitionAliasEntity.getAlias() == null || !changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
             return;
         dbTwinflowTransitionEntity.setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
         dbTwinflowTransitionEntity.setTwinflowTransitionAlias(twinflowTransitionAliasEntity);
