@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.*;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.history.HistoryService;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -21,6 +20,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class DraftCommitService {
     private final DraftRepository draftRepository;
+    private final DraftHistoryRepository draftHistoryRepository;
     private final DraftTwinTagRepository draftTwinTagRepository;
     private final DraftTwinMarkerRepository draftTwinMarkerRepository;
     private final DraftTwinEraseRepository draftTwinEraseRepository;
@@ -30,7 +30,6 @@ public class DraftCommitService {
     private final DraftTwinFieldUserRepository draftTwinFieldUserRepository;
     private final DraftTwinFieldDataListRepository draftTwinFieldDataListRepository;
     private final DraftTwinPersistRepository draftTwinPersistRepository;
-    private final HistoryService historyService;
     @Lazy
     private final DraftService draftService;
 
@@ -39,8 +38,6 @@ public class DraftCommitService {
         return commitNowOrInQueue(draftService.findEntitySafe(draftId));
     }
 
-    // commit can not be done by db function, because we need to create history
-    // also if draft is huge we won't do it in current thread because it can be costly (if there are a lot of twins)
     @Transactional
     public DraftEntity commitNowOrInQueue(DraftEntity draftEntity) throws ServiceException {
         if (draftEntity.getStatus() != DraftEntity.Status.UNCOMMITED)
@@ -54,7 +51,7 @@ public class DraftCommitService {
     }
 
     // all draft data should be normalized and check before (for best performance)
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public void commitNow(DraftEntity draftEntity) throws ServiceException {
         try {
             commitTwinErase(draftEntity);
@@ -66,17 +63,28 @@ public class DraftCommitService {
             commitTwinAttachments(draftEntity);
             commitHistory(draftEntity);
             draftEntity.setStatus(DraftEntity.Status.COMMITED);
-        } catch (ServiceException e) {
+            draftRepository.save(draftEntity);
+        } catch (Exception e) {
             draftEntity
                     .setStatus(DraftEntity.Status.COMMIT_EXCEPTION)
-                    .setStatusDetails(e.log());
-        } finally {
-            draftRepository.save(draftEntity);
+                    .setStatusDetails(e instanceof ServiceException se ? se.log() : e.getMessage());
+            updateDraftInNewTransaction(draftEntity);
+            throw e;
         }
     }
 
+    // If something goes wrong during draft commit, commit transaction should be rolled back,
+    // but draft should change status. This must be done in 2 separate transactions
+    private void updateDraftInNewTransaction(DraftEntity draftEntity) {
+        Thread thread = new Thread(() -> {
+                draftRepository.save(draftEntity);
+        });
+        thread.start();
+    }
+
+
     private void commitHistory(DraftEntity draftEntity) {
-        historyService.removeDraftFlag(draftEntity.getId());
+        draftHistoryRepository.moveFromDraft(draftEntity.getId());
     }
 
     private void commitTwinErase(DraftEntity draftEntity) throws ServiceException {
@@ -181,7 +189,7 @@ public class DraftCommitService {
     }
 
     // we can check if current draft it minor
-    private boolean isMinor(DraftEntity draftEntity) {
+    public boolean isMinor(DraftEntity draftEntity) {
         //todo move to properties
         return draftEntity.getAllChangesCount() <= 20;
     }

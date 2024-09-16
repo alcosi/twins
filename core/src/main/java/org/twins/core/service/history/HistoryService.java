@@ -76,7 +76,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
-        UserEntity user = authService.getApiUser().getUser();
         Pageable pageable = PaginationUtils.pageableOffset(pagination);
         Page<HistoryEntity> historyList;
         if (childDepth == 0)
@@ -87,11 +86,34 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {
-        HistoryEntity historyEntity = createEntity(twinEntity, type, context, getActor(), null);
+        HistoryEntity historyEntity = createEntity(twinEntity, type, context, getActor());
         entitySmartService.save(historyEntity, historyRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor, UUID draftId) throws ServiceException {
+    public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
+        List<HistoryEntity> historyEntityList = convertToEntities(multiTwinHistoryCollector);
+        if (historyEntityList == null) return;
+        if (CollectionUtils.isNotEmpty(historyEntityList))
+            entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
+    }
+
+    public List<HistoryEntity> convertToEntities(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
+        if (MapUtils.isEmpty(multiTwinHistoryCollector.getMultiTwinHistory()))
+            return null;
+        List<HistoryEntity> historyEntityList = new ArrayList<>();
+        UserEntity actor = getActor();
+        for (Pair<TwinEntity, HistoryCollector> twinHistory : multiTwinHistoryCollector.getMultiTwinHistory().values()) {
+            if (twinHistory.getValue() == null || CollectionUtils.isEmpty(twinHistory.getValue().getHistoryList()))
+                continue;
+            for (Pair<HistoryType, HistoryContext> pair : twinHistory.getValue().getHistoryList()) {
+                HistoryEntity historyEntity = createEntity(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor);
+                historyEntityList.add(historyEntity);
+            }
+        }
+        return historyEntityList;
+    }
+
+    public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -100,7 +122,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)
                 .setContext(context)
-                .setDraft(draftId != null);
+                .setHistoryBatchId(authService.getApiUser().getRequestId());
+        fillHistoryEntity(historyEntity, twinEntity, context);
+        return historyEntity;
+    }
+
+    public void fillHistoryEntity(HistoryEntity historyEntity, TwinEntity twinEntity, HistoryContext context) throws ServiceException {
         if (context != null) {
             if (context.getField() != null) {
                 historyEntity.setTwinClassFieldId(context.getField().getId());
@@ -118,12 +145,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 }
             }
         }
-        if (draftId != null)
-            historyEntity.setHistoryBatchId(draftId);
-        else if (authService.getApiUser() != null)
-            historyEntity.setHistoryBatchId(authService.getApiUser().getRequestId());
         fillSnapshotMessage(historyEntity);
-        return historyEntity;
     }
 
     private UserEntity getActor() throws ServiceException {
@@ -136,39 +158,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return actor;
     }
 
-    public void saveHistory(TwinEntity twinEntity, HistoryCollector historyCollector, UUID draftId) throws ServiceException {
-        if (historyCollector == null || CollectionUtils.isEmpty(historyCollector.getHistoryList()))
-            return;
-        List<HistoryEntity> historyEntityList = new ArrayList<>();
-        UserEntity actor = getActor();
-        for (Pair<HistoryType, HistoryContext> pair : historyCollector.getHistoryList()) {
-            HistoryEntity historyEntity = createEntity(twinEntity, pair.getKey(), pair.getValue(), actor, draftId);
-            historyEntityList.add(historyEntity);
-        }
-        if (CollectionUtils.isNotEmpty(historyEntityList))
-            entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
-    }
 
-    public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
-        saveHistory(multiTwinHistoryCollector, null);
-    }
-
-    public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector, UUID draftId) throws ServiceException {
-        if (MapUtils.isEmpty(multiTwinHistoryCollector.getMultiTwinHistory()))
-            return;
-        List<HistoryEntity> historyEntityList = new ArrayList<>();
-        UserEntity actor = getActor();
-        for (Pair<TwinEntity, HistoryCollector> twinHistory : multiTwinHistoryCollector.getMultiTwinHistory().values()) {
-            if (twinHistory.getValue() == null || CollectionUtils.isEmpty(twinHistory.getValue().getHistoryList()))
-                continue;
-            for (Pair<HistoryType, HistoryContext> pair : twinHistory.getValue().getHistoryList()) {
-                HistoryEntity historyEntity = createEntity(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor, draftId);
-                historyEntityList.add(historyEntity);
-            }
-        }
-        if (CollectionUtils.isNotEmpty(historyEntityList))
-            entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
-    }
 
     public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -377,9 +367,5 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                     .add(linkDeleted(twinLinkEntity.getId(), twinLinkEntity.getLink(), twinLinkEntity.getDstTwin(), true));
         }
         return ret;
-    }
-
-    public void removeDraftFlag(UUID draftId) {
-        historyRepository.removeDraftFlag(draftId);
     }
 }

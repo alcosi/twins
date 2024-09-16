@@ -832,7 +832,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         LoggerUtils.traceTreeStart();
         FactoryResultUncommited factoryResultUncommited;
         try {
-            factoryResultUncommited = twinFactoryService.runFactory(inbuiltTwinFactoryId, factoryContext);
+            factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(inbuiltTwinFactoryId, factoryContext);
         } finally {
             LoggerUtils.traceTreeEnd();
         }

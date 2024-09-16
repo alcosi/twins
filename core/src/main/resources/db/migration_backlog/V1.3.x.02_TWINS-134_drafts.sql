@@ -225,7 +225,7 @@ create table if not exists draft_twin_link
         constraint draft_twin_link_cud_id_fk
             references cud
             on update cascade,
-    twin_link_id uuid    not null, -- no FK possible to twin_link if it's creation
+    twin_link_id uuid,          -- no FK possible to twin_link if it's creation
     src_twin_id  uuid,             -- do we need to set in not null???
     dst_twin_id  uuid,             -- do we need to set in not null???
     link_id      uuid,              -- do we need to set in not null???
@@ -325,7 +325,7 @@ create table if not exists draft_twin_field_data_list
         constraint draft_twin_field_data_list_cud_id_fk
             references cud
             on update cascade,
-    twin_field_data_list_id uuid    not null,
+    twin_field_data_list_id uuid,
     twin_id                 uuid    not null, -- no FW, cause twin can be in creation state
     twin_class_field_id     uuid    not null,
     data_list_option_id     uuid
@@ -350,7 +350,7 @@ create table if not exists draft_twin_field_simple
         constraint draft_twin_field_simple_cud_id_fk
             references cud
             on update cascade,
-    twin_field_simple_id uuid    not null,
+    twin_field_simple_id uuid,
     twin_id              uuid    not null, -- no FW, cause twin can be in creation state
     twin_class_field_id uuid    not null,
     value                text
@@ -375,7 +375,7 @@ create table if not exists draft_twin_field_user
         constraint draft_twin_field_user_cud_id_fk
             references cud
             on update cascade,
-    twin_field_user_id  uuid    not null,
+    twin_field_user_id  uuid,
     twin_id             uuid    not null, -- no FW, cause twin can be in creation state
     twin_class_field_id uuid    not null,
     user_id             uuid
@@ -386,6 +386,36 @@ create index if not exists draft_twin_field_user_draft_id_index
 create index if not exists draft_twin_field_user_twin_id_index
     on draft_twin_field_user (twin_id);
 
+
+create table if not exists draft_history
+(
+    id                  uuid                                not null
+        constraint draft_history_pk
+            primary key,
+    draft_id            uuid    not null
+        constraint draft_history_draft_id_fk
+            references draft
+            on update cascade on delete cascade,
+    twin_id             uuid                                not null,  -- no FW, cause twin can be in creation state
+    created_at          timestamp default CURRENT_TIMESTAMP not null,
+    actor_user_id       uuid                                not null
+        constraint draft_history_user_id_fk
+            references "user"
+            on update cascade,
+    history_type_id     varchar                             not null
+        constraint draft_history_history_type_id_fk
+            references history_type
+            on update cascade on delete restrict,
+    twin_class_field_id uuid
+        constraint draft_history_twin_class_field_id_fk
+            references twin_class_field
+            on update cascade on delete set null,
+    context             jsonb,
+    snapshot_message    text
+);
+
+create index if not exists history_twin_id_index
+    on history (twin_id);
 
 CREATE OR REPLACE FUNCTION nullifyIfNecessary(newValue ANYELEMENT, oldValue ANYELEMENT) RETURNS ANYELEMENT AS
 $$
@@ -403,9 +433,6 @@ BEGIN
     END IF;
 END;
 $$ LANGUAGE plpgsql;
-
-alter table public.history
-    add if not exists draft boolean default false;
 
 
 

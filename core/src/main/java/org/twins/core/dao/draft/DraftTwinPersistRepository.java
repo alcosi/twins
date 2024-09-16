@@ -22,7 +22,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
                     "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
-    long normalizeDraft(@Param("draftId") UUID draftId);
+    int normalizeDraft(@Param("draftId") UUID draftId);
 
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateTrue(UUID draftId, Pageable pageable);
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateFalse(UUID draftId, Pageable pageable);
@@ -49,7 +49,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
     @Query(nativeQuery = true, value =
             "insert into twin (id, twin_class_id, head_twin_id, external_id, twin_status_id, name, description, created_by_user_id, " +
                     "                  assigner_user_id, created_at, owner_business_account_id, owner_user_id, view_permission_id) " +
-                    "select id, " +
+                    "select twin_id, " +
                     "       twin_class_id, " +
                     "       head_twin_id, " +
                     "       external_id, " +

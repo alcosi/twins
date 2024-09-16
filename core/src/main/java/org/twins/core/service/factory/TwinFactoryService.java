@@ -79,8 +79,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return true;
     }
 
-    public FactoryResultUncommited runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
-        runFactory(factoryId, factoryContext, null);
+    public FactoryResultUncommited runFactoryAndCollectResult(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
+        runFactory(factoryId, factoryContext);
         FactoryResultUncommited factoryResultUncommited = new FactoryResultUncommited();
         for (FactoryItem factoryItem : factoryContext.getAllFactoryItemList()) {
             switch (factoryItem.getEraseMarker()) {
@@ -106,7 +106,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return factoryResultUncommited;
     }
 
-    private void runFactory(UUID factoryId, FactoryContext factoryContext, String factoryRunTrace) throws ServiceException {
+    private void runFactory(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
         TwinFactoryEntity factoryEntity = findEntitySafe(factoryId);
         runFactory(factoryEntity, factoryContext);
     }
@@ -118,7 +118,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         else if (factoryContext.getCurrentFactoryBranchId().alreadyVisited(factoryEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_INCORRECT, "Incorrect factory config: recursion call. Current branch[" + factoryContext.getCurrentFactoryBranchId() + "]");
         else
-            factoryContext.setCurrentFactoryBranchId(factoryContext.getCurrentFactoryBranchId().next(factoryEntity.getId())); //branchId must be incremented
+            factoryContext.currentFactoryBranchLevelDown(factoryEntity.getId()); //branchId must be incremented
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
@@ -186,9 +186,14 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             }
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
-                log.info(factoryPipelineEntity.logShort() + " has nextFactoryId configured");
+                log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
+                //we will limit next factory items access only by current pipeline items
+                factoryContext.currentFactoryBranchEnterPipeline(factoryPipelineEntity.getId());
+                factoryContext.snapshotPipelineScope(pipelineInputList);
                 LoggerUtils.traceTreeLevelDown();
                 runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext);
+                factoryContext.evictPipelineScope(); // we can clear it here
+                factoryContext.currentFactoryBranchExitPipeline();
                 LoggerUtils.traceTreeLevelUp();
             }
         }

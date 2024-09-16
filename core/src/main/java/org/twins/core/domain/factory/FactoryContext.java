@@ -21,6 +21,9 @@ public class FactoryContext {
     private TwinBasicFields basics = null;
     private FactoryBranchId rootFactoryBranchId;
     private FactoryBranchId currentFactoryBranchId;
+    // If some factory was run from previous factory pipeline,
+    // we had to limit items scope for this factory with items filtered for pipeline
+    private Map<FactoryBranchId, List<FactoryItem>> pipelineScopes = new HashMap<>();
 
     public FactoryContext(FactoryBranchId rootFactoryBranchId) {
         this.rootFactoryBranchId = rootFactoryBranchId;
@@ -49,7 +52,11 @@ public class FactoryContext {
     }
 
     public List<FactoryItem> getFactoryItemList() {
-        return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
+        FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
+        if (pipelineScopes.containsKey(currentPipeline)) // we will use limited scope
+            return pipelineScopes.get(currentPipeline);
+        else
+            return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
     }
 
     public List<FactoryItem> getAllFactoryItemList() {
@@ -78,6 +85,11 @@ public class FactoryContext {
 
     public void add(FactoryItem factoryItem) {
         factoryItemList.add(factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId));
+        if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
+            FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
+            if (pipelineScopes.containsKey(currentPipeline)) // we will add it to limited scope
+                pipelineScopes.get(currentPipeline).add(factoryItem);
+        }
     }
 
     public Map<UUID, FieldValue> getFields() {
@@ -99,5 +111,26 @@ public class FactoryContext {
 
     public void currentFactoryBranchLevelUp() {
         currentFactoryBranchId = currentFactoryBranchId.previous();
+    }
+
+    public void currentFactoryBranchLevelDown(UUID id) {
+        currentFactoryBranchId = currentFactoryBranchId.next(id);
+    }
+
+    public void currentFactoryBranchEnterPipeline(UUID id) {
+        currentFactoryBranchId = currentFactoryBranchId.enterPipeline(id);
+    }
+
+    public void currentFactoryBranchExitPipeline() {
+        currentFactoryBranchId = currentFactoryBranchId.exitPipeline();
+    }
+
+    public void snapshotPipelineScope(List<FactoryItem> pipelineInputList) {
+        pipelineScopes.put(currentFactoryBranchId, pipelineInputList);
+    }
+
+    // if we move to next pipeline or even to top factory we can evict scope
+    public void evictPipelineScope() {
+        pipelineScopes.remove(currentFactoryBranchId);
     }
 }

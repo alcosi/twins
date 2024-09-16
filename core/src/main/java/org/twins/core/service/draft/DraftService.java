@@ -15,6 +15,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
+import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
@@ -46,6 +47,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final DraftRepository draftRepository;
+    private final DraftHistoryRepository draftHistoryRepository;
     private final DraftTwinTagRepository draftTwinTagRepository;
     private final DraftTwinMarkerRepository draftTwinMarkerRepository;
     private final DraftTwinEraseRepository draftTwinEraseRepository;
@@ -154,7 +156,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 //                draftCollector.add(eraseItem);
                 flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
-            historyService.saveHistory(historyCollectorDeletes, draftCollector.getDraftId());
+            historyService.saveHistory(historyCollectorDeletes);
             historyCollectorDeletes.clear();
             eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatus(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
         }
@@ -182,7 +184,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             return draftCollector;
         FactoryContext factoryContext = new FactoryContext(FactoryBranchId.root(eraseFactoryId))
                 .addInputTwin(eraseEntity.getTwin());
-        FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactory(eraseFactoryId, factoryContext);
+        FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
         //if factory has some configured eraser, we should fish current twin from result, because it can be locked or skipped
         if (factoryResultUncommited.getSkippedDeletes().contains(eraseEntity.getTwinId())) {
             log.warn("{} was marked by eraser as 'skipped'. This provokes draft lock", eraseEntity.getTwin().logShort());
@@ -502,6 +504,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setDraft(draftEntity)
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
+                .setCreatedByUserId(authService.getApiUser().getUserId())
                 .setCud(cud);
         switch (cud) {
             case CREATE:
@@ -653,9 +656,29 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             for (Map.Entry<Class<?>, Set<Object>> classChanges : draftCollector.getDraftEntitiesMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
             }
-        historyService.saveHistory(draftCollector.getHistoryCollector(), draftCollector.getDraftId());
+        saveDraftHistory(draftCollector);
 //        entityManager.flush();
         draftCollector.clear();
+    }
+
+    private void saveDraftHistory(DraftCollector draftCollector) throws ServiceException {
+        List<HistoryEntity> historyEntities = historyService.convertToEntities(draftCollector.getHistoryCollector());
+        if (CollectionUtils.isEmpty(historyEntities))
+            return;
+        List<DraftHistoryEntity> draftHistoryEntities = new ArrayList<>();
+        for (HistoryEntity historyEntity : historyEntities) {
+            draftHistoryEntities.add(new DraftHistoryEntity()
+                    .setHistoryType(historyEntity.getHistoryType())
+                    .setContext(historyEntity.getContext())
+                    .setDraftId(draftCollector.getDraftId())
+                    .setActorUserId(historyEntity.getActorUserId())
+                    .setSnapshotMessage(historyEntity.getSnapshotMessage())
+                    .setTwinId(historyEntity.getTwinId())
+                    .setCreatedAt(historyEntity.getCreatedAt())
+                    .setTwinClassFieldId(historyEntity.getTwinClassFieldId())
+            );
+        }
+        entitySmartService.saveAllAndLog(draftHistoryEntities, draftHistoryRepository);
     }
 
     private <T, K> void saveEntities(DraftCollector draftCollector, Class<T> entityClass, CrudRepository<T, K> repository) {
