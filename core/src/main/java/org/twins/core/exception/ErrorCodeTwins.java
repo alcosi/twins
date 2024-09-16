@@ -12,14 +12,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     ENTITY_INVALID(10002, "entity invalid"),
     ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. Please check unique keys"),
-    USER_UNKNOWN(10051, "unknown user"),
-    USER_LOCALE_UNKNOWN(10052, "unknown locale"),
-    USER_GROUP_UNKNOWN(10071, "user group is unknown"),
-    USER_GROUP_ENTER_ERROR(10072, "user group can not be entered"),
-    USER_GROUP_IS_MANDATORY(10073, "user group is mandatory"),
-    BUSINESS_ACCOUNT_UNKNOWN(10101, "unknown business_account"),
-    BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(10102, "business_account user already exists"),
-    BUSINESS_ACCOUNT_USER_NOT_EXISTS(10103, "business_account user not exists"),
+    USER_UNKNOWN(10101, "unknown user"),
+    USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
     DOMAIN_TYPE_UNSUPPORTED(10202, "domain type unsupported"),
     DOMAIN_KEY_INCORRECT(10203, "domain key is incorrect"),
@@ -83,7 +77,13 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_CONFIG_INCORRECT(11604, "twin search config incorrect"),
     TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect"),
     SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied"),
-    TWIN_CREATE_ACCESS_DENIED(11801, "Twin can't be created by current user");
+    TWIN_CREATE_ACCESS_DENIED(11801, "Twin can't be created by current user"),
+    USER_GROUP_UNKNOWN(12101, "user group is unknown"),
+    USER_GROUP_ENTER_ERROR(12102, "user group can not be entered"),
+    USER_GROUP_IS_MANDATORY(12103, "user group is mandatory"),
+    BUSINESS_ACCOUNT_UNKNOWN(12201, "unknown business_account"),
+    BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(12202, "business_account user already exists"),
+    BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists");
 
 
     private final int code;
