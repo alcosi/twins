@@ -23,7 +23,8 @@ public enum I18nType  {
     TWINFLOW_DESCRIPTION("twinflowDescription", "Twinflow description", Category.TEXT),
     TWINFLOW_TRANSITION_NAME("twinflowTransitionName", "Twinflow transition name", Category.TEXT),
     TWINFLOW_TRANSITION_DESCRIPTION("twinflowTransitionDescription", "Twinflow transition description", Category.TEXT),
-    SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT)
+    SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT),
+    ERROR("error","Error", Category.TEXT)
         ;
 
     private final String id;
