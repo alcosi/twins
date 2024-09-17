@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentsCountDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
@@ -46,4 +48,7 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
 
     @Schema(description = "Suitable actions list")
     public Set<TwinAction> actions;
+
+    @Schema(description = "Attachments count")
+    public AttachmentsCountDTOv1 attachmentsCount;
 }

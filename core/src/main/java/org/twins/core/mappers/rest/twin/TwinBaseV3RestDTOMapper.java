@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
+import org.twins.core.mappers.rest.attachment.TwinAttachmentsCounterRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
@@ -16,6 +17,7 @@ import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinActionService;
+import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -42,12 +44,16 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {DataListOptionMode.TwinTag2DataListOptionMode.class, DataListOptionMode.TwinMarker2DataListOptionMode.class})
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
+    @MapperModePointerBinding(modes = {AttachmentCountMode.Twin2AttachmentCountMode.class})
+    private final TwinAttachmentsCounterRestDTOMapper twinAttachmentsCounterRestDTOMapper;
+
     final TwinActionService twinActionService;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
     final TwinMarkerService twinMarkerService;
     final TwinTagService twinTagService;
     final TwinflowTransitionService twinflowTransitionService;
+    final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
@@ -80,6 +86,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinActionService.loadActions(src);
             dst.setActions(src.getActions());
         }
+        dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src));
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
@@ -106,6 +113,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return mapperContext.hasModeButNot(TwinLinkMode.Twin2TwinLinkMode.HIDE);
     }
 
+    private static boolean showAttachmentsCount(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(AttachmentCountMode.Twin2AttachmentCountMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
@@ -122,6 +133,12 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinLinkService.loadTwinLinks(srcCollection);
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
+        if (showAttachmentsCount(mapperContext)) {
+            if (mapperContext.hasMode(AttachmentCountMode.Twin2AttachmentCountMode.SHORT))
+                twinAttachmentService.attachmentsCount(srcCollection, AttachmentCountMode.SHORT);
+            else if (mapperContext.hasMode(AttachmentCountMode.Twin2AttachmentCountMode.DETAILED))
+                twinAttachmentService.attachmentsCount(srcCollection, AttachmentCountMode.DETAILED);
+        }
     }
 
     @Override
