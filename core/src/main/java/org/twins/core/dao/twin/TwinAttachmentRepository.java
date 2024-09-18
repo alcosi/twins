@@ -24,6 +24,7 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
 
     @Query(value = """
         SELECT 
+            twin.twinId,
             COUNT(CASE 
                 WHEN twin.twinCommentId IS NULL 
                 AND twin.twinClassFieldId IS NULL 
@@ -39,10 +40,12 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
                 WHEN twin.twinClassFieldId IS NOT NULL 
                 THEN 1 ELSE NULL END) AS fieldCount
         FROM TwinAttachmentEntity twin
-        WHERE twin.twinId = :twinId
+        WHERE twin.twinId IN :twinIds
+        GROUP BY twin.twinId
         """)
-    Object[] countAttachmentsByTwinId(@Param("twinId") UUID twinId);
+    List<Object[]> countAttachmentsByTwinIds(@Param("twinIds") List<UUID> twinIds);
 
-    Long countByTwinId(UUID twinId);
+    @Query("SELECT twin.twinId, COUNT(twin) FROM TwinAttachmentEntity twin WHERE twin.twinId IN :twinIds GROUP BY twin.twinId")
+    List<Object[]> countByTwinIds(@Param("twinIds") List<UUID> twinIds);
 
 }

@@ -22,10 +22,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinBaseV3")
 public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
-    @Schema(description = "attachments")
+    @Schema(description = "Attachments")
     public List<AttachmentViewDTOv1> attachments;
 
-    @Schema(description = "links")
+    @Schema(description = "Attachments count")
+    public AttachmentsCountDTOv1 attachmentsCount;
+
+    @Schema(description = "Links")
     public TwinLinkListDTOv1 links;
 
     @Schema(description = "TransitionId list." + DTOExamples.LAZY_RELATION_MODE_OFF)
@@ -48,7 +51,4 @@ public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
 
     @Schema(description = "Suitable actions list")
     public Set<TwinAction> actions;
-
-    @Schema(description = "Attachments count")
-    public AttachmentsCountDTOv1 attachmentsCount;
 }

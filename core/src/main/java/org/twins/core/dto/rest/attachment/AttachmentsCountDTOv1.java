@@ -9,17 +9,17 @@ import lombok.experimental.Accessors;
 @Schema(name = "AttachmentsCountV1")
 public class AttachmentsCountDTOv1 {
     @Schema(description = "Total number of attachments", example = "20")
-    public int all;
+    public Integer all;
 
     @Schema(description = "Number of attachments direct for a twin", example = "12")
-    public int direct;
+    public Integer direct;
 
     @Schema(description = "Number of attachments for transition only", example = "3")
-    public int fromTransitions;
+    public Integer fromTransitions;
 
     @Schema(description = "Number of attachments for comment only", example = "4")
-    public int fromComments;
+    public Integer fromComments;
 
     @Schema(description = "Number of attachments for twin class field only", example = "1")
-    public int fromFields;
+    public Integer fromFields;
 }

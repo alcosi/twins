@@ -12,10 +12,9 @@ import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.AttachmentsCount;
-import org.twins.core.mappers.rest.mappercontext.modes.AttachmentCountMode;
 
-import java.util.Collection;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -46,36 +45,54 @@ public class TwinAttachmentService extends EntitySecureFindServiceImpl<TwinAttac
         return false;
     }
 
-    public void attachmentsCount(Collection<TwinEntity> twins, AttachmentCountMode mode) {
+    public void loadAttachmentsCount(Collection<TwinEntity> twins, boolean total) {
+        if (total) attachmentsCountTotal(twins);
+        else attachmentsSeparateCount(twins);
+    }
+
+    private void attachmentsCountTotal(Collection<TwinEntity> twins) {
+        List<UUID> twinIds = twins.stream()
+                .map(TwinEntity::getId)
+                .collect(Collectors.toList());
+
+        List<Object[]> results = twinAttachmentRepository.countByTwinIds(twinIds);
+
+        Map<UUID, Long> countMap = results.stream()
+                .collect(Collectors.toMap(result -> (UUID) result[0], result -> (Long) result[1]));
+
         for (TwinEntity twin : twins) {
-            if (twin.getAttachmentsCount() != null)
-                return;
-            twin.setAttachmentsCount(new AttachmentsCount());
-            if (mode.equals(AttachmentCountMode.SHORT))
-                needLoadAllAttachmentsCount(twin);
-            else if (mode.equals(AttachmentCountMode.DETAILED))
-                needLoadSeparateAttachmentsCount(twin);
+            Long count = countMap.get(twin.getId());
+            if (count == null) count = 0L;
+            twin.setAttachmentsCount(new AttachmentsCount().setAll(count.intValue()));
         }
     }
 
-    private void needLoadAllAttachmentsCount(TwinEntity twin) {
-        Long count = twinAttachmentRepository.countByTwinId(twin.getId());
-        twin.getAttachmentsCount().setAll(count.intValue());
-    }
+    private void attachmentsSeparateCount(Collection<TwinEntity> twins) {
+        List<UUID> collect = twins.stream()
+                .map(TwinEntity::getId)
+                .collect(Collectors.toList());
+        List<Object[]> objects = twinAttachmentRepository.countAttachmentsByTwinIds(collect);
+        Map<UUID, Object[]> resultMap = objects.stream()
+                .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
 
-    private void needLoadSeparateAttachmentsCount(TwinEntity twin){
-        Object[] objects = twinAttachmentRepository.countAttachmentsByTwinId(twin.getId());
-        Object[] innerArray = ((Object[]) objects[0]);
+        for (TwinEntity twin : twins) {
+            UUID twinId = twin.getId();
 
-        int directCount = ((Long) innerArray[0]).intValue();
-        int commentCount = ((Long) innerArray[1]).intValue();
-        int transitionCount = ((Long) innerArray[2]).intValue();
-        int fieldCount = ((Long) innerArray[3]).intValue();
+            Object[] innerArray = resultMap.get(twinId);
 
-        twin.getAttachmentsCount()
-                .setDirect(directCount)
-                .setFromComments(commentCount)
-                .setFromTransitions(transitionCount)
-                .setFromFields(fieldCount);
+            if (innerArray != null) {
+                int directCount = ((Long) innerArray[1]).intValue();
+                int commentCount = ((Long) innerArray[2]).intValue();
+                int transitionCount = ((Long) innerArray[3]).intValue();
+                int fieldCount = ((Long) innerArray[4]).intValue();
+
+                twin.setAttachmentsCount(new AttachmentsCount()
+                        .setDirect(directCount)
+                        .setFromComments(commentCount)
+                        .setFromTransitions(transitionCount)
+                        .setFromFields(fieldCount))
+                ;
+            }
+        }
     }
 }

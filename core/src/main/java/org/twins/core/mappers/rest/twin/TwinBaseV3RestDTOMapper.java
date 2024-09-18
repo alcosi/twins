@@ -66,6 +66,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             attachmentService.loadAttachments(src);
             dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(AttachmentMode.Twin2AttachmentMode.SHORT, AttachmentCollectionMode.Twin2AttachmentCollectionMode.FROM_FIELDS)));
         }
+        //todo do optimization load
+        if (showAttachmentsCount(mapperContext)) {
+            dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src));
+        }
         if (showLinks(mapperContext)) {
             twinLinkService.loadTwinLinks(src);
             dst.setLinks(twinLinkListRestDTOMapper.convert(src.getTwinLinks(), mapperContext.forkOnPoint(TwinLinkMode.Twin2TwinLinkMode.SHORT)));
@@ -86,7 +90,6 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinActionService.loadActions(src);
             dst.setActions(src.getActions());
         }
-        dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src));
     }
 
     private static boolean showMarkers(MapperContext mapperContext) {
@@ -134,10 +137,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
         if (showAttachmentsCount(mapperContext)) {
-            if (mapperContext.hasMode(AttachmentCountMode.Twin2AttachmentCountMode.SHORT))
-                twinAttachmentService.attachmentsCount(srcCollection, AttachmentCountMode.SHORT);
-            else if (mapperContext.hasMode(AttachmentCountMode.Twin2AttachmentCountMode.DETAILED))
-                twinAttachmentService.attachmentsCount(srcCollection, AttachmentCountMode.DETAILED);
+            twinAttachmentsCounterRestDTOMapper.convertCollection(srcCollection, mapperContext);
         }
     }
 
