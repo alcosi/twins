@@ -10,29 +10,10 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
 public enum AttachmentCountMode implements MapperMode {
+    // if another value is added, then need to edit the loadAttachmentCount method in TwinAttachmentsCounterRestDTOMapper
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
 
     final int priority;
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum Twin2AttachmentCountMode implements MapperModePointer<AttachmentCountMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public AttachmentCountMode point() {
-            return switch (this) {
-                case HIDE -> AttachmentCountMode.HIDE;
-                case SHORT -> AttachmentCountMode.SHORT;
-                case DETAILED -> AttachmentCountMode.DETAILED;
-            };
-        }
-    }
 }

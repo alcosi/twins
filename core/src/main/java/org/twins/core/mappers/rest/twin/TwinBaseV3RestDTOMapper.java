@@ -17,7 +17,6 @@ import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.twin.TwinAttachmentService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -44,7 +43,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {DataListOptionMode.TwinTag2DataListOptionMode.class, DataListOptionMode.TwinMarker2DataListOptionMode.class})
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {AttachmentCountMode.Twin2AttachmentCountMode.class})
+    @MapperModePointerBinding(modes = {AttachmentCountMode.class})
     private final TwinAttachmentsCounterRestDTOMapper twinAttachmentsCounterRestDTOMapper;
 
     final TwinActionService twinActionService;
@@ -53,7 +52,6 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinMarkerService twinMarkerService;
     final TwinTagService twinTagService;
     final TwinflowTransitionService twinflowTransitionService;
-    final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
@@ -117,7 +115,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     }
 
     private static boolean showAttachmentsCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(AttachmentCountMode.Twin2AttachmentCountMode.HIDE);
+        return mapperContext.hasModeButNot(AttachmentCountMode.HIDE);
     }
 
     @Override
@@ -137,7 +135,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
         if (showAttachmentsCount(mapperContext)) {
-            twinAttachmentsCounterRestDTOMapper.convertCollection(srcCollection, mapperContext);
+            twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         }
     }
 
