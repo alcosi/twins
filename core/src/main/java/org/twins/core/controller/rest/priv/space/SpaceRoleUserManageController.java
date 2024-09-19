@@ -49,7 +49,7 @@ public class SpaceRoleUserManageController extends ApiController {
         try {
             spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
             rs.userList = userRestDTOMapper.convertCollection(
-                    spaceUserRoleService.findUserByRole(spaceId, roleId), mapperContext);
+                    spaceUserRoleService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

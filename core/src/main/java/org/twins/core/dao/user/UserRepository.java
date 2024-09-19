@@ -87,4 +87,17 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
     long countByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
     List<UserEntity> findByIdIn(List<UUID> idList);
+
+    @Query(value = "select u.id " +
+            "from UserEntity u " +
+            "left join BusinessAccountUserEntity ba_user on u.id = ba_user.userId " +
+            "and ba_user.businessAccountId = :businessAccountId " +
+            "left join DomainUserEntity d_user on u.id = d_user.userId " +
+            "and d_user.domainId = :domainId " +
+            "where u.id in :userIds and ba_user.userId is null and d_user.userId is null")
+    List<UUID> getUsersOutOfDomainAndBusinessAccount(
+            @Param("userIds") List<UUID> userIds,
+            @Param("businessAccountId") UUID businessAccountId,
+            @Param("domainId") UUID domainId
+    );
 }
