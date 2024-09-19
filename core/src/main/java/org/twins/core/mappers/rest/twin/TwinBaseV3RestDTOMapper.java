@@ -66,7 +66,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         }
         //todo do optimization load
         if (showAttachmentsCount(mapperContext)) {
-            dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src));
+            dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src, mapperContext));
         }
         if (showLinks(mapperContext)) {
             twinLinkService.loadTwinLinks(src);
