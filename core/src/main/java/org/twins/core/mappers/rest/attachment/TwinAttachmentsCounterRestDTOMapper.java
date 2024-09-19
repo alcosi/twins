@@ -19,9 +19,7 @@ public class TwinAttachmentsCounterRestDTOMapper extends RestSimpleDTOMapper<Twi
 
     @Override
     public void map(TwinEntity src, AttachmentsCountDTOv1 dst, MapperContext mapperContext) throws Exception {
-
-        attachmentService.loadAttachmentsCount(src, mapperContext.hasMode(AttachmentCountMode.SHORT));
-
+        attachmentService.loadAttachmentsCount(src);
         switch (mapperContext.getModeOrUse(AttachmentCountMode.SHORT)) {
             case SHORT:
                 dst.setAll(src.getAttachmentsCount().getAll());
@@ -37,6 +35,6 @@ public class TwinAttachmentsCounterRestDTOMapper extends RestSimpleDTOMapper<Twi
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        attachmentService.loadAttachmentsCount(srcCollection, mapperContext.hasMode(AttachmentCountMode.SHORT));
+        attachmentService.loadAttachmentsCount(srcCollection);
     }
 }

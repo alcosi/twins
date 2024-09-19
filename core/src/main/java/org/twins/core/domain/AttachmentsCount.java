@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @NoArgsConstructor
 public class AttachmentsCount {
-    private Integer all;
     private Integer direct;
     private Integer fromTransitions;
     private Integer fromComments;
@@ -19,5 +18,11 @@ public class AttachmentsCount {
         this.fromTransitions = fromTransitions;
         this.fromComments = fromComments;
         this.fromFields = fromFields;
+    }
+
+    public Integer getAll() {
+        if (direct == null || fromTransitions == null || fromComments == null || fromFields == null)
+            return null;
+        return direct + fromTransitions + fromComments + fromFields;
     }
 }

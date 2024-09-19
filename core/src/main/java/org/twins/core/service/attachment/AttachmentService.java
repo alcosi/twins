@@ -101,11 +101,11 @@ public class AttachmentService {
         }
     }
     
-    public void loadAttachmentsCount(TwinEntity twinEntity, boolean total) {
-        loadAttachmentsCount(Collections.singletonList(twinEntity), total);
+    public void loadAttachmentsCount(TwinEntity twinEntity) {
+        loadAttachmentsCount(Collections.singletonList(twinEntity));
     }
 
-    public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList, boolean total) {
+    public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getAttachmentsCount() == null)
@@ -113,25 +113,18 @@ public class AttachmentService {
         if (needLoad.isEmpty())
             return;
         List<Object[]> objects = twinAttachmentRepository.countAttachmentsByTwinIds(new ArrayList<>(needLoad.keySet()));
+        if (CollectionUtils.isEmpty(objects))
+            return;
         Map<UUID, Object[]> resultMap = objects.stream()
                 .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
         for (TwinEntity twin : needLoad.values()) {
             Object[] innerArray = resultMap.get(twin.getId());
-
             if (innerArray != null) {
                 int[] counts = Arrays.stream(innerArray, 1, 5)
                         .mapToInt(o -> ((Long) o).intValue())
                         .toArray();
-                if (total)
-                    twin.setAttachmentsCount(new AttachmentsCount().setAll(Arrays.stream(counts).sum()));
-                else
-                    twin.setAttachmentsCount(new AttachmentsCount(counts[1], counts[2], counts[3], counts[4]));
+                twin.setAttachmentsCount(new AttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
             }
-
-
-
-
-            //todo ????????
             else twin.setAttachmentsCount(new AttachmentsCount());
         }
     }
