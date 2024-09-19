@@ -26,6 +26,13 @@ public class UserEntity implements EasyLoggable {
     @Column(name = "email")
     private String email;
 
+    @PrePersist
+    @PreUpdate
+    public void normalizeEmail() {
+        if (email != null)
+            email = email.toLowerCase();
+    }
+
     @Column(name = "avatar")
     private String avatar;
 
@@ -36,7 +43,7 @@ public class UserEntity implements EasyLoggable {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";
     }
 }

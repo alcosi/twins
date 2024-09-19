@@ -1,6 +1,5 @@
 package org.cambium.common.kit;
 
-import lombok.Getter;
 import org.cambium.common.util.CollectionUtils;
 
 import java.util.*;
@@ -9,7 +8,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Kit<E, K> implements Collection<E> {
-    @Getter
     protected Collection<E> collection;
     protected Map<K, E> map;
     protected final Function<? super E, ? extends K> functionGetId;
@@ -86,6 +84,11 @@ public class Kit<E, K> implements Collection<E> {
         if (map == null)
             return null;
         return map.keySet();
+    }
+
+    @Override
+    public String toString() {
+        return "size = " + (collection != null ? CollectionUtils.size(collection) : "0");
     }
 
     //collection stuff

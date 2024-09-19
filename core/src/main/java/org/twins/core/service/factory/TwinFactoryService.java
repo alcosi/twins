@@ -92,8 +92,10 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                     factoryResultUncommited.addDeleteSkipped(factoryItem.getOutput());
                     continue;
                 case ERASE:
-                    if (factoryItem.getOutput() instanceof TwinUpdate)
+                    if (factoryItem.getOutput() instanceof TwinUpdate) {
                         factoryResultUncommited.addOperation(new TwinDelete(factoryItem.getTwin(), false, factoryItem.getEraseMarkerReason()));
+                        factoryResultUncommited.addOperation(factoryItem.getOutput());
+                    }
                     // else we can simply skip such item, because it was created and deleted at once
                     continue;
                 case GLOBALLY_LOCKED:

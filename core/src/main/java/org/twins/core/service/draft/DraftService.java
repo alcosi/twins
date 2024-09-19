@@ -728,9 +728,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (draftCollector.getDraftEntity().getTwinLinkDeleteCount() > 0)
             //we can clean only links, which must be deleted, all other should be checked during commit
             draftTwinLinkRepository.normalizeDraft(draftCollector.getDraftId());
-
-        if (draftCollector.getDraftEntity().getTwinMarkerCreateCount() > 0 && draftCollector.getDraftEntity().getTwinMarkerDeleteCount() > 0)
-            draftTwinMarkerRepository.normalizeDraftByTwinDeletion(draftCollector.getDraftId());
     }
 
     private void checkConflicts(DraftCollector draftCollector) {
