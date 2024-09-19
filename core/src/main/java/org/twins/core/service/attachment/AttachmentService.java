@@ -18,6 +18,7 @@ import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.AttachmentsCount;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -27,6 +28,7 @@ import org.twins.core.service.history.HistoryService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -97,6 +99,40 @@ public class AttachmentService {
             twinAttachmentList = attachmentMap.get(entry.getKey());
             twinEntity.setAttachmentKit(new Kit<>(twinAttachmentList, TwinAttachmentEntity::getId));
         }
+    }
+    
+    public void loadAttachmentsCount(TwinEntity twinEntity) {
+        loadAttachmentsCount(Collections.singletonList(twinEntity));
+    }
+
+    public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getAttachmentsCount() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.isEmpty())
+            return;
+        List<Object[]> objects = twinAttachmentRepository.countAttachmentsByTwinIds(new ArrayList<>(needLoad.keySet()));
+        if (CollectionUtils.isEmpty(objects))
+            return;
+        Map<UUID, Object[]> resultMap = objects.stream()
+                .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
+        for (TwinEntity twin : needLoad.values()) {
+            Object[] innerArray = resultMap.get(twin.getId());
+            if (innerArray != null) {
+                int[] counts = Arrays.stream(innerArray, 1, 5)
+                        .mapToInt(o -> ((Long) o).intValue())
+                        .toArray();
+                twin.setAttachmentsCount(new AttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
+            }
+            else twin.setAttachmentsCount(new AttachmentsCount());
+        }
+    }
+
+    public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
+        return twinAttachmentEntity.getTwinflowTransitionId() == null
+                && twinAttachmentEntity.getTwinCommentId() == null
+                && twinAttachmentEntity.getTwinClassFieldId() == null;
     }
 
     @Transactional
