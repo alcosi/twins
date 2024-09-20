@@ -16,7 +16,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.space.SpaceRoleUserRqDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleUserOverrideRqDTOv1;
 import org.twins.core.dto.rest.user.UserListRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -28,26 +28,26 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class SpaceRoleUserManageController extends ApiController {
+public class SpaceRoleUserOverrideController extends ApiController {
     private final UserRestDTOMapper userRestDTOMapper;
     private final SpaceUserRoleService spaceUserRoleService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleUserManageV1", summary = "Adding/removing a user to the space by role")
+    @Operation(operationId = "spaceRoleUserOverrideV1", summary = "Add/Remove user list by role and twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/manage/v1")
-    public ResponseEntity<?> spaceRoleUserManageV1(
+    @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/override/v1")
+    public ResponseEntity<?> spaceRoleUserOverrideV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,
-            @RequestBody SpaceRoleUserRqDTOv1 request) {
+            @RequestBody SpaceRoleUserOverrideRqDTOv1 request) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            spaceUserRoleService.manageSpaceRoleForUsers(spaceId, roleId, request.spaceRoleUserEnterList, request.spaceRoleUserExitList);
+            spaceUserRoleService.overrideSpaceRoleUsers(spaceId, roleId, request.spaceRoleUserList);
             rs.userList = userRestDTOMapper.convertCollection(
                     spaceUserRoleService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
         } catch (Exception e) {

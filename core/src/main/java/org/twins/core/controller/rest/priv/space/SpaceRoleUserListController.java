@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
@@ -35,8 +34,6 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.space.SpaceUserRoleService;
 
 import java.util.UUID;
-
-import static org.cambium.common.util.PaginationUtils.*;
 
 @Tag(name = ApiTag.SPACE)
 @RestController
@@ -64,7 +61,7 @@ public class SpaceRoleUserListController extends ApiController {
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId) {
         UserListRsDTOv1 rs = new UserListRsDTOv1();
         try {
-            rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserByRole(spaceId, roleId), mapperContext);
+            rs.userList = userRestDTOMapper.convertCollection(spaceUserRoleService.findUserBySpaceIdAndRoleId(spaceId, roleId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
