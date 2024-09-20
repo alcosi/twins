@@ -33,14 +33,14 @@ public class SpaceRoleUserOverrideController extends ApiController {
     private final SpaceUserRoleService spaceUserRoleService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "spaceRoleUserManageOverrideV1", summary = "AAdd/Remove user list by role and twin")
+    @Operation(operationId = "spaceRoleUserOverrideV1", summary = "Add/Remove user list by role and twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = UserListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/space/{spaceId}/role/{roleId}/users/override/v1")
-    public ResponseEntity<?> spaceRoleUserManageOverrideV1(
+    public ResponseEntity<?> spaceRoleUserOverrideV1(
             @MapperContextBinding(roots = UserRestDTOMapper.class, response = UserListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID spaceId,
             @Parameter(example = DTOExamples.ROLE_ID) @PathVariable UUID roleId,

@@ -121,7 +121,7 @@ public class SpaceUserRoleService {
         Set<UUID> usersToDelete = new HashSet<>();
         Kit<SpaceRoleUserEntity, UUID> existingUserKit = getExistingUsers(spaceId, roleId);
 
-        Iterator<UUID> existingUsersIterator = existingUserKit.getIdSet().iterator();;
+        Iterator<UUID> existingUsersIterator = existingUserKit.getIdSet().iterator();
         while (existingUsersIterator.hasNext()) {
             UUID existingUserId = existingUsersIterator.next();
             if (overrideSet.contains(existingUserId))
@@ -159,7 +159,7 @@ public class SpaceUserRoleService {
             return;
         spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, deleteUserList);
         for (UUID userId : deleteUserList) {
-            log.info("user[" + userId + "] perhaps was deleted by space[" + spaceId + "] and role[" + roleId + "]");
+            log.info("user[{}] perhaps was deleted by space[{}}] and role[{}}]", userId, spaceId, roleId);
         }
     }
 }
