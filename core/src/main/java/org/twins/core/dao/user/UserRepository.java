@@ -7,6 +7,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Repository
@@ -88,16 +89,9 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
 
     List<UserEntity> findByIdIn(List<UUID> idList);
 
-    @Query(value = "select u.id " +
-            "from UserEntity u " +
-            "left join BusinessAccountUserEntity ba_user on u.id = ba_user.userId " +
-            "and ba_user.businessAccountId = :businessAccountId " +
-            "left join DomainUserEntity d_user on u.id = d_user.userId " +
-            "and d_user.domainId = :domainId " +
-            "where u.id in :userIds and ba_user.userId is null and d_user.userId is null")
-    List<UUID> getUsersOutOfDomainAndBusinessAccount(
-            @Param("userIds") List<UUID> userIds,
-            @Param("businessAccountId") UUID businessAccountId,
-            @Param("domainId") UUID domainId
-    );
+    @Query(value = "select u.id from UserEntity u " +
+            "left join BusinessAccountUserEntity bau on u.id = bau.userId and bau.businessAccountId = :businessAccountId " +
+            "left join DomainUserEntity du on u.id = du.userId and du.domainId = :domainId " +
+            "where u.id in :userIds and (bau.userId is null or du.userId is null)")
+    List<UUID> getUsersOutOfDomainAndBusinessAccount(@Param("userIds") Set<UUID> userIds, @Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 }

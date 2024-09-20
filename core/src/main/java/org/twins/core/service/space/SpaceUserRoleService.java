@@ -85,61 +85,91 @@ public class SpaceUserRoleService {
         return spaceRoleUserRepository.findAllByTwinIdAndUserId(twinId, userId);
     }
 
+    private List<SpaceRoleUserEntity> loadExistingUsers(UUID spaceId, UUID roleId) {
+        return spaceRoleUserRepository.findAllByTwinIdAndSpaceRoleId(spaceId, roleId);
+    }
+
     @Transactional
-    public void manageSpaceRoleForUsers(UUID spaceId, UUID roleId, List<UUID> enterList, List<UUID> exitList) throws ServiceException {
-        List<UUID> existingUserList = loadExistingUsers(spaceId, roleId);
-        addNewUsers(spaceId, roleId, enterList, existingUserList);
-        removeExtraUsers(spaceId, roleId, new ArrayList<>(), exitList);
+    public void manageSpaceRoleForUsers(UUID spaceId, UUID roleId, List<UUID> spaceRoleUserEnterList, List<UUID> spaceRoleUserExitList) throws ServiceException {
+        addEntryRoleUserList(spaceId, roleId, spaceRoleUserEnterList);
+        excludeUsersFromSpace(spaceId, roleId, spaceRoleUserExitList);
+    }
+
+    private void addEntryRoleUserList(UUID spaceId, UUID roleId, List<UUID> spaceRoleUserEnterList) throws ServiceException {
+        if (CollectionUtils.isEmpty(spaceRoleUserEnterList))
+            return;
+        ApiUser apiUser = authService.getApiUser();
+        List<SpaceRoleUserEntity> listToAdd = new ArrayList<>();
+        Set<UUID> existingUserSet = loadExistingUsers(spaceId, roleId).stream().map(SpaceRoleUserEntity::getUserId).collect(Collectors.toSet());
+        for (UUID userId : spaceRoleUserEnterList) {
+            if (existingUserSet.contains(userId)) {
+                log.warn("user[" + userId + "] is already registered for role[" + roleId + "] in space[" + spaceId + "]");
+                continue;
+            }
+            listToAdd.add(new SpaceRoleUserEntity()
+                    .setTwinId(spaceId)
+                    .setSpaceRoleId(roleId)
+                    .setUserId(userId)
+                    .setCreatedByUserId(apiUser.getUserId())
+            );
+        }
+        if (CollectionUtils.isNotEmpty(listToAdd))
+            entitySmartService.saveAllAndLog(listToAdd, spaceRoleUserRepository);
     }
 
     @Transactional
     public void overrideSpaceRoleUsers(UUID spaceId, UUID roleId, List<UUID> overrideList) throws ServiceException {
         if (CollectionUtils.isEmpty(overrideList))
             return;
-        List<UUID> existingUsers = loadExistingUsers(spaceId, roleId);
-        addNewUsers(spaceId, roleId, overrideList, existingUsers);
-        removeExtraUsers(spaceId, roleId, overrideList, existingUsers);
+        ApiUser apiUser = authService.getApiUser();
+        Set<UUID> overrideSet = new HashSet<>(overrideList);
+        List<UUID> deleteUserList = new ArrayList<>();
+        List<SpaceRoleUserEntity> existingUsers = loadExistingUsers(spaceId, roleId);
+
+        Iterator<SpaceRoleUserEntity> existingUsersIterator = existingUsers.iterator();
+        while (existingUsersIterator.hasNext()) {
+            SpaceRoleUserEntity existingUser = existingUsersIterator.next();
+            UUID existingUserId = existingUser.getUserId();
+            if (!overrideSet.contains(existingUserId))
+                deleteUserList.add(existingUserId);
+            else
+                overrideSet.remove(existingUserId);
+        }
+
+        List<UUID> usersOutOfList = userService.getUsersOutOfDomainAndBusinessAccount(overrideSet, apiUser.getBusinessAccountId(), apiUser.getDomainId());
+        if (CollectionUtils.isNotEmpty(usersOutOfList)) {
+            for (UUID userId : usersOutOfList) {
+                log.warn("user[{}] was not added because he is not registered in domain[{}] or business account[{}]", userId, apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            }
+            usersOutOfList.forEach(overrideSet::remove);
+        }
+
+        includeUsersToSpace(spaceId, roleId, apiUser.getUserId(), overrideSet);
+        excludeUsersFromSpace(spaceId, roleId, deleteUserList);
     }
 
-    private List<UUID> loadExistingUsers(UUID spaceId, UUID roleId) {
-        return spaceRoleUserRepository.findAllByTwinIdAndSpaceRoleId(spaceId, roleId)
-                .stream()
-                .map(SpaceRoleUserEntity::getUserId)
-                .toList();
-    }
-
-    private void addNewUsers(UUID spaceId, UUID roleId, List<UUID> overrideList, List<UUID> existingUsers) throws ServiceException {
-        ApiUser currectApiUser = authService.getApiUser();
-        List<UUID> userToAddList = overrideList.stream()
-                .filter(userId -> !existingUsers.contains(userId))
-                .toList();
-        if (CollectionUtils.isEmpty(userToAddList))
+    private void includeUsersToSpace(UUID spaceId, UUID roleId, UUID createUserId, Set<UUID> userList) {
+        if (CollectionUtils.isEmpty(userList))
             return;
-        List<SpaceRoleUserEntity> needSave = new ArrayList<>();
-        for (UUID userId : userToAddList) {
-            needSave.add(new SpaceRoleUserEntity()
+        List<SpaceRoleUserEntity> listToAdd = new ArrayList<>();
+        for (UUID userId : userList) {
+            listToAdd.add(new SpaceRoleUserEntity()
                     .setSpaceRoleId(roleId)
                     .setUserId(userId)
                     .setTwinId(spaceId)
-                    .setCreatedByUserId(currectApiUser.getUserId())
+                    .setCreatedByUserId(createUserId)
             );
         }
-        // todo check user reg in BA and domain
-//        List<UUID> usersOutOfList = userService.getUsersOutOfDomainAndBusinessAccount(needSave.stream().map(SpaceRoleUserEntity::getId).toList(), currectApiUser.getBusinessAccountId(), currectApiUser.getDomainId());
-        if (CollectionUtils.isNotEmpty(needSave))
-            entitySmartService.saveAllAndLog(needSave, spaceRoleUserRepository);
+        if (CollectionUtils.isNotEmpty(listToAdd))
+            entitySmartService.saveAllAndLog(listToAdd, spaceRoleUserRepository);
     }
 
-    private void removeExtraUsers(UUID spaceId, UUID roleId, List<UUID> overrideList, List<UUID> existingUsers) {
-        List<UUID> usersToRemove = existingUsers.stream()
-                .filter(userId -> !overrideList.contains(userId))
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isNotEmpty(usersToRemove)) {
-            spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, usersToRemove);
-            usersToRemove.forEach(userId -> {
+    private void excludeUsersFromSpace(UUID spaceId, UUID roleId, List<UUID> deleteUserList) {
+        if (CollectionUtils.isNotEmpty(deleteUserList)) {
+            spaceRoleUserRepository.deleteBySpaceIdAndSpaceRoleIdAndUserIdIn(spaceId, roleId, deleteUserList);
+            for (UUID userId : deleteUserList) {
                 log.info("user[" + userId + "] perhaps was deleted by space[" + spaceId + "] and role[" + roleId + "]");
-            });
+            }
         }
     }
 }
