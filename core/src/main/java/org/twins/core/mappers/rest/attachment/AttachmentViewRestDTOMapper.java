@@ -14,7 +14,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
-import org.twins.core.service.twin.TwinAttachmentService;
+import org.twins.core.service.attachment.AttachmentService;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
         AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
+    private final AttachmentService attachmentService;
+
     @MapperModePointerBinding(modes = UserMode.Attachment2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
     @MapperModePointerBinding(modes = TransitionMode.Attachment2TransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
-
-    private final TwinAttachmentService twinAttachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -68,7 +68,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(AttachmentCollectionMode.ALL)) {
             case DIRECT:
-                newList = srcList.stream().filter(twinAttachmentService::checkOnDirect).collect(Collectors.toList());
+                newList = srcList.stream().filter(attachmentService::checkOnDirect).collect(Collectors.toList());
                 break;
             case FROM_TRANSITIONS:
                 newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());

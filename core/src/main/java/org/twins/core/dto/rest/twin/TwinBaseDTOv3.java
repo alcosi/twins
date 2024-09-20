@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentsCountDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.TwinLinkListDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
@@ -20,10 +22,13 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name =  "TwinBaseV3")
 public class TwinBaseDTOv3 extends TwinBaseDTOv2 {
-    @Schema(description = "attachments")
+    @Schema(description = "Attachments")
     public List<AttachmentViewDTOv1> attachments;
 
-    @Schema(description = "links")
+    @Schema(description = "Attachments count")
+    public AttachmentsCountDTOv1 attachmentsCount;
+
+    @Schema(description = "Links")
     public TwinLinkListDTOv1 links;
 
     @Schema(description = "TransitionId list." + DTOExamples.LAZY_RELATION_MODE_OFF)

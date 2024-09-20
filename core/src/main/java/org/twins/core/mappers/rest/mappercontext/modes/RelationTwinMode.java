@@ -135,6 +135,20 @@ public enum RelationTwinMode implements MapperModeCollection {
             DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
             TwinLinkMode.Twin2TwinLinkMode.DETAILED,
             LinkMode.TwinLink2LinkMode.DETAILED,
+            TransitionMode.HIDE),
+    @FieldNameConstants.Include LAVENDER(6,
+            TwinMode.DETAILED,
+            DataListOptionMode.TwinMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinTag2DataListOptionMode.DETAILED,
+            TwinFieldCollectionMode.NOT_EMPTY_FIELDS,
+            AttachmentMode.HIDE,
+            TwinClassFieldMode.TwinClass2TwinClassFieldMode.HIDE,
+            TwinClassMode.Twin2TwinClassMode.HIDE,
+            StatusMode.TwinClass2StatusMode.HIDE,
+            DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE,
+            DataListOptionMode.TwinClassTag2DataListOptionMode.HIDE,
+            TwinLinkMode.Twin2TwinLinkMode.DETAILED,
+            LinkMode.TwinLink2LinkMode.DETAILED,
             TransitionMode.HIDE);
 
 
@@ -159,7 +173,8 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
         @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
         @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE}),
-        @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA});
+        @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA}),
+        @FieldNameConstants.Include LAVENDER(6, new RelationTwinMode[]{RelationTwinMode.LAVENDER});
 
         final int priority;
         final MapperMode[] configuredModes;
@@ -176,6 +191,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case GRAY -> RelationTwinMode.GRAY;
                 case ORANGE -> RelationTwinMode.ORANGE;
                 case MAGENTA -> RelationTwinMode.MAGENTA;
+                case LAVENDER -> RelationTwinMode.LAVENDER;
             };
         }
     }
@@ -193,7 +209,8 @@ public enum RelationTwinMode implements MapperModeCollection {
         @FieldNameConstants.Include BLACK(4, new RelationTwinMode[]{RelationTwinMode.BLACK}),
         @FieldNameConstants.Include GRAY(4, new RelationTwinMode[]{RelationTwinMode.GRAY}),
         @FieldNameConstants.Include ORANGE(5, new RelationTwinMode[]{RelationTwinMode.ORANGE}),
-        @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA});
+        @FieldNameConstants.Include MAGENTA(6, new RelationTwinMode[]{RelationTwinMode.MAGENTA}),
+        @FieldNameConstants.Include LAVENDER(6, new RelationTwinMode[]{RelationTwinMode.LAVENDER});
 
         final int priority;
         final MapperMode[] configuredModes;
@@ -210,6 +227,7 @@ public enum RelationTwinMode implements MapperModeCollection {
                 case GRAY -> RelationTwinMode.GRAY;
                 case ORANGE -> RelationTwinMode.ORANGE;
                 case MAGENTA -> RelationTwinMode.MAGENTA;
+                case LAVENDER -> RelationTwinMode.LAVENDER;
             };
         }
     }

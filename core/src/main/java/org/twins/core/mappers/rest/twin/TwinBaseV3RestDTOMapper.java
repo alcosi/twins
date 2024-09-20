@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
+import org.twins.core.mappers.rest.attachment.TwinAttachmentsCounterRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
@@ -42,6 +43,9 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {DataListOptionMode.TwinTag2DataListOptionMode.class, DataListOptionMode.TwinMarker2DataListOptionMode.class})
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
+    @MapperModePointerBinding(modes = {AttachmentCountMode.class})
+    private final TwinAttachmentsCounterRestDTOMapper twinAttachmentsCounterRestDTOMapper;
+
     final TwinActionService twinActionService;
     final AttachmentService attachmentService;
     final TwinLinkService twinLinkService;
@@ -59,6 +63,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (showAttachments(mapperContext)) {
             attachmentService.loadAttachments(src);
             dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(AttachmentMode.Twin2AttachmentMode.SHORT, AttachmentCollectionMode.Twin2AttachmentCollectionMode.FROM_FIELDS)));
+        }
+        //todo do optimization load
+        if (showAttachmentsCount(mapperContext)) {
+            dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src, mapperContext));
         }
         if (showLinks(mapperContext)) {
             twinLinkService.loadTwinLinks(src);
@@ -106,6 +114,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return mapperContext.hasModeButNot(TwinLinkMode.Twin2TwinLinkMode.HIDE);
     }
 
+    private static boolean showAttachmentsCount(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(AttachmentCountMode.HIDE);
+    }
+
     @Override
     public void beforeCollectionConversion(Collection<TwinEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
@@ -122,6 +134,9 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinLinkService.loadTwinLinks(srcCollection);
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
+        if (showAttachmentsCount(mapperContext)) {
+            twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
+        }
     }
 
     @Override
