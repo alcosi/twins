@@ -29,13 +29,13 @@ import java.util.stream.Collectors;
         AttachmentCollectionMode.class})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
+    private final AttachmentService attachmentService;
+
     @MapperModePointerBinding(modes = UserMode.Attachment2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
     @MapperModePointerBinding(modes = TransitionMode.Attachment2TransitionMode.class)
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
-
-    private final AttachmentService attachmentService;
 
     @Override
     public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {

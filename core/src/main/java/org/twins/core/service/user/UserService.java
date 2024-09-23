@@ -177,4 +177,8 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public boolean checkUserRegisteredInDomainAndBusinessAccount(UUID userId, UUID businessAccountId, UUID domainId) {
         return userRepository.existsUserInBusinessAccountAndInDomain(userId, businessAccountId, domainId);
     }
+
+    public List<UUID> getUsersOutOfDomainAndBusinessAccount(Set<UUID> userIds, UUID businessAccountId, UUID domainId) {
+        return userRepository.getUsersOutOfDomainAndBusinessAccount(userIds, businessAccountId, domainId);
+    }
 }

@@ -41,6 +41,6 @@ public class ConditionerApiUserIsMemberOfGroup extends Conditioner {
         ApiUser apiUser = authService.getApiUser();
         userGroupService.loadGroups(apiUser);
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
-        return apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
+        return apiUser.getUserGroups() != null && apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
     }
 }
