@@ -15,6 +15,7 @@ import org.twins.core.dao.action.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.permission.PermissionService;
 
@@ -47,8 +48,11 @@ public class TwinActionService {
         for (TwinAction twinAction : TwinAction.values()) {
             TwinClassActionPermissionEntity twinActionProtectedByPermission = twinEntity.getTwinClass().getActionsProtectedByPermission().get(twinAction);
             if (twinActionProtectedByPermission != null) {
-                if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId()))
-                    continue; // current action is forbidden
+                if (permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
+                    twinEntity.getActions().add(twinAction);
+                    continue;
+                }
+                else continue;
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidator())) {
                 twinEntity.getActions().add(twinAction); // current action is permitted
@@ -169,5 +173,15 @@ public class TwinActionService {
             else
                 twinEntity.setActions(EnumSet.allOf(TwinAction.class).stream().filter(Predicate.not(forbiddenActions::contains)).collect(Collectors.toSet()));
         }
+    }
+
+    public void checkAllowed(TwinEntity twinEntity, UUID userId, TwinAction action) throws ServiceException {
+        if (!isAllowed(twinEntity, action))
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] is not available to the user[" + userId + "]");
+    }
+
+    public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
+        loadActions(twinEntity);
+        return twinEntity.getActions().contains(action);
     }
 }
