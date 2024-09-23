@@ -108,8 +108,10 @@ public class AttachmentService {
     public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentsCount() == null)
+            if (twinEntity.getAttachmentsCount() == null) {
                 needLoad.put(twinEntity.getId(), twinEntity);
+                twinEntity.setAttachmentsCount(AttachmentsCount.EMPTY); //this value can be override later
+            }
         if (needLoad.isEmpty())
             return;
         List<Object[]> objects = twinAttachmentRepository.countAttachmentsByTwinIds(new ArrayList<>(needLoad.keySet()));

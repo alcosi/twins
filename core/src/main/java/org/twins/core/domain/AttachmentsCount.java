@@ -1,12 +1,12 @@
 package org.twins.core.domain;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 import org.apache.commons.lang3.ObjectUtils;
 
-@Data
+@Getter
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,4 +22,6 @@ public class AttachmentsCount {
                 ObjectUtils.defaultIfNull(fromComments,0) +
                 ObjectUtils.defaultIfNull(fromFields,0);
     }
+
+    public static final AttachmentsCount EMPTY = new AttachmentsCount();
 }
