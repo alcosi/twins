@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -48,11 +49,11 @@ public class TwinActionService {
         for (TwinAction twinAction : TwinAction.values()) {
             TwinClassActionPermissionEntity twinActionProtectedByPermission = twinEntity.getTwinClass().getActionsProtectedByPermission().get(twinAction);
             if (twinActionProtectedByPermission != null) {
-                if (permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
-                    twinEntity.getActions().add(twinAction);
+                if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
+//                    twinEntity.getActions().add(twinAction);
                     continue;
                 }
-                else continue;
+//                else continue;
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidator())) {
                 twinEntity.getActions().add(twinAction); // current action is permitted
@@ -177,7 +178,7 @@ public class TwinActionService {
 
     public void checkAllowed(TwinEntity twinEntity, UUID userId, TwinAction action) throws ServiceException {
         if (!isAllowed(twinEntity, action))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] is not available to the user[" + userId + "]");
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available on twin[" + twinEntity.getId() +"] for user[" + userId + "]");
     }
 
     public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
