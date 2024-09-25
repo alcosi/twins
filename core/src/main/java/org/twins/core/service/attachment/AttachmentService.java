@@ -51,7 +51,7 @@ public class AttachmentService {
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(TwinEntity twinEntity, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
-        twinActionService.checkAllowed(twinEntity, userEntity.getId(), TwinAction.ATTACHMENT_ADD);
+        twinActionService.checkAllowed(twinEntity, TwinAction.ATTACHMENT_ADD);
         HistoryCollector historyCollector = new HistoryCollector();
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             attachmentEntity
