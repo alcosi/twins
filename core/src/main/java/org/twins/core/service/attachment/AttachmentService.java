@@ -10,6 +10,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -24,6 +25,7 @@ import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.twin.TwinActionService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AttachmentService {
     final EntitySmartService entitySmartService;
+    final TwinActionService twinActionService;
     final TwinAttachmentRepository twinAttachmentRepository;
     final HistoryService historyService;
 
@@ -48,6 +51,7 @@ public class AttachmentService {
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(TwinEntity twinEntity, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
+        twinActionService.checkAllowed(twinEntity, TwinAction.ATTACHMENT_ADD);
         HistoryCollector historyCollector = new HistoryCollector();
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             attachmentEntity
