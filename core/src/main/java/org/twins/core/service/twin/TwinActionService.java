@@ -179,7 +179,7 @@ public class TwinActionService {
 
     public void checkAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
         if (!isAllowed(twinEntity, action))
-            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available " + twinEntity.logNormal());
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for" + twinEntity.logNormal());
     }
 
     public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
