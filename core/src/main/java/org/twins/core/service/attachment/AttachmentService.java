@@ -19,7 +19,7 @@ import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.AttachmentsCount;
+import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
@@ -112,9 +112,8 @@ public class AttachmentService {
     public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentsCount() == null) {
+            if (twinEntity.getTwinAttachmentsCount() == null) {
                 needLoad.put(twinEntity.getId(), twinEntity);
-                twinEntity.setAttachmentsCount(AttachmentsCount.EMPTY); //this value can be override later
             }
         if (needLoad.isEmpty())
             return;
@@ -129,9 +128,9 @@ public class AttachmentService {
                 int[] counts = Arrays.stream(innerArray, 1, 5)
                         .mapToInt(o -> ((Long) o).intValue())
                         .toArray();
-                twin.setAttachmentsCount(new AttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
+                twin.setTwinAttachmentsCount(new TwinAttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
             }
-            else twin.setAttachmentsCount(new AttachmentsCount());
+            else twin.setTwinAttachmentsCount(TwinAttachmentsCount.EMPTY);
         }
     }
 
