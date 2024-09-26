@@ -17,7 +17,7 @@ import java.util.Properties;
 @Component
 @Featurer(id = FeaturerTwins.ID_2426,
         name = "ConditionerHeadTwinFieldExistsAndValueNotEmpty",
-        description = "")
+        description = "Check head twin has field and its value not empty")
 @Slf4j
 public class ConditionerHeadTwinFieldExistsAndValueNotEmpty extends ConditionerContextValueEquals {
 
