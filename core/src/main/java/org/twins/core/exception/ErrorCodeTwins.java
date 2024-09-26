@@ -88,6 +88,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_DRAFT_NOT_WRITABLE(11904, "draft is already not writable"),
     TWIN_DRAFT_CAN_NOT_BE_COMMITED(11905, "draft can not be commited"),
     TWIN_DRAFT_COMMIT_COUNTERS_MISMATCH(11906, "draft counters mismatch"),
+    TWIN_ACTION_NOT_AVAILABLE(12001, "action is not available to user"),
     USER_GROUP_UNKNOWN(12101, "user group is unknown"),
     USER_GROUP_ENTER_ERROR(12102, "user group can not be entered"),
     USER_GROUP_IS_MANDATORY(12103, "user group is mandatory"),

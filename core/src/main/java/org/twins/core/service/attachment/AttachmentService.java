@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -22,13 +23,14 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.AttachmentsCount;
+import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.twin.TwinActionService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,6 +44,7 @@ import java.util.stream.Collectors;
 public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
     private final TwinAttachmentRepository twinAttachmentRepository;
     private final HistoryService historyService;
+    private final TwinActionService twinActionService;
     private final TwinChangesService twinChangesService;
     private final AuthService authService;
     @Lazy
@@ -75,6 +78,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         ApiUser apiUser = authService.getApiUser();
         loadTwins(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
+            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
             attachmentEntity
                     .setId(UUID.randomUUID()) // need for history
                     .setCreatedAt(Timestamp.from(Instant.now()))
@@ -161,8 +165,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentsCount() == null)
+            if (twinEntity.getTwinAttachmentsCount() == null) {
                 needLoad.put(twinEntity.getId(), twinEntity);
+                twinEntity.setTwinAttachmentsCount(TwinAttachmentsCount.EMPTY);
+            }
         if (needLoad.isEmpty())
             return;
         List<Object[]> objects = twinAttachmentRepository.countAttachmentsByTwinIds(new ArrayList<>(needLoad.keySet()));
@@ -172,14 +178,19 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
                 .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
         for (TwinEntity twin : needLoad.values()) {
             Object[] innerArray = resultMap.get(twin.getId());
-            if (innerArray != null) {
-                int[] counts = Arrays.stream(innerArray, 1, 5)
-                        .mapToInt(o -> ((Long) o).intValue())
-                        .toArray();
-                twin.setAttachmentsCount(new AttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
-            }
-            else twin.setAttachmentsCount(new AttachmentsCount());
+            if (innerArray == null)
+                return;
+            twin.setTwinAttachmentsCount(new TwinAttachmentsCount(
+                    parseInt(innerArray[1]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[4]))
+            );
         }
+    }
+
+    private static int parseInt(Object obj) {
+        return ((Long) obj).intValue();
     }
 
     @Transactional

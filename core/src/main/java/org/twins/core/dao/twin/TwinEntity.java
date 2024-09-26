@@ -16,7 +16,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.AttachmentsCount;
+import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.link.TwinLinkService;
 
@@ -223,7 +223,7 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private AttachmentsCount attachmentsCount;
+    private TwinAttachmentsCount twinAttachmentsCount;
 
     @Override
     public String toString() {
