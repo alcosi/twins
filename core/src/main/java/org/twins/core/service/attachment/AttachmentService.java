@@ -114,6 +114,7 @@ public class AttachmentService {
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getTwinAttachmentsCount() == null) {
                 needLoad.put(twinEntity.getId(), twinEntity);
+                twinEntity.setTwinAttachmentsCount(TwinAttachmentsCount.EMPTY);
             }
         if (needLoad.isEmpty())
             return;
@@ -124,14 +125,19 @@ public class AttachmentService {
                 .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
         for (TwinEntity twin : needLoad.values()) {
             Object[] innerArray = resultMap.get(twin.getId());
-            if (innerArray != null) {
-                int[] counts = Arrays.stream(innerArray, 1, 5)
-                        .mapToInt(o -> ((Long) o).intValue())
-                        .toArray();
-                twin.setTwinAttachmentsCount(new TwinAttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
-            }
-            else twin.setTwinAttachmentsCount(TwinAttachmentsCount.EMPTY);
+            if (innerArray == null)
+                return;
+            twin.setTwinAttachmentsCount(new TwinAttachmentsCount(
+                    parseInt(innerArray[1]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[4]))
+            );
         }
+    }
+
+    private static int parseInt(Object obj) {
+        return ((Long) obj).intValue();
     }
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
