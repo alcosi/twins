@@ -19,7 +19,7 @@ import java.util.Properties;
         name = "ConditionerHeadTwinFieldExistsAndValueNotEmpty",
         description = "Check head twin has field and its value not empty")
 @Slf4j
-public class ConditionerHeadTwinFieldExistsAndValueNotEmpty extends ConditionerContextValueEquals {
+public class ConditionerHeadTwinFieldExistsAndValueNotEmpty extends Conditioner {
 
     @FeaturerParam(name = "twinClassFieldId", description = "")
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
