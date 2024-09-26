@@ -1,0 +1,2 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2426, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerHeadTwinFieldExistsAndValueNotEmpty', 'ConditionerHeadTwinFieldExistsAndValueNotEmpty', '', false) on conflict (id) do nothing;
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2329, 23, 'org.twins.core.featurer.factory.filler.FillerBasicsAssigneeFromOutputTwinHeadAssignee', 'FillerBasicsAssigneeFromOutputTwinHeadAssignee', '', false) on conflict (id) do nothing;
