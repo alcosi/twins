@@ -127,11 +127,17 @@ public class AttachmentService {
             Object[] innerArray = resultMap.get(twin.getId());
             if (innerArray == null)
                 return;
-            int[] counts = Arrays.stream(innerArray, 1, 5)
-                    .mapToInt(o -> ((Long) o).intValue())
-                    .toArray();
-            twin.setTwinAttachmentsCount(new TwinAttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
+            twin.setTwinAttachmentsCount(new TwinAttachmentsCount(
+                    parseInt(innerArray[1]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[4]))
+            );
         }
+    }
+
+    private static int parseInt(Object obj) {
+        return ((Long) obj).intValue();
     }
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
