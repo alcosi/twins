@@ -125,7 +125,7 @@ public class SpaceUserRoleService {
         while (existingUsersIterator.hasNext()) {
             UUID existingUserId = existingUsersIterator.next();
             if (overrideSet.contains(existingUserId))
-                existingUsersIterator.remove(); // this user is already in space so we can skip
+                overrideSet.remove(existingUserId);
             else
                 usersToDelete.add(existingUserId);
         }
