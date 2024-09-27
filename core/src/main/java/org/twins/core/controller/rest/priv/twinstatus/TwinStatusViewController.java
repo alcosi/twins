@@ -49,7 +49,7 @@ public class TwinStatusViewController extends ApiController {
         try {
             TwinStatusEntity twinStatusEntity = twinStatusService.findEntitySafe(twinStatusId);
             rs
-                    .setStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
+                    .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
