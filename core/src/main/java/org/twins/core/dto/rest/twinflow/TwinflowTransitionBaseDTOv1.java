@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.UUID;
 

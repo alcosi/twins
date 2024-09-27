@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twin;
+package org.twins.core.dto.rest.twinstatus;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
