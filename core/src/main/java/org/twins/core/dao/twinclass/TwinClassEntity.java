@@ -1,6 +1,5 @@
 package org.twins.core.dao.twinclass;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,8 +16,9 @@ import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.action.TwinClassActionPermissionEntity;
-import org.twins.core.dao.action.TwinClassActionValidatorEntity;
+import org.twins.core.dao.action.TwinActionPermissionEntity;
+import org.twins.core.dao.action.TwinActionValidatorEntity;
+import org.twins.core.dao.comment.*;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -173,11 +173,23 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinClassActionPermissionEntity, TwinAction> actionsProtectedByPermission;
+    private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinClassActionValidatorEntity, UUID, TwinAction> actionsProtectedByValidator;
+    private KitGrouped<TwinActionValidatorEntity, UUID, TwinAction> actionsProtectedByValidator;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinCommentActionAlienPermissionEntity, TwinCommentAction> commentAlienActionsProtectedByPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinCommentActionAlienValidatorEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidator;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient

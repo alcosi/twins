@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.comment;
 
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
@@ -13,11 +13,6 @@ import java.util.UUID;
 
 @Repository
 public interface TwinCommentRepository extends CrudRepository<TwinCommentEntity, UUID>, JpaSpecificationExecutor<TwinCommentEntity> {
-
-   @Transactional
-   @Modifying
-   @Query("DELETE FROM TwinCommentEntity e WHERE e.id = :id AND e.twinId = :twinId")
-   void deleteByIdAndTwinId(UUID id, UUID twinId);
 
    Page<TwinCommentEntity> findAllByTwinId(UUID id, Pageable pageable);
 

@@ -263,9 +263,4 @@ public class TwinEntity implements Cloneable, EasyLoggable {
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
     }
-
-
-    public void setActions(Set<TwinAction> actions) {
-        this.actions = actions;
-    }
 }

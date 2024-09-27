@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.comment;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -7,9 +7,12 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.kit.Kit;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -51,4 +54,8 @@ public class TwinCommentEntity {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinAttachmentEntity, UUID> attachmentKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<TwinCommentAction> commentActions;
 }

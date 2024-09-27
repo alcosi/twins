@@ -4,9 +4,11 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 
 import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -15,6 +17,9 @@ import java.util.List;
 public class CommentViewDTOv1 extends CommentBaseDTOv2 {
 
     @Schema(description = "attachments")
-    private List<AttachmentViewDTOv1> attachments;
+    public List<AttachmentViewDTOv1> attachments;
+
+    @Schema(description = "comment actions")
+    public Set<TwinCommentAction> commentActions;
 
 }

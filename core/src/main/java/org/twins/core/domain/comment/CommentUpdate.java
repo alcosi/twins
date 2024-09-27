@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twin.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentEntity;
 
 @Data
 @Accessors(chain = true)

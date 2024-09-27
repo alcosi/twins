@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.comment;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
