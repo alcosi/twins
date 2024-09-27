@@ -35,11 +35,11 @@ public class TwinStatusViewController extends ApiController {
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinStatusUpdateV1", summary = "Return twin status data by id")
+    @Operation(operationId = "twinStatusViewV1", summary = "Return twin status data by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin status data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinStatusUpdateRsDTOv1.class))}),
+                    @Schema(implementation = TwinStatusRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/twin_status/{twinStatusId}/v1")
     public ResponseEntity<?> twinStatusViewV1(
@@ -49,7 +49,7 @@ public class TwinStatusViewController extends ApiController {
         try {
             TwinStatusEntity twinStatusEntity = twinStatusService.findEntitySafe(twinStatusId);
             rs
-                    .setTwinStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
+                    .setStatus(twinStatusRestDTOMapper.convert(twinStatusEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
