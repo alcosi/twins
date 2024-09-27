@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Response;
 @Schema(name =  "TwinStatusRsV1")
 public class TwinStatusRsDTOv1 extends Response {
     @Schema(description = "twin status")
-    public TwinStatusDTOv1 status;
+    public TwinStatusDTOv1 twinStatus;
 }
