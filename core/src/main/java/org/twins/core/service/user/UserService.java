@@ -59,8 +59,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         userEntity.setCreatedAt(Timestamp.from(Instant.now()));
         userEntity.setUserStatusId(UserStatus.ACTIVE);
         EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
-        if (saveResult.isWasCreated())
-            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForUser(), null, userEntity, userEntity.getId());
+        // The logic of creating a user record in twin is implemented through a trigger in the database
         return saveResult.getSavedEntity();
     }
 
@@ -71,6 +70,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     public void updateUser(UserEntity updateEntity) throws ServiceException {
         UserEntity dbEntity = entitySmartService.findById(updateEntity.getId(), userRepository, EntitySmartService.FindMode.ifEmptyThrows);
         ChangesHelper changesHelper = new ChangesHelper();
+        // The logic of updating fields[name, email, avatar] in twin and twin_field_simple is implemented through a trigger in the database
         if (changesHelper.isChanged("name", dbEntity.getName(), updateEntity.getName(), maskName(dbEntity.getName()), maskName(updateEntity.getName())))
             dbEntity.setName(updateEntity.getName());
         if (changesHelper.isChanged("email", dbEntity.getEmail(), updateEntity.getEmail(), maskEmail(dbEntity.getEmail()), maskEmail(updateEntity.getEmail())))

@@ -48,6 +48,7 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
 
     protected void postInit(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
+        //todo creat function for create twin with bussines account
+//        twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
     }
 }

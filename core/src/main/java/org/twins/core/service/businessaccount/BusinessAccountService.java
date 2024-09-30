@@ -68,10 +68,7 @@ public class BusinessAccountService {
                 .setId(businessAccountId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
-        if (saveResult.isWasCreated()) {
-            ApiUser apiUser = authService.getApiUser();
-            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity, apiUser.getUser(), businessAccountEntity.getId());
-        }
+        //todo creat function for create twin with bussines account
         return saveResult.getSavedEntity();
     }
 

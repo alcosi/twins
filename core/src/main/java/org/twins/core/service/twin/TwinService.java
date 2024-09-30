@@ -709,26 +709,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
-    public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
-        return duplicateTwin(
-                findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
-                businessAccountEntity,
-                userEntity,
-                newTwinId);
-    }
-
-    public TwinEntity duplicateTwin(TwinEntity srcTwin, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
-        TwinEntity duplicateEntity = cloneTwin(srcTwin);
-        fillOwner(duplicateEntity, businessAccountEntity, userEntity);
-        duplicateEntity
-                .setId(newTwinId)
-                .setCreatedByUserId(userEntity.getId());
-        duplicateEntity = saveTwin(duplicateEntity);
-        cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
-        twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
-        return duplicateEntity;
-    }
-
     public UserEntity getTwinAssignee(UUID twinId) {
         return twinRepository.getAssignee(twinId);
     }

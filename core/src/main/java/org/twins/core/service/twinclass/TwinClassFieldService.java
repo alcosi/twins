@@ -64,12 +64,18 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     @Override
     public boolean isEntityReadDenied(TwinClassFieldEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        if (checkOwnerTypeIsSystem(entity))
+            return false;
         if (!entity.getTwinClass().getDomainId().equals(apiUser.getDomain().getId())) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
         //todo check permission schema
         return false;
+    }
+
+    private boolean checkOwnerTypeIsSystem(TwinClassFieldEntity entity) {
+        return entity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
     }
 
     @Override
