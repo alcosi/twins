@@ -44,7 +44,7 @@ public class TwinActionService {
         if (twinEntity.getActions() != null)
             return;
         loadClassProtectedActions(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getActionsProtectedByPermission().isEmpty()) {
+        if (twinEntity.getTwinClass().getActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidator().isEmpty()) {
             twinEntity.setActions(EnumSet.allOf(TwinAction.class));
             return;
         }

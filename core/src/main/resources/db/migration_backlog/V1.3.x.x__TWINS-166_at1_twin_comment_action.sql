@@ -20,7 +20,7 @@ create table if not exists twin_comment_action_alien_permission
     id                     uuid        not null
         constraint twin_comment_action_alien_permission_pk
             primary key,
-    twin_class_id          uuid
+    twin_class_id          uuid        not null
         constraint twin_comment_action_alien_permission_twin_class_id_fk
             references twin_class
             on update cascade,
@@ -51,7 +51,7 @@ create table if not exists twin_comment_action_alien_validator
         constraint twin_comment_action_alien_validator_twin_class_id_fk
             references twin_class
             on update cascade,
-    twin_comment_action_id     varchar(20),
+    twin_comment_action_id     varchar(20) not null ,
     "order"                    integer default 1,
     twin_validator_featurer_id integer               not null
         constraint twin_comment_action_alien_validator_featurer_id_fk

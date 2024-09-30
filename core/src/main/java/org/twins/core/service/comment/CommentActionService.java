@@ -11,10 +11,12 @@ import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
@@ -49,7 +51,7 @@ public class CommentActionService {
     private void loadCommentAlienActions(TwinCommentEntity twinComment) throws ServiceException {
         TwinEntity twinEntity = twinComment.getTwinByTwinId();
         loadClassProtectedCommentActions(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty()) {
+        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidator().isEmpty()) {
             twinComment.setCommentActions(EnumSet.allOf(TwinCommentAction.class));
             return;
         }
@@ -110,53 +112,17 @@ public class CommentActionService {
                     TwinCommentActionSelfEntity::getRestrictTwinCommentAction));
     }
 
-    public void loadClassProtectedCommentActions(Collection<TwinClassEntity> twinClassCollection) {
-        Map<UUID, TwinClassEntity> needLoadByPermissions = new HashMap<>();
-        Map<UUID, TwinClassEntity> needLoadByValidators = new HashMap<>();
-        for (TwinClassEntity twinClassEntity : twinClassCollection) {
-            if (twinClassEntity.getCommentAlienActionsProtectedByPermission() == null)
-                needLoadByPermissions.put(twinClassEntity.getId(), twinClassEntity);
-            if (twinClassEntity.getCommentAlienActionsProtectedByValidator() == null)
-                needLoadByValidators.put(twinClassEntity.getId(), twinClassEntity);
-        }
-        if (MapUtils.isNotEmpty(needLoadByPermissions)) {
-            List<TwinCommentActionAlienPermissionEntity> twinClassCommentActionAlienPermissionEntities = twinCommentActionAlienPermissionRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            if (CollectionUtils.isNotEmpty(twinClassCommentActionAlienPermissionEntities)) {
-                KitGrouped<TwinCommentActionAlienPermissionEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionAlienPermissionEntities, TwinCommentActionAlienPermissionEntity::getId, TwinCommentActionAlienPermissionEntity::getTwinClassId);
-                for (TwinClassEntity twinClassEntity : needLoadByPermissions.values()) {
-                    twinClassEntity.setCommentAlienActionsProtectedByPermission(new Kit<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienPermissionEntity::getTwinCommentAction));
-                }
-            }
-        }
-        if (MapUtils.isNotEmpty(needLoadByValidators)) {
-            List<TwinCommentActionAlienValidatorEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            if (CollectionUtils.isNotEmpty(twinClassCommentActionValidatorEntities)) {
-                KitGrouped<TwinCommentActionAlienValidatorEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinClassId);
-                for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
-                    twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinCommentAction));
-                }
-            }
-        }
-    }
-
-    public void loadClassRestrictSelfCommentActions(Collection<TwinClassEntity> twinClassCollection) {
-        Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClassEntity : twinClassCollection) {
-            if (twinClassEntity.getCommentSelfActionsRestriction() == null)
-                needLoad.put(twinClassEntity.getId(), twinClassEntity);
-        }
-        if (MapUtils.isNotEmpty(needLoad)) {
-            List<TwinCommentActionSelfEntity> twinClassCommentActionSelfEntities = twinCommentActionSelfRepository.findByTwinClassIdIn(needLoad.keySet());
-            if (CollectionUtils.isNotEmpty(twinClassCommentActionSelfEntities)) {
-                KitGrouped<TwinCommentActionSelfEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionSelfEntities, TwinCommentActionSelfEntity::getId, TwinCommentActionSelfEntity::getTwinClassId);
-                for (TwinClassEntity twinClassEntity : needLoad.values()) {
-                    twinClassEntity.setCommentSelfActionsRestriction(new Kit<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionSelfEntity::getRestrictTwinCommentAction));
-                }
-            }
-        }
-    }
-
     public void loadCommentActions(Collection<TwinCommentEntity> twinComments) throws ServiceException {
         //todo need implementation
+    }
+
+    public void checkAllowed(TwinCommentEntity twinCommentEntity, TwinCommentAction action) throws ServiceException {
+        if(!isAllowed(twinCommentEntity, action))
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for comment[" + twinCommentEntity.getId() + "] on " + twinCommentEntity.getTwinByTwinId().logNormal());
+    }
+
+    public boolean isAllowed(TwinCommentEntity twinCommentEntity, TwinCommentAction action) throws ServiceException {
+        loadCommentActions(twinCommentEntity);
+        return twinCommentEntity.getCommentActions().contains(action);
     }
 }
