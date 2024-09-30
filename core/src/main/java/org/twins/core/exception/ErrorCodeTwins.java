@@ -78,6 +78,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWIN_SEARCH_PARAM_INCORRECT(11605, "twin search params incorrect"),
     SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied"),
     TWIN_CREATE_ACCESS_DENIED(11801, "Twin can't be created by current user"),
+    TWIN_ACTION_NOT_AVAILABLE(11901, "action is not available to user"),
     USER_GROUP_UNKNOWN(12101, "user group is unknown"),
     USER_GROUP_ENTER_ERROR(12102, "user group can not be entered"),
     USER_GROUP_IS_MANDATORY(12103, "user group is mandatory"),

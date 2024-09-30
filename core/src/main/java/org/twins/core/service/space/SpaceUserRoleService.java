@@ -121,11 +121,9 @@ public class SpaceUserRoleService {
         Set<UUID> usersToDelete = new HashSet<>();
         Kit<SpaceRoleUserEntity, UUID> existingUserKit = getExistingUsers(spaceId, roleId);
 
-        Iterator<UUID> existingUsersIterator = existingUserKit.getIdSet().iterator();
-        while (existingUsersIterator.hasNext()) {
-            UUID existingUserId = existingUsersIterator.next();
+        for (UUID existingUserId : existingUserKit.getIdSet()) {
             if (overrideSet.contains(existingUserId))
-                existingUsersIterator.remove(); // this user is already in space so we can skip
+                overrideSet.remove(existingUserId); // this user is already in space so we can skip
             else
                 usersToDelete.add(existingUserId);
         }

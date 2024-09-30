@@ -3,6 +3,7 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -15,12 +16,16 @@ import org.twins.core.dao.action.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.permission.PermissionService;
 
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+
+import static org.cambium.common.EasyLoggable.Level.NORMAL;
 
 @Lazy
 @Slf4j
@@ -47,8 +52,9 @@ public class TwinActionService {
         for (TwinAction twinAction : TwinAction.values()) {
             TwinActionPermissionEntity twinActionProtectedByPermission = twinEntity.getTwinClass().getActionsProtectedByPermission().get(twinAction);
             if (twinActionProtectedByPermission != null) {
-                if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId()))
-                    continue; // current action is forbidden
+                if (!permissionService.hasPermission(twinEntity, twinActionProtectedByPermission.getPermissionId())) {
+                    continue;
+                }
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidator())) {
                 twinEntity.getActions().add(twinAction); // current action is permitted
@@ -169,5 +175,15 @@ public class TwinActionService {
             else
                 twinEntity.setActions(EnumSet.allOf(TwinAction.class).stream().filter(Predicate.not(forbiddenActions::contains)).collect(Collectors.toSet()));
         }
+    }
+
+    public void checkAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
+        if (!isAllowed(twinEntity, action))
+            throw new ServiceException(ErrorCodeTwins.TWIN_ACTION_NOT_AVAILABLE, "The action[" + action.name() + "] not available for " + twinEntity.logNormal());
+    }
+
+    public boolean isAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
+        loadActions(twinEntity);
+        return twinEntity.getActions().contains(action);
     }
 }

@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.i18n.dto.I18nDTOv1;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
 
 @Data
 @Accessors(chain = true)

@@ -43,7 +43,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     @MapperModePointerBinding(modes = {DataListOptionMode.TwinTag2DataListOptionMode.class, DataListOptionMode.TwinMarker2DataListOptionMode.class})
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-    @MapperModePointerBinding(modes = {AttachmentCountMode.class})
+    @MapperModePointerBinding(modes = {TwinAttachmentCountMode.class})
     private final TwinAttachmentsCounterRestDTOMapper twinAttachmentsCounterRestDTOMapper;
 
     final TwinActionService twinActionService;
@@ -65,7 +65,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst.setAttachments(attachmentRestDTOMapper.convertCollection(src.getAttachmentKit().getCollection(), mapperContext.forkOnPoint(AttachmentMode.Twin2AttachmentMode.SHORT, AttachmentCollectionMode.Twin2AttachmentCollectionMode.FROM_FIELDS)));
         }
         //todo do optimization load
-        if (showAttachmentsCount(mapperContext)) {
+        if (showTwinAttachmentsCount(mapperContext)) {
             dst.setAttachmentsCount(twinAttachmentsCounterRestDTOMapper.convert(src, mapperContext));
         }
         if (showLinks(mapperContext)) {
@@ -114,8 +114,8 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         return mapperContext.hasModeButNot(TwinLinkMode.Twin2TwinLinkMode.HIDE);
     }
 
-    private static boolean showAttachmentsCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(AttachmentCountMode.HIDE);
+    private static boolean showTwinAttachmentsCount(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(TwinAttachmentCountMode.HIDE);
     }
 
     @Override
@@ -134,7 +134,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinLinkService.loadTwinLinks(srcCollection);
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
-        if (showAttachmentsCount(mapperContext)) {
+        if (showTwinAttachmentsCount(mapperContext)) {
             twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
         }
     }

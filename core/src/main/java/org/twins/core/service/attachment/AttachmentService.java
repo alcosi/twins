@@ -10,6 +10,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -18,12 +19,13 @@ import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.AttachmentsCount;
+import org.twins.core.domain.TwinAttachmentsCount;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.history.HistoryCollector;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
+import org.twins.core.service.twin.TwinActionService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -35,6 +37,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AttachmentService {
     final EntitySmartService entitySmartService;
+    final TwinActionService twinActionService;
     final TwinAttachmentRepository twinAttachmentRepository;
     final HistoryService historyService;
 
@@ -48,6 +51,7 @@ public class AttachmentService {
 
     @Transactional
     public List<TwinAttachmentEntity> addAttachments(TwinEntity twinEntity, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
+        twinActionService.checkAllowed(twinEntity, TwinAction.ATTACHMENT_ADD);
         HistoryCollector historyCollector = new HistoryCollector();
         for (TwinAttachmentEntity attachmentEntity : attachments) {
             attachmentEntity
@@ -108,9 +112,9 @@ public class AttachmentService {
     public void loadAttachmentsCount(Collection<TwinEntity> twinEntityList) {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getAttachmentsCount() == null) {
+            if (twinEntity.getTwinAttachmentsCount() == null) {
                 needLoad.put(twinEntity.getId(), twinEntity);
-                twinEntity.setAttachmentsCount(AttachmentsCount.EMPTY); //this value can be override later
+                twinEntity.setTwinAttachmentsCount(TwinAttachmentsCount.EMPTY);
             }
         if (needLoad.isEmpty())
             return;
@@ -121,14 +125,19 @@ public class AttachmentService {
                 .collect(Collectors.toMap(result -> (UUID) result[0], result -> result));
         for (TwinEntity twin : needLoad.values()) {
             Object[] innerArray = resultMap.get(twin.getId());
-            if (innerArray != null) {
-                int[] counts = Arrays.stream(innerArray, 1, 5)
-                        .mapToInt(o -> ((Long) o).intValue())
-                        .toArray();
-                twin.setAttachmentsCount(new AttachmentsCount(counts[0], counts[1], counts[2], counts[3]));
-            }
-            else twin.setAttachmentsCount(new AttachmentsCount());
+            if (innerArray == null)
+                return;
+            twin.setTwinAttachmentsCount(new TwinAttachmentsCount(
+                    parseInt(innerArray[1]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[3]),
+                    parseInt(innerArray[4]))
+            );
         }
+    }
+
+    private static int parseInt(Object obj) {
+        return ((Long) obj).intValue();
     }
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {

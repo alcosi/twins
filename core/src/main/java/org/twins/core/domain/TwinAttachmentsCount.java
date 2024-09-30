@@ -10,7 +10,7 @@ import org.apache.commons.lang3.ObjectUtils;
 @Accessors(chain = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class AttachmentsCount {
+public class TwinAttachmentsCount {
     private Integer direct;
     private Integer fromTransitions;
     private Integer fromComments;
@@ -23,5 +23,5 @@ public class AttachmentsCount {
                 ObjectUtils.defaultIfNull(fromFields,0);
     }
 
-    public static final AttachmentsCount EMPTY = new AttachmentsCount();
+    public static final TwinAttachmentsCount EMPTY = new TwinAttachmentsCount(0,0,0,0);
 }
