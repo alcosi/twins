@@ -39,5 +39,14 @@ CREATE TRIGGER after_user_insert_or_update
     FOR EACH ROW
 EXECUTE FUNCTION user_insert_or_update();
 
+--missing user in user table
+DELETE FROM twin WHERE id='00000000-0000-0000-0002-000000000001';
+
+UPDATE twin
+SET assigner_user_id = id
+WHERE assigner_user_id IS NULL
+  AND twin_class_id = '00000000-0000-0000-0001-000000000001';
+
+
 
 
