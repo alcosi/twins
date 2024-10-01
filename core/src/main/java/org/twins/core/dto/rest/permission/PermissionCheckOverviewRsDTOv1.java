@@ -7,6 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.space.SpaceRoleUserDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleUserGroupDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.List;
@@ -48,6 +50,12 @@ public class PermissionCheckOverviewRsDTOv1 extends Response {
 
     @Schema(description = "grantedByTwinRoles")
     public Set<TwinRole> grantedByTwinRoles;
+
+    @Schema(description = "propagatedByTwinClass")
+    public List<TwinClassDTOv1> propagatedByTwinClasses;
+
+    @Schema(description = "propagatedByTwinStatus")
+    public List<TwinStatusDTOv1> propagatedByTwinStatuses;
 
     @Schema(description = "grantedBySpaceRoleUserIds")
     public Set<UUID> grantedBySpaceRoleUserIds;

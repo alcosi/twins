@@ -23,6 +23,8 @@ import org.twins.core.dao.permission.*;
 import org.twins.core.dao.space.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
@@ -50,6 +52,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     private final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
     private final PermissionSchemaTwinRoleRepository permissionSchemaTwinRoleRepository;
     private final PermissionSchemaSpaceRolesRepository permissionSchemaSpaceRolesRepository;
+    private final PermissionSchemaAssigneePropagationRepository permissionSchemaAssigneePropagationRepository;
     private final SpaceRepository spaceRepository;
     private final SpaceUserRoleService spaceUserRoleService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
@@ -243,6 +246,18 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
                 }
             }
         }
+        //propagation by class
+        List<PermissionSchemaAssigneePropagationEntity> propagations = permissionSchemaAssigneePropagationRepository.findAllByPermissionSchemaIdAndPermissionId(permissionSchema.getId(), permissionId);
+        List<TwinClassEntity> propagatedByTwinClasses = new ArrayList<>();
+        List<TwinStatusEntity> propagatedByTwinStatuses = new ArrayList<>();
+        for (var propagation : propagations) {
+            if(null != propagation.getTwinClass() && twin.getTwinClassId().equals(propagation.getTwinClass().getId()))
+                propagatedByTwinClasses.add(propagation.getTwinClass());
+            if(null != propagation.getTwinStatus() && twin.getTwinStatusId().equals(propagation.getTwinStatus().getId()))
+                propagatedByTwinStatuses.add(propagation.getTwinStatus());
+        }
+        result.setPropagatedByTwinClasses(new Kit<>(propagatedByTwinClasses, TwinClassEntity::getId));
+        result.setPropagatedByTwinStatuses(new Kit<>(propagatedByTwinStatuses, TwinStatusEntity::getId));
 
         //space role user and groups
         List<SpaceRoleUserEntity> grantedSpaceRoleUsers = new ArrayList<>();
