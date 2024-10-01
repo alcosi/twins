@@ -34,7 +34,6 @@ public class BusinessAccountInitiatorFromParamsPostCreate extends BusinessAccoun
     @Override
     protected void postInit(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        //todo creat function for create twin with bussines account
-//        twinService.duplicateTwin(businessAccountTemplateTwinId.extract(properties), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
+        twinService.duplicateTwin(businessAccountTemplateTwinId.extract(properties), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
     }
 }
