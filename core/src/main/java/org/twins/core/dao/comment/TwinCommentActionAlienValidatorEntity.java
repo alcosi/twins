@@ -1,4 +1,4 @@
-package org.twins.core.dao.action;
+package org.twins.core.dao.comment;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
@@ -12,10 +12,10 @@ import org.twins.core.featurer.twin.validator.TwinValidator;
 import java.util.HashMap;
 import java.util.UUID;
 
-@Entity
 @Data
-@Table(name = "twin_class_action_validator")
-public class TwinClassActionValidatorEntity implements EasyLoggable {
+@Entity
+@Table(name = "twin_comment_action_alien_validator")
+public class TwinCommentActionAlienValidatorEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -23,16 +23,12 @@ public class TwinClassActionValidatorEntity implements EasyLoggable {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "twin_action_id")
+    @Column(name = "twin_comment_action_id")
     @Enumerated(EnumType.STRING)
-    private TwinAction twinAction;
+    private TwinCommentAction twinCommentAction;
 
     @Column(name = "`order`")
-    @Basic
     private Integer order;
-
-    @Column(name = "invert")
-    private boolean invert;
 
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
@@ -46,16 +42,20 @@ public class TwinClassActionValidatorEntity implements EasyLoggable {
     @Column(name = "twin_validator_params", columnDefinition = "hstore")
     private HashMap<String, String> twinValidatorParams;
 
+    @Column(name = "invert")
+    private boolean invert;
+
     @Column(name = "active")
     private boolean isActive;
 
     @Override
-    public String easyLog(Level level) {
+    public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
-            case SHORT -> "twinClassActionValidator[" + id + "]";
-            case NORMAL -> "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinCommentActionAlienValidator[" + id + "]";
+            case NORMAL -> "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinClassActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+                    "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
         };
     }
+
 }

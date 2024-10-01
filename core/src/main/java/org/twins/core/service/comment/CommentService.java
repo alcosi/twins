@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -15,6 +16,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.comment.TwinCommentAction;
+import org.twins.core.dao.comment.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
@@ -41,6 +46,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final TwinRepository twinRepository;
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
+    private final CommentActionService commentActionService;
 
     @Transactional
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -63,8 +69,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinCommentEntity currentComment = findEntitySafe(commentId);
-        if (!apiUser.getUser().getId().equals(currentComment.getCreatedByUserId()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_EDIT_ACCESS_DENIED, "This comment belongs to another user. Editing is not possible");
+        commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
         if (!currentComment.getText().equals(commentText)) {
             currentComment
                     .setText(commentText)

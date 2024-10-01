@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
-import org.twins.core.dao.twin.TwinCommentEntity;
+import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentUpdateRqDTOv1;
