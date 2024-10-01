@@ -27,8 +27,11 @@ public class TwinStatusDTOv1 {
     @Schema(description = "url for status UI logo", example = "https://twins.org/img/twin_status_default.png")
     public String logo;
 
-    @Schema(description = "color hex", example = "#ff00ff")
-    public String color;
+    @Schema(description = "background color hex", example = DTOExamples.COLOR_HEX)
+    public String backgroundColor;
+
+    @Schema(description = "font color hex", example = DTOExamples.COLOR_HEX)
+    public String fontColor;
 
     @JsonIgnore
     public UUID twinClassId;
