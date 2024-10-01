@@ -24,7 +24,7 @@ public class StatusSnapshot {
                 .setId(statusEntity.getId())
                 .setName(i18nService.translateToLocale(statusEntity.getNameI18nId()))
                 .setKey(statusEntity.getKey())
-                .setColor(statusEntity.getColor());
+                .setColor(statusEntity.getBackgroundColor());
     }
 
     public static void extractTemplateVars(HashMap<String, String> vars, StatusSnapshot statusSnapshot, String prefix) {

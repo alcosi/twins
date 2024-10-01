@@ -125,8 +125,10 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged(TwinStatusEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
             dbEntity.setKey(updateEntity.getKey());
-        if (changesHelper.isChanged(TwinStatusEntity.Fields.color, dbEntity.getColor(), updateEntity.getColor()))
-            dbEntity.setColor(updateEntity.getColor());
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.backgroundColor, dbEntity.getBackgroundColor(), updateEntity.getBackgroundColor()))
+            dbEntity.setBackgroundColor(updateEntity.getBackgroundColor());
+        if (changesHelper.isChanged(TwinStatusEntity.Fields.fontColor, dbEntity.getFontColor(), updateEntity.getFontColor()))
+            dbEntity.setFontColor(updateEntity.getFontColor());
         if (changesHelper.isChanged(TwinStatusEntity.Fields.logo, dbEntity.getLogo(), updateEntity.getLogo()))
             dbEntity.setLogo(updateEntity.getLogo());
         if (nameI18n != null) {

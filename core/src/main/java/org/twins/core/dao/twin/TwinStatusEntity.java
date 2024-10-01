@@ -40,8 +40,11 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "logo")
     private String logo;
 
-    @Column(name = "color")
-    private String color;
+    @Column(name = "background_color")
+    private String backgroundColor;
+
+    @Column(name = "font_color")
+    private String fontColor;
 
     @ManyToOne
     @JoinColumn(name = "twins_class_id", insertable = false, updatable = false, nullable = false)
