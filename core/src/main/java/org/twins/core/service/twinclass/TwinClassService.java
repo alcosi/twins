@@ -648,7 +648,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return twinClassEntity.getTwinStatusKit().getIdSet().contains(twinStatusId);
     }
 
-    public boolean checkOwnerTypeIsSystem(TwinClassFieldEntity entity) {
+    public boolean isOwnerSystemType(TwinClassFieldEntity entity) {
         return entity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
     }
 }
