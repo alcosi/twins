@@ -2,8 +2,6 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -16,7 +14,6 @@ import org.twins.core.dao.action.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.permission.PermissionService;
@@ -24,8 +21,6 @@ import org.twins.core.service.permission.PermissionService;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
-import static org.cambium.common.EasyLoggable.Level.NORMAL;
 
 @Lazy
 @Slf4j
@@ -99,20 +94,16 @@ public class TwinActionService {
         }
         if (!needLoadByPermissions.isEmpty()) {
             List<TwinActionPermissionEntity> twinClassActionPermissionEntities = twinActionPermissionRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            if (!CollectionUtils.isEmpty(twinClassActionPermissionEntities)) {
-                KitGrouped<TwinActionPermissionEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionPermissionEntities, TwinActionPermissionEntity::getId, TwinActionPermissionEntity::getTwinClassId);
-                for (TwinClassEntity twinClassEntity : needLoadByPermissions.values()) {
-                    twinClassEntity.setActionsProtectedByPermission(new Kit<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionPermissionEntity::getTwinAction));
-                }
+            KitGrouped<TwinActionPermissionEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionPermissionEntities, TwinActionPermissionEntity::getId, TwinActionPermissionEntity::getTwinClassId);
+            for (TwinClassEntity twinClassEntity : needLoadByPermissions.values()) {
+                twinClassEntity.setActionsProtectedByPermission(new Kit<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionPermissionEntity::getTwinAction));
             }
         }
         if (!needLoadByValidators.isEmpty()) {
             List<TwinActionValidatorEntity> twinClassActionValidatorEntities = twinActionValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            if (!CollectionUtils.isEmpty(twinClassActionValidatorEntities)) {
-                KitGrouped<TwinActionValidatorEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionValidatorEntities, TwinActionValidatorEntity::getId, TwinActionValidatorEntity::getTwinClassId);
-                for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
-                    twinClassEntity.setActionsProtectedByValidator(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorEntity::getId, TwinActionValidatorEntity::getTwinAction));
-                }
+            KitGrouped<TwinActionValidatorEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionValidatorEntities, TwinActionValidatorEntity::getId, TwinActionValidatorEntity::getTwinClassId);
+            for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
+                twinClassEntity.setActionsProtectedByValidator(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorEntity::getId, TwinActionValidatorEntity::getTwinAction));
             }
         }
     }
@@ -122,6 +113,8 @@ public class TwinActionService {
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getActions() == null)
                 needLoad.add(twinEntity);
+        if (needLoad.isEmpty())
+            return;
         KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> groupedByClass = new KitGroupedObj<>(needLoad, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
         loadClassProtectedActions(groupedByClass.getGroupingObjectMap().values());
         Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys;
