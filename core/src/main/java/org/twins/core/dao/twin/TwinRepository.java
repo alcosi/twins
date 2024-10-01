@@ -32,7 +32,7 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
     @Query("delete from TwinEntity te where te.ownerBusinessAccountId = :businessAccountId and te.twinClass.domainId = :domainId")
     int deleteAllByBusinessAccountIdAndDomainId(UUID businessAccountId, UUID domainId);
 
-    @Query(value = "select function('permissionCheck', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
+    @Query(value = "select function('permission_check', :domainId, :businessAccountId, :permissionSpaceId, :permissionId, :userId, :userGroupId, :twinClassId, :isAssignee, :isCreator)")
     boolean hasPermission(
             @Param("permissionId") UUID permissionId,
             @Param("domainId") UUID domainId,
