@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassFieldDescriptorImmutableV11")
+@Schema(name =  "TwinClassFieldDescriptorImmutableV1")
 public class TwinClassFieldDescriptorImmutableDTOv1 implements TwinClassFieldDescriptorDTO {
     public static final String KEY = "immutableV1";
     public String fieldType = KEY;

@@ -20,29 +20,15 @@ CREATE OR REPLACE FUNCTION user_insert_or_update()
 BEGIN
     -- Inserting a new record into twin when adding a record to user
     IF TG_OP = 'INSERT' THEN
-        INSERT INTO twin (id, twin_class_id, twin_status_id, name, created_by_user_id, created_at)
-        VALUES (NEW.id, '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0003-000000000001', NEW.name, '00000000-0000-0000-0000-000000000000', NEW.created_at)
+        INSERT INTO twin (id, twin_class_id, twin_status_id, name, created_by_user_id, assigner_user_id, created_at)
+        VALUES (NEW.id, '00000000-0000-0000-0001-000000000001', '00000000-0000-0000-0003-000000000001', NEW.name, '00000000-0000-0000-0000-000000000000', NEW.id ,NEW.created_at)
         ON CONFLICT (id) DO NOTHING;
 
-        -- Insert records into twin_field_simple for email and avatar
-        INSERT INTO twin_field_simple (id, twin_id, twin_class_field_id, value)
-        VALUES (gen_random_uuid(), NEW.id, '00000000-0000-0000-0011-000000000001', NEW.email),
-               (gen_random_uuid(), NEW.id, '00000000-0000-0000-0011-000000000002', NEW.avatar);
-
-    -- Updating name, email and avatar fields in twin when updating a record in user
+    -- Updating name a field in twin when updating a record in user
     ELSIF TG_OP = 'UPDATE' THEN
         UPDATE twin
         SET name = NEW.name
         WHERE id = NEW.id;
-
-        -- Updating records in twin_field_simple for email and avatar
-        UPDATE twin_field_simple
-        SET value = NEW.email
-        WHERE twin_id = NEW.id AND twin_class_field_id = '00000000-0000-0000-0011-000000000001';
-
-        UPDATE twin_field_simple
-        SET value = NEW.avatar
-        WHERE twin_id = NEW.id AND twin_class_field_id = '00000000-0000-0000-0011-000000000002';
     END IF;
     RETURN NEW;
 END;
