@@ -28,7 +28,8 @@ public class TwinStatusRestDTOMapper extends RestSimpleDTOMapper<TwinStatusEntit
                         .setKey(src.getKey())
                         .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .setLogo(src.getLogo())
-                        .setColor(src.getColor());
+                        .setBackgroundColor(src.getBackgroundColor())
+                        .setFontColor(src.getFontColor());
                 break;
             case SHORT:
                 dst

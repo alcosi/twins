@@ -7,6 +7,8 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
+import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dto.rest.permission.TwinRole;
 
@@ -21,6 +23,8 @@ public class PermissionCheckForTwinOverviewResult {
     private boolean grantedByUser;
     private Kit<UserGroupEntity, UUID> grantedByUserGroups;
     private Set<TwinRole> grantedByTwinRoles;
+    private Kit<TwinClassEntity, UUID> propagatedByTwinClasses;
+    private Kit<TwinStatusEntity, UUID> propagatedByTwinStatuses;
     private Kit<SpaceRoleUserEntity, UUID> grantedBySpaceRoleUsers;
     private Kit<SpaceRoleUserGroupEntity, UUID> grantedBySpaceRoleUserGroups;
 }
