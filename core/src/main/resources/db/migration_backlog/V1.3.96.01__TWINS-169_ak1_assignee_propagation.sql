@@ -41,10 +41,9 @@ BEGIN
     WHERE permission_schema_id = permissionSchemaId AND permission_id = permissionId AND propagation_by_twin_status_id IS NOT NULL
     LIMIT 1;
 
-    IF twinStatusId IS NOT NULL AND twinClassId IS NOT NULL THEN
-        -- if twin_status_id and twin_class_id exists, check twin exists with assignee current user
-        PERFORM 1 FROM public.twin
-        WHERE assigner_user_id = userId AND twin_class_id = twinClassId AND twin_status_id = twinStatusId LIMIT 1;
+    IF twinStatusId IS NOT NULL THEN
+        -- if twin_status_id exists, check twin exists with assignee current user
+        PERFORM 1 FROM public.twin WHERE assigner_user_id = userId AND twin_status_id = twinStatusId LIMIT 1;
         IF FOUND THEN
             RETURN TRUE;
         END IF;
@@ -57,16 +56,6 @@ BEGIN
             RETURN TRUE;
         END IF;
     END IF;
-
-
-    IF twinStatusId IS NOT NULL THEN
-        -- if twin_status_id exists, check twin exists with assignee current user
-        PERFORM 1 FROM public.twin WHERE assigner_user_id = userId AND twin_status_id = twinStatusId LIMIT 1;
-        IF FOUND THEN
-            RETURN TRUE;
-        END IF;
-    END IF;
-
 
     RETURN FALSE;
 END;
