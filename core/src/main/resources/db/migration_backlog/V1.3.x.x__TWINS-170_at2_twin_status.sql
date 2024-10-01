@@ -1,5 +1,5 @@
-alter table if exists twin_status
+alter table twin_status
     rename column color to background_color;
 
-alter table if exists twin_status
-    add font_color varchar;
+alter table twin_status
+    add if not exists font_color varchar;
