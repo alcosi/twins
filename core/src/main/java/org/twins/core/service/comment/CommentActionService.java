@@ -49,7 +49,7 @@ public class CommentActionService {
     private void loadCommentAlienActions(TwinCommentEntity twinComment) throws ServiceException {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsAlienProtected(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidator().isEmpty()) {
+        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().isEmpty()) {
             twinComment.setCommentActions(EnumSet.allOf(TwinCommentAction.class));
             return;
         }
