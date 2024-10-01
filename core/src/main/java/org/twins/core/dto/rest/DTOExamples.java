@@ -68,4 +68,5 @@ public interface DTOExamples {
     String FEATURER_ID = "1000";
     String FEATURER_NAME = "InjectorImpl";
     String FEATURER_PARAM_NAME = "listUUID";
+    String COLOR_HEX = "#ff00ff";
 }
