@@ -104,7 +104,7 @@ public class TwinSpecification {
             Predicate isAssigneePredicate = cb.equal(root.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
             Predicate isCreatorPredicate = cb.equal(root.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
 
-            return cb.isTrue(cb.function("permissionCheck", Boolean.class,
+            return cb.isTrue(cb.function("permission_check", Boolean.class,
                     cb.literal(domainId),
                     cb.literal(businessAccountId),
                     spaceId,
