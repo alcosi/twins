@@ -313,25 +313,20 @@ public class TwinSpecification {
             // convert string to double in DB for math compare
             Expression<Double> numericValue = twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
             List<Predicate> predicates = new ArrayList<>();
-            if (search.getLessThen() != null) {
-                // convert search param string to double for math compare
-                Expression<Double> lessThenValue = null;
-                lessThenValue = cb.literal(search.getLessThen());
-                predicates.add(cb.lessThan(numericValue, lessThenValue));
-            }
-            if (search.getMoreThen() != null) {
-                Expression<Double> moreThenValue = cb.literal(search.getMoreThen());
-                predicates.add(cb.greaterThan(numericValue, moreThenValue));
-            }
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(numericValue, cb.literal(search.getLessThen())));
+
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(numericValue, cb.literal(search.getMoreThen())));
+
             Predicate lessAndMore = null;
             if(!predicates.isEmpty())
                 lessAndMore = getPredicate(cb, predicates, false);
 
             Predicate equals = null;
-            if (search.getEquals() != null) {
-                Expression<Double> equalsValue = cb.literal(search.getEquals());
-                equals = cb.equal(numericValue, equalsValue);
-            }
+            if (search.getEquals() != null)
+                equals = cb.equal(numericValue, cb.literal(search.getEquals()));
+
             Predicate finalPredicate = cb.conjunction();
             if (null != equals && null != lessAndMore) {
                 predicates = new ArrayList<>();
@@ -354,27 +349,39 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search) {
         return (root, query, cb) -> {
             Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldSimpleEntity> twinFieldRoot = subquery.from(TwinFieldSimpleEntity.class);
-            subquery.select(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId))
-                    .where(cb.equal(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)));
-            Predicate predicate = cb.conjunction();
-            if (search.getLessThen() != null) {
-                predicate = cb.and(predicate, cb.lessThan(
-                        cb.function("CAST", LocalDateTime.class, twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value)),
-                        search.getLessThen()));
-            }
-            if (search.getMoreThen() != null) {
-                predicate = cb.and(predicate, cb.greaterThan(
-                        cb.function("CAST", LocalDateTime.class, twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value)),
-                        search.getMoreThen()));
-            }
-            if (search.getEquals() != null) {
-                Predicate equalsPredicate = cb.equal(
-                        cb.function("CAST", LocalDateTime.class, twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value)),
-                        search.getEquals());
-                predicate = cb.or(predicate, equalsPredicate);
-            }
-            subquery.where(predicate);
+            Root<TwinFieldSimpleEntity> twinFieldSimpleRoot = subquery.from(TwinFieldSimpleEntity.class);
+            subquery.select(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId));
+            List<Predicate> predicates = new ArrayList<>();
+            Expression<LocalDateTime> dateTimeValue = twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value).as(LocalDateTime.class);
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+
+            Predicate lessAndMore = null;
+            if(!predicates.isEmpty())
+                lessAndMore = getPredicate(cb, predicates, false);
+
+            Predicate equals = null;
+            if (search.getEquals() != null)
+                equals = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
+
+            Predicate finalPredicate = cb.conjunction();
+            if (null != equals && null != lessAndMore) {
+                predicates = new ArrayList<>();
+                predicates.add(lessAndMore);
+                predicates.add(equals);
+                finalPredicate = getPredicate(cb, predicates, true);
+            } else if (null != equals)
+                finalPredicate = equals;
+            else if (null != lessAndMore)
+                finalPredicate = lessAndMore;
+            subquery.where(cb.and(
+                    finalPredicate,
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
+            ));
             return cb.exists(subquery);
         };
     }
