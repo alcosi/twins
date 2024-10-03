@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
@@ -22,7 +23,7 @@ import static org.cambium.common.util.StringUtils.fmt;
 @Featurer(id = FeaturerTwins.ID_1312,
         name = "FieldTyperCalcChildrenFieldV1",
         description = "Get sum of child.fields.values on fly")
-public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearch> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1312;
 
     @Autowired

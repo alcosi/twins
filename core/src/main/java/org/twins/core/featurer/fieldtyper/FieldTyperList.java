@@ -8,14 +8,17 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldDataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
@@ -28,7 +31,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
-public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity> {
+public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldValueSelect, TwinFieldDataListEntity, TwinFieldSearchList> {
 
     @Autowired
     @Lazy
@@ -129,4 +132,10 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             }
         return ret;
     }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchList search) throws ServiceException {
+        return Specification.where(TwinSpecification.checkFieldList(search));
+    }
+
 }

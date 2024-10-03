@@ -12,6 +12,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
@@ -24,7 +25,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1316,
         name = "FieldTyperAttachment",
         description = "Allow the field to have an attachment")
-public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity> {
+public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearch> {
 
     @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
     public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");

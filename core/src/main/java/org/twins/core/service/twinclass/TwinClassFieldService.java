@@ -19,6 +19,8 @@ import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -35,6 +38,8 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
+
+import static org.cambium.common.util.CacheUtils.evictCache;
 
 
 @Slf4j
@@ -55,6 +60,9 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     private final FeaturerService featurerService;
     @Lazy
     private final AuthService authService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinClassFieldEntity, UUID> entityRepository() {
@@ -213,7 +221,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
 
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        twinClassService.evictCache(twinClassFieldEntity.getTwinClassId());
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassFieldEntity.getTwinClassId());
         return twinClassFieldEntity;
     }
 
@@ -243,7 +251,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
         updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.isRequired(), changesHelper);
         entitySmartService.saveAndLogChanges(dbTwinClassFieldEntity, twinClassFieldRepository, changesHelper);
-        if(changesHelper.hasChanges()) twinClassService.evictCache(dbTwinClassFieldEntity.getTwinClassId());
+        if(changesHelper.hasChanges()) {
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinClassFieldEntity.getTwinClassId());
+            evictCache(cacheManager, TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, null);
+        }
         return twinClassFieldEntity;
     }
 
@@ -317,5 +328,4 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
             return;
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
-
 }

@@ -10,6 +10,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUrl;
@@ -21,7 +22,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1303,
         name = "FieldTyperUrl",
         description = "")
-public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldValueText> {
+public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldValueText, TwinFieldSearch> {
     @Override
     public FieldDescriptorUrl getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {
         return new FieldDescriptorUrl();

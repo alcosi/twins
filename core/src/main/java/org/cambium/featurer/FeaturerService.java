@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.cambium.featurer.dao.specifications.FeaturerSpecification;
 import org.twins.core.domain.search.FeaturerSearch;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
