@@ -16,7 +16,6 @@ import java.util.UUID;
 public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldEntity> {
     String CACHE_TWIN_CLASS_FIELD_BY_ID_IN = "TwinClassFieldRepository.findByIdIn";
 
-
     List<TwinClassFieldEntity> findByTwinClassId(UUID twinClassId);
 
     @Query(value = "select field from TwinClassFieldEntity field where field.twinClassId = :twinClassId and field.fieldTyperFeaturerId in (:fieldTyperIds) and cast(field.fieldTyperParams as string) like :params")

@@ -9,7 +9,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorageSpirit;
@@ -21,7 +21,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1314,
         name = "FieldTyperCountChildrenTwinsV1",
         description = "Get count of child-twins by child-status(inc/exc) on fly")
-public class FieldTyperCountChildrenTwinsV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearch> implements FieldTyperCountChildrenTwins {
+public class FieldTyperCountChildrenTwinsV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenTwins {
     public static final Integer ID = 1314;
 
     @Autowired

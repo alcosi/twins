@@ -8,7 +8,6 @@ import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
@@ -28,13 +27,11 @@ import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
@@ -58,7 +55,6 @@ public class TwinSearchService {
     private final SearchRepository searchRepository;
     private final SearchAliasRepository searchAliasRepository;
     private final SearchPredicateRepository searchPredicateRepository;
-    private final TwinClassFieldService twinClassFieldService;
     @Lazy
     private final FeaturerService featurerService;
     @Lazy
@@ -89,14 +85,11 @@ public class TwinSearchService {
                         .and(checkTouchIds(twinSearch.getTouchList(), authService.getApiUser().getUserId(), false))
                         .and(checkTouchIds(twinSearch.getTouchExcludeList(), authService.getApiUser().getUserId(), true))
         );
-        if(CollectionUtils.isNotEmpty(twinSearch.getFields())) {
-            for(TwinFieldSearch fieldSearch : twinSearch.getFields()) {
-                FieldTyper<?, ?, ?, TwinFieldSearch> fieldTyper = featurerService.getFeaturer(fieldSearch.getTwinClassFieldEntity().getFieldTyperFeaturer(), FieldTyper.class);
-                if (!fieldTyper.getTwinFieldSearch().equals(fieldSearch.getClass()))
-                    throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "Incompatible field search type: [" + fieldSearch.getClass().getSimpleName() + "] for FieldTyper:  [" + fieldTyper.getClass() + "] expected type: [" + fieldTyper.getTwinFieldSearch() + "]");
-                spec = spec.and(fieldTyper.searchBy(fieldSearch));
-            }
-        }
+        if (CollectionUtils.isNotEmpty(twinSearch.getFields()))
+            for (TwinFieldSearch fieldSearch : twinSearch.getFields())
+                spec = spec.and(fieldSearch.getFieldTyper().searchBy(fieldSearch));
+
+
         return spec;
     }
 

@@ -14,7 +14,7 @@ public class CacheUtils {
             Cache cache = cacheManager.getCache(cacheKey);
             if (cache != null) {
                 if (null != recordKey) cache.evictIfPresent(recordKey.toString());
-                else log.info("INVALIDATING CACHE: " + cacheKey + " : " + cache.invalidate());
+                else log.info("Invalidating cache: " + cacheKey + " : " + cache.invalidate());
             }
         } else {
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "Cache manager not property injected in service class.");

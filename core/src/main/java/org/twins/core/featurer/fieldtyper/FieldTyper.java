@@ -120,8 +120,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     protected abstract T deserializeValue(Properties properties, TwinField twinField) throws ServiceException;
 
     public Specification<TwinEntity> searchBy(A twinFieldSearch) throws ServiceException {
-        Specification<TwinEntity> spec = Specification.where(null);
-        return spec;
+        throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
     }
 
 }
