@@ -365,39 +365,39 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search) {
         return (root, query, cb) -> {
             Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldSimpleEntity> twinFieldRoot = subquery.from(TwinFieldSimpleEntity.class);
-            subquery.select(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId));
+            Root<TwinFieldSimpleEntity> twinFieldSimpleRoot = subquery.from(TwinFieldSimpleEntity.class);
+            subquery.select(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId));
             List<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeAllOfList())) {
-                List<Predicate> allOfpredicates = new ArrayList<>();
+                List<Predicate> allOfPredicates = new ArrayList<>();
                 for (String value : search.getValueLikeAllOfList())
-                    allOfpredicates.add(cb.like(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value), value));
-                predicates.add(getPredicate(cb, allOfpredicates, false));
+                    allOfPredicates.add(cb.like(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value), value));
+                predicates.add(getPredicate(cb, allOfPredicates, false));
             }
 
             if (CollectionUtils.isNotEmpty(search.getValueLikeAnyOfList())) {
                 List<Predicate> anyOfPredicates = new ArrayList<>();
                 for (String value : search.getValueLikeAnyOfList())
-                    anyOfPredicates.add(cb.like(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value), value));
+                    anyOfPredicates.add(cb.like(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value), value));
                 predicates.add(getPredicate(cb, anyOfPredicates, true));
             }
 
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList())) {
                 List<Predicate> noAllOfPredicates = new ArrayList<>();
                 for (String value : search.getValueLikeNoAllOfList())
-                    noAllOfPredicates.add(cb.notLike(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value), value));
+                    noAllOfPredicates.add(cb.notLike(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value), value));
                 predicates.add(getPredicate(cb, noAllOfPredicates, false));
             }
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList())) {
                 List<Predicate> noAnyOfPredicates = new ArrayList<>();
                 for (String value : search.getValueLikeNoAnyOfList())
-                    noAnyOfPredicates.add(cb.notLike(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value), value));
+                    noAnyOfPredicates.add(cb.notLike(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value), value));
                 predicates.add(getPredicate(cb, noAnyOfPredicates, true));
             }
             subquery.where(cb.and(
                     getPredicate(cb, predicates, false),
-                    cb.equal(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                    cb.equal(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
             ));
             return cb.exists(subquery);
         };
@@ -406,39 +406,41 @@ public class TwinSpecification {
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
             Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldDataListEntity> twinFieldDataListRoot = subquery.from(TwinFieldDataListEntity.class);
-            subquery.select(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.twinId))
-                    .where(cb.equal(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.twinId), root.get(TwinEntity.Fields.id)));
-            Predicate predicate = cb.conjunction();
-
+            Root<TwinFieldDataListEntity> twinFieldListRoot = subquery.from(TwinFieldDataListEntity.class);
+            subquery.select(twinFieldListRoot.get(TwinFieldDataListEntity.Fields.twinId));
+            List<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getOptionsAllOfList())) {
-                Predicate allOfPredicate = cb.conjunction();
+                List<Predicate> allOfPredicates = new ArrayList<>();
                 for (UUID optionId : search.getOptionsAllOfList())
-                    allOfPredicate = cb.and(allOfPredicate, cb.equal(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
-                predicate = cb.and(predicate, allOfPredicate);
+                    allOfPredicates.add(cb.equal(twinFieldListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
+                predicates.add(getPredicate(cb, allOfPredicates, false));
             }
 
             if (CollectionUtils.isNotEmpty(search.getOptionsAnyOfList())) {
-                Predicate anyOfPredicate = cb.disjunction();
+                List<Predicate> anyOfPredicates = new ArrayList<>();
                 for (UUID optionId : search.getOptionsAnyOfList())
-                    anyOfPredicate = cb.or(anyOfPredicate, cb.equal(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
-                predicate = cb.and(predicate, anyOfPredicate);
+                    anyOfPredicates.add(cb.equal(twinFieldListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
+                predicates.add(getPredicate(cb, anyOfPredicates, true));
             }
 
             if (CollectionUtils.isNotEmpty(search.getOptionsNoAllOfList())) {
-                Predicate noAllOfPredicate = cb.conjunction();
+                List<Predicate> noAllOfPredicates = new ArrayList<>();
                 for (UUID optionId : search.getOptionsNoAllOfList())
-                    noAllOfPredicate = cb.and(noAllOfPredicate, cb.notEqual(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
-                predicate = cb.and(predicate, noAllOfPredicate);
+                    noAllOfPredicates.add(cb.notEqual(twinFieldListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
+                predicates.add(getPredicate(cb, noAllOfPredicates, false));
             }
 
             if (CollectionUtils.isNotEmpty(search.getOptionsNoAnyOfList())) {
-                Predicate noAnyOfPredicate = cb.disjunction();
+                List<Predicate> noAnyOfPredicates = new ArrayList<>();
                 for (UUID optionId : search.getOptionsNoAnyOfList())
-                    noAnyOfPredicate = cb.or(noAnyOfPredicate, cb.notEqual(twinFieldDataListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
-                predicate = cb.and(predicate, noAnyOfPredicate);
+                    noAnyOfPredicates.add(cb.notEqual(twinFieldListRoot.get(TwinFieldDataListEntity.Fields.dataListOptionId), optionId));
+                predicates.add(getPredicate(cb, noAnyOfPredicates, true));
             }
-            subquery.where(predicate);
+            subquery.where(cb.and(
+                    getPredicate(cb, predicates, false),
+                    cb.equal(twinFieldListRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                    cb.equal(twinFieldListRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
+            ));
             return cb.exists(subquery);
         };
     }
