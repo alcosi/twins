@@ -154,6 +154,27 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     //needed for specification
     @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldSimpleEntity> fieldsSimple;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldDataListEntity> fieldsList;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldUserEntity> fieldsUser;
+
+    //needed for specification
+    @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private Collection<TwinTouchEntity> touches;

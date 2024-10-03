@@ -235,7 +235,6 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkTwinLinks(Map<UUID, Set<UUID>> linksAnyOfList, Map<UUID, Set<UUID>> linksNoAnyOfList, Map<UUID, Set<UUID>> linksAllOfList, Map<UUID, Set<UUID>> linksNoAllOfList) {
         return (root, query, cb) -> {
-            //TESTED
             List<Predicate> predicatesAny = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksAnyOfList)) {
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinInnerJoin = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
@@ -245,7 +244,6 @@ public class TwinSpecification {
                     predicatesAny.add(cb.and(linkCondition, dstTwinCondition));
                 }
             }
-            //TESTED
             List<Predicate> predicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksAllOfList)) {
                 for (Map.Entry<UUID, Set<UUID>> entry : linksAllOfList.entrySet()) {
@@ -279,7 +277,6 @@ public class TwinSpecification {
                 }
             }
 
-            //TESTED
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksNoAllOfList)) {
                 for (Map.Entry<UUID, Set<UUID>> entry : linksNoAllOfList.entrySet()) {
@@ -307,11 +304,10 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
-            Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldSimpleEntity> twinFieldSimpleRoot = subquery.from(TwinFieldSimpleEntity.class);
-            subquery.select(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId));
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
             // convert string to double in DB for math compare
-            Expression<Double> numericValue = twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
+            Expression<Double> numericValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
             List<Predicate> predicates = new ArrayList<>();
             if (search.getLessThen() != null)
                 predicates.add(cb.lessThan(numericValue, cb.literal(search.getLessThen())));
@@ -320,7 +316,7 @@ public class TwinSpecification {
                 predicates.add(cb.greaterThan(numericValue, cb.literal(search.getMoreThen())));
 
             Predicate lessAndMore = null;
-            if(!predicates.isEmpty())
+            if (!predicates.isEmpty())
                 lessAndMore = getPredicate(cb, predicates, false);
 
             Predicate equals = null;
@@ -337,22 +333,18 @@ public class TwinSpecification {
                 finalPredicate = equals;
             else if (null != lessAndMore)
                 finalPredicate = lessAndMore;
-            subquery.where(cb.and(
-                    finalPredicate,
-                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
-            ));
-            return cb.exists(subquery);
+            return finalPredicate;
         };
     }
 
+    //TODO how to process null | empty DB values?
+    //TODO (less & more connected with AND) and after connected to equals with OR, right?
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search) {
         return (root, query, cb) -> {
-            Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldSimpleEntity> twinFieldSimpleRoot = subquery.from(TwinFieldSimpleEntity.class);
-            subquery.select(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId));
             List<Predicate> predicates = new ArrayList<>();
-            Expression<LocalDateTime> dateTimeValue = twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value).as(LocalDateTime.class);
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            Expression<LocalDateTime> dateTimeValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value).as(LocalDateTime.class);
             if (search.getLessThen() != null)
                 predicates.add(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
 
@@ -360,7 +352,7 @@ public class TwinSpecification {
                 predicates.add(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
 
             Predicate lessAndMore = null;
-            if(!predicates.isEmpty())
+            if (!predicates.isEmpty())
                 lessAndMore = getPredicate(cb, predicates, false);
 
             Predicate equals = null;
@@ -377,12 +369,7 @@ public class TwinSpecification {
                 finalPredicate = equals;
             else if (null != lessAndMore)
                 finalPredicate = lessAndMore;
-            subquery.where(cb.and(
-                    finalPredicate,
-                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
-                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
-            ));
-            return cb.exists(subquery);
+            return finalPredicate;
         };
     }
 
