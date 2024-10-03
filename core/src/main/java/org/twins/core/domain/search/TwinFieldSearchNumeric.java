@@ -7,8 +7,8 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class TwinFieldSearchNumeric extends TwinFieldSearch {
 
-    String lessThen;
-    String moreThen;
-    String equals;
+    Double lessThen;
+    Double moreThen;
+    Double equals;
 
 }

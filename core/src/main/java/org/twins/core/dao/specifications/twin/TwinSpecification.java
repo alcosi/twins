@@ -305,30 +305,48 @@ public class TwinSpecification {
         };
     }
 
-    public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) {
+    public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             Subquery<UUID> subquery = query.subquery(UUID.class);
-            Root<TwinFieldSimpleEntity> twinFieldRoot = subquery.from(TwinFieldSimpleEntity.class);
-            subquery.select(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId))
-                    .where(cb.equal(twinFieldRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)));
+            Root<TwinFieldSimpleEntity> twinFieldSimpleRoot = subquery.from(TwinFieldSimpleEntity.class);
+            subquery.select(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId));
             // convert string to double in DB for math compare
-            Expression<Double> numericValue = cb.function("CAST", Double.class, twinFieldRoot.get(TwinFieldSimpleEntity.Fields.value), cb.literal("DECIMAL"));
-            Predicate predicate = cb.conjunction();
+            Expression<Double> numericValue = twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
+            List<Predicate> predicates = new ArrayList<>();
             if (search.getLessThen() != null) {
                 // convert search param string to double for math compare
-                Expression<Double> lessThenValue = cb.literal(Double.parseDouble(search.getLessThen()));
-                predicate = cb.and(predicate, cb.lessThan(numericValue, lessThenValue));
+                Expression<Double> lessThenValue = null;
+                lessThenValue = cb.literal(search.getLessThen());
+                predicates.add(cb.lessThan(numericValue, lessThenValue));
             }
             if (search.getMoreThen() != null) {
-                Expression<Double> moreThenValue = cb.literal(Double.parseDouble(search.getMoreThen()));
-                predicate = cb.and(predicate, cb.greaterThan(numericValue, moreThenValue));
+                Expression<Double> moreThenValue = cb.literal(search.getMoreThen());
+                predicates.add(cb.greaterThan(numericValue, moreThenValue));
             }
+            Predicate lessAndMore = null;
+            if(!predicates.isEmpty())
+                lessAndMore = getPredicate(cb, predicates, false);
+
+            Predicate equals = null;
             if (search.getEquals() != null) {
-                Expression<Double> equalsValue = cb.literal(Double.parseDouble(search.getEquals()));
-                Predicate equalsPredicate = cb.equal(numericValue, equalsValue);
-                predicate = cb.or(predicate, equalsPredicate);
+                Expression<Double> equalsValue = cb.literal(search.getEquals());
+                equals = cb.equal(numericValue, equalsValue);
             }
-            subquery.where(predicate);
+            Predicate finalPredicate = cb.conjunction();
+            if (null != equals && null != lessAndMore) {
+                predicates = new ArrayList<>();
+                predicates.add(lessAndMore);
+                predicates.add(equals);
+                finalPredicate = getPredicate(cb, predicates, true);
+            } else if (null != equals)
+                finalPredicate = equals;
+            else if (null != lessAndMore)
+                finalPredicate = lessAndMore;
+            subquery.where(cb.and(
+                    finalPredicate,
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinId), root.get(TwinEntity.Fields.id)),
+                    cb.equal(twinFieldSimpleRoot.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId())
+            ));
             return cb.exists(subquery);
         };
     }
