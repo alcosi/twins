@@ -14,7 +14,6 @@ import java.util.UUID;
 public interface HistoryRepository extends CrudRepository<HistoryEntity, UUID>, JpaSpecificationExecutor<HistoryEntity> {
     Page<HistoryEntity> findByTwinId(UUID twinId, Pageable pageable);
 
-    @Query(value = "select he from HistoryEntity he where he.twinId = :twinId " +
-            "or he.twinId in (select child.id from TwinEntity child where child.headTwinId = :twinId)")
+    @Query(value = "select he from HistoryEntity he left join TwinEntity te on he.twinId = te.id where he.twinId = :twinId or te.headTwinId = :twinId")
     Page<HistoryEntity> findByTwinIdIncludeFirstLevelChildren(@Param("twinId") UUID twinId, Pageable pageable);
 }
