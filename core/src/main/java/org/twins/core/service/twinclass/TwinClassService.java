@@ -125,6 +125,12 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return PaginationUtils.convertInPaginationResult(twinClassList, pagination);
     }
 
+    public List<TwinClassEntity> searchTwinClasses(TwinClassSearch twinClassSearch) throws ServiceException {
+        if (twinClassSearch == null)
+            twinClassSearch = new TwinClassSearch(); //no filters
+        return twinClassRepository.findAll(createTwinClassEntitySearchSpecification(twinClassSearch));
+    }
+
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return where(

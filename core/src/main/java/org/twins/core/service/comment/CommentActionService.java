@@ -50,18 +50,19 @@ public class CommentActionService {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsAlienProtected(twinEntity.getTwinClass());
         if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().isEmpty()) {
-            twinComment.setCommentActions(EnumSet.allOf(TwinCommentAction.class));
+            twinComment.setCommentActions(Collections.EMPTY_SET);
             return;
         }
         twinComment.setCommentActions(new HashSet<>());
         for (TwinCommentAction twinCommentAction : TwinCommentAction.values()) {
             TwinCommentActionAlienPermissionEntity twinCommentActionAlienPermission = twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().get(twinCommentAction);
             if (twinCommentActionAlienPermission != null) {
-                if (!permissionService.hasPermission(twinEntity, twinCommentActionAlienPermission.getPermissionId()))
-                    continue; // current comment action is forbidden
+                if (permissionService.hasPermission(twinEntity, twinCommentActionAlienPermission.getPermissionId())) {
+                    twinComment.getCommentActions().add(twinCommentAction);
+                    continue; // current comment action is permitted (we will not check validators)
+                }
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator())) {
-                twinComment.getCommentActions().add(twinCommentAction); // current comment action is permitted
                 continue;
             }
             boolean isValid = true;
