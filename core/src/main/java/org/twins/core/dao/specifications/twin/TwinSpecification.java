@@ -302,8 +302,6 @@ public class TwinSpecification {
         };
     }
 
-    //TODO how to process null | empty DB values?
-    //TODO (less & more connected with AND) and after connected to equals with OR, right?
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
@@ -339,8 +337,6 @@ public class TwinSpecification {
         };
     }
 
-    //TODO how to process null | empty DB values?
-    //TODO (less & more connected with AND) and after connected to equals with OR, right?
     public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -361,16 +357,23 @@ public class TwinSpecification {
             if (search.getEquals() != null)
                 equals = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
 
-            Predicate finalPredicate = cb.conjunction();
+            Predicate valuePredicate = cb.conjunction();
             if (null != equals && null != lessAndMore) {
                 predicates = new ArrayList<>();
                 predicates.add(lessAndMore);
                 predicates.add(equals);
-                finalPredicate = getPredicate(cb, predicates, true);
+                valuePredicate = getPredicate(cb, predicates, true);
             } else if (null != equals)
-                finalPredicate = equals;
+                valuePredicate = equals;
             else if (null != lessAndMore)
-                finalPredicate = lessAndMore;
+                valuePredicate = lessAndMore;
+            else valuePredicate = cb.disjunction();
+            Predicate finalPredicate = cb.conjunction();
+            if(search.isEmpty())
+                finalPredicate = cb.or(valuePredicate, cb.or(
+                        cb.isEmpty(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value)),
+                        cb.isNull(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value))
+                ));
             return finalPredicate;
         };
     }

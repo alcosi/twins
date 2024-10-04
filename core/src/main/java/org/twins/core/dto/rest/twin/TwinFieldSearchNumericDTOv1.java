@@ -8,7 +8,7 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(fluent = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TwinFieldSearchNumberV1")
+@Schema(name = "TwinFieldSearchNumberV1", description = "(less & more connected with AND) and after connected to equals with OR")
 public class TwinFieldSearchNumericDTOv1 extends TwinFieldSearchDTOv1 {
 
     public static final String KEY = "searchNumberValueV1";

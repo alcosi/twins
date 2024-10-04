@@ -12,5 +12,6 @@ public class TwinFieldSearchDate extends TwinFieldSearch {
     LocalDateTime lessThen;
     LocalDateTime moreThen;
     LocalDateTime equals;
+    boolean empty;
 
 }
