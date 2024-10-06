@@ -30,6 +30,9 @@ public class PermissionSchemaAssigneePropagationEntity {
     @Column(name = "propagation_by_twin_status_id")
     private UUID propagationByTwinStatusId;
 
+    @Column(name = "in_space_only")
+    private UUID inSpaceOnly;
+
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;
 
