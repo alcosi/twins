@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinTouchEntity;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -86,5 +87,8 @@ public class TwinSearchDTOv1 {
 
     @Schema(description = "Twin touch exclude list ids")
     public List<TwinTouchEntity.Touch> touchExcludeList;
+
+    @Schema(description = "Twin Field Search. Key TwinClassField id.")
+    public Map<UUID, TwinFieldSearchDTOv1> fields;
 
 }

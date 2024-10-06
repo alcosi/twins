@@ -8,6 +8,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorChecks;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
@@ -20,7 +21,7 @@ import java.util.UUID;
         name = "FieldTyperCheckbox",
         description = "")
 @RequiredArgsConstructor
-public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, FieldValueSelect> {
+public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, FieldValueSelect, TwinFieldSearchNotImplemented> {
     final DataListOptionRepository dataListOptionRepository;
 
     @Override

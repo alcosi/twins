@@ -22,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
+import static org.cambium.common.util.CacheUtils.evictCache;
+
 @Component
 @Slf4j
 public abstract class I18nService  {
@@ -272,16 +274,10 @@ public abstract class I18nService  {
                 entry.getValue().setI18nId(i18nEntity.getId());
             }
             entitiesToSave.add(entry.getValue());
-            evictCache(entry.getValue().getI18nId(), entry.getKey());
+            evictCache(cacheManager, I18nTranslationRepository.CACHE_I18N_TRANSLATIONS, entry.getValue().getI18nId() + "" + entry.getKey());
         }
         i18nTranslationRepository.saveAll(entitiesToSave);
 
         return i18nEntity;
-    }
-
-    public void evictCache(UUID i18nId, Locale locale) {
-        Cache cache = cacheManager.getCache(I18nTranslationRepository.CACHE_I18N_TRANSLATIONS);
-        if (cache != null)
-            cache.evictIfPresent(i18nId + "" + locale);
     }
 }

@@ -9,8 +9,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.TwinSearch;
+import org.twins.core.domain.search.*;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
@@ -234,7 +235,6 @@ public class TwinSpecification {
 
     public static Specification<TwinEntity> checkTwinLinks(Map<UUID, Set<UUID>> linksAnyOfList, Map<UUID, Set<UUID>> linksNoAnyOfList, Map<UUID, Set<UUID>> linksAllOfList, Map<UUID, Set<UUID>> linksNoAllOfList) {
         return (root, query, cb) -> {
-            //TESTED
             List<Predicate> predicatesAny = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksAnyOfList)) {
                 Join<TwinEntity, TwinLinkEntity> linkSrcTwinInnerJoin = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
@@ -244,7 +244,6 @@ public class TwinSpecification {
                     predicatesAny.add(cb.and(linkCondition, dstTwinCondition));
                 }
             }
-            //TESTED
             List<Predicate> predicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksAllOfList)) {
                 for (Map.Entry<UUID, Set<UUID>> entry : linksAllOfList.entrySet()) {
@@ -278,7 +277,6 @@ public class TwinSpecification {
                 }
             }
 
-            //TESTED
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (MapUtils.isNotEmpty(linksNoAllOfList)) {
                 for (Map.Entry<UUID, Set<UUID>> entry : linksNoAllOfList.entrySet()) {
@@ -301,6 +299,196 @@ public class TwinSpecification {
                 exclude = cb.conjunction();
 
             return cb.and(include, exclude);
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
+        return (root, query, cb) -> {
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            // convert string to double in DB for math compare
+            Expression<Double> numericValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value).as(Double.class);
+            List<Predicate> predicates = new ArrayList<>();
+            if (search.getLessThen() != null)
+                predicates.add(cb.lessThan(numericValue, cb.literal(search.getLessThen())));
+
+            if (search.getMoreThen() != null)
+                predicates.add(cb.greaterThan(numericValue, cb.literal(search.getMoreThen())));
+
+            Predicate lessAndMore = null;
+            if (!predicates.isEmpty())
+                lessAndMore = getPredicate(cb, predicates, false);
+
+            Predicate equals = null;
+            if (search.getEquals() != null)
+                equals = cb.equal(numericValue, cb.literal(search.getEquals()));
+
+            Predicate finalPredicate = cb.conjunction();
+            if (null != equals && null != lessAndMore) {
+                predicates = new ArrayList<>();
+                predicates.add(lessAndMore);
+                predicates.add(equals);
+                finalPredicate = getPredicate(cb, predicates, true);
+            } else if (null != equals)
+                finalPredicate = equals;
+            else if (null != lessAndMore)
+                finalPredicate = lessAndMore;
+            return finalPredicate;
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldDate(final TwinFieldSearchDate search) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+            Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
+            Expression<LocalDateTime> dateTimeValue = stringValue.as(LocalDateTime.class);
+            if (search.getLessThen() != null)
+                predicates.add(cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.lessThan(dateTimeValue, cb.literal(search.getLessThen()))
+                ));
+
+            if (search.getMoreThen() != null)
+                predicates.add(cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen()))
+                ));
+
+            Predicate lessAndMore = null;
+            if (!predicates.isEmpty())
+                lessAndMore = getPredicate(cb, predicates, false);
+
+            Predicate equals = null;
+            if (search.getEquals() != null)
+                equals = cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.equal(dateTimeValue, cb.literal(search.getEquals()))
+                );
+
+            Predicate valuePredicate;
+            Predicate finalPredicate = cb.conjunction();
+            if (null != equals && null != lessAndMore) {
+                predicates = new ArrayList<>();
+                predicates.add(lessAndMore);
+                predicates.add(equals);
+                valuePredicate = getPredicate(cb, predicates, true);
+            } else if (null != equals)
+                valuePredicate = equals;
+            else if (null != lessAndMore)
+                valuePredicate = lessAndMore;
+            else
+                valuePredicate = search.isEmpty() ? cb.disjunction() : cb.conjunction();
+
+            if(search.isEmpty())
+                finalPredicate = cb.or(valuePredicate, cb.or(
+                        cb.equal(stringValue, cb.literal("")),
+                        cb.isNull(stringValue)
+                ));
+            else finalPredicate = cb.and(valuePredicate, finalPredicate);
+            return finalPredicate;
+        };
+    }
+
+
+    public static Specification<TwinEntity> checkFieldText(final TwinFieldSearchText search) {
+        return (root, query, cb) -> {
+            Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
+            twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            List<Predicate> predicatesAny = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getValueLikeAnyOfList()))
+                for (String value : search.getValueLikeAnyOfList())
+                    predicatesAny.add(cb.like(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+            List<Predicate> predicatesAll = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getValueLikeAllOfList()))
+                for (String value : search.getValueLikeAllOfList())
+                    predicatesAll.add(cb.like(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+
+            Predicate include;
+            if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
+                include = cb.and(cb.or(predicatesAny.toArray(new Predicate[0])), cb.and(predicatesAll.toArray(new Predicate[0])));
+            else if (!predicatesAny.isEmpty())
+                include = cb.or(predicatesAny.toArray(new Predicate[0]));
+            else if (!predicatesAll.isEmpty())
+                include = cb.and(predicatesAll.toArray(new Predicate[0]));
+            else
+                include = cb.conjunction();
+
+
+            List<Predicate> excludePredicatesAny = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList()))
+                for (String value : search.getValueLikeNoAnyOfList())
+                  excludePredicatesAny.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+            List<Predicate> excludePredicatesAll = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList()))
+                for (String value : search.getValueLikeNoAllOfList())
+                    excludePredicatesAll.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+
+            Predicate exclude;
+            if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())
+                exclude = cb.and(cb.or(excludePredicatesAny.toArray(new Predicate[0])), cb.and(excludePredicatesAll.toArray(new Predicate[0])));
+            else if (!excludePredicatesAny.isEmpty())
+                exclude = cb.or(excludePredicatesAny.toArray(new Predicate[0]));
+            else if (!excludePredicatesAll.isEmpty())
+                exclude = cb.and(excludePredicatesAll.toArray(new Predicate[0]));
+            else
+                exclude = cb.conjunction();
+
+            return cb.and(include, exclude);
+        };
+    }
+
+    public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
+        return (root, query, cb) -> {
+            Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = root.join(TwinEntity.Fields.fieldsList, JoinType.INNER);
+            twinFieldListJoin.on(cb.equal(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
+
+            List<Predicate> predicatesAny = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getOptionsAnyOfList()))
+                for (UUID value : search.getOptionsAnyOfList())
+                    predicatesAny.add(cb.equal(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.dataListOptionId), value));
+            List<Predicate> predicatesAll = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getOptionsAllOfList())) //TODO? if >1 elements result: empty
+                for (UUID value : search.getOptionsAllOfList())
+                    predicatesAll.add(cb.equal(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.dataListOptionId), value));
+
+            Predicate include;
+            if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
+                include = cb.and(cb.or(predicatesAny.toArray(new Predicate[0])), cb.and(predicatesAll.toArray(new Predicate[0])));
+            else if (!predicatesAny.isEmpty())
+                include = cb.or(predicatesAny.toArray(new Predicate[0]));
+            else if (!predicatesAll.isEmpty())
+                include = cb.and(predicatesAll.toArray(new Predicate[0]));
+            else
+                include = cb.conjunction();
+
+
+            List<Predicate> excludePredicatesAny = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getOptionsNoAnyOfList()))
+                for (UUID value : search.getOptionsNoAnyOfList()) //TODO? if >1 elements result: all elements
+                    excludePredicatesAny.add(cb.notEqual(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.dataListOptionId), value));
+            List<Predicate> excludePredicatesAll = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(search.getOptionsNoAllOfList()))
+                for (UUID value : search.getOptionsNoAllOfList())
+                    excludePredicatesAll.add(cb.notEqual(twinFieldListJoin.get(TwinFieldDataListEntity.Fields.dataListOptionId), value));
+
+            Predicate exclude;
+            if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())
+                exclude = cb.and(cb.or(excludePredicatesAny.toArray(new Predicate[0])), cb.and(excludePredicatesAll.toArray(new Predicate[0])));
+            else if (!excludePredicatesAny.isEmpty())
+                exclude = cb.or(excludePredicatesAny.toArray(new Predicate[0]));
+            else if (!excludePredicatesAll.isEmpty())
+                exclude = cb.and(excludePredicatesAll.toArray(new Predicate[0]));
+            else
+                exclude = cb.conjunction();
+
+            return cb.and(include, exclude);
+
         };
     }
 }

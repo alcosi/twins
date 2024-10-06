@@ -22,6 +22,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
@@ -39,7 +40,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "FieldTyperUser",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity, TwinFieldSearchNotImplemented> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;

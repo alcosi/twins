@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorColorPicker;
@@ -20,7 +21,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1304,
         name = "FieldTyperColorPicker",
         description = "")
-public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColorPicker, FieldValueColorHEX> {
+public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColorPicker, FieldValueColorHEX, TwinFieldSearchNotImplemented> {
     private static final String HEX_PATTERN
             = "^#([a-fA-F0-9]{6})$";
     @Override
