@@ -1,4 +1,4 @@
-alter table public.permission_schema_assignee_propagation add in_space_only bit default false;
+alter table public.permission_schema_assignee_propagation add if not exists in_space_only boolean default false;
 
 
 DROP FUNCTION IF EXISTS public.permission_check_assignee_involver(UUID, UUID, UUID);
