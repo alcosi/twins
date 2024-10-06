@@ -342,12 +342,21 @@ public class TwinSpecification {
             List<Predicate> predicates = new ArrayList<>();
             Join<TwinEntity, TwinFieldSimpleEntity> twinFieldSimpleJoin = root.join(TwinEntity.Fields.fieldsSimple, JoinType.INNER);
             twinFieldSimpleJoin.on(cb.equal(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.twinClassFieldId), search.getTwinClassFieldEntity().getId()));
-            Expression<LocalDateTime> dateTimeValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value).as(LocalDateTime.class);
+            Expression<String> stringValue = twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value);
+            Expression<LocalDateTime> dateTimeValue = stringValue.as(LocalDateTime.class);
             if (search.getLessThen() != null)
-                predicates.add(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen())));
+                predicates.add(cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.lessThan(dateTimeValue, cb.literal(search.getLessThen()))
+                ));
 
             if (search.getMoreThen() != null)
-                predicates.add(cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen())));
+                predicates.add(cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.greaterThan(dateTimeValue, cb.literal(search.getMoreThen()))
+                ));
 
             Predicate lessAndMore = null;
             if (!predicates.isEmpty())
@@ -355,9 +364,14 @@ public class TwinSpecification {
 
             Predicate equals = null;
             if (search.getEquals() != null)
-                equals = cb.equal(dateTimeValue, cb.literal(search.getEquals()));
+                equals = cb.and(
+                        cb.isNotNull(stringValue),
+                        cb.notEqual(stringValue, cb.literal("")),
+                        cb.equal(dateTimeValue, cb.literal(search.getEquals()))
+                );
 
-            Predicate valuePredicate = cb.conjunction();
+            Predicate valuePredicate;
+            Predicate finalPredicate = cb.conjunction();
             if (null != equals && null != lessAndMore) {
                 predicates = new ArrayList<>();
                 predicates.add(lessAndMore);
@@ -367,13 +381,15 @@ public class TwinSpecification {
                 valuePredicate = equals;
             else if (null != lessAndMore)
                 valuePredicate = lessAndMore;
-            else valuePredicate = cb.disjunction();
-            Predicate finalPredicate = cb.conjunction();
+            else
+                valuePredicate = search.isEmpty() ? cb.disjunction() : cb.conjunction();
+
             if(search.isEmpty())
                 finalPredicate = cb.or(valuePredicate, cb.or(
-                        cb.isEmpty(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value)),
-                        cb.isNull(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value))
+                        cb.equal(stringValue, cb.literal("")),
+                        cb.isNull(stringValue)
                 ));
+            else finalPredicate = cb.and(valuePredicate, finalPredicate);
             return finalPredicate;
         };
     }

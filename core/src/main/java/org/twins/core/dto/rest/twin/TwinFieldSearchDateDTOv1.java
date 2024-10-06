@@ -26,6 +26,6 @@ public class TwinFieldSearchDateDTOv1 extends TwinFieldSearchDTOv1 {
     public LocalDateTime equals;
 
     @Schema(description = "include entities with empty or null values to result")
-    boolean empty;
+    public boolean empty;
 
 }
