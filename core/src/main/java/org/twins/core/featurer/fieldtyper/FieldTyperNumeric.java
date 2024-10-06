@@ -18,6 +18,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
@@ -64,8 +65,10 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         String finalValue;
         try {
             finalValue = value.getValue();
-            if (finalValue.matches("[+-]?[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+"))
-                finalValue = Double.toString(Double.parseDouble(finalValue));
+            if (finalValue.matches("[+-]?[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+")) {
+                DecimalFormat df = new DecimalFormat("#.############");
+                finalValue = df.format(Double.parseDouble(finalValue));
+            }
             finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
                     .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
             String[] parts = finalValue.split("\\.");
