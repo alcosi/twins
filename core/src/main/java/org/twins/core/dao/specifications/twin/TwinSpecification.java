@@ -30,19 +30,35 @@ public class TwinSpecification {
             List<Predicate> classPredicates = new ArrayList<>();
             Predicate classPredicate = null;
             if (!CollectionUtils.isEmpty(headSearch.getTwinClassIdList())) {
-                for (UUID twinClassId : headSearch.getTwinClassIdList()) {
-                    Predicate checkClassId = cb.equal(subRoot.get(TwinEntity.Fields.twinClassId), twinClassId);
-                    classPredicates.add(checkClassId);
-                }
+                for (UUID twinClassId : headSearch.getTwinClassIdList())
+                    classPredicates.add(cb.equal(subRoot.get(TwinEntity.Fields.twinClassId), twinClassId));
                 classPredicate = getPredicate(cb, classPredicates, true);
             }
             subquery.select(subRoot.get(TwinEntity.Fields.id)).where(
                     headSpecification.toPredicate(subRoot, query, cb),
                     null != classPredicate ? classPredicate : cb.conjunction()
             );
-
-
             return cb.in(root.get(TwinEntity.Fields.headTwinId)).value(subquery);
+        };
+    }
+
+    public static Specification<TwinEntity> checkChildrenTwins(Specification<TwinEntity> childrenSpecification, TwinSearch childrenSearch) {
+        return (root, query, cb) -> {
+            if (null == childrenSpecification) return cb.conjunction();
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+            Root<TwinEntity> subRoot = subquery.from(TwinEntity.class);
+            List<Predicate> classPredicates = new ArrayList<>();
+            Predicate classPredicate = null;
+            if (!CollectionUtils.isEmpty(childrenSearch.getTwinClassIdList())) {
+                for (UUID twinClassId : childrenSearch.getTwinClassIdList())
+                    classPredicates.add(cb.equal(subRoot.get(TwinEntity.Fields.twinClassId), twinClassId));
+                classPredicate = getPredicate(cb, classPredicates, true);
+            }
+            subquery.select(subRoot.get(TwinEntity.Fields.headTwinId)).where(
+                    childrenSpecification.toPredicate(subRoot, query, cb),
+                    null != classPredicate ? classPredicate : cb.conjunction()
+            );
+            return cb.in(root.get(TwinEntity.Fields.id)).value(subquery);
         };
     }
 

@@ -11,12 +11,12 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TwinSearchByAliasDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchByAliasRqDTOv1, SearchByAlias> {
-    private final TwinSearchWithHeadDTOReverseMapper twinSearchWithHeadDTOReverseMapper;
+    private final TwinSearchExtendedDTOReverseMapper twinSearchExtendedDTOReverseMapper;
 
     @Override
     public void map(TwinSearchByAliasRqDTOv1 src, SearchByAlias dst, MapperContext mapperContext) throws Exception {
         dst
-                .setNarrow(twinSearchWithHeadDTOReverseMapper.convert(src.getNarrow(), mapperContext))
+                .setNarrow(twinSearchExtendedDTOReverseMapper.convert(src.getNarrow(), mapperContext))
                 .setParams(src.getParams());
 
     }

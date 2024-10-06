@@ -113,6 +113,13 @@ public class TwinSearchService {
                         basicSearch.getHeadSearch()
                 ));
 
+        //CHILDREN TWINS CHECK
+        if (null != basicSearch.getChildrenSearch()) specification = specification.and(
+                checkChildrenTwins(
+                        createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch()),
+                        basicSearch.getChildrenSearch()
+                ));
+
 
         return specification;
     }
