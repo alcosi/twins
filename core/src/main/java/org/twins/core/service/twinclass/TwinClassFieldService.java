@@ -89,6 +89,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return true;
     }
 
+    // only direct fields
     public List<TwinClassFieldEntity> findTwinClassFields(UUID twinClassId) {
         return twinClassFieldRepository.findByTwinClassId(twinClassId).stream().filter(twinClassFieldEntity -> !isEntityReadDenied(twinClassFieldEntity)).toList();
     }

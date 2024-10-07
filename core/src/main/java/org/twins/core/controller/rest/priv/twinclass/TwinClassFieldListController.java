@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldListRsDTOv1;
@@ -26,8 +27,8 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.twinclass.TwinClassFieldService;
+import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.List;
 import java.util.UUID;
 
 @Tag(name = ApiTag.TWIN_CLASS)
@@ -36,6 +37,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinClassFieldListController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
+    private final TwinClassService twinClassService;
     private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
 
     @ParametersApiUserHeaders
@@ -51,8 +53,9 @@ public class TwinClassFieldListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId) {
         TwinClassFieldListRsDTOv1 rs = new TwinClassFieldListRsDTOv1();
         try {
-            List<TwinClassFieldEntity> twinClassFieldsList = twinClassFieldService.findTwinClassFields(twinClassId);
-            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldsList, mapperContext));
+            TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
+            twinClassFieldService.loadTwinClassFields(twinClassEntity);
+            rs.twinClassFieldList(twinClassFieldRestDTOMapper.convertCollection(twinClassEntity.getTwinClassFieldKit().getCollection(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
