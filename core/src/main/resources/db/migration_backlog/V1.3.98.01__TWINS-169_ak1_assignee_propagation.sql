@@ -3,8 +3,9 @@ alter table public.permission_schema_assignee_propagation add if not exists in_s
 
 DROP FUNCTION IF EXISTS public.permission_check_assignee_involver(UUID, UUID, UUID);
 DROP FUNCTION IF EXISTS public.permission_check_assignee_involver(UUID, UUID, UUID, UUID, UUID);
+DROP FUNCTION IF EXISTS public.permission_check_assignee_propagation(UUID, UUID, UUID, UUID, UUID);
 
-CREATE OR REPLACE FUNCTION permission_check_assignee_involver(permissionSchemaId UUID, permissionId UUID, businessAccountId UUID, spaceId UUID, userId UUID)
+CREATE OR REPLACE FUNCTION permission_check_assignee_propagation(permissionSchemaId UUID, permissionId UUID, businessAccountId UUID, spaceId UUID, userId UUID)
     RETURNS BOOLEAN AS
 $$
 DECLARE
@@ -108,7 +109,7 @@ BEGIN
     END IF;
 
     -- check propagation
-    IF permission_check_assignee_involver(permissionSchemaId, permissionId, businessAccountId, spaceId, userId) THEN
+    IF permission_check_assignee_propagation(permissionSchemaId, permissionId, businessAccountId, spaceId, userId) THEN
         RETURN TRUE;
     END IF;
 
