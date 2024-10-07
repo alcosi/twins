@@ -22,6 +22,8 @@ import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
+import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
+
 @Component
 @Featurer(id = FeaturerTwins.ID_1317,
         name = "FieldTyperNumeric",
@@ -65,7 +67,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         String finalValue;
         try {
             finalValue = value.getValue();
-            if (finalValue.matches("[+-]?[0-9]+(\\.[0-9]+)?[eE][+-]?[0-9]+")) {
+            if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
                 DecimalFormat df = new DecimalFormat("#.############");
                 finalValue = df.format(Double.parseDouble(finalValue));
             }
