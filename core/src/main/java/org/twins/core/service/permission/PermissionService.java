@@ -301,11 +301,19 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return new FindUserPermissionsResult()
                 .setPermissionsByUser(permissionSchemaUserRepository.findByPermissionSchemaIdAndUserId(
                                 permissionSchemaId, userId)
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]")).toList()) // filter bad configured permissions
+                        .stream().filter(p -> {
+                                    UUID permissionDomainId = p.getPermission().getPermissionGroup().getDomainId();
+                                    return permissionDomainId == null // for permission group[Twins global permissions]
+                                            || StreamUtils.andLogFilteredOutValues(permissionDomainId.equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]");
+                                }).toList()) // filter bad configured permissions
                 .setPermissionByUserGroup(permissionSchemaUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
                                 permissionSchemaId,
                                 userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
-                        .stream().filter(p -> StreamUtils.andLogFilteredOutValues(p.getPermission().getPermissionGroup().getDomainId().equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]")).toList()); // filter bad configured permissions;
+                        .stream().filter(p -> {
+                                    UUID permissionDomainId = p.getPermission().getPermissionGroup().getDomainId();
+                                    return permissionDomainId == null // for permission group[Twins global permissions]
+                                            || StreamUtils.andLogFilteredOutValues(permissionDomainId.equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]");
+                        }).toList()); // filter bad configured permissions;
     }
 
     private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
