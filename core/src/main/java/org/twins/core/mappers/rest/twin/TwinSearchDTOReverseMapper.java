@@ -14,6 +14,8 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @RequiredArgsConstructor
 public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDTOv1, BasicSearch> {
 
+    private final TwinFieldSearchMapDTOReverseMapper twinFieldSearchMapDTOReverseMapper;
+
     @Override
     public void map(TwinSearchDTOv1 src, BasicSearch dst, MapperContext mapperContext) throws Exception {
         dst
@@ -39,7 +41,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTouchList(convertToSetSafe(src.getTouchList()))
                 .setTouchExcludeList(convertToSetSafe(src.getTouchExcludeList()));
         if (src.getLinksAnyOfList() != null)
-            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksAnyOfList()) {
+            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAnyOfList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, true);
             }
         if (src.getLinksNoAnyOfList() != null)
@@ -47,12 +49,13 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, true);
             }
         if (src.getLinksAllOfList() != null)
-            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO :  src.getLinksAllOfList()) {
+            for (TwinSearchByLinkDTOv1 twinSearchByLinkDTO : src.getLinksAllOfList()) {
                 dst.addLinkDstTwinsId(twinSearchByLinkDTO.getLinkId(), twinSearchByLinkDTO.getDstTwinIdList(), false, false);
             }
         if (src.getLinksNoAllOfList() != null)
             for (TwinSearchByLinkDTOv1 twinSearchByNoLinkDTO : src.getLinksNoAllOfList()) {
                 dst.addLinkDstTwinsId(twinSearchByNoLinkDTO.getLinkId(), twinSearchByNoLinkDTO.getDstTwinIdList(), true, false);
             }
+        dst.setFields(twinFieldSearchMapDTOReverseMapper.convert(src.getFields()));
     }
 }

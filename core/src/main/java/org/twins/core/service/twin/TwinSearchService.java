@@ -7,9 +7,9 @@ import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
@@ -24,6 +24,7 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
@@ -31,7 +32,6 @@ import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
-import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
@@ -48,23 +48,21 @@ import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 @Slf4j
 @RequiredArgsConstructor
 public class TwinSearchService {
-    final EntityManager entityManager;
-    final TwinRepository twinRepository;
-    final TwinService twinService;
-    final UserGroupService userGroupService;
-    final SearchRepository searchRepository;
-    final SearchAliasRepository searchAliasRepository;
-    final SearchPredicateRepository searchPredicateRepository;
-    final PermissionService permissionService;
+    private final EntityManager entityManager;
+    private final TwinRepository twinRepository;
+    private final TwinService twinService;
+    private final UserGroupService userGroupService;
+    private final SearchRepository searchRepository;
+    private final SearchAliasRepository searchAliasRepository;
+    private final SearchPredicateRepository searchPredicateRepository;
     @Lazy
-    final FeaturerService featurerService;
+    private final FeaturerService featurerService;
     @Lazy
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
 
     private Specification<TwinEntity> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch) throws ServiceException {
-
-        return where(
+        Specification<TwinEntity> spec = where(
                 checkTwinLinks(twinSearch.getLinksAnyOfList(), twinSearch.getLinksNoAnyOfList(), twinSearch.getLinksAllOfList(), twinSearch.getLinksNoAllOfList())
                         .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdList(), false, false))
                         .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdExcludeList(), true, false))
@@ -87,6 +85,12 @@ public class TwinSearchService {
                         .and(checkTouchIds(twinSearch.getTouchList(), authService.getApiUser().getUserId(), false))
                         .and(checkTouchIds(twinSearch.getTouchExcludeList(), authService.getApiUser().getUserId(), true))
         );
+        if (CollectionUtils.isNotEmpty(twinSearch.getFields()))
+            for (TwinFieldSearch fieldSearch : twinSearch.getFields())
+                spec = spec.and(fieldSearch.getFieldTyper().searchBy(fieldSearch));
+
+
+        return spec;
     }
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {

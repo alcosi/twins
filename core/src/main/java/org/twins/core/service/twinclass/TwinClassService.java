@@ -56,6 +56,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
 import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
@@ -349,7 +350,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
         entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
-        evictCache(twinClassUpdate.getDbTwinClassEntity().getId());
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
     }
 
     @Transactional
@@ -636,12 +637,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     private Set<UUID> findExistedTwinHeadIdsOfClass(UUID twinClassId) {
         return twinRepository.findDistinctHeadTwinIdByTwinClassId(twinClassId);
-    }
-
-    public void evictCache(UUID twinClassId) {
-        Cache cache = cacheManager.getCache(TwinClassRepository.CACHE_TWIN_CLASS_BY_ID);
-        if (cache != null)
-            cache.evictIfPresent(twinClassId);
     }
 
     public boolean isStatusAllowedForTwinClass(UUID twinClassId, UUID twinStatusId) throws ServiceException {

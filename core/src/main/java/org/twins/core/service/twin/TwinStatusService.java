@@ -11,6 +11,8 @@ import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,12 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+
+import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Lazy
 @Slf4j
@@ -31,6 +36,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     final TwinStatusRepository twinStatusRepository;
     final TwinClassService twinClassService;
     final I18nService i18nService;
+
+    @Autowired
+    private CacheManager cacheManager;
 
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
@@ -106,7 +114,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
                 .setKey(key)
                 .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME, nameInDefaultLocale).getId());
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        twinClassService.evictCache(savedStatus.getTwinClassId());
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
         return savedStatus;
     }
 
@@ -115,7 +123,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
         twinStatusEntity.setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId());
         twinStatusEntity.setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        twinClassService.evictCache(savedStatus.getTwinClassId());
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
         return savedStatus;
     }
 
@@ -144,7 +152,9 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
         }
         entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
-        if(changesHelper.hasChanges())twinClassService.evictCache(dbEntity.getTwinClassId());
+        if(changesHelper.hasChanges()) {
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId());
+        }
         return dbEntity;
     }
 

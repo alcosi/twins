@@ -32,6 +32,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.*;
@@ -53,6 +54,8 @@ import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
 import java.util.*;
+
+import static org.cambium.common.util.CacheUtils.evictCache;
 
 
 @Slf4j
@@ -303,7 +306,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
         updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
         dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
-        twinClassService.evictCache(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
         return dbTwinflowTransitionEntity;
     }
 
@@ -320,7 +323,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteUUIDList())) {
             deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteUUIDList());
         }
-        evictCache(TwinflowTransitionValidatorRepository.CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        evictCache(cacheManager, TwinflowTransitionValidatorRepository.CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
@@ -381,7 +384,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteUUIDList())) {
             deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteUUIDList());
         }
-        evictCache(TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        evictCache(cacheManager, TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
@@ -835,12 +838,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             processedTwinList.addAll(twinEntityList);
             return this;
         }
-    }
-
-    public void evictCache(String cacheKey, UUID recordKey) {
-        Cache cache = cacheManager.getCache(cacheKey);
-        if (cache != null)
-            cache.evictIfPresent(recordKey);
     }
 
 //    @Transactional

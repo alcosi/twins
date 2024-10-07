@@ -19,7 +19,7 @@ import java.util.UUID;
                 @JsonSubTypes.Type(value = TwinFieldValueColorHexDTOv1.class, name = TwinFieldValueColorHexDTOv1.KEY),
                 @JsonSubTypes.Type(value = TwinFieldValueListDTOv1.class, name = TwinFieldValueListDTOv1.KEY),
 })
-@Schema(description = "On of values", example = "", oneOf = {
+@Schema(description = "One of values", example = "", oneOf = {
         TwinFieldValueTextDTOv1.class,
         TwinFieldValueColorHexDTOv1.class,
         TwinFieldValueDateDTOv1.class,

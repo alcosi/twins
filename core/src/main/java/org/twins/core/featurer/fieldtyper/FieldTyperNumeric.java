@@ -8,11 +8,15 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamDouble;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
@@ -28,7 +32,7 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 @Featurer(id = FeaturerTwins.ID_1317,
         name = "FieldTyperNumeric",
         description = "Numeric field")
-public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText> {
+public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
 
     @FeaturerParam(name = "min", description = "Min possible value")
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
@@ -93,5 +97,10 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
+        return Specification.where(TwinSpecification.checkFieldNumeric(search));
     }
 }
