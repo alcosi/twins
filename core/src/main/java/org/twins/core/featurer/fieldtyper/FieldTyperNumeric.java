@@ -18,8 +18,11 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.regex.Pattern;
+
+import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1317,
@@ -64,19 +67,23 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         String finalValue;
         try {
             finalValue = value.getValue();
+            if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+                DecimalFormat df = new DecimalFormat("#.############");
+                finalValue = df.format(Double.parseDouble(finalValue));
+            }
             finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
                     .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
             String[] parts = finalValue.split("\\.");
-            if((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
+            if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
                 throw new Exception();
             double doubleValue = Double.parseDouble(finalValue);
-            if((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
+            if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
                 throw new Exception();
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
-                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings["+
-                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
+                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
+                            " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
                             " decSeparator:" + decimalSeparatorValue + " thouSeparator:" + thousandSeparatorValue + "].");
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);
