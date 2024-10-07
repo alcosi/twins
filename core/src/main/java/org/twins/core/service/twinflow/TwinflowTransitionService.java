@@ -21,7 +21,6 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -201,6 +200,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         Map<String, TwinflowTransitionEntity> alreadyAdded = new HashMap<>(); // key = alias_id + dst_status
         for (TwinflowTransitionEntity transitionEntity : twinflowTransitionEntityList) {
             String transitionDistinctKey = transitionEntity.getTwinflowTransitionAlias().getAlias() + transitionEntity.getDstTwinStatusId();
+            if (!isValidTransitionSrcAndDstStatus(twinEntity, transitionEntity))
+                continue;
             if (alreadyAdded.containsKey(transitionDistinctKey)
                     && alreadyAdded.get(transitionDistinctKey).getSrcTwinStatusId() != null)
                 continue; //skipping current transition because we already have one with specific src_status
@@ -208,6 +209,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 alreadyAdded.put(transitionDistinctKey, transitionEntity);
         }
         twinEntity.setValidTransitionsKit(new Kit<>(alreadyAdded.values().stream().toList(), TwinflowTransitionEntity::getId));
+    }
+
+    //skipping current transition because self pointed transition not allowed("from any status means" any status except current).
+    //for this case must use src:current->dst:current(not null src status).
+    public boolean isValidTransitionSrcAndDstStatus(TwinEntity twinEntity, TwinflowTransitionEntity transitionEntity) {
+        return !(transitionEntity.getSrcTwinStatusId() == null && twinEntity.getTwinStatusId().equals(transitionEntity.getDstTwinStatusId()));
     }
 
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
@@ -242,6 +249,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             }
         }
     }
+
 
     private Map<TransitionDetectKey, List<TwinEntity>> convertToDetectKeys(Collection<TwinEntity> twinEntities) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -489,7 +497,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (!changesHelper.isChanged("srcStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
 
-        if(null != statusId && !UuidUtils.isNullifyMarker(statusId) && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+        if (null != statusId && !UuidUtils.isNullifyMarker(statusId) && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setSrcTwinStatusId(UuidUtils.nullifyIfNecessary(statusId));
     }
@@ -498,9 +506,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void updateTransitionDstStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged("dstStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
-        if(null == statusId)
+        if (null == statusId)
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "Dst status for transition can't be null");
-        if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
+        if (!twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setDstTwinStatusId(statusId);
     }
