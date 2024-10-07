@@ -17,5 +17,5 @@ public class TwinSearchByAliasRqDTOv1 extends Request {
     public Map<String, String> params;
 
     @Schema(description = "search narrowing")
-    public TwinSearchWithHeadDTOv1 narrow;
+    public TwinSearchExtendedDTOv1 narrow;
 }

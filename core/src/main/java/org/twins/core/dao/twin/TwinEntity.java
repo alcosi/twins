@@ -125,6 +125,13 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     private UserEntity assignerUser;
 
     //needed for specification
+//    @Deprecated
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id", referencedColumnName = "head_twin_id", insertable = false, updatable = false)
+//    @EqualsAndHashCode.Exclude
+//    private Collection<TwinEntity> childrenTwins;
+
+    //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)

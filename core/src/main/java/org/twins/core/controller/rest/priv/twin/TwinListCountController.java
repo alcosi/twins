@@ -21,7 +21,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
 import org.twins.core.dto.rest.twin.*;
 import org.twins.core.mappers.rest.twin.TwinSearchByAliasDTOReverseMapper;
-import org.twins.core.mappers.rest.twin.TwinSearchWithHeadDTOReverseMapper;
+import org.twins.core.mappers.rest.twin.TwinSearchExtendedDTOReverseMapper;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.HashMap;
@@ -34,7 +34,7 @@ import java.util.Map;
 public class TwinListCountController extends ApiController {
 
     private final TwinSearchService twinSearchService;
-    private final TwinSearchWithHeadDTOReverseMapper twinSearchRqDTOMapper;
+    private final TwinSearchExtendedDTOReverseMapper twinSearchRqDTOMapper;
     private final TwinSearchByAliasDTOReverseMapper twinSearchByAliasDTOReverseMapper;
 
     @ParametersApiUserHeaders
