@@ -431,6 +431,7 @@ public class TwinSpecification {
         };
     }
 
+//TODO    Need a load test to compare subquery execution speed with join
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
             Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = root.join(TwinEntity.Fields.fieldsList, JoinType.INNER);
