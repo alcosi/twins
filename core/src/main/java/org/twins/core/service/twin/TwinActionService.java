@@ -8,6 +8,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.*;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 public class TwinActionService {
     final TwinActionPermissionRepository twinActionPermissionRepository;
     final TwinActionValidatorRepository twinActionValidatorRepository;
+    private final EntitySmartService entitySmartService;
     final TwinRepository twinRepository;
     @Lazy
     final PermissionService permissionService;
@@ -168,6 +170,10 @@ public class TwinActionService {
             else
                 twinEntity.setActions(EnumSet.allOf(TwinAction.class).stream().filter(Predicate.not(forbiddenActions::contains)).collect(Collectors.toSet()));
         }
+    }
+
+    public void checkAllowed(UUID twinId, TwinAction action) throws ServiceException {
+        checkAllowed(entitySmartService.findById(twinId, twinRepository, EntitySmartService.FindMode.ifEmptyThrows), action);
     }
 
     public void checkAllowed(TwinEntity twinEntity, TwinAction action) throws ServiceException {
