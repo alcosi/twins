@@ -19,7 +19,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassCreateRsDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowCreateRqDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowCreateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
@@ -40,7 +39,7 @@ public class TwinflowCreateController extends ApiController {
     private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
     private final TwinflowCreateRestDTOReverseMapper twinflowCreateRestDTOReverseMapper;
     private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
-    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
 
     private final TwinflowService twinflowService;
 
@@ -49,7 +48,7 @@ public class TwinflowCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twinflow data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinClassCreateRsDTOv1.class))}),
+                    @Schema(implementation = TwinflowCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/twinflow/v1")
     public ResponseEntity<?> twinflowCreateV1(
@@ -65,7 +64,7 @@ public class TwinflowCreateController extends ApiController {
             twinflowEntity = twinflowService.createTwinflow(twinflowEntity, nameI18n, descriptionsI18n);
             rs
                     .setTwinflow(twinflowBaseV2RestDTOMapper.convert(twinflowEntity, mapperContext))
-                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
