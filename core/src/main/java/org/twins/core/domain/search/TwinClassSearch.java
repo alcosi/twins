@@ -31,6 +31,8 @@ public class TwinClassSearch {
     Ternary twinClassSchemaSpace;
     Ternary permissionSchemaSpace;
     Ternary aliasSpace;
+    Set<UUID> viewPermissionIdList;
+    Set<UUID> viewPermissionIdExcludeList;
 
     public TwinClassSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
         twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
