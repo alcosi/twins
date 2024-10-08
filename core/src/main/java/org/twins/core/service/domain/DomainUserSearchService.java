@@ -36,8 +36,8 @@ public class DomainUserSearchService {
 
     private Specification<DomainUserEntity> createDomainUserSearchSpecification(DomainUserSearch search) {
         return Specification.where(
-                checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false)
-                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true))
+                checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false, false)
+                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true, false))
                         .and(checkFieldLikeIn(UserEntity.Fields.name, search.getNameLikeList(), true))
                         .and(checkFieldNotLikeIn(UserEntity.Fields.name, search.getNameNotLikeList(), true))
                         .and(checkFieldLikeIn(UserEntity.Fields.email, search.getEmailLikeList(), true))
