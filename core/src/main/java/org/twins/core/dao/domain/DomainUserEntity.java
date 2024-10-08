@@ -3,6 +3,7 @@ package org.twins.core.dao.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.LocaleConverter;
 import org.twins.core.dao.user.UserEntity;
@@ -14,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "domain_user")
 public class DomainUserEntity implements EasyLoggable {
     @Id
