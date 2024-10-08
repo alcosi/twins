@@ -153,6 +153,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
+                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdList(), false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdExcludeList(), true))
         );
     }
 
