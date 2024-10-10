@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -15,6 +17,7 @@ import java.util.UUID;
 @Data
 @Table(name = "link")
 @FieldNameConstants
+@Accessors(chain = true)
 public class LinkEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -60,6 +63,10 @@ public class LinkEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private UserEntity createdByUser;
 
 //    @ManyToOne
 //    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false, nullable = false)

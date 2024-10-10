@@ -12,7 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 public enum LinkMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
-    @FieldNameConstants.Include DETAILED(2);
+    @FieldNameConstants.Include DETAILED(2),
+    @FieldNameConstants.Include MANAGED(3);
 
     final int priority;
 
@@ -22,7 +23,8 @@ public enum LinkMode implements MapperMode {
     public enum TwinClass2LinkMode implements MapperModePointer<LinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -32,6 +34,7 @@ public enum LinkMode implements MapperMode {
                 case HIDE -> LinkMode.HIDE;
                 case SHORT -> LinkMode.SHORT;
                 case DETAILED -> LinkMode.DETAILED;
+                case MANAGED -> LinkMode.MANAGED;
             };
         }
     }
@@ -42,7 +45,8 @@ public enum LinkMode implements MapperMode {
     public enum TwinLink2LinkMode implements MapperModePointer<LinkMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -52,6 +56,7 @@ public enum LinkMode implements MapperMode {
                 case HIDE -> LinkMode.HIDE;
                 case SHORT -> LinkMode.SHORT;
                 case DETAILED -> LinkMode.DETAILED;
+                case MANAGED -> LinkMode.MANAGED;
             };
         }
     }
