@@ -815,7 +815,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private FactoryResultUncommited runTransitionFactory(TransitionContext transitionContext) throws ServiceException {
         UUID inbuiltTwinFactoryId = transitionContext.getTransitionEntity().getInbuiltTwinFactoryId();
         FactoryBranchId factoryBranchId = FactoryBranchId.root(inbuiltTwinFactoryId);
-        FactoryContext factoryContext = new FactoryContext(factoryBranchId)
+        FactoryContext factoryContext = new FactoryContext(FactoryLauncher.transition, factoryBranchId)
                 .setInputTwinList(transitionContext.getTargetTwinList().values())
                 .setFields(transitionContext.getFields())
                 .setAttachmentCUD(transitionContext.getAttachmentCUD())

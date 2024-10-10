@@ -37,25 +37,25 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "final_twin_factory_eraser_action_id")
+    @Column(name = "twin_factory_eraser_action")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
-    private Action finalEraserAction;
+    private Action eraserAction;
 
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryEraser[" + id + "]";
             case NORMAL -> "twinFactoryEraser[" + id + ", twinFactoryId:" + twinFactoryId + "]";
-            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", finalEraserAction" + finalEraserAction + "]";
+            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", finalEraserAction" + eraserAction + "]";
         };
     }
 
     @Getter
     public enum Action {
-        NEXT("NEXT"),
+        DO_NOT_ERASE("DO_NOT_ERASE"),
         RESTRICT("RESTRICT"),
-        ERASE("ERASE"),
-        SKIP("SKIP");
+        ERASE_IRREVOCABLE("ERASE_IRREVOCABLE"),
+        ERASE_CANDIDATE("ERASE_CANDIDATE");
 
         private final String id;
 
@@ -64,7 +64,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         }
 
         public static Action valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(RESTRICT);
+            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(DO_NOT_ERASE);
         }
 
     }

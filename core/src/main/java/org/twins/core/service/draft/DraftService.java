@@ -23,6 +23,7 @@ import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.factory.FactoryBranchId;
 import org.twins.core.domain.factory.FactoryContext;
+import org.twins.core.domain.factory.FactoryLauncher;
 import org.twins.core.domain.factory.FactoryResultUncommited;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -182,7 +183,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         UUID eraseFactoryId = eraseEntity.getTwin().getTwinflow().getEraseTwinFactoryId();
         if (eraseFactoryId == null)
             return draftCollector;
-        FactoryContext factoryContext = new FactoryContext(FactoryBranchId.root(eraseFactoryId))
+        FactoryContext factoryContext = new FactoryContext(FactoryLauncher.cascadeDeletion, FactoryBranchId.root(eraseFactoryId))
                 .addInputTwin(eraseEntity.getTwin());
         FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
         //if factory has some configured eraser, we should fish current twin from result, because it can be locked or skipped

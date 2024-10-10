@@ -15,6 +15,7 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 public class FactoryContext {
+    private FactoryLauncher factoryLauncher;
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
     private List<FactoryItem> factoryItemList = new ArrayList<>();
@@ -25,7 +26,8 @@ public class FactoryContext {
     // we had to limit items scope for this factory with items filtered for pipeline
     private Map<FactoryBranchId, List<FactoryItem>> pipelineScopes = new HashMap<>();
 
-    public FactoryContext(FactoryBranchId rootFactoryBranchId) {
+    public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
+        this.factoryLauncher = factoryLauncher;
         this.rootFactoryBranchId = rootFactoryBranchId;
     }
 
@@ -33,21 +35,14 @@ public class FactoryContext {
 
     public FactoryContext addInputTwin(TwinEntity twinEntity) {
         inputTwinList = CollectionUtils.safeAdd(inputTwinList, twinEntity);
-        addFactoryItem(twinEntity);
-        return this;
-    }
-
-    public FactoryContext addInputTwin(Collection<TwinEntity> twinEntityList) {
-        inputTwinList = CollectionUtils.safeAdd(inputTwinList, twinEntityList);
-        for (TwinEntity twinEntity : twinEntityList)
-            addFactoryItem(twinEntity);
+        createFactoryInputItemAndAdd(twinEntity);
         return this;
     }
 
     public FactoryContext setInputTwinList(Collection<TwinEntity> inputTwinList) {
         this.inputTwinList = inputTwinList;
         for (TwinEntity twinEntity : inputTwinList)
-            addFactoryItem(twinEntity);
+            createFactoryInputItemAndAdd(twinEntity);
         return this;
     }
 
@@ -63,7 +58,7 @@ public class FactoryContext {
         return factoryItemList;
     }
 
-    private void addFactoryItem(TwinEntity inputTwin) { // inputTwins can be updated in pipelines, so we have to wrap them to FactoryItem
+    private void createFactoryInputItemAndAdd(TwinEntity inputTwin) {
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate
                 .setDbTwinEntity(inputTwin)
@@ -79,12 +74,17 @@ public class FactoryContext {
                 .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
         // see TwinFactoryService.lookupFieldValue
-        factoryItem.setContextFactoryItemList(List.of(rootItem));
+        factoryItem
+                .setContextFactoryItemList(List.of(rootItem))
+                .setFactoryInputItem(true);
         add(factoryItem);
     }
 
     public void add(FactoryItem factoryItem) {
-        factoryItemList.add(factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId));
+        factoryItem
+                .setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId)
+                .setFactoryInputItem(false);
+        factoryItemList.add(factoryItem);
         if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
             FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
             if (pipelineScopes.containsKey(currentPipeline)) // we will add it to limited scope

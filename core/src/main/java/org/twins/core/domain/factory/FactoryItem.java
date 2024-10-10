@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinSave;
@@ -24,8 +25,9 @@ public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
     private TwinSave output;
     private List<FactoryItem> contextFactoryItemList;
-    private EraseMarker eraseMarker = EraseMarker.DO_NOT_ERASE;
-    private String eraseMarkerReason = "";
+    private TwinFactoryEraserEntity.Action eraseAction = TwinFactoryEraserEntity.Action.DO_NOT_ERASE;
+    private String eraseActionReason = "";
+    private boolean factoryInputItem = false;
 
     public TwinEntity getTwin() {
         if (output == null)
@@ -114,17 +116,19 @@ public class FactoryItem implements EasyLoggable {
         return ret + "]";
     }
 
-    public FactoryItem setEraseMarker(EraseMarker newDeletionMaker) {
-        if (eraseMarker == null || eraseMarker == EraseMarker.DO_NOT_ERASE || eraseMarker == EraseMarker.ERASE)
-            this.eraseMarker = newDeletionMaker;
-        // all other markers can not be overridden
+    public FactoryItem setEraseAction(TwinFactoryEraserEntity.Action newDeletionMaker) {
+        if (eraseAction == null
+                || eraseAction == TwinFactoryEraserEntity.Action.DO_NOT_ERASE
+                || eraseAction == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE)
+            this.eraseAction = newDeletionMaker;
+        // all other actions can not be overridden
         return this;
     }
 
-    public enum EraseMarker {
-        ERASE,
-        DO_NOT_ERASE,
-        CURRENT_ITEM_SKIPPED,
-        GLOBALLY_LOCKED
-    }
+//    public enum EraseMarker {
+//        ERASE,
+//        DO_NOT_ERASE,
+//        CURRENT_ITEM_SKIPPED,
+//        GLOBALLY_LOCKED
+//    }
 }
