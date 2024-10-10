@@ -50,7 +50,7 @@ public class ChangesHelper {
 
     public boolean hasChange(String field) {
         for (String change : changes)
-            if(change.contains(field))
+            if(change.contains("<" + field + ">"))
                 return true;
         return false;
     }
