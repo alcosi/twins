@@ -64,9 +64,8 @@ public class LinkEntity implements EasyLoggable {
     @JoinColumn(name = "dst_twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity dstTwinClass;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @Transient
     @EqualsAndHashCode.Exclude
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
 
 //    @ManyToOne

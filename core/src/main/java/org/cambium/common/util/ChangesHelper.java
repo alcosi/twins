@@ -48,6 +48,13 @@ public class ChangesHelper {
         changes.clear();
     }
 
+    public boolean hasChange(String field) {
+        for (String change : changes)
+            if(change.contains(field))
+                return true;
+        return false;
+    }
+
     public boolean hasChanges() {
         return hasChanges;
     }

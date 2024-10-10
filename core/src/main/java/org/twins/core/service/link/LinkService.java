@@ -48,9 +48,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
 
-    @Autowired
-    private CacheManager cacheManager;
-
     @Override
     public CrudRepository<LinkEntity, UUID> entityRepository() {
         return linkRepository;
@@ -70,7 +67,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     @Override
     public boolean validateEntity(LinkEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (null == entity.getSrcTwinClassId() || null == entity.getDstTwinClassId())
-            throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
+            return logErrorAndReturnFalse(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getSrcTwinClass() == null || !entity.getSrcTwinClass().getId().equals(entity.getSrcTwinClassId()))
@@ -95,11 +92,10 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 .setBackwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_BACKWARD_NAME, backwardNameI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-        if (validateEntity(linkEntity, EntitySmartService.EntityValidateMode.beforeSave)) {
-            linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-            linkEntity.getDstTwinClass().setLinksKit(null);
-            linkEntity.getSrcTwinClass().setLinksKit(null);
-        }
+        validateEntityAndThrow(linkEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        linkEntity.getDstTwinClass().setLinksKit(null);
+        linkEntity.getSrcTwinClass().setLinksKit(null);
         return linkEntity;
     }
 
@@ -107,26 +103,27 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     public LinkEntity updateLink(LinkEntity linkEntity, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
         LinkEntity dbLinkEntity = findEntitySafe(linkEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        //for future kit nullify
+        //for future old classes kit nullify
         linkEntity.setDstTwinClass(dbLinkEntity.getDstTwinClass());
         linkEntity.setSrcTwinClass(dbLinkEntity.getSrcTwinClass());
-
         updateLinkForwardName(dbLinkEntity, forwardNameI18n, changesHelper);
         updateLinkBackwardName(dbLinkEntity, backwardNameI18n, changesHelper);
         updateLinkSrcTwinClassId(dbLinkEntity, linkEntity.getSrcTwinClassId(), changesHelper);
         updateLinkDstTwinClassId(dbLinkEntity, linkEntity.getDstTwinClassId(), changesHelper);
         updateLinkType(dbLinkEntity, linkEntity.getType(), changesHelper);
         updateLinkStrength(dbLinkEntity, linkEntity.getLinkStrengthId(), changesHelper);
-        if (validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave) && changesHelper.hasChanges()) {
+        validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        if (changesHelper.hasChanges()) {
             dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
-            //nullify old classes link kits because both classes can be changed
-            linkEntity.getDstTwinClass().setLinksKit(null);
-            linkEntity.getSrcTwinClass().setLinksKit(null);
+            if(changesHelper.hasChange(LinkEntity.Fields.dstTwinClassId)) {
+                dbLinkEntity.getDstTwinClass().setLinksKit(null);
+                linkEntity.getDstTwinClass().setLinksKit(null);
+            }
+            if(changesHelper.hasChange(LinkEntity.Fields.srcTwinClassId)) {
+                dbLinkEntity.getSrcTwinClass().setLinksKit(null);
+                linkEntity.getSrcTwinClass().setLinksKit(null);
+            }
         }
-
-        //we nullify kits because name translations can be updated
-        dbLinkEntity.getDstTwinClass().setLinksKit(null);
-        dbLinkEntity.getSrcTwinClass().setLinksKit(null);
         return dbLinkEntity;
     }
 
@@ -136,7 +133,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         if (dbLinkEntity.getForwardNameI18NId() != null)
             forwardNameI18n.setId(dbLinkEntity.getForwardNameI18NId());
         i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n);
-        if (changesHelper.isChanged("forwardName", dbLinkEntity.getForwardNameI18NId(), forwardNameI18n.getId()))
+        if (changesHelper.isChanged(LinkEntity.Fields.forwardNameI18NId, dbLinkEntity.getForwardNameI18NId(), forwardNameI18n.getId()))
             dbLinkEntity.setForwardNameI18NId(forwardNameI18n.getId());
     }
 
@@ -146,30 +143,30 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         if (dbLinkEntity.getBackwardNameI18NId() != null)
             backwardNameI18n.setId(dbLinkEntity.getBackwardNameI18NId());
         i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, backwardNameI18n);
-        if (changesHelper.isChanged("backwardName", dbLinkEntity.getBackwardNameI18NId(), backwardNameI18n.getId()))
+        if (changesHelper.isChanged(LinkEntity.Fields.backwardNameI18NId, dbLinkEntity.getBackwardNameI18NId(), backwardNameI18n.getId()))
             dbLinkEntity.setBackwardNameI18NId(backwardNameI18n.getId());
     }
 
     public void updateLinkDstTwinClassId(LinkEntity dbLinkEntity, UUID dstTwinClassId, ChangesHelper changesHelper) throws ServiceException {
-        if (dstTwinClassId == null || !changesHelper.isChanged("dstTwinClassId", dbLinkEntity.getDstTwinClassId(), dstTwinClassId))
+        if (dstTwinClassId == null || !changesHelper.isChanged(LinkEntity.Fields.dstTwinClassId, dbLinkEntity.getDstTwinClassId(), dstTwinClassId))
             return;
         dbLinkEntity.setDstTwinClassId(dstTwinClassId);
     }
 
     public void updateLinkSrcTwinClassId(LinkEntity dbLinkEntity, UUID srcTwinClassId, ChangesHelper changesHelper) throws ServiceException {
-        if (srcTwinClassId == null || !changesHelper.isChanged("srcTwinClassId", dbLinkEntity.getSrcTwinClassId(), srcTwinClassId))
+        if (srcTwinClassId == null || !changesHelper.isChanged(LinkEntity.Fields.srcTwinClassId, dbLinkEntity.getSrcTwinClassId(), srcTwinClassId))
             return;
         dbLinkEntity.setSrcTwinClassId(srcTwinClassId);
     }
 
     private void updateLinkStrength(LinkEntity dbLinkEntity, LinkStrength linkStrengthId, ChangesHelper changesHelper) throws ServiceException {
-        if (linkStrengthId == null || !changesHelper.isChanged("linkStrengthId", dbLinkEntity.getLinkStrengthId(), linkStrengthId))
+        if (linkStrengthId == null || !changesHelper.isChanged(LinkEntity.Fields.linkStrengthId, dbLinkEntity.getLinkStrengthId(), linkStrengthId))
             return;
         dbLinkEntity.setLinkStrengthId(linkStrengthId);
     }
 
     private void updateLinkType(LinkEntity dbLinkEntity, LinkEntity.TwinlinkType type, ChangesHelper changesHelper) {
-        if (type == null || !changesHelper.isChanged("type", dbLinkEntity.getType(), type))
+        if (type == null || !changesHelper.isChanged(LinkEntity.Fields.type, dbLinkEntity.getType(), type))
             return;
         dbLinkEntity.setType(type);
     }
