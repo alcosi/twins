@@ -26,21 +26,20 @@ public class LinkForwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, Li
     @Override
     public void map(LinkEntity src, LinkDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(LinkMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED, MANAGED:
                 dst
+                        .id(src.getId())
+                        .name(i18nService.translateToLocale(src.getForwardNameI18NId()))
                         .dstTwinClassId(src.getDstTwinClassId())
                         .linkStrengthId(src.getLinkStrengthId())
-                        .type(src.getType());
+                        .type(src.getType())
+                        .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext
+                                .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
             case SHORT:
                 dst
                         .id(src.getId())
                         .name(i18nService.translateToLocale(src.getForwardNameI18NId()));
         }
-
-        if (mapperContext.hasModeButNot(LinkMode.HIDE))
-            dst
-                    .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getDstTwinClass(), mapperContext
-                            .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
     }
 
     @Override

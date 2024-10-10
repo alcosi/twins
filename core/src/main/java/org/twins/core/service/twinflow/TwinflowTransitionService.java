@@ -270,6 +270,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
+
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
@@ -305,6 +306,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
         updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
         updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
+
         dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
         evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
         return dbTwinflowTransitionEntity;
@@ -449,7 +451,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (dbTwinflowTransitionEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinflowTransitionEntity.getDescriptionI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if(changesHelper.isChanged("transitionDescription", dbTwinflowTransitionEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
 
@@ -460,7 +463,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (dbTwinflowTransitionEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinflowTransitionEntity.getNameI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
+        if(changesHelper.isChanged("transitionName", dbTwinflowTransitionEntity.getNameI18NId(), nameI18n.getId()))
+            dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
     }
 
     @Transactional

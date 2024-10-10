@@ -23,11 +23,11 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
+import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -42,6 +42,7 @@ import static org.cambium.common.util.CacheUtils.evictCache;
 public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     private final LinkRepository linkRepository;
     private final TwinClassService twinClassService;
+    private final UserService userService;
     @Lazy
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
@@ -68,83 +69,107 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
 
     @Override
     public boolean validateEntity(LinkEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (null == entity.getSrcTwinClassId() || null == entity.getDstTwinClassId())
+            throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getSrcTwinClass() == null || !entity.getSrcTwinClass().getId().equals(entity.getSrcTwinClassId()))
+                    entity.setSrcTwinClass(twinClassService.findEntitySafe(entity.getSrcTwinClassId()));
+                if (entity.getDstTwinClass() == null || !entity.getDstTwinClass().getId().equals(entity.getDstTwinClassId()))
+                    entity.setDstTwinClass(twinClassService.findEntitySafe(entity.getDstTwinClassId()));
+                if (entity.getCreatedByUser() == null)
+                    entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
+            default:
+                if (!entity.getDstTwinClass().getDomainId().equals(entity.getDomainId()) || !entity.getSrcTwinClass().getDomainId().equals(entity.getDomainId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incompatible source/destination class [" + entity.getSrcTwinClass().easyLog(EasyLoggable.Level.DETAILED) + " > " + entity.getDstTwinClass().easyLog(EasyLoggable.Level.DETAILED) + "]");
+        }
         return true;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public LinkEntity createLink(LinkEntity linkEntity, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        //TODO any additional checks for classes?
-        if(null == linkEntity.getSrcTwinClassId() || null == linkEntity.getDstTwinClassId())
-            throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT);
         linkEntity
                 .setDomainId(apiUser.getDomainId())
                 .setForwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n).getId())
                 .setBackwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_BACKWARD_NAME, backwardNameI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-        //TODO in all services(create... update...) dont update objects(classes & user) in link.
-        return entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        if (validateEntity(linkEntity, EntitySmartService.EntityValidateMode.beforeSave)) {
+            linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+            linkEntity.getDstTwinClass().setLinksKit(null);
+            linkEntity.getSrcTwinClass().setLinksKit(null);
+        }
+        return linkEntity;
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public LinkEntity updateLink(LinkEntity linkEntity, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
         LinkEntity dbLinkEntity = findEntitySafe(linkEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
+        //for future kit nullify
+        linkEntity.setDstTwinClass(dbLinkEntity.getDstTwinClass());
+        linkEntity.setSrcTwinClass(dbLinkEntity.getSrcTwinClass());
+
         updateLinkForwardName(dbLinkEntity, forwardNameI18n, changesHelper);
         updateLinkBackwardName(dbLinkEntity, backwardNameI18n, changesHelper);
-        //TODO any additional checks for classes?
         updateLinkSrcTwinClassId(dbLinkEntity, linkEntity.getSrcTwinClassId(), changesHelper);
         updateLinkDstTwinClassId(dbLinkEntity, linkEntity.getDstTwinClassId(), changesHelper);
         updateLinkType(dbLinkEntity, linkEntity.getType(), changesHelper);
         updateLinkStrength(dbLinkEntity, linkEntity.getLinkStrengthId(), changesHelper);
-        return entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
+        if (validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave) && changesHelper.hasChanges()) {
+            dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
+            //nullify old classes link kits because both classes can be changed
+            linkEntity.getDstTwinClass().setLinksKit(null);
+            linkEntity.getSrcTwinClass().setLinksKit(null);
+        }
+
+        //we nullify kits because name translations can be updated
+        dbLinkEntity.getDstTwinClass().setLinksKit(null);
+        dbLinkEntity.getSrcTwinClass().setLinksKit(null);
+        return dbLinkEntity;
     }
 
-    @Transactional
     public void updateLinkForwardName(LinkEntity dbLinkEntity, I18nEntity forwardNameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (forwardNameI18n == null)
             return;
         if (dbLinkEntity.getForwardNameI18NId() != null)
             forwardNameI18n.setId(dbLinkEntity.getForwardNameI18NId());
         i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n);
-        dbLinkEntity.setForwardNameI18NId(forwardNameI18n.getId()); //TODO in all services(TwinClassService) it will not update if another changes absent. Not collected to changesHelper
+        if (changesHelper.isChanged("forwardName", dbLinkEntity.getForwardNameI18NId(), forwardNameI18n.getId()))
+            dbLinkEntity.setForwardNameI18NId(forwardNameI18n.getId());
     }
 
-    @Transactional
     public void updateLinkBackwardName(LinkEntity dbLinkEntity, I18nEntity backwardNameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (backwardNameI18n == null)
             return;
         if (dbLinkEntity.getBackwardNameI18NId() != null)
             backwardNameI18n.setId(dbLinkEntity.getBackwardNameI18NId());
         i18nService.saveTranslations(I18nType.LINK_FORWARD_NAME, backwardNameI18n);
-        dbLinkEntity.setBackwardNameI18NId(backwardNameI18n.getId()); //TODO in all service it will not update if another changes absent.
+        if (changesHelper.isChanged("backwardName", dbLinkEntity.getBackwardNameI18NId(), backwardNameI18n.getId()))
+            dbLinkEntity.setBackwardNameI18NId(backwardNameI18n.getId());
     }
 
-    @Transactional
     public void updateLinkDstTwinClassId(LinkEntity dbLinkEntity, UUID dstTwinClassId, ChangesHelper changesHelper) throws ServiceException {
         if (dstTwinClassId == null || !changesHelper.isChanged("dstTwinClassId", dbLinkEntity.getDstTwinClassId(), dstTwinClassId))
             return;
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbLinkEntity.getDstTwinClassId());
         dbLinkEntity.setDstTwinClassId(dstTwinClassId);
     }
 
-    @Transactional
     public void updateLinkSrcTwinClassId(LinkEntity dbLinkEntity, UUID srcTwinClassId, ChangesHelper changesHelper) throws ServiceException {
         if (srcTwinClassId == null || !changesHelper.isChanged("srcTwinClassId", dbLinkEntity.getSrcTwinClassId(), srcTwinClassId))
             return;
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbLinkEntity.getSrcTwinClassId());
         dbLinkEntity.setSrcTwinClassId(srcTwinClassId);
     }
 
-    private void updateLinkStrength(LinkEntity dbLinkEntity, LinkStrength linkStrengthId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("linkStrengthId", dbLinkEntity.getLinkStrengthId(), linkStrengthId))
+    private void updateLinkStrength(LinkEntity dbLinkEntity, LinkStrength linkStrengthId, ChangesHelper changesHelper) throws ServiceException {
+        if (linkStrengthId == null || !changesHelper.isChanged("linkStrengthId", dbLinkEntity.getLinkStrengthId(), linkStrengthId))
             return;
         dbLinkEntity.setLinkStrengthId(linkStrengthId);
     }
 
     private void updateLinkType(LinkEntity dbLinkEntity, LinkEntity.TwinlinkType type, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("type", dbLinkEntity.getType(), type))
+        if (type == null || !changesHelper.isChanged("type", dbLinkEntity.getType(), type))
             return;
         dbLinkEntity.setType(type);
     }
@@ -178,7 +203,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             loadLinks(twinClass);
     }
 
-    public Kit<LinkEntity, UUID> loadLinks(TwinClassEntity twinClassEntity){
+    public Kit<LinkEntity, UUID> loadLinks(TwinClassEntity twinClassEntity) {
         if (twinClassEntity.getLinksKit() != null)
             return twinClassEntity.getLinksKit();
         Set<UUID> extendedTwinClasses = twinClassEntity.getExtendedClassIdSet();

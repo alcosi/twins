@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassLinkV2")
+@Schema(name =  "LinkV2")
 public class LinkDTOv2 extends LinkDTOv1 {
 
     @Schema(description = "Source twin class id", example = DTOExamples.TWIN_CLASS_ID)

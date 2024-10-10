@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.user.UserDTOv1;
 
 @Data
 @Accessors(fluent = true)
-@Schema(name =  "TwinClassLinkV3")
+@Schema(name =  "LinkV3")
 public class LinkDTOv3 extends LinkDTOv2 {
 
     @Schema(description = "Source twin class")
