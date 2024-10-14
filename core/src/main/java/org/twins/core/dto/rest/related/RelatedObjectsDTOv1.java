@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.domain.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.domain.DomainUserDTOv1;
+import org.twins.core.dto.rest.domain.DomainUserDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -42,4 +45,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related space role map", example = "{space role map}")
     public Map<UUID, SpaceRoleDTOv1> spaceRoleMap;
+
+    @Schema(description = "related domain user map", example = "{domain user map}")
+    public Map<UUID, DomainUserDTOv2> domainUserMap;
 }

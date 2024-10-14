@@ -1,10 +1,12 @@
 package org.twins.core.dao.specifications.domain;
 
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.*;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -64,6 +66,34 @@ public class DomainUserSpecification {
                 predicates.add(not ? predicate.not() : predicate);
             }
             return getPredicate(cb, predicates, false);
+        };
+    }
+
+    public static Specification<DomainUserEntity> checkBusinessAccountIn(Set<UUID> businessAccountIds, boolean not) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(businessAccountIds))
+                return cb.conjunction();
+
+            query.distinct(true);
+            Join<DomainUserEntity, BusinessAccountUserEntity> businessJoin = root.join(DomainUserEntity.Fields.businessAccountUsersByUserId, JoinType.INNER);
+            Join<DomainUserEntity, DomainBusinessAccountEntity> domainJoin = root.join(DomainUserEntity.Fields.domainBusinessAccountsByDomainId, JoinType.INNER);
+            Predicate businessAccountPredicate = businessJoin.get(BusinessAccountUserEntity.Fields.businessAccountId).in(businessAccountIds);
+            Predicate domainBusinessAccountPredicate = domainJoin.get(BusinessAccountUserEntity.Fields.businessAccountId).in(businessAccountIds);
+            if (not) {
+                businessAccountPredicate = cb.not(businessAccountPredicate);
+                domainBusinessAccountPredicate = cb.not(domainBusinessAccountPredicate);
+            }
+            businessJoin.on(businessAccountPredicate);
+            domainJoin.on(domainBusinessAccountPredicate);
+            return cb.conjunction();
+        };
+    }
+
+    public static Specification<DomainUserEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> {
+            if (domainId == null)
+                return cb.conjunction();
+            return cb.equal(root.get(DomainUserEntity.Fields.domain).get(DomainEntity.Fields.id), domainId);
         };
     }
 }

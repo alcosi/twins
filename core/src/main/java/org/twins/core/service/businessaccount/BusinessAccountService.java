@@ -3,10 +3,16 @@ package org.twins.core.service.businessaccount;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.*;
+import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.twin.TwinAliasEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -17,9 +23,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -103,5 +107,24 @@ public class BusinessAccountService {
                 break;
         }
         return businessAccountIdList != null ? Set.copyOf(businessAccountIdList) : null;
+    }
+
+    public void loadBusinessAccounts(DomainUserEntity domainUser) {
+        loadBusinessAccounts(Collections.singletonList(domainUser));
+    }
+
+    public void loadBusinessAccounts(Collection<DomainUserEntity> domainUserList) {
+        if (CollectionUtils.isEmpty(domainUserList))
+            return;
+        Map<UUID, DomainUserEntity> needLoad = new HashMap<>();
+        for (DomainUserEntity domainUser : domainUserList)
+            if (domainUser.getBusinessAccountUserKit() == null)
+                needLoad.put(domainUser.getUserId(), domainUser);
+        if (needLoad.isEmpty())
+            return;
+        KitGrouped<BusinessAccountUserEntity, UUID, UUID> businessAccountUserKit = new KitGrouped<>(
+                businessAccountUserRepository.findByUserIdIn(needLoad.keySet()), BusinessAccountUserEntity::getId, BusinessAccountUserEntity::getUserId);
+        for (Map.Entry<UUID, DomainUserEntity> entry : needLoad.entrySet())
+            entry.getValue().setBusinessAccountUserKit(new Kit<>(businessAccountUserKit.getGrouped(entry.getKey()), BusinessAccountUserEntity::getId));
     }
 }

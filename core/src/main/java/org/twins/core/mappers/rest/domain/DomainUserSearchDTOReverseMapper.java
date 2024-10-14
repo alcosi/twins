@@ -23,7 +23,9 @@ public class DomainUserSearchDTOReverseMapper extends RestSimpleDTOMapper<Domain
                 .setEmailLikeList(convertToSetSafe(src.getEmailLikeList()))
                 .setEmailNotLikeList(convertToSetSafe(src.getEmailNotLikeList()))
                 .setStatusIdList(convertToSetSafe(src.getStatusIdList()))
-                .setStatusIdExcludeList(convertToSetSafe(src.getStatusIdExcludeList()));
+                .setStatusIdExcludeList(convertToSetSafe(src.getStatusIdExcludeList()))
+                .setBusinessAccountIdList(convertToSetSafe(src.getBusinessAccountIdList()))
+                .setBusinessAccountIdExcludeList(convertToSetSafe(src.getBusinessAccountIdExcludeList()));
 
     }
 }

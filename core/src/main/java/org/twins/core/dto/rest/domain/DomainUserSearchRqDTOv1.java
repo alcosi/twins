@@ -6,7 +6,6 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.user.UserStatus;
 import org.twins.core.dto.rest.Request;
-import org.twins.core.dto.rest.Response;
 
 import java.util.Set;
 import java.util.UUID;
@@ -39,4 +38,10 @@ public class DomainUserSearchRqDTOv1 extends Request {
 
     @Schema(description = "status id exclude list")
     public Set<UserStatus> statusIdExcludeList;
+
+    @Schema(description = "business account id list")
+    public Set<UUID> businessAccountIdList;
+
+    @Schema(description = "business account id exclude list")
+    public Set<UUID> businessAccountIdExcludeList;
 }

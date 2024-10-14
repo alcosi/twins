@@ -29,7 +29,7 @@ public class DomainUserSearchService {
     public PaginationResult<DomainUserEntity> findDomainUser(DomainUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainUserEntity> spec = createDomainUserSearchSpecification(search)
-                .and((root, query, cb) -> cb.equal(root.get(DomainUserEntity.Fields.domainId), domainId));
+                .and(checkDomainId(domainId));
         Page<DomainUserEntity> ret = domainUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
@@ -44,6 +44,8 @@ public class DomainUserSearchService {
                         .and(checkFieldNotLikeIn(UserEntity.Fields.email, search.getEmailNotLikeList(), true))
                         .and(checkUserStatusIn(search.getStatusIdList(), false))
                         .and(checkUserStatusIn(search.getStatusIdExcludeList(), true))
+                        .and(checkBusinessAccountIn(search.getBusinessAccountIdList(), false))
+                        .and(checkBusinessAccountIn(search.getBusinessAccountIdExcludeList(), true))
         );
     }
 

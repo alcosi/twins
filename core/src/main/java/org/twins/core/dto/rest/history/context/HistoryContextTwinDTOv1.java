@@ -15,7 +15,7 @@ public class HistoryContextTwinDTOv1 implements HistoryContextDTO {
     public static final String KEY = "twinV1";
     public String contextType = KEY;
 
-    @Schema(description = "From twin id", example = DTOExamples.USER_ID)
+    @Schema(description = "From twin id", example = DTOExamples.TWIN_ID)
     public UUID fromTwinId;
 
     @Schema(description = "From twin")

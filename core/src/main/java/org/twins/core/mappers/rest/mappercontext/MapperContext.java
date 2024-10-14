@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -38,6 +39,9 @@ public class MapperContext {
     private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<SpaceRoleEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<DomainUserEntity>> relatedDomainUserMap = new LinkedHashMap<>();
+
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -141,6 +145,8 @@ public class MapperContext {
             smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
         else if (relatedObject instanceof SpaceRoleEntity spaceRole)
             smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
+        else if (relatedObject instanceof DomainUserEntity domainUser)
+            smartPut(relatedDomainUserMap, domainUser, domainUser.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;

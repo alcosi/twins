@@ -16,13 +16,13 @@ public class HistoryContextLinkUpdateDTOv1 implements HistoryContextDTO {
     public static final String KEY = "linkUpdateV1";
     public String contextType = KEY;
 
-    @Schema(description = "Link id", example = DTOExamples.USER_ID)
+    @Schema(description = "Link id", example = DTOExamples.LINK_ID)
     public UUID linkId;
 
     @Schema(description = "Link")
     public LinkDTOv1 link;
 
-    @Schema(description = "From twin id", example = DTOExamples.USER_ID)
+    @Schema(description = "From twin id", example = DTOExamples.TWIN_ID)
     public UUID fromDstTwinId;
 
     @Schema(description = "From twin")
