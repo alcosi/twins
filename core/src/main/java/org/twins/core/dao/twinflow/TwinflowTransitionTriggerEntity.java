@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.cambium.featurer.annotations.FeaturerList;
@@ -18,6 +19,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_transition_trigger")
+@FieldNameConstants
 public class TwinflowTransitionTriggerEntity implements EasyLoggable, PublicCloneable<TwinflowTransitionTriggerEntity> {
     @Id
     @GeneratedValue(generator = "uuid")

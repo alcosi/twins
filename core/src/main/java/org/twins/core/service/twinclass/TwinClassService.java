@@ -115,7 +115,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Override
     public boolean validateEntity(TwinClassEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
+        return true;  //TODO ??
     }
 
     public PaginationResult<TwinClassEntity> findTwinClasses(TwinClassSearch twinClassSearch, SimplePagination pagination) throws ServiceException {
@@ -362,7 +362,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (dbTwinClassEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinClassEntity.getDescriptionI18NId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n);
-        dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if (changesHelper.isChanged(TwinClassEntity.Fields.descriptionI18NId, dbTwinClassEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbTwinClassEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
 
@@ -372,33 +373,34 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         if (dbTwinClassEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinClassEntity.getNameI18NId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
-        dbTwinClassEntity.setNameI18NId(nameI18n.getId());
+        if (changesHelper.isChanged(TwinClassEntity.Fields.nameI18NId, dbTwinClassEntity.getNameI18NId(), nameI18n.getId()))
+            dbTwinClassEntity.setNameI18NId(nameI18n.getId());
     }
 
     @Transactional
     public void updateTwinClassTagDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation tagsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
-        if (tagsRelinkOperation == null || !changesHelper.isChanged("tagsDataListId", dbTwinClassEntity.getTagDataListId(), tagsRelinkOperation.getNewId()))
+        if (tagsRelinkOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.tagDataListId, dbTwinClassEntity.getTagDataListId(), tagsRelinkOperation.getNewId()))
             return;
         twinTagService.replaceTagsForTwinsOfClass(dbTwinClassEntity, tagsRelinkOperation);
     }
 
     @Transactional
     public void updateTwinClassMarkerDataList(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation updateOperation, ChangesHelper changesHelper) throws ServiceException {
-        if (updateOperation == null || !changesHelper.isChanged("markerDataListId", dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
+        if (updateOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.markerDataListId, dbTwinClassEntity.getMarkerDataListId(), updateOperation.getNewId()))
             return;
         twinMarkerService.replaceMarkersForTwinsOfClass(dbTwinClassEntity, updateOperation);
     }
 
     @Transactional
     public void updateTwinClassLogo(TwinClassEntity dbTwinClassEntity, String newLogo, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("logo", dbTwinClassEntity.getLogo(), newLogo))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.logo, dbTwinClassEntity.getLogo(), newLogo))
             return;
         dbTwinClassEntity.setLogo(newLogo);
     }
 
     @Transactional
     public void updateTwinClassKey(TwinClassEntity dbTwinClassEntity, String newKey, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("key", dbTwinClassEntity.getKey(), newKey))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.key, dbTwinClassEntity.getKey(), newKey))
             return;
         if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), newKey))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class key is already exist");
@@ -411,7 +413,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassViewPermission(TwinClassEntity dbTwinClassEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("viewPermissionId", dbTwinClassEntity.getViewPermissionId(), newViewPermissionId))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.viewPermissionId, dbTwinClassEntity.getViewPermissionId(), newViewPermissionId))
             return;
         dbTwinClassEntity
                 .setViewPermissionId(UuidUtils.nullifyIfNecessary(newViewPermissionId));
@@ -419,7 +421,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassPermissionSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassPermissionSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("isPermissionSchemaSpace", dbTwinClassEntity.isPermissionSchemaSpace(), newTwinClassPermissionSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.permissionSchemaSpace, dbTwinClassEntity.isPermissionSchemaSpace(), newTwinClassPermissionSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -428,7 +430,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassAliasSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassAliasSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("isAliasSpace", dbTwinClassEntity.isAliasSpace(), newTwinClassAliasSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.aliasSpace, dbTwinClassEntity.isAliasSpace(), newTwinClassAliasSpaceFlag))
             return;
         //we have db trigger which will update twin.alias_space_id column for twins of given class
         dbTwinClassEntity
@@ -437,7 +439,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassTwinflowSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassTwinflowSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("isTwinflowSchemaSpace", dbTwinClassEntity.isTwinflowSchemaSpace(), newTwinClassTwinflowSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinflowSchemaSpace, dbTwinClassEntity.isTwinflowSchemaSpace(), newTwinClassTwinflowSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twinflow_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -446,7 +448,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassTwinClassSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassSchemaSpaceFlag, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("isTwinClassSchemaSpace", dbTwinClassEntity.isTwinClassSchemaSpace(), newTwinClassSchemaSpaceFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.twinClassSchemaSpace, dbTwinClassEntity.isTwinClassSchemaSpace(), newTwinClassSchemaSpaceFlag))
             return;
         //we have db trigger which will update twin.twin_class_schema_space_id column for twins of given class
         dbTwinClassEntity
@@ -455,7 +457,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassAbstractFlag(TwinClassEntity dbTwinClassEntity, Boolean newAbstractFlag, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("isAbstract", dbTwinClassEntity.isAbstractt(), newAbstractFlag))
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.abstractt, dbTwinClassEntity.isAbstractt(), newAbstractFlag))
             return;
         if (newAbstractFlag && twinRepository.existsByTwinClassId(dbTwinClassEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "class can not be marked abstract, because some twins are already exist");
@@ -465,7 +467,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassExtendsTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation extendsRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
-        if (extendsRelinkOperation == null || !changesHelper.isChanged("extendsTwinClassId", dbTwinClassEntity.getExtendsTwinClassId(), extendsRelinkOperation.getNewId()))
+        if (extendsRelinkOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.extendsTwinClassId, dbTwinClassEntity.getExtendsTwinClassId(), extendsRelinkOperation.getNewId()))
             return;
         if (UuidUtils.isNullifyMarker(extendsRelinkOperation.getNewId()))
             extendsRelinkOperation.setNewId(authService.getApiUser().getDomain().getAncestorTwinClassId());
@@ -554,14 +556,14 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassHeadHunterFeaturer(TwinClassEntity dbTwinClassEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> headHunterParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged("headHunterFeaturerId", dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
+        if (changesHelper.isChanged(TwinClassEntity.Fields.headHunterFeaturerId, dbTwinClassEntity.getHeadHunterFeaturerId(), newHeadhunterFeaturerId)) {
             FeaturerEntity newHeadHunterFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, headHunterParams, HeadHunter.class);
             dbTwinClassEntity
                     .setHeadHunterFeaturerId(newHeadHunterFeaturer.getId())
                     .setHeadHunterFeaturer(newHeadHunterFeaturer);
         }
         if (!MapUtils.areEqual(dbTwinClassEntity.getHeadHunterParams(), headHunterParams)) {
-            changesHelper.add("headHunterParams", dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
+            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbTwinClassEntity.getHeadHunterParams(), headHunterParams);
             dbTwinClassEntity
                     .setHeadHunterParams(headHunterParams);
         }
@@ -569,7 +571,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Transactional
     public void updateTwinClassHeadTwinClass(TwinClassEntity dbTwinClassEntity, EntityRelinkOperation headRelinkOperation, ChangesHelper changesHelper) throws ServiceException {
-        if (headRelinkOperation == null || !changesHelper.isChanged("headTwinClassId", dbTwinClassEntity.getHeadTwinClassId(), headRelinkOperation.getNewId()))
+        if (headRelinkOperation == null || !changesHelper.isChanged(TwinClassEntity.Fields.headTwinClassId, dbTwinClassEntity.getHeadTwinClassId(), headRelinkOperation.getNewId()))
             return;
         TwinClassEntity newHeadTwinClassEntity = UuidUtils.isNullifyMarker(headRelinkOperation.getNewId()) ? null : findEntitySafe(headRelinkOperation.getNewId());
         if (newHeadTwinClassEntity != null && newHeadTwinClassEntity.getHeadHierarchyClassIdSet().contains(dbTwinClassEntity.getId()))

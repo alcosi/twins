@@ -92,9 +92,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getTwinClass() == null)
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
                     entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
-                if (entity.getInitialTwinStatus() == null)
+                if (entity.getInitialTwinStatus() == null || !entity.getInitialTwinStatus().getId().equals(entity.getInitialTwinStatusId()))
                     entity.setInitialTwinStatus(twinStatusService.findEntitySafe(entity.getInitialTwinStatusId()));
                 if (entity.getTwinClassId() != entity.getTwinClass().getId())
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect dstTwin object");
@@ -211,7 +211,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         entitySmartService.deleteAllAndLog(schemasToDelete, twinflowRepository);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinflowEntity createTwinflow(TwinClassEntity twinClassEntity, TwinStatusEntity twinStatusEntity) throws ServiceException {
         if(!twinClassService.isStatusAllowedForTwinClass(twinClassEntity, twinStatusEntity.getId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, twinStatusEntity.logShort() + " is not allowed for " + twinClassEntity.logShort());
@@ -223,10 +223,11 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
+        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinflowEntity createTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         if(!twinClassService.isStatusAllowedForTwinClass(twinflowEntity.getTwinClassId(), twinflowEntity.getInitialTwinStatusId()))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + twinflowEntity.getInitialTwinStatusId() + "] is not allowed for twinClass[" + twinflowEntity.getTwinClassId() + "]");
@@ -237,6 +238,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
@@ -273,7 +275,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         );
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinflowEntity updateTwinflow(TwinflowEntity twinflowEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinflowEntity dbTwinflowEntity = findEntitySafe(twinflowEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
@@ -285,30 +287,29 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         return dbTwinflowEntity;
     }
 
-    @Transactional
     public void updateTwinflowDescription(TwinflowEntity dbTwinflowEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
         if (descriptionI18n == null)
             return;
         if (dbTwinflowEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinflowEntity.getDescriptionI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if (changesHelper.isChanged(TwinflowEntity.Fields.descriptionI18NId, dbTwinflowEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbTwinflowEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
 
-    @Transactional
     public void updateTwinflowName(TwinflowEntity dbTwinflowEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
         if (dbTwinflowEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinflowEntity.getNameI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        dbTwinflowEntity.setNameI18NId(nameI18n.getId());
+        if (changesHelper.isChanged(TwinflowEntity.Fields.nameI18NId, dbTwinflowEntity.getNameI18NId(), nameI18n.getId()))
+            dbTwinflowEntity.setNameI18NId(nameI18n.getId());
     }
 
-    @Transactional
     public void updateTwinflowInitStatus(TwinflowEntity dbTwinflowEntity, UUID initStatusId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("initialStatusId", dbTwinflowEntity.getInitialTwinStatusId(), initStatusId))
+        if (!changesHelper.isChanged(TwinflowEntity.Fields.initialTwinStatusId, dbTwinflowEntity.getInitialTwinStatusId(), initStatusId))
             return;
         if(!twinClassService.isStatusAllowedForTwinClass(dbTwinflowEntity.getTwinClass(), initStatusId))
             throw new ServiceException(ErrorCodeTwins.TWINFLOW_INIT_STATUS_INCORRECT, "status[" + initStatusId + "] is not allowed for twinClass[" + dbTwinflowEntity.getTwinClassId() + "]");

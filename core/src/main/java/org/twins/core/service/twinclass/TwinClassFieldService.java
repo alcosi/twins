@@ -83,9 +83,16 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     }
 
 
-
     @Override
     public boolean validateEntity(TwinClassFieldEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
+                    entity.setTwinClass(twinClassService.findEntitySafe(entity.getTwinClassId()));
+                if (entity.getFieldTyperFeaturer() == null || !(entity.getFieldTyperFeaturer().getId() == entity.getFieldTyperFeaturerId()))
+                    entity.setFieldTyperFeaturer(featurerService.checkValid(entity.getFieldTyperFeaturerId(), entity.getFieldTyperParams(), FieldTyper.class));
+            default:
+        }
         return true;
     }
 
@@ -186,7 +193,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         put("regexp", ".*");
     }};
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinClassFieldEntity createField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassFieldEntity.getKey()))
@@ -205,7 +212,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
         FeaturerEntity fieldTyper;
         HashMap<String, String> params;
-        if(null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
+        if (null != twinClassFieldEntity.getFieldTyperFeaturerId()) {
             params = twinClassFieldEntity.getFieldTyperParams();
             fieldTyper = featurerService.checkValid(twinClassFieldEntity.getFieldTyperFeaturerId(), params, FieldTyper.class);
         } else {
@@ -221,6 +228,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setFieldTyperParams(params);
 
 
+        validateEntityAndThrow(twinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassFieldEntity = entitySmartService.save(twinClassFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassFieldEntity.getTwinClassId());
         return twinClassFieldEntity;
@@ -240,7 +248,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 && MapUtils.areEqual(fromTwinClassField.getFieldTyperParams(), toTwinClassField.getFieldTyperParams());
     }
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public TwinClassFieldEntity updateField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         TwinClassFieldEntity dbTwinClassFieldEntity = findEntitySafe(twinClassFieldEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
@@ -251,31 +259,29 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
         updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.isRequired(), changesHelper);
+        validateEntityAndThrow(twinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
         entitySmartService.saveAndLogChanges(dbTwinClassFieldEntity, twinClassFieldRepository, changesHelper);
-        if(changesHelper.hasChanges()) {
+        if (changesHelper.hasChanges()) {
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinClassFieldEntity.getTwinClassId());
             evictCache(cacheManager, TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, null);
         }
         return twinClassFieldEntity;
     }
 
-    @Transactional
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("twinClassId", dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
+        if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.twinClassId, dbTwinClassFieldEntity.getTwinClassId(), newTwinClassId))
             return;
         if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity) &&
                 !twinClassService.isInstanceOf(dbTwinClassFieldEntity.getTwinClass(), newTwinClassId))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "twin-class of twin-class-field can not be updated, because some twins with fields of given class are already exist, " +
                     "and you can only change the class to the parent class from which the current class inherits.");
         dbTwinClassFieldEntity
-                .setTwinClassId(newTwinClassId)
-                .setTwinClass(twinClassService.findEntitySafe(newTwinClassId));
+                .setTwinClassId(newTwinClassId);
     }
 
 
-    @Transactional
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
-        if (changesHelper.isChanged("fieldTyperFeaturerId", dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldTyperFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
             if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
             FeaturerEntity newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
@@ -284,48 +290,45 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     .setFieldTyperFeaturer(newFieldTyperFeaturer);
         }
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams))
-            changesHelper.add("fieldTyperParams", dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
-            dbTwinClassFieldEntity
-                    .setFieldTyperParams(newFeaturerParams);
+            changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
+        dbTwinClassFieldEntity
+                .setFieldTyperParams(newFeaturerParams);
     }
 
-    @Transactional
     public void updateTwinClassFieldName(TwinClassFieldEntity dbTwinClassFieldEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
         if (dbTwinClassFieldEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinClassFieldEntity.getNameI18NId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
-        dbTwinClassFieldEntity.setNameI18NId(nameI18n.getId());
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.nameI18NId, dbTwinClassFieldEntity.getNameI18NId(), nameI18n.getId()))
+            dbTwinClassFieldEntity.setNameI18NId(nameI18n.getId());
     }
 
-    @Transactional
     public void updateTwinClassFieldDescription(TwinClassFieldEntity dbTwinClassFieldEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
         if (descriptionI18n == null)
             return;
         if (dbTwinClassFieldEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinClassFieldEntity.getDescriptionI18NId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, descriptionI18n);
-        dbTwinClassFieldEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.descriptionI18NId, dbTwinClassFieldEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbTwinClassFieldEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
-    @Transactional
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("viewPermissionId", dbTwinClassFieldEntity.getViewPermissionId(), newViewPermissionId))
+        if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.viewPermissionId, dbTwinClassFieldEntity.getViewPermissionId(), newViewPermissionId))
             return;
         dbTwinClassFieldEntity.setViewPermissionId(UuidUtils.nullifyIfNecessary(newViewPermissionId));
     }
 
-    @Transactional
     public void updateTwinClassFieldEditPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newEditPermissionId, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged("editPermissionId", dbTwinClassFieldEntity.getEditPermissionId(), newEditPermissionId))
+        if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.editPermissionId, dbTwinClassFieldEntity.getEditPermissionId(), newEditPermissionId))
             return;
         dbTwinClassFieldEntity.setEditPermissionId(UuidUtils.nullifyIfNecessary(newEditPermissionId));
     }
 
-    @Transactional
     public void updateTwinClassFieldRequiredFlag(TwinClassFieldEntity dbTwinClassFieldEntity, Boolean newRequiredFlag, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("isRequired", dbTwinClassFieldEntity.isRequired(), newRequiredFlag))
+        if (!changesHelper.isChanged(TwinClassFieldEntity.Fields.required, dbTwinClassFieldEntity.isRequired(), newRequiredFlag))
             return;
         dbTwinClassFieldEntity.setRequired(newRequiredFlag);
     }
