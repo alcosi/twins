@@ -105,7 +105,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null)
+                if ((entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null))
                     entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
                 if (entity.getDstTwinStatus() == null)
                     entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));

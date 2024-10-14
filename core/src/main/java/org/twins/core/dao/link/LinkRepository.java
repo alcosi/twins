@@ -12,4 +12,5 @@ import java.util.UUID;
 public interface LinkRepository extends CrudRepository<LinkEntity, UUID>, JpaSpecificationExecutor<LinkEntity> {
     List<LinkEntity> findBySrcTwinClassIdInOrDstTwinClassIdIn(Set<UUID> srcTwinClassId, Set<UUID> dstTwinClassId);
     List<LinkEntity> findBySrcTwinClassIdInAndDstTwinClassIdIn(Set<UUID> srcTwinClassId, Set<UUID> dstTwinClassId);
+    LinkEntity findBySrcTwinClassIdAndDstTwinClassId(UUID srcTwinClassId, UUID dstTwinClassId);
 }

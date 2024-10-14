@@ -16,5 +16,8 @@ public class LinkCreateRestDTOReverseMapper extends RestSimpleDTOMapper<LinkCrea
     @Override
     public void map(LinkCreateDTOv1 src, LinkEntity dst, MapperContext mapperContext) throws Exception {
         linkSaveRestDTOReverseMapper.map(src, dst, mapperContext);
+        dst
+                .setSrcTwinClassId(src.getSrcTwinClassId())
+                .setDstTwinClassId(src.getDstTwinClassId());
     }
 }

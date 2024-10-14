@@ -18,6 +18,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.domain.LinkUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.link.*;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
@@ -57,8 +58,8 @@ public class LinkUpdateController extends ApiController {
         try {
             I18nEntity forwardNameI18n = i18NRestDTOReverseMapper.convert(request.getForwardNameI18n());
             I18nEntity backwardNameI18n = i18NRestDTOReverseMapper.convert(request.getBackwardNameI18n());
-            LinkEntity linkEntity = linkUpdateRestDTOReverseMapper.convert(request).setId(linkId);
-            linkEntity = linkService.updateLink(linkEntity, forwardNameI18n, backwardNameI18n);
+            LinkUpdate linkUpdate = linkUpdateRestDTOReverseMapper.convert(request).setId(linkId);
+            LinkEntity linkEntity = linkService.updateLink(linkUpdate, forwardNameI18n, backwardNameI18n);
             rs
                     .setLink(linkForwardRestDTOV3Mapper.convert(linkEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

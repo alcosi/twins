@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.user.UserEntity;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -61,5 +62,8 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
             @Param("businessAccountId") TypedParameterValue<UUID> domainBusinessAccountId,
             @Param("domainId") TypedParameterValue<UUID> domainId,
             @Param("twinClassId") TypedParameterValue<UUID> twinClassId);
+
+
+    Collection<TwinEntity> findAllByIdIn(Collection<UUID> ids);
 
 }
