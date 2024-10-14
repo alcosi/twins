@@ -63,7 +63,4 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
             @Param("domainId") TypedParameterValue<UUID> domainId,
             @Param("twinClassId") TypedParameterValue<UUID> twinClassId);
 
-
-    Collection<TwinEntity> findAllByIdIn(Collection<UUID> ids);
-
 }

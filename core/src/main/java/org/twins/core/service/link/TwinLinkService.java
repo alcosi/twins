@@ -154,11 +154,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public void saveAll(Collection<TwinLinkEntity> twinLinks) throws ServiceException {
-        processAlreadyExisted((List<TwinLinkEntity>) twinLinks);
-        entitySmartService.saveAllAndLog(twinLinks, twinLinkRepository);
-    }
-
     public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
         prepareTwinLinks(srcTwinEntity, linksEntityList);
         processAlreadyExisted(linksEntityList);
@@ -350,12 +345,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public Collection<TwinLinkEntity> findTwinLinks(@NonNull UUID linkEntityId, @NonNull Set<UUID> twinEntityIds, @NonNull LinkService.LinkDirection linkDirection) throws ServiceException {
-        return switch (linkDirection) {
-            case forward -> twinLinkRepository.findBySrcTwinIdInAndLinkId(twinEntityIds, linkEntityId, TwinLinkEntity.class);
-            case backward -> twinLinkRepository.findByDstTwinIdInAndLinkId(twinEntityIds, linkEntityId, TwinLinkEntity.class);
-            default -> null;
-        };
+    public Set<UUID> findSrcTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findSrcTwinIdsByLinkId(linkId);
+    }
+
+    public Set<UUID> findDstTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
     }
 
     @Data
