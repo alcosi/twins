@@ -114,26 +114,29 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
 
     @Override
     public boolean validateEntity(TwinClassEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomain().getId()))
-            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_READ_DENIED.getMessage());
-        if (StringUtils.isBlank(entity.getKey()))
-            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT.getMessage());
-        if (
-                (entity.getHeadTwinClassId() != null && entity.getHeadTwinClassId().equals(entity.getId())) ||
-                (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
-        )
-            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
-        if (entity.getMarkerDataListId() != null
-                && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getMarkerDataListId(), apiUser.getDomainId(), entity.getMarkerDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + entity.getMarkerDataListId() + "]");
-        if (entity.getTagDataListId() != null
-                && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getTagDataListId(), apiUser.getDomainId(), entity.getTagDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + entity.getTagDataListId() + "]");
-        if (entity.getViewPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
+        switch (entityValidateMode) {
+            case beforeSave:
+                ApiUser apiUser = authService.getApiUser();
+                if (entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomain().getId()))
+                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_READ_DENIED.getMessage());
 
+                if (
+                        (entity.getHeadTwinClassId() != null && entity.getHeadTwinClassId().equals(entity.getId())) ||
+                                (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
+                )
+                    return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
+                if (entity.getMarkerDataListId() != null
+                        && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getMarkerDataListId(), apiUser.getDomainId(), entity.getMarkerDataListId()))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + entity.getMarkerDataListId() + "]");
+                if (entity.getTagDataListId() != null
+                        && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getTagDataListId(), apiUser.getDomainId(), entity.getTagDataListId()))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + entity.getTagDataListId() + "]");
+                if (entity.getViewPermissionId() != null
+                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
+                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
+                break;
+            default:
+        }
         return true;
     }
 
@@ -164,8 +167,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                         .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
-                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(),  false))
-                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(),  true))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
@@ -251,6 +254,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
+        if (StringUtils.isBlank(twinClassEntity.getKey()))
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
         twinClassEntity.setKey(twinClassEntity.getKey().trim().toUpperCase().replaceAll("\\s", "_"));
         if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
@@ -361,7 +366,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
         validateEntityAndThrow(dbTwinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        if(changesHelper.hasChanges()) {
+        if (changesHelper.hasChanges()) {
             entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
         }
