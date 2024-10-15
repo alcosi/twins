@@ -19,7 +19,7 @@ import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {DomainUserMode.DomainUser2DomainUserMode.class, BusinessAccountUserCollectionMode.class})
+@MapperModeBinding(modes = {DomainUserMode.class, BusinessAccountUserCollectionMode.class})
 public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEntity, DomainUserDTOv2> {
 
     @MapperModePointerBinding(modes = UserMode.DomainUser2UserMode.class)
@@ -33,7 +33,7 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
     public void map(DomainUserEntity src, DomainUserDTOv2 dst, MapperContext mapperContext) throws Exception {
         if (showBusinessAccountUserCollection(mapperContext))
             businessAccountService.loadBusinessAccounts(src);
-        switch (mapperContext.getModeOrUse(DomainUserMode.DomainUser2DomainUserMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(DomainUserMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))))
@@ -41,15 +41,17 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
                         .setUserId(src.getUserId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCurrentLocale(src.getI18nLocaleId() != null ? src.getI18nLocaleId() : Locale.ROOT);
-                if (src.getBusinessAccountUserKit() != null) {
-                    dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
-                    if (showBusinessAccountUser(mapperContext))
-                        dst.setBusinessAccountUsers(businessAccountUserDTOMapperV2.convertCollection(src.getBusinessAccountUserKit().getCollection(), mapperContext));
-                }
                 break;
             case SHORT:
                 dst.setId(src.getId());
                 break;
+        }
+        if (showBusinessAccountUserCollection(mapperContext)) {
+            dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
+            if (showBusinessAccountUser(mapperContext)) {
+                dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
+                dst.setBusinessAccountUsers(businessAccountUserDTOMapperV2.convertCollection(src.getBusinessAccountUserKit().getCollection(), mapperContext));
+            }
         }
     }
 

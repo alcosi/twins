@@ -11,6 +11,7 @@ import org.twins.core.dto.rest.domain.DomainUserDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -23,7 +24,7 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
     @MapperModePointerBinding(modes = UserMode.BusinessAccountUser2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
-    @MapperModePointerBinding(modes = BusinessAccountMode.BusinessAccount2BusinessAccountMode.class)
+    @MapperModePointerBinding(modes = BusinessAccountMode.class)
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
 
     @Override
@@ -38,11 +39,14 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
                 if (src.getUser() != null)
                     dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
                 if (src.getBusinessAccount() != null)
-                    dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccount2BusinessAccountMode.SHORT))));
+                    dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext));
                 break;
             case SHORT:
                 dst.setId(src.getId());
                 break;
+        }
+        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
+            //todo
         }
     }
 }

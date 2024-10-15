@@ -18,7 +18,7 @@ public class BusinessAccountDTOMapper extends RestSimpleDTOMapper<BusinessAccoun
 
     @Override
     public void map(BusinessAccountEntity src, BusinessAccountDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccount2BusinessAccountMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(BusinessAccountMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())

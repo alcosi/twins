@@ -32,13 +32,13 @@ public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntit
                         .setId(src.getId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCurrentLocale(src.getI18nLocaleId() != null ? src.getI18nLocaleId() : Locale.ROOT);
-                if (src.getBusinessAccountUserKit() != null)
-                    dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
                 break;
             case SHORT:
                 dst.setId(src.getId());
                 break;
         }
+        if (showBusinessAccountUserCollection(mapperContext))
+            dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
     }
 
     private static boolean showBusinessAccountUserCollection(MapperContext mapperContext) {

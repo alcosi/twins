@@ -64,6 +64,8 @@ public class DomainUserEntity implements EasyLoggable {
     private Collection<BusinessAccountUserEntity> businessAccountUsersByUserId;
 
     @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Kit<BusinessAccountUserEntity, UUID> businessAccountUserKit;
 
     public String easyLog(Level level) {

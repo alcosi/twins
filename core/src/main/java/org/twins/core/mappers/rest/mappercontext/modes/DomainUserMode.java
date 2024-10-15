@@ -20,26 +20,6 @@ public enum DomainUserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum DomainUser2DomainUserMode implements MapperModePointer<DomainUserMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
-
-        final int priority;
-
-        @Override
-        public DomainUserMode point() {
-            return switch (this) {
-                case HIDE -> DomainUserMode.HIDE;
-                case SHORT -> DomainUserMode.SHORT;
-                case DETAILED -> DomainUserMode.DETAILED;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum BusinessAccountUser2DomainUserMode implements MapperModePointer<DomainUserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),

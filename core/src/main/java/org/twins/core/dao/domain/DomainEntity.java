@@ -103,6 +103,8 @@ public class DomainEntity implements EasyLoggable {
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
 
+    // needed for specification
+    @Deprecated
     @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
