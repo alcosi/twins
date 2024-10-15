@@ -22,6 +22,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
@@ -52,6 +53,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
 
     @Override
     public boolean validateEntity(TwinStatusEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (null == entity.getTwinClassId())
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_STATUS_TWIN_CLASS_NOT_SPECIFIED.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))
@@ -128,8 +131,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public TwinStatusEntity createStatus(TwinStatusEntity twinStatusEntity, I18nEntity nameI18n, I18nEntity descriptionsI18n) throws ServiceException {
         twinStatusEntity.setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_NAME, nameI18n).getId());
         twinStatusEntity.setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionsI18n).getId());
+        validateEntityAndThrow(twinStatusEntity, EntitySmartService.EntityValidateMode.beforeSave);
         TwinStatusEntity savedStatus = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        validateEntityAndThrow(savedStatus, EntitySmartService.EntityValidateMode.beforeSave);
         evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, savedStatus.getTwinClassId());
         return savedStatus;
     }

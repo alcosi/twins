@@ -85,6 +85,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     @Override
     public boolean validateEntity(TwinClassFieldEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (null == entity.getTwinClassId())
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_TWIN_CLASS_NOT_SPECIFIED.getMessage());
+        if (null == entity.getFieldTyperFeaturerId())
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_FIELD_FEATURER_NOT_SPECIFIED.getMessage());
         switch (entityValidateMode) {
             case beforeSave:
                 if (entity.getTwinClass() == null || !entity.getTwinClass().getId().equals(entity.getTwinClassId()))

@@ -152,7 +152,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getPermissionGroup() == null)
+                if (entity.getPermissionGroup() == null || !entity.getPermissionGroup().getId().equals(entity.getPermissionGroupId()))
                     entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
             case afterRead:
                 return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);

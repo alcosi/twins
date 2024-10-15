@@ -165,9 +165,9 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
         Set<UUID> existedDstTwinIds = twinLinkService.findDstTwinIdsByLinkId(dbLinkEntity.getId());
         if (!CollectionUtils.isEmpty(existedDstTwinIds)) {
-            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassId(newDstTwinClassEntity.getId());
             if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkDstClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedDstTwinIds));
+            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newDstTwinClassEntity.getId(), linkDstClassChangeOperation.getReplaceMap().values());
             Set<UUID> dstTwinIdsTwinLinksForDeletion = new HashSet<>();
             for (UUID dstTwinIdForReplace : existedDstTwinIds) {
                 UUID replacement = linkDstClassChangeOperation.getReplaceMap().get(dstTwinIdForReplace);
@@ -182,7 +182,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     continue;
                 }
                 if (!newValidTwinIds.contains(replacement))
-                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for head: " + dstTwinIdForReplace);
+                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for twink-link: " + dstTwinIdForReplace);
                 twinLinkRepository.replaceDstTwinIdForTwinLinkByLinkId(dbLinkEntity.getId(), dstTwinIdForReplace, replacement);
             }
             if (CollectionUtils.isNotEmpty(dstTwinIdsTwinLinksForDeletion)) {
@@ -203,9 +203,9 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
         Set<UUID> existedSrcTwinIds = twinLinkService.findSrcTwinIdsByLinkId(dbLinkEntity.getId());
         if (!CollectionUtils.isEmpty(existedSrcTwinIds)) {
-            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassId(newSrcTwinClassEntity.getId());
             if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedSrcTwinIds));
+            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
             Set<UUID> srcTwinIdsTwinLinksForDeletion = new HashSet<>();
             for (UUID srcTwinIdForReplace : existedSrcTwinIds) {
                 UUID replacement = linkSrcClassChangeOperation.getReplaceMap().get(srcTwinIdForReplace);
@@ -220,7 +220,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                     continue;
                 }
                 if (!newValidTwinIds.contains(replacement))
-                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for head: " + srcTwinIdForReplace);
+                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for twink-link: " + srcTwinIdForReplace);
                 twinLinkRepository.replaceSrcTwinIdForTwinLinkByLinkId(dbLinkEntity.getId(), srcTwinIdForReplace, replacement);
             }
             if (CollectionUtils.isNotEmpty(srcTwinIdsTwinLinksForDeletion)) {

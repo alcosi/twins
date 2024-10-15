@@ -41,6 +41,8 @@ public interface TwinLinkRepository extends CrudRepository<TwinLinkEntity, UUID>
     @Query(value = "select distinct dstTwinId from TwinLinkEntity where linkId = :linkId")
     Set<UUID> findDstTwinIdsByLinkId(@Param("linkId") UUID linkId);
 
+
+    //todo think about batch query
     @Transactional
     @Modifying
     @Query(value = "update TwinLinkEntity set srcTwinId = :newVal where srcTwinId = :oldVal and linkId = :linkId")

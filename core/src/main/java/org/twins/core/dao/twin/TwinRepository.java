@@ -53,8 +53,8 @@ public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpe
     @Query(value = "update TwinEntity set headTwinId = :newVal where headTwinId = :oldVal and twinClassId = :twinClassId")
     void replaceHeadTwinForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("oldVal") UUID oldVal, @Param("newVal") UUID newVal);
 
-    @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId")
-    Set<UUID> findIdByTwinClassId(@Param("twinClassId") UUID twinClassId);
+    @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId and t.id in :ids")
+    Set<UUID> findIdByTwinClassIdAndIdIn(@Param("twinClassId") UUID twinClassId, @Param("ids") Collection<UUID> ids);
 
     @Query(value = "SELECT create_permission_id_detect(:headTwinId, :businessAccountId, :domainId, :twinClassId)")
     UUID detectCreatePermissionId(

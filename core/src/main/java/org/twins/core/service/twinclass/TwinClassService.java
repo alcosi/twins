@@ -17,7 +17,6 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
@@ -109,13 +108,33 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
-        //todo check permission schema
+        //todo check permission schema, headid!=0 && id!=head && m&t in domain or common
         return false;
     }
 
     @Override
     public boolean validateEntity(TwinClassEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;  //TODO ??
+        ApiUser apiUser = authService.getApiUser();
+        if (entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomain().getId()))
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_READ_DENIED.getMessage());
+        if (StringUtils.isBlank(entity.getKey()))
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT.getMessage());
+        if (
+                (entity.getHeadTwinClassId() != null && entity.getHeadTwinClassId().equals(entity.getId())) ||
+                (entity.getExtendsTwinClassId() != null && entity.getExtendsTwinClassId().equals(entity.getId()))
+        )
+            return logErrorAndReturnFalse(ErrorCodeTwins.TWIN_CLASS_CYCLE.getMessage());
+        if (entity.getMarkerDataListId() != null
+                && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getMarkerDataListId(), apiUser.getDomainId(), entity.getMarkerDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + entity.getMarkerDataListId() + "]");
+        if (entity.getTagDataListId() != null
+                && !dataListRepository.existsByIdAndDomainIdOrIdAndDomainIdIsNull(entity.getTagDataListId(), apiUser.getDomainId(), entity.getTagDataListId()))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + entity.getTagDataListId() + "]");
+        if (entity.getViewPermissionId() != null
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
+
+        return true;
     }
 
     public PaginationResult<TwinClassEntity> findTwinClasses(TwinClassSearch twinClassSearch, SimplePagination pagination) throws ServiceException {
@@ -232,20 +251,18 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (StringUtils.isBlank(twinClassEntity.getKey()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
         twinClassEntity.setKey(twinClassEntity.getKey().trim().toUpperCase().replaceAll("\\s", "_"));
-        if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey())) {
+        if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
-        }
+
         if (twinClassEntity.getHeadTwinClassId() == null || SystemEntityService.isSystemClass(twinClassEntity.getHeadTwinClassId())) {
             twinClassEntity
                     .setHeadHunterFeaturerId(null)
                     .setHeadHunterParams(null);
         } else {
-            if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId())) {
+            if (!twinClassRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getHeadTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id[" + twinClassEntity.getExtendsTwinClassId() + "]");
-            }
+
             if (twinClassEntity.getHeadHunterFeaturerId() == null) { // we will use default
                 twinClassEntity
                         .setHeadHunterFeaturerId(HeadHunterImpl.ID_2601)
@@ -260,15 +277,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         } else {
             twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
         }
-        if (twinClassEntity.getMarkerDataListId() != null
-                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getMarkerDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown marker data list id[" + twinClassEntity.getMarkerDataListId() + "]");
-        if (twinClassEntity.getTagDataListId() != null
-                && !dataListRepository.existsByDomainIdAndId(apiUser.getDomainId(), twinClassEntity.getTagDataListId()))
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown tag data list id[" + twinClassEntity.getTagDataListId() + "]");
-        if (twinClassEntity.getViewPermissionId() != null
-                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassEntity.getViewPermissionId(), apiUser.getDomainId()))
-            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + twinClassEntity.getViewPermissionId() + "]");
         twinClassEntity
                 .setKey(twinClassEntity.getKey().toUpperCase())
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
@@ -277,8 +285,8 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+        validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-        //todo ???
         refreshExtendsHierarchyTree(twinClassEntity);
         refreshHeadHierarchyTree(twinClassEntity);
         TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
@@ -352,6 +360,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
+        validateEntityAndThrow(dbTwinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if(changesHelper.hasChanges()) {
             entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
@@ -576,14 +585,14 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         }
         if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
                 && MapUtils.isEmpty(headRelinkOperation.getReplaceMap()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));
+            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap for heads: " + StringUtils.join(existedTwinHeadIds));
         Set<UUID> twinsForDeletion = new HashSet<>();
-        Set<UUID> newValidTwinHeadIds = twinRepository.findIdByTwinClassId(headRelinkOperation.getNewId());
+        Set<UUID> newValidTwinHeadIds = twinRepository.findIdByTwinClassIdAndIdIn(headRelinkOperation.getNewId(), headRelinkOperation.getReplaceMap().values());
         for (UUID headForReplace : existedTwinHeadIds) {
             UUID replacement = headRelinkOperation.getReplaceMap().get(headForReplace);
             if (replacement == null) {
                 if (headRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
-                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide headReplaceMap value for head: " + headForReplace);
+                    throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "Please provide headReplaceMap value for head: " + headForReplace);
                 else
                     replacement = UuidUtils.NULLIFY_MARKER;
             }
