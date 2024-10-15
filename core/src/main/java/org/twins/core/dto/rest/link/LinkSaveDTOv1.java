@@ -17,12 +17,6 @@ import java.util.UUID;
 @Schema(name =  "LinkSaveV1")
 public class LinkSaveDTOv1 extends Request {
 
-    @Schema(description = "Source twin class id")
-    public UUID srcTwinClassId;
-
-    @Schema(description = "Destination twin class id")
-    public UUID dstTwinClassId;
-
     @Schema(description = "Forward name i18n (if target twin-class as src)")
     public I18nDTOv1 forwardNameI18n;
 

@@ -16,6 +16,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
+import org.twins.core.service.user.UserService;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +28,9 @@ public class LinkForwardRestDTOV3Mapper extends RestSimpleDTOMapper<LinkEntity, 
     private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
 
     @MapperModePointerBinding(modes = {UserMode.Link2UserMode.class})
-    final UserRestDTOMapper userDTOMapper;
+    private final UserRestDTOMapper userDTOMapper;
+
+    private final UserService userService;
 
     private final PermissionService permissionService;
 
@@ -39,9 +42,11 @@ public class LinkForwardRestDTOV3Mapper extends RestSimpleDTOMapper<LinkEntity, 
                 throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
             if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE) && src.getSrcTwinClassId() != null)
                 dst.srcTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT)));
-            // TODO load user if src.getCreatedByUser() == null
-            if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null)
+            if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null) {
+                if (null == src.getCreatedByUser())
+                    src.setCreatedByUser(userService.findEntitySafe(src.getCreatedByUserId()));
                 dst.createdByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Link2UserMode.SHORT))));
+            }
         }
     }
 }

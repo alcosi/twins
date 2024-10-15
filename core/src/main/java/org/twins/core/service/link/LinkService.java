@@ -4,17 +4,19 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.MapUtils;
+import org.cambium.common.util.StringUtils;
+import org.cambium.common.util.UuidUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -22,8 +24,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.dao.twin.TwinLinkRepository;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.LinkUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -33,8 +39,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
-
 @Slf4j
 @Service
 @Lazy
@@ -43,10 +47,16 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     private final LinkRepository linkRepository;
     private final TwinClassService twinClassService;
     private final UserService userService;
-    @Lazy
-    private final AuthService authService;
     private final EntitySmartService entitySmartService;
     private final I18nService i18nService;
+
+    @Lazy
+    private final TwinLinkService twinLinkService;
+    @Lazy
+    private final TwinRepository twinRepository;
+    @Lazy
+    private final AuthService authService;
+    private final TwinLinkRepository twinLinkRepository;
 
     @Override
     public CrudRepository<LinkEntity, UUID> entityRepository() {
@@ -100,28 +110,28 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public LinkEntity updateLink(LinkEntity linkEntity, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
-        LinkEntity dbLinkEntity = findEntitySafe(linkEntity.getId());
+    public LinkEntity updateLink(LinkUpdate linkUpdate, I18nEntity forwardNameI18n, I18nEntity backwardNameI18n) throws ServiceException {
+        LinkEntity dbLinkEntity = findEntitySafe(linkUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         //for future old classes kit nullify
-        linkEntity.setDstTwinClass(dbLinkEntity.getDstTwinClass());
-        linkEntity.setSrcTwinClass(dbLinkEntity.getSrcTwinClass());
+        linkUpdate.setDstTwinClass(dbLinkEntity.getDstTwinClass());
+        linkUpdate.setSrcTwinClass(dbLinkEntity.getSrcTwinClass());
         updateLinkForwardName(dbLinkEntity, forwardNameI18n, changesHelper);
         updateLinkBackwardName(dbLinkEntity, backwardNameI18n, changesHelper);
-        updateLinkSrcTwinClassId(dbLinkEntity, linkEntity.getSrcTwinClassId(), changesHelper);
-        updateLinkDstTwinClassId(dbLinkEntity, linkEntity.getDstTwinClassId(), changesHelper);
-        updateLinkType(dbLinkEntity, linkEntity.getType(), changesHelper);
-        updateLinkStrength(dbLinkEntity, linkEntity.getLinkStrengthId(), changesHelper);
+        updateLinkSrcTwinClassId(dbLinkEntity, linkUpdate.getSrcTwinClassUpdate(), changesHelper);
+        updateLinkDstTwinClassId(dbLinkEntity, linkUpdate.getDstTwinClassUpdate(), changesHelper);
+        updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
+        updateLinkStrength(dbLinkEntity, linkUpdate.getLinkStrengthId(), changesHelper);
         validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (changesHelper.hasChanges()) {
             dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
-            if(changesHelper.hasChange(LinkEntity.Fields.dstTwinClassId)) {
+            if (changesHelper.hasChange(LinkEntity.Fields.dstTwinClassId)) {
                 dbLinkEntity.getDstTwinClass().setLinksKit(null);
-                linkEntity.getDstTwinClass().setLinksKit(null);
+                linkUpdate.getDstTwinClass().setLinksKit(null);
             }
-            if(changesHelper.hasChange(LinkEntity.Fields.srcTwinClassId)) {
+            if (changesHelper.hasChange(LinkEntity.Fields.srcTwinClassId)) {
                 dbLinkEntity.getSrcTwinClass().setLinksKit(null);
-                linkEntity.getSrcTwinClass().setLinksKit(null);
+                linkUpdate.getSrcTwinClass().setLinksKit(null);
             }
         }
         return dbLinkEntity;
@@ -147,16 +157,79 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
             dbLinkEntity.setBackwardNameI18NId(backwardNameI18n.getId());
     }
 
-    public void updateLinkDstTwinClassId(LinkEntity dbLinkEntity, UUID dstTwinClassId, ChangesHelper changesHelper) throws ServiceException {
-        if (dstTwinClassId == null || !changesHelper.isChanged(LinkEntity.Fields.dstTwinClassId, dbLinkEntity.getDstTwinClassId(), dstTwinClassId))
+    public void updateLinkDstTwinClassId(LinkEntity dbLinkEntity, EntityRelinkOperation linkDstClassChangeOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (linkDstClassChangeOperation == null || !changesHelper.isChanged(LinkEntity.Fields.dstTwinClassId, dbLinkEntity.getDstTwinClassId(), linkDstClassChangeOperation.getNewId()))
             return;
-        dbLinkEntity.setDstTwinClassId(dstTwinClassId);
+        TwinClassEntity newDstTwinClassEntity = UuidUtils.isNullifyMarker(linkDstClassChangeOperation.getNewId()) ? null : twinClassService.findEntitySafe(linkDstClassChangeOperation.getNewId());
+        if (newDstTwinClassEntity == null)
+            throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
+        Set<UUID> existedDstTwinIds = twinLinkService.findDstTwinIdsByLinkId(dbLinkEntity.getId());
+        if (!CollectionUtils.isEmpty(existedDstTwinIds)) {
+            if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkDstClassChangeOperation.getReplaceMap()))
+                throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedDstTwinIds));
+            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newDstTwinClassEntity.getId(), linkDstClassChangeOperation.getReplaceMap().values());
+            Set<UUID> dstTwinIdsTwinLinksForDeletion = new HashSet<>();
+            for (UUID dstTwinIdForReplace : existedDstTwinIds) {
+                UUID replacement = linkDstClassChangeOperation.getReplaceMap().get(dstTwinIdForReplace);
+                if (replacement == null) {
+                    if (linkDstClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                        throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap value for twink-links: " + dstTwinIdForReplace);
+                    else
+                        replacement = UuidUtils.NULLIFY_MARKER;
+                }
+                if (UuidUtils.isNullifyMarker(replacement)) {
+                    dstTwinIdsTwinLinksForDeletion.add(dstTwinIdForReplace);
+                    continue;
+                }
+                if (!newValidTwinIds.contains(replacement))
+                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for twink-link: " + dstTwinIdForReplace);
+                twinLinkRepository.replaceDstTwinIdForTwinLinkByLinkId(dbLinkEntity.getId(), dstTwinIdForReplace, replacement);
+            }
+            if (CollectionUtils.isNotEmpty(dstTwinIdsTwinLinksForDeletion)) {
+                //todo support deletion
+                throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "twin-link auto deletion is currently not implemented. please provide headReplaceMap value for twin-links: " + StringUtils.join(dstTwinIdsTwinLinksForDeletion));
+            }
+        }
+        dbLinkEntity.setDstTwinClassId(newDstTwinClassEntity.getId());
+        dbLinkEntity.setDstTwinClass(newDstTwinClassEntity);
+
     }
 
-    public void updateLinkSrcTwinClassId(LinkEntity dbLinkEntity, UUID srcTwinClassId, ChangesHelper changesHelper) throws ServiceException {
-        if (srcTwinClassId == null || !changesHelper.isChanged(LinkEntity.Fields.srcTwinClassId, dbLinkEntity.getSrcTwinClassId(), srcTwinClassId))
+    public void updateLinkSrcTwinClassId(LinkEntity dbLinkEntity, EntityRelinkOperation linkSrcClassChangeOperation, ChangesHelper changesHelper) throws ServiceException {
+        if (linkSrcClassChangeOperation == null || !changesHelper.isChanged(LinkEntity.Fields.srcTwinClassId, dbLinkEntity.getSrcTwinClassId(), linkSrcClassChangeOperation.getNewId()))
             return;
-        dbLinkEntity.setSrcTwinClassId(srcTwinClassId);
+        TwinClassEntity newSrcTwinClassEntity = UuidUtils.isNullifyMarker(linkSrcClassChangeOperation.getNewId()) ? null : twinClassService.findEntitySafe(linkSrcClassChangeOperation.getNewId());
+        if (newSrcTwinClassEntity == null)
+            throw new ServiceException(ErrorCodeTwins.LINK_DIRECTION_CLASS_NULL);
+        Set<UUID> existedSrcTwinIds = twinLinkService.findSrcTwinIdsByLinkId(dbLinkEntity.getId());
+        if (!CollectionUtils.isEmpty(existedSrcTwinIds)) {
+            if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
+                throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedSrcTwinIds));
+            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
+            Set<UUID> srcTwinIdsTwinLinksForDeletion = new HashSet<>();
+            for (UUID srcTwinIdForReplace : existedSrcTwinIds) {
+                UUID replacement = linkSrcClassChangeOperation.getReplaceMap().get(srcTwinIdForReplace);
+                if (replacement == null) {
+                    if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict)
+                        throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap value for twink-links: " + srcTwinIdForReplace);
+                    else
+                        replacement = UuidUtils.NULLIFY_MARKER;
+                }
+                if (UuidUtils.isNullifyMarker(replacement)) {
+                    srcTwinIdsTwinLinksForDeletion.add(srcTwinIdForReplace);
+                    continue;
+                }
+                if (!newValidTwinIds.contains(replacement))
+                    throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide correct headReplaceMap value for twink-link: " + srcTwinIdForReplace);
+                twinLinkRepository.replaceSrcTwinIdForTwinLinkByLinkId(dbLinkEntity.getId(), srcTwinIdForReplace, replacement);
+            }
+            if (CollectionUtils.isNotEmpty(srcTwinIdsTwinLinksForDeletion)) {
+                //todo support deletion
+                throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "twin-link auto deletion is currently not implemented. please provide headReplaceMap value for twin-links: " + StringUtils.join(srcTwinIdsTwinLinksForDeletion));
+            }
+        }
+        dbLinkEntity.setSrcTwinClassId(newSrcTwinClassEntity.getId());
+        dbLinkEntity.setSrcTwinClass(newSrcTwinClassEntity);
     }
 
     private void updateLinkStrength(LinkEntity dbLinkEntity, LinkStrength linkStrengthId, ChangesHelper changesHelper) throws ServiceException {

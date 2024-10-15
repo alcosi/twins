@@ -1,6 +1,8 @@
 package org.twins.core.service.link;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
@@ -40,14 +42,14 @@ import java.util.*;
 @Lazy
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
-    final LinkService linkService;
-    final TwinClassService twinClassService;
-    final TwinLinkRepository twinLinkRepository;
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
+    private final LinkService linkService;
+    private final TwinClassService twinClassService;
+    private final TwinLinkRepository twinLinkRepository;
+    private final TwinService twinService;
+    private final TwinSearchService twinSearchService;
     @Lazy
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
@@ -341,6 +343,14 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             default:
                 return null;
         }
+    }
+
+    public Set<UUID> findSrcTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findSrcTwinIdsByLinkId(linkId);
+    }
+
+    public Set<UUID> findDstTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
     }
 
     @Data
