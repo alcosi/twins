@@ -108,7 +108,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
-        //todo check permission schema, headid!=0 && id!=head && m&t in domain or common
+        //todo check permission schema
         return false;
     }
 
