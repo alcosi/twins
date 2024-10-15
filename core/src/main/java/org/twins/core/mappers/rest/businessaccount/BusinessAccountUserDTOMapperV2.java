@@ -37,17 +37,8 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 if (src.getUser() != null)
                     dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
-
-
-
                 if (src.getBusinessAccount() != null)
                     dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccount2BusinessAccountMode.SHORT))));
-
-
-
-
-
-
                 break;
             case SHORT:
                 dst.setId(src.getId());
