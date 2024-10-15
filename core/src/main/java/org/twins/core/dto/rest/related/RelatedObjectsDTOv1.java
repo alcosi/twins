@@ -46,6 +46,6 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related space role map", example = "{space role map}")
     public Map<UUID, SpaceRoleDTOv1> spaceRoleMap;
 
-    @Schema(description = "related domain user map", example = "{domain user map}")
-    public Map<UUID, DomainUserDTOv2> domainUserMap;
+    @Schema(description = "related business account map", example = "{business account map}")
+    public Map<UUID, BusinessAccountDTOv1> businessAccountMap;
 }

@@ -15,23 +15,11 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
+@EqualsAndHashCode(callSuper = true)
 @Schema(name = "BusinessAccountUserV2")
-public class BusinessAccountUserDTOv2 {
-    @Schema(description = "id")
-    public UUID id;
-
-    @Schema(description = "user id", example = DTOExamples.USER_ID)
-    public UUID userId;
-
+public class BusinessAccountUserDTOv2 extends BusinessAccountUserDTOv1 {
     @Schema(description = "user")
     public UserDTOv1 user;
-
-    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public LocalDateTime createdAt;
-
-    @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
-    public UUID businessAccountId;
 
     @Schema(description = "business account")
     public BusinessAccountDTOv1 businessAccount;

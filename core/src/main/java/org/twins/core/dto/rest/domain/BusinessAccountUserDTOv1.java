@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
+import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -17,13 +19,13 @@ public class BusinessAccountUserDTOv1 {
     @Schema(description = "id")
     public UUID id;
 
+    @Schema(description = "user id", example = DTOExamples.USER_ID)
+    public UUID userId;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;
 
     @Schema(description = "business account id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     public UUID businessAccountId;
-
-    @Schema(description = "business account")
-    public BusinessAccountDTOv1 businessAccount;
 }

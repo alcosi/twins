@@ -19,19 +19,15 @@ import java.util.Collection;
 @MapperModeBinding(modes = {BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.class})
 public class BusinessAccountUserDTOMapper extends RestSimpleDTOMapper<BusinessAccountUserEntity, BusinessAccountUserDTOv1> {
 
-    @MapperModePointerBinding(modes = UserMode.BusinessAccountUser2UserMode.class)
-    private final BusinessAccountDTOMapper businessAccountDTOMapper;
-
     @Override
     public void map(BusinessAccountUserEntity src, BusinessAccountUserDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.DETAILED)) {
             case DETAILED:
                 dst
                         .setId(src.getId())
+                        .setUserId(src.getUserId())
                         .setBusinessAccountId(src.getBusinessAccountId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
-                if (src.getBusinessAccount() != null)
-                    dst.setBusinessAccount(businessAccountDTOMapper.convert(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.SHORT))));
                 break;
             case SHORT:
                 dst.setId(src.getId());

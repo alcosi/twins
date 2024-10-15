@@ -23,6 +23,7 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
     @MapperModePointerBinding(modes = UserMode.BusinessAccountUser2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
+    @MapperModePointerBinding(modes = BusinessAccountMode.BusinessAccount2BusinessAccountMode.class)
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
 
     @Override
@@ -36,8 +37,17 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 if (src.getUser() != null)
                     dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
+
+
+
                 if (src.getBusinessAccount() != null)
-                    dst.setBusinessAccount(businessAccountDTOMapper.convert(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.SHORT))));
+                    dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccount2BusinessAccountMode.SHORT))));
+
+
+
+
+
+
                 break;
             case SHORT:
                 dst.setId(src.getId());

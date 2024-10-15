@@ -31,26 +31,30 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
 
     @Override
     public void map(DomainUserEntity src, DomainUserDTOv2 dst, MapperContext mapperContext) throws Exception {
+        if (showBusinessAccountUserCollection(mapperContext))
+            businessAccountService.loadBusinessAccounts(src);
         switch (mapperContext.getModeOrUse(DomainUserMode.DomainUser2DomainUserMode.DETAILED)) {
             case DETAILED:
-                businessAccountService.loadBusinessAccounts(src);
                 dst
+                        .setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))))
                         .setId(src.getId())
                         .setUserId(src.getUserId())
-                        .setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))))
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCurrentLocale(src.getI18nLocaleId() != null ? src.getI18nLocaleId() : Locale.ROOT);
                 if (src.getBusinessAccountUserKit() != null) {
                     dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
-                    //todo need if?
-                    if (mapperContext.hasMode(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.DETAILED))
-                        convertOrPostpone(src.getBusinessAccountUserKit(), dst, businessAccountUserDTOMapperV2, mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.SHORT)), DomainUserDTOv2::setBusinessAccountUsers, DomainUserDTOv2::setBusinessAccountUserIdList);
+                    if (showBusinessAccountUser(mapperContext))
+                        dst.setBusinessAccountUsers(businessAccountUserDTOMapperV2.convertCollection(src.getBusinessAccountUserKit().getCollection(), mapperContext));
                 }
                 break;
             case SHORT:
                 dst.setId(src.getId());
                 break;
         }
+    }
+
+    private static boolean showBusinessAccountUser(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.HIDE);
     }
 
     private static boolean showBusinessAccountUserCollection(MapperContext mapperContext) {
