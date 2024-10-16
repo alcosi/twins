@@ -27,26 +27,14 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
     @MapperModePointerBinding(modes = BusinessAccountMode.class)
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
 
+    private final BusinessAccountUserDTOMapper businessAccountUserDTOMapper;
+
     @Override
     public void map(BusinessAccountUserEntity src, BusinessAccountUserDTOv2 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.DETAILED)) {
-            case DETAILED:
-                dst
-                        .setId(src.getId())
-                        .setUserId(src.getUserId())
-                        .setBusinessAccountId(src.getBusinessAccountId())
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
-                if (src.getUser() != null)
-                    dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
-                if (src.getBusinessAccount() != null)
-                    dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext));
-                break;
-            case SHORT:
-                dst.setId(src.getId());
-                break;
-        }
-        if (mapperContext.hasModeButNot(TransitionMode.Attachment2TransitionMode.HIDE)) {
-            //todo
-        }
+        businessAccountUserDTOMapper.map(src, dst, mapperContext);
+        if (mapperContext.hasModeButNot(UserMode.BusinessAccountUser2UserMode.HIDE))
+            dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
+        if (mapperContext.hasModeButNot(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.HIDE))
+            dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext));
     }
 }
