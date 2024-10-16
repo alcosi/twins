@@ -3,11 +3,10 @@ package org.twins.core.dao.domain;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
-import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
-import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -15,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "domain_business_account")
 public class DomainBusinessAccountEntity implements EasyLoggable {
     @Id

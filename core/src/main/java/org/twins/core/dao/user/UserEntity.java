@@ -37,7 +37,7 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
 
-    public String easyLog(Level level)  {
+    public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";
     }
 }

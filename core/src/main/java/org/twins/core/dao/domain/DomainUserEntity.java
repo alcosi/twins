@@ -2,18 +2,24 @@ package org.twins.core.dao.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.LocaleConverter;
+import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+
 
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "domain_user")
 public class DomainUserEntity implements EasyLoggable {
     @Id
@@ -40,6 +46,27 @@ public class DomainUserEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private UserEntity user;
+
+//    needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "domain_id", referencedColumnName = "domain_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Collection<DomainBusinessAccountEntity> domainBusinessAccountsByDomainId;
+
+//    needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Collection<BusinessAccountUserEntity> businessAccountUsersByUserId;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private Kit<BusinessAccountUserEntity, UUID> businessAccountUserKit;
 
     public String easyLog(Level level) {
         return "domainUser[id:" + id + ", domainId:" + domainId + ", userId:" + userId + "]";

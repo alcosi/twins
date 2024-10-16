@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "UserV1")
 public class UserDTOv1 {
     @Schema(description = "id", example = DTOExamples.USER_ID)

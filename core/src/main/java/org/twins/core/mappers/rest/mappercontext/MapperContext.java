@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.mappercontext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
@@ -38,6 +39,9 @@ public class MapperContext {
     private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<SpaceRoleEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<BusinessAccountEntity>> relatedBusinessAccountMap = new LinkedHashMap<>();
+
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -141,6 +145,8 @@ public class MapperContext {
             smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
         else if (relatedObject instanceof SpaceRoleEntity spaceRole)
             smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
+        else if (relatedObject instanceof BusinessAccountEntity businessAccount)
+            smartPut(relatedBusinessAccountMap, businessAccount, businessAccount.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -325,6 +331,7 @@ public class MapperContext {
         dstMapperContext.relatedDataListMap = srcMapperContext.relatedDataListMap;
         dstMapperContext.relatedDataListOptionMap = srcMapperContext.relatedDataListOptionMap;
         dstMapperContext.relatedSpaceRoleMap = srcMapperContext.relatedSpaceRoleMap;
+        dstMapperContext.relatedBusinessAccountMap = srcMapperContext.relatedBusinessAccountMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

@@ -16,15 +16,15 @@ public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1
         switch (mapperContext.getModeOrUse(UserMode.DETAILED)) {
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .fullName(src.getName());
+                        .setId(src.getId())
+                        .setFullName(src.getName());
                 break;
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .fullName(src.getName())
-                        .email(src.getEmail())
-                        .avatar(src.getAvatar());
+                        .setId(src.getId())
+                        .setFullName(src.getName())
+                        .setEmail(src.getEmail())
+                        .setAvatar(src.getAvatar());
                 break;
         }
     }

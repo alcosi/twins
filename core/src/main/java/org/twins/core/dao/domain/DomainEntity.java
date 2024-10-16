@@ -4,7 +4,9 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -18,6 +20,7 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -25,6 +28,7 @@ import java.util.UUID;
 @Table(name = "domain")
 @DynamicUpdate
 @Data
+@FieldNameConstants
 @Accessors(chain = true)
 public class DomainEntity implements EasyLoggable {
     @Id
@@ -98,6 +102,13 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "domain_type_id")
     @Convert(converter = DomainTypeConverter.class)
     private DomainType domainType;
+
+    // needed for specification
+    @Deprecated
+    @OneToMany(mappedBy = "domain", fetch = FetchType.LAZY)
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
+    private List<DomainBusinessAccountEntity> domainBusinessAccounts;
 
     @Transient
     @EqualsAndHashCode.Exclude

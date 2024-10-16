@@ -14,7 +14,7 @@ public class HistoryContextAttachmentUpdateDTOv1 implements HistoryContextDTO {
     public static final String KEY = "attachmentUpdateV1";
     public String contextType = KEY;
 
-    @Schema(description = "Attachment id", example = DTOExamples.USER_ID)
+    @Schema(description = "Attachment id", example = DTOExamples.ATTACHMENT_ID)
     public UUID attachmentId;
 
     @Schema(description = "From external storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
