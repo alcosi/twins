@@ -91,7 +91,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
             newTwinLinkEntity
                     .setLinkId(linkEntity.getId())
                     .setLink(linkEntity);
-        if (value.getTwinClassField().isRequired() && CollectionUtils.isEmpty(newTwinLinks))
+        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(newTwinLinks))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (newTwinLinks.size() > 1 && !allowMultiply(linkEntity, value.getTwinClassField()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply links are not allowed");

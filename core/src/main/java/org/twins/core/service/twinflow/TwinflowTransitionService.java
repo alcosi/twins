@@ -21,7 +21,6 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -30,7 +29,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
@@ -65,7 +63,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     private final TwinflowTransitionRepository twinflowTransitionRepository;
     private final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
-    private final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
     private final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
@@ -309,9 +306,11 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
         updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
         updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
-        validateEntity(dbTwinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        if(changesHelper.hasChanges()) {
+            validateEntity(dbTwinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        }
         return dbTwinflowTransitionEntity;
     }
 
@@ -369,7 +368,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             if (changesHelper.hasChanges())
                 saveList.add(dbValidatorEntity);
         }
-        if (CollectionUtils.isEmpty(saveList))
+        if (!CollectionUtils.isEmpty(saveList))
             entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
     }
 
@@ -425,7 +424,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             if (changesHelper.hasChanges())
                 saveList.add(dbTriggerEntity);
         }
-        if (CollectionUtils.isEmpty(saveList))
+        if (!CollectionUtils.isEmpty(saveList))
             entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionTriggerRepository, changesHelper);
     }
 
