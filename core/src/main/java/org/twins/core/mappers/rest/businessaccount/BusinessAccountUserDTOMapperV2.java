@@ -32,9 +32,13 @@ public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<Business
     @Override
     public void map(BusinessAccountUserEntity src, BusinessAccountUserDTOv2 dst, MapperContext mapperContext) throws Exception {
         businessAccountUserDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(UserMode.BusinessAccountUser2UserMode.HIDE))
+        if (mapperContext.hasModeButNot(UserMode.BusinessAccountUser2UserMode.HIDE)) {
+            dst.setUserId(src.getUserId());
             dst.setUser((userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.BusinessAccountUser2UserMode.SHORT)))));
-        if (mapperContext.hasModeButNot(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.HIDE))
+        }
+        if (mapperContext.hasModeButNot(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.HIDE)) {
+            dst.setBusinessAccountId(src.getBusinessAccountId());
             dst.setBusinessAccount(businessAccountDTOMapper.convertOrPostpone(src.getBusinessAccount(), mapperContext));
+        }
     }
 }

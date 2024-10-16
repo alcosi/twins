@@ -14,6 +14,8 @@ import org.twins.core.mappers.rest.mappercontext.modes.DomainUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
+import java.util.Collection;
+
 
 @Component
 @RequiredArgsConstructor
@@ -30,11 +32,9 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
     @Override
     public void map(DomainUserEntity src, DomainUserDTOv2 dst, MapperContext mapperContext) throws Exception {
         domainUserRestDTOMapper.map(src, dst, mapperContext);
-        switch (mapperContext.getModeOrUse(DomainUserMode.DETAILED)) {
-            case DETAILED:
-                dst.setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))));
-                break;
-            case SHORT:
+        if (showUser(mapperContext)) {
+            dst.setUserId(src.getUserId());
+            dst.setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))));
         }
         if (showBusinessAccountUser(mapperContext)) {
             dst.setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
@@ -42,7 +42,17 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
         }
     }
 
+    private static boolean showUser(MapperContext mapperContext) {
+        return mapperContext.hasModeButNot(UserMode.DomainUser2UserMode.HIDE);
+    }
+
     private static boolean showBusinessAccountUser(MapperContext mapperContext) {
         return mapperContext.hasModeButNot(BusinessAccountMode.BusinessAccountUser2BusinessAccountMode.HIDE);
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<DomainUserEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        domainUserRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
     }
 }
