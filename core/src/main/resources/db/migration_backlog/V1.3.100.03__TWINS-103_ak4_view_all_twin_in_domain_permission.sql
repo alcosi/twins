@@ -1,0 +1,1 @@
+INSERT INTO public.permission (id, key, name, description, permission_group_id) VALUES ('00000000-0000-0000-0004-000000000005', 'DOMAIN_TWINS_VIEW_ALL', null, null, '00000000-0000-0000-0005-000000000001') on conflict(id) do nothing;
