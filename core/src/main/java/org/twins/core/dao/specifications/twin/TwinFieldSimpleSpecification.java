@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.Join;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.springframework.data.jpa.domain.Specification.where;
 
 @Slf4j
-public class TwinFieldSimpleSpecification {
+public class TwinFieldSimpleSpecification extends CommonSpecification<TwinFieldSimpleEntity> {
     private TwinFieldSimpleSpecification() {
     }
 

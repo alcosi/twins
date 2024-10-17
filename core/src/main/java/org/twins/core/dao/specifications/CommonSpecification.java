@@ -11,7 +11,9 @@ public class CommonSpecification<T> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             return not ?
-                    (ifNotIsTrueIncludeNullValues ? cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull()) : root.get(uuidField).in(uuids).not())
+                    (ifNotIsTrueIncludeNullValues ?
+                            cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull())
+                            : root.get(uuidField).in(uuids).not())
                     : root.get(uuidField).in(uuids);
         };
     }

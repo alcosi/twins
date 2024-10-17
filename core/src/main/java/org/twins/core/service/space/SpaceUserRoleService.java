@@ -29,7 +29,6 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification.*;
 
 @Slf4j

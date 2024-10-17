@@ -4,12 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinLinkEntity;
 
 import java.util.List;
 
 @Slf4j
-public class TwinLinkSpecification {
+public class TwinLinkSpecification extends CommonSpecification<TwinLinkEntity> {
 
     public static Specification<TwinLinkEntity> checkStrength(final List<LinkStrength> strengthIds) {
         return (root, query, cb) -> {

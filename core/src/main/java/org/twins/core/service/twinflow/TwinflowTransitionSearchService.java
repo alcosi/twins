@@ -14,7 +14,6 @@ import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.search.TransitionSearch;
 
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TransitionSpecification.*;
 
 

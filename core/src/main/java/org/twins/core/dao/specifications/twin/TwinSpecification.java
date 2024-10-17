@@ -6,6 +6,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
@@ -19,7 +20,7 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
-public class TwinSpecification {
+public class TwinSpecification extends CommonSpecification<TwinEntity> {
 
     public static Specification<TwinEntity> checkHeadTwin(Specification<TwinEntity> headSpecification, TwinSearch headSearch) {
         return (root, query, cb) -> {

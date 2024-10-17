@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.ArrayList;
@@ -15,7 +16,7 @@ import java.util.UUID;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
-public class TwinClassSpecification {
+public class TwinClassSpecification extends CommonSpecification<TwinClassEntity> {
 
     public static Specification<TwinClassEntity> checkHierarchyIsChild(String field, final UUID id) {
         return (root, query, cb) -> {

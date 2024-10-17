@@ -58,7 +58,6 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
 
 @Slf4j

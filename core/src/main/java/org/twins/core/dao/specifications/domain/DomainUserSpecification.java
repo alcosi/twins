@@ -7,6 +7,7 @@ import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
 
@@ -14,7 +15,7 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 import java.util.*;
 
-public class DomainUserSpecification {
+public class DomainUserSpecification extends CommonSpecification<DomainUserEntity> {
 
     public static Specification<DomainUserEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {

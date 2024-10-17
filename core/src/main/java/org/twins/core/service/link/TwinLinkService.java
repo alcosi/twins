@@ -36,8 +36,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
+import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
 
 @Slf4j
 @Service

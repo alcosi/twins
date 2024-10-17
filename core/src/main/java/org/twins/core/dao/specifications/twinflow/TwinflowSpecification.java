@@ -5,6 +5,7 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 
@@ -12,7 +13,7 @@ import java.util.Collection;
 import java.util.UUID;
 
 @Slf4j
-public class TwinflowSpecification {
+public class TwinflowSpecification extends CommonSpecification<TwinflowEntity> {
 
     public static Specification<TwinflowEntity> checkSchemas(final String fieldName, final Collection<UUID> twinflowSchemaIds, final boolean not, boolean ifNotIsTrueIncludeNullValues) {
         return (root, query, cb) -> {
@@ -26,7 +27,7 @@ public class TwinflowSpecification {
                 predicate = cb.or(predicate, cb.isNull(schemaMapping.get(TwinflowSchemaMapEntity.Fields.twinflowSchemaId)));
             }
 
-            return predicate; // Возвращаем сформированный Predicate
+            return predicate;
         };
     }
 }
