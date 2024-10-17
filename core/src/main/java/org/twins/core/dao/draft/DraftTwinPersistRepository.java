@@ -24,6 +24,16 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "and dtp.time_in_millis < dte.time_in_millis")
     int normalizeDraft(@Param("draftId") UUID draftId);
 
+    @Transactional
+    @Modifying
+    @Query(nativeQuery = true, value =
+            "update draft_twin_persist as dtp set conflict_description = 'can not be persisted because head twin must be deleted' " +
+                    "from draft_twin_erase as dte " +
+                    "where dtp.head_twin_id = dte.twin_id " +
+                    "  and dtp.draft_id = :draftId " +
+                    "  and dte.erase_twin_status_id = 'IRREVOCABLE_ERASE_HANDLED'")
+    int countPersistedWithDeletedHead(@Param("draftId") UUID draftId);
+
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateTrue(UUID draftId, Pageable pageable);
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateFalse(UUID draftId, Pageable pageable);
 

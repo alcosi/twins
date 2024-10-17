@@ -50,6 +50,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     TWINFLOW_TRANSACTION_INCORRECT(10503, "twinflow transition can not be performed"),
     TWINFLOW_TRANSACTION_DENIED(10504, "twinflow transition is denied"),
     TWINFLOW_INIT_STATUS_INCORRECT(10505, "can't set initial status for twinflow: status not allowed for twin class"),
+    TWINFLOW_ERASEFLOW_INCORRECT(10506, "can't load configured eraseflow"),
     TRANSITION_STATUS_INCORRECT(10506, "can't set status for transition"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT(10602, "data list option is not valid for current business account"),

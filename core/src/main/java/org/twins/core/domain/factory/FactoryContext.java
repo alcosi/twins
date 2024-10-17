@@ -15,6 +15,7 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 public class FactoryContext {
+    // we need to know where from factory was launched
     private FactoryLauncher factoryLauncher;
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId

@@ -4,10 +4,8 @@ import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.LTreeUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -15,27 +13,27 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.CUD;
 import org.twins.core.dao.draft.*;
+import org.twins.core.dao.eraseflow.EraseflowEntity;
+import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
-import org.twins.core.domain.factory.FactoryBranchId;
-import org.twins.core.domain.factory.FactoryContext;
-import org.twins.core.domain.factory.FactoryLauncher;
-import org.twins.core.domain.factory.FactoryResultUncommited;
+import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.eraseflow.EraseflowService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
 import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twinflow.TwinflowService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -61,7 +59,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final EntitySmartService entitySmartService;
     private final EntityManager entityManager;
     @Lazy
-    private final TwinflowService twinflowService;
+    private final EraseflowService eraseflowService;
     @Lazy
     private final AuthService authService;
     @Lazy
@@ -88,9 +86,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         try {
-            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, false, "");
+            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
             flush(draftCollector);
-            draftCascadeErase(draftCollector);
+            createEraseScope(draftCollector);
             endDraft(draftCollector);
         } catch (ServiceException e) {
             draftCollector.getDraftEntity()
@@ -102,13 +100,16 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftCollector.getDraftEntity();
     }
 
-    public void draftCascadeErase(DraftCollector draftCollector) throws ServiceException {
+    public void createEraseScope(DraftCollector draftCollector) throws ServiceException {
         /* erase scope is not fully loaded because:
         1. linked twins can also have children and links
         2. child twins can also have links
-        scope will be loaded when all items will have eraseReady = true
+        scope will be loaded when all items will be in final states
         */
-        List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatus(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
+        List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(
+                draftCollector.getDraftId(),
+                DraftTwinEraseEntity.Status.UNDETECTED,
+                DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
         int cascadeDepth = 0;
         // we should use separate historyCollector (not from draftCollector), because of batch save delete items. HistoryCollector from draftCollector is flushing more often
         HistoryCollectorMultiTwin historyCollectorDeletes = new HistoryCollectorMultiTwin();
@@ -116,35 +117,29 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             cascadeDepth++;
             if (cascadeDepth >= 5)
                 throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CASCADE_ERASE_LIMIT);
-            twinflowService.loadTwinflow(eraseNotReadyList.stream().map(DraftTwinEraseEntity::getTwin).toList()); //bulk detect
+            eraseflowService.loadEraseflow(eraseNotReadyList.stream().map(DraftTwinEraseEntity::getTwin).toList()); //bulk detect
             for (DraftTwinEraseEntity eraseItem : eraseNotReadyList) {
 //                entityManager.detach(eraseItem);
-                switch (eraseItem.getReason()) { // switch is more clear here
-                    case TARGET:
-                    case FACTORY:
-                    case LINK:
-                        // after running erase factory we can have updated child twins with new heads (not current twin)
-                        // so we should exclude them from deletion, this will be done in db query
-                        draftTwinEraseRepository.addChildTwins(draftCollector.getDraftId(), eraseItem.getTwinId(), LTreeUtils.matchInTheMiddle(eraseItem.getTwinId()));
-                        // after running erase factory we can have some link updates (dst twin was changed from current twin)
-                        // so we should exclude them from deletion
-                        draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseItem.getTwinId());
+                switch (eraseItem.getStatus()) {
+                    case UNDETECTED:
+                        processUndetectedDeletion(draftCollector, eraseItem);
                         break;
-                    case CHILD:
-                        // we do not need to add child of child, because it's already done, so we will add only links
-                        draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseItem.getTwinId());
+                    case IRREVOCABLE_ERASE_DETECTED:
+                        processCascadeDeletion(draftCollector, eraseItem);
                         break;
                     default:
-                        throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "something went wrong");
+                        log.error("Unreachable status. If you see this - something went wrong, please contact the developer.");
+                        continue;
                 }
-                runEraseFactoryAndDraftResult(draftCollector, eraseItem);
+
+
 
                 eraseItem
                         .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId())
                         .setEraseTwinStatus(eraseItem.getTwin().getTwinflow().getEraseTwinStatus());
                 if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED) {
                     if (eraseItem.getEraseTwinStatusId() == null) {
-                        eraseItem.setStatus(DraftTwinEraseEntity.Status.DETECTED_IRREVOCABLE_ERASE);
+                        eraseItem.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
                         historyCollectorDeletes.forTwin(eraseItem.getTwin()).add(HistoryType.twinDeleted, null);
                         draftCollector.getDraftEntity().incrementTwinEraseIrrevocable();
                     } else {
@@ -159,7 +154,177 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             }
             historyService.saveHistory(historyCollectorDeletes);
             historyCollectorDeletes.clear();
-            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatus(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
+        }
+    }
+
+    private void processUndetectedDeletion(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
+        if (eraseEntity.getStatus() != DraftTwinEraseEntity.Status.UNDETECTED)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Target deletion can not be started from status " + eraseEntity.getStatus())
+        eraseflowService.loadEraseflow(eraseEntity.getTwin());
+        UUID eraseFactoryId = detectCascadeDeletionFactory(eraseEntity);
+        if (eraseFactoryId == null) { // no factory configured, so let's do irrevocable erase
+            eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
+            processCascadeDeletion(draftCollector, eraseEntity);
+            return;
+        }
+
+        FactoryLauncher factoryLauncher = switch (eraseEntity.getReason()) {
+            case CHILD, LINK -> FactoryLauncher.cascadeDeletion;
+            case FACTORY, TARGET -> FactoryLauncher.targetDeletion;
+            default ->
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "unknown erase reason " + eraseEntity.getReason());
+        };
+
+        FactoryContext factoryContext = new FactoryContext(factoryLauncher, FactoryBranchId.root(eraseFactoryId))
+                .addInputTwin(eraseEntity.getTwin());
+        FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
+        TwinDelete twinDelete;
+        switch (factoryLauncher) {
+            case targetDeletion:
+                // factory input twin (for target deletion) can be in any state:
+                // 1. it can be not changed (but some other linked twins are changed)
+                // 2. it can be changed (DELETE_BY_STATUS or with some fields change)
+                // 3. it can be marked by eraser as RESTRICTED
+                // 4. it can be marked by eraser as ERASE_IRREVOCABLE
+                // 5. it CAN NOT be marked by eraser as ERASE_CANDIDATE or NOT_SPECIFIED
+                twinDelete = factoryResultUncommited.getDeletes().get(eraseEntity.getTwinId());
+                if (twinDelete != null) { //p.3, p.4, p.5
+                    if (twinDelete.getEraseAction().isCauseGlobalLock()) { //p.3
+                        log.warn("{} was marked by eraser as 'locked'. This provokes draft lock", eraseEntity.getTwin().logShort());
+                        eraseEntity
+                                .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
+                                .setStatusDetails(twinDelete.getEraseAction().getDetails());
+                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE
+                            || twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED) { //p.5
+                        throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Unreachable action for current factory launcher");
+                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE) { //p.4
+                        log.warn("{} was marked by eraser as 'ERASE_IRREVOCABLE'", eraseEntity.getTwin().logShort());
+                        eraseEntity
+                                .setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED)
+                                .setStatusDetails(twinDelete.getEraseAction().getDetails());
+                    }
+                } else {
+                    TwinUpdate twinUpdate = factoryResultUncommited.getUpdates().get(eraseEntity.getTwinId());
+                }
+                draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
+                break;
+            case cascadeDeletion:
+                // factory input twin (for cascade deletion) can be in 3 states:
+                // 1. it can be marked by eraser as RESTRICTED, so we had to lock current draft
+                // 2. it can be marked by eraser as DETECTED_IRREVOCABLE_ERASE
+                // 3. it can be extracted from cascade deletion (CASCADE_DELETION_EXTRACTION)
+                // 4. it can be missed by eraser, so we will treat that as DETECTED_IRREVOCABLE_ERASE
+                // 5. it CAN NOT be marked by eraser as ERASE_CANDIDATE or NOT_SPECIFIED
+                twinDelete = factoryResultUncommited.getDeletes().get(eraseEntity.getTwinId());
+                if (twinDelete != null) { //p.1, p.2, p.5
+                    if (twinDelete.getEraseAction().isCauseGlobalLock()) { //p.1
+                        log.warn("{} was marked by eraser as 'locked'. This provokes draft lock", eraseEntity.getTwin().logShort());
+                        eraseEntity
+                                .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
+                                .setStatusDetails(twinDelete.getEraseAction().getDetails());
+                    } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE
+                            || twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED) { //p.5
+                        throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Unreachable action for current factory launcher");
+                    } else { //p.2
+                        draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
+                        processCascadeDeletion(draftCollector, eraseEntity);
+                    }
+                } else if (detectCascadeBreak(eraseEntity, factoryResultUncommited)) { // p.3
+                    // currently we can only pause cascade, because we can not be absolutely sure,
+                    // that new related twin won't be deleted by some future factory in current draft.
+                    // We need to recheck this at the end of draft creation
+                    eraseEntity.setStatus(DraftTwinEraseEntity.Status.CASCADE_DELETION_PAUSE);
+                    draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
+                } else { // p.4
+                    eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
+                    draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
+                    processCascadeDeletion(draftCollector, eraseEntity);
+                }
+        }
+    }
+
+    private boolean detectCascadeBreak(DraftTwinEraseEntity eraseEntity, FactoryResultUncommited factoryResultUncommited) {
+        TwinUpdate twinUpdate = factoryResultUncommited.getUpdates().get(eraseEntity.getTwinId());
+        if (twinUpdate == null)
+            return false;
+        switch (eraseEntity.getReason()) {
+            case CHILD:
+                if (twinUpdate.getDbTwinEntity().getHeadTwinId().equals(twinUpdate.getTwinEntity().getHeadTwinId()))  // twin head was not changed
+                    return false;
+                return checkNewRelatedTwin(eraseEntity, twinUpdate.getTwinEntity().getHeadTwinId());
+            case LINK:
+                if (twinUpdate.getTwinLinkCUD() == null
+                        || CollectionUtils.isEmpty(twinUpdate.getTwinLinkCUD().getUpdateList()))
+                    return false;
+                for (TwinLinkEntity twinLinkEntity : twinUpdate.getTwinLinkCUD().getUpdateList()) {
+                    // hope that nobody will change linkId in factory... otherwise we will have problems here
+                    // also this logic currently does suitable for Many2Many links
+                    if (!twinLinkEntity.getLinkId().equals(eraseEntity.getReasonLinkId()))
+                        continue;
+                    if (!twinLinkEntity.getSrcTwinId().equals(eraseEntity.getTwinId())) {
+                        // srcTwin was changed by factory, so we can pause break cascade
+                        log.info("Cascade deletion for {} was paused, because link srcTwin was changed from [{}] to [{}]", eraseEntity.logNormal(), twinUpdate.getDbTwinEntity().getHeadTwinId(), twinUpdate.getTwinEntity().getHeadTwinId());
+                        return true;
+                    } else if (!twinLinkEntity.getDstTwinId().equals(eraseEntity.getReasonTwinId())) {
+                        // dstTwin was changed by factory, so we perhaps can break cascade
+                        return checkNewRelatedTwin(eraseEntity, twinLinkEntity.getDstTwinId());
+                    } else
+                        return false;
+                }
+                return false;
+            default:
+                return false;
+        }
+    }
+
+    private boolean checkNewRelatedTwin(DraftTwinEraseEntity eraseEntity, UUID newRelatedTwin) {
+        //let's check that new twin is safe (it's should not be deleted)
+        DraftTwinEraseEntity newHeadEraseEntity = draftTwinEraseRepository.findByDraftIdAndTwinId(eraseEntity.getDraftId(), newRelatedTwin);
+        if (newHeadEraseEntity != null && newHeadEraseEntity.getStatus() == DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED) {
+            log.info("{} was not extracted from deletion, because related twin [{}] should be also deleted", eraseEntity.logDetailed(), newRelatedTwin);
+            return false;
+
+        } else {
+            log.info("Cascade deletion for {} was paused, because twin was relinked to [{}].", eraseEntity.logDetailed(), newRelatedTwin);
+            return true;
+        }
+    }
+
+    private void processCascadeDeletion(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
+        if (eraseEntity.getStatus() != DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Cascade deletion can not be started from status " + eraseEntity.getStatus());
+        // after running erase factory we can have updated child twins with new heads (not current twin)
+        // so we should exclude them from deletion, this will be done in db query
+        draftTwinEraseRepository.addDirectChildTwins(draftCollector.getDraftId(), eraseEntity.getTwinId());
+        // after running erase factory we can have some link updates (dst twin was changed from current twin)
+        // so we should exclude them from deletion
+        draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseEntity.getTwinId());
+        // no factory should be run for current item, because has  DETECTED_IRREVOCABLE_ERASE status
+        eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED);
+        draftCollector.getHistoryCollector().forTwin(eraseEntity.getTwin()).add(HistoryType.twinDeleted, null);
+        draftCollector.getDraftEntity().incrementTwinEraseIrrevocable();
+    }
+
+    public UUID detectCascadeDeletionFactory(DraftTwinEraseEntity eraseEntity) throws ServiceException {
+        eraseflowService.loadEraseflow(eraseEntity.getTwin());
+        EraseflowEntity eraseflow = eraseEntity.getTwin().getTwinflow().getEraseflow();
+        if (eraseflow == null)
+            return null;
+        switch (eraseEntity.getReason()) {
+            case CHILD:
+                return eraseflow.getCascadeDeletionByHeadFactoryId();
+            case LINK:
+                if (eraseEntity.getReasonLinkId() == null)
+                    throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, eraseEntity.logShort() + ": empty reason_link_id");
+                eraseflowService.loadEraseflowLinkCascade(eraseflow);
+                EraseflowLinkCascadeEntity eraseflowLinkCascadeEntity = eraseflow.getCascadeLinkKit().get(eraseEntity.getReasonLinkId());
+                return eraseflowLinkCascadeEntity != null ? eraseflowLinkCascadeEntity.getCascadeDeletionFactoryId() : eraseflow.getCascadeDeletionByLinkDefaultFactoryId();
+            case FACTORY:
+            case TARGET:
+                return eraseflow.getTargetDeletionFactoryId();
+            default:
+                throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "unknown erase reason " + eraseEntity.getReason());
         }
     }
 
@@ -178,38 +343,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return draftCollector.getDraftEntity();
     }
 
-    public DraftCollector runEraseFactoryAndDraftResult(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
-        twinflowService.loadTwinflow(eraseEntity.getTwin());
-        UUID eraseFactoryId = eraseEntity.getTwin().getTwinflow().getEraseTwinFactoryId();
-        if (eraseFactoryId == null)
-            return draftCollector;
-        FactoryContext factoryContext = new FactoryContext(FactoryLauncher.cascadeDeletion, FactoryBranchId.root(eraseFactoryId))
-                .addInputTwin(eraseEntity.getTwin());
-        FactoryResultUncommited factoryResultUncommited = twinFactoryService.runFactoryAndCollectResult(eraseFactoryId, factoryContext);
-        //if factory has some configured eraser, we should fish current twin from result, because it can be locked or skipped
-        if (factoryResultUncommited.getSkippedDeletes().contains(eraseEntity.getTwinId())) {
-            log.warn("{} was marked by eraser as 'skipped'. This provokes draft lock", eraseEntity.getTwin().logShort());
-            eraseEntity
-                    .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
-                    .setStatusDetails("skipped");
-        }
-        TwinDelete twinDelete = factoryResultUncommited.getDeletes().get(eraseEntity.getTwinId());
-        if (twinDelete != null && twinDelete.isCauseGlobalLock()) {
-            log.warn("{} was marked by eraser as 'locked'. This provokes draft lock", eraseEntity.getTwin().logShort());
-            eraseEntity
-                    .setStatus(DraftTwinEraseEntity.Status.DETECTED_LOCK)
-                    .setStatusDetails(twinDelete.getEraseDetails());
-        }
-        draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
-        return draftCollector;
-    }
 
     public DraftCollector draftFactoryResult(DraftCollector draftCollector, Collection<FactoryResultUncommited> factoryResultsUncommited) throws ServiceException {
         for (FactoryResultUncommited factoryResult : factoryResultsUncommited) {
             draftFactoryResult(draftCollector, factoryResult, null);
             flush(draftCollector);
             if (CollectionUtils.isNotEmpty(factoryResult.getDeletes())) {
-                draftCascadeErase(draftCollector);
+                createEraseScope(draftCollector);
             }
         }
         return draftCollector;
@@ -227,20 +367,27 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getDeletes()))
             for (TwinDelete twinDelete : factoryResultUncommited.getDeletes()) {
                 if (reasonTwin != null && twinDelete.getTwinId().equals(reasonTwin.getId())) {
+                    // 1. if some twin was selected for erase (in UNDETECTED state)
+                    // 2. it will be added to draft_twin_erase table
+                    // 3. then we run TARGET_DELETION_FACTORY for it
+                    // 4. this factory has configured eraser which erase current twin
+                    // 5. we should not add one more draft_twin_erase row, because it was already added on p.2
                     log.debug("{} is already drafted for erase", twinDelete.getTwinEntity());
                     continue;
                 }
-                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.isCauseGlobalLock(), twinDelete.getEraseDetails());
+                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.getEraseAction());
             }
         return draftCollector;
     }
 
-    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock, String statusDetails) throws ServiceException {
-        if (causeGlobalLock) //adding extra lock
+    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, EraseAction eraseAction) throws ServiceException {
+        if (eraseAction.isCauseGlobalLock()) //adding extra lock
             draftCollector.getDraftEntity()
                     .setStatus(DraftEntity.Status.LOCKED)
                     .setStatusDetails("locked by: " + twinEntity.logNormal());
-        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, causeGlobalLock, statusDetails));
+        else if (eraseAction.getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED)
+            return draftCollector;
+        return draftCollector.add(createTwinEraseDraft(draftCollector.getDraftEntity(), twinEntity, reasonTwin, reason, eraseAction));
     }
 
     public DraftCollector draftTwinUpdate(DraftCollector draftCollector, TwinUpdate twinUpdate) throws ServiceException {
@@ -407,14 +554,21 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setCreateElseUpdate(true);
     }
 
-    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, boolean causeGlobalLock, String statusDetails) throws ServiceException {
+    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, EraseAction eraseAction) throws ServiceException {
+        DraftTwinEraseEntity.Status status = null;
+        switch (eraseAction.getAction()) {
+            case ERASE_CANDIDATE -> status = DraftTwinEraseEntity.Status.UNDETECTED;
+            case ERASE_IRREVOCABLE -> status = DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED;
+            case RESTRICT -> status = DraftTwinEraseEntity.Status.DETECTED_LOCK;
+            case NOT_SPECIFIED -> log.warn("This is unreachable log message! If you see this something is going wrong");
+        }
         return new DraftTwinEraseEntity()
                 .setDraftId(draftEntity.getId())
                 .setTimeInMillis(System.currentTimeMillis())
                 .setTwinId(twinService.checkEntityReadAllow(twinEntity).getId())
                 .setTwin(twinEntity)
-                .setStatus(causeGlobalLock ? DraftTwinEraseEntity.Status.DETECTED_LOCK : DraftTwinEraseEntity.Status.UNDETECTED)
-                .setStatusDetails(statusDetails)
+                .setStatus(status)
+                .setStatusDetails(eraseAction.getDetails())
                 .setReasonTwinId(reasonTwin != null ? reasonTwin.getId() : null)
                 .setReason(reason)
 //                .setCauseGlobalLock(causeGlobalLock)
@@ -704,7 +858,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private void normalizeDraft(DraftCollector draftCollector) {
         if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
             return; //nothing need to be normalized
-
         if (draftCollector.getDraftEntity().getTwinPersistCreateCount() > 0)
             // we can delete all persisted draft twins, if they must be deleted in future
             draftTwinPersistRepository.normalizeDraft(draftCollector.getDraftId());
@@ -731,10 +884,21 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             draftTwinLinkRepository.normalizeDraft(draftCollector.getDraftId());
     }
 
-    private void checkConflicts(DraftCollector draftCollector) {
+    private void checkConflicts(DraftCollector draftCollector) throws ServiceException {
         if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
             return; //hope we will have no conflicts in such case
-        //todo
+        boolean hasConflicts = false;
+        int count = 0;
+        if (draftCollector.getDraftEntity().getTwinPersistCount() > 0) {
+            count = draftTwinPersistRepository.countPersistedWithDeletedHead(draftCollector.getDraftId());
+            if (count > 0) {
+                hasConflicts = true;
+                log.error("{} has {} [persistedWithDeletedHead] conflicts", draftCollector.getDraftEntity().logNormal(), count);
+            }
+        }
+
+        if (hasConflicts)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " has unresolvable conflicts");
     }
 
     @Override

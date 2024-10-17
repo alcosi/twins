@@ -2,15 +2,14 @@ package org.twins.core.domain.twinoperation;
 
 import lombok.Getter;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.domain.factory.EraseAction;
 
 @Getter
 public class TwinDelete extends TwinOperation {
-    boolean causeGlobalLock;
-    private String eraseDetails;
+    EraseAction eraseAction;
 
-    public TwinDelete(TwinEntity twin, boolean causeGlobalLock, String eraseDetails) {
-        this.eraseDetails = eraseDetails;
+    public TwinDelete(TwinEntity twin, EraseAction eraseAction) {
         this.twinEntity = twin;
-        this.causeGlobalLock = causeGlobalLock;
+        this.eraseAction = eraseAction;
     }
 }

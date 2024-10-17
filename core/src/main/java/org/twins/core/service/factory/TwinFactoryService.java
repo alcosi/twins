@@ -81,29 +81,23 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         runFactory(factoryId, factoryContext);
         FactoryResultUncommited factoryResultUncommited = new FactoryResultUncommited();
         for (FactoryItem factoryItem : factoryContext.getAllFactoryItemList()) {
-            switch (factoryItem.getEraseAction()) {
-                case DO_NOT_ERASE:
+            if (factoryItem.getEraseAction() == null)
+                continue;
+            switch (factoryItem.getEraseAction().getAction()) {
+                case NOT_SPECIFIED:
                     factoryResultUncommited.addOperation(factoryItem.getOutput());
                     continue;
                 case ERASE_CANDIDATE:
-                    factoryResultUncommited
-                            .addOperation(new TwinDelete(factoryItem.getTwin(), false, factoryItem.getEraseActionReason()))
-                            .addOperation(factoryItem.getOutput());
-                    continue;
                 case ERASE_IRREVOCABLE:
-                    if (factoryItem.getOutput() instanceof TwinUpdate) {
-                        factoryResultUncommited
-                                .addOperation(new TwinDelete(factoryItem.getTwin(), false, factoryItem.getEraseActionReason()))
-                                .addOperation(factoryItem.getOutput());
-                    }
-                    // else we can simply skip such item, because it was created and deleted at once
+                    factoryResultUncommited
+                            .addOperation(new TwinDelete(factoryItem.getTwin(), factoryItem.getEraseAction()))
+                            .addOperation(factoryItem.getOutput());
                     continue;
                 case RESTRICT:
                     factoryResultUncommited
-                            .addOperation(new TwinDelete(factoryItem.getTwin(), true, factoryItem.getEraseActionReason()))
+                            .addOperation(new TwinDelete(factoryItem.getTwin(), factoryItem.getEraseAction()))
                             .setCommittable(false); // this factory result can not be commited because of lock
             }
-
         }
         return factoryResultUncommited;
     }
@@ -263,9 +257,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 else
                     action = eraserEntity.getEraserAction();
                 log.info("Eraser action {} was detected for {}", action, eraserInput.logDetailed());
-                eraserInput
-                        .setEraseAction(action)
-                        .setEraseActionReason(eraserEntity.logDetailed());
+                eraserInput.setEraseAction(new EraseAction(action, eraserEntity.logDetailed()));
             }
         }
         LoggerUtils.traceTreeLevelUp();

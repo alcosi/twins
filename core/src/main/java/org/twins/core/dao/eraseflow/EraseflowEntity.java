@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinflow;
+package org.twins.core.dao.eraseflow;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,8 +8,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
-import org.twins.core.dao.eraseflow.EraseflowEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -19,9 +17,9 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "twinflow")
+@Table(name = "eraseflow")
 @FieldNameConstants
-public class TwinflowEntity implements EasyLoggable {
+public class EraseflowEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -38,11 +36,14 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    @Column(name = "initial_twin_status_id")
-    private UUID initialTwinStatusId;
+    @Column(name = "target_deletion_factory_id")
+    private UUID targetDeletionFactoryId;
 
-    @Column(name = "eraseflow_id")
-    private UUID eraseflowId;
+    @Column(name = "cascade_deletion_by_head_factory_id")
+    private UUID cascadeDeletionByHeadFactoryId;
+
+    @Column(name = "cascade_deletion_by_link_default_factory_id")
+    private UUID cascadeDeletionByLinkDefaultFactoryId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -69,22 +70,12 @@ public class TwinflowEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private I18nEntity descriptionI18n;
 
-    @ManyToOne
-    @EqualsAndHashCode.Exclude
-    @JoinColumn(name = "initial_twin_status_id", insertable = false, updatable = false, nullable = false)
-    private TwinStatusEntity initialTwinStatus;
-
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
-
-    // only for manual load (needed only for deletion)
-    @Transient
-    @EqualsAndHashCode.Exclude
-    private EraseflowEntity eraseflow;
+    private Kit<EraseflowLinkCascadeEntity, UUID> cascadeLinkKit;
 
     @Override
     public String easyLog(Level level) {
-        return "twinflow[id:" + id + "]";
+        return "eraseflow[id:" + id + "]";
     }
 }

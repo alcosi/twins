@@ -31,12 +31,15 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Column(name = "time_in_millis")
     private long timeInMillis;
 
-    @Column(name = "reason_twin_id")
-    private UUID reasonTwinId;
-
     @Column(name = "twin_erase_reason_id")
     @Convert(converter = DraftTwinEraseReasonConverter.class)
     private Reason reason;
+
+    @Column(name = "reason_twin_id")
+    private UUID reasonTwinId;
+
+    @Column(name = "reason_link_id")
+    private UUID reasonLinkId;
 
     @Column(name = "draft_twin_erase_status_id")
     @Convert(converter = DraftTwinEraseStatusConverter.class)
@@ -121,10 +124,18 @@ public class DraftTwinEraseEntity implements EasyLoggable {
 
     @Getter
     public enum Status {
+        // we do not know what should be done with current twin. so we will run target delete factory for it
         UNDETECTED("UNDETECTED"),
-        DETECTED_IRREVOCABLE_ERASE("DETECTED_IRREVOCABLE_ERASE"),
-        DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
+        // current twin must be deleted. but we still do run cascade erase children and string links
+        IRREVOCABLE_ERASE_DETECTED("IRREVOCABLE_ERASE_DETECTED"),
+        IRREVOCABLE_ERASE_HANDLED("IRREVOCABLE_ERASE_HANDLED"),
+        CASCADE_DELETION_PAUSE("CASCADE_DELETION_PAUSE"),
+        CASCADE_DELETION_EXTRACTION("CASCADE_DELETION_EXTRACTION"),
+        // current twin must be deleted. and we already process cascade erase for children and string links
+
+//        DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
 //        DETECTED_SKIP("DETECTED_SKIP"),
+        // current twin locks deletion
         DETECTED_LOCK("DETECTED_LOCK");
 
         private final String id;

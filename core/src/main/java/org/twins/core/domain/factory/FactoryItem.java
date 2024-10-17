@@ -25,8 +25,9 @@ public class FactoryItem implements EasyLoggable {
     private FactoryContext factoryContext;
     private TwinSave output;
     private List<FactoryItem> contextFactoryItemList;
-    private TwinFactoryEraserEntity.Action eraseAction = TwinFactoryEraserEntity.Action.DO_NOT_ERASE;
-    private String eraseActionReason = "";
+    private EraseAction eraseAction = new EraseAction(TwinFactoryEraserEntity.Action.NOT_SPECIFIED, "");
+    // this will help to detect items, which were passed to factory from launch
+    // all other items (created by multipliers) will have this flag set to false)
     private boolean factoryInputItem = false;
 
     public TwinEntity getTwin() {
@@ -116,14 +117,6 @@ public class FactoryItem implements EasyLoggable {
         return ret + "]";
     }
 
-    public FactoryItem setEraseAction(TwinFactoryEraserEntity.Action newDeletionMaker) {
-        if (eraseAction == null
-                || eraseAction == TwinFactoryEraserEntity.Action.DO_NOT_ERASE
-                || eraseAction == TwinFactoryEraserEntity.Action.ERASE_CANDIDATE)
-            this.eraseAction = newDeletionMaker;
-        // all other actions can not be overridden
-        return this;
-    }
 
 //    public enum EraseMarker {
 //        ERASE,

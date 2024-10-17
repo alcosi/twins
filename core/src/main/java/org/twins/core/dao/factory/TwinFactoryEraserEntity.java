@@ -52,7 +52,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
 
     @Getter
     public enum Action {
-        DO_NOT_ERASE("DO_NOT_ERASE"),
+        NOT_SPECIFIED("NOT_SPECIFIED"),
         RESTRICT("RESTRICT"),
         ERASE_IRREVOCABLE("ERASE_IRREVOCABLE"),
         ERASE_CANDIDATE("ERASE_CANDIDATE");
@@ -64,7 +64,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         }
 
         public static Action valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(DO_NOT_ERASE);
+            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElse(NOT_SPECIFIED);
         }
 
     }

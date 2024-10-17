@@ -170,7 +170,7 @@ INSERT INTO draft_twin_erase_status (id)
 VALUES ('DETECTED_IRREVOCABLE_ERASE')
 on conflict (id) do nothing;
 INSERT INTO draft_twin_erase_status (id)
-VALUES ('DETECTED_STATUS_CHANGE_ERASE')
+VALUES ('IRREVOCABLE_ERASE_HANDLED')
 on conflict (id) do nothing;
 INSERT INTO draft_twin_erase_status (id)
 VALUES ('DETECTED_LOCK')
@@ -192,15 +192,19 @@ create table if not exists draft_twin_erase
             references draft_twin_erase_status
             on update cascade,
     status_details                       varchar(255),
-    reason_twin_id       uuid
-        constraint draft_twin_erase_reason_twin_id_fk
-            references twin
-            on update cascade on delete cascade,
     twin_erase_reason_id varchar
         constraint draft_twin_erase_twin_erase_reason_fk
             references twin_erase_reason
             on update cascade,
-    erase_twin_status_id uuid,                          -- if null, then twin will be force deleted from db
+    reason_twin_id       uuid
+        constraint draft_twin_erase_reason_twin_id_fk
+            references twin
+            on update cascade on delete cascade,
+    reason_link_id       uuid
+        constraint draft_twin_erase_reason_link_id_fk
+            references twin
+            on update cascade on delete cascade,
+
     constraint draft_twin_erase_pk
         primary key (draft_id, twin_id)
 );

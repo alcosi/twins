@@ -1,7 +1,6 @@
 package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -38,18 +37,16 @@ public class DraftTwinPersistEntity {
     @Column(name = "head_twin_id")
     private UUID headTwinId;
 
-    @Size(max = 100)
-    @Column(name = "external_id", length = 100)
+    @Column(name = "external_id")
     private String externalId;
 
     @Column(name = "twin_status_id")
     private UUID twinStatusId;
 
-    @Size(max = 100)
     @Column(name = "name", length = 100)
     private String name;
 
-    @Column(name = "description", length = Integer.MAX_VALUE)
+    @Column(name = "description")
     private String description;
 
     @Column(name = "created_by_user_id")
@@ -67,6 +64,9 @@ public class DraftTwinPersistEntity {
     //we can not create @ManyToOne relation, because we can have nullify marker here
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
+
+    @Column(name = "conflict_description")
+    private String conflictDescription;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
