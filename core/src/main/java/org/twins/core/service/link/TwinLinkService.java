@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
-import org.twins.core.dao.specifications.link.TwinLinkSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -36,6 +35,9 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+
+import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
+import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -262,9 +264,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
-                Specification.where(
-                        TwinLinkSpecification.checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false)
-                                .and(TwinLinkSpecification.checkStrength(strengthIds))
+                Specification.where(checkStrength(strengthIds)
+                                .and(checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false, false))
                 )
         );
         return filterDenied(twinLinkEntityList);

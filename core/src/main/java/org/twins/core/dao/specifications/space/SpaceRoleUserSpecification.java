@@ -7,6 +7,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserGroupEntity;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.dao.user.UserGroupMapEntity;
@@ -14,17 +15,10 @@ import org.twins.core.dao.user.UserGroupMapEntity;
 import java.util.*;
 
 @Slf4j
-public class SpaceRoleUserSpecification {
+public class SpaceRoleUserSpecification extends CommonSpecification<SpaceRoleUserEntity> {
 
     public static Specification<SpaceRoleUserEntity> checkUuid(final String uuidField, final UUID uuid, boolean not) {
         return (root, query, cb) -> not ? cb.equal(root.get(uuidField), uuid).not() : cb.equal(root.get(uuidField), uuid);
-    }
-
-    public static Specification<SpaceRoleUserEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? root.get(uuidField).in(uuids).not() : root.get(uuidField).in(uuids);
-        };
     }
 
     public static Specification<SpaceRoleUserEntity> checkUserInSpaceGroups(final Collection<UUID> groupIds, boolean not) {

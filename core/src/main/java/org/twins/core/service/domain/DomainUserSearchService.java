@@ -17,6 +17,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
+
 import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*;
 
 @Slf4j
@@ -36,16 +37,16 @@ public class DomainUserSearchService {
 
     private Specification<DomainUserEntity> createDomainUserSearchSpecification(DomainUserSearch search) {
         return Specification.where(
-                checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false, false)
-                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true, false))
+                checkBusinessAccountIn(search.getBusinessAccountIdList(), false)
+                        .and(checkBusinessAccountIn(search.getBusinessAccountIdExcludeList(), true))
                         .and(checkFieldLikeIn(UserEntity.Fields.name, search.getNameLikeList(), true))
                         .and(checkFieldNotLikeIn(UserEntity.Fields.name, search.getNameNotLikeList(), true))
                         .and(checkFieldLikeIn(UserEntity.Fields.email, search.getEmailLikeList(), true))
                         .and(checkFieldNotLikeIn(UserEntity.Fields.email, search.getEmailNotLikeList(), true))
                         .and(checkUserStatusIn(search.getStatusIdList(), false))
                         .and(checkUserStatusIn(search.getStatusIdExcludeList(), true))
-                        .and(checkBusinessAccountIn(search.getBusinessAccountIdList(), false))
-                        .and(checkBusinessAccountIn(search.getBusinessAccountIdExcludeList(), true))
+                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false, false))
+                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true, false))
         );
     }
 

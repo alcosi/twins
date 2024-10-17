@@ -11,6 +11,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class TwinflowSearch {
+    Set<UUID> idList;
+    Set<UUID> idExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Set<String> nameI18nLikeList;
@@ -19,7 +21,10 @@ public class TwinflowSearch {
     Set<String> descriptionI18nNotLikeList;
     Set<UUID> initialStatusIdList;
     Set<UUID> initialStatusIdExcludeList;
-
+    Set<UUID> createdByUserIdList;
+    Set<UUID> createdByUserIdExcludeList;
+    Set<UUID> twinflowSchemaIdList;
+    Set<UUID> twinflowSchemaIdExcludeList;
 
     public TwinflowSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
         twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
