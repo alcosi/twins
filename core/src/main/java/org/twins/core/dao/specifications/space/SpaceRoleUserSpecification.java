@@ -20,13 +20,6 @@ public class SpaceRoleUserSpecification {
         return (root, query, cb) -> not ? cb.equal(root.get(uuidField), uuid).not() : cb.equal(root.get(uuidField), uuid);
     }
 
-    public static Specification<SpaceRoleUserEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? root.get(uuidField).in(uuids).not() : root.get(uuidField).in(uuids);
-        };
-    }
-
     public static Specification<SpaceRoleUserEntity> checkUserInSpaceGroups(final Collection<UUID> groupIds, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(groupIds)) return cb.conjunction();

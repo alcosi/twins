@@ -149,15 +149,6 @@ public class TwinSpecification {
         };
     }
 
-    public static Specification<TwinEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ?
-                    (ifNotIsTrueIncludeNullValues ? cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull()) : root.get(uuidField).in(uuids).not())
-                    : root.get(uuidField).in(uuids);
-        };
-    }
-
     public static Specification<TwinEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();

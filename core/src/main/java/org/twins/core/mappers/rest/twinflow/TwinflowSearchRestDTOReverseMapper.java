@@ -16,6 +16,8 @@ public class TwinflowSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
     @Override
     public void map(TwinflowSearchRqDTOv1 src, TwinflowSearch dst, MapperContext mapperContext) throws Exception {
         dst
+                .setIdList(src.getIdList())
+                .setIdExcludeList(src.getIdExcludeList())
                 .setTwinClassIdList(convertToSetSafe(src.getTwinClassIdList()))
                 .setTwinClassIdExcludeList(convertToSetSafe(src.getTwinClassIdExcludeList()))
                 .setNameI18nLikeList(convertToSetSafe(src.getNameI18nLikeList()))
@@ -23,6 +25,10 @@ public class TwinflowSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
                 .setDescriptionI18nLikeList(convertToSetSafe(src.getDescriptionI18nLikeList()))
                 .setDescriptionI18nNotLikeList(convertToSetSafe(src.getDescriptionI18nNotLikeList()))
                 .setInitialStatusIdList(convertToSetSafe(src.getInitialStatusIdList()))
-                .setInitialStatusIdExcludeList(convertToSetSafe(src.getInitialStatusIdExcludeList()));
+                .setInitialStatusIdExcludeList(convertToSetSafe(src.getInitialStatusIdExcludeList()))
+                .setCreatedByUserIdList(convertToSetSafe(src.getCreatedByUserIdList()))
+                .setCreatedByUserIdExcludeList(convertToSetSafe(src.getCreatedByUserIdExcludeList()))
+                .setTwinflowSchemaIdList(convertToSetSafe(src.getTwinflowSchemaIdList()))
+                .setTwinflowSchemaIdExcludeList(convertToSetSafe(src.getTwinflowSchemaIdExcludeList()));
     }
 }

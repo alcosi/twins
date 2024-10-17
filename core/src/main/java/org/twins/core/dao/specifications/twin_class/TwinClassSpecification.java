@@ -25,13 +25,6 @@ public class TwinClassSpecification {
         };
     }
 
-    public static Specification<TwinClassEntity> checkUuidIn(final String fieldName, final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? root.get(fieldName).in(uuids).not() : root.get(fieldName).in(uuids);
-        };
-    }
-
     public static Specification<TwinClassEntity> checkFieldLikeIn(final String fieldName, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();

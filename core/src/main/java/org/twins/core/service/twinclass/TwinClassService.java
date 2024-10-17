@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twin_class.TwinClassSpecification.*;
 
 @Slf4j
@@ -156,27 +157,26 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return where(
-                checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false)
-                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true))
+                checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
+                .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false, false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true, false))
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
-                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false))
-                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false, false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false, false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true, true))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
-                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdList(), false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdExcludeList(), true))
+                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdList(), false, false))
+                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdExcludeList(), true, true))
         );
     }
 

@@ -41,13 +41,6 @@ public class TwinFieldSimpleSpecification {
         };
     }
 
-    public static Specification<TwinFieldSimpleEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? root.get(uuidField).in(uuids).not() : root.get(uuidField).in(uuids);
-        };
-    }
-
     public static Specification<TwinFieldSimpleEntity> checkUuidInTwinJoin(final String uuidField, final Collection<UUID> uuids, boolean not) {
         return (root, query, cb) -> {
             Join<TwinFieldSimpleEntity, TwinEntity> twinJoin = root.join(TwinFieldSimpleEntity.Fields.twin);

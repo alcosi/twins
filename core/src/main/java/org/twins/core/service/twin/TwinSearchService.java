@@ -42,6 +42,7 @@ import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service

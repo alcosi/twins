@@ -29,6 +29,7 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.space.SpaceRoleUserSpecification.*;
 
 @Slf4j
@@ -60,7 +61,7 @@ public class SpaceUserRoleService {
         Specification<SpaceRoleUserEntity> spec = where(
                 checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false)
                         .and(checkUserNameLikeWithPattern(search.getUserNameLike()))
-                        .and(checkUuidIn(SpaceRoleUserEntity.Fields.spaceRoleId, search.getSpaceRolesIdList(), false))
+                        .and(checkUuidIn(SpaceRoleUserEntity.Fields.spaceRoleId, search.getSpaceRolesIdList(), false, false))
                         .and(checkUserInGroups(search.getUserGroupIdList(), false))
         );
         Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
