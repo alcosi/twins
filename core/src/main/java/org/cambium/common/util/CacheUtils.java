@@ -13,7 +13,7 @@ public class CacheUtils {
         if (null != cacheManager) {
             Cache cache = cacheManager.getCache(cacheKey);
             if (cache != null) {
-                if (null != recordKey) cache.evictIfPresent(recordKey.toString());
+                if (null != recordKey) cache.evictIfPresent(recordKey);
                 else log.info("Invalidating cache: " + cacheKey + " : " + cache.invalidate());
             }
         } else {

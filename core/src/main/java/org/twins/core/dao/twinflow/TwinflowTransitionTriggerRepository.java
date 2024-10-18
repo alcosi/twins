@@ -13,7 +13,7 @@ import java.util.UUID;
 public interface TwinflowTransitionTriggerRepository extends CrudRepository<TwinflowTransitionTriggerEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionTriggerEntity> {
     String CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED = "TwinflowTransitionTriggerRepository.findByTwinflowTransitionIdOrderByOrder";
 
-    @Cacheable(value = CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, key = "{#twinflowTransitionId}")
+    @Cacheable(value = CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, key = "#twinflowTransitionId")
     List<TwinflowTransitionTriggerEntity> findByTwinflowTransitionIdOrderByOrder(UUID twinflowTransitionId);
 
     List<TwinflowTransitionTriggerEntity> findAllByTwinflowTransitionIdInOrderByOrder(Collection<UUID> twinflowTransitionIds);
