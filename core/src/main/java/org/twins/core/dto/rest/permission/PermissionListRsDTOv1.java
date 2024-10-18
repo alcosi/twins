@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "PermissionListRsV1")
 public class PermissionListRsDTOv1 extends Response {
     @Schema(description = "permission list")
-    public List<PermissionWithGroupDTOv1> permissionList;
+    public List<PermissionDTOv2> permissions;
 }

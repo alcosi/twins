@@ -5,10 +5,11 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "PermissionV1")
 public class PermissionDTOv1 {
     @Schema(description = "id", example = DTOExamples.PERMISSION_ID)
@@ -23,4 +24,6 @@ public class PermissionDTOv1 {
     @Schema(description = "description")
     public String description;
 
+    @Schema(description = "group id", example = DTOExamples.PERMISSION_GROUP_ID)
+    public UUID groupId;
 }

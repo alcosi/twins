@@ -8,6 +8,9 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.domain.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserDTOv2;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv2;
+import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -48,4 +51,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related business account map", example = "{business account map}")
     public Map<UUID, BusinessAccountDTOv1> businessAccountMap;
+
+    @Schema(description = "related permission group map", example = "{permission group map}")
+    public Map<UUID, PermissionGroupDTOv1> permissionGroupMap;
 }

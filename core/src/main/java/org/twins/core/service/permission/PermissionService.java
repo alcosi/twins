@@ -33,7 +33,6 @@ import org.twins.core.dto.rest.permission.TwinRole;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
-import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
