@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.domain;
+package org.twins.core.controller.rest.priv.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,46 +21,46 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.domain.DomainUserEntity;
-import org.twins.core.dto.rest.domain.DomainUserSearchRqDTOv1;
-import org.twins.core.dto.rest.domain.DomainUserSearchRsDTOv1;
-import org.twins.core.mappers.rest.domain.DomainUserRestDTOMapperV2;
-import org.twins.core.mappers.rest.domain.DomainUserSearchDTOReverseMapper;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dto.rest.permission.PermissionSearchRqDTOv1;
+import org.twins.core.dto.rest.permission.PermissionSearchRsDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
+import org.twins.core.mappers.rest.permission.PermissionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.domain.DomainUserSearchService;
+import org.twins.core.service.permission.PermissionSearchService;
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class DomainUserSearchController extends ApiController {
-    private final DomainUserSearchService domainUserSearchService;
-    private final DomainUserSearchDTOReverseMapper domainUserSearchDTOReverseMapper;
-    private final DomainUserRestDTOMapperV2 domainUserRestDTOMapperV2;
-    private final PaginationMapper paginationMapper;
+public class PermissionSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
+    private final PaginationMapper paginationMapper;
+    private final PermissionSearchDTOReverseMapper permissionSearchDTOReverseMapper;
+    private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
+    private final PermissionSearchService permissionSearchService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "domainUserSearchListV1", summary = "Return a list of users by current domain")
+    @Operation(operationId = "permissionSearchListV1", summary = "Return a list of all permissions for the current domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DomainUserSearchRsDTOv1.class))}),
+                    @Schema(implementation = PermissionSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/domain/user/search/v1")
-    public ResponseEntity<?> domainUserSearchListV1(
-            @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody DomainUserSearchRqDTOv1 request,
+    @PostMapping(value = "/private/permission/search/v1")
+    public ResponseEntity<?> permissionSearchListV1(
+            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionSearchRsDTOv2.class) MapperContext mapperContext,
+            @RequestBody PermissionSearchRqDTOv1 request,
             @SimplePaginationParams SimplePagination pagination) {
-        DomainUserSearchRsDTOv1 rs = new DomainUserSearchRsDTOv1();
+        PermissionSearchRsDTOv2 rs = new PermissionSearchRsDTOv2();
         try {
-            PaginationResult<DomainUserEntity> domainUserList = domainUserSearchService
-                    .findDomainUser(domainUserSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<PermissionEntity> permissionList = permissionSearchService
+                    .findPermissionForDomain(permissionSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setUsers(domainUserRestDTOMapperV2.convertCollection(domainUserList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(domainUserList))
+                    .setPermissions(permissionRestDTOMapperV2.convertCollection(permissionList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(permissionList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -69,5 +69,4 @@ public class DomainUserSearchController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
 }
