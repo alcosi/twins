@@ -177,24 +177,26 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;
         UUID finalBusinessAccountId;
+        UUID finalDomainId = apiUser.getDomainId();
         if (apiUser.isBusinessAccountSpecified())
             finalBusinessAccountId = apiUser.getBusinessAccountId();
-        else {
+        else
             finalBusinessAccountId = null;
-        }
+
         if (apiUser.isUserSpecified())
             finalUserId = apiUser.getUserId();
         else {
             finalUserId = null;
         }
         return (twin, query, cb) -> {
+            Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
+            Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
             if (!CollectionUtils.isEmpty(twinClassUuids)) {
                 List<Predicate> predicates = new ArrayList<>();
                 for (UUID twinClassId : twinClassUuids) {
                     Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
                     predicates.add(checkClassId);
                 }
-                Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
                 Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
                 Predicate joinPredicateUserLevel = cb.or(
                         cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
@@ -209,7 +211,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
                 Predicate rootPredicateUser = cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId);
                 Predicate rootPredicateBusiness = cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
 
-                return cb.and(
+                return cb.and(domain,
                         getPredicate(cb, predicates, true),
                         cb.or(
                                 cb.and(joinPredicateUserLevel, rootPredicateUser),
@@ -236,7 +238,9 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
                             )
                     );
                 } else cb.and(predicate, cb.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)));
-                return predicate;
+
+
+                return cb.and(domain, predicate);
             }
         };
     }
@@ -355,7 +359,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
 
             Predicate lessAndMore = null;
             Predicate equals = null;
-            if(search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
+            if (search.getLessThen() != null || search.getMoreThen() != null || search.getEquals() != null) {
                 predicates.add(cb.and(cb.isNotNull(stringValue), cb.notEqual(stringValue, cb.literal(""))));
                 if (search.getLessThen() != null)
                     predicates.add(cb.and(cb.lessThan(dateTimeValue, cb.literal(search.getLessThen()))));
@@ -380,7 +384,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
             else
                 valuePredicate = search.isEmpty() ? cb.disjunction() : cb.conjunction();
 
-            if(search.isEmpty())
+            if (search.isEmpty())
                 finalPredicate = cb.or(valuePredicate, cb.or(
                         cb.equal(stringValue, cb.literal("")),
                         cb.isNull(stringValue)
@@ -419,7 +423,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
             List<Predicate> excludePredicatesAny = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAnyOfList()))
                 for (String value : search.getValueLikeNoAnyOfList())
-                  excludePredicatesAny.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
+                    excludePredicatesAny.add(cb.notLike(twinFieldSimpleJoin.get(TwinFieldSimpleEntity.Fields.value), value));
             List<Predicate> excludePredicatesAll = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search.getValueLikeNoAllOfList()))
                 for (String value : search.getValueLikeNoAllOfList())
@@ -439,7 +443,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-//TODO    Need a load test to compare subquery execution speed with join
+    //TODO    Need a load test to compare subquery execution speed with join
     public static Specification<TwinEntity> checkFieldList(final TwinFieldSearchList search) {
         return (root, query, cb) -> {
             Join<TwinEntity, TwinFieldDataListEntity> twinFieldListJoin = root.join(TwinEntity.Fields.fieldsList, JoinType.INNER);
@@ -460,7 +464,8 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
                     );
                     allOfPredicates.add(cb.isNotNull(twinFieldJoinForAll));
                 }
-                includeAll = getPredicate(cb, allOfPredicates, false);cb.and(allOfPredicates.toArray(new Predicate[0]));
+                includeAll = getPredicate(cb, allOfPredicates, false);
+                cb.and(allOfPredicates.toArray(new Predicate[0]));
             }
 
             Predicate include = cb.and(includeAny, includeAll);
