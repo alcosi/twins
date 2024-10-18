@@ -29,7 +29,6 @@ import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
-import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.service.auth.AuthService;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -105,14 +104,15 @@ public class TwinSearchService {
         UUID userId = apiUser.getUser().getId();
         Set<UUID> userGroups = apiUser.getUserGroups();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(checkClass(basicSearch.getTwinClassIdList(), apiUser)
-                .and(createTwinEntityBasicSearchSpecification(basicSearch))
+        Specification<TwinEntity> specification = where(
+                checkClass(basicSearch.getTwinClassIdList(), apiUser)
+                        .and(createTwinEntityBasicSearchSpecification(basicSearch))
         );
-        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
+        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
             specification = specification.and(checkPermissions(domainId, businessAccountId, userId, userGroups));
 
 
-            //HEAD TWIN CHECK
+        //HEAD TWIN CHECK
         if (null != basicSearch.getHeadSearch()) specification = specification.and(
                 checkHeadTwin(
                         createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch()),
@@ -125,7 +125,6 @@ public class TwinSearchService {
                         createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch()),
                         basicSearch.getChildrenSearch()
                 ));
-
 
         return specification;
     }
