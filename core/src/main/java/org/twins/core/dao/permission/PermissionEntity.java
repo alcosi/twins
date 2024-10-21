@@ -29,9 +29,6 @@ public class PermissionEntity implements EasyLoggable {
     @Column(name = "description")
     private String description;
 
-    @Transient
-    private Set<UUID> permissionGroups;
-
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)
     private PermissionGroupEntity permissionGroup;
