@@ -70,7 +70,7 @@ public class UserPermissionListController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/user/{userId}/permission_group/v1", method = RequestMethod.GET)
     public ResponseEntity<?> userPermissionGroupedListV1(
-            @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionGroupedListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGroupWithGroupRestDTOMapper.class, response = PermissionGroupedListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable UUID userId) {
         PermissionGroupedListRsDTOv1 rs = new PermissionGroupedListRsDTOv1();
         try {
