@@ -65,8 +65,8 @@ public class DraftTwinPersistEntity {
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
-    @Column(name = "conflict_description")
-    private String conflictDescription;
+//    @Column(name = "conflict_description")
+//    private String conflictDescription;
 
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)

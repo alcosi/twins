@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusEntity;
 
 import java.io.Serial;
 import java.util.Arrays;
@@ -48,9 +47,6 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @Column(name = "status_details")
     private String statusDetails;
 
-    @Column(name = "erase_twin_status_id")
-    private UUID eraseTwinStatusId;
-
     @ManyToOne(fetch = FetchType.EAGER, optional = false)
     @JoinColumn(name = "draft_id", insertable = false, updatable = false)
     private DraftEntity draft;
@@ -59,9 +55,6 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
     private TwinEntity twin;
 
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "erase_twin_status_id", insertable = false, updatable = false)
-    private TwinStatusEntity eraseTwinStatus;
 
     @Override
     public String easyLog(Level level) {
@@ -130,11 +123,9 @@ public class DraftTwinEraseEntity implements EasyLoggable {
         IRREVOCABLE_ERASE_DETECTED("IRREVOCABLE_ERASE_DETECTED"),
         IRREVOCABLE_ERASE_HANDLED("IRREVOCABLE_ERASE_HANDLED"),
         CASCADE_DELETION_PAUSE("CASCADE_DELETION_PAUSE"),
-        CASCADE_DELETION_EXTRACTION("CASCADE_DELETION_EXTRACTION"),
-        // current twin must be deleted. and we already process cascade erase for children and string links
-
-//        DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
-//        DETECTED_SKIP("DETECTED_SKIP"),
+        CASCADE_DELETION_EXTRACTED("CASCADE_DELETION_EXTRACTION"),
+        DETECTED_STATUS_CHANGE_ERASE("DETECTED_STATUS_CHANGE_ERASE"),
+        DETECTED_SKIP("DETECTED_SKIP"),
         // current twin locks deletion
         DETECTED_LOCK("DETECTED_LOCK");
 

@@ -34,7 +34,7 @@ public class DraftCollector {
 
     private void updateCounters(Object entity) {
         if (entity instanceof DraftTwinEraseEntity draftTwinEraseEntity && draftTwinEraseEntity.isEraseReady()) { //we will increment counter if erase ready
-            if (draftTwinEraseEntity.getEraseTwinStatusId() == null)
+            if (draftTwinEraseEntity.getStatus() == DraftTwinEraseEntity.Status.DETECTED_STATUS_CHANGE_ERASE)
                 draftEntity.incrementTwinEraseIrrevocable();
             else
                 draftEntity.incrementTwinEraseByStatus();

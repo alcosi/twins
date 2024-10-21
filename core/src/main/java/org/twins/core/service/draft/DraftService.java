@@ -31,7 +31,6 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.eraseflow.EraseflowService;
 import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.history.ChangesRecorder;
-import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinService;
 
@@ -111,8 +110,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 DraftTwinEraseEntity.Status.UNDETECTED,
                 DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
         int cascadeDepth = 0;
-        // we should use separate historyCollector (not from draftCollector), because of batch save delete items. HistoryCollector from draftCollector is flushing more often
-        HistoryCollectorMultiTwin historyCollectorDeletes = new HistoryCollectorMultiTwin();
         while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
             if (cascadeDepth >= 5)
@@ -123,44 +120,32 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 switch (eraseItem.getStatus()) {
                     case UNDETECTED:
                         processUndetectedDeletion(draftCollector, eraseItem);
+                        if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED) // extra check, because such statuses are incorrect on current stage
+                            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "incorrect status");
                         break;
                     case IRREVOCABLE_ERASE_DETECTED:
                         processCascadeDeletion(draftCollector, eraseItem);
+                        if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED
+                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED
+                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.DETECTED_SKIP
+                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.DETECTED_STATUS_CHANGE_ERASE) // extra check, because such statuses are incorrect on current stage
+                            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "incorrect status");
                         break;
                     default:
                         log.error("Unreachable status. If you see this - something went wrong, please contact the developer.");
                         continue;
                 }
-
-
-
-                eraseItem
-                        .setEraseTwinStatusId(eraseItem.getTwin().getTwinflow().getEraseTwinStatusId())
-                        .setEraseTwinStatus(eraseItem.getTwin().getTwinflow().getEraseTwinStatus());
-                if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED) {
-                    if (eraseItem.getEraseTwinStatusId() == null) {
-                        eraseItem.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
-                        historyCollectorDeletes.forTwin(eraseItem.getTwin()).add(HistoryType.twinDeleted, null);
-                        draftCollector.getDraftEntity().incrementTwinEraseIrrevocable();
-                    } else {
-                        eraseItem.setStatus(DraftTwinEraseEntity.Status.DETECTED_STATUS_CHANGE_ERASE);
-                        historyCollectorDeletes.forTwin(eraseItem.getTwin()).add(historyService.statusChanged(eraseItem.getTwin().getTwinStatus(), eraseItem.getEraseTwinStatus()));
-                        draftCollector.getDraftEntity().incrementTwinEraseByStatus();
-                    }
-                }
                 draftTwinEraseRepository.save(eraseItem);
 //                draftCollector.add(eraseItem);
                 flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
-            historyService.saveHistory(historyCollectorDeletes);
-            historyCollectorDeletes.clear();
             eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
         }
     }
 
     private void processUndetectedDeletion(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
         if (eraseEntity.getStatus() != DraftTwinEraseEntity.Status.UNDETECTED)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Target deletion can not be started from status " + eraseEntity.getStatus())
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Target deletion can not be started from status " + eraseEntity.getStatus());
         eraseflowService.loadEraseflow(eraseEntity.getTwin());
         UUID eraseFactoryId = detectCascadeDeletionFactory(eraseEntity);
         if (eraseFactoryId == null) { // no factory configured, so let's do irrevocable erase
@@ -204,8 +189,19 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                                 .setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED)
                                 .setStatusDetails(twinDelete.getEraseAction().getDetails());
                     }
-                } else {
+                } else { //p.1, p.2
                     TwinUpdate twinUpdate = factoryResultUncommited.getUpdates().get(eraseEntity.getTwinId());
+                    if (twinUpdate != null
+                            && twinUpdate.getTwinEntity().getTwinStatusId() != null
+                            && !twinUpdate.getTwinEntity().getTwinStatusId().equals(twinUpdate.getDbTwinEntity().getTwinStatusId())) { // p.2
+                        eraseEntity
+                                .setStatus(DraftTwinEraseEntity.Status.DETECTED_STATUS_CHANGE_ERASE)
+                                .setStatusDetails("Twin status was changed by factory[" + eraseFactoryId + "]");
+                    } else { // p.1
+                        eraseEntity
+                                .setStatus(DraftTwinEraseEntity.Status.DETECTED_SKIP)
+                                .setStatusDetails("Twin erase was skipped factory[" + eraseFactoryId + "]");
+                    }
                 }
                 draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
                 break;
@@ -570,9 +566,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setStatus(status)
                 .setStatusDetails(eraseAction.getDetails())
                 .setReasonTwinId(reasonTwin != null ? reasonTwin.getId() : null)
-                .setReason(reason)
-//                .setCauseGlobalLock(causeGlobalLock)
-                .setEraseTwinStatusId(null); //we will fill it later
+                .setReason(reason);
     }
 
     public DraftTwinTagEntity createTagDraft(DraftEntity draftEntity, TwinTagEntity twinTagEntity, boolean createElseDelete) throws ServiceException {
