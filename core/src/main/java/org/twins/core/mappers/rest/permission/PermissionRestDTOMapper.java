@@ -19,7 +19,8 @@ public class PermissionRestDTOMapper extends RestSimpleDTOMapper<PermissionEntit
                         .setId(src.getId())
                         .setKey(src.getKey())
                         .setName(src.getName())
-                        .setDescription(src.getDescription());
+                        .setDescription(src.getDescription())
+                        .setGroupId(src.getPermissionGroupId());
                 break;
             case SHORT:
                 dst

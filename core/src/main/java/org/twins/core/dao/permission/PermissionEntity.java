@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -27,6 +28,9 @@ public class PermissionEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
+
+    @Transient
+    private Set<UUID> permissionGroups;
 
     @ManyToOne
     @JoinColumn(name = "permission_group_id", insertable = false, updatable = false, nullable = false)

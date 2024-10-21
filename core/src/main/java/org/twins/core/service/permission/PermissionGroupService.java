@@ -64,8 +64,8 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
         if (needLoad.isEmpty())
             return;
         Kit<PermissionGroupEntity, UUID> permissionGroupEntityUUIDKit = new Kit<>(permissionGroupRepository.findAllByIdIn(needLoad.keySet()), PermissionGroupEntity::getId);
-        for (PermissionEntity permission : permissionList) {
-            permission.setPermissionGroup(permissionGroupEntityUUIDKit.get(permission.getId()));
+        for (Map.Entry<UUID, PermissionEntity> permission : needLoad.entrySet()) {
+            permission.getValue().setPermissionGroup(permissionGroupEntityUUIDKit.get(permission.getKey()));
         }
     }
 }

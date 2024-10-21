@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ import java.util.List;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "PermissionListRsV1")
-public class PermissionListRsDTOv1 extends Response {
+public class PermissionListRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "permission list")
     public List<PermissionDTOv2> permissions;
 }
