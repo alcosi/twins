@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
-import java.util.Set;
 import java.util.UUID;
 
 @Entity

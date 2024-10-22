@@ -4,13 +4,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
 import org.twins.core.domain.ApiUser;
@@ -50,22 +47,23 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
         return true;
     }
 
-    public void loadPermissionGroup(PermissionEntity entity) {
-        loadPermissionGroup(Collections.singletonList(entity));
-    }
+    //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup
+//    public void loadPermissionGroup(PermissionEntity entity) {
+//        loadPermissionGroup(Collections.singletonList(entity));
+//    }
 
-    public void loadPermissionGroup(Collection<PermissionEntity> permissionList) {
-        if (CollectionUtils.isEmpty(permissionList))
-            return;
-        Map<UUID, PermissionEntity> needLoad = new HashMap<>();
-        for (PermissionEntity permission : permissionList)
-            if (permission.getPermissionGroup() == null)
-                needLoad.put(permission.getPermissionGroupId(), permission);
-        if (needLoad.isEmpty())
-            return;
-        Kit<PermissionGroupEntity, UUID> permissionGroupEntityUUIDKit = new Kit<>(permissionGroupRepository.findAllByIdIn(needLoad.keySet()), PermissionGroupEntity::getId);
-        for (Map.Entry<UUID, PermissionEntity> permission : needLoad.entrySet()) {
-            permission.getValue().setPermissionGroup(permissionGroupEntityUUIDKit.get(permission.getKey()));
-        }
-    }
+//    public void loadPermissionGroup(Collection<PermissionEntity> permissionList) {
+//        if (CollectionUtils.isEmpty(permissionList))
+//            return;
+//        KitGrouped<PermissionEntity, UUID, UUID> needLoad = new KitGrouped<>(PermissionEntity::getId, PermissionEntity::getPermissionGroupId);
+//        for (PermissionEntity permission : permissionList)
+//            if (permission.getPermissionGroupLoaded() == null)
+//                needLoad.add(permission);
+//        if (needLoad.isEmpty())
+//            return;
+//        List<PermissionGroupEntity> permissionGroupEntities = permissionGroupRepository.findAllByIdIn(needLoad.getGroupedMap().keySet());
+//        for (PermissionGroupEntity permissionGroup : permissionGroupEntities)
+//            for (PermissionEntity permission : needLoad.getGroupedMap().get(permissionGroup.getId()))
+//                permission.setPermissionGroupLoaded(permissionGroup);
+//    }
 }

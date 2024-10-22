@@ -2,6 +2,7 @@ package org.twins.core.mappers.rest.permission;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dto.rest.permission.PermissionDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -13,6 +14,7 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
+@MapperModeBinding(modes = PermissionGroupMode.Permission2PermissionGroupMode.class)
 public class PermissionRestDTOMapperV2 extends RestSimpleDTOMapper<PermissionEntity, PermissionDTOv2> {
 
     private final PermissionGroupService permissionService;
@@ -23,20 +25,20 @@ public class PermissionRestDTOMapperV2 extends RestSimpleDTOMapper<PermissionEnt
     public void map(PermissionEntity src, PermissionDTOv2 dst, MapperContext mapperContext) throws Exception {
         permissionRestDTOMapper.map(src, dst, mapperContext);
         if (showPermissionGroup(mapperContext)) {
-            permissionService.loadPermissionGroup(src);
+//            permissionService.loadPermissionGroup(src);
             dst.setGroupId(src.getPermissionGroupId());
             dst.setGroup(permissionGroupRestDTOMapper.convertOrPostpone(src.getPermissionGroup(), mapperContext));
         }
     }
 
     private static boolean showPermissionGroup(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(PermissionGroupMode.HIDE);
+        return mapperContext.hasModeButNot(PermissionGroupMode.Permission2PermissionGroupMode.HIDE);
     }
 
     @Override
     public void beforeCollectionConversion(Collection<PermissionEntity> srcCollection, MapperContext mapperContext) throws Exception {
         super.beforeCollectionConversion(srcCollection, mapperContext);
-        if (showPermissionGroup(mapperContext))
-            permissionService.loadPermissionGroup(srcCollection);
+//        if (showPermissionGroup(mapperContext))
+//            permissionService.loadPermissionGroup(srcCollection);
     }
 }
