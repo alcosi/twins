@@ -2,12 +2,14 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
 @Entity
 @Data
+@FieldNameConstants
 @Table(name = "permission")
 public class PermissionEntity implements EasyLoggable {
     @Id

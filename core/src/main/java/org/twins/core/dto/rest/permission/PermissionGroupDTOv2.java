@@ -10,9 +10,9 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(fluent = true)
-@Schema(name =  "PermissionGroupWithPermissionsV1")
-public class PermissionGroupWithPermissionsDTOv1 extends PermissionGroupDTOv1 {
-    @Schema(description = "permissions")
+@Schema(name =  "PermissionGroupV2")
+public class PermissionGroupDTOv2 extends PermissionGroupDTOv1 {
+    @Schema(description = "permission list")
     public List<PermissionDTOv1> permissions;
 
 }
