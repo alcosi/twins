@@ -14,9 +14,11 @@ import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkBackwardRestDTOMapper;
 import org.twins.core.mappers.rest.link.LinkForwardRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.link.LinkService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -51,15 +53,18 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     })
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
-
     @MapperModePointerBinding(modes = StatusMode.TwinClass2StatusMode.class)
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+
+    @MapperModePointerBinding(modes = PermissionMode.TwinClass2PermissionMode.class)
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     private final TwinClassFieldService twinClassFieldService;
     private final TwinClassService twinClassService;
     private final TwinStatusService twinStatusService;
     private final LinkService linkService;
     private final DataListService dataListService;
+    private final PermissionService permissionService;
 
 
     @Override
@@ -122,6 +127,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadExtendsTwinClass(src);
             dst.extendsClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(),
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT))));
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
+            if (src.getViewPermissionId() != null)
+                dst.viewPermission(permissionRestDTOMapper.convert(permissionService
+                        .findEntitySafe(src.getViewPermissionId()), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))));
         }
     }
 

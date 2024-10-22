@@ -9,7 +9,6 @@ import org.twins.core.dto.rest.domain.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserDTOv1;
 import org.twins.core.dto.rest.domain.DomainUserDTOv2;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
-import org.twins.core.dto.rest.permission.PermissionDTOv2;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
@@ -54,4 +53,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related permission group map", example = "{permission group map}")
     public Map<UUID, PermissionGroupDTOv1> permissionGroupMap;
+
+    @Schema(description = "related permission map", example = "{permission map}")
+    public Map<UUID, PermissionDTOv1> permissionMap;
 }

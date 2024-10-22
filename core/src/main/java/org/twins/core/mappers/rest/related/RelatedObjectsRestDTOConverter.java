@@ -5,8 +5,9 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
+import org.twins.core.dao.permission.PermissionGroupEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -15,21 +16,23 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.domain.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
-import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
-import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
@@ -58,6 +61,7 @@ public class RelatedObjectsRestDTOConverter {
     private final SpaceRoleDTOMapper spaceRoleDTOMapper;
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -73,6 +77,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, SpaceRoleDTOv1> spaceRoleMap = new HashMap<>();
         Map<UUID, BusinessAccountDTOv1> businessAccountMap = new HashMap<>();
         Map<UUID, PermissionGroupDTOv1> permissionGroupMap = new HashMap<>();
+        Map<UUID, PermissionDTOv1> permissionMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -95,6 +100,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel2, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContext.getRelatedPermissionGroupMap().isEmpty())
             convertAndPut(mapperContext.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel2, permissionGroupMap, PermissionGroupEntity::getId);
+        if (!mapperContext.getRelatedPermissionMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel2, permissionMap, PermissionEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -118,6 +125,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionGroupMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
+        if (!mapperContextLevel2.getRelatedPermissionMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -142,6 +151,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionGroupMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedPermissionGroupMap(), permissionGroupRestDTOMapper, mapperContextLevel3, permissionGroupMap, PermissionGroupEntity::getId);
+        if (!mapperContextLevel3.getRelatedPermissionMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedPermissionMap(), permissionRestDTOMapper, mapperContextLevel3, permissionMap, PermissionEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -154,6 +165,8 @@ public class RelatedObjectsRestDTOConverter {
                 .setSpaceRoleMap(spaceRoleMap.isEmpty() ? null : spaceRoleMap)
                 .setBusinessAccountMap(businessAccountMap.isEmpty() ? null : businessAccountMap)
                 .setPermissionGroupMap(permissionGroupMap.isEmpty() ? null : permissionGroupMap)
+                .setBusinessAccountMap(businessAccountMap.isEmpty() ? null : businessAccountMap)
+                .setPermissionMap(permissionMap.isEmpty() ? null : permissionMap )
         ;
         return ret;
     }
