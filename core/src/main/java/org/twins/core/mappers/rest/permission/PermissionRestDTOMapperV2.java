@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.permission;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dto.rest.permission.PermissionDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -14,11 +15,12 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = PermissionGroupMode.Permission2PermissionGroupMode.class)
 public class PermissionRestDTOMapperV2 extends RestSimpleDTOMapper<PermissionEntity, PermissionDTOv2> {
 
     private final PermissionGroupService permissionService;
     private final PermissionRestDTOMapper permissionRestDTOMapper;
+
+    @MapperModePointerBinding(modes = PermissionGroupMode.Permission2PermissionGroupMode.class)
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
 
     @Override
@@ -27,7 +29,7 @@ public class PermissionRestDTOMapperV2 extends RestSimpleDTOMapper<PermissionEnt
         if (showPermissionGroup(mapperContext)) {
 //            permissionService.loadPermissionGroup(src);
             dst.setGroupId(src.getPermissionGroupId());
-            dst.setGroup(permissionGroupRestDTOMapper.convertOrPostpone(src.getPermissionGroup(), mapperContext));
+            dst.setGroup(permissionGroupRestDTOMapper.convertOrPostpone(src.getPermissionGroup(), mapperContext.forkOnPoint(PermissionGroupMode.Permission2PermissionGroupMode.SHORT)));
         }
     }
 
