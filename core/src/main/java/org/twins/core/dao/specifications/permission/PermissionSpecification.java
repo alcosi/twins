@@ -34,7 +34,7 @@ public class PermissionSpecification extends CommonSpecification<PermissionEntit
             if (domainId == null)
                 return cb.conjunction();
             return cb.or(
-                    cb.isNull(root.get(PermissionEntity.Fields.permissionGroupId)),
+                    cb.isNull(root.get(PermissionEntity.Fields.permissionGroup).get(PermissionGroupEntity.Fields.domainId)),
                     cb.equal(root.get(PermissionEntity.Fields.permissionGroup).get(PermissionGroupEntity.Fields.domainId), domainId)
             );
         };
