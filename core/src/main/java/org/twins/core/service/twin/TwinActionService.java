@@ -119,86 +119,115 @@ public class TwinActionService {
         }
     }
 
+    /**
+     * This method loads available actions for each `TwinEntity` object from the provided `twinEntityList`.
+     * For each entity, it checks for permission-based and validator-based restrictions on actions.
+     * If no restrictions exist for an entity, it is assigned all possible actions.
+     * Otherwise, only actions that are not restricted by either permissions or validators are assigned.
+     * The processing is grouped by the entity's class (`TwinClassEntity`).
+     *
+     * @param twinEntityList collection of `TwinEntity` objects for which actions need to be loaded.
+     * @throws ServiceException if an error occurs during permission or validation loading.
+     */
     public void loadActions(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        // List of entities that need action loading (those with null actions)
         List<TwinEntity> needLoad = new ArrayList<>();
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getActions() == null)
                 needLoad.add(twinEntity);
+        // If there are no entities requiring action loading, exit the method
         if (needLoad.isEmpty())
             return;
+        // Group TwinEntity objects by class, so permissions and validators can be processed by class
         KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> groupedByClass = new KitGroupedObj<>(needLoad, TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
+        // Load class-protected actions for all involved classes
         loadClassProtectedActions(groupedByClass.getGroupingObjectMap().values());
-        Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys;
-        TwinClassEntity twinClassEntity;
+        // Maps for storing forbidden actions by permissions and validators
         Map<UUID, Set<TwinAction>> twinsActionsForbiddenByPermissions = new HashMap<>();
         Map<UUID, Set<TwinAction>> twinsActionsForbiddenByValidators = new HashMap<>();
-        for (Map.Entry<UUID, List<TwinEntity>> entry : groupedByClass.getGroupedMap().entrySet()) { // looping grouped by class
-            List<TwinEntity> twinsNeedsValidatorCheck = new ArrayList<>();
-            twinClassEntity = groupedByClass.getGroupingObject(entry.getKey());
-            for (TwinAction twinAction : TwinAction.values()) {
 
+        for (Map.Entry<UUID, List<TwinEntity>> entry : groupedByClass.getGroupedMap().entrySet()) { // Loop through entities grouped by class
+            List<TwinEntity> twinsNeedsValidatorCheck = new ArrayList<>(); // List of entities needing validator checks
+            TwinClassEntity twinClassEntity = groupedByClass.getGroupingObject(entry.getKey());
+            // Check each possible action (TwinAction) for permission and validator protection
+            for (TwinAction twinAction : TwinAction.values()) {
+                // Check if the action is protected by permissions
                 if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByPermission())) {
                     TwinActionPermissionEntity classActionPermissionEntity = twinClassEntity.getActionsProtectedByPermission().get(twinAction);
                     if (classActionPermissionEntity != null) {
-                        permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue()); // extract all permission check variants
-                        for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> samePermissionGroupEntry : permissionDetectKeys.entrySet()) { // looping detected keys
-                            if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) { // all twins linked to current key will have such action
+                        // Convert entities into permission check keys
+                        Map<PermissionService.PermissionDetectKey, List<TwinEntity>> permissionDetectKeys = permissionService.convertToDetectKeys(entry.getValue());
+                        // Loop through permission check keys and verify permission
+                        for (Map.Entry<PermissionService.PermissionDetectKey, List<TwinEntity>> samePermissionGroupEntry : permissionDetectKeys.entrySet()) {
+                            // If the permission is denied for an action, mark the action as forbidden for those entities
+                            if (!permissionService.hasPermission(samePermissionGroupEntry.getKey(), classActionPermissionEntity.getPermissionId())) {
                                 for (TwinEntity twinEntity : samePermissionGroupEntry.getValue()) {
                                     twinsActionsForbiddenByPermissions.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
                                     twinsActionsForbiddenByPermissions.get(twinEntity.getId()).add(twinAction);
                                 }
                             } else {
-                                twinsNeedsValidatorCheck.addAll(samePermissionGroupEntry.getValue());
+                                twinsNeedsValidatorCheck.addAll(samePermissionGroupEntry.getValue()); // If permission is granted, add to validator check list
                             }
                         }
                     }
                 }
+                // Check if the action is protected by validators
                 if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidator())) {
                     for (TwinActionValidatorEntity actionValidatorEntity : twinClassEntity.getActionsProtectedByValidator().getGrouped(twinAction)) {
+                        // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
                         Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
+                        // Check each validator for the action
                         for (TwinValidatorEntity twinValidatorEntity : actionValidatorEntity.getTwinValidators()) {
                             if (!twinValidatorEntity.isActive()) {
                                 log.info(twinValidatorEntity.logShort() + " from " + actionValidatorEntity.logShort() + " is inactive");
                                 continue;
                             }
+                            // Retrieve the validator and check its validity for the entities
                             TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
                             TwinValidator.CollectionValidationResult collectionValidationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinsNeedsValidatorCheck, twinValidatorEntity.isInvert());
+                            // Process the validation result for each entity
                             for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
                                 TwinValidator.ValidationResult validationResult = collectionValidationResult.getTwinsResults().get(twinEntity.getId());
                                 if (validationResult == null) {
                                     log.warn(twinValidatorEntity.logShort() + " from " + actionValidatorEntity.logShort() + " validation result should not be null");
                                     continue;
                                 }
+                                // compute map twin.id - valid \ invalid
                                 twinByTwinValidatorsIsValid.computeIfPresent(twinEntity.getId(), (k, v) -> v && validationResult.isValid());
                                 twinByTwinValidatorsIsValid.putIfAbsent(twinEntity.getId(), validationResult.isValid());
                             }
                         }
+                        // Check which entities passed the validator checks and update forbidden actions
                         List<TwinEntity> nextLoopTwins = new ArrayList<>();
                         for (TwinEntity twinEntity : twinsNeedsValidatorCheck) {
-                            twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), (k) ->new HashSet<>());
-                            twinsActionsForbiddenByValidators.get(twinEntity.getId()).add(twinAction);
-                            if(!twinByTwinValidatorsIsValid.get(twinEntity.getId()))
-                                nextLoopTwins.add(twinEntity);
-                            else {
-                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction);
+                            twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
+                            if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
+                                nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
+                            } else {
+                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction); // If validation passed, remove forbidden action
                             }
                         }
-                        twinsNeedsValidatorCheck = nextLoopTwins;
+                        twinsNeedsValidatorCheck = nextLoopTwins; // Update list for next validator check
                     }
                 }
             }
         }
-        Set<TwinAction> forbiddenPermissionActions, forbiddenValidatorActions;
+        // Set allowed actions for each TwinEntity based on permissions and validator results
         for (TwinEntity twinEntity : needLoad) {
             twinEntity.setActions(new HashSet<>());
-            forbiddenPermissionActions = twinsActionsForbiddenByPermissions.get(twinEntity.getId());
-            forbiddenValidatorActions = twinsActionsForbiddenByValidators.get(twinEntity.getId());
-            if (forbiddenPermissionActions == null && forbiddenValidatorActions == null)
+            Set<TwinAction> forbiddenPermissionActions = twinsActionsForbiddenByPermissions.get(twinEntity.getId());
+            Set<TwinAction> forbiddenValidatorActions = twinsActionsForbiddenByValidators.get(twinEntity.getId());
+
+            // If no forbidden actions, add all possible actions
+            if (forbiddenPermissionActions == null && forbiddenValidatorActions == null) {
                 twinEntity.getActions().addAll(EnumSet.allOf(TwinAction.class));
-            else {
-                for(TwinAction action : EnumSet.allOf(TwinAction.class)) {
-                    if((forbiddenValidatorActions == null || !forbiddenValidatorActions.contains(action)) && (forbiddenPermissionActions == null || !forbiddenPermissionActions.contains(action)))
+            } else {
+                // Add only those actions that are not forbidden by either permissions or validators
+                for (TwinAction action : EnumSet.allOf(TwinAction.class)) {
+                    if ((forbiddenValidatorActions == null || !forbiddenValidatorActions.contains(action)) &&
+                            (forbiddenPermissionActions == null || !forbiddenPermissionActions.contains(action))) {
                         twinEntity.getActions().add(action);
+                    }
                 }
             }
         }
