@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -47,7 +46,6 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
     protected abstract void init(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException;
 
     protected void postInit(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getBusinessAccount(), apiUser.getUser(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
+        twinService.duplicateTwin(domainBusinessAccountEntity.getDomain().getBusinessAccountTemplateTwinId(), domainBusinessAccountEntity.getId()); //creating twin for business account in domain
     }
 }
