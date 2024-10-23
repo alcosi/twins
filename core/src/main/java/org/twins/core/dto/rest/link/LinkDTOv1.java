@@ -20,6 +20,7 @@ public class LinkDTOv1 {
     @Schema(example = DTOExamples.TWIN_CLASS_ID)
     public UUID dstTwinClassId;
 
+    // perhaps it's better to use TwinClassDTOv1
     @Schema(description = "key", example = DTOExamples.TWIN_CLASS_ID)
     public TwinClassBaseDTOv1 dstTwinClass;
 
