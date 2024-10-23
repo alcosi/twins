@@ -4,21 +4,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.dao.twin.TwinAttachmentAction;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.modes.AttachmentCollectionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.AttachmentMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -26,7 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
         AttachmentMode.class,
-        AttachmentCollectionMode.class})
+        AttachmentCollectionMode.class,
+        TwinAttachmentActionMode.class
+})
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
     private final AttachmentService attachmentService;
@@ -61,6 +59,9 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
                     .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(TransitionMode.Attachment2TransitionMode.SHORT)));
         }
+        if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE))
+            //todo stub (only for twinfaces mvp)
+            dst.setAttachmentActions(Set.of(TwinAttachmentAction.values()));
     }
 
     @Override
