@@ -24,6 +24,15 @@ INSERT INTO draft_status (id)
 VALUES ('UNDER_CONSTRUCTION')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
+VALUES ('ERASE_SCOPE_COLLECT_PLANNED')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
+VALUES ('ERASE_SCOPE_COLLECT_NEED_START')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
+VALUES ('ERASE_SCOPE_COLLECT_IN_PROGRESS')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
 VALUES ('CONSTRUCTION_EXCEPTION')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
@@ -125,7 +134,8 @@ create table if not exists draft_twin_persist
     assigner_user_id           uuid,
     owner_business_account_id  uuid,
     owner_user_id              uuid,
-    view_permission_id         uuid
+    view_permission_id         uuid,
+    conflict_description       varchar(255)
 );
 
 create index if not exists draft_twin_persist_draft_id_index
@@ -167,13 +177,25 @@ INSERT INTO draft_twin_erase_status (id)
 VALUES ('UNDETECTED')
 on conflict (id) do nothing;
 INSERT INTO draft_twin_erase_status (id)
-VALUES ('DETECTED_IRREVOCABLE_ERASE')
+VALUES ('IRREVOCABLE_ERASE_DETECTED')
 on conflict (id) do nothing;
 INSERT INTO draft_twin_erase_status (id)
 VALUES ('IRREVOCABLE_ERASE_HANDLED')
 on conflict (id) do nothing;
 INSERT INTO draft_twin_erase_status (id)
-VALUES ('DETECTED_LOCK')
+VALUES ('CASCADE_DELETION_PAUSE')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('CASCADE_DELETION_EXTRACTED')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('STATUS_CHANGE_ERASE_DETECTED')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('SKIP_DETECTED')
+on conflict (id) do nothing;
+INSERT INTO draft_twin_erase_status (id)
+VALUES ('LOCK_DETECTED')
 on conflict (id) do nothing;
 
 create table if not exists draft_twin_erase
@@ -202,7 +224,7 @@ create table if not exists draft_twin_erase
             on update cascade on delete cascade,
     reason_link_id       uuid
         constraint draft_twin_erase_reason_link_id_fk
-            references twin
+            references link
             on update cascade on delete cascade,
 
     constraint draft_twin_erase_pk

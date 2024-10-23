@@ -17,31 +17,31 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class DraftCommitScheduler {
+public class DraftEraseScopeCollectScheduler {
     final ApplicationContext applicationContext;
     final DraftRepository draftRepository;
-    @Qualifier("draftCommitExecutor")
+    @Qualifier("draftCollectEraseScopeExecutor")
     final TaskExecutor taskExecutor;
 
     //todo add to settings
     @Scheduled(fixedDelayString = "2000")
-    public void processDraftCommits() {
+    public void collectEraseScope() {
         try {
             LoggerUtils.logSession();
-            LoggerUtils.logController("draftCommitScheduler$");
-            log.debug("Loading draft commit task from database");
-            List<DraftEntity> draftEntities = draftRepository.findByStatusIdIn(List.of(DraftEntity.Status.COMMIT_NEED_START));
+            LoggerUtils.logController("draftCollectEraseScopeScheduler$");
+            log.debug("Loading erase scope collect tasks from database");
+            List<DraftEntity> draftEntities = draftRepository.findByStatusIdIn(List.of(DraftEntity.Status.ERASE_SCOPE_COLLECT_NEED_START));
             if (CollectionUtils.isEmpty(draftEntities)) {
-                log.debug("No draft need to be commited");
+                log.debug("No erase scopes collect tasks");
                 return;
             }
-            log.info("{} drafts need to be commited", draftEntities.size());
+            log.info("{} drafts ease scopes need to be collected", draftEntities.size());
             for (DraftEntity draftEntity : draftEntities) {
                 try {
-                    log.info("Running draft commit[{}] from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftEntity.Status.COMMIT_IN_PROGRESS);
+                    log.info("Running draft[{}] erase scope collect from status[{}]", draftEntity.getId(), draftEntity.getStatus());
+                    draftEntity.setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_IN_PROGRESS);
                     draftRepository.save(draftEntity);
-                    DraftCommitTask draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
+                    DraftEraseScopeCollectTask draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);
                 } catch (Exception e) {
                     log.error("Exception ex: {}", e.getMessage(), e);

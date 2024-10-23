@@ -7,7 +7,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twin_class_action_permission")
+@Table(name = "twin_action_permission")
 public class TwinClassActionPermissionEntity {
     @Id
     @GeneratedValue(generator = "uuid")

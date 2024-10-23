@@ -216,7 +216,7 @@ public class EntitySmartService {
                 }
             }
         }
-        return null;
+        return kit;
     }
 
     public enum FindMode {

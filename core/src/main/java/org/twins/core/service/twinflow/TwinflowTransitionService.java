@@ -790,7 +790,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return transitionResultMajor;
     }
 
-    @Transactional
     public TransitionResult storeMinorTransitions(TransitionContextBatch transitionContextBatch) throws ServiceException {
         TransitionResultMinor transitionResultMinor = new TransitionResultMinor();
         for (TransitionContext transitionContext : transitionContextBatch.getSimple()) {
@@ -883,7 +882,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
 
-    @Transactional
+
     public void commitFactoriesResult(Map<TransitionContext, FactoryResultUncommited> factoryTransitions, TransitionResultMinor transitionResultMinor) throws ServiceException {
         for (var entry : factoryTransitions.entrySet()) {
             FactoryResultCommited factoryResultCommited = twinFactoryService.commitResult(entry.getValue());

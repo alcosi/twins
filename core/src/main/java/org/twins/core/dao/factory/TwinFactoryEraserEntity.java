@@ -46,7 +46,7 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
         return switch (level) {
             case SHORT -> "twinFactoryEraser[" + id + "]";
             case NORMAL -> "twinFactoryEraser[" + id + ", twinFactoryId:" + twinFactoryId + "]";
-            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", finalEraserAction" + eraserAction + "]";
+            default -> "twinFactoryEraser[id:" + id + ", twinFactoryId:" + twinFactoryId + ", inputTwinClassId:" + inputTwinClassId + ", action:" + eraserAction + "]";
         };
     }
 

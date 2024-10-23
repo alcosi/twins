@@ -110,6 +110,17 @@ public class ApplicationConfig {
         return executor;
     }
 
+    @Bean
+    public TaskExecutor draftCollectEraseScopeExecutor(@Autowired(required = false) TaskDecorator taskDecorator) {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(5); //todo move to settings
+        executor.setMaxPoolSize(10);
+        executor.setThreadNamePrefix("draftCollectEraseScopeExecutor-");
+        if (taskDecorator != null) executor.setTaskDecorator(taskDecorator);
+        executor.initialize();
+        return executor;
+    }
+
 
 //    @Bean(name = "cacheManagerRequestScope")
 //    @RequestScope(proxyMode = ScopedProxyMode.TARGET_CLASS)

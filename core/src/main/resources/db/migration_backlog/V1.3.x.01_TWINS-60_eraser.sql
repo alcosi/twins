@@ -1,6 +1,6 @@
 create table if not exists twin_factory_eraser_action
 (
-    id varchar(10) not null primary key
+    id varchar(20) not null primary key
 );
 
 insert into twin_factory_eraser_action
@@ -103,7 +103,7 @@ create table if not exists eraseflow_link_cascade
         constraint eraseflow_link_cascade_link_id_fk
             references link
             on update cascade on delete restrict,
-    cascade_deletion_factory_id  uuid
+    cascade_deletion_factory_id  uuid not null
         constraint eraseflow_link_cascade_cascade_deletion_factory_id
             references twin_factory
             on update cascade on delete restrict,
@@ -116,7 +116,7 @@ create table if not exists eraseflow_link_cascade
 );
 
 create unique index if not exists eraseflow_link_cascade_eraseflow_id_link_id_uindex
-    on public.eraseflow_link_cascade (eraseflow_id, link_id);
+    on eraseflow_link_cascade (eraseflow_id, link_id);
 
 -- we add new field to twinflow table, but not twinflow_schema_map,
 -- this helps to more easy access eraseflow from code

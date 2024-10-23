@@ -41,7 +41,7 @@ public class TwinStatusEntity implements EasyLoggable {
     @Column(name = "logo")
     private String logo;
 
-    @Column(name = "color")
+    @Column(name = "background_color")
     private String color;
 
     @EqualsAndHashCode.Exclude

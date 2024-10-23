@@ -1,7 +1,5 @@
 package org.twins.core.dao.draft;
 
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -56,8 +54,8 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying
     @Query(nativeQuery = true, value =
-            "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, draft_twin_erase_status_id, reason_twin_id, twin_erase_reason_id) " +
-                    "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, tl.src_twin_id, 'UNDETECTED', :twinId, 'LINK' " +
+            "insert into draft_twin_erase (draft_id, time_in_millis, twin_id, draft_twin_erase_status_id, reason_twin_id, twin_erase_reason_id, reason_link_id) " +
+                    "select :draftId, EXTRACT(epoch FROM  current_timestamp) * 1000, tl.src_twin_id, 'UNDETECTED', :twinId, 'LINK', tl.link_id " +
                     "from twin_link tl, " +
                     "     link l " +
                     "where tl.dst_twin_id = :twinId " +
@@ -94,7 +92,4 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
     int commitEraseByStatus(@Param("draftId") UUID draftId);
 
     DraftTwinEraseEntity findByDraftIdAndTwinId(UUID draftId, UUID twinId);
-
-    Slice<DraftTwinEraseEntity> findByDraftIdAndEraseTwinStatusIdIsNotNullOrderByEraseTwinStatusId(UUID draftId, Pageable pageable);
-
 }

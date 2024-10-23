@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Data
-@Table(name = "twin_class_action_validator")
+@Table(name = "twin_action_validator")
 public class TwinClassActionValidatorEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
