@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
@@ -348,28 +349,29 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return IterableUtils.toList(entitySmartService.saveAllAndLog(validators, twinflowTransitionValidatorRepository));
     }
 
+    //TODO support new logic with sets for CUD validator
     public void updateValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> validators) throws ServiceException {
-        ChangesHelper changesHelper = new ChangesHelper();
-        TwinflowTransitionValidatorEntity dbValidatorEntity;
-        List<TwinflowTransitionValidatorEntity> saveList = new ArrayList<>();
-        for (TwinflowTransitionValidatorEntity validator : validators) {
-            changesHelper.flush();
-            dbValidatorEntity = entitySmartService.findById(validator.getId(), twinflowTransitionValidatorRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.order, dbValidatorEntity.getOrder(), validator.getOrder()))
-                dbValidatorEntity.setOrder(validator.getOrder());
-            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.invert, dbValidatorEntity.isInvert(), validator.isInvert()))
-                dbValidatorEntity.setInvert(validator.isInvert());
-            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorFeaturerId, dbValidatorEntity.getTwinValidatorFeaturerId(), validator.getTwinValidatorFeaturerId()))
-                dbValidatorEntity.setTwinValidatorFeaturerId(validator.getTwinValidatorFeaturerId());
-            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorParams, dbValidatorEntity.getTwinValidatorParams(), validator.getTwinValidatorParams()))
-                dbValidatorEntity.setTwinValidatorParams(validator.getTwinValidatorParams());
-            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.isActive, dbValidatorEntity.isActive(), validator.isActive()))
-                dbValidatorEntity.setActive(validator.isActive());
-            if (changesHelper.hasChanges())
-                saveList.add(dbValidatorEntity);
-        }
-        if (!CollectionUtils.isEmpty(saveList))
-            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
+//        ChangesHelper changesHelper = new ChangesHelper();
+//        TwinflowTransitionValidatorEntity dbValidatorEntity;
+//        List<TwinflowTransitionValidatorEntity> saveList = new ArrayList<>();
+//        for (TwinflowTransitionValidatorEntity validator : validators) {
+//            changesHelper.flush();
+//            dbValidatorEntity = entitySmartService.findById(validator.getId(), twinflowTransitionValidatorRepository, EntitySmartService.FindMode.ifEmptyThrows);
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.order, dbValidatorEntity.getOrder(), validator.getOrder()))
+//                dbValidatorEntity.setOrder(validator.getOrder());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.invert, dbValidatorEntity.isInvert(), validator.isInvert()))
+//                dbValidatorEntity.setInvert(validator.isInvert());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorFeaturerId, dbValidatorEntity.getTwinValidatorFeaturerId(), validator.getTwinValidatorFeaturerId()))
+//                dbValidatorEntity.setTwinValidatorFeaturerId(validator.getTwinValidatorFeaturerId());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorParams, dbValidatorEntity.getTwinValidatorParams(), validator.getTwinValidatorParams()))
+//                dbValidatorEntity.setTwinValidatorParams(validator.getTwinValidatorParams());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.isActive, dbValidatorEntity.isActive(), validator.isActive()))
+//                dbValidatorEntity.setActive(validator.isActive());
+//            if (changesHelper.hasChanges())
+//                saveList.add(dbValidatorEntity);
+//        }
+//        if (!CollectionUtils.isEmpty(saveList))
+//            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
     }
 
     public void cudTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
@@ -699,19 +701,23 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
         return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
-
+//todo optimize for collection processing
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
+        boolean methodResult;
         for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
-            if (!transitionValidatorEntity.isActive()) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
-                return true;
-            }
+            for(TwinValidatorEntity twinValidatorEntity : transitionValidatorEntity.getTwinValidators()) {
+                if (!twinValidatorEntity.isActive()) {
+                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    continue;
+                }
 
-            TwinValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTwinValidatorParams(), twinEntity, transitionValidatorEntity.isInvert());
-            if (!validationResult.isValid()) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
-                return false;
+                TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                methodResult = validationResult.isValid();
+                if (!methodResult) {
+                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
+                    break;
+                }
             }
         }
         return true;

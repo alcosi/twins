@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
@@ -67,17 +68,20 @@ public class CommentActionService {
             }
             boolean isValid = true;
             for (TwinCommentActionAlienValidatorEntity twinCommentActionAlienValidator : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().getGrouped(twinCommentAction)) {
-                TwinValidator twinValidator = featurerService.getFeaturer(twinCommentActionAlienValidator.getTwinValidatorFeaturer(), TwinValidator.class);
-                TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinCommentActionAlienValidator.getTwinValidatorParams(), twinEntity, twinCommentActionAlienValidator.isInvert());
-                if (!validationResult.isValid()) {
-                    log.error(validationResult.getMessage());
-                    isValid = false;
-                    break;
+                isValid = true;
+                for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidator.getTwinValidators()) {
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                    if (!validationResult.isValid()) {
+                        log.error(validationResult.getMessage());
+                        isValid = false;
+                        break;
+                    }
                 }
+                if(isValid) break;
             }
-            if (isValid) {
+            if (isValid)
                 twinComment.getCommentActions().add(twinCommentAction);
-            }
         }
     }
 
