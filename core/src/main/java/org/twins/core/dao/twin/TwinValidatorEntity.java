@@ -1,0 +1,57 @@
+package org.twins.core.dao.twin;
+
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
+import jakarta.persistence.*;
+import lombok.Data;
+import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
+import org.hibernate.annotations.Type;
+import org.twins.core.featurer.twin.validator.TwinValidator;
+
+import java.util.HashMap;
+import java.util.UUID;
+
+@Data
+@Entity
+@Table(name = "twin_validator")
+public class TwinValidatorEntity implements EasyLoggable {
+    @Id
+    @GeneratedValue(generator = "uuid")
+    private UUID id;
+
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
+
+    @Column(name = "twin_validator_featurer_id")
+    private Integer twinValidatorFeaturerId;
+
+    @FeaturerList(type = TwinValidator.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity twinValidatorFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "twin_validator_params", columnDefinition = "hstore")
+    private HashMap<String, String> twinValidatorParams;
+
+    @Column(name = "invert")
+    private boolean invert;
+
+    @Column(name = "active")
+    private boolean isActive;
+
+    @Column(name = "description")
+    private String description;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinValidatorEntity[" + id + "]";
+            case NORMAL -> "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+            default ->
+                    "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+        };
+    }
+
+}

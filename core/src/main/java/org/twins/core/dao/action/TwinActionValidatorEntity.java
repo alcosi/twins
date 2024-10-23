@@ -1,15 +1,11 @@
 package org.twins.core.dao.action;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.EasyLoggable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Type;
-import org.twins.core.featurer.twin.validator.TwinValidator;
+import org.twins.core.dao.twin.TwinValidatorEntity;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -31,23 +27,12 @@ public class TwinActionValidatorEntity implements EasyLoggable {
     @Basic
     private Integer order;
 
-    @Column(name = "invert")
-    private boolean invert;
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
 
-    @Column(name = "twin_validator_featurer_id")
-    private Integer twinValidatorFeaturerId;
-
-    @FeaturerList(type = TwinValidator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity twinValidatorFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "twin_validator_params", columnDefinition = "hstore")
-    private HashMap<String, String> twinValidatorParams;
-
-    @Column(name = "active")
-    private boolean isActive;
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    private List<TwinValidatorEntity> twinValidators;
 
     @Override
     public String easyLog(Level level) {
@@ -55,7 +40,7 @@ public class TwinActionValidatorEntity implements EasyLoggable {
             case SHORT -> "twinActionValidator[" + id + "]";
             case NORMAL -> "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+                    "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 }

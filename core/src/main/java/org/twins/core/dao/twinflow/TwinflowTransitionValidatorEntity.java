@@ -1,19 +1,14 @@
 package org.twins.core.dao.twinflow;
 
-import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
-import org.cambium.featurer.annotations.FeaturerList;
-import org.cambium.featurer.dao.FeaturerEntity;
-import org.hibernate.annotations.Type;
-import org.twins.core.featurer.twin.validator.TwinValidator;
+import org.twins.core.dao.twin.TwinValidatorEntity;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -32,31 +27,21 @@ public class TwinflowTransitionValidatorEntity implements EasyLoggable, PublicCl
     @Basic
     private Integer order;
 
-    @Column(name = "invert")
-    private boolean invert;
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
 
-    @Column(name = "twin_validator_featurer_id")
-    private Integer twinValidatorFeaturerId;
+    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    private List<TwinValidatorEntity> twinValidators;
 
-    @FeaturerList(type = TwinValidator.class)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_featurer_id", insertable = false, updatable = false)
-    private FeaturerEntity twinValidatorFeaturer;
-
-    @Type(PostgreSQLHStoreType.class)
-    @Column(name = "twin_validator_params", columnDefinition = "hstore")
-    private HashMap<String, String> twinValidatorParams;
-
-    @Column(name = "active")
-    private boolean isActive;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
             case SHORT -> "twinflowTransitionValidator[" + id + "]";
             case NORMAL ->
-                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", isActive: " + isActive + "]";
+                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + "]";
             default ->
-                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + ", featurer:" + twinValidatorFeaturerId + ", isActive: " + isActive + ", invert: " + invert + "]";
+                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + "]";
         };
     }
 
@@ -66,10 +51,7 @@ public class TwinflowTransitionValidatorEntity implements EasyLoggable, PublicCl
         return new TwinflowTransitionValidatorEntity()
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setOrder(order)
-                .setInvert(invert)
-                .setTwinValidatorFeaturerId(twinValidatorFeaturerId)
-                .setTwinValidatorFeaturer(twinValidatorFeaturer)
-                .setTwinValidatorParams(twinValidatorParams)
-                .setActive(isActive);
+                .setTwinValidatorSetId(twinValidatorSetId)
+                .setTwinValidators(twinValidators);
     }
 }
