@@ -249,19 +249,20 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         loadViewPermission(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadViewPermission(Collection<TwinClassEntity> twinClassList) {
-        if (CollectionUtils.isEmpty(twinClassList))
+    public void loadViewPermission(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getViewPermissionId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getViewPermission() == null && twinClass.getViewPermissionId() != null)
+                needLoad.add(twinClass);
+        }
+        if (KitUtils.isEmpty(needLoad))
             return;
-        List<TwinClassEntity> needLoad = new ArrayList<>();
-        for (TwinClassEntity twinClassEntity : twinClassList)
-            if (twinClassEntity.getViewPermission() == null)
-                needLoad.add(twinClassEntity);
-        if (CollectionUtils.isEmpty(needLoad))
-            return;
-        Kit<TwinClassEntity, UUID> twinClassKit = new Kit<>(needLoad, TwinClassEntity::getViewPermissionId);
-        Kit<PermissionEntity, UUID> permissionMap = new Kit<>(permissionRepository.findByIdIn(twinClassKit.getIdSet()), PermissionEntity::getId);
-        for (Map.Entry<UUID, TwinClassEntity> entry : twinClassKit.getMap().entrySet())
-            entry.getValue().setViewPermission(permissionMap.get(entry.getKey()));
+        List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoad.getGroupedMap().keySet());
+        for (PermissionEntity permission : permissions) {
+            for (TwinClassEntity twinClass : needLoad.getGrouped(permission.getId())) {
+                twinClass.setViewPermission(permission);
+            }
+        }
     }
 
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {
