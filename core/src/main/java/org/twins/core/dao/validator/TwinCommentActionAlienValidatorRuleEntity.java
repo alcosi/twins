@@ -24,6 +24,7 @@ public class TwinCommentActionAlienValidatorRuleEntity implements Validator, Eas
     private TwinCommentAction twinCommentAction;
 
     @Column(name = "`order`")
+    @Basic
     private Integer order;
 
     @Column(name = "twin_validator_set_id")
@@ -36,10 +37,10 @@ public class TwinCommentActionAlienValidatorRuleEntity implements Validator, Eas
     @Override
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
-            case SHORT -> "twinCommentActionAlienValidator[" + id + "]";
-            case NORMAL -> "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinCommentActionAlienValidatorRule[" + id + "]";
+            case NORMAL -> "twinCommentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+                    "twinCommentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 

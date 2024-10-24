@@ -6,8 +6,8 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "ValidatorBaseV2")
-public class ValidatorBaseDTOv2 extends ValidatorBaseDTOv1 {
+@Schema(name = "ValidatorRuleBaseV2")
+public class ValidatorRuleBaseDTOv2 extends ValidatorRuleBaseDTOv1 {
 
     @Schema(description = "grouping set of twin validator")
     public TwinValidatorSetBaseDTOv1 twinValidatorSet;

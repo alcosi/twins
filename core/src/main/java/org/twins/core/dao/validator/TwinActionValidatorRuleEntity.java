@@ -37,10 +37,10 @@ public class TwinActionValidatorRuleEntity implements Validator, EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinActionValidator[" + id + "]";
-            case NORMAL -> "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinActionValidatorRule[" + id + "]";
+            case NORMAL -> "twinActionValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+                    "twinActionValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 }

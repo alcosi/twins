@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.domain.EntityCUD;
-import org.twins.core.dto.rest.twinflow.ValidatorCudDTOv1;
+import org.twins.core.dto.rest.validator.cud.ValidatorCudDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 

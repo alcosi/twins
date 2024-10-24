@@ -15,6 +15,9 @@ public class TwinValidatorBaseDTOv1 {
     @Schema(description = "id")
     public UUID id;
 
+    @Schema(description = "grouped set of twin validators id")
+    public UUID twinValidatorSetId;;
+
     @Schema(description = "validator featurer id")
     public Integer validatorFeaturerId;
 
@@ -29,5 +32,8 @@ public class TwinValidatorBaseDTOv1 {
 
     @Schema(description = "description")
     public String description;
+
+    @Schema(description = "order")
+    public Integer order;
 
 }

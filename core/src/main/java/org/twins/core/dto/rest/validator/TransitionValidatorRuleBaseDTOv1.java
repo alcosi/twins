@@ -8,8 +8,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TransitionValidatorBaseV1")
-public class TransitionValidatorBaseDTOv1 extends ValidatorBaseDTOv1 {
+@Schema(name = "TransitionValidatorRuleBaseV1")
+public class TransitionValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv1 {
 
     @Schema(description = "twinflow transition id")
     private UUID twinflowTransitionId;

@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "ValidatorBaseV1")
-public class ValidatorBaseDTOv1 {
+@Schema(name = "ValidatorRuleBaseV1")
+public class ValidatorRuleBaseDTOv1 {
 
     @Schema(description = "id")
     public UUID id;

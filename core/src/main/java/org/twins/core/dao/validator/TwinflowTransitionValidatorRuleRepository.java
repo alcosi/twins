@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TwinflowTransitionValidatorRepository extends CrudRepository<TwinflowTransitionValidatorRuleEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionValidatorRuleEntity> {
+public interface TwinflowTransitionValidatorRuleRepository extends CrudRepository<TwinflowTransitionValidatorRuleEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionValidatorRuleEntity> {
     String CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED = "TwinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder";
 
     @Cacheable(value = CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, key = "#twinflowTransitionId")

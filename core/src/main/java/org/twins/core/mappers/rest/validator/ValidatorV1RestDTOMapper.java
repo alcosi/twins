@@ -12,11 +12,11 @@ import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 @RequiredArgsConstructor
 public class ValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionValidatorRuleEntity, ValidatorDTOv1> {
 
-    private final ValidatorBaseV1RestDTOMapper validatorBaseV1RestDTOMapper;
+    private final ValidatorRuleBaseV1RestDTOMapper validatorRuleBaseV1RestDTOMapper;
 //TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     @Override
     public void map(TwinflowTransitionValidatorRuleEntity src, ValidatorDTOv1 dst, MapperContext mapperContext) throws Exception {
-        validatorBaseV1RestDTOMapper.map(src, dst, mapperContext);
+        validatorRuleBaseV1RestDTOMapper.map(src, dst, mapperContext);
         dst.setId(src.getId());
     }
 

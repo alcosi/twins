@@ -36,11 +36,11 @@ public class TwinflowTransitionValidatorRuleEntity implements Validator, EasyLog
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {
-            case SHORT -> "twinflowTransitionValidator[" + id + "]";
+            case SHORT -> "twinflowTransitionValidatorRule[" + id + "]";
             case NORMAL ->
-                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + "]";
+                    "twinflowTransitionValidatorRule[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + "]";
             default ->
-                    "twinflowTransitionValidator[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + "]";
+                    "twinflowTransitionValidatorRule[id:" + id + ", twinflowTransitionId:" + twinflowTransitionId + ", order:" + order + "]";
         };
     }
 
