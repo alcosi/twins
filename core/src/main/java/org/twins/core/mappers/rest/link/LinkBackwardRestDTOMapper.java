@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.link;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.i18n.service.I18nService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
@@ -10,11 +11,11 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.LinkMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -23,8 +24,10 @@ import org.twins.core.service.permission.Permissions;
 @MapperModeBinding(modes = LinkMode.class)
 public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, LinkDTOv1> {
 
+    @Lazy
+    @Autowired
     @MapperModePointerBinding(modes = TwinClassMode.LinkDst2TwinClassMode.class)
-    private final TwinClassBaseRestDTOMapper twinClassBaseRestDTOMapper;
+    private TwinClassRestDTOMapper twinClassRestDTOMapper;
 
     private final I18nService i18nService;
 
@@ -53,7 +56,7 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
         if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE))
             dst
                     .dstTwinClassId(src.getSrcTwinClassId())
-                    .dstTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
+                    .dstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
                             .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
     }
 
