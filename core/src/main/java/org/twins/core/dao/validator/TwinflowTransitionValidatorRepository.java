@@ -1,4 +1,4 @@
-package org.twins.core.dao.twinflow;
+package org.twins.core.dao.validator;
 
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -10,15 +10,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface TwinflowTransitionValidatorRepository extends CrudRepository<TwinflowTransitionValidatorEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionValidatorEntity> {
+public interface TwinflowTransitionValidatorRepository extends CrudRepository<TwinflowTransitionValidatorRuleEntity, UUID>, JpaSpecificationExecutor<TwinflowTransitionValidatorRuleEntity> {
     String CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED = "TwinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder";
 
     @Cacheable(value = CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, key = "#twinflowTransitionId")
-    List<TwinflowTransitionValidatorEntity> findByTwinflowTransitionIdOrderByOrder(UUID twinflowTransitionId);
+    List<TwinflowTransitionValidatorRuleEntity> findByTwinflowTransitionIdOrderByOrder(UUID twinflowTransitionId);
 
-    List<TwinflowTransitionValidatorEntity> findAllByTwinflowTransitionIdInOrderByOrder(Collection<UUID> twinflowTransitionIds);
+    List<TwinflowTransitionValidatorRuleEntity> findAllByTwinflowTransitionIdInOrderByOrder(Collection<UUID> twinflowTransitionIds);
 
-    List<TwinflowTransitionValidatorEntity> findAllByTwinflowTransitionIdAndIdIn(UUID transitionId, List<UUID> idList);
+    List<TwinflowTransitionValidatorRuleEntity> findAllByTwinflowTransitionIdAndIdIn(UUID transitionId, List<UUID> idList);
 
     void deleteAllByTwinflowTransitionIdAndIdIn(UUID transitionId, List<UUID> idList);
 

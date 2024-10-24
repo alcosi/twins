@@ -13,8 +13,10 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
-import org.twins.core.dao.twin.TwinValidatorEntity;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
@@ -67,9 +69,10 @@ public class CommentActionService {
                 continue;
             }
             boolean isValid = true;
-            for (TwinCommentActionAlienValidatorEntity twinCommentActionAlienValidator : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().getGrouped(twinCommentAction)) {
+            for (TwinCommentActionAlienValidatorRuleEntity twinCommentActionAlienValidatorRule : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().getGrouped(twinCommentAction)) {
+                twinCommentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
-                for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidator.getTwinValidators()) {
+                for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidatorRule.getTwinValidators()) {
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
                     TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {
@@ -104,8 +107,8 @@ public class CommentActionService {
         if (twinClassEntity.getCommentAlienActionsProtectedByValidator() == null)
             twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(
                     twinCommentActionAlienValidatorRepository.findByTwinClassIdOrderByOrder(twinClassEntity.getId()),
-                    TwinCommentActionAlienValidatorEntity::getId,
-                    TwinCommentActionAlienValidatorEntity::getTwinCommentAction));
+                    TwinCommentActionAlienValidatorRuleEntity::getId,
+                    TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));
     }
 
     public void loadClassCommentActionsSelfRestrict(TwinClassEntity twinClassEntity) {
@@ -132,10 +135,10 @@ public class CommentActionService {
             }
         }
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
-            List<TwinCommentActionAlienValidatorEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            KitGrouped<TwinCommentActionAlienValidatorEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinClassId);
+            List<TwinCommentActionAlienValidatorRuleEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
-                twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinCommentAction));
+                twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));
             }
         }
     }

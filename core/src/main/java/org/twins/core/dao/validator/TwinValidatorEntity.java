@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.validator;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
@@ -43,6 +43,10 @@ public class TwinValidatorEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
+
+    @Column(name = "`order`")
+    @Basic
+    private Integer order;
 
     @Override
     public String easyLog(Level level) {
