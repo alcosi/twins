@@ -9,6 +9,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.validator.ValidatorV1RestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;

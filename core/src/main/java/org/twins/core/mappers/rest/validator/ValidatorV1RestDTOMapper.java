@@ -1,27 +1,27 @@
-package org.twins.core.mappers.rest.twinflow;
+package org.twins.core.mappers.rest.validator;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twinflow.TwinflowTransitionValidatorEntity;
-import org.twins.core.dto.rest.twinflow.ValidatorDTOv1;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.dto.rest.validator.ValidatorDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 
 @Component
 @RequiredArgsConstructor
-public class ValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionValidatorEntity, ValidatorDTOv1> {
+public class ValidatorV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionValidatorRuleEntity, ValidatorDTOv1> {
 
     private final ValidatorBaseV1RestDTOMapper validatorBaseV1RestDTOMapper;
-
+//TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     @Override
-    public void map(TwinflowTransitionValidatorEntity src, ValidatorDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinflowTransitionValidatorRuleEntity src, ValidatorDTOv1 dst, MapperContext mapperContext) throws Exception {
         validatorBaseV1RestDTOMapper.map(src, dst, mapperContext);
         dst.setId(src.getId());
     }
 
     @Override
-    public String getObjectCacheId(TwinflowTransitionValidatorEntity src) {
+    public String getObjectCacheId(TwinflowTransitionValidatorRuleEntity src) {
         return src.getId().toString();
     }
 

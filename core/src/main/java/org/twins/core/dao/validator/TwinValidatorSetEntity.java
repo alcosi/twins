@@ -1,0 +1,36 @@
+package org.twins.core.dao.validator;
+
+import jakarta.persistence.*;
+import lombok.Data;
+import org.cambium.common.EasyLoggable;
+
+import java.util.UUID;
+
+@Data
+@Entity
+@Table(name = "twin_validator_set")
+public class TwinValidatorSetEntity implements EasyLoggable {
+    @Id
+    @GeneratedValue(generator = "uuid")
+    private UUID id;
+
+    @Column(name = "domain_id")
+    private UUID domainId;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "description")
+    private String description;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinValidatorSetEntity[" + id + "]";
+            case NORMAL -> "twinValidatorSetEntity[id:" + id + ", domainId:" + domainId + "]";
+            default ->
+                    "twinValidatorSetEntity[id:" + id + ", domainId:" + domainId + ", name:" + name + "]";
+        };
+    }
+
+}
