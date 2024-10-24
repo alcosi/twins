@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twin_class.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
@@ -241,6 +243,25 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
         twinClassEntity.setChildClassIdSet(childClassIdSet);
         return childClassIdSet;
+    }
+
+    public void loadViewPermission(TwinClassEntity twinClassEntity) {
+        loadViewPermission(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadViewPermission(Collection<TwinClassEntity> twinClassList) {
+        if (CollectionUtils.isEmpty(twinClassList))
+            return;
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        for (TwinClassEntity twinClassEntity : twinClassList)
+            if (twinClassEntity.getViewPermission() == null)
+                needLoad.add(twinClassEntity);
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        Kit<TwinClassEntity, UUID> twinClassKit = new Kit<>(needLoad, TwinClassEntity::getViewPermissionId);
+        Kit<PermissionEntity, UUID> permissionMap = new Kit<>(permissionRepository.findByIdIn(twinClassKit.getIdSet()), PermissionEntity::getId);
+        for (Map.Entry<UUID, TwinClassEntity> entry : twinClassKit.getMap().entrySet())
+            entry.getValue().setViewPermission(permissionMap.get(entry.getKey()));
     }
 
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {

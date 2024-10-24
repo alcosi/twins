@@ -64,7 +64,6 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
     private final TwinStatusService twinStatusService;
     private final LinkService linkService;
     private final DataListService dataListService;
-    private final PermissionService permissionService;
 
 
     @Override
@@ -129,9 +128,11 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT))));
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
-            if (src.getViewPermissionId() != null)
-                dst.viewPermission(permissionRestDTOMapper.convert(permissionService
-                        .findEntitySafe(src.getViewPermissionId()), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))));
+            if (src.getViewPermissionId() != null) {
+                twinClassService.loadViewPermission(src);
+                dst.viewPermissionId(src.getViewPermissionId());
+                dst.viewPermission(permissionRestDTOMapper.convert(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))));
+            }
         }
     }
 
@@ -152,6 +153,9 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
         }
         if (mapperContext.hasModeButNot(DataListOptionMode.TwinClassMarker2DataListOptionMode.HIDE)) {
             twinClassService.loadMarkerDataList(srcCollection, true);
+        }
+        if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
+            twinClassService.loadViewPermission(srcCollection);
         }
     }
 

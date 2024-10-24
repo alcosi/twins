@@ -165,7 +165,6 @@ public class RelatedObjectsRestDTOConverter {
                 .setSpaceRoleMap(spaceRoleMap.isEmpty() ? null : spaceRoleMap)
                 .setBusinessAccountMap(businessAccountMap.isEmpty() ? null : businessAccountMap)
                 .setPermissionGroupMap(permissionGroupMap.isEmpty() ? null : permissionGroupMap)
-                .setBusinessAccountMap(businessAccountMap.isEmpty() ? null : businessAccountMap)
                 .setPermissionMap(permissionMap.isEmpty() ? null : permissionMap )
         ;
         return ret;
