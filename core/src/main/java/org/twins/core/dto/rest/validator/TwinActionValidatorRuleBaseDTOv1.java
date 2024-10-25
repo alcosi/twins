@@ -4,14 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.comment.TwinCommentAction;
 
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinActionValidatorRuleBaseV1")
-public class TwinActionValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv1 {
+public class TwinActionValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv2 {
 
     @Schema(description = "twinclass id")
     private UUID twinClassId;

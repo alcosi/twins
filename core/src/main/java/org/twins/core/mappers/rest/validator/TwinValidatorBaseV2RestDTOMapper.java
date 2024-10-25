@@ -9,6 +9,7 @@ import org.twins.core.dto.rest.validator.TwinValidatorBaseDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.service.twin.TwinValidatorSetService;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +19,7 @@ public class TwinValidatorBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinVa
     private final TwinValidatorBaseV1RestDTOMapper twinValidatorBaseV1RestDTOMapper;
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.class})
     private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
-    private final TwinValidatorSetRepository twinValidatorSetRepository;
+    private final TwinValidatorSetService twinValidatorSetService;
 
 
     @Override
@@ -28,8 +29,7 @@ public class TwinValidatorBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinVa
             case DETAILED:
                 dst
                         .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                                //todo load(set service, transient field in twinvalidator)
-                                twinValidatorSetRepository.findById(src.getTwinValidatorSetId()).orElse(null), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
+                                twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
                         .setTwinValidatorSetId(src.getTwinValidatorSetId());
                 break;
             case SHORT:

@@ -21,12 +21,12 @@ public class ValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<Valida
 
     @Override
     public void map(Validator src, ValidatorRuleBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(ValidatorRuleMode.SHORT)) {
+        switch (mapperContext.getModeOrUse(ValidatorRuleMode.HIDE)) {
             case DETAILED:
                 dst
                 .setId(src.getId())
                 .setOrder(src.getOrder())
-                .setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(src.getTwinValidators(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorMode.ValidatorRule2TwinValidatorMode.SHORT))));
+                .setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(src.getTwinValidators(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorMode.ValidatorRule2TwinValidatorMode.HIDE))));
                 break;
             case SHORT:
                 dst

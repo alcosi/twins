@@ -52,6 +52,9 @@ public class TwinValidatorEntity implements EasyLoggable {
     @Basic
     private Integer order;
 
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {

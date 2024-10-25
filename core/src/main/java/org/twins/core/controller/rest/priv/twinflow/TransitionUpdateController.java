@@ -66,10 +66,13 @@ public class TransitionUpdateController extends ApiController {
             I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
 
-            EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD = validatorCUDRestDTOReverseMapperV1.convert(request.getValidators());
             EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD = triggerCUDRestDTOReverseMapperV1.convert(request.getTriggers());
+
+            //todo think about cud logic
+            EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD = validatorCUDRestDTOReverseMapperV1.convert(request.getValidators());
             if(validatorCUD != null)
                 throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Twinflow transition validator CUD service methods are not implemented yet");
+
             TwinflowTransitionEntity twinflowTransitionEntity = transitionUpdateRestDTOReverseMapper.convert(request);
             twinflowTransitionEntity.setId(transitionId);
             twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n, validatorCUD, triggerCUD);

@@ -8,4 +8,7 @@ public interface Validator {
     Integer getOrder();
     UUID getTwinValidatorSetId();
     List<TwinValidatorEntity> getTwinValidators();
+    TwinValidatorSetEntity getTwinValidatorSet();
+    void setTwinValidatorSet(TwinValidatorSetEntity twinValidatorSet);
+
 }

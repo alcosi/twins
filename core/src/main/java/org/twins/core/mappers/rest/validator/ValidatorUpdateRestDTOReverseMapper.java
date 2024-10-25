@@ -14,9 +14,11 @@ public class ValidatorUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Val
 
     final TwinValidatorBaseV1RestDTOReverseMapper twinValidatorBaseV1RestDTOReverseMapper;
 
+    //todo think about cud logic
+
     @Override
     public void map(ValidatorUpdateDTOv1 src, TwinflowTransitionValidatorRuleEntity dst, MapperContext mapperContext) throws Exception {
-        twinValidatorBaseV1RestDTOReverseMapper.map(src, dst, mapperContext);
-        dst.setId(src.getId());
+//        twinValidatorBaseV1RestDTOReverseMapper.map(src, dst, mapperContext);
+//        dst.setId(src.getId());
     }
 }

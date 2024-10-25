@@ -7,4 +7,5 @@ import java.util.UUID;
 
 @Repository
 public interface TwinValidatorSetRepository extends CrudRepository<TwinValidatorSetEntity, UUID> {
+        TwinValidatorSetEntity findAllByIdAndDomainId(UUID id, UUID domainId);
 }

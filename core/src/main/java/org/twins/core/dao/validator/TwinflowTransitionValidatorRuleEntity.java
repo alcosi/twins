@@ -30,9 +30,11 @@ public class TwinflowTransitionValidatorRuleEntity implements Validator, EasyLog
     private UUID twinValidatorSetId;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
 
     public String easyLog(EasyLoggable.Level level) {
         return switch (level) {

@@ -9,7 +9,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.validator.ValidatorV1RestDTOMapper;
+import org.twins.core.mappers.rest.validator.TransitionValidatorRuleBaseV1RestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -22,7 +22,7 @@ import java.util.Collection;
 public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv3> {
 
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
-    private final ValidatorV1RestDTOMapper validatorV1RestDTOMapper;
+    private final TransitionValidatorRuleBaseV1RestDTOMapper transitionValidatorRuleBaseV1RestDTOMapper;
     private final TriggerV1RestDTOMapper triggerV1RestDTOMapper;
 
     private final TwinflowTransitionService twinflowTransitionService;
@@ -37,7 +37,7 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 twinflowTransitionService.loadValidators(src);
                 twinflowTransitionService.loadTriggers(src);
                 dst
-                        .setValidators(validatorV1RestDTOMapper.convertCollection(src.getValidatorsKit().getCollection(), mapperContext))
+                        .setValidatorRules(transitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorsKit().getCollection(), mapperContext))
                         .setTriggers(triggerV1RestDTOMapper.convertCollection(src.getTriggersKit().getCollection(), mapperContext));
                 break;
         }

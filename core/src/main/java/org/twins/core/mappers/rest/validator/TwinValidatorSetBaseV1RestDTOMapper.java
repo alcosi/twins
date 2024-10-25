@@ -7,8 +7,6 @@ import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dto.rest.validator.TwinValidatorSetBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 
 @Component

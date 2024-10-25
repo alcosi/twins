@@ -13,6 +13,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @RequiredArgsConstructor
 public class ValidatorCUDRestDTOReverseMapperV1 extends RestSimpleDTOMapper<ValidatorCudDTOv1, EntityCUD<TwinflowTransitionValidatorRuleEntity>> {
 
+    //todo think about cud logic
+
     private final ValidatorCreateRestDTOReverseMapper validatorCreateRestDTOReverseMapper;
     private final ValidatorUpdateRestDTOReverseMapper validatorUpdateRestDTOReverseMapper;
 

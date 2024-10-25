@@ -8,19 +8,18 @@ import org.twins.core.dao.validator.Validator;
 import org.twins.core.dto.rest.validator.ValidatorRuleBaseDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.ValidatorRuleMode;
+import org.twins.core.service.twin.TwinValidatorSetService;
 
 @Component
 @RequiredArgsConstructor
 public class ValidatorRuleBaseV2RestDTOMapper extends RestSimpleDTOMapper<Validator, ValidatorRuleBaseDTOv2> {
 
     private final ValidatorRuleBaseV1RestDTOMapper validatorRuleBaseV1RestDTOMapper;
-    @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.class})
+    @MapperModePointerBinding(modes = {TwinValidatorSetMode.ValidatorRule2TwinValidatorSetMode.class})
     private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
-    private final TwinValidatorSetRepository twinValidatorSetRepository;
+    private final TwinValidatorSetService twinValidatorSetService;
 
     @Override
     public void map(Validator src, ValidatorRuleBaseDTOv2 dst, MapperContext mapperContext) throws Exception {
@@ -29,7 +28,7 @@ public class ValidatorRuleBaseV2RestDTOMapper extends RestSimpleDTOMapper<Valida
             case DETAILED:
                 dst
                 .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                        twinValidatorSetRepository.findById(src.getTwinValidatorSetId()).orElse(null), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.ValidatorRule2TwinValidatorSetMode.SHORT))))
+                        twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.ValidatorRule2TwinValidatorSetMode.HIDE))))
                 .setTwinValidatorSetId(src.getTwinValidatorSetId());
                 break;
             case SHORT:
