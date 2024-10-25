@@ -11,7 +11,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "twin_action_validator_rule")
-public class TwinActionValidatorRuleEntity implements Validator, EasyLoggable {
+public class TwinActionValidatorRuleEntity implements ValidatorRule, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -26,6 +26,9 @@ public class TwinActionValidatorRuleEntity implements Validator, EasyLoggable {
     @Column(name = "`order`")
     @Basic
     private Integer order;
+
+    @Column(name = "active")
+    private boolean isActive;
 
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;

@@ -2,6 +2,7 @@ package org.twins.core.service.comment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -70,9 +71,17 @@ public class CommentActionService {
             }
             boolean isValid = true;
             for (TwinCommentActionAlienValidatorRuleEntity twinCommentActionAlienValidatorRule : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().getGrouped(twinCommentAction)) {
+                if (!twinCommentActionAlienValidatorRule.isActive()) {
+                    log.info(twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    continue;
+                }
                 twinCommentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidatorRule.getTwinValidators()) {
+                    if (!twinValidatorEntity.isActive()) {
+                        log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                        continue;
+                    }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
                     TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
                     if (!validationResult.isValid()) {

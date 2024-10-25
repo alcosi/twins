@@ -36,4 +36,7 @@ public class TwinValidatorBaseDTOv1 {
     @Schema(description = "order")
     public Integer order;
 
+    @Schema(description = "grouping set of twin validator")
+    public TwinValidatorSetBaseDTOv1 twinValidatorSet;
+
 }

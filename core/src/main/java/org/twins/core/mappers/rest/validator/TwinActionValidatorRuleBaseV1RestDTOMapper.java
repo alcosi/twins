@@ -14,11 +14,11 @@ import org.twins.core.mappers.rest.mappercontext.modes.ValidatorRuleMode;
 public class TwinActionValidatorRuleBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinActionValidatorRuleEntity, TwinActionValidatorRuleBaseDTOv1> {
 
     @MapperModePointerBinding(modes = {ValidatorRuleMode.TwinActionValidatorRule2ValidatorRuleMode.class})
-    private final ValidatorRuleBaseV2RestDTOMapper validatorRuleBaseV2RestDTOMapper;
+    private final ValidatorRuleBaseV1RestDTOMapper validatorRuleBaseV1RestDTOMapper;
 
     @Override
     public void map(TwinActionValidatorRuleEntity src, TwinActionValidatorRuleBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
-        validatorRuleBaseV2RestDTOMapper.map(src, dst, mapperContext.forkOnPoint(mapperContext.getModeOrUse(ValidatorRuleMode.TwinflowTransitionValidatorRule2ValidatorRuleMode.SHORT)));
+        validatorRuleBaseV1RestDTOMapper.map(src, dst, mapperContext.forkOnPoint(mapperContext.getModeOrUse(ValidatorRuleMode.TwinflowTransitionValidatorRule2ValidatorRuleMode.SHORT)));
         switch (mapperContext.getModeOrUse(ValidatorRuleMode.TwinActionValidatorRule2ValidatorRuleMode.SHORT)) {
             case DETAILED, SHORT:
                 dst.setTwinClassId(src.getTwinClassId())

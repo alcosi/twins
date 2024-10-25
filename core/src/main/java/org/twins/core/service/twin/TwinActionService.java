@@ -175,6 +175,10 @@ public class TwinActionService {
                 // Check if the action is protected by validators
                 if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidator())) {
                     for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : twinClassEntity.getActionsProtectedByValidator().getGrouped(twinAction)) {
+                        if (!actionValidatorRuleEntity.isActive()) {
+                            log.info(actionValidatorRuleEntity.logShort() + " is inactive");
+                            continue;
+                        }
                         // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
                         Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
                         // Check each validator for the action

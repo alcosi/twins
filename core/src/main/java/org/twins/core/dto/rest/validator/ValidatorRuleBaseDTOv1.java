@@ -18,10 +18,15 @@ public class ValidatorRuleBaseDTOv1 {
     @Schema(description = "order")
     public Integer order;
 
+    @Schema(description = "active")
+    public Boolean active;
+
     @Schema(description = "grouped set of twin validators id")
     public UUID twinValidatorSetId;;
 
     @Schema(description = "Twin validator list")
     public List<TwinValidatorBaseDTOv1> twinValidators;
 
+    @Schema(description = "grouping set of twin validator")
+    public TwinValidatorSetBaseDTOv1 twinValidatorSet;
 }

@@ -707,6 +707,10 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
         boolean methodResult;
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
+            if (!transitionValidatorRuleEntity.isActive()) {
+                log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                continue;
+            }
             transitionValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
             for(TwinValidatorEntity twinValidatorEntity : transitionValidatorRuleEntity.getTwinValidators()) {
                 if (!twinValidatorEntity.isActive()) {

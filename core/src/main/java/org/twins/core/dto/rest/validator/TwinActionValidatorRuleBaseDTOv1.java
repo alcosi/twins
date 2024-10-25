@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name = "TwinActionValidatorRuleBaseV1")
-public class TwinActionValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv2 {
+public class TwinActionValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv1 {
 
     @Schema(description = "twinclass id")
     private UUID twinClassId;

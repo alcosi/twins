@@ -16,6 +16,9 @@ public enum TwinValidatorMode implements MapperMode {
 
     final int priority;
 
+
+    //todo maybe in future can be splitted into not abstract pointer modes(see ValidatorRuleMode.class)
+
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
