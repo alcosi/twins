@@ -107,7 +107,7 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorsKit;
+    private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

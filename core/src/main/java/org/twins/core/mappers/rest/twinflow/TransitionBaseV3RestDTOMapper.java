@@ -37,7 +37,7 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 twinflowTransitionService.loadValidators(src);
                 twinflowTransitionService.loadTriggers(src);
                 dst
-                        .setValidatorRules(transitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorsKit().getCollection(), mapperContext))
+                        .setValidatorRules(transitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorRulesKit().getCollection(), mapperContext))
                         .setTriggers(triggerV1RestDTOMapper.convertCollection(src.getTriggersKit().getCollection(), mapperContext));
                 break;
         }
