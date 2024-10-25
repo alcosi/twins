@@ -10,13 +10,13 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Schema(name =  "ValidatorCudV1")
-public class ValidatorCudDTOv1 {
+public class TransitionValidatorRuleCudDTOv1 {
 
     @Schema(description = "validators create list")
-    public List<ValidatorCreateDTOv1> create;
+    public List<TransitionValidatorRuleCreateDTOv1> create;
 
     @Schema(description = "validators update list")
-    public List<ValidatorUpdateDTOv1> update;
+    public List<TransitionValidatorRuleUpdateDTOv1> update;
 
     @Schema(description = "validators ids list to deletes")
     public List<UUID> delete;

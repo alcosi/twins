@@ -30,7 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV2RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionUpdateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.twinflow.TriggerCUDRestDTOReverseMapperV1;
-import org.twins.core.mappers.rest.validator.ValidatorCUDRestDTOReverseMapperV1;
+import org.twins.core.mappers.rest.validator.TransitionValidatorRuleCUDRestDTOReverseMapperV1;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.UUID;
@@ -41,7 +41,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TransitionUpdateController extends ApiController {
     private final TransitionUpdateRestDTOReverseMapper transitionUpdateRestDTOReverseMapper;
-    private final ValidatorCUDRestDTOReverseMapperV1 validatorCUDRestDTOReverseMapperV1;
+    private final TransitionValidatorRuleCUDRestDTOReverseMapperV1 transitionValidatorRuleCUDRestDTOReverseMapperV1;
     private final TriggerCUDRestDTOReverseMapperV1 triggerCUDRestDTOReverseMapperV1;
 
 
@@ -69,13 +69,13 @@ public class TransitionUpdateController extends ApiController {
             EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD = triggerCUDRestDTOReverseMapperV1.convert(request.getTriggers());
 
             //todo think about cud logic
-            EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD = validatorCUDRestDTOReverseMapperV1.convert(request.getValidators());
-            if(validatorCUD != null)
-                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Twinflow transition validator CUD service methods are not implemented yet");
+            EntityCUD<TwinflowTransitionValidatorRuleEntity> transitionValidatorRuleEntityCUD = transitionValidatorRuleCUDRestDTOReverseMapperV1.convert(request.getValidatorRules());
+            if(transitionValidatorRuleEntityCUD != null)
+                throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Twinflow transition validator rules CUD service methods are not implemented yet");
 
             TwinflowTransitionEntity twinflowTransitionEntity = transitionUpdateRestDTOReverseMapper.convert(request);
             twinflowTransitionEntity.setId(transitionId);
-            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n, validatorCUD, triggerCUD);
+            twinflowTransitionEntity = twinflowTransitionService.updateTwinflowTransition(twinflowTransitionEntity, nameI18n, descriptionsI18n, transitionValidatorRuleEntityCUD, triggerCUD);
             rs
                     .setTransition(transitionBaseV2RestDTOMapper.convert(twinflowTransitionEntity, mapperContext));
         } catch (ServiceException se) {

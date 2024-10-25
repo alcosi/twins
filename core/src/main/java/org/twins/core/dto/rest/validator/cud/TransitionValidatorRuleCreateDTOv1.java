@@ -8,6 +8,6 @@ import org.twins.core.dto.rest.validator.TransitionValidatorRuleBaseDTOv1;
 @Data
 @Accessors(chain = true)
 @Schema(name = "ValidatorCreateV1")
-public class ValidatorCreateDTOv1 extends TransitionValidatorRuleBaseDTOv1 {
+public class TransitionValidatorRuleCreateDTOv1 extends TransitionValidatorRuleBaseDTOv1 {
     //todo think about cud logic
 }
