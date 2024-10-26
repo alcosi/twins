@@ -12,6 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -106,7 +107,7 @@ public class TwinflowTransitionEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinflowTransitionValidatorEntity, UUID> validatorsKit;
+    private Kit<TwinflowTransitionValidatorRuleEntity, UUID> validatorRulesKit;
 
     @Transient
     @EqualsAndHashCode.Exclude

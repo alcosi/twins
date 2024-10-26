@@ -17,7 +17,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
-import org.twins.core.dao.action.TwinActionValidatorEntity;
+import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.link.LinkEntity;
@@ -25,6 +25,7 @@ import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
 import org.twins.core.featurer.twinclass.HeadHunter;
 
 import java.sql.Timestamp;
@@ -178,7 +179,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinActionValidatorEntity, UUID, TwinAction> actionsProtectedByValidator;
+    private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -186,7 +187,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinCommentActionAlienValidatorEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidator;
+    private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude

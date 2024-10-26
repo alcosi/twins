@@ -2,6 +2,7 @@ package org.twins.core.service.comment;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -13,7 +14,10 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleRepository;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
@@ -27,7 +31,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CommentActionService {
     final TwinCommentActionAlienPermissionRepository twinCommentActionAlienPermissionRepository;
-    final TwinCommentActionAlienValidatorRepository twinCommentActionAlienValidatorRepository;
+    final TwinCommentActionAlienValidatorRuleRepository twinCommentActionAlienValidatorRuleRepository;
     private final TwinCommentActionSelfRepository twinCommentActionSelfRepository;
     final TwinRepository twinRepository;
     @Lazy
@@ -49,7 +53,7 @@ public class CommentActionService {
     private void loadCommentAlienActions(TwinCommentEntity twinComment) throws ServiceException {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsAlienProtected(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().isEmpty()) {
+        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().isEmpty()) {
             twinComment.setCommentActions(Collections.EMPTY_SET);
             return;
         }
@@ -62,22 +66,34 @@ public class CommentActionService {
                     continue; // current comment action is permitted (we will not check validators)
                 }
             }
-            if (KitUtils.isEmpty(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator())) {
+            if (KitUtils.isEmpty(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules())) {
                 continue;
             }
             boolean isValid = true;
-            for (TwinCommentActionAlienValidatorEntity twinCommentActionAlienValidator : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidator().getGrouped(twinCommentAction)) {
-                TwinValidator twinValidator = featurerService.getFeaturer(twinCommentActionAlienValidator.getTwinValidatorFeaturer(), TwinValidator.class);
-                TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinCommentActionAlienValidator.getTwinValidatorParams(), twinEntity, twinCommentActionAlienValidator.isInvert());
-                if (!validationResult.isValid()) {
-                    log.error(validationResult.getMessage());
-                    isValid = false;
-                    break;
+            for (TwinCommentActionAlienValidatorRuleEntity twinCommentActionAlienValidatorRule : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().getGrouped(twinCommentAction)) {
+                if (!twinCommentActionAlienValidatorRule.isActive()) {
+                    log.info(twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    continue;
                 }
+                twinCommentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                isValid = true;
+                for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidatorRule.getTwinValidators()) {
+                    if (!twinValidatorEntity.isActive()) {
+                        log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                        continue;
+                    }
+                    TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                    TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                    if (!validationResult.isValid()) {
+                        log.error(validationResult.getMessage());
+                        isValid = false;
+                        break;
+                    }
+                }
+                if(isValid) break;
             }
-            if (isValid) {
+            if (isValid)
                 twinComment.getCommentActions().add(twinCommentAction);
-            }
         }
     }
 
@@ -97,11 +113,11 @@ public class CommentActionService {
             twinClassEntity.setCommentAlienActionsProtectedByPermission(new Kit<>(
                     twinCommentActionAlienPermissionRepository.findByTwinClassId(twinClassEntity.getId()),
                     TwinCommentActionAlienPermissionEntity::getTwinCommentAction));
-        if (twinClassEntity.getCommentAlienActionsProtectedByValidator() == null)
-            twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(
-                    twinCommentActionAlienValidatorRepository.findByTwinClassIdOrderByOrder(twinClassEntity.getId()),
-                    TwinCommentActionAlienValidatorEntity::getId,
-                    TwinCommentActionAlienValidatorEntity::getTwinCommentAction));
+        if (twinClassEntity.getCommentAlienActionsProtectedByValidatorRules() == null)
+            twinClassEntity.setCommentAlienActionsProtectedByValidatorRules(new KitGrouped<>(
+                    twinCommentActionAlienValidatorRuleRepository.findByTwinClassIdOrderByOrder(twinClassEntity.getId()),
+                    TwinCommentActionAlienValidatorRuleEntity::getId,
+                    TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));
     }
 
     public void loadClassCommentActionsSelfRestrict(TwinClassEntity twinClassEntity) {
@@ -117,7 +133,7 @@ public class CommentActionService {
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
             if (twinClassEntity.getCommentAlienActionsProtectedByPermission() == null)
                 needLoadByPermissions.put(twinClassEntity.getId(), twinClassEntity);
-            if (twinClassEntity.getCommentAlienActionsProtectedByValidator() == null)
+            if (twinClassEntity.getCommentAlienActionsProtectedByValidatorRules() == null)
                 needLoadByValidators.put(twinClassEntity.getId(), twinClassEntity);
         }
         if (MapUtils.isNotEmpty(needLoadByPermissions)) {
@@ -128,10 +144,10 @@ public class CommentActionService {
             }
         }
         if (MapUtils.isNotEmpty(needLoadByValidators)) {
-            List<TwinCommentActionAlienValidatorEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
-            KitGrouped<TwinCommentActionAlienValidatorEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinClassId);
+            List<TwinCommentActionAlienValidatorRuleEntity> twinClassCommentActionValidatorEntities = twinCommentActionAlienValidatorRuleRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, UUID> commentActionGroupedByClass = new KitGrouped<>(twinClassCommentActionValidatorEntities, TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
-                twinClassEntity.setCommentAlienActionsProtectedByValidator(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorEntity::getId, TwinCommentActionAlienValidatorEntity::getTwinCommentAction));
+                twinClassEntity.setCommentAlienActionsProtectedByValidatorRules(new KitGrouped<>(commentActionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinCommentActionAlienValidatorRuleEntity::getId, TwinCommentActionAlienValidatorRuleEntity::getTwinCommentAction));
             }
         }
     }
@@ -167,7 +183,7 @@ public class CommentActionService {
             twinClassEntity = twinComment.getTwin().getTwinClass();
             if (twinComment.getCreatedByUserId().equals(currentUserId) && twinClassEntity.getCommentSelfActionsRestriction() == null)
                 needLoadCommentActionsSelfRestrict.add(twinClassEntity);
-            else if (twinClassEntity.getCommentAlienActionsProtectedByValidator() == null || twinClassEntity.getCommentAlienActionsProtectedByPermission() == null)
+            else if (twinClassEntity.getCommentAlienActionsProtectedByValidatorRules() == null || twinClassEntity.getCommentAlienActionsProtectedByPermission() == null)
                 needLoadCommentActionsAlienProtected.add(twinClassEntity);
         }
         if (needLoad.isEmpty())

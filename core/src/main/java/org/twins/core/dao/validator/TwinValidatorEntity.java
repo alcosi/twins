@@ -1,8 +1,10 @@
-package org.twins.core.dao.comment;
+package org.twins.core.dao.validator;
 
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -14,21 +16,16 @@ import java.util.UUID;
 
 @Data
 @Entity
-@Table(name = "twin_comment_action_alien_validator")
-public class TwinCommentActionAlienValidatorEntity implements EasyLoggable {
+@Table(name = "twin_validator")
+@Accessors(chain = true)
+@FieldNameConstants
+public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "twin_class_id")
-    private UUID twinClassId;
-
-    @Column(name = "twin_comment_action_id")
-    @Enumerated(EnumType.STRING)
-    private TwinCommentAction twinCommentAction;
-
-    @Column(name = "`order`")
-    private Integer order;
+    @Column(name = "twin_validator_set_id")
+    private UUID twinValidatorSetId;
 
     @Column(name = "twin_validator_featurer_id")
     private Integer twinValidatorFeaturerId;
@@ -48,13 +45,23 @@ public class TwinCommentActionAlienValidatorEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean isActive;
 
+    @Column(name = "description")
+    private String description;
+
+    @Column(name = "`order`")
+    @Basic
+    private Integer order;
+
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
+
     @Override
-    public String easyLog(EasyLoggable.Level level) {
+    public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinCommentActionAlienValidator[" + id + "]";
-            case NORMAL -> "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinValidatorEntity[" + id + "]";
+            case NORMAL -> "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + "]";
             default ->
-                    "twinCommentActionAlienValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
+                    "twinValidatorEntity[id:" + id + ", twinValidatorSetId:" + twinValidatorSetId + ", twinValidatorFeaturerId:" + twinValidatorFeaturerId + "]";
         };
     }
 
