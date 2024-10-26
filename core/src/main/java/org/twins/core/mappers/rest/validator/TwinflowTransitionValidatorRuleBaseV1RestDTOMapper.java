@@ -37,21 +37,21 @@ public class TwinflowTransitionValidatorRuleBaseV1RestDTOMapper extends RestSimp
                         .setTwinflowTransitionId(src.getId())
                         .setId(src.getId())
                         .setOrder(src.getOrder())
-                        .setActive(src.isActive())
-                        .setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(src.getTwinValidators(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.HIDE))));
+                        .setActive(src.isActive());
                 break;
             case SHORT:
                 dst
                         .setId(src.getId());
-
                 break;
         }
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.HIDE))
             dst
                     .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
-                            twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.HIDE))))
+                            twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(TwinValidatorSetMode.TwinflowTransitionValidatorRule2TwinValidatorSetMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
-
+        if (mapperContext.hasModeButNot(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.HIDE))
+            dst.setTwinValidators(twinValidatorBaseV1RestDTOMapper.convertCollection(
+                    src.getTwinValidators(), mapperContext.forkOnPoint(TwinValidatorMode.TwinflowTransitionValidatorRule2TwinValidatorMode.SHORT)));
     }
 
     @Override

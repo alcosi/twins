@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -52,19 +53,17 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
 
     public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        Map<UUID, List<T>> needLoad = new HashMap<>();
+        KitGrouped<T, UUID, UUID> needLoad = new KitGrouped<>(T::getId, T::getTwinValidatorSetId);
         for (T validatorRule : implementedValidatorRules)
             if (validatorRule.getTwinValidatorSet() == null) {
-                needLoad.computeIfAbsent(validatorRule.getTwinValidatorSetId(), k -> new ArrayList<>());
-                needLoad.get(validatorRule.getTwinValidatorSetId()).add(validatorRule);
+                needLoad.add(validatorRule);
             }
         if (needLoad.isEmpty())
             return;
-        Kit<TwinValidatorSetEntity, UUID> twinValidatorSetEntitiesKit = new Kit<>(twinValidatorSetRepository.findAllByIdInAndDomainId(needLoad.keySet(), apiUser.getDomainId()), TwinValidatorSetEntity::getId);
+        Kit<TwinValidatorSetEntity, UUID> twinValidatorSetEntitiesKit = new Kit<>(twinValidatorSetRepository.findAllByIdInAndDomainId(needLoad.getGroupedMap().keySet(), apiUser.getDomainId()), TwinValidatorSetEntity::getId);
         if (CollectionUtils.isEmpty(twinValidatorSetEntitiesKit.getCollection()))
             return;
-        for (Map.Entry<UUID, List<T>> entry : needLoad.entrySet())
-            for (T validatorRule : entry.getValue())
-                validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(entry.getKey()));
+        for (T validatorRule : needLoad.getCollection())
+            validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(validatorRule.getTwinValidatorSetId()));
     }
 }
