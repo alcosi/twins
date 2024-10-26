@@ -19,7 +19,7 @@ import java.util.UUID;
 @Table(name = "twin_validator")
 @Accessors(chain = true)
 @FieldNameConstants
-public class TwinValidatorEntity implements ContainsValidatorSet, EasyLoggable {
+public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

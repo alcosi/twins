@@ -10,10 +10,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
-import org.twins.core.dao.validator.ContainsValidatorSet;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
@@ -43,7 +42,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return true;
     }
 
-    public <T extends ContainsValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
+    public <T extends ContainsTwinValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (entity.getTwinValidatorSet() != null)
             return entity.getTwinValidatorSet();
@@ -51,7 +50,7 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return entity.getTwinValidatorSet();
     }
 
-    public <T extends ContainsValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
+    public <T extends ContainsTwinValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Map<UUID, List<T>> needLoad = new HashMap<>();
         for (T validatorRule : implementedValidatorRules)
