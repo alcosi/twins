@@ -2,6 +2,7 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
@@ -12,6 +13,7 @@ import java.util.*;
 @Data
 @Table(name = "twinflow_transition_validator_rule")
 @FieldNameConstants
+@Accessors(chain = true)
 public class TwinflowTransitionValidatorRuleEntity implements ContainsValidatorSet, EasyLoggable, PublicCloneable<TwinflowTransitionValidatorRuleEntity> {
     @Id
     @GeneratedValue(generator = "uuid")

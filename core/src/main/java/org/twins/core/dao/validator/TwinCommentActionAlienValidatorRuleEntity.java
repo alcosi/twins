@@ -2,6 +2,7 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.comment.TwinCommentAction;
 
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "twin_comment_action_alien_validator_rule")
+@Accessors(chain = true)
 public class TwinCommentActionAlienValidatorRuleEntity implements ContainsValidatorSet, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")

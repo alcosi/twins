@@ -5,6 +5,6 @@ import java.util.UUID;
 public interface ContainsValidatorSet {
     UUID getTwinValidatorSetId();
     TwinValidatorSetEntity getTwinValidatorSet();
-    void setTwinValidatorSet(TwinValidatorSetEntity twinValidatorSet);
+    ContainsValidatorSet setTwinValidatorSet(TwinValidatorSetEntity twinValidatorSet);
 
 }
