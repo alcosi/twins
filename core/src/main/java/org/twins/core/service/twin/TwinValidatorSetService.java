@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
-import org.twins.core.dao.validator.ValidatorRule;
+import org.twins.core.dao.validator.ContainsValidatorSet;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
@@ -43,26 +43,18 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         return true;
     }
 
-    public TwinValidatorSetEntity loadTwinValidatorSet(TwinValidatorEntity twinValidatorEntity) throws ServiceException {
+    public <T extends ContainsValidatorSet> TwinValidatorSetEntity loadTwinValidatorSet(T entity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (twinValidatorEntity.getTwinValidatorSet() != null)
-            return twinValidatorEntity.getTwinValidatorSet();
-        twinValidatorEntity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(twinValidatorEntity.getTwinValidatorSetId(), apiUser.getDomainId()));
-        return twinValidatorEntity.getTwinValidatorSet();
+        if (entity.getTwinValidatorSet() != null)
+            return entity.getTwinValidatorSet();
+        entity.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(entity.getTwinValidatorSetId(), apiUser.getDomainId()));
+        return entity.getTwinValidatorSet();
     }
 
-    public TwinValidatorSetEntity loadTwinValidatorSet(ValidatorRule implementedValidatorRule) throws ServiceException {
+    public <T extends ContainsValidatorSet> void loadTwinValidatorSet(Collection<T> implementedValidatorRules) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (implementedValidatorRule.getTwinValidatorSet() != null)
-            return implementedValidatorRule.getTwinValidatorSet();
-        implementedValidatorRule.setTwinValidatorSet(twinValidatorSetRepository.findAllByIdAndDomainId(implementedValidatorRule.getTwinValidatorSetId(), apiUser.getDomainId()));
-        return implementedValidatorRule.getTwinValidatorSet();
-    }
-
-    public void loadTwinValidatorSetForValidators(Collection<ValidatorRule> implementedValidatorRules) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Map<UUID, List<ValidatorRule>> needLoad = new HashMap<>();
-        for (ValidatorRule validatorRule : implementedValidatorRules)
+        Map<UUID, List<T>> needLoad = new HashMap<>();
+        for (T validatorRule : implementedValidatorRules)
             if (validatorRule.getTwinValidatorSet() == null) {
                 needLoad.computeIfAbsent(validatorRule.getTwinValidatorSetId(), k -> new ArrayList<>());
                 needLoad.get(validatorRule.getTwinValidatorSetId()).add(validatorRule);
@@ -72,26 +64,8 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
         Kit<TwinValidatorSetEntity, UUID> twinValidatorSetEntitiesKit = new Kit<>(twinValidatorSetRepository.findAllByIdInAndDomainId(needLoad.keySet(), apiUser.getDomainId()), TwinValidatorSetEntity::getId);
         if (CollectionUtils.isEmpty(twinValidatorSetEntitiesKit.getCollection()))
             return;
-        for (Map.Entry<UUID, List<ValidatorRule>> entry : needLoad.entrySet())
-            for (ValidatorRule validatorRule : entry.getValue())
+        for (Map.Entry<UUID, List<T>> entry : needLoad.entrySet())
+            for (T validatorRule : entry.getValue())
                 validatorRule.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(entry.getKey()));
-    }
-
-    public void loadTwinValidatorSetForTwinValidators(Collection<TwinValidatorEntity> twinValidatorEntities) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        Map<UUID, List<TwinValidatorEntity>> needLoad = new HashMap<>();
-        for (TwinValidatorEntity twinValidatorEntity : twinValidatorEntities)
-            if (twinValidatorEntity.getTwinValidatorSet() == null) {
-                needLoad.computeIfAbsent(twinValidatorEntity.getTwinValidatorSetId(), k -> new ArrayList<>());
-                needLoad.get(twinValidatorEntity.getTwinValidatorSetId()).add(twinValidatorEntity);
-            }
-        if (needLoad.isEmpty())
-            return;
-        Kit<TwinValidatorSetEntity, UUID> twinValidatorSetEntitiesKit = new Kit<>(twinValidatorSetRepository.findAllByIdInAndDomainId(needLoad.keySet(), apiUser.getDomainId()), TwinValidatorSetEntity::getId);
-        if (CollectionUtils.isEmpty(twinValidatorSetEntitiesKit.getCollection()))
-            return;
-        for (Map.Entry<UUID, List<TwinValidatorEntity>> entry : needLoad.entrySet())
-            for (TwinValidatorEntity twinValidatorEntity : entry.getValue())
-                twinValidatorEntity.setTwinValidatorSet(twinValidatorSetEntitiesKit.get(entry.getKey()));
     }
 }

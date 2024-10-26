@@ -12,7 +12,7 @@ import java.util.*;
 @Data
 @Table(name = "twinflow_transition_validator_rule")
 @FieldNameConstants
-public class TwinflowTransitionValidatorRuleEntity implements ValidatorRule, EasyLoggable, PublicCloneable<TwinflowTransitionValidatorRuleEntity> {
+public class TwinflowTransitionValidatorRuleEntity implements ContainsValidatorSet, EasyLoggable, PublicCloneable<TwinflowTransitionValidatorRuleEntity> {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;

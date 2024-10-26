@@ -39,7 +39,7 @@ public enum TwinValidatorSetMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum ValidatorRule2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
+    public enum TwinActionValidatorRule2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -55,4 +55,46 @@ public enum TwinValidatorSetMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinflowTransitionValidatorRule2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinValidatorSetMode point() {
+            return switch (this) {
+                case HIDE -> TwinValidatorSetMode.HIDE;
+                case SHORT -> TwinValidatorSetMode.SHORT;
+                case DETAILED -> TwinValidatorSetMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinCommentActionAlienValidatorRule2TwinValidatorSetMode implements MapperModePointer<TwinValidatorSetMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinValidatorSetMode point() {
+            return switch (this) {
+                case HIDE -> TwinValidatorSetMode.HIDE;
+                case SHORT -> TwinValidatorSetMode.SHORT;
+                case DETAILED -> TwinValidatorSetMode.DETAILED;
+            };
+        }
+    }
+
+
 }

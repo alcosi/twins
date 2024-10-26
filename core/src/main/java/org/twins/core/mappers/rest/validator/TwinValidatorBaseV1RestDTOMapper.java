@@ -55,7 +55,7 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
     @Override
     public void beforeCollectionConversion(Collection<TwinValidatorEntity> srcCollection, MapperContext mapperContext) throws ServiceException {
         if (mapperContext.hasModeButNot(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.HIDE))
-            twinValidatorSetService.loadTwinValidatorSetForTwinValidators(srcCollection);
+            twinValidatorSetService.loadTwinValidatorSet(srcCollection);
     }
 
     @Override

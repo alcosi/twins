@@ -3,13 +3,14 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv3;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.validator.TransitionValidatorRuleBaseV1RestDTOMapper;
+import org.twins.core.mappers.rest.validator.TwinflowTransitionValidatorRuleBaseV1RestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
@@ -22,7 +23,8 @@ import java.util.Collection;
 public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv3> {
 
     private final TransitionBaseV2RestDTOMapper transitionBaseV2RestDTOMapper;
-    private final TransitionValidatorRuleBaseV1RestDTOMapper transitionValidatorRuleBaseV1RestDTOMapper;
+    @MapperModePointerBinding(modes = {TwinflowTransitionValidatorRuleMode.TwinflowTransition2TwinflowTransitionValidatorRuleMode.class})
+    private final TwinflowTransitionValidatorRuleBaseV1RestDTOMapper twinflowTransitionValidatorRuleBaseV1RestDTOMapper;
     private final TriggerV1RestDTOMapper triggerV1RestDTOMapper;
 
     private final TwinflowTransitionService twinflowTransitionService;
@@ -37,7 +39,7 @@ public class TransitionBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 twinflowTransitionService.loadValidators(src);
                 twinflowTransitionService.loadTriggers(src);
                 dst
-                        .setValidatorRules(transitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorRulesKit().getCollection(), mapperContext))
+                        .setValidatorRules(twinflowTransitionValidatorRuleBaseV1RestDTOMapper.convertCollection(src.getValidatorRulesKit().getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinflowTransitionValidatorRuleMode.TwinflowTransition2TwinflowTransitionValidatorRuleMode.HIDE))))
                         .setTriggers(triggerV1RestDTOMapper.convertCollection(src.getTriggersKit().getCollection(), mapperContext));
                 break;
         }

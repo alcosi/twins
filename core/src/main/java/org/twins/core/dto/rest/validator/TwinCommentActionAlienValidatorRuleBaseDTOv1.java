@@ -9,8 +9,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name = "TwinCommentAlienValidatorRuleBaseV1")
-public class TwinCommentAlienValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv1 {
+@Schema(name = "TwinCommentActionAlienValidatorRuleBaseV1")
+public class TwinCommentActionAlienValidatorRuleBaseDTOv1 extends ValidatorRuleBaseDTOv1 {
 
     @Schema(description = "twinclass id")
     private UUID twinClassId;

@@ -16,13 +16,50 @@ public enum TwinValidatorMode implements MapperMode {
 
     final int priority;
 
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinActionValidatorRule2TwinValidatorMode implements MapperModePointer<TwinValidatorMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
 
-    //todo maybe in future can be splitted into not abstract pointer modes(see ValidatorRuleMode.class)
+        final int priority;
+
+        @Override
+        public TwinValidatorMode point() {
+            return switch (this) {
+                case HIDE -> TwinValidatorMode.HIDE;
+                case SHORT -> TwinValidatorMode.SHORT;
+                case DETAILED -> TwinValidatorMode.DETAILED;
+            };
+        }
+    }
 
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum ValidatorRule2TwinValidatorMode implements MapperModePointer<TwinValidatorMode> {
+    public enum TwinflowTransitionValidatorRule2TwinValidatorMode implements MapperModePointer<TwinValidatorMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public TwinValidatorMode point() {
+            return switch (this) {
+                case HIDE -> TwinValidatorMode.HIDE;
+                case SHORT -> TwinValidatorMode.SHORT;
+                case DETAILED -> TwinValidatorMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum TwinCommentActionAlienValidatorRule2TwinValidatorMode implements MapperModePointer<TwinValidatorMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
