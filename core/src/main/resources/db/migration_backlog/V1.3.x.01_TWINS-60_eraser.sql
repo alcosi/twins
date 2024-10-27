@@ -75,7 +75,7 @@ create table if not exists eraseflow
         constraint eraseflow_cascade_deletion_by_link_default_factory_id
             references twin_factory
             on update cascade on delete restrict,
-    created_by_user_id     uuid
+    created_by_user_id     uuid not null
         constraint eraseflow_user_id_fk
             references "user"
             on update cascade,

@@ -30,6 +30,9 @@ INSERT INTO draft_status (id)
 VALUES ('ERASE_SCOPE_COLLECT_NEED_START')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
+VALUES ('ERASE_SCOPE_COLLECT_EXCEPTION')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
 VALUES ('ERASE_SCOPE_COLLECT_IN_PROGRESS')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)

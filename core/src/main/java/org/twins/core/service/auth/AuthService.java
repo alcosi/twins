@@ -3,9 +3,21 @@ package org.twins.core.service.auth;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.service.EntitySmartService;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.twins.core.dao.businessaccount.BusinessAccountRepository;
+import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
+import org.twins.core.dao.domain.DomainBusinessAccountRepository;
+import org.twins.core.dao.domain.DomainRepository;
+import org.twins.core.dao.domain.DomainUserRepository;
+import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.apiuser.*;
+
+import java.util.UUID;
 
 
 @Slf4j
@@ -13,6 +25,7 @@ import org.twins.core.domain.ApiUser;
 @Lazy
 @RequiredArgsConstructor
 public class AuthService {
+    private final ApplicationContext applicationContext;
 //    final HttpRequestService httpRequestService;
 //    final UserRepository userRepository;
 //    final BusinessAccountRepository businessAccountRepository;
@@ -46,7 +59,42 @@ public class AuthService {
 
     final ApiUser apiUser;
 
+    private static final ThreadLocal<ApiUser> threadLocalApiUser = new ThreadLocal<>();
+
     public ApiUser getApiUser() throws ServiceException {
-        return apiUser;
+        if (RequestContextHolder.getRequestAttributes() != null)
+            return apiUser;
+        else
+            return threadLocalApiUser.get();
+    }
+
+    public void setThreadLocalApiUser(UUID domainId, UUID businessAccountId, UUID userId) {
+        //todo think over ApiUser interface
+        ApiUser apiUser = new ApiUser(
+                applicationContext.getBean(EntitySmartService.class),
+                applicationContext.getBean(DomainRepository.class),
+                applicationContext.getBean(DomainUserRepository.class),
+                applicationContext.getBean(DomainBusinessAccountRepository.class),
+                applicationContext.getBean(BusinessAccountRepository.class),
+                applicationContext.getBean(BusinessAccountUserRepository.class),
+                applicationContext.getBean(UserRepository.class),
+                applicationContext.getBean(DomainResolverHeaders.class),
+                applicationContext.getBean(LocaleResolverDomainUser.class),
+                applicationContext.getBean(LocaleResolverHeader.class),
+                applicationContext.getBean(UserBusinessAccountResolverAuthToken.class));
+        apiUser
+                .setUserResolver(new UserResolverGivenId(userId))
+                .setDomainResolver(new DomainResolverGivenId(domainId))
+                .setBusinessAccountResolver(new BusinessAccountResolverGivenId(businessAccountId));
+
+        threadLocalApiUser.set(apiUser);
+    }
+
+    public void setThreadLocalApiUser(ApiUser apiUser) {
+        threadLocalApiUser.set(apiUser);
+    }
+
+    public void removeThreadLocalApiUser() {
+        threadLocalApiUser.remove();
     }
 }

@@ -194,7 +194,7 @@ public class EntitySmartService {
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + "[" + uuid + "]");
                 return optional.get();
         }
         return null;

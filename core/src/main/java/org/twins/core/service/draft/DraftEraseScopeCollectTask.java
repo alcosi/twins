@@ -29,20 +29,31 @@ public class DraftEraseScopeCollectTask implements Runnable {
 
     @Override
     public void run() {
+        DraftCollector draftCollector = new DraftCollector(draftEntity);
         try {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftEraseScopeCollect$");
             LoggerUtils.logPrefix("DRAFT[" + draftEntity.getId() + "]:");
             log.info("Performing draft erase scope collect: {}", draftEntity.logNormal());
-            authService.getApiUser();
-            DraftCollector draftCollector = new DraftCollector(draftEntity);
+            authService.setThreadLocalApiUser(draftEntity.getDomainId(), draftEntity.getBusinessAccountId(), draftEntity.getCreatedByUserId());
             draftService.createEraseScope(draftCollector);
-            draftService.endDraft(draftCollector);
         } catch (ServiceException e) {
             log.error(e.log());
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_EXCEPTION)
+                    .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
+            draftCollector.getDraftEntity()
+                    .setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_EXCEPTION)
+                    .setStatusDetails(e.getMessage());
         } finally {
+            try {
+                draftService.endDraft(draftCollector);
+            } catch (ServiceException e) {
+                log.error("End draft critical exception: ", e);
+            }
+            authService.removeThreadLocalApiUser();
             LoggerUtils.cleanMDC();
         }
     }
