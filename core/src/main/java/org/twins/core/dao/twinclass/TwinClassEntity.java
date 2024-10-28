@@ -17,6 +17,7 @@ import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
 import org.twins.core.dao.comment.*;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -192,6 +193,18 @@ public class TwinClassEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinAttachmentActionAlienPermissionEntity, TwinAttachmentAction> attachmentAlienActionsProtectedByPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentAlienActionsProtectedByValidatorRules;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinAttachmentActionSelfEntity, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient

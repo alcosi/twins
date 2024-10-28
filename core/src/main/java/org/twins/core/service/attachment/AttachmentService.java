@@ -14,6 +14,7 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
+import org.twins.core.dao.twin.TwinAttachmentAction;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -40,6 +41,7 @@ public class AttachmentService {
     final TwinActionService twinActionService;
     final TwinAttachmentRepository twinAttachmentRepository;
     final HistoryService historyService;
+    private final AttachmentActionService attachmentActionService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
@@ -149,6 +151,7 @@ public class AttachmentService {
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
         TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
+        // todo need implementation to check is allow for DELETE action???
         if (attachmentEntity == null)
             return;
         log.info(attachmentEntity.logDetailed() + " will be deleted");
@@ -173,6 +176,7 @@ public class AttachmentService {
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             changesHelper.flush();
             dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
             if (changesHelper.isChanged("commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
                 if (CommentRelinkMode.denied.equals(commentRelinkMode))
@@ -215,6 +219,7 @@ public class AttachmentService {
     public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
+        // todo need implementation to check is allow for DELETE action???
         List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
         if (CollectionUtils.isEmpty(deleteEntityList))
             return;

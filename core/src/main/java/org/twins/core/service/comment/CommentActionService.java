@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -90,7 +91,7 @@ public class CommentActionService {
                         break;
                     }
                 }
-                if(isValid) break;
+                if (isValid) break;
             }
             if (isValid)
                 twinComment.getCommentActions().add(twinCommentAction);
@@ -101,7 +102,7 @@ public class CommentActionService {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsSelfRestrict(twinEntity.getTwinClass());
         twinComment.setCommentActions(EnumSet.allOf(TwinCommentAction.class));
-        if (twinEntity.getTwinClass().getCommentSelfActionsRestriction().isEmpty())
+        if (twinEntity.getTwinClass().getCommentSelfActionsRestriction() == null)
             return;
         for (TwinCommentAction action : twinEntity.getTwinClass().getCommentSelfActionsRestriction().getIdSet()) {
             twinComment.getCommentActions().remove(action);

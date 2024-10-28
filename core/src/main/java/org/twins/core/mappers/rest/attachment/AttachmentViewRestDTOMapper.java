@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
-import org.twins.core.dao.twin.TwinAttachmentAction;
 import org.twins.core.dao.twin.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
@@ -12,6 +11,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
+import org.twins.core.service.attachment.AttachmentActionService;
 import org.twins.core.service.attachment.AttachmentService;
 
 import java.util.*;
@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
 
     private final AttachmentService attachmentService;
+    private final AttachmentActionService attachmentActionService;
 
     @MapperModePointerBinding(modes = UserMode.Attachment2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
@@ -59,9 +60,10 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                     .setTwinflowTransitionId(src.getTwinflowTransitionId())
                     .setTwinflowTransition(transitionRestDTOMapper.convertOrPostpone(src.getTwinflowTransition(), mapperContext.forkOnPoint(TransitionMode.Attachment2TransitionMode.SHORT)));
         }
-        if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE))
-            //todo stub (only for twinfaces mvp)
-            dst.setAttachmentActions(Set.of(TwinAttachmentAction.values()));
+        if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE)) {
+            attachmentActionService.loadAttachmentActions(src);
+            dst.setAttachmentActions(src.getAttachmentActions());
+        }
     }
 
     @Override
@@ -85,6 +87,13 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
                 break;
         }
         return super.convertCollection(newList, mapperContext);
+    }
+
+    @Override
+    public void beforeCollectionConversion(Collection<TwinAttachmentEntity> srcCollection, MapperContext mapperContext) throws Exception {
+        super.beforeCollectionConversion(srcCollection, mapperContext);
+        if (mapperContext.hasModeButNot(TwinAttachmentActionMode.HIDE))
+            attachmentActionService.loadAttachmentActions(srcCollection);
     }
 
     @Override
