@@ -2,6 +2,8 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
@@ -9,6 +11,8 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "twin_validator_set")
+@Accessors(chain = true)
+@FieldNameConstants
 public class TwinValidatorSetEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")

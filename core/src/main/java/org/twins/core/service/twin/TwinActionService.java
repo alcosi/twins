@@ -15,7 +15,7 @@ import org.twins.core.dao.action.*;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
-import org.twins.core.dao.validator.TwinActionValidatorRepository;
+import org.twins.core.dao.validator.TwinActionValidatorRuleRepository;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -30,7 +30,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class TwinActionService {
     final TwinActionPermissionRepository twinActionPermissionRepository;
-    final TwinActionValidatorRepository twinActionValidatorRepository;
+    final TwinActionValidatorRuleRepository twinActionValidatorRuleRepository;
     private final EntitySmartService entitySmartService;
     final TwinRepository twinRepository;
     @Lazy
@@ -42,7 +42,7 @@ public class TwinActionService {
         if (twinEntity.getActions() != null)
             return;
         loadClassProtectedActions(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidator().isEmpty()) {
+        if (twinEntity.getTwinClass().getActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getActionsProtectedByValidatorRules().isEmpty()) {
             twinEntity.setActions(EnumSet.allOf(TwinAction.class));
             return;
         }
@@ -54,11 +54,11 @@ public class TwinActionService {
                     continue;
                 }
             }
-            if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidator())) {
+            if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidatorRules())) {
                 twinEntity.getActions().add(twinAction); // current action is permitted
                 continue;
             }
-            for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidator().getGrouped(twinAction)) {
+            for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
                 boolean isValid = true;
                 twinActionValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 for (TwinValidatorEntity twinValidatorEntity : twinActionValidatorRuleEntity.getTwinValidators()) {
@@ -88,9 +88,9 @@ public class TwinActionService {
             twinClassEntity.setActionsProtectedByPermission(new Kit<>(
                     twinActionPermissionRepository.findByTwinClassId(twinClassEntity.getId()),
                     TwinActionPermissionEntity::getTwinAction));
-        if (twinClassEntity.getActionsProtectedByValidator() == null)
-            twinClassEntity.setActionsProtectedByValidator(new KitGrouped<>(
-                    twinActionValidatorRepository.findByTwinClassIdOrderByOrder(twinClassEntity.getId()),
+        if (twinClassEntity.getActionsProtectedByValidatorRules() == null)
+            twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(
+                    twinActionValidatorRuleRepository.findByTwinClassIdOrderByOrder(twinClassEntity.getId()),
                     TwinActionValidatorRuleEntity::getId,
                     TwinActionValidatorRuleEntity::getTwinAction));
     }
@@ -101,7 +101,7 @@ public class TwinActionService {
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
             if (twinClassEntity.getActionsProtectedByPermission() == null)
                 needLoadByPermissions.put(twinClassEntity.getId(), twinClassEntity);
-            if (twinClassEntity.getActionsProtectedByValidator() == null)
+            if (twinClassEntity.getActionsProtectedByValidatorRules() == null)
                 needLoadByValidators.put(twinClassEntity.getId(), twinClassEntity);
         }
         if (!needLoadByPermissions.isEmpty()) {
@@ -112,10 +112,10 @@ public class TwinActionService {
             }
         }
         if (!needLoadByValidators.isEmpty()) {
-            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
+            List<TwinActionValidatorRuleEntity> twinClassActionValidatorEntities = twinActionValidatorRuleRepository.findByTwinClassIdIn(needLoadByPermissions.keySet());
             KitGrouped<TwinActionValidatorRuleEntity, UUID, UUID> actionGroupedByClass = new KitGrouped<>(twinClassActionValidatorEntities, TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinClassId);
             for (TwinClassEntity twinClassEntity : needLoadByValidators.values()) {
-                twinClassEntity.setActionsProtectedByValidator(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
+                twinClassEntity.setActionsProtectedByValidatorRules(new KitGrouped<>(actionGroupedByClass.getGrouped(twinClassEntity.getId()), TwinActionValidatorRuleEntity::getId, TwinActionValidatorRuleEntity::getTwinAction));
             }
         }
     }
@@ -173,8 +173,12 @@ public class TwinActionService {
                     }
                 }
                 // Check if the action is protected by validators
-                if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidator())) {
-                    for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : twinClassEntity.getActionsProtectedByValidator().getGrouped(twinAction)) {
+                if (KitUtils.isNotEmpty(twinClassEntity.getActionsProtectedByValidatorRules())) {
+                    for (TwinActionValidatorRuleEntity actionValidatorRuleEntity : twinClassEntity.getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
+                        if (!actionValidatorRuleEntity.isActive()) {
+                            log.info(actionValidatorRuleEntity.logShort() + " is inactive");
+                            continue;
+                        }
                         // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
                         Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
                         // Check each validator for the action

@@ -2,6 +2,7 @@ package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.action.TwinAction;
 
@@ -11,7 +12,8 @@ import java.util.UUID;
 @Entity
 @Data
 @Table(name = "twin_action_validator_rule")
-public class TwinActionValidatorRuleEntity implements Validator, EasyLoggable {
+@Accessors(chain = true)
+public class TwinActionValidatorRuleEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -27,20 +29,26 @@ public class TwinActionValidatorRuleEntity implements Validator, EasyLoggable {
     @Basic
     private Integer order;
 
+    @Column(name = "active")
+    private boolean isActive;
+
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
     @OneToMany(fetch = FetchType.EAGER)
-    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
+
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
 
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinActionValidator[" + id + "]";
-            case NORMAL -> "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinActionValidatorRule[" + id + "]";
+            case NORMAL -> "twinActionValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinActionValidator[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+                    "twinActionValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 }

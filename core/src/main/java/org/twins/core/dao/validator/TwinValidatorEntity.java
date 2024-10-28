@@ -3,6 +3,8 @@ package org.twins.core.dao.validator;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -15,7 +17,9 @@ import java.util.UUID;
 @Data
 @Entity
 @Table(name = "twin_validator")
-public class TwinValidatorEntity implements EasyLoggable {
+@Accessors(chain = true)
+@FieldNameConstants
+public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -47,6 +51,9 @@ public class TwinValidatorEntity implements EasyLoggable {
     @Column(name = "`order`")
     @Basic
     private Integer order;
+
+    @Transient
+    private TwinValidatorSetEntity twinValidatorSet;
 
     @Override
     public String easyLog(Level level) {

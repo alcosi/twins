@@ -178,7 +178,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidator;
+    private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -186,7 +186,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidator;
+    private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
 
     @Transient
     @EqualsAndHashCode.Exclude

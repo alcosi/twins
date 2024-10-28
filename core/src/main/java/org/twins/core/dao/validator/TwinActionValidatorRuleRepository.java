@@ -9,7 +9,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinActionValidatorRepository extends CrudRepository<TwinActionValidatorRuleEntity, UUID>, JpaSpecificationExecutor<TwinActionValidatorRuleEntity> {
+public interface TwinActionValidatorRuleRepository extends CrudRepository<TwinActionValidatorRuleEntity, UUID>, JpaSpecificationExecutor<TwinActionValidatorRuleEntity> {
     List<TwinActionValidatorRuleEntity> findByTwinClassIdOrderByOrder(UUID twinClassId);
 
     List<TwinActionValidatorRuleEntity> findByTwinClassIdIn(Set<UUID> twinClassIds);

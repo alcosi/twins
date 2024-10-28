@@ -47,15 +47,12 @@ ALTER TABLE public.twinflow_transition_validator_rule ADD if not exists twin_val
 alter table public.twin_action_validator_rule drop column if exists twin_validator_featurer_id;
 alter table public.twin_action_validator_rule drop column if exists twin_validator_params;
 alter table public.twin_action_validator_rule drop column if exists invert;
-alter table public.twin_action_validator_rule drop column if exists active;
 alter table public.twin_comment_action_alien_validator_rule drop column if exists twin_validator_featurer_id;
 alter table public.twin_comment_action_alien_validator_rule drop column if exists twin_validator_params;
 alter table public.twin_comment_action_alien_validator_rule drop column if exists invert;
-alter table public.twin_comment_action_alien_validator_rule drop column if exists active;
 alter table public.twinflow_transition_validator_rule drop column if exists twin_validator_featurer_id;
 alter table public.twinflow_transition_validator_rule drop column if exists twin_validator_params;
 alter table public.twinflow_transition_validator_rule drop column if exists invert;
-alter table public.twinflow_transition_validator_rule drop column if exists active;
 
 alter table public.twin_action_validator_rule drop constraint if exists twin_action_validator_twin_validator_set_id_fk;
 alter table public.twin_comment_action_alien_validator_rule drop constraint if exists comment_action_alien_twin_validator_set_id_fk;

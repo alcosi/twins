@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinCommentActionAlienValidatorRepository extends CrudRepository<TwinCommentActionAlienValidatorRuleEntity, UUID> {
+public interface TwinCommentActionAlienValidatorRuleRepository extends CrudRepository<TwinCommentActionAlienValidatorRuleEntity, UUID> {
     List<TwinCommentActionAlienValidatorRuleEntity> findByTwinClassIdOrderByOrder(UUID twinClassId);
 
     List<TwinCommentActionAlienValidatorRuleEntity> findByTwinClassIdIn(Set<UUID> twinClassIds);
