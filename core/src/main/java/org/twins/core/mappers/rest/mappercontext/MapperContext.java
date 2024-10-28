@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -44,6 +45,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<BusinessAccountEntity>> relatedBusinessAccountMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<PermissionGroupEntity>> relatedPermissionGroupMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -152,6 +155,8 @@ public class MapperContext {
             smartPut(relatedBusinessAccountMap, businessAccount, businessAccount.getId());
         else if (relatedObject instanceof PermissionGroupEntity permissionGroup)
             smartPut(relatedPermissionGroupMap, permissionGroup, permissionGroup.getId());
+        else if (relatedObject instanceof PermissionEntity permission)
+            smartPut(relatedPermissionMap, permission, permission.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -338,6 +343,7 @@ public class MapperContext {
         dstMapperContext.relatedSpaceRoleMap = srcMapperContext.relatedSpaceRoleMap;
         dstMapperContext.relatedBusinessAccountMap = srcMapperContext.relatedBusinessAccountMap;
         dstMapperContext.relatedPermissionGroupMap = srcMapperContext.relatedPermissionGroupMap;
+        dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

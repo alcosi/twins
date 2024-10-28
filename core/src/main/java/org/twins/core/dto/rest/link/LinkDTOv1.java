@@ -6,7 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twinclass.TwinClassBaseDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 
 import java.util.UUID;
 
@@ -21,7 +21,7 @@ public class LinkDTOv1 {
     public UUID dstTwinClassId;
 
     @Schema(description = "key", example = DTOExamples.TWIN_CLASS_ID)
-    public TwinClassBaseDTOv1 dstTwinClass;
+    public TwinClassDTOv1 dstTwinClass;
 
     @Schema(description = "name", example = "Serial number")
     public String name;

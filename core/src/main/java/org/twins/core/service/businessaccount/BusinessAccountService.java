@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.*;
 import org.twins.core.dao.domain.DomainUserEntity;
-import org.twins.core.dao.twin.TwinAliasEntity;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -59,6 +57,7 @@ public class BusinessAccountService {
         }
         BusinessAccountUserEntity businessAccountUserEntity = new BusinessAccountUserEntity()
                 .setBusinessAccountId(businessAccountId)
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setUserId(userId);
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
@@ -74,7 +73,7 @@ public class BusinessAccountService {
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {
             ApiUser apiUser = authService.getApiUser();
-            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity, apiUser.getUser(), businessAccountEntity.getId());
+            twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
         }
         return saveResult.getSavedEntity();
     }
