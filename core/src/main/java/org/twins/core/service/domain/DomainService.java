@@ -285,8 +285,8 @@ public class DomainService {
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.id, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.id, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
         );
     }
 }
