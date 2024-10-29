@@ -25,20 +25,21 @@ public class DomainBusinessAccountDTOMapper extends RestSimpleDTOMapper<DomainBu
         switch (mapperContext.getModeOrUse(DomainBusinessAccountMode.DETAILED)) {
             case DETAILED:
                 dst
-                        .setDomainBusinessAccountId(src.getId())
+                        .setId(src.getId())
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setTwinflowSchemaId(src.getTwinflowSchemaId())
                         .setTwinClassSchemaId(src.getTwinClassSchemaId())
-                        .setCurrentLocale(src.getDomain().getDefaultI18nLocaleId())
-                        .setDomainBusinessAccountCreatedAt(src.getCreatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
-                        .setDomainBusinessAccountId(src.getId());
+                        .setId(src.getId());
                 break;
         }
         if (mapperContext.hasModeButNot(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.HIDE))
-            businessAccountDTOMapper.map(src.getBusinessAccount(), dst, mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT));
+            dst
+                    .setBusinessAccount(businessAccountDTOMapper.convert(src.getBusinessAccount(), mapperContext.forkOnPoint(BusinessAccountMode.DomainBusinessAccount2BusinessAccountMode.SHORT)))
+                    .setBusinessAccountid(src.getBusinessAccountId());
 
     }
 }

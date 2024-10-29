@@ -22,7 +22,7 @@ public class BusinessAccountDTOMapper extends RestSimpleDTOMapper<BusinessAccoun
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
-                        .setBusinessAccountCreatedAt(src.getCreatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst.setId(src.getId());

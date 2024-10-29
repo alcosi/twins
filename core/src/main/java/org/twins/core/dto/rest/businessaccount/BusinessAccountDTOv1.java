@@ -21,6 +21,6 @@ public class BusinessAccountDTOv1 {
     public String name;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "business account created at", example = DTOExamples.INSTANT)
-    public LocalDateTime businessAccountCreatedAt;
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 }
