@@ -22,4 +22,7 @@ public class DomainBusinessAccountUpdateRqDTOv1 extends Request {
 
     @Schema(description = "twinFlowSchemaId", example = DTOExamples.TWINFLOW_SCHEMA_ID)
     public UUID twinFlowSchemaId;
+
+    @Schema(description = "Tier id.")
+    public UUID domainBusinessAccountTierId;
 }

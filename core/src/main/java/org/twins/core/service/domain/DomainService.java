@@ -25,7 +25,6 @@ import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
@@ -51,39 +50,39 @@ import java.util.stream.Collectors;
 @Lazy
 @RequiredArgsConstructor
 public class DomainService {
-    final FeaturerService featurerService;
-    final UserService userService;
-    final BusinessAccountService businessAccountService;
-    final DomainRepository domainRepository;
-    final DomainTypeRepository domainTypeRepository;
-    final DomainUserRepository domainUserRepository;
-    final DomainBusinessAccountRepository domainBusinessAccountRepository;
-    final EntitySmartService entitySmartService;
+    private final FeaturerService featurerService;
+    private final UserService userService;
+    private final BusinessAccountService businessAccountService;
+    private final DomainRepository domainRepository;
+    private final DomainTypeRepository domainTypeRepository;
+    private final DomainUserRepository domainUserRepository;
+    private final DomainBusinessAccountRepository domainBusinessAccountRepository;
+    private final EntitySmartService entitySmartService;
 
     @Lazy
-    final PermissionService permissionService;
+    private final PermissionService permissionService;
 
     @Lazy
-    final AuthService authService;
+    private final AuthService authService;
 
-    final TwinClassService twinClassService;
-    final TwinflowService twinflowService;
-    final SystemEntityService systemEntityService;
-    final I18nLocaleRepository i18nLocaleRepository;
-    final DomainLocaleRepository domainLocaleRepository;
+    private final TwinClassService twinClassService;
+    private final TwinflowService twinflowService;
+    private final DomainBusinessAccountTierService domainBusinessAccountTierService;
+    private final I18nLocaleRepository i18nLocaleRepository;
+    private final DomainLocaleRepository domainLocaleRepository;
     @Lazy
-    final TwinService twinService;
+    private final TwinService twinService;
     @Lazy
-    final TwinAliasService twinAliasService;
-
-    @Lazy
-    final SpaceRoleService spaceRoleService;
+    private final TwinAliasService twinAliasService;
 
     @Lazy
-    final DataListService dataListService;
+    private final SpaceRoleService spaceRoleService;
 
     @Lazy
-    final UserGroupService userGroupService;
+    private final DataListService dataListService;
+
+    @Lazy
+    private final UserGroupService userGroupService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -145,11 +144,11 @@ public class DomainService {
         entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId) throws ServiceException {
-        addBusinessAccount(domainId, businessAccountId, EntitySmartService.SaveMode.ifNotPresentCreate, false);
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID domainBusinessAccountTierId) throws ServiceException {
+        addBusinessAccount(domainId, businessAccountId, domainBusinessAccountTierId,  EntitySmartService.SaveMode.ifNotPresentCreate, false);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID domainBusinessAccountTierId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
@@ -168,6 +167,7 @@ public class DomainService {
                 .setDomain(domain)
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
+                .setDomainTierId(null == domainBusinessAccountTierId ? domain.getDefaultDomainBusinessAccountTierId() : domainBusinessAccountTierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
@@ -176,14 +176,17 @@ public class DomainService {
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("permissionSchema", dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
+        if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
             dbEntity.setPermissionSchemaId(permissionService.checkPermissionSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getPermissionSchemaId()));
         }
-        if (changesHelper.isChanged("twinClassSchema", dbEntity.getTwinClassSchemaId(), updateEntity.getTwinClassSchemaId())) {
+        if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinClassSchemaId, dbEntity.getTwinClassSchemaId(), updateEntity.getTwinClassSchemaId())) {
             dbEntity.setTwinClassSchemaId(twinClassService.checkTwinClassSchemaAllowed(updateEntity.getDomainId(), updateEntity.getTwinClassSchemaId()));
         }
-        if (changesHelper.isChanged("twinflowSchema", dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
+        if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinflowSchemaId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
+        }
+        if (null != updateEntity.getDomainTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.domainTierId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
+            dbEntity.setDomainTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getDomainTierId(), dbEntity.getDomainId()));
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);

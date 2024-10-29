@@ -93,7 +93,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     USER_GROUP_IS_MANDATORY(12103, "user group is mandatory"),
     BUSINESS_ACCOUNT_UNKNOWN(12201, "unknown business_account"),
     BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(12202, "business_account user already exists"),
-    BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists");
+    BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists"),
+    TIER_NOT_ALLOWED(12301, "tier is not allowed"),;
 
 
     private final int code;

@@ -57,6 +57,7 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
                     .setDomainId(domainId)
                     .setBusinessAccountId(businessAccountId)
+                    .setDomainTierId(request.domainBusinessAccountTierId)
                     .setPermissionSchemaId(request.permissionSchemaId)
                     .setTwinClassSchemaId(request.twinClassSchemaId)
                     .setTwinflowSchemaId(request.twinFlowSchemaId));
