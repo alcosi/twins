@@ -55,6 +55,10 @@ public class TwinValidatorEntity implements ContainsTwinValidatorSet, EasyLoggab
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
 
+    public boolean isNotActive() {
+        return !isActive;
+    }
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {

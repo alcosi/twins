@@ -1,10 +1,3 @@
-// todo drop 4 entries
-drop table if exists twin_attachment_action_alien_permission;
-drop table if exists twin_attachment_action_alien_validator_rule;
-drop table if exists twin_attachment_action_self;
-drop table if exists twin_attachment_action;
-
-
 -- create table twin_attachment_action
 create table if not exists twin_attachment_action (
     id varchar(20) not null
@@ -73,22 +66,24 @@ create unique index if not exists twin_attachment_action_alien_validator_rule_or
     on twin_attachment_action_alien_validator_rule (twin_class_id, twin_attachment_action_id, "order");
 
 
---create table twin_attachment_action_self
-create table if not exists twin_attachment_action_self (
+--create table twin_attachment_action_self_validator_rule
+create table if not exists twin_attachment_action_self_validator_rule (
     id                              uuid        not null
-        constraint twin_attachment_action_self_pk
+        constraint twin_attachment_action_self_validator_rule_pk
             primary key,
     twin_class_id                   uuid        not null
-        constraint twin_attachment_action_self_twin_class_id_fk
+        constraint twin_attachment_action_self_validator_rule_twin_class_id_fk
         references twin_class,
+    "order" integer default 1,
+    active boolean default true,
     restrict_twin_attachment_action_id varchar(20) not null
-        constraint twin_attachment_action_self_twin_attachment_action_id_fk
+        constraint twin_attachment_action_self_validator_rule_attach_action_id_fk
         references twin_comment_action,
     twin_validator_set_id uuid not null
-        constraint twin_attachment_action_self_twin_validator_set_id_fk
+        constraint twin_attachment_action_self_validator_rule_validator_set_id_fk
         references twin_validator_set
         on update cascade
     );
 
-create index if not exists twin_attachment_action_self_twin_class_id_idx
-    on twin_attachment_action_self (twin_class_id);
+create index if not exists twin_attachment_action_self_validator_rule_twin_class_id_idx
+    on twin_attachment_action_self_validator_rule (twin_class_id);

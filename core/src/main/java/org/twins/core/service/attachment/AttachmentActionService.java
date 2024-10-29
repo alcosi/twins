@@ -6,12 +6,12 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.validator.TwinValidatorEntity;
@@ -30,14 +30,14 @@ public class AttachmentActionService {
     private final AuthService authService;
     private final TwinAttachmentActionAlienPermissionRepository twinAttachmentActionAlienPermissionRepository;
     private final TwinAttachmentActionAlienValidatorRuleRepository twinAttachmentActionAlienValidatorRuleRepository;
-    private final TwinAttachmentActionSelfRepository twinAttachmentActionSelfRepository;
+    private final TwinAttachmentActionSelfValidatorRuleRepository twinAttachmentActionSelfValidatorRuleRepository;
     @Lazy
     final PermissionService permissionService;
     @Lazy
     final FeaturerService featurerService;
 
     public void loadAttachmentActions(TwinAttachmentEntity twinAttachment) throws ServiceException {
-        if (CollectionUtils.isNotEmpty(twinAttachment.getAttachmentActions()))
+        if (twinAttachment.getAttachmentActions() != null)
             return;
         if (twinAttachment.getCreatedByUserId().equals(authService.getApiUser().getUserId()))
             loadAttachmentSelfActions(twinAttachment);
@@ -48,7 +48,7 @@ public class AttachmentActionService {
     private void loadAttachmentAlienActions(TwinAttachmentEntity twinAttachment) throws ServiceException {
         TwinEntity twinEntity = twinAttachment.getTwin();
         loadClassAttachmentActionsAlienProtected(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules().isEmpty()) {
+        if (KitUtils.isEmpty(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByPermission()) && KitUtils.isEmpty(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules())) {
             twinAttachment.setAttachmentActions(Collections.EMPTY_SET);
             return;
         }
@@ -66,14 +66,14 @@ public class AttachmentActionService {
             boolean isValid = true;
             for (TwinAttachmentActionAlienValidatorRuleEntity twinAttachmentActionAlienValidatorRule : twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules().getGrouped(twinAttachmentAction)) {
                 if (!twinAttachmentActionAlienValidatorRule.isActive()) {
-                    log.info(twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive");
+                    log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
                 twinAttachmentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for (TwinValidatorEntity twinValidatorEntity : twinAttachmentActionAlienValidatorRule.getTwinValidators()) {
                     if (!twinValidatorEntity.isActive()) {
-                        log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                        log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
@@ -91,15 +91,39 @@ public class AttachmentActionService {
         }
     }
 
-    private void loadAttachmentSelfActions(TwinAttachmentEntity twinAttachment) {
+    private void loadAttachmentSelfActions(TwinAttachmentEntity twinAttachment) throws ServiceException {
         TwinEntity twin = twinAttachment.getTwin();
         loadClassAttachmentActionsSelfRestrict(twin.getTwinClass());
         twinAttachment.setAttachmentActions(EnumSet.allOf(TwinAttachmentAction.class));
-        if (twin.getTwinClass().getAttachmentSelfActionsRestriction() == null)
+        if (KitUtils.isEmpty(twin.getTwinClass().getAttachmentSelfActionsRestriction()))
             return;
-        for (TwinAttachmentAction action : twin.getTwinClass().getAttachmentSelfActionsRestriction().getIdSet()) {
-            twinAttachment.getAttachmentActions().remove(action);
+        boolean isValid = true;
+        TwinAttachmentAction currentActionByValudatorRule = null;
+        for (TwinAttachmentActionSelfValidatorRuleEntity twinAttachmentActionSelfValidatorRuleEntity : twin.getTwinClass().getAttachmentSelfActionsRestriction().getMap().values()) {
+            if (twinAttachmentActionSelfValidatorRuleEntity.isNotActive()) {
+                log.info("{} will not be used, since it is inactive", twinAttachmentActionSelfValidatorRuleEntity.logNormal());
+                continue;
+            }
+            twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+            isValid = true;
+            currentActionByValudatorRule = twinAttachmentActionSelfValidatorRuleEntity.getRestrictTwinAttachmentAction();
+            for (TwinValidatorEntity twinValidatorEntity : twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators()) {
+                if (twinValidatorEntity.isNotActive()) {
+                    log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
+                    continue;
+                }
+                TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
+                if (!validationResult.isValid()) {
+                    log.error(validationResult.getMessage());
+                    isValid = false;
+                    break;
+                }
+            }
+            if (isValid) break;
         }
+        if (isValid)
+            twinAttachment.getAttachmentActions().remove(currentActionByValudatorRule);
     }
 
     private void loadClassAttachmentActionsAlienProtected(TwinClassEntity twinClass) {
@@ -118,8 +142,8 @@ public class AttachmentActionService {
     private void loadClassAttachmentActionsSelfRestrict(TwinClassEntity twinClass) {
         if (twinClass.getAttachmentSelfActionsRestriction() == null)
             twinClass.setAttachmentSelfActionsRestriction(new Kit<>(
-                    twinAttachmentActionSelfRepository.findByTwinClassId(twinClass.getId()),
-                    TwinAttachmentActionSelfEntity::getRestrictTwinAttachmentAction
+                    twinAttachmentActionSelfValidatorRuleRepository.findByTwinClassId(twinClass.getId()),
+                    TwinAttachmentActionSelfValidatorRuleEntity::getRestrictTwinAttachmentAction
             ));
     }
 
@@ -169,16 +193,16 @@ public class AttachmentActionService {
         }
         if (MapUtils.isEmpty(needLoad))
             return;
-        List<TwinAttachmentActionSelfEntity> twinClassAttachmentActionSelfEntities =
-                twinAttachmentActionSelfRepository.findByTwinClassIdIn(needLoad.keySet());
-        KitGrouped<TwinAttachmentActionSelfEntity, UUID, UUID> attachmentActionGroupedByClass =
+        List<TwinAttachmentActionSelfValidatorRuleEntity> twinClassAttachmentActionSelfEntities =
+                twinAttachmentActionSelfValidatorRuleRepository.findByTwinClassIdIn(needLoad.keySet());
+        KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, UUID> attachmentActionGroupedByClass =
                 new KitGrouped<>(twinClassAttachmentActionSelfEntities,
-                        TwinAttachmentActionSelfEntity::getId,
-                        TwinAttachmentActionSelfEntity::getTwinClassId);
+                        TwinAttachmentActionSelfValidatorRuleEntity::getId,
+                        TwinAttachmentActionSelfValidatorRuleEntity::getTwinClassId);
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             twinClassEntity.setAttachmentSelfActionsRestriction(
                     new Kit<>(attachmentActionGroupedByClass.getGrouped(twinClassEntity.getId()),
-                            TwinAttachmentActionSelfEntity::getRestrictTwinAttachmentAction));
+                            TwinAttachmentActionSelfValidatorRuleEntity::getRestrictTwinAttachmentAction));
         }
     }
 

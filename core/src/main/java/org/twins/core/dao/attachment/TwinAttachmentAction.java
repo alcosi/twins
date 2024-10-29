@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.attachment;
 
 public enum TwinAttachmentAction {
     VIEW,

@@ -1,5 +1,5 @@
 
-package org.twins.core.dao.twin;
+package org.twins.core.dao.attachment;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -43,6 +43,10 @@ public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwi
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
+
+    public boolean isNotActive() {
+        return !isActive;
+    }
 
     @Override
     public String easyLog(Level level) {

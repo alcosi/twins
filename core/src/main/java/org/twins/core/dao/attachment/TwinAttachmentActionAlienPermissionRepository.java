@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.attachment;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;

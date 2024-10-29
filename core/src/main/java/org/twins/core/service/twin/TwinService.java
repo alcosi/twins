@@ -22,6 +22,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.*;
