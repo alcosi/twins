@@ -82,7 +82,7 @@ public class UserAddController extends ApiController {
                 domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none, true);
             }
             if (request.domainId != null && request.businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
-                domainService.addBusinessAccount(request.domainId, request.businessAccountId, EntitySmartService.SaveMode.none, true);
+                domainService.addBusinessAccount(request.getDomainId(), request.getBusinessAccountId(), null, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

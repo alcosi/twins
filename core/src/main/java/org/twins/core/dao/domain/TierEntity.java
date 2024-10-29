@@ -12,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-@Table(name = "domain_business_account_tier")
-public class DomainBusinessAccountTierEntity implements EasyLoggable {
+@Table(name = "tier")
+public class TierEntity implements EasyLoggable {
 
     @Id
     @GeneratedValue(generator = "uuid")
@@ -44,7 +44,7 @@ public class DomainBusinessAccountTierEntity implements EasyLoggable {
     private Integer attachmentsStorageQuotaCount;
 
     @Column(name = "attachments_storage_quota_size")
-    private Integer attachmentsStorageQuotaSize;
+    private Long attachmentsStorageQuotaSize;
 
     @Column(name = "user_count_quota")
     private Integer userCountQuota;
@@ -52,9 +52,9 @@ public class DomainBusinessAccountTierEntity implements EasyLoggable {
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "DomainBusinessAccountTierEntity[id:" + id + ", name: " + name + "]";
-            case NORMAL -> "DomainBusinessAccountTierEntity[id:" + id + ", name: " + name + ", custom: " + custom + "]";
-            default -> "DomainBusinessAccountTierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: " + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize + ", userCountQuota: " + userCountQuota + "]";
+            case SHORT -> "TierEntity[id:" + id + ", name: " + name + "]";
+            case NORMAL -> "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + "]";
+            default -> "TierEntity[id:" + id + ", name: " + name + ", custom: " + custom + ", attachmentsStorageQuotaCount: " + attachmentsStorageQuotaCount + ", attachmentsStorageQuotaSize: " + attachmentsStorageQuotaSize + ", userCountQuota: " + userCountQuota + "]";
         };
     }
 

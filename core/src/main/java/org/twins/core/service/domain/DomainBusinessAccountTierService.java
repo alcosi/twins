@@ -18,27 +18,27 @@ import java.util.UUID;
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class DomainBusinessAccountTierService extends EntitySecureFindServiceImpl<DomainBusinessAccountTierEntity> {
+public class DomainBusinessAccountTierService extends EntitySecureFindServiceImpl<TierEntity> {
 
-    private final DomainBusinessAccountTierRepository domainBusinessAccountTierRepository;
+    private final TierRepository tierRepository;
 
     @Override
-    public CrudRepository<DomainBusinessAccountTierEntity, UUID> entityRepository() {
-        return domainBusinessAccountTierRepository;
+    public CrudRepository<TierEntity, UUID> entityRepository() {
+        return tierRepository;
     }
 
     @Override
-    public boolean isEntityReadDenied(DomainBusinessAccountTierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(TierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }
 
     @Override
-    public boolean validateEntity(DomainBusinessAccountTierEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(TierEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 
     public UUID checkTierAllowed(UUID domainTierId, UUID domainId) throws ServiceException{
-        Optional<DomainBusinessAccountTierEntity> domainBusinessAccountTierEntity = domainBusinessAccountTierRepository.findById(domainTierId);
+        Optional<TierEntity> domainBusinessAccountTierEntity = tierRepository.findById(domainTierId);
         if (domainBusinessAccountTierEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown domainTierId[" + domainTierId + "]");
         if (!domainBusinessAccountTierEntity.get().getDomainId().equals(domainId))

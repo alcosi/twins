@@ -53,8 +53,8 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "business_account_template_twin_id")
     private UUID businessAccountTemplateTwinId;
 
-    @Column(name = "default_domain_business_account_tier_id")
-    private UUID defaultDomainBusinessAccountTierId;
+    @Column(name = "default_tier_id")
+    private UUID defaultTierId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;

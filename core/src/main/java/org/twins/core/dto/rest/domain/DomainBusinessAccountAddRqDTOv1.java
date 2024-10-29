@@ -10,13 +10,13 @@ import org.twins.core.dto.rest.Request;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DomainBusinessAccountAddV1")
 public class DomainBusinessAccountAddRqDTOv1 extends Request {
     @Schema(description = "id", example = DTOExamples.BUSINESS_ACCOUNT_ID)
     public UUID businessAccountId;
 
-    @Schema(description = "Tier id. Optional. If it’s not set then default_domain_business_account_tier_id will be used for new domain BA")
-    public UUID domainBusinessAccountTierId;
+    @Schema(description = "Tier id. Optional. If it’s not set then default_tier of domain will be used for new domain BA")
+    public UUID tierId;
 }

@@ -144,11 +144,11 @@ public class DomainService {
         entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID domainBusinessAccountTierId) throws ServiceException {
-        addBusinessAccount(domainId, businessAccountId, domainBusinessAccountTierId,  EntitySmartService.SaveMode.ifNotPresentCreate, false);
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId) throws ServiceException {
+        addBusinessAccount(domainId, businessAccountId, tierId,  EntitySmartService.SaveMode.ifNotPresentCreate, false);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID domainBusinessAccountTierId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
@@ -167,7 +167,7 @@ public class DomainService {
                 .setDomain(domain)
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
-                .setDomainTierId(null == domainBusinessAccountTierId ? domain.getDefaultDomainBusinessAccountTierId() : domainBusinessAccountTierId)
+                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
@@ -185,8 +185,8 @@ public class DomainService {
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinflowSchemaId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
-        if (null != updateEntity.getDomainTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.domainTierId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
-            dbEntity.setDomainTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getDomainTierId(), dbEntity.getDomainId()));
+        if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
+            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId(), dbEntity.getDomainId()));
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);

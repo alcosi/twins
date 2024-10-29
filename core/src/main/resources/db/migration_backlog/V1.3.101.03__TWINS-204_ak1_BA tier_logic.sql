@@ -1,1 +1,1 @@
-alter table public.domain_business_account alter column domain_tier_id set not null;
+alter table public.domain_business_account alter column tier_id set not null;

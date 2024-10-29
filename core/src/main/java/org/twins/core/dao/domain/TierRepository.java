@@ -7,5 +7,5 @@ import org.springframework.stereotype.Repository;
 import java.util.UUID;
 
 @Repository
-public interface DomainBusinessAccountTierRepository extends CrudRepository<DomainBusinessAccountTierEntity, UUID>, JpaSpecificationExecutor<DomainBusinessAccountTierEntity> {
+public interface TierRepository extends CrudRepository<TierEntity, UUID>, JpaSpecificationExecutor<TierEntity> {
 }
