@@ -23,7 +23,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.like(cb.lower(userJoin.get(field)), "%" + name.toLowerCase() + "%");
+                    Predicate predicate = cb.like(cb.lower(userJoin.get(field)), name.toLowerCase());
                     predicates.add(predicate);
                 }
             }
@@ -37,7 +37,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
             if (search != null && !search.isEmpty()) {
                 for (String name : search) {
-                    Predicate predicate = cb.not(cb.like(cb.lower(userJoin.get(field)), "%" + name.toLowerCase() + "%"));
+                    Predicate predicate = cb.not(cb.like(cb.lower(userJoin.get(field)), name.toLowerCase()));
                     predicates.add(predicate);
                 }
             }

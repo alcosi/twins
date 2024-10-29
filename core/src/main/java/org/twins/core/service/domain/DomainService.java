@@ -15,6 +15,7 @@ import org.cambium.i18n.dao.I18nLocaleRepository;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
@@ -22,6 +23,7 @@ import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -45,6 +47,10 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpecification.*;
 
 @Slf4j
 @Service
@@ -252,5 +258,35 @@ public class DomainService {
                 return ownerType;
         } else
             return domainInitiator.getDefaultTwinClassOwnerType();
+    }
+
+    public PaginationResult<DomainBusinessAccountEntity> findDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch, SimplePagination pagination) throws ServiceException {
+        if (domainBusinessAccountSearch == null)
+            domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
+        Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch), PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
+    }
+
+    public List<DomainBusinessAccountEntity> searchDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
+        if (domainBusinessAccountSearch == null)
+            domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters
+        return domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch));
+    }
+
+    public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
+        UUID domainId= authService.getApiUser().getDomainId();
+        return where(
+                checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
+                        .and(checkFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
+                        .and(checkFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.id, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
+                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.id, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
+        );
     }
 }

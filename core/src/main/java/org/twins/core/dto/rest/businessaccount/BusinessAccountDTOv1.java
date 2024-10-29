@@ -1,13 +1,11 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.businessaccount;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -23,6 +21,6 @@ public class BusinessAccountDTOv1 {
     public String name;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "created at", example = DTOExamples.INSTANT)
-    public LocalDateTime createdAt;
+    @Schema(description = "business account created at", example = DTOExamples.INSTANT)
+    public LocalDateTime businessAccountCreatedAt;
 }
