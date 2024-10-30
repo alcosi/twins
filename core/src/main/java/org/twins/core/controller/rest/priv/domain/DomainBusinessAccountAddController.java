@@ -59,8 +59,8 @@ public class DomainBusinessAccountAddController extends ApiController {
                     .setCheckMembershipMode(false);
             domainService.addBusinessAccount(
                     domainId,
-                    request.getTierId(),
                     request.getBusinessAccountId(),
+                    request.getTierId(),
                     EntitySmartService.SaveMode.ifNotPresentCreate,
                     false);
         } catch (ServiceException se) {
