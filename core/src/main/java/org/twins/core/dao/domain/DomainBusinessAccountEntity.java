@@ -36,6 +36,9 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "twin_class_schema_id")
     private UUID twinClassSchemaId;
 
+    @Column(name = "tier_id")
+    private UUID tierId;
+
     @Column(name = "created_at")
     private Timestamp createdAt;
 

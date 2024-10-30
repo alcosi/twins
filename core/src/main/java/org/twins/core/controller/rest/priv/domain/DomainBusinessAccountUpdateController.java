@@ -57,9 +57,10 @@ public class DomainBusinessAccountUpdateController extends ApiController {
             domainService.updateDomainBusinessAccount(new DomainBusinessAccountEntity()
                     .setDomainId(domainId)
                     .setBusinessAccountId(businessAccountId)
-                    .setPermissionSchemaId(request.permissionSchemaId)
-                    .setTwinClassSchemaId(request.twinClassSchemaId)
-                    .setTwinflowSchemaId(request.twinFlowSchemaId));
+                    .setTierId(request.getTierId())
+                    .setPermissionSchemaId(request.getPermissionSchemaId())
+                    .setTwinClassSchemaId(request.getTwinClassSchemaId())
+                    .setTwinflowSchemaId(request.getTwinFlowSchemaId()));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
