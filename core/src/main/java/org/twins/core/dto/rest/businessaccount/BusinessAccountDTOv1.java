@@ -1,13 +1,11 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.businessaccount;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
