@@ -67,7 +67,7 @@ public class DomainService {
 
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
-    private final DomainBusinessAccountTierService domainBusinessAccountTierService;
+    private final TierService domainBusinessAccountTierService;
     private final I18nLocaleRepository i18nLocaleRepository;
     private final DomainLocaleRepository domainLocaleRepository;
     @Lazy
@@ -185,8 +185,8 @@ public class DomainService {
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.twinflowSchemaId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
-        if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTwinflowSchemaId(), updateEntity.getTwinflowSchemaId())) {
-            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId(), dbEntity.getDomainId()));
+        if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
+            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId()));
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
