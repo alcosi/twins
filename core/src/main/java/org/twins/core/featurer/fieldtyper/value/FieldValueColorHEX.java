@@ -34,4 +34,9 @@ public class FieldValueColorHEX extends FieldValue {
     public boolean hasValue(String value) {
         return StringUtils.equals(hex, value);
     }
+
+    @Override
+    public void clear() {
+        hex = null;
+    }
 }

@@ -54,4 +54,9 @@ public class FieldValueSelect extends FieldValue {
         }
         return false;
     }
+
+    public void clear() {
+        options = new ArrayList<>();
+    }
+
 }

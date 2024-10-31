@@ -34,4 +34,9 @@ public class FieldValueText extends FieldValue {
     public boolean hasValue(String value) {
         return StringUtils.equals(this.value, value);
     }
+
+    public void clear() {
+        value = null;
+    }
+
 }

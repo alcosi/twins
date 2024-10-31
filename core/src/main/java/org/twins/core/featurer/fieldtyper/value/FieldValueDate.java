@@ -34,4 +34,9 @@ public class FieldValueDate extends FieldValue {
     public boolean hasValue(String value) {
         return StringUtils.equals(date, value);
     }
+
+    @Override
+    public void clear() {
+        date = null;
+    }
 }
