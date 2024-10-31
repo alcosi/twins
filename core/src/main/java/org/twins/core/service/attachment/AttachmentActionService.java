@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -139,14 +140,6 @@ public class AttachmentActionService {
             ));
     }
 
-    private void loadClassAttachmentActionsSelfRestrict(TwinClassEntity twinClass) {
-        if (twinClass.getAttachmentSelfActionsRestriction() == null)
-            twinClass.setAttachmentSelfActionsRestriction(new Kit<>(
-                    twinAttachmentActionSelfValidatorRuleRepository.findByTwinClassId(twinClass.getId()),
-                    TwinAttachmentActionSelfValidatorRuleEntity::getRestrictTwinAttachmentAction
-            ));
-    }
-
     public void loadClassAttachmentActionsAlienProtected(Collection<TwinClassEntity> twinClassCollection) {
         Map<UUID, TwinClassEntity> needLoadByPermissions = new HashMap<>();
         Map<UUID, TwinClassEntity> needLoadByValidators = new HashMap<>();
@@ -185,6 +178,15 @@ public class AttachmentActionService {
         }
     }
 
+    private void loadClassAttachmentActionsSelfRestrict(TwinClassEntity twinClass) {
+        if (twinClass.getAttachmentSelfActionsRestriction() == null)
+            twinClass.setAttachmentSelfActionsRestriction(new KitGrouped<>(
+                    twinAttachmentActionSelfValidatorRuleRepository.findByTwinClassId(twinClass.getId()),
+                    TwinAttachmentActionSelfValidatorRuleEntity::getId,
+                    TwinAttachmentActionSelfValidatorRuleEntity::getRestrictTwinAttachmentAction
+            ));
+    }
+
     public void loadClassAttachmentActionsSelfRestrict(Collection<TwinClassEntity> twinClassCollection) {
         Map<UUID, TwinClassEntity> needLoad = new HashMap<>();
         for (TwinClassEntity twinClassEntity : twinClassCollection) {
@@ -201,7 +203,8 @@ public class AttachmentActionService {
                         TwinAttachmentActionSelfValidatorRuleEntity::getTwinClassId);
         for (TwinClassEntity twinClassEntity : needLoad.values()) {
             twinClassEntity.setAttachmentSelfActionsRestriction(
-                    new Kit<>(attachmentActionGroupedByClass.getGrouped(twinClassEntity.getId()),
+                    new KitGrouped<>(attachmentActionGroupedByClass.getGrouped(twinClassEntity.getId()),
+                            TwinAttachmentActionSelfValidatorRuleEntity::getId,
                             TwinAttachmentActionSelfValidatorRuleEntity::getRestrictTwinAttachmentAction));
         }
     }
@@ -225,13 +228,12 @@ public class AttachmentActionService {
         }
         if (needLoad.isEmpty())
             return;
-        if (!needLoadAttachmentActionsAlienProtected.isEmpty())
+        if (CollectionUtils.isNotEmpty(needLoadAttachmentActionsAlienProtected))
             loadClassAttachmentActionsAlienProtected(needLoadAttachmentActionsAlienProtected);
-        if (!needLoadAttachmentActionsSelfRestrict.isEmpty())
+        if (CollectionUtils.isNotEmpty(needLoadAttachmentActionsSelfRestrict))
             loadClassAttachmentActionsSelfRestrict(needLoadAttachmentActionsSelfRestrict);
-        for (TwinAttachmentEntity twinAttachment : needLoad) {
+        for (TwinAttachmentEntity twinAttachment : needLoad)
             loadAttachmentActions(twinAttachment);  //now it's N+1 safe to do it loop because TwinClassEntities are already loaded with all necessary data
-        }
     }
 
     public void checkAllowed(TwinAttachmentEntity twinAttachmentEntity, TwinAttachmentAction action) throws ServiceException {

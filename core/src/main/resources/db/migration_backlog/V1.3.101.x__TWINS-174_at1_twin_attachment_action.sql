@@ -20,7 +20,7 @@ create table if not exists twin_attachment_action_alien_permission (
             on update cascade,
     twin_attachment_action_id varchar(20) not null
         constraint twin_attachment_action_alien_twin_attachment_action_id_fk
-        references twin_comment_action
+        references twin_attachment_action
             on update cascade,
     permission_id          uuid        not null
         constraint twin_attachment_action_alien_permission_permission_id_fk
@@ -78,7 +78,7 @@ create table if not exists twin_attachment_action_self_validator_rule (
     active boolean default true,
     restrict_twin_attachment_action_id varchar(20) not null
         constraint twin_attachment_action_self_validator_rule_attach_action_id_fk
-        references twin_comment_action,
+        references twin_attachment_action,
     twin_validator_set_id uuid not null
         constraint twin_attachment_action_self_validator_rule_validator_set_id_fk
         references twin_validator_set

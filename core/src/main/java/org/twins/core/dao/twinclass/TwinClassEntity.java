@@ -207,7 +207,7 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAttachmentActionSelfValidatorRuleEntity, TwinAttachmentAction> attachmentSelfActionsRestriction;
+    private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
