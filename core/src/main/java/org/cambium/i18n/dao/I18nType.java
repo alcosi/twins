@@ -24,6 +24,8 @@ public enum I18nType  {
     TWINFLOW_TRANSITION_NAME("twinflowTransitionName", "Twinflow transition name", Category.TEXT),
     TWINFLOW_TRANSITION_DESCRIPTION("twinflowTransitionDescription", "Twinflow transition description", Category.TEXT),
     SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT),
+    PERMISSION_NAME("permissionName", "Permission name", Category.TEXT),
+    PERMISSION_DESCRIPTION("permissionDescription", "Permission description", Category.TEXT),
     ERROR("error","Error", Category.TEXT)
         ;
 

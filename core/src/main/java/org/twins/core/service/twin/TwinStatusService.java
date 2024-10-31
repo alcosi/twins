@@ -153,17 +153,17 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             if (dbEntity.getNameI18nId() != null)
                 nameI18n.setId(dbEntity.getNameI18nId());
             i18nService.saveTranslations(I18nType.TWIN_STATUS_NAME, nameI18n);
-            if(changesHelper.isChanged(TwinStatusEntity.Fields.nameI18nId, dbEntity.getNameI18nId(), nameI18n.getId()))
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.nameI18nId, dbEntity.getNameI18nId(), nameI18n.getId()))
                 dbEntity.setNameI18nId(nameI18n.getId()); // if new i18n was added
         }
         if (descriptionI18n != null) {
             if (dbEntity.getDescriptionI18nId() != null)
                 descriptionI18n.setId(dbEntity.getDescriptionI18nId());
             i18nService.saveTranslations(I18nType.TWIN_STATUS_DESCRIPTION, descriptionI18n);
-            if(changesHelper.isChanged(TwinStatusEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
+            if (changesHelper.isChanged(TwinStatusEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
                 dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
         }
-        if(changesHelper.hasChanges()) {
+        if (changesHelper.hasChanges()) {
             validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
             entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId());

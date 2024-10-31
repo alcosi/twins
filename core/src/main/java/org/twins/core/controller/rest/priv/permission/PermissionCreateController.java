@@ -1,0 +1,60 @@
+package org.twins.core.controller.rest.priv.permission;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.i18n.dao.I18nEntity;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.twins.core.controller.rest.ApiController;
+import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
+import org.twins.core.dto.rest.Response;
+import org.twins.core.dto.rest.permission.PermissionCreateRqDTOv1;
+import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
+import org.twins.core.mappers.rest.permission.PermissionRestReverseDTOMapper;
+import org.twins.core.service.permission.PermissionGroupService;
+import org.twins.core.service.permission.PermissionService;
+
+@Tag(description = "", name = ApiTag.PERMISSION)
+@RestController
+@CrossOrigin(origins = "*", maxAge = 3600)
+@RequiredArgsConstructor
+public class PermissionCreateController extends ApiController {
+
+    private final PermissionRestReverseDTOMapper permissionRestReverseDTOMapper;
+    private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
+    private final PermissionService permissionService;
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "permissionCreateV1", summary = "Create permission")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = Response.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @PostMapping(value = "/private/permission/v1")
+    public ResponseEntity<?> permissionCreateV1(
+            @RequestBody PermissionCreateRqDTOv1 request) {
+        Response rs = new Response();
+        try {
+            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
+            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
+            permissionService.createPermission(permissionRestReverseDTOMapper.convert(request), nameI18n, descriptionI18n);
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+}

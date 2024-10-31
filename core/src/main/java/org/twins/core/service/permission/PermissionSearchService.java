@@ -14,9 +14,11 @@ import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.domain.search.PermissionSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Locale;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.permission.PermissionSpecification.*;
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 
 
 @Slf4j
@@ -34,16 +36,17 @@ public class PermissionSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<PermissionEntity> createPermissionSearchSpecification(PermissionSearch search) {
+    private Specification<PermissionEntity> createPermissionSearchSpecification(PermissionSearch search) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
         return Specification.where(
                 checkFieldLikeIn(PermissionEntity.Fields.key, search.getKeyLikeList(), false, true)
                         .and(checkFieldLikeIn(PermissionEntity.Fields.key, search.getKeyNotLikeList(), true, true))
                         .and(checkUuidIn(PermissionEntity.Fields.id, search.getIdList(), false, true))
                         .and(checkUuidIn(PermissionEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(PermissionEntity.Fields.name, search.getNameLikeList(), false, true))
-                        .and(checkFieldLikeIn(PermissionEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(PermissionEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(PermissionEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                        .and(joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nNotLikeList(), locale, true, true))
+                        .and(joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nLikeList(), locale, false, false))
+                        .and(joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nNotLikeList(), locale, true, true))
                         .and(checkUuidIn(PermissionEntity.Fields.permissionGroupId, search.getGroupIdList(), false, true))
                         .and(checkUuidIn(PermissionEntity.Fields.permissionGroupId, search.getGroupIdExcludeList(), true, true))
         );

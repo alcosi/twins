@@ -10,12 +10,19 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.StreamUtils;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
@@ -26,6 +33,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
@@ -39,6 +47,8 @@ import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static org.cambium.common.util.CacheUtils.evictCache;
 
 @Slf4j
 @Service
@@ -55,6 +65,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     private final SpaceRepository spaceRepository;
     private final SpaceUserRoleService spaceUserRoleService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
+    private final I18nService i18nService;
 
     private final TwinRepository twinRepository;
     @Lazy
@@ -67,6 +78,8 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+    @Autowired
+    private CacheManager cacheManager;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -185,6 +198,42 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return permissionSchema;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public PermissionEntity createPermission(PermissionEntity permissionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        permissionEntity
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+        return permissionRepository.save(permissionEntity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public PermissionEntity updatePermission(PermissionEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        PermissionEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        if (changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
+            dbEntity.setKey(updateEntity.getKey());
+        if (changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
+            dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
+        if (nameI18n != null) {
+            if (dbEntity.getNameI18NId() != null)
+                nameI18n.setId(dbEntity.getNameI18NId());
+            i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
+            if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+                dbEntity.setNameI18NId(nameI18n.getId());
+        }
+        if (descriptionI18n != null) {
+            if (dbEntity.getDescriptionI18NId() != null)
+                descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+            i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
+            if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+                dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+        }
+        if (changesHelper.hasChanges()) {
+            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(dbEntity, permissionRepository, changesHelper);
+        }
+        return dbEntity;
+    }
 
     /**
     * Method for checking twin ref user permissions. Only for analyse.

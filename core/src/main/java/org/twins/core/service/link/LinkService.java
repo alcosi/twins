@@ -100,7 +100,6 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 .setDomainId(apiUser.getDomainId())
                 .setForwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n).getId())
                 .setBackwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_BACKWARD_NAME, backwardNameI18n).getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         validateEntityAndThrow(linkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

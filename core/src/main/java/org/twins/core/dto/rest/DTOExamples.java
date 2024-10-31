@@ -2,6 +2,9 @@ package org.twins.core.dto.rest;
 
 public interface DTOExamples {
     String TERNARY = "ONLY";
+    String NAME = "Some name";
+    String DESCRIPTION = "Some description";
+    String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String TWIN_CLASS_KEY = "TOOL";
     String TWIN_CLASS_NAME = "Tool";
@@ -55,6 +58,7 @@ public interface DTOExamples {
     String ATTACHMENT_DESCRIPTION = "fresh certificate";
     String ATTACHMENT_ID = "553ef9bc-3b48-430d-90d3-bdee516c3d87";
     String PERMISSION_ID = "abdeef68-7d6d-4385-9906-e3b701d2c503";
+    String PERMISSION_KEY = "DENY_ALL";
     String PERMISSION_GROUP_ID = "7efd9df0-cae7-455f-a721-eaec455105a4";
     String INSTANT = "2023-09-13T09:32:08";
     String LINK_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
