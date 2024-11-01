@@ -705,8 +705,9 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     }
 //todo optimize for collection processing
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
-        boolean validationResultOfRule;
+        boolean validationResultOfRule = true;
         for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
+            validationResultOfRule = true;
             if (!transitionValidatorRuleEntity.isActive()) {
                 log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
                 continue;
@@ -727,7 +728,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 }
             }
         }
-        return true;
+        return validationResultOfRule;
     }
 
     @Transactional
