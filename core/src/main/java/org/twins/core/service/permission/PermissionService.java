@@ -211,6 +211,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         updatePermissionName(nameI18n, savedEntity, changesHelper);
         updatePermissionDescription(descriptionI18n, savedEntity, changesHelper);
         if (changesHelper.hasChanges()) {
+            permissionGroupService.isPermissionGroupValidate(savedEntity);
             validateEntityAndThrow(savedEntity, EntitySmartService.EntityValidateMode.beforeSave);
             entitySmartService.saveAndLogChanges(savedEntity, permissionRepository, changesHelper);
         }
