@@ -38,10 +38,10 @@ public class FillerFieldCleaner extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromContextTwinFields);
+        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromItemOutputFields);
         if(null != fieldValue) {
             fieldValue.nullify();
-            factoryItem.checkSingleContextItem().getOutput().addField(fieldValue);
+            factoryItem.getOutput().addField(fieldValue);
         } else {
             log.info("FieldValue of class[" + twinClassFieldIdExtracted + "] is absent fot twin[" + factoryItem.getTwin() + "] and can not be cleared");
         }
