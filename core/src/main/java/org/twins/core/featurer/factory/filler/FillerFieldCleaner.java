@@ -40,7 +40,7 @@ public class FillerFieldCleaner extends Filler {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
         FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromContextTwinFields);
         if(null != fieldValue) {
-            fieldValue.clear();
+            fieldValue.nullify();
             factoryItem.getOutput().addField(fieldValue);
         } else {
             log.info("FieldValue of class[" + twinClassFieldIdExtracted + "] is absent fot twin[" + factoryItem.getTwin() + "] and can not be cleared");

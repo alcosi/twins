@@ -36,7 +36,7 @@ public class FieldValueDate extends FieldValue {
     }
 
     @Override
-    public void clear() {
-        date = null;
+    public void nullify() {
+        date = "";
     }
 }

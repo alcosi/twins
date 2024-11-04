@@ -31,7 +31,7 @@ public abstract class FieldValue implements Cloneable {
 
     public abstract FieldValue clone(TwinClassFieldEntity newTwinClassFieldEntity);
 
-    public abstract void clear();
+    public abstract void nullify();
 
     public abstract boolean hasValue(String value);
 }
