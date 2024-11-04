@@ -44,17 +44,13 @@ public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwi
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;
 
-    public boolean isNotActive() {
-        return !isActive;
-    }
-
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT -> "twinCommentActionAlienValidatorRule[" + id + "]";
-            case NORMAL -> "twinCommentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
+            case SHORT -> "twinAttachmentActionAlienValidatorRule[" + id + "]";
+            case NORMAL -> "twinAttachmentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + "]";
             default ->
-                    "twinCommentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
+                    "twinAttachmentActionAlienValidatorRule[id:" + id + ", twinClassId:" + twinClassId + ", twinValidatorSetId:" + twinValidatorSetId + "]";
         };
     }
 }

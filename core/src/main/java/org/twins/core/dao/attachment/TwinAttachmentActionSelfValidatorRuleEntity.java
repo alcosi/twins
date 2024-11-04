@@ -37,10 +37,6 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 
-    public boolean isNotActive() {
-        return !isActive;
-    }
-
     @Override
     public String easyLog(Level level) {
         return switch (level) {

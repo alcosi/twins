@@ -101,13 +101,13 @@ public class AttachmentActionService {
         for (TwinAttachmentAction action : TwinAttachmentAction.values()) {
             boolean isRestricted = false;
             for (TwinAttachmentActionSelfValidatorRuleEntity twinAttachmentActionSelfValidatorRuleEntity : twin.getTwinClass().getAttachmentSelfActionsRestriction().getGrouped(action)) {
-                if (twinAttachmentActionSelfValidatorRuleEntity.isNotActive()) {
+                if (!twinAttachmentActionSelfValidatorRuleEntity.isActive()) {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                     continue;
                 }
                 twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 for (TwinValidatorEntity twinValidatorEntity : twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators()) {
-                    if (twinValidatorEntity.isNotActive()) {
+                    if (!twinValidatorEntity.isActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                         continue;
                     }
