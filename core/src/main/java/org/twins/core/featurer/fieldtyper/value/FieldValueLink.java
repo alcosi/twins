@@ -59,8 +59,8 @@ public class FieldValueLink extends FieldValue {
         return false;
     }
 
-    public void clear() {
-        //todo delete links
+    public void nullify() {
+        twinLinks = new ArrayList<>();
     }
 
 }

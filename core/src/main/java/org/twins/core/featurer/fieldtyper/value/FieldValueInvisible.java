@@ -35,5 +35,5 @@ public class FieldValueInvisible extends FieldValue {
     }
 
     @Override
-    public void clear() {}
+    public void nullify() {}
 }

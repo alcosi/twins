@@ -36,7 +36,7 @@ public class FieldValueColorHEX extends FieldValue {
     }
 
     @Override
-    public void clear() {
-        hex = null;
+    public void nullify() {
+        hex = "";
     }
 }

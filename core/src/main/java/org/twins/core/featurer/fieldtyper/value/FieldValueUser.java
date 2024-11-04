@@ -56,7 +56,7 @@ public class FieldValueUser extends FieldValue {
     }
 
     @Override
-    public void clear() {
+    public void nullify() {
         users = new ArrayList<>();
     }
 }

@@ -35,8 +35,8 @@ public class FieldValueText extends FieldValue {
         return StringUtils.equals(this.value, value);
     }
 
-    public void clear() {
-        value = null;
+    public void nullify() {
+        value = "";
     }
 
 }
