@@ -8,12 +8,15 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
+
+import static org.twins.core.exception.ErrorCodeTwins.*;
 
 @Slf4j
 @Service
@@ -36,6 +39,7 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
 
     @Override
     public boolean validateEntity(PermissionGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        //todo error
         ApiUser apiUser = authService.getApiUser();
         if (entity.getKey() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
@@ -45,6 +49,19 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect domainId");
         }
         return true;
+    }
+
+    public void isPermissionGroupValidate(PermissionEntity permission) throws ServiceException {
+        if (permission.getPermissionGroupId() == null)
+            throw new ServiceException(PERMISSION_ID_NOT_BE_NULL);
+        if (permission.getPermissionGroup() == null) {
+            PermissionGroupEntity permissionGroup = findEntitySafe(permission.getPermissionGroupId());
+            if (permissionGroup == null)
+                throw new ServiceException(PERMISSION_ID_IS_NOT_CORRECT);
+            permission.setPermissionGroup(permissionGroup);
+        }
+        if (permission.getPermissionGroup().getDomainId() == null && !authService.getApiUser().getDomainId().equals(permission.getPermissionGroup().getDomainId()))
+            throw new ServiceException(PERMISSION_ID_IS_NOT_CORRECT);
     }
 
     //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup

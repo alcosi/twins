@@ -17,12 +17,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.permission.PermissionCreateRqDTOv1;
+import org.twins.core.dto.rest.permission.PermissionCreateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionRestReverseDTOMapper;
-import org.twins.core.service.permission.PermissionGroupService;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.permission.PermissionCreateRestReverseDTOMapper;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 
 @Tag(description = "", name = ApiTag.PERMISSION)
@@ -31,7 +33,8 @@ import org.twins.core.service.permission.PermissionService;
 @RequiredArgsConstructor
 public class PermissionCreateController extends ApiController {
 
-    private final PermissionRestReverseDTOMapper permissionRestReverseDTOMapper;
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
+    private final PermissionCreateRestReverseDTOMapper permissionCreateRestReverseDTOMapper;
     private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
     private final PermissionService permissionService;
 
@@ -40,16 +43,19 @@ public class PermissionCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = PermissionCreateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/v1")
     public ResponseEntity<?> permissionCreateV1(
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionCreateRsDTOv1.class) MapperContext mapperContext,
             @RequestBody PermissionCreateRqDTOv1 request) {
-        Response rs = new Response();
+        PermissionCreateRsDTOv1 rs = new PermissionCreateRsDTOv1();
         try {
-            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
-            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            permissionService.createPermission(permissionRestReverseDTOMapper.convert(request), nameI18n, descriptionI18n);
+            I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n(), mapperContext);
+            I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n(), mapperContext);
+            rs.setPermission(permissionRestDTOMapper
+                    .convert(permissionService.createPermission(permissionCreateRestReverseDTOMapper
+                            .convert(request, mapperContext), nameI18n, descriptionI18n), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

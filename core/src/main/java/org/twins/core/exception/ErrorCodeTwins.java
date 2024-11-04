@@ -28,6 +28,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     PERMISSION_ID_UNKNOWN(10302, "permission id unknown"),
     TWIN_NOT_PROTECTED(10303, "Twin is not protected by permission"),
     PERMISSION_SCHEMA_NOT_SPECIFIED(10304, "permission schema is not specified"),
+    PERMISSION_ID_IS_NOT_CORRECT(10305, "Permission with the current permission group id cannot be created"),
+    PERMISSION_ID_NOT_BE_NULL(10305, "Permission id cannot be null"),
     TWIN_CLASS_SCHEMA_NOT_ALLOWED(10401, "twin class schema is not allowed"),
     TWIN_CLASS_FIELD_KEY_UNKNOWN(10402, "twin class field key is unknown"),
     TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT(10403, "twin class field value type is incorrect"),

@@ -17,8 +17,6 @@ import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
@@ -33,7 +31,6 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
-import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
@@ -48,7 +45,7 @@ import org.twins.core.service.user.UserGroupService;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.cambium.common.util.CacheUtils.evictCache;
+import static org.cambium.common.util.UuidUtils.nullifyIfNecessary;
 
 @Slf4j
 @Service
@@ -78,8 +75,6 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
-    @Autowired
-    private CacheManager cacheManager;
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -199,40 +194,60 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public PermissionEntity createPermission(PermissionEntity permissionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        permissionEntity
+    public PermissionEntity createPermission(PermissionEntity createPermission, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        permissionGroupService.isPermissionGroupValidate(createPermission);
+        createPermission
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
-        return permissionRepository.save(permissionEntity);
+        return permissionRepository.save(createPermission);
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public PermissionEntity updatePermission(PermissionEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        PermissionEntity dbEntity = findEntitySafe(updateEntity.getId());
+        PermissionEntity savedEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
-            dbEntity.setKey(updateEntity.getKey());
-        if (changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
-            dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
-        if (nameI18n != null) {
-            if (dbEntity.getNameI18NId() != null)
-                nameI18n.setId(dbEntity.getNameI18NId());
-            i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
-            if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
-                dbEntity.setNameI18NId(nameI18n.getId());
-        }
-        if (descriptionI18n != null) {
-            if (dbEntity.getDescriptionI18NId() != null)
-                descriptionI18n.setId(dbEntity.getDescriptionI18NId());
-            i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
-            if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-                dbEntity.setDescriptionI18NId(descriptionI18n.getId());
-        }
+        updatePermissionKey(updateEntity, savedEntity, changesHelper);
+        updatePermissionGroupId(updateEntity, savedEntity, changesHelper);
+        updatePermissionName(nameI18n, savedEntity, changesHelper);
+        updatePermissionDescription(descriptionI18n, savedEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbEntity, permissionRepository, changesHelper);
+            validateEntityAndThrow(savedEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(savedEntity, permissionRepository, changesHelper);
         }
-        return dbEntity;
+        return savedEntity;
+    }
+
+    private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+    private void updatePermissionName(I18nEntity nameI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18NId() != null)
+            nameI18n.setId(dbEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+            dbEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity savedEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, savedEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
+            return;
+        permissionGroupService.isPermissionGroupValidate(updateEntity);
+        savedEntity.setPermissionGroupId(nullifyIfNecessary(updateEntity.getPermissionGroupId()));
+    }
+
+    private void updatePermissionKey(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
+            return;
+        dbEntity.setKey(updateEntity.getKey());
     }
 
     /**

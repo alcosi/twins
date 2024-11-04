@@ -14,7 +14,7 @@ import java.util.Map;
 @Accessors(chain = true)
 @Schema(name = "I18nV1")
 public class I18nDTOv1 {
-    @Schema(description = "translation in current locale", example = DTOExamples.LOCALE)
+    @Schema(description = "translation in current locale", example = DTOExamples.TRANSLATION)
     public String translationInCurrentLocale;
 
     @Schema(description = "map (locale : translate)", example = DTOExamples.TRANSLATION_MAP)

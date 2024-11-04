@@ -4,6 +4,7 @@ public interface DTOExamples {
     String TERNARY = "ONLY";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
+    String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String TWIN_CLASS_KEY = "TOOL";

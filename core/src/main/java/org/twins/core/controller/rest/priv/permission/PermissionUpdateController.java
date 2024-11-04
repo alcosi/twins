@@ -15,12 +15,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
+import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.permission.PermissionUpdateRqDTOv1;
+import org.twins.core.dto.rest.permission.PermissionUpdateRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
-
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionUpdateRestReverseDTOMapper;
 import org.twins.core.service.permission.PermissionService;
 
@@ -32,6 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class PermissionUpdateController extends ApiController {
 
+    private final PermissionRestDTOMapper permissionRestDTOMapper;
     private final PermissionUpdateRestReverseDTOMapper permissionUpdateRestReverseDTOMapper;
     private final I18nRestDTOReverseMapper i18NRestDTOReverseMapper;
     private final PermissionService permissionService;
@@ -41,17 +44,20 @@ public class PermissionUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = Response.class))}),
+                    @Schema(implementation = PermissionUpdateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission/{permissionId}/v1")
     public ResponseEntity<?> permissionUpdateV1(
+            @MapperContextBinding(roots = PermissionRestDTOMapper.class, response = PermissionUpdateRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable UUID permissionId,
             @RequestBody PermissionUpdateRqDTOv1 request) {
-        Response rs = new Response();
+        PermissionUpdateRsDTOv1 rs = new PermissionUpdateRsDTOv1();
         try {
             I18nEntity nameI18n = i18NRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionI18n = i18NRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            permissionService.updatePermission(permissionUpdateRestReverseDTOMapper.convert(request.setId(permissionId)), nameI18n, descriptionI18n);
+            rs.setPermission(permissionRestDTOMapper
+                    .convert(permissionService.updatePermission(permissionUpdateRestReverseDTOMapper
+                            .convert(request.setId(permissionId)), nameI18n, descriptionI18n), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
