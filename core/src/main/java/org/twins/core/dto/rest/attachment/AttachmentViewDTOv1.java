@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.twin.TwinAttachmentAction;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;

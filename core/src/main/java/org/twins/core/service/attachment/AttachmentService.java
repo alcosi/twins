@@ -14,8 +14,9 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
-import org.twins.core.dao.twin.TwinAttachmentRepository;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -40,6 +41,7 @@ public class AttachmentService {
     final TwinActionService twinActionService;
     final TwinAttachmentRepository twinAttachmentRepository;
     final HistoryService historyService;
+    private final AttachmentActionService attachmentActionService;
 
     public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
@@ -149,6 +151,7 @@ public class AttachmentService {
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
         TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
+        attachmentActionService.checkAllowed(attachmentEntity, TwinAttachmentAction.DELETE);
         if (attachmentEntity == null)
             return;
         log.info(attachmentEntity.logDetailed() + " will be deleted");
@@ -173,6 +176,7 @@ public class AttachmentService {
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             changesHelper.flush();
             dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
             if (changesHelper.isChanged("commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
                 if (CommentRelinkMode.denied.equals(commentRelinkMode))
@@ -216,6 +220,14 @@ public class AttachmentService {
         if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
             return;
         List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
+        Iterator<TwinAttachmentEntity> iterator = deleteEntityList.iterator();
+        while (iterator.hasNext()) {
+            TwinAttachmentEntity deleteEntity = iterator.next();
+            if (attachmentActionService.isAllowed(deleteEntity, TwinAttachmentAction.DELETE)) // N+1
+                continue;
+            log.info("{} cannot be deleted because it is not allowed", deleteEntity.logShort());
+            iterator.remove();
+        }
         if (CollectionUtils.isEmpty(deleteEntityList))
             return;
         HistoryCollector historyCollector = new HistoryCollector();
@@ -223,7 +235,7 @@ public class AttachmentService {
         for (TwinAttachmentEntity attachmentEntity : deleteEntityList) {
             if (twinEntity == null)
                 twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
-            log.info(attachmentEntity.logDetailed() + " will be deleted");
+            log.info("{} will be deleted", attachmentEntity.logDetailed());
             historyCollector.add(historyService.attachmentDelete(attachmentEntity));
         }
         twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);

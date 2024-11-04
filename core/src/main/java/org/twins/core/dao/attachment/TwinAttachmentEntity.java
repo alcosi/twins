@@ -1,17 +1,20 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.attachment;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -79,6 +82,10 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @ManyToOne
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity createdByUser;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Set<TwinAttachmentAction> attachmentActions;
 
     @Override
     public TwinAttachmentEntity clone() {

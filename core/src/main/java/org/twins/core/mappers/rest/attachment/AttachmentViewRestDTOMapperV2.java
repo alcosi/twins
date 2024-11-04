@@ -2,7 +2,7 @@ package org.twins.core.mappers.rest.attachment;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dto.rest.attachment.AttachmentViewDTOv2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;

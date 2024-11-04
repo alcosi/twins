@@ -3,7 +3,7 @@ package org.twins.core.dao.history.context.snapshot;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.StringUtils;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 
 import java.util.HashMap;
 import java.util.UUID;

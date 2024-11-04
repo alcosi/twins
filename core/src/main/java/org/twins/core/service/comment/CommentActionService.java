@@ -6,6 +6,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
@@ -53,7 +54,7 @@ public class CommentActionService {
     private void loadCommentAlienActions(TwinCommentEntity twinComment) throws ServiceException {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsAlienProtected(twinEntity.getTwinClass());
-        if (twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission().isEmpty() && twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().isEmpty()) {
+        if (KitUtils.isEmpty(twinEntity.getTwinClass().getCommentAlienActionsProtectedByPermission()) && KitUtils.isEmpty(twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules())) {
             twinComment.setCommentActions(Collections.EMPTY_SET);
             return;
         }
@@ -72,14 +73,14 @@ public class CommentActionService {
             boolean isValid = true;
             for (TwinCommentActionAlienValidatorRuleEntity twinCommentActionAlienValidatorRule : twinEntity.getTwinClass().getCommentAlienActionsProtectedByValidatorRules().getGrouped(twinCommentAction)) {
                 if (!twinCommentActionAlienValidatorRule.isActive()) {
-                    log.info(twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
                 twinCommentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
                 for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidatorRule.getTwinValidators()) {
                     if (!twinValidatorEntity.isActive()) {
-                        log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                        log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
@@ -90,7 +91,7 @@ public class CommentActionService {
                         break;
                     }
                 }
-                if(isValid) break;
+                if (isValid) break;
             }
             if (isValid)
                 twinComment.getCommentActions().add(twinCommentAction);
@@ -101,7 +102,7 @@ public class CommentActionService {
         TwinEntity twinEntity = twinComment.getTwin();
         loadClassCommentActionsSelfRestrict(twinEntity.getTwinClass());
         twinComment.setCommentActions(EnumSet.allOf(TwinCommentAction.class));
-        if (twinEntity.getTwinClass().getCommentSelfActionsRestriction().isEmpty())
+        if (KitUtils.isEmpty(twinEntity.getTwinClass().getCommentSelfActionsRestriction()))
             return;
         for (TwinCommentAction action : twinEntity.getTwinClass().getCommentSelfActionsRestriction().getIdSet()) {
             twinComment.getCommentActions().remove(action);

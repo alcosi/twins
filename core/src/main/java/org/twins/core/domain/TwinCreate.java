@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 
 import java.util.List;

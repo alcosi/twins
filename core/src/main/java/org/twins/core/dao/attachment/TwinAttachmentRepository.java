@@ -1,4 +1,4 @@
-package org.twins.core.dao.twin;
+package org.twins.core.dao.attachment;
 
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
