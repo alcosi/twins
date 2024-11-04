@@ -99,7 +99,7 @@ public class AttachmentActionService {
         if (KitUtils.isEmpty(twin.getTwinClass().getAttachmentSelfActionsRestriction()))
             return;
         for (TwinAttachmentAction action : TwinAttachmentAction.values()) {
-            boolean isValid = false;
+            boolean isRestricted = false;
             for (TwinAttachmentActionSelfValidatorRuleEntity twinAttachmentActionSelfValidatorRuleEntity : twin.getTwinClass().getAttachmentSelfActionsRestriction().getGrouped(action)) {
                 if (twinAttachmentActionSelfValidatorRuleEntity.isNotActive()) {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionSelfValidatorRuleEntity.logNormal());
@@ -115,13 +115,13 @@ public class AttachmentActionService {
                     TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twin, twinValidatorEntity.isInvert());
                     if (validationResult.isValid()) {
                         log.error(validationResult.getMessage());
-                        isValid = true;
+                        isRestricted = true;
                         break;
                     }
                 }
-                if (isValid) break;
+                if (isRestricted) break;
             }
-            if (isValid)
+            if (isRestricted)
                 twinAttachment.getAttachmentActions().remove(action);
         }
     }
