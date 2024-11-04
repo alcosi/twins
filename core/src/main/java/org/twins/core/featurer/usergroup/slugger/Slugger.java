@@ -66,12 +66,7 @@ public abstract class Slugger extends FeaturerTwins {
 
     public void enterGroup(UserGroupEntity userGroup, UUID userId) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, userGroup.getUserGroupType().getSluggerParams(), new HashMap<>());
-        UserGroupMapEntity userGroupMapEntity = userGroupMapRepository.findByUserIdAndUserGroupId(userId, userGroup.getId());
-        if (userGroupMapEntity != null) {
-            log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " is already exists");
-            return;
-        }
-        userGroupMapEntity = enterGroup(properties, userGroup, userId, authService.getApiUser());
+        UserGroupMapEntity userGroupMapEntity = enterGroup(properties, userGroup, userId, authService.getApiUser());
         if (userGroupMapEntity == null) {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for user[" + userId + "]");
             return;

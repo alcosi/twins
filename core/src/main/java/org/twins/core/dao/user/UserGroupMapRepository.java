@@ -19,6 +19,7 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
             "and ugm.userGroup.domainId = :domainId and ugm.userId = :userId")
     List<UserGroupMapEntity> findByUserIdAndBusinessAccountSafe(@Param("userId") UUID userId, @Param("domainId") UUID domainId, @Param("businessAccountId") UUID businessAccountId);
     UserGroupMapEntity findByUserIdAndUserGroupId(UUID userId, UUID userGroupId);
+    UserGroupMapEntity findByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
     int countByUserIdAndUserGroupIdNotIn(UUID userId, List<UUID> userGroupIdList);
 
     void deleteByUserIdAndUserGroupIdIn(UUID userId, List<UUID> userGroupIdList);
