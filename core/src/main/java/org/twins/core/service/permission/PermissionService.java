@@ -194,28 +194,28 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public PermissionEntity createPermission(PermissionEntity createPermission, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        permissionGroupService.isPermissionGroupValidate(createPermission);
-        createPermission
+    public PermissionEntity createPermission(PermissionEntity createEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        permissionGroupService.validateEntityAndThrow(createEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
+        createEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
-        return permissionRepository.save(createPermission);
+        return permissionRepository.save(createEntity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public PermissionEntity updatePermission(PermissionEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        PermissionEntity savedEntity = findEntitySafe(updateEntity.getId());
+        PermissionEntity dbEntity = findEntitySafe(updateEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updatePermissionKey(updateEntity, savedEntity, changesHelper);
-        updatePermissionGroupId(updateEntity, savedEntity, changesHelper);
-        updatePermissionName(nameI18n, savedEntity, changesHelper);
-        updatePermissionDescription(descriptionI18n, savedEntity, changesHelper);
+        updatePermissionKey(updateEntity, dbEntity, changesHelper);
+        updatePermissionGroupId(updateEntity, dbEntity, changesHelper);
+        updatePermissionName(nameI18n, dbEntity, changesHelper);
+        updatePermissionDescription(descriptionI18n, dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            permissionGroupService.isPermissionGroupValidate(savedEntity);
-            validateEntityAndThrow(savedEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(savedEntity, permissionRepository, changesHelper);
+            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(dbEntity, permissionRepository, changesHelper);
         }
-        return savedEntity;
+        return dbEntity;
     }
 
     private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
@@ -238,11 +238,12 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
             dbEntity.setNameI18NId(nameI18n.getId());
     }
 
-    private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity savedEntity, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, savedEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
+    private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
             return;
-        permissionGroupService.isPermissionGroupValidate(updateEntity);
-        savedEntity.setPermissionGroupId(nullifyIfNecessary(updateEntity.getPermissionGroupId()));
+        validateEntityAndThrow(updateEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        permissionGroupService.validateEntityAndThrow(updateEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
+        dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
     }
 
     private void updatePermissionKey(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) {

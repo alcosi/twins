@@ -39,29 +39,17 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
 
     @Override
     public boolean validateEntity(PermissionGroupEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        //todo error
         ApiUser apiUser = authService.getApiUser();
         if (entity.getKey() == null)
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
         switch (entityValidateMode) {
             default:
+                if (entity.getDomainId() == null || !entity.getDomainId().equals(apiUser.getDomainId()))
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " is system and cannot be used");
                 if (apiUser.isDomainSpecified() && entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect domainId");
         }
         return true;
-    }
-
-    public void isPermissionGroupValidate(PermissionEntity permission) throws ServiceException {
-        if (permission.getPermissionGroupId() == null)
-            throw new ServiceException(PERMISSION_ID_NOT_BE_NULL);
-        if (permission.getPermissionGroup() == null) {
-            PermissionGroupEntity permissionGroup = findEntitySafe(permission.getPermissionGroupId());
-            if (permissionGroup == null)
-                throw new ServiceException(PERMISSION_ID_IS_NOT_CORRECT);
-            permission.setPermissionGroup(permissionGroup);
-        }
-        if (permission.getPermissionGroup().getDomainId() == null && !authService.getApiUser().getDomainId().equals(permission.getPermissionGroup().getDomainId()))
-            throw new ServiceException(PERMISSION_ID_IS_NOT_CORRECT);
     }
 
     //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup

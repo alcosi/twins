@@ -13,7 +13,7 @@ alter table permission
     alter column name_i18n_id type uuid using name_i18n_id::uuid;
 
 alter table permission
-    drop constraint permission_name_i18n_id_i18n_id_fk;
+    drop constraint if exists permission_name_i18n_id_i18n_id_fk;
 
 alter table permission
     add constraint permission_name_i18n_id_i18n_id_fk
@@ -35,7 +35,7 @@ alter table permission
     alter column description_i18n_id type uuid using description_i18n_id::uuid;
 
 alter table permission
-    drop constraint permission_description_i18n_id_i18n_id_fk;
+    drop constraint if exists permission_description_i18n_id_i18n_id_fk;
 
 alter table permission
     add constraint permission_description_i18n_id_i18n_id_fk
