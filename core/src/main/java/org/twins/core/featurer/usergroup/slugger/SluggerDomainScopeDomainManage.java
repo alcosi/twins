@@ -36,7 +36,10 @@ public class SluggerDomainScopeDomainManage extends Slugger {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
-
+        if (userGroupMapRepository.existsByUserIdAndUserGroupId(userId, userGroup.getId())) {
+            log.warn("userGroupMapEntity for user[" +userId + "] and group[" + userGroup.getId() + "] is already exists");
+            return null;
+        }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
