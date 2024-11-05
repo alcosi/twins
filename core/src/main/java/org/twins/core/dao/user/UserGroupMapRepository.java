@@ -23,7 +23,7 @@ public interface UserGroupMapRepository extends CrudRepository<UserGroupMapEntit
 
     boolean existsByUserIdAndUserGroupId(UUID userId, UUID userGroupId);
 
-    boolean existsfindByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
+    boolean existsByUserIdAndUserGroupIdAndBusinessAccountId(UUID userId, UUID userGroupId, UUID businessAccountId);
 
     int countByUserIdAndUserGroupIdNotIn(UUID userId, List<UUID> userGroupIdList);
 

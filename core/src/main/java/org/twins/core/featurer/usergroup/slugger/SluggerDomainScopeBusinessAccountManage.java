@@ -61,7 +61,7 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
             return null;
         }
 
-        if (userGroupMapRepository.existsfindByUserIdAndUserGroupIdAndBusinessAccountId(userId, userGroup.getId(), apiUser.getBusinessAccountId())) {
+        if (userGroupMapRepository.existsByUserIdAndUserGroupIdAndBusinessAccountId(userId, userGroup.getId(), apiUser.getBusinessAccountId())) {
             log.warn("userGroupMapEntity for user[" +userId + "] and group[" + userGroup.getId() + "] and BA[" + userGroup.getBusinessAccountId() + "] is already exists");
             return null;
         }
