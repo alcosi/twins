@@ -60,6 +60,11 @@ public class MapperContext {
         return this;
     }
 
+    public MapperContext removeMode(MapperMode mapperMode) {
+        modes.remove(mapperMode);
+        return this;
+    }
+
     public MapperContext setModes(MapperMode... mapperModes) {
         if (mapperModes != null)
             for (MapperMode mapperMode : mapperModes)
@@ -319,6 +324,7 @@ public class MapperContext {
                     fork = cloneWithIsolatedModes();
                 fork.setMode(pointedMode);
             }
+            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
         }
         return fork != null ? fork : this;
     }
