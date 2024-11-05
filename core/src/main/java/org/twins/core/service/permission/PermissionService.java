@@ -10,12 +10,17 @@ import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.StreamUtils;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
@@ -55,6 +60,7 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     private final SpaceRepository spaceRepository;
     private final SpaceUserRoleService spaceUserRoleService;
     private final SpaceRoleUserGroupRepository spaceRoleUserGroupRepository;
+    private final I18nService i18nService;
 
     private final TwinRepository twinRepository;
     @Lazy
@@ -67,6 +73,35 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+
+    @Override
+    public CrudRepository<PermissionEntity, UUID> entityRepository() {
+        return permissionRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getKey() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
+        if (entity.getPermissionGroupId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getPermissionGroup() == null || !entity.getPermissionGroup().getId().equals(entity.getPermissionGroupId()))
+                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
+                if (entity.getPermissionGroup().getDomainId() == null)
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " is system group. No permission can be added to such group");
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead); // this will check if domain correct
+            case afterRead:
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
+        }
+        return true;
+    }
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -132,33 +167,6 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return detectKeys;
     }
 
-    @Override
-    public CrudRepository<PermissionEntity, UUID> entityRepository() {
-        return permissionRepository;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if (entity.getKey() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
-        if (entity.getPermissionGroupId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
-
-        switch (entityValidateMode) {
-            case beforeSave:
-                if (entity.getPermissionGroup() == null || !entity.getPermissionGroup().getId().equals(entity.getPermissionGroupId()))
-                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
-            case afterRead:
-                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
-        }
-        return true;
-    }
-
     public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
         if(null != domain.getPermissionSchema())
             return domain.getPermissionSchema();
@@ -185,6 +193,63 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return permissionSchema;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
+    public PermissionEntity createPermission(PermissionEntity createEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        createEntity
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+        validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        return permissionRepository.save(createEntity);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public PermissionEntity updatePermission(PermissionEntity updateEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        PermissionEntity dbEntity = findEntitySafe(updateEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updatePermissionKey(updateEntity, dbEntity, changesHelper);
+        updatePermissionGroupId(updateEntity, dbEntity, changesHelper);
+        updatePermissionName(nameI18n, dbEntity, changesHelper);
+        updatePermissionDescription(descriptionI18n, dbEntity, changesHelper);
+        if (changesHelper.hasChanges()) {
+            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(dbEntity, permissionRepository, changesHelper);
+        }
+        return dbEntity;
+    }
+
+    private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+    private void updatePermissionName(I18nEntity nameI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18NId() != null)
+            nameI18n.setId(dbEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.PERMISSION_NAME, nameI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+            dbEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
+            return;
+        validateEntityAndThrow(updateEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        permissionGroupService.validateEntityAndThrow(updateEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
+        dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
+    }
+
+    private void updatePermissionKey(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
+            return;
+        dbEntity.setKey(updateEntity.getKey());
+    }
 
     /**
     * Method for checking twin ref user permissions. Only for analyse.
