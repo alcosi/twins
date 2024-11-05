@@ -21,11 +21,12 @@ import java.util.Properties;
 import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2323,
-        name = "FillerFieldFromContext",
+@Featurer(id = FeaturerTwins.ID_2332,
+        name = "FillerFieldFromContextTwinHeadField",
         description = "")
 @Slf4j
-public class FillerFieldFromContext extends Filler {
+public class FillerFieldFromContextTwinHeadField extends Filler {
+
     @FeaturerParam(name = "srcTwinClassFieldId", description = "")
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
 
@@ -43,12 +44,8 @@ public class FillerFieldFromContext extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFieldsAndContextTwinFields);
-    }
-
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookupMode fieldLookupMode) throws ServiceException {
         UUID extractedDstTwinClassFieldId = dstTwinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, srcTwinClassFieldId.extract(properties), fieldLookupMode);
+        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, srcTwinClassFieldId.extract(properties),  FieldLookupMode.fromContextTwinHeadTwinFields);
         FieldValue clone = twinService.copyToField(fieldValue, extractedDstTwinClassFieldId);
         if (!twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), clone.getTwinClassField().getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "Incorrect dstTwinClassFieldId[" + extractedDstTwinClassFieldId +"]");
