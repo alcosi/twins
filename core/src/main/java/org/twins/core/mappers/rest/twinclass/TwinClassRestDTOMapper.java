@@ -18,7 +18,6 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.link.LinkService;
-import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -74,6 +73,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     twinClassFieldRestDTOMapper.convertCollection(
                             twinClassFieldService.loadTwinClassFields(src).getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassFieldMode.TwinClass2TwinClassFieldMode.SHORT)))); //todo only required
         if (mapperContext.hasModeButNot(LinkMode.TwinClass2LinkMode.HIDE)) {
+            //todo think over beforeCollectionConversion optimization
             LinkService.FindTwinClassLinksResult findTwinClassLinksResult = linkService.findLinks(src.getId());
             dst
                     .forwardLinkMap(linkForwardRestDTOMapper.convertMap(findTwinClassLinksResult.getForwardLinks(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(LinkMode.TwinClass2LinkMode.SHORT))))

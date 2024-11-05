@@ -24,4 +24,8 @@ public class MapperModeMap extends Hashtable<Class<MapperMode>, MapperMode> {
         put((Class<MapperMode>) mapperMode.getClass(), mapperMode);
         return this;
     }
+
+    public synchronized MapperMode remove(MapperMode key) {
+        return super.remove(key.getClass());
+    }
 }
