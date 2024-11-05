@@ -45,8 +45,6 @@ import org.twins.core.service.user.UserGroupService;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.cambium.common.util.UuidUtils.nullifyIfNecessary;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -75,6 +73,35 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+
+    @Override
+    public CrudRepository<PermissionEntity, UUID> entityRepository() {
+        return permissionRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        if (entity.getKey() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
+        if (entity.getPermissionGroupId() == null)
+            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
+        switch (entityValidateMode) {
+            case beforeSave:
+                if (entity.getPermissionGroup() == null || !entity.getPermissionGroup().getId().equals(entity.getPermissionGroupId()))
+                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
+                if (entity.getPermissionGroup().getDomainId() == null)
+                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " is system group. No permission can be added to such group");
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead); // this will check if domain correct
+            case afterRead:
+                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
+        }
+        return true;
+    }
 
     public UUID checkPermissionSchemaAllowed(UUID domainId, UUID businessAccountId, UUID permissionSchemaId) throws ServiceException {
         Optional<PermissionSchemaEntity> permissionSchemaEntity = permissionSchemaRepository.findById(permissionSchemaId);
@@ -140,33 +167,6 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
         return detectKeys;
     }
 
-    @Override
-    public CrudRepository<PermissionEntity, UUID> entityRepository() {
-        return permissionRepository;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        if (entity.getKey() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
-        if (entity.getPermissionGroupId() == null)
-            return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty permissionGroupId");
-
-        switch (entityValidateMode) {
-            case beforeSave:
-                if (entity.getPermissionGroup() == null || !entity.getPermissionGroup().getId().equals(entity.getPermissionGroupId()))
-                    entity.setPermissionGroup(permissionGroupService.findEntitySafe(entity.getPermissionGroupId()));
-            case afterRead:
-                return permissionGroupService.validateEntity(entity.getPermissionGroup(), EntitySmartService.EntityValidateMode.afterRead);
-        }
-        return true;
-    }
-
     public PermissionSchemaEntity loadSchemaForDomain(DomainEntity domain) {
         if(null != domain.getPermissionSchema())
             return domain.getPermissionSchema();
@@ -195,11 +195,10 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
     @Transactional(rollbackFor = Throwable.class)
     public PermissionEntity createPermission(PermissionEntity createEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
-        validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        permissionGroupService.validateEntityAndThrow(createEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
         createEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+        validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return permissionRepository.save(createEntity);
     }
 

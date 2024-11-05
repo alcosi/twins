@@ -8,15 +8,12 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
-
-import static org.twins.core.exception.ErrorCodeTwins.*;
+import java.util.UUID;
 
 @Slf4j
 @Service
@@ -44,8 +41,6 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
             return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " empty key");
         switch (entityValidateMode) {
             default:
-                if (entity.getDomainId() == null || !entity.getDomainId().equals(apiUser.getDomainId()))
-                    return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " is system and cannot be used");
                 if (apiUser.isDomainSpecified() && entity.getDomainId() != null && !entity.getDomainId().equals(apiUser.getDomainId()))
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect domainId");
         }
