@@ -39,7 +39,7 @@ public class FieldValueLink extends FieldValue {
         FieldValueLink clone = new FieldValueLink(newTwinClassFieldEntity);
         clone.setForwardLink(this.forwardLink);
         for (TwinLinkEntity twinLinkEntity : twinLinks) {
-            clone.getTwinLinks().add(twinLinkEntity.clone());
+            clone.getTwinLinks().add(twinLinkEntity.clone()); //link and src twin will filled on serialize in FieldTyperLink
         }
         return clone;
     }

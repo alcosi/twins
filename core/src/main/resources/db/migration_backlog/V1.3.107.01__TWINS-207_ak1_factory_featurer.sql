@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2332, 23, 'org.twins.core.featurer.factory.filler.FillerFieldFromContextTwinHeadField', 'FillerFieldFromContextTwinHeadField', '', false) on conflict (id) do nothing;
