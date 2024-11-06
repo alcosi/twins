@@ -37,18 +37,6 @@ public class PermissionSchemaUserGroupRestDTOMapper extends RestSimpleDTOMapper<
                         .setPermissionId(src.getPermissionId())
                         .setUserGroupId(src.getUserGroupId())
                         .setGrantedByUserId(src.getGrantedByUserId());
-                if (mapperContext.hasModeButNot(UserMode.PermissionSchemaUserGroup2UserMode.HIDE))
-                    dst
-                            .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionSchemaUserGroup2UserMode.SHORT)))
-                            .setGrantedByUserId(src.getGrantedByUserId());
-                if (mapperContext.hasModeButNot(UserGroupMode.PermissionSchemaUserGroup2UserGroupMode.HIDE))
-                    dst
-                            .setUserGroup(userGroupRestDTOMapper.convertOrPostpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.PermissionSchemaUserGroup2UserGroupMode.SHORT)))
-                            .setUserGroupId(src.getUserGroupId());
-                if (mapperContext.hasModeButNot(PermissionMode.PermissionSchemaUserGroup2PermissionMode.HIDE))
-                    dst
-                            .setPermission(permissionRestDTOMapperV2.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionSchemaUserGroup2PermissionMode.SHORT)))
-                            .setPermissionId(src.getPermissionId());
                 break;
             case SHORT:
                 dst
@@ -56,5 +44,17 @@ public class PermissionSchemaUserGroupRestDTOMapper extends RestSimpleDTOMapper<
                         .setPermissionId(src.getPermissionId());
                 break;
         }
+        if (mapperContext.hasModeButNot(UserMode.PermissionSchemaUserGroup2UserMode.HIDE))
+            dst
+                    .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionSchemaUserGroup2UserMode.SHORT)))
+                    .setGrantedByUserId(src.getGrantedByUserId());
+        if (mapperContext.hasModeButNot(UserGroupMode.PermissionSchemaUserGroup2UserGroupMode.HIDE))
+            dst
+                    .setUserGroup(userGroupRestDTOMapper.convertOrPostpone(src.getUserGroup(), mapperContext.forkOnPoint(UserGroupMode.PermissionSchemaUserGroup2UserGroupMode.SHORT)))
+                    .setUserGroupId(src.getUserGroupId());
+        if (mapperContext.hasModeButNot(PermissionMode.PermissionSchemaUserGroup2PermissionMode.HIDE))
+            dst
+                    .setPermission(permissionRestDTOMapperV2.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionSchemaUserGroup2PermissionMode.SHORT)))
+                    .setPermissionId(src.getPermissionId());
     }
 }
