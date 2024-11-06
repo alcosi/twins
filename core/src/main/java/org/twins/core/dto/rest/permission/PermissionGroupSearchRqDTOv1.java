@@ -12,13 +12,19 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "PermissionSearchRqV1")
-public class PermissionSearchRqDTOv1 extends Request {
+@Schema(name = "PermissionGroupSearchRqV1")
+public class PermissionGroupSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
 
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
+
+    @Schema(description = "user id exclude list")
+    public Set<UUID> twinClassIdList;
+
+    @Schema(description = "user id exclude list")
+    public Set<UUID> twinClassIdExcludeList;
 
     @Schema(description = "key like list")
     public Set<String> keyLikeList;
@@ -37,10 +43,4 @@ public class PermissionSearchRqDTOv1 extends Request {
 
     @Schema(description = "description not like list")
     public Set<String> descriptionNotLikeList;
-
-    @Schema(description = "group id list")
-    public Set<UUID> groupIdList;
-
-    @Schema(description = "group id exclude list")
-    public Set<UUID> groupIdExcludeList;
 }
