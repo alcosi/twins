@@ -30,10 +30,6 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
                         .setTwinClassId(src.getTwinClassId())
                         .setName(src.getName())
                         .setDescription(src.getDescription());
-                if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE))
-                    dst
-                            .setTwinClassId(src.getTwinClassId())
-                            .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT)));
                 break;
             case SHORT:
                 dst
@@ -41,5 +37,20 @@ public class PermissionGroupRestDTOMapper extends RestSimpleDTOMapper<Permission
                         .setKey(src.getKey());
                 break;
         }
+        if (mapperContext.hasModeButNot(TwinClassMode.PermissionGroup2TwinClassMode.HIDE))
+            dst
+                    .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGroup2TwinClassMode.SHORT)))
+                    .setTwinClassId(src.getTwinClassId());
+
+    }
+
+    @Override
+    public boolean hideMode(MapperContext mapperContext) {
+        return mapperContext.hasModeOrEmpty(PermissionGroupMode.HIDE);
+    }
+
+    @Override
+    public String getObjectCacheId(PermissionGroupEntity src) {
+        return src.getId().toString();
     }
 }
