@@ -47,7 +47,7 @@ public class PermissionSchemaSearchService {
                         .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.userGroupId, search.getUserGroupIdList(), false, false))
                         .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.userGroupId, search.getUserGroupIdExcludeList(), true, false))
                         .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false))
-                        .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, false))
+                        .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true))
         );
     }
 
