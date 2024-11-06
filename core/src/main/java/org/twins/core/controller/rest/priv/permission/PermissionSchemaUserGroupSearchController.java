@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.usergroup;
+package org.twins.core.controller.rest.priv.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.permission.PermissionSchemaUserGroupRestDTOMa
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionSchemaSearchService;
 
-@Tag(name = ApiTag.USER_GROUP)
+@Tag(name = ApiTag.PERMISSION)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
