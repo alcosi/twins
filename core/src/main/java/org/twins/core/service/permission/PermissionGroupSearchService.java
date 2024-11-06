@@ -38,7 +38,7 @@ public class PermissionGroupSearchService {
         return Specification.where(
                 checkFieldLikeIn(PermissionGroupEntity.Fields.key, search.getKeyLikeList(), false, true)
                         .and(checkFieldLikeIn(PermissionGroupEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                        .and(checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdList(), false, true))
+                        .and(checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false))
                         .and(checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, true))
                         .and(checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdList(), false, false))
                         .and(checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdExcludeList(), true, true))
