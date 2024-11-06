@@ -84,7 +84,7 @@ public class MapperContext {
         MapperMode configuredMode = modes.get(mode.getClass());
         if (configuredMode == null || configuredMode.getPriority() < mode.getPriority())
             setMode(mode);
-            //case: several modes with identical priorities in the MapperMode implementer
+        //case: several modes with identical priorities in the MapperMode implementer
         else if (!configuredMode.equals(mode) && configuredMode.getPriority() == mode.getPriority()) {
             setMode(getUpperModeByPriorityOrUse(mode, configuredMode));
         }
@@ -147,7 +147,8 @@ public class MapperContext {
         else if (relatedObject instanceof TwinEntity twin) {
             if (!SystemEntityService.isSystemClass(twin.getTwinClassId())) // system twins (user and ba) will be skipped
                 smartPut(relatedTwinMap, twin, twin.getId());
-        } else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
+        }
+        else if (relatedObject instanceof TwinflowTransitionEntity twinflowTransition)
             smartPut(relatedTwinflowTransitionMap, twinflowTransition, twinflowTransition.getId());
         else if (relatedObject instanceof DataListEntity dataList)
             smartPut(relatedDataListMap, dataList, dataList.getId());
@@ -310,10 +311,9 @@ public class MapperContext {
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
         MapperContext fork = null;
         fork = cloneWithIsolatedModes();
-        for (MapperModePointer<?> mapperModePointer : mapperModePointers)
-            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
+            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
             MapperMode pointedMode = configuredPointer.point();
             if (pointedMode == null)
                 continue;
