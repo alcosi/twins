@@ -313,13 +313,13 @@ public class MapperContext {
         fork = cloneWithIsolatedModes();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
-            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
             MapperMode pointedMode = configuredPointer.point();
             if (pointedMode == null)
                 continue;
             else if (pointedMode instanceof MapperModeCollection modeCollection) {
                 fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
             } else {
+                fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
                 fork.setMode(pointedMode);
             }
         }
