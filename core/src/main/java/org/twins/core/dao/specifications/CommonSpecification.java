@@ -5,7 +5,6 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.util.*;
 
-
 public class CommonSpecification<T> {
 
     public static <T> Specification<T> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {

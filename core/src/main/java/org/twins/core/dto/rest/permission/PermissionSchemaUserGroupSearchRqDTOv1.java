@@ -16,43 +16,33 @@ import java.util.UUID;
 @Schema(name =  "PermissionSchemaUserGroupSearchRqV1")
 public class PermissionSchemaUserGroupSearchRqDTOv1 extends Request {
 
-    @JsonProperty("idList")
     @Schema(description = "id list")
     public Set<UUID> idList;
 
-    @JsonProperty("idExcludeList")
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @JsonProperty("permissionSchemaIdList")
     @Schema(description = "permission schema id list")
     public Set<UUID> permissionSchemaIdList;
 
-    @JsonProperty("permissionSchemaIdExcludeList")
     @Schema(description = "permission schema id exclude list")
     public Set<UUID> permissionSchemaIdExcludeList;
 
-    @JsonProperty("permissionIdList")
     @Schema(description = "permission id list")
     public Set<UUID> permissionIdList;
 
-    @JsonProperty("permissionIdExcludeList")
     @Schema(description = "permission id exclude list")
     public Set<UUID> permissionIdExcludeList;
 
-    @JsonProperty("userGroupIdList")
     @Schema(description = "user group id list")
     public Set<UUID> userGroupIdList;
 
-    @JsonProperty("userGroupIdExcludeList")
     @Schema(description = "user group id exclude list")
     public Set<UUID> userGroupIdExcludeList;
 
-    @JsonProperty("grantedByUserIdList")
     @Schema(description = "granted by user id list")
     public Set<UUID> grantedByUserIdList;
 
-    @JsonProperty("grantedByUserIdExcludeList")
     @Schema(description = "granted by user id exclude list")
     public Set<UUID> grantedByUserIdExcludeList;
 }

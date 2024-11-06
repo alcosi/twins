@@ -19,7 +19,7 @@ public class PermissionSchemaUserGroupDTOv1 {
     public UUID permissionId;
     public UUID userGroupId;
     public UUID grantedByUserId;
-    public PermissionDTOv2 permission; //todo or v1
+    public PermissionDTOv2 permission;
     public UserGroupDTOv1 userGroup;
-    public UserDTOv1 grantedByUser; //todo or v2
+    public UserDTOv1 grantedByUser;
 }
