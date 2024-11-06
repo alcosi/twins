@@ -310,21 +310,18 @@ public class MapperContext {
 
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
         MapperContext fork = null;
+        fork = cloneWithIsolatedModes();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
+            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
             MapperMode pointedMode = configuredPointer.point();
             if (pointedMode == null)
                 continue;
             else if (pointedMode instanceof MapperModeCollection modeCollection) {
-                if (fork == null)
-                    fork = cloneWithIsolatedModes();
                 fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
             } else {
-                if (fork == null)
-                    fork = cloneWithIsolatedModes();
                 fork.setMode(pointedMode);
             }
-            fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
         }
         return fork != null ? fork : this;
     }
