@@ -19,4 +19,7 @@ public class DomainBusinessAccountAddRqDTOv1 extends Request {
 
     @Schema(description = "Tier id. Optional. If it’s not set then default_tier of domain will be used for new domain BA")
     public UUID tierId;
+
+    @Schema(description = "Name")
+    public String name;
 }

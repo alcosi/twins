@@ -6,8 +6,10 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.businessaccount.*;
 import org.twins.core.dao.domain.DomainUserEntity;
@@ -26,7 +28,7 @@ import java.util.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class BusinessAccountService {
+public class BusinessAccountService extends EntitySecureFindServiceImpl<BusinessAccountEntity> {
     final BusinessAccountUserRepository businessAccountUserRepository;
     final BusinessAccountRepository businessAccountRepository;
     final EntitySmartService entitySmartService;
@@ -36,6 +38,21 @@ public class BusinessAccountService {
     final UserService userService;
     @Lazy
     final AuthService authService;
+
+    @Override
+    public CrudRepository<BusinessAccountEntity, UUID> entityRepository() {
+        return businessAccountRepository;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(BusinessAccountEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(BusinessAccountEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     public BusinessAccountEntity findById(UUID businessAccountId, EntitySmartService.FindMode findMode) throws ServiceException {
         return entitySmartService.findById(businessAccountId, businessAccountRepository, findMode);
@@ -47,7 +64,7 @@ public class BusinessAccountService {
 
     public void addUser(UUID businessAccountId, UUID userId, EntitySmartService.SaveMode businessAccountEntityCreateMode, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         userService.addUser(userId, userCreateMode);
-        addBusinessAccount(businessAccountId, businessAccountEntityCreateMode);
+        addBusinessAccount(businessAccountId, null, businessAccountEntityCreateMode);
         BusinessAccountUserNoRelationProjection existed = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserNoRelationProjection.class);
         if (existed != null) {
             if (ignoreAlreadyExists)
@@ -62,13 +79,14 @@ public class BusinessAccountService {
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId) throws ServiceException {
-        return addBusinessAccount(businessAccountId, EntitySmartService.SaveMode.saveAndLogOnException);
+    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, String name) throws ServiceException {
+        return addBusinessAccount(businessAccountId, name, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
+    public BusinessAccountEntity addBusinessAccount(UUID businessAccountId, String name, EntitySmartService.SaveMode entityCreateMode) throws ServiceException {
         BusinessAccountEntity businessAccountEntity = new BusinessAccountEntity()
                 .setId(businessAccountId)
+                .setName(name)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {

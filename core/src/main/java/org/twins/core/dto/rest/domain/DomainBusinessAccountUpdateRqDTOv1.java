@@ -25,4 +25,7 @@ public class DomainBusinessAccountUpdateRqDTOv1 extends Request {
 
     @Schema(description = "Tier id.")
     public UUID tierId;
+
+    @Schema(description = "Name")
+    public String name;
 }
