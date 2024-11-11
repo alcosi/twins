@@ -14,6 +14,7 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
@@ -27,6 +28,8 @@ public class MapperContext {
 
     @Getter
     private Map<UUID, RelatedObject<UserEntity>> relatedUserMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<UserGroupEntity>> relatedUserGroupMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
@@ -140,6 +143,8 @@ public class MapperContext {
             return true;
         if (relatedObject instanceof UserEntity user)
             smartPut(relatedUserMap, user, user.getId());
+        else if (relatedObject instanceof UserGroupEntity userGroup)
+            smartPut(relatedUserGroupMap, userGroup, userGroup.getId());
         else if (relatedObject instanceof TwinClassEntity twinClass)
             smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
@@ -337,6 +342,7 @@ public class MapperContext {
 
     private static void linkToRelatedObjects(MapperContext srcMapperContext, MapperContext dstMapperContext) {
         dstMapperContext.relatedUserMap = srcMapperContext.relatedUserMap;
+        dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
         dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
         dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
         dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
