@@ -23,19 +23,19 @@ import static org.twins.core.dao.specifications.permission.PermissionSchemaSpeci
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionSchemaSearchService {
+public class PermissionSchemaUserGroupSearchService {
 
     private final AuthService authService;
     private final PermissionSchemaUserGroupRepository permissionSchemaUserGroupRepository;
 
-    public PaginationResult<PermissionSchemaUserGroupEntity> findPermissionSchemas(PermissionSchemaUserGroupSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<PermissionSchemaUserGroupEntity> findPermissionSchemaUserGroups(PermissionSchemaUserGroupSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
-        Specification<PermissionSchemaUserGroupEntity> spec = createPermissionSchemaSearchSpecification(search, domainId);
+        Specification<PermissionSchemaUserGroupEntity> spec = createPermissionSchemaUserGroupSearchSpecification(search, domainId);
         Page<PermissionSchemaUserGroupEntity> ret = permissionSchemaUserGroupRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<PermissionSchemaUserGroupEntity> createPermissionSchemaSearchSpecification(PermissionSchemaUserGroupSearch search, UUID domainId) {
+    private Specification<PermissionSchemaUserGroupEntity> createPermissionSchemaUserGroupSearchSpecification(PermissionSchemaUserGroupSearch search, UUID domainId) {
         return Specification.where(
                 checkDomainId(domainId)
                         .and(checkUuidIn(PermissionSchemaUserGroupEntity.Fields.id, search.getIdList(), false, false))

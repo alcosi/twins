@@ -23,10 +23,10 @@ import org.twins.core.dto.rest.permission.PermissionSchemaUserGroupSearchRqDTOv1
 import org.twins.core.dto.rest.permission.PermissionSchemaUserGroupSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.PermissionSchemaSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.permission.PermissionSchemaUserGroupSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaUserGroupRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.permission.PermissionSchemaSearchService;
+import org.twins.core.service.permission.PermissionSchemaUserGroupSearchService;
 
 @Tag(name = ApiTag.PERMISSION)
 @RestController
@@ -36,8 +36,8 @@ public class PermissionSchemaUserGroupSearchController extends ApiController {
 
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-    private final PermissionSchemaSearchService permissionSchemaSearchService;
-    private final PermissionSchemaSearchRqDTOReverseMapper permissionSchemaSearchRqDTOReverseMapper;
+    private final PermissionSchemaUserGroupSearchService permissionSchemaUserGroupSearchService;
+    private final PermissionSchemaUserGroupSearchRqDTOReverseMapper permissionSchemaSearchRqDTOReverseMapper;
     private final PermissionSchemaUserGroupRestDTOMapper permissionSchemaUserGroupRestDTOMapper;
 
     @ParametersApiUserHeaders
@@ -54,8 +54,8 @@ public class PermissionSchemaUserGroupSearchController extends ApiController {
             @RequestBody PermissionSchemaUserGroupSearchRqDTOv1 request) {
         PermissionSchemaUserGroupSearchRsDTOv1 rs = new PermissionSchemaUserGroupSearchRsDTOv1();
         try {
-            PaginationResult<PermissionSchemaUserGroupEntity> permissionSchemas = permissionSchemaSearchService
-                    .findPermissionSchemas(permissionSchemaSearchRqDTOReverseMapper.convert(request), pagination);
+            PaginationResult<PermissionSchemaUserGroupEntity> permissionSchemas = permissionSchemaUserGroupSearchService
+                    .findPermissionSchemaUserGroups(permissionSchemaSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPermissionSchemaUserGroup(permissionSchemaUserGroupRestDTOMapper.convertCollection(permissionSchemas.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionSchemas))
