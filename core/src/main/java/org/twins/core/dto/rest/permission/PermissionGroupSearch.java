@@ -11,14 +11,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 public class PermissionGroupSearch {
-    public Set<UUID> idList;
-    public Set<UUID> idExcludeList;
-    public Set<UUID> twinClassIdList;
-    public Set<UUID> twinClassIdExcludeList;
-    public Set<String> keyLikeList;
-    public Set<String> keyNotLikeList;
-    public Set<String> nameLikeList;
-    public Set<String> nameNotLikeList;
-    public Set<String> descriptionLikeList;
-    public Set<String> descriptionNotLikeList;
+    Set<UUID> idList;
+    Set<UUID> idExcludeList;
+    Set<UUID> twinClassIdList;
+    Set<UUID> twinClassIdExcludeList;
+    Set<String> keyLikeList;
+    Set<String> keyNotLikeList;
+    Set<String> nameLikeList;
+    Set<String> nameNotLikeList;
+    Set<String> descriptionLikeList;
+    Set<String> descriptionNotLikeList;
 }
