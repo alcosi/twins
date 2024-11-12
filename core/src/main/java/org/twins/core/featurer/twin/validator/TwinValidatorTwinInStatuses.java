@@ -11,7 +11,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 
-import java.util.Collection;
 import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
@@ -34,22 +33,6 @@ public class TwinValidatorTwinInStatuses extends TwinValidator {
                 invert,
                 twinEntity.logShort() + " has no statuses[" + StringUtils.join(statusIdSet, ",") + "]",
                 twinEntity.logShort() + " has one of the statuses[" + StringUtils.join(statusIdSet, ",") + "]");
-    }
-
-    @Override
-    protected CollectionValidationResult isValid(Properties properties, Collection<TwinEntity> twinEntityCollection, boolean invert) throws ServiceException {
-        Set<UUID> statusIdSet = statusIds.extract(properties);
-        CollectionValidationResult result = new CollectionValidationResult();
-        for (TwinEntity twinEntity : twinEntityCollection) {
-            boolean isValid = statusIdSet.contains(twinEntity.getTwinStatusId());
-            result.getTwinsResults().put(twinEntity.getId(), buildResult(
-                    isValid,
-                    invert,
-                    twinEntity.logShort() + " has no statuses[" + StringUtils.join(statusIdSet, ",") + "]",
-                    twinEntity.logShort() + " has one of the statuses[" + StringUtils.join(statusIdSet, ",") + "]")
-            );
-        }
-        return result;
     }
 
 }
