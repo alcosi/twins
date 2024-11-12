@@ -150,18 +150,18 @@ public class DomainService {
         entitySmartService.deleteAndLog(domainUserEntity.id(), domainUserRepository);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId) throws ServiceException {
-        addBusinessAccount(domainId, businessAccountId, tierId,  EntitySmartService.SaveMode.ifNotPresentCreate, false);
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId, String name) throws ServiceException {
+        addBusinessAccount(domainId, businessAccountId, tierId, name, EntitySmartService.SaveMode.ifNotPresentCreate, false);
     }
 
-    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
+    public void addBusinessAccount(UUID domainId, UUID businessAccountId, UUID tierId, String name, EntitySmartService.SaveMode businessAccountCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         Optional<DomainEntity> domainEntity = domainRepository.findById(domainId);
         if (domainEntity.isEmpty())
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "unknown domain[" + domainId + "]");
         DomainEntity domain = domainEntity.get();
         if (domain.getDomainType() != DomainType.b2b)
             return; //only b2b domains support BA add
-        BusinessAccountEntity businessAccountEntity = businessAccountService.addBusinessAccount(businessAccountId, businessAccountCreateMode);
+        BusinessAccountEntity businessAccountEntity = businessAccountService.addBusinessAccount(businessAccountId, name, businessAccountCreateMode);
         DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
         if (domainBusinessAccountEntity != null)
             if (ignoreAlreadyExists)
@@ -179,7 +179,8 @@ public class DomainService {
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
     }
 
-    public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity) throws ServiceException {
+    @Transactional(rollbackOn = Throwable.class)
+    public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity, String name) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();
         if (changesHelper.isChanged(DomainBusinessAccountEntity.Fields.permissionSchemaId, dbEntity.getPermissionSchemaId(), updateEntity.getPermissionSchemaId())) {
@@ -193,6 +194,10 @@ public class DomainService {
         }
         if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
             dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId()));
+        }
+        if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
+            dbEntity.getBusinessAccount().setName(name);
+            businessAccountService.updateBusinessAccount(dbEntity.getBusinessAccount());
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
