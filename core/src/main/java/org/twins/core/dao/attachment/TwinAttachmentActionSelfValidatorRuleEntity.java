@@ -34,7 +34,7 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     private UUID twinValidatorSetId;
 
     @OneToMany
-    @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
+    @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 
     @Override
