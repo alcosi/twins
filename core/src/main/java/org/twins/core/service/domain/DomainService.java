@@ -197,7 +197,7 @@ public class DomainService {
         }
         if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
             dbEntity.getBusinessAccount().setName(name);
-            businessAccountService.entityRepository().save(dbEntity.getBusinessAccount());
+            businessAccountService.updateBusinessAccount(dbEntity.getBusinessAccount());
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
