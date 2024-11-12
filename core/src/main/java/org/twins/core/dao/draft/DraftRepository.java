@@ -19,7 +19,7 @@ public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSp
     @Query(nativeQuery = true, value =
             "delete from :tableName " +
                     "where draft_id = :draftId " +
-                    "and twin_id in (select dte.id from draft_twin_erase dte where dte.draft_id = :draftId and dte.erase_twin_status_id is null)")
+                    "and twin_id in (select dte.twin_id from draft_twin_erase dte where dte.draft_id = :draftId and dte.draft_twin_erase_status_id is null)")
     void normalizeDraft(@Param("draftId") UUID draftId, @Param("tableName") String tableName);
 
     @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")

@@ -39,9 +39,6 @@ public class HistoryEntity implements EasyLoggable {
     @Convert(converter = HistoryTypeConverter.class)
     private HistoryType historyType;
 
-    @Column(name = "draft")
-    private boolean draft;
-
     @Column(name = "history_batch_id")
     private UUID historyBatchId;
 

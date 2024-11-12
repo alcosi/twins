@@ -14,6 +14,7 @@ public class DraftCollector {
     final DraftEntity draftEntity;
     final Map<Class<?>, Set<Object>> draftEntitiesMap = new HashMap<>();
     final HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
+    final DraftCounters draftCounters = new DraftCounters();
     @Setter
     boolean onceFlushed = false;
 
@@ -35,9 +36,9 @@ public class DraftCollector {
     private void updateCounters(Object entity) {
         if (entity instanceof DraftTwinEraseEntity draftTwinEraseEntity && draftTwinEraseEntity.isEraseReady()) { //we will increment counter if erase ready
             if (draftTwinEraseEntity.getStatus() == DraftTwinEraseEntity.Status.STATUS_CHANGE_ERASE_DETECTED)
-                draftEntity.incrementTwinEraseIrrevocable();
-            else
                 draftEntity.incrementTwinEraseByStatus();
+            else
+                draftEntity.incrementTwinEraseIrrevocable();
         } else if (entity instanceof DraftTwinPersistEntity draftTwinPersistEntity) {
             if (draftTwinPersistEntity.isCreateElseUpdate())
                 draftEntity.incrementTwinPersistCreate();

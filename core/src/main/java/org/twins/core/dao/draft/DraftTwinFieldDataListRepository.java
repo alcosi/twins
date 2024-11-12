@@ -18,9 +18,9 @@ public interface DraftTwinFieldDataListRepository extends CrudRepository<DraftTw
             "delete from draft_twin_field_data_list dtp " +
                     "using draft_twin_erase dte " +
                     "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
-                    "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
+                    "and dtp.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
-    void normalizeDraft(@Param("draftId") UUID draftId);
+    int normalizeDraft(@Param("draftId") UUID draftId);
 
     @Transactional
     @Modifying

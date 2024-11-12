@@ -22,6 +22,7 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
+import org.twins.core.domain.draft.DraftCounters;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -38,6 +39,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+
 
 @Service
 @Slf4j
@@ -67,6 +69,43 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private final TwinFactoryService twinFactoryService;
     @Lazy
     private final HistoryService historyService;
+    @Lazy
+    private final DraftCounterService draftCounterService;
+    @Lazy
+    private final DraftNormalizeService draftNormalizeService;
+
+    @Override
+    public CrudRepository<DraftEntity, UUID> entityRepository() {
+        return draftRepository;
+    }
+
+    @Override
+    public Function<DraftEntity, UUID> entityGetIdFunction() {
+        return DraftEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(DraftEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.getUserId().equals(entity.getCreatedByUserId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
+        if (!apiUser.getDomainId().equals(entity.getDomainId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not accessible in " + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
+        if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(entity.getBusinessAccountId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not accessible in " + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(DraftEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     public DraftCollector beginDraft() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -276,7 +315,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     return false;
                 for (TwinLinkEntity twinLinkEntity : twinUpdate.getTwinLinkCUD().getUpdateList()) {
                     // hope that nobody will change linkId in factory... otherwise we will have problems here
-                    // also this logic currently does suitable for Many2Many links
+                    // also this logic currently is not suitable for Many2Many links
                     if (!twinLinkEntity.getLinkId().equals(eraseEntity.getReasonLinkId()))
                         continue;
                     if (!twinLinkEntity.getSrcTwinId().equals(eraseEntity.getTwinId())) {
@@ -304,6 +343,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
         } else {
             log.info("Cascade deletion for {} was paused, because twin was relinked to [{}].", eraseEntity.logDetailed(), newRelatedTwin);
+            eraseEntity.setCascadeBreakTwinId(newRelatedTwin);
             return true;
         }
     }
@@ -863,8 +903,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             case UNDER_CONSTRUCTION:
             case ERASE_SCOPE_COLLECT_IN_PROGRESS:
                 draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
-                normalizeDraft(draftCollector);
-                //todo update counters
+                draftNormalizeService.normalizeDraft(draftCollector);
                 checkConflicts(draftCollector);
                 break;
             case ERASE_SCOPE_COLLECT_PLANNED:
@@ -874,37 +913,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
-    // let's try to clean some possible garbage (updates ot twins that will be fully deleted)
-    private void normalizeDraft(DraftCollector draftCollector) {
-        if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
-            return; //nothing need to be normalized
-        if (draftCollector.getDraftEntity().getTwinPersistCreateCount() > 0)
-            // we can delete all persisted draft twins, if they must be deleted in future
-            draftTwinPersistRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinTagCount() > 0)
-            // we can delete all persisted draft twins tags, if twins must be deleted in future
-            draftTwinTagRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinMarkerCount() > 0)
-            // we can delete all persisted draft twins markers, if twins must be deleted in future
-            draftTwinMarkerRepository.normalizeDraftByTwinDeletion(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinAttachmentCount() > 0)
-            // we can delete all persisted draft twins attachments, if twins must be deleted in future
-            draftTwinAttachmentRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinFieldSimpleCount() > 0)
-            // we can delete all persisted draft twins fields simple, if twins must be deleted in future
-            draftTwinFieldSimpleRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinFieldUserCount() > 0)
-            // we can delete all persisted draft twins fields user, if twins must be deleted in future
-            draftTwinFieldUserRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinFieldDataListCount() > 0)
-            // we can delete all persisted draft twins fields datalist, if twins must be deleted in future
-            draftTwinFieldDataListRepository.normalizeDraft(draftCollector.getDraftId());
-        if (draftCollector.getDraftEntity().getTwinLinkDeleteCount() > 0)
-            //we can clean only links, which must be deleted, all other should be checked during commit
-            draftTwinLinkRepository.normalizeDraft(draftCollector.getDraftId());
-    }
+
 
     private void checkConflicts(DraftCollector draftCollector) throws ServiceException {
+        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector);
+        if (!draftCounters.canBeCommited())
+            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " can not be commited, because of unsuitable erase statuses");
         if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
             return; //hope we will have no conflicts in such case
         boolean hasConflicts = false;
@@ -919,38 +933,5 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
         if (hasConflicts)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " has unresolvable conflicts");
-    }
-
-    @Override
-    public CrudRepository<DraftEntity, UUID> entityRepository() {
-        return draftRepository;
-    }
-
-    @Override
-    public Function<DraftEntity, UUID> entityGetIdFunction() {
-        return DraftEntity::getId;
-    }
-
-    @Override
-    public boolean isEntityReadDenied(DraftEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!apiUser.getUserId().equals(entity.getCreatedByUserId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getUser().easyLog(EasyLoggable.Level.NORMAL));
-            return true;
-        }
-        if (!apiUser.getDomainId().equals(entity.getDomainId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not accessible in " + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
-            return true;
-        }
-        if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(entity.getBusinessAccountId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not accessible in " + apiUser.getBusinessAccount().easyLog(EasyLoggable.Level.NORMAL));
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    public boolean validateEntity(DraftEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
     }
 }

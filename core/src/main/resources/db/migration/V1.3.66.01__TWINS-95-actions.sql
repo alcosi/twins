@@ -50,10 +50,10 @@ create table if not exists twin_class_action_permission
 );
 
 create index if not exists twin_class_action_permission_twin_action_id_index
-    on twin_class_action_permission (twin_action_id);
+    on twin_action_permission (twin_action_id);
 
 create index if not exists twin_class_action_permission_twin_class_id_index
-    on twin_class_action_permission (twin_class_id);
+    on twin_action_permission (twin_class_id);
 
 create table if not exists twin_class_action_validator
 (
@@ -78,16 +78,16 @@ create table if not exists twin_class_action_validator
 );
 
 create index if not exists twin_class_action_validator_twin_validator_featurer_id_
-    on twin_class_action_validator (twin_validator_featurer_id);
+    on twin_action_validator (twin_validator_featurer_id);
 
 create index if not exists twin_class_action_validator_twin_action_id_index
-    on twin_class_action_validator (twin_action_id);
+    on twin_action_validator (twin_action_id);
 
 create index if not exists twin_class_action_validator_twin_class_id_index
-    on twin_class_action_validator (twin_class_id);
+    on twin_action_validator (twin_class_id);
 
 create unique index if not exists twin_class_action_validator_order_uniq
-    on twin_class_action_validator (twin_class_id, twin_action_id, "order");
+    on twin_action_validator (twin_class_id, twin_action_id, "order");
 
 do
 $$

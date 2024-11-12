@@ -20,9 +20,9 @@ public interface DraftTwinMarkerRepository extends CrudRepository<DraftTwinMarke
             "delete from draft_twin_marker dtp " +
                     "using draft_twin_erase dte " +
                     "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
-                    "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
+                    "and dtp.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
-    void normalizeDraftByTwinDeletion(@Param("draftId") UUID draftId);
+    int normalizeDraftByTwinDeletion(@Param("draftId") UUID draftId);
 
     Slice<DraftTwinMarkerEntity> findByDraftId(UUID draftId, PageRequest of);
 

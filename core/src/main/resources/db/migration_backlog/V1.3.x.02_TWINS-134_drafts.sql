@@ -225,6 +225,7 @@ create table if not exists draft_twin_erase
         constraint draft_twin_erase_reason_twin_id_fk
             references twin
             on update cascade on delete cascade,
+    cascade_break_twin_id       uuid, -- no FK, because it can be relinked to some new, currently not persisted twin
     reason_link_id       uuid
         constraint draft_twin_erase_reason_link_id_fk
             references link

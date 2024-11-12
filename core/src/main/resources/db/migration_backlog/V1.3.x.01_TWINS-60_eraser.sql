@@ -75,11 +75,6 @@ create table if not exists eraseflow
         constraint eraseflow_cascade_deletion_by_link_default_factory_id
             references twin_factory
             on update cascade on delete restrict,
-    created_by_user_id     uuid not null
-        constraint eraseflow_user_id_fk
-            references "user"
-            on update cascade,
-    created_at             timestamp default CURRENT_TIMESTAMP,
     name_i18n_id           uuid
         constraint eraseflow_name_i18n_id_fk
             references i18n
@@ -87,7 +82,12 @@ create table if not exists eraseflow
     description_i18n_id    uuid
         constraint eraseflow_description_i18n_id_fk
             references i18n
-            on update cascade
+            on update cascade,
+    created_by_user_id     uuid not null
+        constraint eraseflow_user_id_fk
+            references "user"
+            on update cascade,
+    created_at             timestamp default CURRENT_TIMESTAMP
 );
 
 create table if not exists eraseflow_link_cascade

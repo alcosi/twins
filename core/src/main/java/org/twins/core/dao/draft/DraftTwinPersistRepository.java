@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -20,7 +21,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
             "delete from draft_twin_persist dtp " +
                     "using draft_twin_erase dte " +
                     "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
-                    "and dtp.twin_id = dte.twin_id and dte.erase_twin_status_id is null " +
+                    "and dtp.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +
                     "and dtp.time_in_millis < dte.time_in_millis")
     int normalizeDraft(@Param("draftId") UUID draftId);
 
@@ -31,7 +32,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "from draft_twin_erase as dte " +
                     "where dtp.head_twin_id = dte.twin_id " +
                     "  and dtp.draft_id = :draftId " +
-                    "  and dte.erase_twin_status_id = 'IRREVOCABLE_ERASE_HANDLED'")
+                    "  and dte.draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED'")
     int countPersistedWithDeletedHead(@Param("draftId") UUID draftId);
 
     Slice<DraftTwinPersistEntity> findByDraftIdAndCreateElseUpdateTrue(UUID draftId, Pageable pageable);
@@ -52,7 +53,7 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "where draft_id = :draftId " +
                     "  and dtp.twin_id = twin.id " +
                     "  and dtp.create_else_update = false;")
-    int commitTwinsUpdates(UUID draftId);
+    int commitTwinsUpdates(@Param("draftId") UUID draftId);
 
     @Transactional
     @Modifying
@@ -75,5 +76,9 @@ public interface DraftTwinPersistRepository extends CrudRepository<DraftTwinPers
                     "from draft_twin_persist " +
                     "where draft_id = :draftId " +
                     "  and create_else_update = true;")
-    int commitTwinsCreates(UUID draftId);
+    int commitTwinsCreates(@Param("draftId") UUID draftId);
+
+    @Query(value =
+            "select createElseUpdate, count(*) from DraftTwinPersistEntity where draftId = :draftId group by createElseUpdate")
+    List<Object[]> getCounters(@Param("draftId") UUID draftId);
 }
