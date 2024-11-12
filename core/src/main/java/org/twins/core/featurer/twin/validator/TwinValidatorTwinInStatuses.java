@@ -20,7 +20,7 @@ import java.util.UUID;
 @Component
 @Featurer(id = FeaturerTwins.ID_1609,
         name = "TransitionValidatorTwinInStatuses",
-        description = "")
+        description = "Validator for checking the statuses of a twin")
 public class TwinValidatorTwinInStatuses extends TwinValidator {
     @FeaturerParam(name = "statusIds", description = "")
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
