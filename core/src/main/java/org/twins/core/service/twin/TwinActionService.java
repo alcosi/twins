@@ -209,6 +209,7 @@ public class TwinActionService {
                             twinsActionsForbiddenByValidators.computeIfAbsent(twinEntity.getId(), k -> new HashSet<>());
                             if (!twinByTwinValidatorsIsValid.get(twinEntity.getId())) {
                                 nextLoopTwins.add(twinEntity); // If validation failed, add to next loop
+                                twinsActionsForbiddenByValidators.get(twinEntity.getId()).add(twinAction); // If validation not passed, add forbidden action
                             } else {
                                 twinsActionsForbiddenByValidators.get(twinEntity.getId()).remove(twinAction); // If validation passed, remove forbidden action
                             }
