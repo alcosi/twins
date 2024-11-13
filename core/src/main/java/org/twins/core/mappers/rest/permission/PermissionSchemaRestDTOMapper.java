@@ -4,8 +4,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
 
 @Component
@@ -16,16 +16,16 @@ public class PermissionSchemaRestDTOMapper extends RestSimpleDTOMapper<Permissio
         switch (mapperContext.getModeOrUse(PermissionSchemaMode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(src.getName())
-                        .domainId(src.getDomainId())
-                        .businessAccountId(src.getBusinessAccountId())
-                        .description(src.getDescription());
+                        .setId(src.getId())
+                        .setName(src.getName())
+                        .setDomainId(src.getDomainId())
+                        .setBusinessAccountId(src.getBusinessAccountId())
+                        .setDescription(src.getDescription());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(src.getName());
+                        .setId(src.getId())
+                        .setName(src.getName());
                 break;
         }
     }
