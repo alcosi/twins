@@ -28,8 +28,6 @@ import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinActionService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -60,7 +58,6 @@ public class AttachmentService {
                     .setId(UUID.randomUUID()) // need for history
                     .setTwinId(twinEntity.getId())
                     .setTwin(twinEntity)
-                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(userEntity.getId())
                     .setCreatedByUser(userEntity);
             historyCollector.add(historyService.attachmentCreate(attachmentEntity));
