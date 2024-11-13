@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.Request;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "DomainBusinessAccountUpdateV1")
 public class DomainBusinessAccountUpdateRqDTOv1 extends Request {
@@ -22,4 +22,10 @@ public class DomainBusinessAccountUpdateRqDTOv1 extends Request {
 
     @Schema(description = "twinFlowSchemaId", example = DTOExamples.TWINFLOW_SCHEMA_ID)
     public UUID twinFlowSchemaId;
+
+    @Schema(description = "Tier id.")
+    public UUID tierId;
+
+    @Schema(description = "Name")
+    public String name;
 }

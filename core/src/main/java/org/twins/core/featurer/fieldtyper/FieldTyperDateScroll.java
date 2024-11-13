@@ -7,13 +7,16 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchDate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorDate;
@@ -26,7 +29,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1302,
         name = "FieldTyperDateScroll",
         description = "")
-public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate> {
+public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
     @FeaturerParam(name = "pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
@@ -38,10 +41,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueDate value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate()))
+        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         String datePatter = pattern.extract(properties);
-        boolean clearedValue = !twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getDate());
+        boolean clearedValue = !twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getDate());
         if (!GenericValidator.isDate(value.getDate(), datePatter, false) && !clearedValue)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " date[" + value.getDate() + "] does not match pattern[" + datePatter + "]");
         detectValueChange(twinFieldEntity, twinChangesCollector, value.getDate());
@@ -62,4 +65,10 @@ public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, 
             log.warn("Value[ " + dateStr + "] does not match expected format[" + pattern.extract(properties) + "]");
         return "";
     }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchDate search) throws ServiceException {
+        return Specification.where(TwinSpecification.checkFieldDate(search));
+    }
+
 }

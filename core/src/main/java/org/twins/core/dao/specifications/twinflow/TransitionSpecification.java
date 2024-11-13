@@ -6,6 +6,7 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionAliasEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
@@ -17,7 +18,7 @@ import java.util.UUID;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
-public class TransitionSpecification {
+public class TransitionSpecification extends CommonSpecification<TwinflowTransitionEntity> {
 
     public static Specification<TwinflowTransitionEntity> checkUuidTwinClassIn(final Collection<UUID> uuids, boolean not) {
         return (root, query, cb) -> {
@@ -38,15 +39,6 @@ public class TransitionSpecification {
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
-        };
-    }
-
-    public static Specification<TwinflowTransitionEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ?
-                    (ifNotIsTrueIncludeNullValues ? cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull()) : root.get(uuidField).in(uuids).not())
-                    : root.get(uuidField).in(uuids);
         };
     }
 }

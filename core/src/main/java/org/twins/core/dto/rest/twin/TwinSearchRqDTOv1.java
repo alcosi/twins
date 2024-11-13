@@ -9,5 +9,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "TwinSearchRqV1")
-public class TwinSearchRqDTOv1 extends TwinSearchWithHeadDTOv1 {
+public class TwinSearchRqDTOv1 extends TwinSearchExtendedDTOv1 {
 }

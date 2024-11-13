@@ -39,7 +39,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .id(src.getId())
                         .key(src.getKey())
                         .name(i18nService.translateToLocale(src.getNameI18NId()))
-                        .required(src.isRequired())
+                        .required(src.getRequired())
                         .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .twinClassId(src.getTwinClassId())
                         .nameI18nId(src.getNameI18NId())
@@ -57,7 +57,7 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .id(src.getId())
                         .key(src.getKey())
                         .name(i18nService.translateToLocale(src.getNameI18NId()))
-                        .required(src.isRequired())
+                        .required(src.getRequired())
                         .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
                 break;

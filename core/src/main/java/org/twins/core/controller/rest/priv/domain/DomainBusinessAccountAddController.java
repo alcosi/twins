@@ -53,13 +53,15 @@ public class DomainBusinessAccountAddController extends ApiController {
         try {
             authService.getApiUser()
                     .setDomainResolver(new DomainResolverGivenId(domainId))
-                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId()))
+                    .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.getBusinessAccountId()))
                     .setUserResolver(userResolverSystem)
                     .setLocaleResolver(new LocaleResolverEnglish())
                     .setCheckMembershipMode(false);
             domainService.addBusinessAccount(
                     domainId,
-                    request.businessAccountId,
+                    request.getBusinessAccountId(),
+                    request.getTierId(),
+                    request.getName(),
                     EntitySmartService.SaveMode.ifNotPresentCreate,
                     false);
         } catch (ServiceException se) {

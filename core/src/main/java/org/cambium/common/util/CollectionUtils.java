@@ -3,8 +3,16 @@ package org.cambium.common.util;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CollectionUtils extends org.apache.commons.collections.CollectionUtils {
+
+    public static <T> String generateUniqueKey(Collection<T> collection) {
+        return collection.stream()
+                .sorted()
+                .map(T::toString)
+                .collect(Collectors.joining(","));
+    }
 
     public static List<String> singletonListOrNull(String string) {
         if (StringUtils.isNotBlank(string))

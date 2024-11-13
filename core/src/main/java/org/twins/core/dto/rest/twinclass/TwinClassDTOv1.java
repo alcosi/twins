@@ -7,7 +7,8 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.List;
 import java.util.Map;
@@ -53,4 +54,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "extends class")
     public TwinClassBaseDTOv1 extendsClass;
+
+    @Schema(description = "view permission")
+    public PermissionDTOv1 viewPermission;
 }

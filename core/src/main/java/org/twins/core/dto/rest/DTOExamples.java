@@ -2,6 +2,10 @@ package org.twins.core.dto.rest;
 
 public interface DTOExamples {
     String TERNARY = "ONLY";
+    String NAME = "Some name";
+    String DESCRIPTION = "Some description";
+    String TRANSLATION = "translation";
+    String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String TWIN_CLASS_KEY = "TOOL";
     String TWIN_CLASS_NAME = "Tool";
@@ -39,6 +43,7 @@ public interface DTOExamples {
     String DOMAIN_TYPE = "basic";
     String DOMAIN_DESCRIPTION = "some domain";
     String BUSINESS_ACCOUNT_ID = "9a3f6075-f175-41cd-a804-934201ec969c";
+    String BUSINESS_ACCOUNT_NAME = "Business account name";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
@@ -55,7 +60,9 @@ public interface DTOExamples {
     String ATTACHMENT_DESCRIPTION = "fresh certificate";
     String ATTACHMENT_ID = "553ef9bc-3b48-430d-90d3-bdee516c3d87";
     String PERMISSION_ID = "abdeef68-7d6d-4385-9906-e3b701d2c503";
+    String PERMISSION_KEY = "DENY_ALL";
     String PERMISSION_GROUP_ID = "7efd9df0-cae7-455f-a721-eaec455105a4";
+    String PERMISSION_GROUP_KEY = "LOCAL_PERMISSION";
     String INSTANT = "2023-09-13T09:32:08";
     String LINK_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
     String ROLE_ID = "793e3120-e14a-4a22-ab09-060b9fedee35";
@@ -69,4 +76,5 @@ public interface DTOExamples {
     String FEATURER_ID = "1000";
     String FEATURER_NAME = "InjectorImpl";
     String FEATURER_PARAM_NAME = "listUUID";
+    String COLOR_HEX = "#ff00ff";
 }

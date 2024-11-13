@@ -61,7 +61,8 @@ public class DomainListController extends ApiController {
             authService.getApiUser()
                     .setUserResolver(userResolverAuthToken)
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
-                    .setLocaleResolver(new LocaleResolverEnglish());//todo may throw an error
+                    .setLocaleResolver(new LocaleResolverEnglish())//todo may throw an error
+                    .setDomainResolver(new DomainResolverNotSpecified());
             PaginationResult<DomainEntity> domainList = domainService
                     .findDomainListByUser(pagination);
             rs

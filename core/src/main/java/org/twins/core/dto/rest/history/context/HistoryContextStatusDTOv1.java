@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 
 import java.util.UUID;
 
@@ -15,7 +15,7 @@ public class HistoryContextStatusDTOv1 implements HistoryContextDTO {
     public static final String KEY = "statusV1";
     public String contextType = KEY;
 
-    @Schema(description = "From status id", example = DTOExamples.USER_ID)
+    @Schema(description = "From status id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID fromStatusId;
 
     @Schema(description = "From status")

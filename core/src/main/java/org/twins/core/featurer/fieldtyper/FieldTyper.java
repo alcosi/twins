@@ -6,10 +6,12 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
@@ -28,7 +30,7 @@ import java.util.*;
         name = "FieldTyper",
         description = "Customize format of twin class field")
 @Slf4j
-public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage> extends FeaturerTwins {
+public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue, S extends TwinFieldStorage, A extends TwinFieldSearch> extends FeaturerTwins {
     @Lazy
     @Autowired
     HistoryService historyService;
@@ -48,6 +50,7 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     private Class<T> valuetype = null;
     private Class<D> descriptorType = null;
     private Class<S> storageType = null;
+    private Class<A> twinFieldSearchType = null;
 
     public FieldTyper() {
         List<Type> collected = collectParameterizedTypes(getClass(), new ArrayList<>());
@@ -60,8 +63,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
                 valuetype = (Class<T>) cl;
             if (TwinFieldStorage.class.isAssignableFrom(cl) && storageType == null)
                 storageType = (Class<S>) cl;
+            if (TwinFieldSearch.class.isAssignableFrom(cl) && twinFieldSearchType == null)
+                twinFieldSearchType = (Class<A>) cl;
         }
-        if (descriptorType == null || valuetype == null || storageType == null)
+        if (descriptorType == null || valuetype == null || storageType == null || twinFieldSearchType == null)
             throw new RuntimeException("Can not initialize ");
     }
 
@@ -71,6 +76,10 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
 
     public Class<S> getStorageType() {
         return storageType;
+    }
+
+    public Class<A> getTwinFieldSearch() {
+        return twinFieldSearchType;
     }
 
     private static List<Type> collectParameterizedTypes(Class<?> _class, List<Type> collected) {
@@ -109,4 +118,9 @@ public abstract class FieldTyper<D extends FieldDescriptor, T extends FieldValue
     }
 
     protected abstract T deserializeValue(Properties properties, TwinField twinField) throws ServiceException;
+
+    public Specification<TwinEntity> searchBy(A twinFieldSearch) throws ServiceException {
+        throw new ServiceException(ErrorCodeTwins.FIELD_TYPER_SEARCH_NOT_IMPLEMENTED, "Field of type: [" + this.getClass().getSimpleName() + "] do not support twin field search not implemented");
+    }
+
 }

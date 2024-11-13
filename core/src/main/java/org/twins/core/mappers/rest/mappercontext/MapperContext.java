@@ -3,14 +3,18 @@ package org.twins.core.mappers.rest.mappercontext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.service.SystemEntityService;
 
 import java.util.*;
@@ -25,6 +29,8 @@ public class MapperContext {
     @Getter
     private Map<UUID, RelatedObject<UserEntity>> relatedUserMap = new LinkedHashMap<>();
     @Getter
+    private Map<UUID, RelatedObject<UserGroupEntity>> relatedUserGroupMap = new LinkedHashMap<>();
+    @Getter
     private Map<UUID, RelatedObject<TwinClassEntity>> relatedTwinClassMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinStatusEntity>> relatedTwinStatusMap = new LinkedHashMap<>();
@@ -38,6 +44,13 @@ public class MapperContext {
     private Map<UUID, RelatedObject<DataListOptionEntity>> relatedDataListOptionMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<SpaceRoleEntity>> relatedSpaceRoleMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<BusinessAccountEntity>> relatedBusinessAccountMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<PermissionGroupEntity>> relatedPermissionGroupMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
+
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
 
@@ -47,6 +60,11 @@ public class MapperContext {
 
     public MapperContext setMode(MapperMode mapperMode) {
         modes.put(mapperMode);
+        return this;
+    }
+
+    public MapperContext removeMode(MapperMode mapperMode) {
+        modes.remove(mapperMode);
         return this;
     }
 
@@ -125,6 +143,8 @@ public class MapperContext {
             return true;
         if (relatedObject instanceof UserEntity user)
             smartPut(relatedUserMap, user, user.getId());
+        else if (relatedObject instanceof UserGroupEntity userGroup)
+            smartPut(relatedUserGroupMap, userGroup, userGroup.getId());
         else if (relatedObject instanceof TwinClassEntity twinClass)
             smartPut(relatedTwinClassMap, twinClass, twinClass.getId());
         else if (relatedObject instanceof TwinStatusEntity twinStatus)
@@ -141,6 +161,12 @@ public class MapperContext {
             smartPut(relatedDataListOptionMap, dataListOption, dataListOption.getId());
         else if (relatedObject instanceof SpaceRoleEntity spaceRole)
             smartPut(relatedSpaceRoleMap, spaceRole, spaceRole.getId());
+        else if (relatedObject instanceof BusinessAccountEntity businessAccount)
+            smartPut(relatedBusinessAccountMap, businessAccount, businessAccount.getId());
+        else if (relatedObject instanceof PermissionGroupEntity permissionGroup)
+            smartPut(relatedPermissionGroupMap, permissionGroup, permissionGroup.getId());
+        else if (relatedObject instanceof PermissionEntity permission)
+            smartPut(relatedPermissionMap, permission, permission.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -289,18 +315,16 @@ public class MapperContext {
 
     public MapperContext forkOnPoint(MapperModePointer<?>... mapperModePointers) {
         MapperContext fork = null;
+        fork = cloneWithIsolatedModes();
         for (MapperModePointer<?> mapperModePointer : mapperModePointers) {
             MapperModePointer<?> configuredPointer = getModeOrUse(mapperModePointer);
             MapperMode pointedMode = configuredPointer.point();
             if (pointedMode == null)
                 continue;
             else if (pointedMode instanceof MapperModeCollection modeCollection) {
-                if (fork == null)
-                    fork = cloneWithIsolatedModes();
                 fork.setModes(modeCollection.getConfiguredModes()); // we will override duplicates
             } else {
-                if (fork == null)
-                    fork = cloneWithIsolatedModes();
+                fork.removeMode(mapperModePointer); //this will protect us from stackoverflow
                 fork.setMode(pointedMode);
             }
         }
@@ -318,6 +342,7 @@ public class MapperContext {
 
     private static void linkToRelatedObjects(MapperContext srcMapperContext, MapperContext dstMapperContext) {
         dstMapperContext.relatedUserMap = srcMapperContext.relatedUserMap;
+        dstMapperContext.relatedUserGroupMap = srcMapperContext.relatedUserGroupMap;
         dstMapperContext.relatedTwinClassMap = srcMapperContext.relatedTwinClassMap;
         dstMapperContext.relatedTwinStatusMap = srcMapperContext.relatedTwinStatusMap;
         dstMapperContext.relatedTwinMap = srcMapperContext.relatedTwinMap;
@@ -325,6 +350,9 @@ public class MapperContext {
         dstMapperContext.relatedDataListMap = srcMapperContext.relatedDataListMap;
         dstMapperContext.relatedDataListOptionMap = srcMapperContext.relatedDataListOptionMap;
         dstMapperContext.relatedSpaceRoleMap = srcMapperContext.relatedSpaceRoleMap;
+        dstMapperContext.relatedBusinessAccountMap = srcMapperContext.relatedBusinessAccountMap;
+        dstMapperContext.relatedPermissionGroupMap = srcMapperContext.relatedPermissionGroupMap;
+        dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

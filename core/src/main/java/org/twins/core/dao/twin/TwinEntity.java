@@ -11,6 +11,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
@@ -125,6 +126,13 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     private UserEntity assignerUser;
 
     //needed for specification
+//    @Deprecated
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @JoinColumn(name = "id", referencedColumnName = "head_twin_id", insertable = false, updatable = false)
+//    @EqualsAndHashCode.Exclude
+//    private Collection<TwinEntity> childrenTwins;
+
+    //needed for specification
     @Deprecated
     @OneToMany
     @JoinColumn(name = "twin_id", insertable = false, updatable = false)
@@ -151,6 +159,27 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @JoinColumn(name = "dst_twin_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private Collection<TwinLinkEntity> linksByDstTwinId;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldSimpleEntity> fieldsSimple;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldDataListEntity> fieldsList;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private Collection<TwinFieldUserEntity> fieldsUser;
 
     //needed for specification
     @Deprecated
@@ -264,10 +293,5 @@ public class TwinEntity implements Cloneable, EasyLoggable {
                 .setExternalId(externalId)
                 .setDescription(description)
                 .setSpaceTwin(spaceTwin);
-    }
-
-
-    public void setActions(Set<TwinAction> actions) {
-        this.actions = actions;
     }
 }

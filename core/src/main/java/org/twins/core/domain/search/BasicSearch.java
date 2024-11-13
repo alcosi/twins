@@ -7,4 +7,5 @@ import lombok.experimental.Accessors;
 @Accessors(chain = true)
 public class BasicSearch extends TwinSearch {
     TwinSearch headSearch;
+    TwinSearch childrenSearch;
 }

@@ -8,24 +8,31 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamDouble;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.specifications.twin.TwinSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNumeric;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorNumeric;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 
+import java.text.DecimalFormat;
 import java.util.Properties;
 import java.util.regex.Pattern;
+
+import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1317,
         name = "FieldTyperNumeric",
         description = "Numeric field")
-public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText> {
+public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
 
     @FeaturerParam(name = "min", description = "Min possible value")
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
@@ -53,7 +60,7 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
 
     @Override
     protected void serializeValue(Properties properties, TwinFieldSimpleEntity twinFieldEntity, FieldValueText value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (twinFieldEntity.getTwinClassField().isRequired() && StringUtils.isEmpty(value.getValue()))
+        if (twinFieldEntity.getTwinClassField().getRequired() && StringUtils.isEmpty(value.getValue()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         Double minValue = min.extract(properties);
         Double maxValue = max.extract(properties);
@@ -64,19 +71,23 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         String finalValue;
         try {
             finalValue = value.getValue();
+            if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+                DecimalFormat df = new DecimalFormat("#.############");
+                finalValue = df.format(Double.parseDouble(finalValue));
+            }
             finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
                     .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
             String[] parts = finalValue.split("\\.");
-            if((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
+            if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
                 throw new Exception();
             double doubleValue = Double.parseDouble(finalValue);
-            if((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
+            if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
                 throw new Exception();
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +
-                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings["+
-                             " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
+                            " value[" + value.getValue() + "] is not numeric format or does not match the field settings[" +
+                            " min:" + minValue + " max:" + maxValue + " step:" + stepValue + " decPlaces:" + decimalPlacesValue +
                             " decSeparator:" + decimalSeparatorValue + " thouSeparator:" + thousandSeparatorValue + "].");
         }
         detectValueChange(twinFieldEntity, twinChangesCollector, finalValue);
@@ -86,5 +97,10 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
     protected FieldValueText deserializeValue(Properties properties, TwinField twinField, TwinFieldSimpleEntity twinFieldEntity) {
         return new FieldValueText(twinField.getTwinClassField())
                 .setValue(twinFieldEntity != null && twinFieldEntity.getValue() != null ? twinFieldEntity.getValue() : null);
+    }
+
+    @Override
+    public Specification<TwinEntity> searchBy(TwinFieldSearchNumeric search) throws ServiceException {
+        return Specification.where(TwinSpecification.checkFieldNumeric(search));
     }
 }

@@ -60,6 +60,11 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
             log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
             return null;
         }
+
+        if (userGroupMapRepository.existsByUserIdAndUserGroupIdAndBusinessAccountId(userId, userGroup.getId(), apiUser.getBusinessAccountId())) {
+            log.warn("userGroupMapEntity for user[" +userId + "] and group[" + userGroup.getId() + "] and BA[" + userGroup.getBusinessAccountId() + "] is already exists");
+            return null;
+        }
         return new UserGroupMapEntity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)

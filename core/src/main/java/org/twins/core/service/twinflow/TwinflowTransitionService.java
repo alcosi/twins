@@ -20,7 +20,6 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -30,10 +29,13 @@ import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinStatusTransitionTriggerRepository;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.draft.DraftCollector;
@@ -59,15 +61,16 @@ import org.twins.core.service.user.UserService;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.cambium.common.util.CacheUtils.evictCache;
+
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class TwinflowTransitionService extends EntitySecureFindServiceImpl<TwinflowTransitionEntity> {
     private final TwinflowTransitionRepository twinflowTransitionRepository;
-    private final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
+    private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     private final TwinflowTransitionTriggerRepository twinflowTransitionTriggerRepository;
-    private final TwinStatusTransitionTriggerRepository twinStatusTransitionTriggerRepository;
     private final TwinflowTransitionAliasRepository twinflowTransitionAliasRepository;
     private final TwinClassService twinClassService;
     private final TwinFactoryService twinFactoryService;
@@ -116,14 +119,16 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
 
         switch (entityValidateMode) {
             case beforeSave:
-                if (entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null)
+                if ((entity.getSrcTwinStatus() == null && entity.getSrcTwinStatusId() != null) || (entity.getSrcTwinStatus() != null && !entity.getSrcTwinStatus().getId().equals(entity.getSrcTwinStatusId())))
                     entity.setSrcTwinStatus(twinStatusService.findEntitySafe(entity.getSrcTwinStatusId()));
-                if (entity.getDstTwinStatus() == null)
+                if (entity.getDstTwinStatus() == null || !entity.getDstTwinStatus().getId().equals(entity.getDstTwinStatusId()))
                     entity.setDstTwinStatus(twinStatusService.findEntitySafe(entity.getDstTwinStatusId()));
-                if (entity.getTwinflow() == null)
+                if (entity.getTwinflow() == null || !entity.getTwinflow().getId().equals(entity.getTwinflowId()))
                     entity.setTwinflow(twinflowService.findEntitySafe(entity.getTwinflowId()));
-                if (entity.getPermission() == null && entity.getPermissionId() != null)
+                if ((entity.getPermission() == null && entity.getPermissionId() != null) || (entity.getPermission() != null && !entity.getPermission().getId().equals(entity.getPermissionId())))
                     entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
+                if (entity.getCreatedByUser() == null || !entity.getCreatedByUser().getId().equals(entity.getCreatedByUserId()))
+                    entity.setCreatedByUser(userService.findEntitySafe(entity.getCreatedByUserId()));
             default:
                 if (entity.getSrcTwinStatusId() != null
                         && (!twinClassService.isInstanceOf(entity.getSrcTwinStatus().getTwinClass(), entity.getDstTwinStatus().getTwinClassId())
@@ -272,6 +277,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return triples;
     }
 
+    @Transactional(rollbackFor = Throwable.class)
     public TwinflowTransitionEntity createTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinflowTransitionAliasEntity twinflowTransitionAlias = creatAliasIfNeeded(twinflowTransitionEntity.getTwinflowTransitionAlias());
@@ -281,6 +287,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
                 .setCreatedByUserId(apiUser.getUserId())
                 .setTwinflowTransitionAliasId(twinflowTransitionAlias.getId())
                 .setTwinflowTransitionAlias(twinflowTransitionAlias);
+
         validateEntityAndThrow(twinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowTransitionEntity, twinflowTransitionRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
@@ -294,7 +301,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (currentTransitionAlias != null)
             transitionAlias.setId(currentTransitionAlias.getId());
         else
-            saveTwinflowTransitionAlias(transitionAlias);
+            transitionAlias = saveTwinflowTransitionAlias(transitionAlias);
         return transitionAlias;
     }
 
@@ -302,8 +309,8 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return entitySmartService.save(transitionAlias, twinflowTransitionAliasRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
-    @Transactional
-    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, EntityCUD<TwinflowTransitionValidatorEntity> validatorCUD, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinflowTransitionEntity updateTwinflowTransition(TwinflowTransitionEntity twinflowTransitionEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD, EntityCUD<TwinflowTransitionTriggerEntity> triggerCUD) throws ServiceException {
         TwinflowTransitionEntity dbTwinflowTransitionEntity = findEntitySafe(twinflowTransitionEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
         cudValidators(dbTwinflowTransitionEntity, validatorCUD);
@@ -316,13 +323,15 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         updateTransitionPermission(dbTwinflowTransitionEntity, twinflowTransitionEntity.getPermissionId(), changesHelper);
         updateTransitionSrcStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getSrcTwinStatusId(), changesHelper);
         updateTransitionDstStatus(dbTwinflowTransitionEntity, twinflowTransitionEntity.getDstTwinStatusId(), changesHelper);
-        dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
-        twinClassService.evictCache(dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        if(changesHelper.hasChanges()) {
+            validateEntity(dbTwinflowTransitionEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            dbTwinflowTransitionEntity = entitySmartService.saveAndLogChanges(dbTwinflowTransitionEntity, twinflowTransitionRepository, changesHelper);
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowTransitionEntity.getTwinflow().getTwinClassId());
+        }
         return dbTwinflowTransitionEntity;
     }
 
-    @Transactional
-    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorEntity> validatorCUD) throws ServiceException {
+    public void cudValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, EntityCUD<TwinflowTransitionValidatorRuleEntity> validatorCUD) throws ServiceException {
         if (validatorCUD == null)
             return;
         if (CollectionUtils.isNotEmpty(validatorCUD.getCreateList())) {
@@ -334,44 +343,43 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(validatorCUD.getDeleteList())) {
             deleteValidators(dbTwinflowTransitionEntity, validatorCUD.getDeleteList());
         }
-        evictCache(TwinflowTransitionValidatorRepository.CACHE_TRANSITION_VALIDATOR_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        evictCache(cacheManager, TwinflowTransitionValidatorRuleRepository.CACHE_TRANSITION_VALIDATOR_RULES_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
-    public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> validatorDeleteList) throws ServiceException {
-        entitySmartService.deleteAllEntitiesAndLog(validatorDeleteList, twinflowTransitionValidatorRepository);
+    public void deleteValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validatorDeleteList) throws ServiceException {
+        entitySmartService.deleteAllEntitiesAndLog(validatorDeleteList, twinflowTransitionValidatorRuleRepository);
     }
 
-    @Transactional
-    public List<TwinflowTransitionValidatorEntity> createValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> validators) throws ServiceException {
-        for (TwinflowTransitionValidatorEntity validator : validators)
+    public List<TwinflowTransitionValidatorRuleEntity> createValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validators) throws ServiceException {
+        for (TwinflowTransitionValidatorRuleEntity validator : validators)
             validator.setTwinflowTransitionId(dbTwinflowTransitionEntity.getId());
-        return IterableUtils.toList(entitySmartService.saveAllAndLog(validators, twinflowTransitionValidatorRepository));
+        return IterableUtils.toList(entitySmartService.saveAllAndLog(validators, twinflowTransitionValidatorRuleRepository));
     }
 
-    @Transactional
-    public void updateValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> validators) throws ServiceException {
-        ChangesHelper changesHelper = new ChangesHelper();
-        TwinflowTransitionValidatorEntity dbValidatorEntity;
-        List<TwinflowTransitionValidatorEntity> saveList = new ArrayList<>();
-        for (TwinflowTransitionValidatorEntity validator : validators) {
-            changesHelper.flush();
-            dbValidatorEntity = entitySmartService.findById(validator.getId(), twinflowTransitionValidatorRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (changesHelper.isChanged("order", dbValidatorEntity.getOrder(), validator.getOrder()))
-                dbValidatorEntity.setOrder(validator.getOrder());
-            if (changesHelper.isChanged("invert", dbValidatorEntity.isInvert(), validator.isInvert()))
-                dbValidatorEntity.setInvert(validator.isInvert());
-            if (changesHelper.isChanged("twinValidatorFeaturerId", dbValidatorEntity.getTwinValidatorFeaturerId(), validator.getTwinValidatorFeaturerId()))
-                dbValidatorEntity.setTwinValidatorFeaturerId(validator.getTwinValidatorFeaturerId());
-            if (changesHelper.isChanged("twinValidatorParams", dbValidatorEntity.getTwinValidatorParams(), validator.getTwinValidatorParams()))
-                dbValidatorEntity.setTwinValidatorParams(validator.getTwinValidatorParams());
-            if (changesHelper.isChanged("active", dbValidatorEntity.isActive(), validator.isActive()))
-                dbValidatorEntity.setActive(validator.isActive());
-            if (changesHelper.hasChanges())
-                saveList.add(dbValidatorEntity);
-        }
-        if (CollectionUtils.isEmpty(saveList))
-            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
+    //TODO support new logic with sets for CUD validator
+    public void updateValidators(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> validators) throws ServiceException {
+//        ChangesHelper changesHelper = new ChangesHelper();
+//        TwinflowTransitionValidatorEntity dbValidatorEntity;
+//        List<TwinflowTransitionValidatorEntity> saveList = new ArrayList<>();
+//        for (TwinflowTransitionValidatorEntity validator : validators) {
+//            changesHelper.flush();
+//            dbValidatorEntity = entitySmartService.findById(validator.getId(), twinflowTransitionValidatorRepository, EntitySmartService.FindMode.ifEmptyThrows);
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.order, dbValidatorEntity.getOrder(), validator.getOrder()))
+//                dbValidatorEntity.setOrder(validator.getOrder());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.invert, dbValidatorEntity.isInvert(), validator.isInvert()))
+//                dbValidatorEntity.setInvert(validator.isInvert());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorFeaturerId, dbValidatorEntity.getTwinValidatorFeaturerId(), validator.getTwinValidatorFeaturerId()))
+//                dbValidatorEntity.setTwinValidatorFeaturerId(validator.getTwinValidatorFeaturerId());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.twinValidatorParams, dbValidatorEntity.getTwinValidatorParams(), validator.getTwinValidatorParams()))
+//                dbValidatorEntity.setTwinValidatorParams(validator.getTwinValidatorParams());
+//            if (changesHelper.isChanged(TwinflowTransitionValidatorEntity.Fields.isActive, dbValidatorEntity.isActive(), validator.isActive()))
+//                dbValidatorEntity.setActive(validator.isActive());
+//            if (changesHelper.hasChanges())
+//                saveList.add(dbValidatorEntity);
+//        }
+//        if (!CollectionUtils.isEmpty(saveList))
+//            entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionValidatorRepository, changesHelper);
     }
 
     @Transactional
@@ -387,7 +395,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (CollectionUtils.isNotEmpty(triggerCUD.getDeleteList())) {
             deleteTriggers(dbTwinflowTransitionEntity, triggerCUD.getDeleteList());
         }
-        evictCache(TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
+        evictCache(cacheManager, TwinflowTransitionTriggerRepository.CACHE_TRANSITION_TRIGGERS_BY_TRANSITION_ID_ORDERED, dbTwinflowTransitionEntity.getId());
     }
 
     @Transactional
@@ -395,14 +403,12 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         entitySmartService.deleteAllEntitiesAndLog(triggerDeleteList, twinflowTransitionTriggerRepository);
     }
 
-    @Transactional
     public List<TwinflowTransitionTriggerEntity> createTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggers) throws ServiceException {
         for (TwinflowTransitionTriggerEntity trigger : triggers)
             trigger.setTwinflowTransitionId(dbTwinflowTransitionEntity.getId());
         return IterableUtils.toList(entitySmartService.saveAllAndLog(triggers, twinflowTransitionTriggerRepository));
     }
 
-    @Transactional
     public void updateTriggers(TwinflowTransitionEntity dbTwinflowTransitionEntity, List<TwinflowTransitionTriggerEntity> triggers) throws ServiceException {
         ChangesHelper changesHelper = new ChangesHelper();
         TwinflowTransitionTriggerEntity dbTriggerEntity;
@@ -410,86 +416,80 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         for (TwinflowTransitionTriggerEntity trigger : triggers) {
             changesHelper.flush();
             dbTriggerEntity = entitySmartService.findById(trigger.getId(), twinflowTransitionTriggerRepository, EntitySmartService.FindMode.ifEmptyThrows);
-            if (changesHelper.isChanged("order", dbTriggerEntity.getOrder(), trigger.getOrder()))
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.order, dbTriggerEntity.getOrder(), trigger.getOrder()))
                 dbTriggerEntity.setOrder(trigger.getOrder());
-            if (changesHelper.isChanged("transitionTriggerFeaturerId", dbTriggerEntity.getTransitionTriggerFeaturerId(), trigger.getTransitionTriggerFeaturerId()))
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerFeaturerId, dbTriggerEntity.getTransitionTriggerFeaturerId(), trigger.getTransitionTriggerFeaturerId()))
                 dbTriggerEntity.setTransitionTriggerFeaturerId(trigger.getTransitionTriggerFeaturerId());
-            if (changesHelper.isChanged("transitionTriggerParams", dbTriggerEntity.getTransitionTriggerParams(), trigger.getTransitionTriggerParams()))
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.transitionTriggerParams, dbTriggerEntity.getTransitionTriggerParams(), trigger.getTransitionTriggerParams()))
                 dbTriggerEntity.setTransitionTriggerParams(trigger.getTransitionTriggerParams());
-            if (changesHelper.isChanged("active", dbTriggerEntity.isActive(), trigger.isActive()))
+            if (changesHelper.isChanged(TwinflowTransitionTriggerEntity.Fields.isActive, dbTriggerEntity.isActive(), trigger.isActive()))
                 dbTriggerEntity.setActive(trigger.isActive());
             if (changesHelper.hasChanges())
                 saveList.add(dbTriggerEntity);
         }
-        if (CollectionUtils.isEmpty(saveList))
+        if (!CollectionUtils.isEmpty(saveList))
             entitySmartService.saveAllAndLogChanges(saveList, twinflowTransitionTriggerRepository, changesHelper);
     }
 
-    @Transactional
     public void updateTransitionAlias(TwinflowTransitionEntity dbTwinflowTransitionEntity, TwinflowTransitionAliasEntity twinflowTransitionAliasEntity, ChangesHelper changesHelper) throws ServiceException {
         if (twinflowTransitionAliasEntity.getAlias() == null)
             return;
         creatAliasIfNeeded(twinflowTransitionAliasEntity);
-        if (!changesHelper.isChanged("twinflowTransitionAliasId", dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.twinflowTransitionAliasId, dbTwinflowTransitionEntity.getTwinflowTransitionAliasId(), twinflowTransitionAliasEntity.getId()))
             return;
         dbTwinflowTransitionEntity.setTwinflowTransitionAliasId(twinflowTransitionAliasEntity.getId());
         dbTwinflowTransitionEntity.setTwinflowTransitionAlias(twinflowTransitionAliasEntity);
     }
 
-    @Transactional
     public void updateTransitionDescription(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
         if (descriptionI18n == null)
             return;
         if (dbTwinflowTransitionEntity.getDescriptionI18NId() != null)
             descriptionI18n.setId(dbTwinflowTransitionEntity.getDescriptionI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n);
-        dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if(changesHelper.isChanged(TwinflowTransitionEntity.Fields.descriptionI18NId, dbTwinflowTransitionEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbTwinflowTransitionEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
 
-    @Transactional
     public void updateTransitionName(TwinflowTransitionEntity dbTwinflowTransitionEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
         if (dbTwinflowTransitionEntity.getNameI18NId() != null)
             nameI18n.setId(dbTwinflowTransitionEntity.getNameI18NId());
         i18nService.saveTranslations(I18nType.TWINFLOW_NAME, nameI18n);
-        dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
+        if(changesHelper.isChanged(TwinflowTransitionEntity.Fields.nameI18NId, dbTwinflowTransitionEntity.getNameI18NId(), nameI18n.getId()))
+            dbTwinflowTransitionEntity.setNameI18NId(nameI18n.getId());
     }
 
-    @Transactional
     public void updateTransitionInBuildFactory(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID factoryId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("inbuiltTwinFactoryId", dbTwinflowTransitionEntity.getInbuiltTwinFactoryId(), factoryId))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.inbuiltTwinFactoryId, dbTwinflowTransitionEntity.getInbuiltTwinFactoryId(), factoryId))
             return;
         dbTwinflowTransitionEntity.setInbuiltTwinFactoryId(factoryId);
     }
 
-    @Transactional
     public void updateTransitionDraftingFactory(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID factoryId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("draftingTwinFactoryId", dbTwinflowTransitionEntity.getDraftingTwinFactoryId(), factoryId))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.draftingTwinFactoryId, dbTwinflowTransitionEntity.getDraftingTwinFactoryId(), factoryId))
             return;
         dbTwinflowTransitionEntity.setDraftingTwinFactoryId(factoryId);
     }
 
-    @Transactional
     public void updateTransitionPermission(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID permissionId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("permissionId", dbTwinflowTransitionEntity.getPermissionId(), permissionId))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.permissionId, dbTwinflowTransitionEntity.getPermissionId(), permissionId))
             return;
         dbTwinflowTransitionEntity.setPermissionId(permissionId);
     }
 
-    @Transactional
     public void updateTransitionSrcStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("srcStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.srcTwinStatusId, dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
         if (null != statusId && !UuidUtils.isNullifyMarker(statusId) && !twinClassService.isStatusAllowedForTwinClass(dbTwinflowTransitionEntity.getTwinflow().getTwinClass(), statusId))
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "status[" + statusId + "] is not allowed for twinClass[" + dbTwinflowTransitionEntity.getTwinflow().getTwinClassId() + "]");
         dbTwinflowTransitionEntity.setSrcTwinStatusId(UuidUtils.nullifyIfNecessary(statusId));
     }
 
-    @Transactional
     public void updateTransitionDstStatus(TwinflowTransitionEntity dbTwinflowTransitionEntity, UUID statusId, ChangesHelper changesHelper) throws ServiceException {
-        if (!changesHelper.isChanged("dstStatusId", dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
+        if (!changesHelper.isChanged(TwinflowTransitionEntity.Fields.dstTwinStatusId, dbTwinflowTransitionEntity.getSrcTwinStatusId(), statusId))
             return;
         if (null == statusId)
             throw new ServiceException(ErrorCodeTwins.TRANSITION_STATUS_INCORRECT, "Dst status for transition can't be null");
@@ -648,24 +648,24 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return new TransitionContextBatch(transitionContextMap.values());
     }
 
-    public Kit<TwinflowTransitionValidatorEntity, UUID> loadValidators(TwinflowTransitionEntity transition) {
-        if (transition.getValidatorsKit() != null)
-            return transition.getValidatorsKit();
-        List<TwinflowTransitionValidatorEntity> validators = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(transition.getId());
-        transition.setValidatorsKit(new Kit<>(validators, TwinflowTransitionValidatorEntity::getId));
-        return transition.getValidatorsKit();
+    public Kit<TwinflowTransitionValidatorRuleEntity, UUID> loadValidators(TwinflowTransitionEntity transition) {
+        if (transition.getValidatorRulesKit() != null)
+            return transition.getValidatorRulesKit();
+        List<TwinflowTransitionValidatorRuleEntity> validators = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transition.getId());
+        transition.setValidatorRulesKit(new Kit<>(validators, TwinflowTransitionValidatorRuleEntity::getId));
+        return transition.getValidatorRulesKit();
     }
 
     public void loadValidators(Collection<TwinflowTransitionEntity> transitions) {
         Map<UUID, TwinflowTransitionEntity> needLoad = new HashMap<>();
         for (TwinflowTransitionEntity transition : transitions)
-            if (transition.getValidatorsKit() == null)
+            if (transition.getValidatorRulesKit() == null)
                 needLoad.put(transition.getId(), transition);
         if (needLoad.isEmpty()) return;
-        KitGrouped<TwinflowTransitionValidatorEntity, UUID, UUID> validatorsKit = new KitGrouped<>(
-                twinflowTransitionValidatorRepository.findAllByTwinflowTransitionIdInOrderByOrder(needLoad.keySet()), TwinflowTransitionValidatorEntity::getId, TwinflowTransitionValidatorEntity::getTwinflowTransitionId);
+        KitGrouped<TwinflowTransitionValidatorRuleEntity, UUID, UUID> validatorsKit = new KitGrouped<>(
+                twinflowTransitionValidatorRuleRepository.findAllByTwinflowTransitionIdInOrderByOrder(needLoad.keySet()), TwinflowTransitionValidatorRuleEntity::getId, TwinflowTransitionValidatorRuleEntity::getTwinflowTransitionId);
         for (Map.Entry<UUID, TwinflowTransitionEntity> entry : needLoad.entrySet())
-            entry.getValue().setValidatorsKit(new Kit<>(validatorsKit.getGrouped(entry.getKey()), TwinflowTransitionValidatorEntity::getId));
+            entry.getValue().setValidatorRulesKit(new Kit<>(validatorsKit.getGrouped(entry.getKey()), TwinflowTransitionValidatorRuleEntity::getId));
     }
 
     public Kit<TwinflowTransitionTriggerEntity, UUID> loadTriggers(TwinflowTransitionEntity transition) {
@@ -691,7 +691,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public void validateTransition(TransitionContext transitionContext) throws ServiceException {
         if (transitionContext.isValidated())
             return;
-        List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
+        List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(transitionContext.getTransitionEntity().getId());
         for (TwinEntity twinEntity : transitionContext.getTargetTwinList().values())
             if (!runTransitionValidators(transitionContext.getTransitionEntity(), transitionValidatorEntityList, twinEntity))
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_TRANSACTION_DENIED);
@@ -701,25 +701,35 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
     public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, TwinEntity twinEntity) throws ServiceException {
         // findByTwinflowTransitionIdOrderByOrder method result must be cached to avoid extra query count (in case of loading for list of twins)
         // if cache will be disabled - validator must be loaded in one query
-        List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList = twinflowTransitionValidatorRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
+        List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList = twinflowTransitionValidatorRuleRepository.findByTwinflowTransitionIdOrderByOrder(twinflowTransitionEntity.getId());
         return runTransitionValidators(twinflowTransitionEntity, transitionValidatorEntityList, twinEntity);
     }
-
-    public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
-        for (TwinflowTransitionValidatorEntity transitionValidatorEntity : transitionValidatorEntityList) {
-            if (!transitionValidatorEntity.isActive()) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
-                return true;
+//todo optimize for collection processing
+    public boolean runTransitionValidators(TwinflowTransitionEntity twinflowTransitionEntity, List<TwinflowTransitionValidatorRuleEntity> transitionValidatorEntityList, TwinEntity twinEntity) throws ServiceException {
+        boolean validationResultOfRule = true;
+        for (TwinflowTransitionValidatorRuleEntity transitionValidatorRuleEntity : transitionValidatorEntityList) {
+            validationResultOfRule = true;
+            if (!transitionValidatorRuleEntity.isActive()) {
+                log.info(transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                continue;
             }
+            transitionValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+            for(TwinValidatorEntity twinValidatorEntity : transitionValidatorRuleEntity.getTwinValidators()) {
+                if (!twinValidatorEntity.isActive()) {
+                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " will not be used, since it is inactive. ");
+                    continue;
+                }
 
-            TwinValidator transitionValidator = featurerService.getFeaturer(transitionValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
-            TwinValidator.ValidationResult validationResult = transitionValidator.isValid(transitionValidatorEntity.getTwinValidatorParams(), twinEntity, transitionValidatorEntity.isInvert());
-            if (!validationResult.isValid()) {
-                log.info(twinflowTransitionEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
-                return false;
+                TwinValidator transitionValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
+                TwinValidator.ValidationResult validationResult = transitionValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
+                validationResultOfRule = validationResult.isValid();
+                if (!validationResultOfRule) {
+                    log.info(twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL) + " from " + transitionValidatorRuleEntity.easyLog(EasyLoggable.Level.NORMAL) + " is not valid. " + validationResult.getMessage());
+                    break;
+                }
             }
         }
-        return true;
+        return validationResultOfRule;
     }
 
     public DraftEntity draftTransition(TransitionContext transitionContext) throws ServiceException {
@@ -924,10 +934,5 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             }
     }
 
-    public void evictCache(String cacheKey, UUID recordKey) {
-        Cache cache = cacheManager.getCache(cacheKey);
-        if (cache != null)
-            cache.evictIfPresent(recordKey);
-    }
 }
 

@@ -1,1 +1,0 @@
-INSERT INTO public.permission (id, key, permission_group_id, name, description) VALUES ('00000000-0000-0000-0004-000000000002'::uuid, 'TWIN_CLASS_MANAGE'::varchar(100), '00000000-0000-0000-0005-000000000001'::uuid, null::varchar(100), null::varchar(255)) on conflict(id) do nothing;

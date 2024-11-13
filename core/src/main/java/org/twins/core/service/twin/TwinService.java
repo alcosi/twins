@@ -21,19 +21,14 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.twinclass.*;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.TwinField;
-import org.twins.core.domain.twinoperation.TwinCreate;
-import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -349,7 +344,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                     .setTwinStatusId(twinflowEntity.getInitialTwinStatusId())
                     .setTwinStatus(twinflowEntity.getInitialTwinStatus());
         }
-        fillOwner(twinEntity, apiUser.getBusinessAccount(), apiUser.getUser());
+        fillOwner(twinEntity);
         createTwin(twinEntity, twinChangesCollector);
     }
 
@@ -371,26 +366,27 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinEntity.logNormal());
     }
 
-    public TwinEntity fillOwner(TwinEntity twinEntity, BusinessAccountEntity businessAccountEntity, UserEntity userEntity) throws ServiceException {
+    public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
+        ApiUser apiUser = authService.getApiUser();
         switch (twinClassEntity.getOwnerType()) {
             case DOMAIN:
                 //twin will not be owned neither businessAccount, neither user
                 break;
             case BUSINESS_ACCOUNT:
             case DOMAIN_BUSINESS_ACCOUNT:
-                if (businessAccountEntity == null)
+                if (!apiUser.isBusinessAccountSpecified())
                     throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, twinClassEntity.logNormal() + " can not be created without businessAccount owner");
                 twinEntity
-                        .setOwnerBusinessAccountId(businessAccountEntity.getId())
+                        .setOwnerBusinessAccountId(apiUser.getBusinessAccountId())
                         .setOwnerUserId(null);
                 break;
             case USER:
             case DOMAIN_USER:
-                if (userEntity == null)
+                if (!apiUser.isUserSpecified())
                     throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, twinClassEntity.logNormal() + " can not be created without user owner");
                 twinEntity
-                        .setOwnerUserId(userEntity.getId())
+                        .setOwnerUserId(apiUser.getUserId())
                         .setOwnerBusinessAccountId(null);
         }
         return twinEntity;
@@ -456,7 +452,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         for (TwinClassFieldEntity twinClassFieldEntity : twinEntity.getTwinClass().getTwinClassFieldKit().getCollection()) {
             fieldValue = fields.get(twinClassFieldEntity.getId());
             if (fieldValue == null || !fieldValue.isFilled())
-                if (twinClassFieldEntity.isRequired())
+                if (twinClassFieldEntity.getRequired())
                     throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, twinClassFieldEntity.easyLog(EasyLoggable.Level.NORMAL) + " is required");
                 else
                     continue;
@@ -704,25 +700,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
                 .setValue(value);
     }
 
-    public TwinEntity duplicateTwin(UUID srcTwinId, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
+    public TwinEntity duplicateTwin(UUID srcTwinId, UUID newTwinId) throws ServiceException {
         return duplicateTwin(
                 findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
-                businessAccountEntity,
-                userEntity,
                 newTwinId);
     }
 
-    public TwinEntity duplicateTwin(TwinEntity srcTwin) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return duplicateTwin(srcTwin, apiUser.getBusinessAccount(), apiUser.getUser(), null);
-    }
-
-    public TwinEntity duplicateTwin(TwinEntity srcTwin, BusinessAccountEntity businessAccountEntity, UserEntity userEntity, UUID newTwinId) throws ServiceException {
-        TwinEntity duplicateEntity = srcTwin.clone();
-        fillOwner(duplicateEntity, businessAccountEntity, userEntity);
+    public TwinEntity duplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        TwinEntity duplicateEntity = cloneTwin(srcTwin);
+        fillOwner(duplicateEntity);
         duplicateEntity
                 .setId(newTwinId)
-                .setCreatedByUserId(userEntity.getId());
+                .setCreatedByUserId(authService.getApiUser().getUserId());
         duplicateEntity = createTwin(duplicateEntity);
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());

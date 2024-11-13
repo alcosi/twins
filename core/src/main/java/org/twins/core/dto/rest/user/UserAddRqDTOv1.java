@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.Request;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "UserAddRqV1")
 public class UserAddRqDTOv1 extends Request {

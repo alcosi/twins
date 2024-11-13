@@ -9,6 +9,7 @@ import org.twins.core.dao.twin.TwinFieldSimpleRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorText;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
@@ -23,7 +24,7 @@ import static org.cambium.common.util.StringUtils.fmt;
         description = """
 Save sum of child.fields.values on serializeValue, and return saved total from database
                               """)
-public class FieldTyperCalcChildrenFieldV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText> implements FieldTyperCalcChildrenField {
+public class FieldTyperCalcChildrenFieldV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1313;
 
     @Autowired

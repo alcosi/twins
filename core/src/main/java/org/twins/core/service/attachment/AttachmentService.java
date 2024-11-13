@@ -16,8 +16,9 @@ import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
-import org.twins.core.dao.twin.TwinAttachmentRepository;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
@@ -49,6 +50,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
+    private final AttachmentActionService attachmentActionService;
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
         return twinAttachmentEntity.getTwinflowTransitionId() == null
@@ -196,6 +198,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
         TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
+        attachmentActionService.checkAllowed(attachmentEntity, TwinAttachmentAction.DELETE);
         if (attachmentEntity == null)
             return;
         log.info(attachmentEntity.logDetailed() + " will be deleted");
@@ -230,6 +233,7 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         TwinAttachmentEntity dbAttachmentEntity;
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
             dbAttachmentEntity = dbAttachmentKit.get(attachmentEntity.getId());
+            attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
             if (twinChangesCollector.collectIfChanged(attachmentEntity, "twinId", dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
                 // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
@@ -280,6 +284,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         loadTwins(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
+            if (!attachmentActionService.isAllowed(deleteEntity, TwinAttachmentAction.DELETE))  {// N+1
+                log.info("{} cannot be deleted because it is not allowed", deleteEntity.logShort());
+                continue;
+            }
             twinChangesCollector.delete(attachmentEntity);
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));

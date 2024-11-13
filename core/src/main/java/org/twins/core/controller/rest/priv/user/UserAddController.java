@@ -18,8 +18,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParameterChannelHeader;
+import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserStatus;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.BusinessAccountResolverGivenId;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.apiuser.LocaleResolverEnglish;
@@ -55,28 +57,32 @@ public class UserAddController extends ApiController {
         Response rs = new Response();
         try {
             domainService.checkDomainId(request.domainId, EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS);
-            authService.getApiUser()
+            ApiUser apiUser = authService.getApiUser();
+            apiUser
                     .setBusinessAccountResolver(new BusinessAccountResolverGivenId(request.businessAccountId))
                     .setUserResolver(new UserResolverGivenId(request.user.id))
                     .setDomainResolver(new DomainResolverGivenId(request.domainId))
                     .setLocaleResolver(new LocaleResolverEnglish())
                     .setCheckMembershipMode(false);
             userService.addUser(new UserEntity()
-                    .setId(request.user.id)
-                    .setName(request.user.fullName)
-                    .setEmail(request.user.email)
-                    .setAvatar(request.user.avatar)
-                    .setUserStatusId(UserStatus.ACTIVE),
+                            .setId(request.user.id)
+                            .setName(request.user.fullName)
+                            .setEmail(request.user.email)
+                            .setAvatar(request.user.avatar)
+                            .setUserStatusId(UserStatus.ACTIVE),
                     EntitySmartService.SaveMode.ifPresentThrowsElseCreate
             );
+            // if domain is empty and BA is empty - all done
+            if (request.businessAccountId == null && request.domainId == null)
+                return new ResponseEntity<>(rs, HttpStatus.OK);
             if (request.businessAccountId != null) {
                 businessAccountService.addUser(request.businessAccountId, request.user.id, EntitySmartService.SaveMode.ifNotPresentCreate, EntitySmartService.SaveMode.none, true);
             }
             if (request.domainId != null) {
                 domainService.addUser(request.domainId, request.user.id, EntitySmartService.SaveMode.none, true);
             }
-            if (request.domainId != null && request.businessAccountId != null) {
-                domainService.addBusinessAccount(request.domainId, request.businessAccountId, EntitySmartService.SaveMode.none, true);
+            if (request.domainId != null && request.businessAccountId != null && apiUser.getDomain().getDomainType() == DomainType.b2b) {
+                domainService.addBusinessAccount(request.getDomainId(), request.getBusinessAccountId(), null, null, EntitySmartService.SaveMode.none, true);
             }
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

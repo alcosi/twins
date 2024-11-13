@@ -7,11 +7,12 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorAttachment;
 import org.twins.core.featurer.fieldtyper.value.FieldValueInvisible;
@@ -24,7 +25,7 @@ import java.util.Properties;
 @Featurer(id = FeaturerTwins.ID_1316,
         name = "FieldTyperAttachment",
         description = "Allow the field to have an attachment")
-public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity> {
+public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearchNotImplemented> {
 
     @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
     public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");

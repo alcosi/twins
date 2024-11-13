@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.Function;
 
 import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_ERROR;
+import static org.twins.core.exception.ErrorCodeTwins.PAGINATION_LIMIT_ERROR;
 
 public class PaginationUtils {
     public static final int DEFAULT_VALUE_OFFSET = 0;
@@ -35,7 +36,10 @@ public class PaginationUtils {
     }
 
     public static Pageable pageableOffset(SimplePagination pagination) throws ServiceException {
-        if (pagination.getOffset() % pagination.getLimit() > 0) throw new ServiceException(PAGINATION_ERROR);
+        if (pagination.getLimit() < 1)
+            throw new ServiceException(PAGINATION_LIMIT_ERROR);
+        if (pagination.getOffset() % pagination.getLimit() > 0)
+            throw new ServiceException(PAGINATION_ERROR);
         Sort sort = sortType(pagination.isSortAsc(), pagination.getSortField());
         return sort.isUnsorted()
                 ? PageRequest.of(pagination.getOffset() / pagination.getLimit(), pagination.getLimit())

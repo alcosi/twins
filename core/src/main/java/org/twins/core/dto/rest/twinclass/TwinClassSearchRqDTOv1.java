@@ -70,4 +70,10 @@ public class TwinClassSearchRqDTOv1 extends Request {
 
     @Schema(description = "twin class has alias space", example = DTOExamples.TERNARY)
     public Ternary aliasSpace;
+
+    @Schema(description = "permission id list")
+    public List<UUID> viewPermissionIdList;
+
+    @Schema(description = "permission id exclude list")
+    public List<UUID> viewPermissionIdExcludeList;
 }

@@ -18,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
@@ -26,7 +27,7 @@ import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -34,6 +35,9 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -52,6 +56,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     final TwinClassFieldService twinClassFieldService;
     final HistoryRepository historyRepository;
     final HistoryTypeDomainTemplateRepository historyTypeDomainTemplateRepository;
+    private final TwinActionService twinActionService;
     final AuthService authService;
     final I18nService i18nService;
 
@@ -76,6 +81,7 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
+        twinActionService.checkAllowed(twinId, TwinAction.HISTORY_VIEW);
         Pageable pageable = PaginationUtils.pageableOffset(pagination);
         Page<HistoryEntity> historyList;
         if (childDepth == 0)

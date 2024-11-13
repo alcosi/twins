@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2329,
-        name = "FillerBasicsAssigneeFromOutputTwinHeadAssignee",
+        name = "FillerBasicsAssigneeFromHeadTwinAssignee",
         description = "Fill the assignee from own head twin assignee")
 @Slf4j
 public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends Filler {
@@ -28,11 +28,11 @@ public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
-        TwinEntity headTwin = twinService.loadHeadForTwin(outputTwinEntity);
+        TwinEntity factoryItemTwin = factoryItem.getTwin();
+        TwinEntity headTwin = twinService.loadHeadForTwin(factoryItemTwin);
         if(null == headTwin)
-            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + outputTwinEntity.getId());
-        outputTwinEntity
+            throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No head twin detected for twin: " + factoryItemTwin.logDetailed());
+        factoryItem.getOutput().getTwinEntity()
                 .setAssignerUser(headTwin.getAssignerUser())
                 .setAssignerUserId(headTwin.getAssignerUserId());
     }

@@ -1,5 +1,6 @@
 package org.twins.core.dao.twinclass;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -13,6 +14,8 @@ import java.util.UUID;
 
 @Repository
 public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldEntity, UUID>, JpaSpecificationExecutor<TwinClassFieldEntity> {
+    String CACHE_TWIN_CLASS_FIELD_BY_ID_IN = "TwinClassFieldRepository.findByIdIn";
+
     List<TwinClassFieldEntity> findByTwinClassId(UUID twinClassId);
 
     @Query(value = "select field from TwinClassFieldEntity field where field.twinClassId = :twinClassId and field.fieldTyperFeaturerId in (:fieldTyperIds) and cast(field.fieldTyperParams as string) like :params")
@@ -32,6 +35,7 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
     @Query(value = "select field.id from TwinClassFieldEntity field, TwinClassEntity twinClass where twinClass.id = :twinClassId and field.twinClassId in (twinClass.extendsHierarchyTree)")
     Set<UUID> findInheritedTwinClassFieldIds(UUID twinClassId);
 
+    @Cacheable(value = CACHE_TWIN_CLASS_FIELD_BY_ID_IN, key = "T(org.cambium.common.util.CollectionUtils).generateUniqueKey(#ids)")
     List<TwinClassFieldEntity> findByIdIn(Collection<UUID> ids);
 
     boolean existsByKeyAndTwinClassId(String key, UUID twinClassId);

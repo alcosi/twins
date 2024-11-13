@@ -1,4 +1,0 @@
--- insert the ConditionerFactoryContextTwinOfClassDeep
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2419, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerFactoryContextTwinOfClassDeep', 'ConditionerFactoryContextTwinOfClassDeep', '', false) on conflict on constraint featurer_pk do update set featurer_type_id = excluded.featurer_type_id, class = excluded.class, name = excluded.name, description = excluded.description;
--- insert the ConditionerFactoryContextTwinOfClassDeep
-INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2420, 24, 'org.twins.core.featurer.factory.conditioner.ConditionerFactoryContextTwinOfClass', 'ConditionerFactoryContextTwinOfClass', '', false) on conflict on constraint featurer_pk do update set featurer_type_id = excluded.featurer_type_id, class = excluded.class, name = excluded.name, description = excluded.description;

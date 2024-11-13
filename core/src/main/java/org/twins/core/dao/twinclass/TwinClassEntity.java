@@ -1,6 +1,5 @@
 package org.twins.core.dao.twinclass;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,13 +16,20 @@ import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.action.TwinClassActionPermissionEntity;
-import org.twins.core.dao.action.TwinClassActionValidatorEntity;
+import org.twins.core.dao.action.TwinActionPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
+import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
+import org.twins.core.dao.attachment.TwinAttachmentActionAlienValidatorRuleEntity;
+import org.twins.core.dao.attachment.TwinAttachmentActionSelfValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
+import org.twins.core.dao.comment.*;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
 import org.twins.core.featurer.twinclass.HeadHunter;
 
 import java.sql.Timestamp;
@@ -173,16 +179,44 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinClassActionPermissionEntity, TwinAction> actionsProtectedByPermission;
+    private Kit<TwinActionPermissionEntity, TwinAction> actionsProtectedByPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private KitGrouped<TwinClassActionValidatorEntity, UUID, TwinAction> actionsProtectedByValidator;
+    private KitGrouped<TwinActionValidatorRuleEntity, UUID, TwinAction> actionsProtectedByValidatorRules;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinCommentActionAlienPermissionEntity, TwinCommentAction> commentAlienActionsProtectedByPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinCommentActionAlienValidatorRuleEntity, UUID, TwinCommentAction> commentAlienActionsProtectedByValidatorRules;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinCommentActionSelfEntity, TwinCommentAction> commentSelfActionsRestriction;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinAttachmentActionAlienPermissionEntity, TwinAttachmentAction> attachmentAlienActionsProtectedByPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinAttachmentActionAlienValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentAlienActionsProtectedByValidatorRules;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private KitGrouped<TwinAttachmentActionSelfValidatorRuleEntity, UUID, TwinAttachmentAction> attachmentSelfActionsRestriction;
 
     //TODO m.b. move to Twinflow entity? services logic
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity viewPermission;
 
     @Transient
     @EqualsAndHashCode.Exclude

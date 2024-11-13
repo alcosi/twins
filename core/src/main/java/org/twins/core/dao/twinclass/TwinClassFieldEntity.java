@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -17,6 +18,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twin_class_field")
+@FieldNameConstants
 public class TwinClassFieldEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -48,7 +50,7 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private UUID editPermissionId;
 
     @Column(name = "required")
-    private boolean required;
+    private Boolean required;
 
     @ManyToOne
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
@@ -12,6 +13,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -43,4 +45,7 @@ public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
 
     @Schema(description = "field")
     public TwinClassFieldDTOv1 twinClassField;
+
+    @Schema(description = "attachment action list")
+    public Set<TwinAttachmentAction> attachmentActions;
 }

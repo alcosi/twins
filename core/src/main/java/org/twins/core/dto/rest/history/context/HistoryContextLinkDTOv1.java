@@ -16,7 +16,7 @@ public class HistoryContextLinkDTOv1 implements HistoryContextDTO {
     public static final String KEY = "linkV1";
     public String contextType = KEY;
 
-    @Schema(description = "Link id", example = DTOExamples.USER_ID)
+    @Schema(description = "Link id", example = DTOExamples.LINK_ID)
     public UUID linkId;
 
     @Schema(description = "Link")

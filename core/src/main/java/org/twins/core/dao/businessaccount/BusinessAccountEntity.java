@@ -3,6 +3,7 @@ package org.twins.core.dao.businessaccount;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.annotations.DynamicUpdate;
 import org.twins.core.dao.user.UserGroupEntity;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "business_account")
 @DynamicUpdate
 public class BusinessAccountEntity implements EasyLoggable {

@@ -43,6 +43,7 @@ public class TwinSearch {
     Set<UUID> markerDataListOptionIdExcludeList;
     Set<TwinTouchEntity.Touch> touchList;
     Set<TwinTouchEntity.Touch> touchExcludeList;
+    List<TwinFieldSearch> fields;
 
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
         if (exclude)

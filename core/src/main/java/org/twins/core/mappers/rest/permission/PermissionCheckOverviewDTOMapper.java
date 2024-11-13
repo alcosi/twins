@@ -8,6 +8,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserDTOMapper;
 import org.twins.core.mappers.rest.space.SpaceRoleUserGroupDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 
 @Component
@@ -20,6 +22,8 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
     private final UserGroupRestDTOMapper userGroupRestDTOMapper;
     private final SpaceRoleUserDTOMapper spaceRoleUserDTOMapper;
     private final SpaceRoleUserGroupDTOMapper spaceRoleUserGroupDTOMapper;
+    private final TwinClassRestDTOMapper twinClassRestDTOMapper;
+    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
 
     @Override
     public void map(PermissionCheckForTwinOverviewResult src, PermissionCheckOverviewRsDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -33,6 +37,8 @@ public class PermissionCheckOverviewDTOMapper extends RestSimpleDTOMapper<Permis
                 .setGrantedByUserGroupIds(src.getGrantedByUserGroups().getIdSet())
                 .setGrantedByUserGroups(userGroupRestDTOMapper.convertCollection(src.getGrantedByUserGroups().getCollection(), mapperContext))
                 .setGrantedByTwinRoles(src.getGrantedByTwinRoles())
+                .setPropagatedByTwinClasses(twinClassRestDTOMapper.convertCollection(src.getPropagatedByTwinClasses().getCollection()))
+                .setPropagatedByTwinStatuses(twinStatusRestDTOMapper.convertCollection(src.getPropagatedByTwinStatuses().getCollection()))
                 .setGrantedBySpaceRoleUserIds(src.getGrantedBySpaceRoleUsers().getIdSet())
                 .setGrantedBySpaceRoleUsers(spaceRoleUserDTOMapper.convertCollection(src.getGrantedBySpaceRoleUsers().getCollection(), mapperContext))
                 .setGrantedBySpaceRoleUserGroupIds(src.getGrantedBySpaceRoleUserGroups().getIdSet())

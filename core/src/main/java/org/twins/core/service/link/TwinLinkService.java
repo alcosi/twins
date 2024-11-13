@@ -16,7 +16,6 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
-import org.twins.core.dao.specifications.link.TwinLinkSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
@@ -39,21 +38,24 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
+import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
+import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
+
 @Slf4j
 @Service
 @Lazy
 @RequiredArgsConstructor
 public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity> {
-    final LinkService linkService;
-    final TwinClassService twinClassService;
-    final TwinLinkRepository twinLinkRepository;
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
+    private final LinkService linkService;
+    private final TwinClassService twinClassService;
+    private final TwinLinkRepository twinLinkRepository;
+    private final TwinService twinService;
+    private final TwinSearchService twinSearchService;
     @Lazy
-    final AuthService authService;
-    final EntitySmartService entitySmartService;
-    final HistoryService historyService;
-    final TwinChangesService twinChangesService;
+    private final AuthService authService;
+    private final EntitySmartService entitySmartService;
+    private final HistoryService historyService;
+    private final TwinChangesService twinChangesService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
@@ -290,9 +292,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
 
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
-                Specification.where(
-                        TwinLinkSpecification.checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false)
-                                .and(TwinLinkSpecification.checkStrength(strengthIds))
+                Specification.where(checkStrength(strengthIds)
+                                .and(checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false, false))
                 )
         );
         return filterDenied(twinLinkEntityList);
@@ -367,6 +368,14 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
             default:
                 return null;
         }
+    }
+
+    public Set<UUID> findSrcTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findSrcTwinIdsByLinkId(linkId);
+    }
+
+    public Set<UUID> findDstTwinIdsByLinkId(@NonNull UUID linkId) {
+        return twinLinkRepository.findDstTwinIdsByLinkId(linkId);
     }
 
     @Data

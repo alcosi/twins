@@ -22,6 +22,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
+import org.twins.core.domain.search.TwinFieldSearchNotImplemented;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptorUser;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 @Featurer(id = FeaturerTwins.ID_1311,
         name = "FieldTyperUser",
         description = "")
-public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity> implements LongList {
+public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity, TwinFieldSearchNotImplemented> implements LongList {
     @Autowired
     @Lazy
     UserFilterService userFilterService;
@@ -64,7 +65,7 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueUser value, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        if (value.getTwinClassField().isRequired() && CollectionUtils.isEmpty(value.getUsers()))
+        if (value.getTwinClassField().getRequired() && CollectionUtils.isEmpty(value.getUsers()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " is required");
         if (value.getUsers() != null && value.getUsers().size() > 1 && !allowMultiply(properties))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");

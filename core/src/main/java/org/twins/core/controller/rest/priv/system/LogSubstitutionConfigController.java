@@ -48,7 +48,7 @@ public class LogSubstitutionConfigController extends ApiController {
         CommandRsDTOv1 rs = new CommandRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser();
-            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename, new SimplePagination().setLimit(0).setOffset(999)));//todo pagination
+            rs.setCommand(logSupportService.generateSubstitutionsConfig(apiUser, filename));
         } catch (Exception e) {
             return createErrorRs(e, rs);
         }

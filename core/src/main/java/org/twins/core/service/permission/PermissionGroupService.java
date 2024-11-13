@@ -52,4 +52,24 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
         }
         return true;
     }
+
+    //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup
+//    public void loadPermissionGroup(PermissionEntity entity) {
+//        loadPermissionGroup(Collections.singletonList(entity));
+//    }
+
+//    public void loadPermissionGroup(Collection<PermissionEntity> permissionList) {
+//        if (CollectionUtils.isEmpty(permissionList))
+//            return;
+//        KitGrouped<PermissionEntity, UUID, UUID> needLoad = new KitGrouped<>(PermissionEntity::getId, PermissionEntity::getPermissionGroupId);
+//        for (PermissionEntity permission : permissionList)
+//            if (permission.getPermissionGroupLoaded() == null)
+//                needLoad.add(permission);
+//        if (needLoad.isEmpty())
+//            return;
+//        List<PermissionGroupEntity> permissionGroupEntities = permissionGroupRepository.findAllByIdIn(needLoad.getGroupedMap().keySet());
+//        for (PermissionGroupEntity permissionGroup : permissionGroupEntities)
+//            for (PermissionEntity permission : needLoad.getGroupedMap().get(permissionGroup.getId()))
+//                permission.setPermissionGroupLoaded(permissionGroup);
+//    }
 }

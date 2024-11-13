@@ -5,12 +5,16 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.permission.PermissionDTOv1;
+import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
-import org.twins.core.dto.rest.twin.TwinStatusDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +32,9 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related users map", example = "{user map}")
     public Map<UUID, UserDTOv1> userMap;
 
+    @Schema(description = "related users group map", example = "{user group map}")
+    public Map<UUID, UserGroupDTOv1> userGroupMap;
+
     @Schema(description = "related twinClass map", example = "{twin class map}")
     public Map<UUID, TwinClassDTOv1> twinClassMap;
 
@@ -42,4 +49,13 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related space role map", example = "{space role map}")
     public Map<UUID, SpaceRoleDTOv1> spaceRoleMap;
+
+    @Schema(description = "related business account map", example = "{business account map}")
+    public Map<UUID, BusinessAccountDTOv1> businessAccountMap;
+
+    @Schema(description = "related permission group map", example = "{permission group map}")
+    public Map<UUID, PermissionGroupDTOv1> permissionGroupMap;
+
+    @Schema(description = "related permission map", example = "{permission map}")
+    public Map<UUID, PermissionDTOv1> permissionMap;
 }

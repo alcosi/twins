@@ -3,7 +3,7 @@ package org.twins.core.domain.factory;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.CollectionUtils;
-import org.twins.core.dao.twin.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinBasicFields;

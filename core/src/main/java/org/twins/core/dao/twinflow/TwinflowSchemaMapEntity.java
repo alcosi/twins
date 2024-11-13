@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
@@ -11,6 +12,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @Table(name = "twinflow_schema_map")
+@FieldNameConstants
 public class TwinflowSchemaMapEntity {
     @Id
     @GeneratedValue(generator = "uuid")

@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.Join;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 
@@ -14,7 +15,7 @@ import java.util.UUID;
 import static org.springframework.data.jpa.domain.Specification.where;
 
 @Slf4j
-public class TwinFieldSimpleSpecification {
+public class TwinFieldSimpleSpecification extends CommonSpecification<TwinFieldSimpleEntity> {
     private TwinFieldSimpleSpecification() {
     }
 
@@ -38,13 +39,6 @@ public class TwinFieldSimpleSpecification {
         return (root, query, cb) -> {
             Join<TwinFieldSimpleEntity, TwinEntity> twinJoin = root.join(TwinFieldSimpleEntity.Fields.twin);
             return not ? cb.equal(twinJoin.get(uuidField), uuid).not() : cb.equal(twinJoin.get(uuidField), uuid);
-        };
-    }
-
-    public static Specification<TwinFieldSimpleEntity> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            return not ? root.get(uuidField).in(uuids).not() : root.get(uuidField).in(uuids);
         };
     }
 

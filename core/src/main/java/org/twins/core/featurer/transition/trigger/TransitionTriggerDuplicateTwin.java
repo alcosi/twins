@@ -41,6 +41,6 @@ public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
             return;
         }
         log.info("{} will be cloned", twinEntity.logShort());
-        twinService.duplicateTwin(srcTwin);
+        twinService.duplicateTwin(srcTwin, null);
     }
 }

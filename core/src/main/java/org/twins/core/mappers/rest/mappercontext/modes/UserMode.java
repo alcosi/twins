@@ -179,6 +179,26 @@ public enum UserMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Link2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum Twinflow2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
@@ -200,6 +220,66 @@ public enum UserMode implements MapperMode {
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum Twin2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum BusinessAccountUser2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum DomainUser2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum PermissionSchemaUserGroup2UserMode implements MapperModePointer<UserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
