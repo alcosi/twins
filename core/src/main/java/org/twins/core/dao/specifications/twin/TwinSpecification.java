@@ -174,6 +174,24 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
+    public static Specification<TwinEntity> checkDomainId(UUID domainId) {
+        return (twin, query, cb) -> {
+            Predicate predicate;
+            if (domainId == null) {
+                // do not show any twins if domain not specified.
+                predicate = cb.disjunction();
+            } else {
+                Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
+                predicate = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), domainId);
+//                TODO uncomment if need view twins of out-domain class.
+//                predicate = cb.or(
+//                        cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId)),
+//                        cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), domainId)
+//                );
+            }
+            return predicate;
+        };
+    }
 
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;

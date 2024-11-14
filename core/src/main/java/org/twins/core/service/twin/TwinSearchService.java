@@ -104,12 +104,16 @@ public class TwinSearchService {
         UUID userId = apiUser.getUser().getId();
         Set<UUID> userGroups = apiUser.getUserGroups();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(
-                checkClass(basicSearch.getTwinClassIdList(), apiUser)
-                        .and(createTwinEntityBasicSearchSpecification(basicSearch))
-        );
-        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
-            specification = specification.and(checkPermissions(domainId, businessAccountId, userId, userGroups));
+        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch));
+
+        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
+            specification = specification
+                    .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
+        } else {
+            specification = specification
+                    .and(checkDomainId(apiUser.getDomainId()));
+        }
 
 
         //HEAD TWIN CHECK
@@ -132,7 +136,7 @@ public class TwinSearchService {
     public List<TwinEntity> findTwins(BasicSearch basicSearch) throws ServiceException {
         List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sortType(false, TwinEntity.Fields.createdAt));
         //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
-        return ret.stream().filter(t -> !twinService.isEntityReadDenied(t)).toList();
+        return ret;
     }
 
     //***********************************************************************//
@@ -152,8 +156,7 @@ public class TwinSearchService {
         for (BasicSearch basicSearch : basicSearches)
             spec = spec.or(createTwinEntitySearchSpecification(basicSearch));
         Page<TwinEntity> ret = twinRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        Function<TwinEntity, Boolean> filterFunction = t -> !twinService.isEntityReadDenied(t);
-        return PaginationUtils.convertInPaginationResult(ret, pagination, filterFunction);
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     public Long count(Specification<TwinEntity> spec) throws ServiceException {
