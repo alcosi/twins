@@ -33,6 +33,10 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
+    @Column(name = "`order`")
+    @Basic
+    private Integer order;
+
     @Column(name = "next_twin_factory_id")
     private UUID nextTwinFactoryId;
 

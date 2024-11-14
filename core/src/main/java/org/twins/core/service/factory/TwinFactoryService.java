@@ -32,16 +32,16 @@ import java.util.*;
 @Slf4j
 @RequiredArgsConstructor
 public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryEntity> {
-    final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
-    final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
-    final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
-    final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
-    final TwinService twinService;
-    final TwinClassService twinClassService;
-    final TwinFactoryConditionRepository twinFactoryConditionRepository;
-    final TwinFactoryRepository twinFactoryRepository;
+    private final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
+    private final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
+    private final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
+    private final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
+    private final TwinService twinService;
+    private final TwinClassService twinClassService;
+    private final TwinFactoryConditionRepository twinFactoryConditionRepository;
+    private final TwinFactoryRepository twinFactoryRepository;
     @Lazy
-    final FeaturerService featurerService;
+    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -115,7 +115,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             factoryContext.addAll(multiplierOutput);
         }
         LoggerUtils.traceTreeLevelUp();
-        List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
+        List<TwinFactoryPipelineEntity> factoryPipelineEntityList = twinFactoryPipelineRepository.findByTwinFactoryIdAndActiveTrueOrderByOrder(factoryEntity.getId());
         log.info("Loaded " + factoryPipelineEntityList.size() + " pipelines");
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {

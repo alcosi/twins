@@ -9,5 +9,5 @@ import java.util.UUID;
 
 @Repository
 public interface TwinFactoryPipelineRepository extends CrudRepository<TwinFactoryPipelineEntity, UUID>, JpaSpecificationExecutor<TwinFactoryPipelineEntity> {
-    List<TwinFactoryPipelineEntity> findByTwinFactoryIdAndActiveTrue(UUID twinFactoryId);
+    List<TwinFactoryPipelineEntity> findByTwinFactoryIdAndActiveTrueOrderByOrder(UUID twinFactoryId);
 }
