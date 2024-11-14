@@ -39,6 +39,12 @@ INSERT INTO draft_status (id)
 VALUES ('CONSTRUCTION_EXCEPTION')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
+VALUES ('NORMALIZE_EXCEPTION')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
+VALUES ('CHECK_CONFLICTS_EXCEPTION')
+on conflict (id) do nothing;
+INSERT INTO draft_status (id)
 VALUES ('UNCOMMITED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)

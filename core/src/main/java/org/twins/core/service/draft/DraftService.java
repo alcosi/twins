@@ -12,6 +12,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.CUD;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.draft.*;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
@@ -22,7 +23,6 @@ import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.draft.DraftCollector;
-import org.twins.core.domain.draft.DraftCounters;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -70,9 +70,9 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     @Lazy
     private final HistoryService historyService;
     @Lazy
-    private final DraftCounterService draftCounterService;
-    @Lazy
     private final DraftNormalizeService draftNormalizeService;
+    @Lazy
+    private final DraftCheckConflictsService draftCheckConflictsService;
 
     @Override
     public CrudRepository<DraftEntity, UUID> entityRepository() {
@@ -846,24 +846,24 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
             draftCollector.setOnceFlushed(true);
         }
-        if (!draftCollector.hasChanges())
-            return;
         if (!draftCollector.isWritable())
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_NOT_WRITABLE, "current draft is already not writable");
-        saveEntities(draftCollector, DraftTwinPersistEntity.class, draftTwinPersistRepository);
-        saveEntities(draftCollector, DraftTwinEraseEntity.class, draftTwinEraseRepository);
-        saveEntities(draftCollector, DraftTwinAttachmentEntity.class, draftTwinAttachmentRepository);
-        saveEntities(draftCollector, DraftTwinLinkEntity.class, draftTwinLinkRepository);
-        saveEntities(draftCollector, DraftTwinTagEntity.class, draftTwinTagRepository);
-        saveEntities(draftCollector, DraftTwinMarkerEntity.class, draftTwinMarkerRepository);
-        saveEntities(draftCollector, DraftTwinFieldSimpleEntity.class, draftTwinFieldSimpleRepository);
-        saveEntities(draftCollector, DraftTwinFieldUserEntity.class, draftTwinFieldUserRepository);
-        saveEntities(draftCollector, DraftTwinFieldDataListEntity.class, draftTwinFieldDataListRepository);
+        if (draftCollector.hasChanges()) {
+            saveEntities(draftCollector, DraftTwinPersistEntity.class, draftTwinPersistRepository);
+            saveEntities(draftCollector, DraftTwinEraseEntity.class, draftTwinEraseRepository);
+            saveEntities(draftCollector, DraftTwinAttachmentEntity.class, draftTwinAttachmentRepository);
+            saveEntities(draftCollector, DraftTwinLinkEntity.class, draftTwinLinkRepository);
+            saveEntities(draftCollector, DraftTwinTagEntity.class, draftTwinTagRepository);
+            saveEntities(draftCollector, DraftTwinMarkerEntity.class, draftTwinMarkerRepository);
+            saveEntities(draftCollector, DraftTwinFieldSimpleEntity.class, draftTwinFieldSimpleRepository);
+            saveEntities(draftCollector, DraftTwinFieldUserEntity.class, draftTwinFieldUserRepository);
+            saveEntities(draftCollector, DraftTwinFieldDataListEntity.class, draftTwinFieldDataListRepository);
 
-        if (!draftCollector.getDraftEntitiesMap().isEmpty())
-            for (Map.Entry<Class<?>, Set<Object>> classChanges : draftCollector.getDraftEntitiesMap().entrySet()) {
-                log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
-            }
+            if (!draftCollector.getDraftEntitiesMap().isEmpty())
+                for (Map.Entry<Class<?>, Set<Object>> classChanges : draftCollector.getDraftEntitiesMap().entrySet()) {
+                    log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
+                }
+        }
         saveDraftHistory(draftCollector);
 //        entityManager.flush();
         draftCollector.clear();
@@ -887,6 +887,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             );
         }
         entitySmartService.saveAllAndLog(draftHistoryEntities, draftHistoryRepository);
+        draftCollector.getHistoryCollector().clear();
     }
 
     private <T, K> void saveEntities(DraftCollector draftCollector, Class<T> entityClass, CrudRepository<T, K> repository) {
@@ -900,13 +901,27 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public void endDraft(DraftCollector draftCollector) throws ServiceException {
         flush(draftCollector);
         switch (draftCollector.getDraftEntity().getStatus()) {
-            case UNDER_CONSTRUCTION:
-            case ERASE_SCOPE_COLLECT_IN_PROGRESS:
+            case UNDER_CONSTRUCTION: // case for minor draft, with no deletion (called from start draft thread)
+            case ERASE_SCOPE_COLLECT_IN_PROGRESS:  // case for major draft, with deletion (called from erase scope collect task)
                 draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
-                draftNormalizeService.normalizeDraft(draftCollector);
-                checkConflicts(draftCollector);
+                try {
+                    draftNormalizeService.normalizeDraft(draftCollector);
+                } catch (Exception e) { //todo create DraftException extends ServiceException + Status
+                    draftCollector.getDraftEntity()
+                            .setStatus(DraftEntity.Status.NORMALIZE_EXCEPTION)
+                            .setStatusDetails(e.getMessage());
+                    break;
+                }
+                try {
+                    draftCheckConflictsService.checkConflicts(draftCollector);
+                } catch (ServiceException e) { //todo DraftException
+                    draftCollector.getDraftEntity()
+                            .setStatus(DraftEntity.Status.CHECK_CONFLICTS_EXCEPTION)
+                            .setStatusDetails(e.getMessage());
+                    break;
+                }
                 break;
-            case ERASE_SCOPE_COLLECT_PLANNED:
+            case ERASE_SCOPE_COLLECT_PLANNED:  // case for major draft, with deletion (called from start draft thread)
                 draftCollector.getDraftEntity().setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_NEED_START);
                 break;
         }
@@ -915,23 +930,5 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
 
 
-    private void checkConflicts(DraftCollector draftCollector) throws ServiceException {
-        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector);
-        if (!draftCounters.canBeCommited())
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " can not be commited, because of unsuitable erase statuses");
-        if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
-            return; //hope we will have no conflicts in such case
-        boolean hasConflicts = false;
-        int count = 0;
-        if (draftCollector.getDraftEntity().getTwinPersistCount() > 0) {
-            count = draftTwinPersistRepository.countPersistedWithDeletedHead(draftCollector.getDraftId());
-            if (count > 0) {
-                hasConflicts = true;
-                log.error("{} has {} [persistedWithDeletedHead] conflicts", draftCollector.getDraftEntity().logNormal(), count);
-            }
-        }
 
-        if (hasConflicts)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " has unresolvable conflicts");
-    }
 }

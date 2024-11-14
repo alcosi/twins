@@ -7,8 +7,8 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twinflow.TwinflowTransitionValidatorEntity;
-import org.twins.core.dao.twinflow.TwinflowTransitionValidatorRepository;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -16,25 +16,25 @@ import java.util.function.Function;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class TwinflowTransitionValidatorService extends EntitySecureFindServiceImpl<TwinflowTransitionValidatorEntity> {
-    private final TwinflowTransitionValidatorRepository twinflowTransitionValidatorRepository;
+public class TwinflowTransitionValidatorService extends EntitySecureFindServiceImpl<TwinflowTransitionValidatorRuleEntity> {
+    private final TwinflowTransitionValidatorRuleRepository twinflowTransitionValidatorRuleRepository;
     @Override
-    public CrudRepository<TwinflowTransitionValidatorEntity, UUID> entityRepository() {
-        return twinflowTransitionValidatorRepository;
+    public CrudRepository<TwinflowTransitionValidatorRuleEntity, UUID> entityRepository() {
+        return twinflowTransitionValidatorRuleRepository;
     }
 
     @Override
-    public Function<TwinflowTransitionValidatorEntity, UUID> entityGetIdFunction() {
-        return TwinflowTransitionValidatorEntity::getId;
+    public Function<TwinflowTransitionValidatorRuleEntity, UUID> entityGetIdFunction() {
+        return TwinflowTransitionValidatorRuleEntity::getId;
     }
 
     @Override
-    public boolean isEntityReadDenied(TwinflowTransitionValidatorEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+    public boolean isEntityReadDenied(TwinflowTransitionValidatorRuleEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
     }
 
     @Override
-    public boolean validateEntity(TwinflowTransitionValidatorEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public boolean validateEntity(TwinflowTransitionValidatorRuleEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
     }
 }

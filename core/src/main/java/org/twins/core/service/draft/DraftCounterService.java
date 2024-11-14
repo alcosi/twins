@@ -29,7 +29,7 @@ public class DraftCounterService {
 
     public DraftCounters syncCounters(DraftCollector draftCollector) throws ServiceException {
         DraftCounters counters = draftCollector.getDraftCounters();
-        if (counters.getInvalid().isEmpty())
+        if (counters.allAreValid())
             return counters;
         syncPersists(draftCollector);
         syncErases(draftCollector);
@@ -37,19 +37,20 @@ public class DraftCounterService {
     }
 
     private void syncPersists(DraftCollector draftCollector) {
-        if (!draftCollector.getDraftCounters().isInvalid(PERSISTS))
+        if (draftCollector.getDraftCounters().isValid(PERSISTS))
             return;
         List<Object[]> count = draftTwinPersistRepository.getCounters(draftCollector.getDraftId());
         for (Object[] row : count) {
             if ((Boolean)row[0]) //createElseUpdate
-                draftCollector.getDraftCounters().set(PERSIST_CREATE, (Integer) row[1]);
+                draftCollector.getDraftCounters().set(PERSIST_CREATE, getCounter(row));
             else
-                draftCollector.getDraftCounters().set(PERSIST_UPDATE, (Integer) row[1]);
+                draftCollector.getDraftCounters().set(PERSIST_UPDATE, getCounter(row));
         }
+        draftCollector.getDraftCounters().setValid(PERSISTS);
     }
 
     private void syncErases(DraftCollector draftCollector) throws ServiceException {
-        if (!draftCollector.getDraftCounters().isInvalid(ERASES))
+        if (draftCollector.getDraftCounters().isValid(ERASES))
             return;
         List<Object[]> counters = draftTwinEraseRepository.getCounters(draftCollector.getDraftId());
         DraftCounters.Counter counter = null;
@@ -65,7 +66,12 @@ public class DraftCounterService {
                 case SKIP_DETECTED -> ERASE_SKIP;
                 default -> throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Unknown erase status[" + row[0] + "]");
             };
-            draftCollector.getDraftCounters().set(counter, (Integer) row[1]);
+            draftCollector.getDraftCounters().set(counter, getCounter(row));
         }
+        draftCollector.getDraftCounters().setValid(ERASES);
+    }
+
+    private static int getCounter(Object[] row) {
+        return Math.toIntExact((Long) row[1]);
     }
 }

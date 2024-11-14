@@ -13,25 +13,21 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.context.HistoryContextAttachment;
-import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.history.context.HistoryContextAttachment;
+import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.EntityCUD;
-import org.twins.core.domain.TwinChangesApplyResult;
-import org.twins.core.domain.TwinChangesCollector;
-import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
-import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinActionService;
+import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -284,8 +280,8 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             return;
         loadTwins(attachmentDeleteList);
         for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
-            if (!attachmentActionService.isAllowed(deleteEntity, TwinAttachmentAction.DELETE))  {// N+1
-                log.info("{} cannot be deleted because it is not allowed", deleteEntity.logShort());
+            if (!attachmentActionService.isAllowed(attachmentEntity, TwinAttachmentAction.DELETE)) {// N+1
+                log.info("{} cannot be deleted because it is not allowed", attachmentEntity.logShort());
                 continue;
             }
             twinChangesCollector.delete(attachmentEntity);

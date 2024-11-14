@@ -61,7 +61,7 @@ public class DraftCounters {
 
 
     public boolean canBeCommited() {
-        return getOrZero(CounterGroup.COMMIT_BLOCKERS) == 0 && !isInvalid(CounterGroup.COMMIT_BLOCKERS);
+        return getOrZero(CounterGroup.COMMIT_BLOCKERS) == 0 && isValid(CounterGroup.COMMIT_BLOCKERS);
     }
 
     public void invalidateIfNotZero(CounterGroup counterGroup, int normalizeCount) {
@@ -70,18 +70,31 @@ public class DraftCounters {
         invalid.addAll(Arrays.asList(counterGroup.counters));
     }
 
-    public boolean isInvalid(CounterGroup counters) {
-        return isInvalid(counters.counters);
+    public boolean allAreValid() {
+        return invalid.isEmpty();
     }
 
-    public boolean isInvalid(Counter... counters) {
+    public boolean isValid(CounterGroup counters) {
+        return isValid(counters.counters);
+    }
+
+    public boolean isValid(Counter... counters) {
         if (invalid.isEmpty())
-            return false;
+            return true;
         for (Counter counter : counters) {
             if (invalid.contains(counter))
-                return true;
+                return false;
         }
-        return false;
+        return true;
+    }
+
+    public DraftCounters setValid(CounterGroup counterGroup) {
+        return setValid(counterGroup.counters);
+    }
+
+    public DraftCounters setValid(Counter... counters) {
+        Arrays.asList(counters).forEach(invalid::remove);
+        return this;
     }
 
     public enum Counter {

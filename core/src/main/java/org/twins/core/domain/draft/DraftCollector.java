@@ -96,7 +96,29 @@ public class DraftCollector {
     }
 
     public boolean isWritable() {
-        return draftEntity != null && (draftEntity.getStatus() == DraftEntity.Status.UNDER_CONSTRUCTION || draftEntity.getStatus() == DraftEntity.Status.LOCKED);
+        if (draftEntity == null)
+            return false;
+        switch (draftEntity.getStatus()) {
+            case COMMITED:
+            case OUT_OF_DATE:
+            case COMMIT_EXCEPTION:
+            case CONSTRUCTION_EXCEPTION:
+            case NORMALIZE_EXCEPTION:
+            case CHECK_CONFLICTS_EXCEPTION:
+            case COMMIT_NEED_START:
+            case COMMIT_IN_PROGRESS:
+            case ERASE_SCOPE_COLLECT_EXCEPTION:
+            case UNCOMMITED:
+                return false;
+            case LOCKED:
+            case UNDER_CONSTRUCTION:
+            case ERASE_SCOPE_COLLECT_PLANNED:
+            case ERASE_SCOPE_COLLECT_IN_PROGRESS:
+            case ERASE_SCOPE_COLLECT_NEED_START:
+                return true;
+            default:
+                return false;
+        }
     }
 
     public void clear() {
