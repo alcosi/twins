@@ -18,6 +18,9 @@ import java.util.function.Function;
 public class TwinSearch {
     Set<UUID> twinIdList;
     Set<String> twinNameLikeList;
+    Set<String> twinNameNotLikeList;
+    Set<String> twinDescriptionLikeList;
+    Set<String> twinDescriptionNotLikeList;
     Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
