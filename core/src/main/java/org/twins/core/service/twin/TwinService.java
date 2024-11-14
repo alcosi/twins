@@ -43,6 +43,7 @@ import org.twins.core.service.history.HistoryCollectorMultiTwin;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.link.TwinLinkService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
@@ -110,6 +111,8 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for " + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
             return true;
         }
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
+            return true;
         if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
                 && entity.getOwnerBusinessAccountId() != null //for twin_templates owner will not be filled
                 && !entity.getOwnerBusinessAccountId().equals(apiUser.getBusinessAccount().getId())) {
