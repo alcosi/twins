@@ -29,8 +29,6 @@ import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -79,7 +77,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
             attachmentEntity
                     .setId(UUID.randomUUID()) // need for history
-                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUserId())
                     .setCreatedByUser(apiUser.getUser());
             twinChangesCollector.add(attachmentEntity);
