@@ -31,9 +31,8 @@ public class PermissionGroupSpecification extends CommonSpecification<Permission
 
     public static Specification<PermissionGroupEntity> checkDomainId(UUID domainId, boolean showSystemGroup) {
         return (root, query, cb) -> {
-            if (domainId == null) {
+            if (domainId == null)
                 return cb.conjunction();
-            }
             if (showSystemGroup)
                 return cb.or(
                         cb.isNull(root.get(PermissionGroupEntity.Fields.domainId)),
