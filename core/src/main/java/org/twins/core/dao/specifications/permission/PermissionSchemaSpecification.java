@@ -33,7 +33,7 @@ public class PermissionSchemaSpecification extends CommonSpecification<Permissio
     public static Specification<PermissionSchemaEntity> checkDomainId(UUID domainId) {
         return (root, query, cb) -> {
             if (domainId == null)
-                return cb.conjunction();
+                return cb.disjunction();
             return cb.equal(root.get(PermissionSchemaEntity.Fields.domainId), domainId);
         };
     }
