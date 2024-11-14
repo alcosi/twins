@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name = "PermissionSchemaSearchRsV1")
+@Schema(name = "PermissionSchemaUserSearchRsV1")
 public class PermissionSchemaUserSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
