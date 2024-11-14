@@ -16,7 +16,7 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin class id list")
     public List<UUID> twinClassIdList;
 
-    @Schema(description = "Twin class exclude list")
+    @Schema(description = "Twin class id exclude list")
     public List<UUID> twinClassIdExcludeList;
 
     @Schema(description = "Twin name like list")

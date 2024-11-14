@@ -61,6 +61,7 @@ public class DomainBusinessAccountAddController extends ApiController {
                     domainId,
                     request.getBusinessAccountId(),
                     request.getTierId(),
+                    request.getName(),
                     EntitySmartService.SaveMode.ifNotPresentCreate,
                     false);
         } catch (ServiceException se) {

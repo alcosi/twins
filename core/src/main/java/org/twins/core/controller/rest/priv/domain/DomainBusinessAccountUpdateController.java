@@ -60,7 +60,9 @@ public class DomainBusinessAccountUpdateController extends ApiController {
                     .setTierId(request.getTierId())
                     .setPermissionSchemaId(request.getPermissionSchemaId())
                     .setTwinClassSchemaId(request.getTwinClassSchemaId())
-                    .setTwinflowSchemaId(request.getTwinFlowSchemaId()));
+                    .setTwinflowSchemaId(request.getTwinFlowSchemaId()),
+                    request.getName()
+                    );
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

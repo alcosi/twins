@@ -14,6 +14,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
+import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 
 import java.util.Map;
 import java.util.UUID;
@@ -30,6 +31,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related users map", example = "{user map}")
     public Map<UUID, UserDTOv1> userMap;
+
+    @Schema(description = "related users group map", example = "{user group map}")
+    public Map<UUID, UserGroupDTOv1> userGroupMap;
 
     @Schema(description = "related twinClass map", example = "{twin class map}")
     public Map<UUID, TwinClassDTOv1> twinClassMap;
