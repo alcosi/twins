@@ -46,7 +46,6 @@ public class PermissionGroupSearchService {
                         .and(checkFieldLikeIn(PermissionGroupEntity.Fields.name, search.getNameNotLikeList(), true, true))
                         .and(checkFieldLikeIn(PermissionGroupEntity.Fields.description, search.getDescriptionLikeList(), false, true))
                         .and(checkFieldLikeIn(PermissionGroupEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and()
         );
     }
 }
