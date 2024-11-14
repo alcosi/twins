@@ -17,7 +17,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionSchemaSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.permission.PermissionSchemaUserGroupSpecification.checkDomainId;
 
 
 @Slf4j

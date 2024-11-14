@@ -7,8 +7,8 @@ import lombok.experimental.Accessors;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
-@Schema(name =  "PermissionSchemaV1")
+@Accessors(chain = true)
+@Schema(name = "PermissionSchemaV1")
 public class PermissionSchemaDTOv1 {
     @Schema(description = "id")
     public UUID id;
@@ -25,4 +25,6 @@ public class PermissionSchemaDTOv1 {
     @Schema(description = "description")
     public String description;
 
+    @Schema(description = "createdByUserId")
+    public UUID createdByUserId;
 }
