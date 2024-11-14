@@ -2,6 +2,7 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -9,6 +10,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@FieldNameConstants
 @Table(name = "permission_schema_user")
 public class PermissionSchemaUserEntity {
     @Id
