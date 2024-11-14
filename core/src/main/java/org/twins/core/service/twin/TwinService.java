@@ -516,7 +516,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (attachmentCUD == null)
             return;
         if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
-            attachmentService.addAttachments(twinEntity, twinEntity.getCreatedByUser(), attachmentCUD.getCreateList());
+            attachmentService.addAttachments(twinEntity, authService.getApiUser().getUser(), attachmentCUD.getCreateList());
         }
         if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
             attachmentService.updateAttachments(attachmentCUD.getUpdateList());
