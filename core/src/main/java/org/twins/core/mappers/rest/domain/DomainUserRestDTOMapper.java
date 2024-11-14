@@ -17,7 +17,7 @@ import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {BusinessAccountUserCollectionMode.class})
+@MapperModeBinding(modes = {DomainUserMode.class, BusinessAccountUserCollectionMode.class})
 public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntity, DomainUserDTOv1> {
 
     private final BusinessAccountService businessAccountService;
