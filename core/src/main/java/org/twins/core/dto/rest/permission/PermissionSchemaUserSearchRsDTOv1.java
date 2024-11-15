@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.pagination.PaginationDTOv1;
 import java.util.List;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "PermissionSchemaUserSearchRsV1")
 public class PermissionSchemaUserSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {

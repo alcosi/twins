@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "PermissionSchemaUserSearchRqV1")
 public class PermissionSchemaUserSearchRqDTOv1 extends Request {
     @Schema(description = "id list")

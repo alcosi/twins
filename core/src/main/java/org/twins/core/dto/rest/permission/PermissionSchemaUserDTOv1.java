@@ -14,11 +14,11 @@ public class PermissionSchemaUserDTOv1 {
     @Schema(description = "id", example = DTOExamples.PERMISSION_SCHEMA_USER_ID)
     public UUID id;
 
-    @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
-    public UUID permissionId;
-
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     public UUID permissionSchemaId;
+
+    @Schema(description = "permission id", example = DTOExamples.PERMISSION_ID)
+    public UUID permissionId;
 
     @Schema(description = "user id", example = DTOExamples.USER_ID)
     public UUID userId;
