@@ -101,7 +101,7 @@ public class TwinTransitionDraftController extends ApiController {
             @RequestBody TwinTransitionDraftRqDTOv1 request) {
         TwinTransitionDraftRsDTOv1 rs = new TwinTransitionDraftRsDTOv1();
         try {
-            TwinEntity dbTwinEntity = twinService.findEntity(request.getTwinId(), EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+            TwinEntity dbTwinEntity = twinService.findEntitySafe(request.getTwinId());
             TransitionContext transitionContext = twinflowTransitionService.createTransitionContext(dbTwinEntity, transitionAlias);
             if (request.getContext() != null) {
                 transitionContext

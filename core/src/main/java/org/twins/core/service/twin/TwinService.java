@@ -404,7 +404,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void checkAssignee(TwinEntity twinEntity, UUID userId) throws ServiceException {
-        if (null != userId)
+        if (null == userId)
             return;
         TwinClassEntity twinClassEntity = twinEntity.getTwinClass();
         switch (twinClassEntity.getOwnerType()) {
