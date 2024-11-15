@@ -8,6 +8,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionGroupEntity;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -48,6 +49,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<BusinessAccountEntity>> relatedBusinessAccountMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<PermissionGroupEntity>> relatedPermissionGroupMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<PermissionSchemaEntity>> relatedPermissionSchemaMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
 
@@ -167,6 +170,8 @@ public class MapperContext {
             smartPut(relatedPermissionGroupMap, permissionGroup, permissionGroup.getId());
         else if (relatedObject instanceof PermissionEntity permission)
             smartPut(relatedPermissionMap, permission, permission.getId());
+        else if (relatedObject instanceof PermissionSchemaEntity permissionSchema)
+            smartPut(relatedPermissionSchemaMap, permissionSchema, permissionSchema.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -353,6 +358,7 @@ public class MapperContext {
         dstMapperContext.relatedBusinessAccountMap = srcMapperContext.relatedBusinessAccountMap;
         dstMapperContext.relatedPermissionGroupMap = srcMapperContext.relatedPermissionGroupMap;
         dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
+        dstMapperContext.relatedPermissionSchemaMap = srcMapperContext.relatedPermissionSchemaMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.permission;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,8 +11,8 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "PermissionSchemaUserGroupSearchRqV1")
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "PermissionSchemaUserGroupSearchRqV1")
 public class PermissionSchemaUserGroupSearchRqDTOv1 extends Request {
 
     @Schema(description = "id list")
