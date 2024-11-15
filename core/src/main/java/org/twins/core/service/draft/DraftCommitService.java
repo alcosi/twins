@@ -14,6 +14,9 @@ import org.twins.core.exception.ErrorCodeTwins;
 import java.util.UUID;
 import java.util.function.Function;
 
+import static org.twins.core.domain.draft.DraftCounters.Counter.*;
+import static org.twins.core.domain.draft.DraftCounters.CounterGroup.*;
+
 @Service
 @Slf4j
 @Lazy
@@ -32,6 +35,8 @@ public class DraftCommitService {
     private final DraftTwinPersistRepository draftTwinPersistRepository;
     @Lazy
     private final DraftService draftService;
+    @Lazy
+    private final DraftCounterService draftCounterService;
 
     @Transactional
     public DraftEntity commitNowOrInQueue(UUID draftId) throws ServiceException {
@@ -40,20 +45,36 @@ public class DraftCommitService {
 
     @Transactional
     public DraftEntity commitNowOrInQueue(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getStatus() != DraftEntity.Status.UNCOMMITED)
-            throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, "current draft can not be commited");
-        if (isMinor(draftEntity)) {
-            commitNow(draftEntity);
-        } else {
-            draftRepository.save(draftEntity.setStatus(DraftEntity.Status.COMMIT_NEED_START));
+        switch (draftEntity.getStatus()) {
+            case UNCOMMITED:
+                if (isMinor(draftEntity)) {
+                    commitNow(draftEntity);
+                } else {
+                    markAutocommit(draftEntity);
+                }
+                break;
+            case ERASE_SCOPE_COLLECT_PLANNED:
+                markAutocommit(draftEntity);
+                break;
+            default:
+                throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, "current draft can not be commited");
         }
         return draftEntity;
     }
+
+    private void markAutocommit(DraftEntity draftEntity) {
+        draftEntity.setAutoCommit(true); // this will trigger commit after finishing of scope creation
+        draftRepository.save(draftEntity);
+    }
+
 
     // all draft data should be normalized and check before (for best performance)
     @Transactional(rollbackFor = Throwable.class)
     public void commitNow(DraftEntity draftEntity) throws ServiceException {
         try {
+            draftCounterService.syncCounters(draftEntity);
+            if (!draftEntity.getCounters().canBeCommited())
+                throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftEntity.logNormal() + " can not be commited, because of unsuitable erase statuses");
             commitTwinErase(draftEntity);
             commitTwinPersist(draftEntity);
             commitTwinFields(draftEntity);
@@ -88,23 +109,24 @@ public class DraftCommitService {
     }
 
     private void commitTwinErase(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinEraseCount() <= 0)
+        if (draftEntity.getCounters().isZero(ERASES))
             return;
-        log.info("commiting {} erase", draftEntity.getTwinEraseCount());
+        log.info("commiting {} erase", draftEntity.getCounters().getOrZero(ERASES));
         commitTwinEraseIrrevocable(draftEntity);
-        commit(draftEntity, draftEntity.getTwinEraseByStatusCount(), draftTwinEraseRepository::commitEraseByStatus, "erase by status changes");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(ERASE_BY_STATUS), draftTwinEraseRepository::commitEraseByStatus, "erase by status changes");
     }
 
     private void commitTwinEraseIrrevocable(DraftEntity draftEntity) {
-        if (draftEntity.getTwinEraseIrrevocableCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(ERASE_IRREVOCABLE_HANDLED);
+        if (counter == 0)
             return;
-        log.info("commiting {} erase irrevocable", draftEntity.getTwinEraseIrrevocableCount());
-        String irrevocableDeleteIds = draftTwinEraseRepository.getIrrevocableDeleteIds(draftEntity.getId());
+        log.info("commiting {} erase irrevocable", counter);
+        String irrevocableDeleteIds = draftTwinEraseRepository.getIrrevocableDeleteIds(draftEntity.getId(), DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED);
         if (StringUtils.isEmpty(irrevocableDeleteIds))
             return;
         checkCount(
-                draftTwinEraseRepository.commitEraseIrrevocable(draftEntity.getId()),
-                draftEntity.getTwinEraseIrrevocableCount(),
+                draftTwinEraseRepository.commitEraseIrrevocable(draftEntity.getId(), DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED),
+                counter,
                 "commitTwinEraseIrrevocable"); //this is the fastest way
         log.info("twins[{}] perhaps were deleted", irrevocableDeleteIds);
 
@@ -112,17 +134,20 @@ public class DraftCommitService {
 
 
     private void commitTwinPersist(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinPersistCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(PERSISTS);
+        if (counter == 0)
             return;
-        log.info("commiting {} persisted twins", draftEntity.getTwinPersistCount());
-        commit(draftEntity, draftEntity.getTwinPersistCreateCount(), draftTwinPersistRepository::commitTwinsCreates, "twins: creation");
-        commit(draftEntity, draftEntity.getTwinPersistUpdateCount(), draftTwinPersistRepository::commitTwinsUpdates, "twins: update");
+        log.info("commiting {} persisted twins", counter);
+        //todo run runTwinStatusTransitionTriggers
+        commit(draftEntity, draftEntity.getCounters().getOrZero(PERSIST_CREATE), draftTwinPersistRepository::commitTwinsCreates, "twins: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(PERSIST_UPDATE), draftTwinPersistRepository::commitTwinsUpdates, "twins: update");
     }
 
     private void commitTwinFields(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinFieldCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(FIELDS);
+        if (counter == 0)
             return;
-        log.info("commiting {} twin fields", draftEntity.getTwinFieldCount());
+        log.info("commiting {} twin fields", counter);
         commitTwinFieldSimple(draftEntity);
         commitTwinFieldUser(draftEntity);
         commitTwinFieldDataList(draftEntity);
@@ -130,77 +155,84 @@ public class DraftCommitService {
 
 
     private void commitTwinFieldSimple(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinFieldSimpleCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_SIMPLE);
+        if (counter == 0)
             return;
-        log.info("commiting {} twin fields simple", draftEntity.getTwinFieldSimpleCount());
+        log.info("commiting {} twin fields simple", counter);
         commitTwinFieldSimpleDelete(draftEntity);
-        commit(draftEntity, draftEntity.getTwinFieldSimpleCreateCount(), draftTwinFieldSimpleRepository::commitCreates, "twin fields [simple]: creation");
-        commit(draftEntity, draftEntity.getTwinFieldSimpleUpdateCount(), draftTwinFieldSimpleRepository::commitUpdates, "twin fields [simple]: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_SIMPLE_CREATE), draftTwinFieldSimpleRepository::commitCreates, "twin fields [simple]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_SIMPLE_UPDATE), draftTwinFieldSimpleRepository::commitUpdates, "twin fields [simple]: update");
     }
 
     private void commitTwinFieldSimpleDelete(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinFieldSimpleDeleteCount() <= 0)
+        if (draftEntity.getCounters().isZero(FIELD_SIMPLE_DELETE))
             return;
         throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "twin simple fields deletion is not implemented");
     }
 
     private void commitTwinFieldUser(DraftEntity draftEntity) {
-        if (draftEntity.getTwinFieldUserCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_USER);
+        if (counter == 0)
             return;
-        log.info("commiting {} twin fields [user]", draftEntity.getTwinFieldUserCount());
-        commit(draftEntity, draftEntity.getTwinFieldUserCreateCount(), draftTwinFieldUserRepository::commitCreates, "twin fields [user]: creation");
-        commit(draftEntity, draftEntity.getTwinFieldUserUpdateCount(), draftTwinFieldUserRepository::commitUpdates, "twin fields [user]: update");
-        commit(draftEntity, draftEntity.getTwinFieldUserDeleteCount(), draftTwinFieldUserRepository::commitDeletes, "twin fields [user]: deletion");
+        log.info("commiting {} twin fields [user]", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_CREATE), draftTwinFieldUserRepository::commitCreates, "twin fields [user]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_UPDATE), draftTwinFieldUserRepository::commitUpdates, "twin fields [user]: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_USER_DELETE), draftTwinFieldUserRepository::commitDeletes, "twin fields [user]: deletion");
     }
 
     private void commitTwinFieldDataList(DraftEntity draftEntity) {
-        if (draftEntity.getTwinFieldDataListCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(FIELDS_DATALIST);
+        if (counter == 0)
             return;
-        log.info("commiting {} twin fields [data_list]", draftEntity.getTwinFieldDataListCount());
-        commit(draftEntity, draftEntity.getTwinFieldDataListCreateCount(), draftTwinFieldDataListRepository::commitCreates, "twin fields [data_list]: creation");
-        commit(draftEntity, draftEntity.getTwinFieldDataListUpdateCount(), draftTwinFieldDataListRepository::commitUpdates, "twin fields [data_list]: update");
-        commit(draftEntity, draftEntity.getTwinFieldDataListDeleteCount(), draftTwinFieldDataListRepository::commitDeletes, "twin fields [data_list]: deletion");
+        log.info("commiting {} twin fields [data_list]", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_DATALIST_CREATE), draftTwinFieldDataListRepository::commitCreates, "twin fields [data_list]: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_DATALIST_UPDATE), draftTwinFieldDataListRepository::commitUpdates, "twin fields [data_list]: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(FIELD_DATALIST_DELETE), draftTwinFieldDataListRepository::commitDeletes, "twin fields [data_list]: deletion");
     }
 
     private void commitTwinLinks(DraftEntity draftEntity) {
-        if (draftEntity.getTwinLinkCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(LINKS);
+        if (counter == 0)
             return;
-        log.info("commiting {} twin links", draftEntity.getTwinLinkCount());
-        commit(draftEntity, draftEntity.getTwinLinkCreateCount(), draftTwinLinkRepository::commitCreates, "links: creation");
-        commit(draftEntity, draftEntity.getTwinLinkUpdateCount(), draftTwinLinkRepository::commitUpdates, "links: update");
-        commit(draftEntity, draftEntity.getTwinLinkDeleteCount(), draftTwinLinkRepository::commitDeletes, "links: deletion");
+        log.info("commiting {} twin links", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(LINK_CREATE), draftTwinLinkRepository::commitCreates, "links: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(LINK_UPDATE), draftTwinLinkRepository::commitUpdates, "links: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(LINK_DELETE), draftTwinLinkRepository::commitDeletes, "links: deletion");
     }
 
 
     private void commitTwinMarkers(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinMarkerCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(MARKERS);
+        if (counter == 0)
             return;
-        log.info("commiting {} markers", draftEntity.getTwinMarkerCount());
-        commit(draftEntity, draftEntity.getTwinMarkerCreateCount(), draftTwinMarkerRepository::commitMarkersAdd, "markers: added");
-        commit(draftEntity, draftEntity.getTwinMarkerDeleteCount(), draftTwinMarkerRepository::commitMarkersDelete, "markers: deletion");
+        log.info("commiting {} markers", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(MARKER_CREATE), draftTwinMarkerRepository::commitMarkersAdd, "markers: added");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(MARKER_DELETE), draftTwinMarkerRepository::commitMarkersDelete, "markers: deletion");
     }
 
     private void commitTwinTags(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinTagCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(TAGS);
+        if (counter == 0)
             return;
-        log.info("commiting {} tags", draftEntity.getTwinTagCount());
-        commit(draftEntity, draftEntity.getTwinTagCreateCount(), draftTwinTagRepository::commitTagsAdd, "tags: creation");
-        commit(draftEntity, draftEntity.getTwinTagDeleteCount(), draftTwinTagRepository::commitTagsDelete, "tags: deletion");
+        log.info("commiting {} tags", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(TAG_CREATE), draftTwinTagRepository::commitTagsAdd, "tags: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(TAG_DELETE), draftTwinTagRepository::commitTagsDelete, "tags: deletion");
     }
 
     // we can check if current draft it minor
     public boolean isMinor(DraftEntity draftEntity) {
         //todo move to properties
-        return draftEntity.getAllChangesCount() <= 20;
+        return draftEntity.getCounters().allCountersValues() <= 20;
     }
 
     private void commitTwinAttachments(DraftEntity draftEntity) throws ServiceException {
-        if (draftEntity.getTwinAttachmentCount() <= 0)
+        int counter = draftEntity.getCounters().getOrZero(ATTACHMENTS);
+        if (counter == 0)
             return;
-        log.info("commiting {} attachments", draftEntity.getTwinAttachmentCount());
-        commit(draftEntity, draftEntity.getTwinAttachmentCreateCount(), draftTwinAttachmentRepository::commitAttachmentsCreate, "attachments: creation");
-        commit(draftEntity, draftEntity.getTwinAttachmentUpdateCount(), draftTwinAttachmentRepository::commitAttachmentsUpdate, "attachments: update");
-        commit(draftEntity, draftEntity.getTwinAttachmentDeleteCount(), draftTwinAttachmentRepository::commitAttachmentsDelete, "attachments: deletion");
+        log.info("commiting {} attachments", counter);
+        commit(draftEntity, draftEntity.getCounters().getOrZero(ATTACHMENT_CREATE), draftTwinAttachmentRepository::commitAttachmentsCreate, "attachments: creation");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(ATTACHMENT_UPDATE), draftTwinAttachmentRepository::commitAttachmentsUpdate, "attachments: update");
+        commit(draftEntity, draftEntity.getCounters().getOrZero(ATTACHMENT_DELETE), draftTwinAttachmentRepository::commitAttachmentsDelete, "attachments: deletion");
     }
 
     private void commit(DraftEntity draftEntity, int expectedCounter, Function<UUID, Integer> commitFunction, String what) {

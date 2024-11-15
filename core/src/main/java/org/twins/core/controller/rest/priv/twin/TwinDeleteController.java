@@ -44,10 +44,12 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/twin/{twinId}/v1")
     public ResponseEntity<?> twinDeleteV1(
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId) {
-        Response rs = new Response();
+        DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
-            twinEraserService.eraseTwin(twinId);
+            DraftEntity draftEntity = twinEraserService.eraseTwin(twinId);
+            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -65,11 +67,12 @@ public class TwinDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/delete/v1")
     public ResponseEntity<?> twinDeleteBatchV1(
+            @MapperContextBinding(roots = DraftRestDTOMapper.class, response = DraftRsDTOv1.class) MapperContext mapperContext,
             @RequestBody TwinDeleteRqDTOv1 twinDeleteRqDTOv1) {
-        Response rs = new Response();
+        DraftRsDTOv1 rs = new DraftRsDTOv1();
         try {
-            for (UUID twinId : twinDeleteRqDTOv1.twinIds)
-                twinEraserService.eraseTwin(twinId);
+            DraftEntity draftEntity = twinEraserService.eraseTwins(twinDeleteRqDTOv1.twinIds);
+            rs.setDraft(draftRestDTOMapper.convert(draftEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

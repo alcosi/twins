@@ -74,21 +74,21 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and erase_twin_status_id is null)")
-    int commitEraseIrrevocable(@Param("draftId") UUID draftId);
+            "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id = :status)")
+    int commitEraseIrrevocable(@Param("draftId") UUID draftId, @Param("status") DraftTwinEraseEntity.Status status);
 
     @Query(nativeQuery = true, value =
             "select string_agg(cast(twin_id as varchar), ', ') AS ids " +
-                    "from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id is null " +
+                    "from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id = :status " +
                     "group by draft_id;")
-    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId);
+    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId, @Param("status") DraftTwinEraseEntity.Status status);
 
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "update twin set twin_status_id = erase_twin_status_id " +
+            "update twin set twin_status_id = draft_twin_erase_status_id " +
                     "from draft_twin_erase dte " +
-                    "where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.erase_twin_status_id is not null;")
+                    "where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.draft_twin_erase_status_id is not null;")
     int commitEraseByStatus(@Param("draftId") UUID draftId);
 
     DraftTwinEraseEntity findByDraftIdAndTwinId(UUID draftId, UUID twinId);

@@ -30,7 +30,7 @@ public class DraftCommitScheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftCommitScheduler$");
             log.debug("Loading draft commit task from database");
-            List<DraftEntity> draftEntities = draftRepository.findByStatusIdIn(List.of(DraftEntity.Status.COMMIT_NEED_START));
+            List<DraftEntity> draftEntities = draftRepository.findDraftsForCommit(DraftEntity.Status.UNCOMMITED);
             if (CollectionUtils.isEmpty(draftEntities)) {
                 log.debug("No draft need to be commited");
                 return;

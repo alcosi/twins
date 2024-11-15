@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.CUD;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -50,5 +51,9 @@ public interface DraftTwinFieldSimpleRepository extends CrudRepository<DraftTwin
                     "  and dta.twin_field_simple_id = twin_field_simple.id " +
                     "  and dta.cud_id = 'UPDATE';")
     int commitUpdates(@Param("draftId") UUID id);
+
+    @Query(value =
+            "select cud, count(*) from DraftTwinFieldSimpleEntity where draftId = :draftId group by cud")
+    List<Object[]> getCounters(@Param("draftId") UUID draftId);
 }
 

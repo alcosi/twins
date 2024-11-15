@@ -34,7 +34,7 @@ public class DraftNormalizeService {
     // let's try to clean some possible garbage (updates of twins that will be fully deleted)
     public void normalizeDraft(DraftCollector draftCollector) throws ServiceException {
         log.info("Normalize draft start");
-        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector);
+        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector.getDraftEntity());
         if (draftCounters.getOrZero(ERASE_IRREVOCABLE_HANDLED) == 0)
             return; //nothing need to be normalized
         int normalizeCount = 0;
@@ -96,5 +96,6 @@ public class DraftNormalizeService {
             draftCounters
                     .subtract(LINK_DELETE, normalizeCount);
         }
+        //todo draft_history must be updated
     }
 }

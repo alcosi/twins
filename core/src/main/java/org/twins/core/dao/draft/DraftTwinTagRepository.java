@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -37,4 +38,8 @@ public interface DraftTwinTagRepository extends CrudRepository<DraftTwinTagEntit
             "delete from twin_tag tt " +
                     "using draft_twin_tag dtt where tt.twin_id = dtt.twin_id and tt.tag_data_list_option_id = dtt.tag_data_list_option_id and dtt.draft_id = :draftId and dtt.create_else_delete = false")
     int commitTagsDelete(@Param("draftId") UUID draftId);
+
+    @Query(value =
+            "select createElseDelete, count(*) from DraftTwinTagEntity where draftId = :draftId group by createElseDelete")
+    List<Object[]> getCounters(@Param("draftId") UUID draftId);
 }

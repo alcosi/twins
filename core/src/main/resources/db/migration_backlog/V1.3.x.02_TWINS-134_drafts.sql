@@ -48,9 +48,6 @@ INSERT INTO draft_status (id)
 VALUES ('UNCOMMITED')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
-VALUES ('COMMIT_NEED_START')
-on conflict (id) do nothing;
-INSERT INTO draft_status (id)
 VALUES ('COMMIT_IN_PROGRESS')
 on conflict (id) do nothing;
 INSERT INTO draft_status (id)
@@ -79,41 +76,17 @@ create table if not exists draft
         constraint domain_business_account_business_account_id_fk
             references business_account
             on update cascade on delete cascade,
-    created_by_user_id uuid                    not null
-        constraint draft_created_by_user_id_fk
-            references "user"
-            on update cascade,
+    auto_commit         boolean      not null default false,
     draft_status_id varchar
         constraint draft_draft_status_id_fk
             references draft_status
             on update cascade,
     draft_status_details varchar,
-    created_at         timestamp default CURRENT_TIMESTAMP,
-    twin_erase_count integer not null default 0,
-    twin_erase_irrevocable_count integer not null default 0,
-    twin_erase_status_count integer not null default 0,
-    twin_persist_count integer not null default 0,
-    twin_persist_create_count integer not null default 0,
-    twin_persist_update_count integer not null default 0,
-    twin_link_create_count integer not null default 0,
-    twin_link_update_count integer not null default 0,
-    twin_link_delete_count integer not null default 0,
-    twin_attachment_create_count integer not null default 0,
-    twin_attachment_update_count integer not null default 0,
-    twin_attachment_delete_count integer not null default 0,
-    twin_marker_create_count integer not null default 0,
-    twin_marker_delete_count integer not null default 0,
-    twin_tag_create_count integer not null default 0,
-    twin_tag_delete_count integer not null default 0,
-    twin_field_simple_create_count integer not null default 0,
-    twin_field_simple_update_count integer not null default 0,
-    twin_field_simple_delete_count integer not null default 0,
-    twin_field_user_create_count integer not null default 0,
-    twin_field_user_update_count integer not null default 0,
-    twin_field_user_delete_count integer not null default 0,
-    twin_field_data_list_create_count integer not null default 0,
-    twin_field_data_list_update_count integer not null default 0,
-    twin_field_data_list_delete_count integer not null default 0
+    created_by_user_id uuid                    not null
+        constraint draft_created_by_user_id_fk
+            references "user"
+            on update cascade,
+    created_at         timestamp default CURRENT_TIMESTAMP
 );
 
 

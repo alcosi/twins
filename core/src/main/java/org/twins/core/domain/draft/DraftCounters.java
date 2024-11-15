@@ -17,6 +17,7 @@ public class DraftCounters {
 
     public void set(Counter counter, Integer value) {
         this.values.put(counter, value);
+        invalid.remove(counter);
     }
 
     public Integer getOrZero(Counter counter) {
@@ -30,6 +31,16 @@ public class DraftCounters {
         return ret;
     }
 
+    public Integer useNullForZero(Counter counter) {
+        Integer ret = get(counter);
+        return (ret == null || ret == 0) ? null : ret;
+    }
+
+    public Integer useNullForZero(CounterGroup counterGroup) {
+        Integer ret = getOrZero(counterGroup);
+        return ret == 0 ? null : ret;
+    }
+
     public Integer get(Counter counter) {
         return values.get(counter);
     }
@@ -38,8 +49,16 @@ public class DraftCounters {
         return getOrZero(counter) > 0;
     }
 
+    public boolean isZero(Counter counter) {
+        return getOrZero(counter) == 0;
+    }
+
     public boolean moreThenZero(CounterGroup counterGroup) {
         return getOrZero(counterGroup) > 0;
+    }
+
+    public boolean isZero(CounterGroup counterGroup) {
+        return getOrZero(counterGroup) == 0;
     }
 
     public DraftCounters subtract(Counter counter, Integer value) throws ServiceException {
@@ -72,6 +91,13 @@ public class DraftCounters {
 
     public boolean allAreValid() {
         return invalid.isEmpty();
+    }
+
+    public Integer allCountersValues() {
+        Integer ret = 0;
+        for (Integer value : values.values())
+            ret += value;
+        return ret;
     }
 
     public boolean isValid(CounterGroup counters) {
@@ -135,6 +161,7 @@ public class DraftCounters {
                 Counter.ERASE_UNDETECTED,
                 Counter.ERASE_BY_STATUS,
                 Counter.ERASE_IRREVOCABLE_DETECTED,
+                Counter.ERASE_IRREVOCABLE_HANDLED,
                 Counter.ERASE_CASCADE_PAUSE,
                 Counter.ERASE_CASCADE_EXTRACTED,
                 Counter.ERASE_SKIP,
@@ -168,8 +195,19 @@ public class DraftCounters {
                 Counter.FIELD_DATALIST_CREATE,
                 Counter.FIELD_DATALIST_UPDATE,
                 Counter.FIELD_DATALIST_DELETE}),
+        FIELDS(new Counter[]{
+                Counter.FIELD_SIMPLE_CREATE,
+                Counter.FIELD_SIMPLE_UPDATE,
+                Counter.FIELD_SIMPLE_DELETE,
+                Counter.FIELD_USER_CREATE,
+                Counter.FIELD_USER_UPDATE,
+                Counter.FIELD_USER_DELETE,
+                Counter.FIELD_DATALIST_CREATE,
+                Counter.FIELD_DATALIST_UPDATE,
+                Counter.FIELD_DATALIST_DELETE}),
         COMMIT_BLOCKERS(new Counter[]{
                 Counter.ERASE_UNDETECTED,
+                Counter.ERASE_IRREVOCABLE_DETECTED,
                 Counter.ERASE_CASCADE_PAUSE,
                 Counter.ERASE_LOCK});
 

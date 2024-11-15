@@ -121,10 +121,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         );
     }
 
-    public DraftEntity draftErase(TwinEntity twinEntity) throws ServiceException {
+    public DraftEntity draftErase(TwinEntity... twinEntityList) throws ServiceException {
         DraftCollector draftCollector = beginDraft();
         try {
-            draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
+            for (TwinEntity twinEntity : twinEntityList) {
+                draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
+            }
             flush(draftCollector);
             createEraseScope(draftCollector);
             endDraft(draftCollector);
@@ -360,7 +362,6 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         // no factory should be run for current item, because has  DETECTED_IRREVOCABLE_ERASE status
         eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED);
         draftCollector.getHistoryCollector().forTwin(eraseEntity.getTwin()).add(HistoryType.twinDeleted, null);
-        draftCollector.getDraftEntity().incrementTwinEraseIrrevocable();
     }
 
     public UUID detectCascadeDeletionFactory(DraftTwinEraseEntity eraseEntity) throws ServiceException {

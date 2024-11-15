@@ -9,6 +9,9 @@ import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.domain.draft.DraftCounters;
 import org.twins.core.exception.ErrorCodeTwins;
 
+import static org.twins.core.domain.draft.DraftCounters.Counter.ERASE_IRREVOCABLE_HANDLED;
+import static org.twins.core.domain.draft.DraftCounters.CounterGroup.PERSISTS;
+
 @Service
 @Slf4j
 @RequiredArgsConstructor
@@ -18,14 +21,14 @@ public class DraftCheckConflictsService {
 
 
     public void checkConflicts(DraftCollector draftCollector) throws ServiceException {
-        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector);
+        DraftCounters draftCounters = draftCounterService.syncCounters(draftCollector.getDraftEntity());
         if (!draftCounters.canBeCommited())
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_CAN_NOT_BE_COMMITED, draftCollector.getDraftEntity().logNormal() + " can not be commited, because of unsuitable erase statuses");
-        if (draftCollector.getDraftEntity().getTwinEraseIrrevocableCount() == 0)
+        if (draftCollector.getDraftCounters().isZero(ERASE_IRREVOCABLE_HANDLED))
             return; //hope we will have no conflicts in such case
         boolean hasConflicts = false;
         int count = 0;
-        if (draftCollector.getDraftEntity().getTwinPersistCount() > 0) {
+        if (draftCollector.getDraftCounters().moreThenZero(PERSISTS)) {
             count = draftTwinPersistRepository.countPersistedWithDeletedHead(draftCollector.getDraftId());
             if (count > 0) {
                 hasConflicts = true;

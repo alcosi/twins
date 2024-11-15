@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -54,4 +55,8 @@ public interface DraftTwinFieldUserRepository extends CrudRepository<DraftTwinFi
                     "where dta.draft_id = :draftId " +
                     "and dta.twin_field_user_id = ta.id and cud_id = 'DELETE'")
     int commitDeletes(@Param("draftId") UUID id);
+
+    @Query(value =
+            "select cud, count(*) from DraftTwinFieldUserEntity where draftId = :draftId group by cud")
+    List<Object[]> getCounters(@Param("draftId") UUID draftId);
 }

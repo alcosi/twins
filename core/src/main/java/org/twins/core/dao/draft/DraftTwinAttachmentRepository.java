@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.CUD;
 
+import java.util.List;
 import java.util.UUID;
 
 @Repository
@@ -91,4 +92,8 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
                     "where dta.draft_id = :draftId " +
                     "and dta.twin_attachment_id = ta.id and cud_id = 'DELETE'")
     int commitAttachmentsDelete(@Param("draftId") UUID draftId);
+
+    @Query(value =
+            "select cud, count(*) from DraftTwinAttachmentEntity where draftId = :draftId group by cud")
+    List<Object[]> getCounters(@Param("draftId") UUID draftId);
 }
