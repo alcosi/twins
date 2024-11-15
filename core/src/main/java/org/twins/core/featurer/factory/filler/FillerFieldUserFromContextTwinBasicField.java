@@ -51,7 +51,7 @@ public class FillerFieldUserFromContextTwinBasicField extends Filler {
         FieldValueUser fieldValue = new FieldValueUser(twinClassFieldService.findEntitySafe(twinClassFieldId.extract(properties)));
         switch (fieldName) {
             case createdByUserId:
-                if(null == factoryItemTwin.getAssignerUserId())
+                if(null == factoryItemTwin.getCreatedByUserId())
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "No creator detected for twin: " + factoryItemTwin.logDetailed());
                 fieldValue.getUsers().add(factoryItemTwin.getCreatedByUser());
                 break;
