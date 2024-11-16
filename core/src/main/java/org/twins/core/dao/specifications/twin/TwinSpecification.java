@@ -193,6 +193,20 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
+    public static Specification<TwinEntity> checkClassId(final Collection<UUID> twinClassUuids) {
+        return (twin, query, cb) -> {
+            if (!CollectionUtils.isEmpty(twinClassUuids)) {
+                List<Predicate> predicates = new ArrayList<>();
+                for (UUID twinClassId : twinClassUuids) {
+                    Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
+                    predicates.add(checkClassId);
+                }
+                return getPredicate(cb, predicates, true);
+            }
+            return cb.conjunction();
+        };
+    }
+
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;
         UUID finalBusinessAccountId;
