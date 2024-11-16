@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
+import org.twins.core.dao.draft.DraftStatus;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class DraftEraseScopeCollectScheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftCollectEraseScopeScheduler$");
             log.debug("Loading erase scope collect tasks from database");
-            List<DraftEntity> draftEntities = draftRepository.findByStatusIdIn(List.of(DraftEntity.Status.ERASE_SCOPE_COLLECT_NEED_START));
+            List<DraftEntity> draftEntities = draftRepository.findByStatusIdIn(List.of(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START));
             if (CollectionUtils.isEmpty(draftEntities)) {
                 log.debug("No erase scopes collect tasks");
                 return;
@@ -39,7 +40,7 @@ public class DraftEraseScopeCollectScheduler {
             for (DraftEntity draftEntity : draftEntities) {
                 try {
                     log.info("Running draft[{}] erase scope collect from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_IN_PROGRESS);
+                    draftEntity.setStatus(DraftStatus.ERASE_SCOPE_COLLECT_IN_PROGRESS);
                     draftRepository.save(draftEntity);
                     DraftEraseScopeCollectTask draftCommitTask = applicationContext.getBean(DraftEraseScopeCollectTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);

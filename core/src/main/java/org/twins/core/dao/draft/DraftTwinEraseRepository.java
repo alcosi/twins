@@ -48,7 +48,7 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                     "           and t.head_twin_id = :twinId " +
                     "           and dtp.draft_id = :draftId " +
                     "           and dtp.create_else_update = false " +
-                    "           and dtp.head_twin_id != t.head_twin_id) on conflict do nothing;")
+                    "           and dtp.head_twin_id != t.head_twin_id) on conflict do nothing;") // on conflict do nothing is critical important here, cause it protects from endless loop scope creation
     void addDirectChildTwins(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId);
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -66,29 +66,36 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
                     "                         twin_link tl " +
                     "                    where dtl.twin_link_id = tl.id " +
                     "                      and dtl.dst_twin_id != tl.dst_twin_id " +
-                    "                    and dtl.cud_id = 'UPDATE') on conflict do nothing;")
+                    "                    and dtl.cud_id = 'UPDATE') on conflict do nothing;") // on conflict do nothing is critical important here, cause it protects from endless loop scope creation
     void addLinked(@Param("draftId") UUID draftId, @Param("twinId") UUID twinId);
 
-    List<DraftTwinEraseEntity> findByDraftIdAndStatusIn(UUID draftId, DraftTwinEraseEntity.Status... statuses);
+    List<DraftTwinEraseEntity> findByDraftIdAndStatusIn(UUID draftId, DraftTwinEraseStatus... statuses);
 
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "delete from twin where id in (select twin_id from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id = :status)")
-    int commitEraseIrrevocable(@Param("draftId") UUID draftId, @Param("status") DraftTwinEraseEntity.Status status);
+            "delete from twin where id in (select twin_id from draft_twin_erase " +
+                    "where draft_id = :draftId " +
+                    "and draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED')")
+    int commitEraseIrrevocable(@Param("draftId") UUID draftId);
 
     @Query(nativeQuery = true, value =
             "select string_agg(cast(twin_id as varchar), ', ') AS ids " +
-                    "from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id = :status " +
+                    "from draft_twin_erase " +
+                    "where draft_id = :draftId " +
+                    "and draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED' " +
                     "group by draft_id;")
-    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId, @Param("status") DraftTwinEraseEntity.Status status);
+    String getIrrevocableDeleteIds(@Param("draftId") UUID draftId);
 
+    @Deprecated //perhaps there is no sense in this method, because twins with status updates will be stored in draft_persist table
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value =
-            "update twin set twin_status_id = draft_twin_erase_status_id " +
+            "update twin set twin_status_id = getNewStatusForTwin() " +
                     "from draft_twin_erase dte " +
-                    "where dte.draft_id = :draftId and dte.twin_id = twin.id and dte.draft_twin_erase_status_id is not null;")
+                    "where dte.draft_id = :draftId " +
+                    "and dte.twin_id = twin.id " +
+                    "and dte.draft_twin_erase_status_id = 'STATUS_CHANGE_ERASE_DETECTED';")
     int commitEraseByStatus(@Param("draftId") UUID draftId);
 
     DraftTwinEraseEntity findByDraftIdAndTwinId(UUID draftId, UUID twinId);
@@ -103,9 +110,11 @@ public interface DraftTwinEraseRepository extends CrudRepository<DraftTwinEraseE
     @Query(nativeQuery = true, value =
             "update draft_twin_erase as dte set draft_twin_erase_status_id = 'CASCADE_DELETION_EXTRACTED' " +
                     "where dte.cascade_break_twin_id not in " +
-                    "(select twin_id from draft_twin_erase where draft_id = :draftId and draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED')" +
+                    "(select twin_id from draft_twin_erase " +
+                    "where draft_id = :draftId " +
+                    "and draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED')" +
                     "  and dte.draft_id = :draftId " +
-                    "  and dte.draft_twin_erase_status_id = 'CASCADE_DELETION_PAUSED'")
+                    "  and dte.draft_twin_erase_status_id = 'CASCADE_DELETION_PAUSE'")
     int normalizeDraft(UUID draftId);
 
     @Query(value =

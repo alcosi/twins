@@ -18,7 +18,6 @@ import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.eraseflow.EraseflowLinkCascadeEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
@@ -115,7 +114,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                         .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())
-                        .setStatus(DraftEntity.Status.UNDER_CONSTRUCTION)
+                        .setStatus(DraftStatus.UNDER_CONSTRUCTION)
                         .setDomainId(apiUser.getDomainId())
                         .setBusinessAccountId(apiUser.getBusinessAccountId())
         );
@@ -125,14 +124,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         DraftCollector draftCollector = beginDraft();
         try {
             for (TwinEntity twinEntity : twinEntityList) {
-                draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseEntity.Reason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
+                draftErase(draftCollector, twinEntity, twinEntity, DraftTwinEraseReason.TARGET, new EraseAction(TwinFactoryEraserEntity.Action.ERASE_CANDIDATE, ""));
             }
             flush(draftCollector);
             createEraseScope(draftCollector);
             endDraft(draftCollector);
         } catch (ServiceException e) {
             draftCollector.getDraftEntity()
-                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatus(DraftStatus.CONSTRUCTION_EXCEPTION)
                     .setStatusDetails(e.log());
             endDraft(draftCollector);
             throw e;
@@ -147,7 +146,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     public void createEraseScope(DraftCollector draftCollector) throws ServiceException {
         switch (draftCollector.getDraftEntity().getStatus()) {
             case UNDER_CONSTRUCTION:
-                draftCollector.getDraftEntity().setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_PLANNED);
+                draftCollector.getDraftEntity().setStatus(DraftStatus.ERASE_SCOPE_COLLECT_PLANNED);
                 return; // we will run it in other thread
             case ERASE_SCOPE_COLLECT_IN_PROGRESS:
                 break; // we will go next
@@ -161,8 +160,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         */
         List<DraftTwinEraseEntity> eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(
                 draftCollector.getDraftId(),
-                DraftTwinEraseEntity.Status.UNDETECTED,
-                DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
+                DraftTwinEraseStatus.UNDETECTED,
+                DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED);
         int cascadeDepth = 0;
         while (CollectionUtils.isNotEmpty(eraseNotReadyList)) {
             cascadeDepth++;
@@ -174,15 +173,15 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 switch (eraseItem.getStatus()) {
                     case UNDETECTED:
                         processUndetectedDeletion(draftCollector, eraseItem);
-                        if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED) // extra check, because such statuses are incorrect on current stage
+                        if (eraseItem.getStatus() == DraftTwinEraseStatus.UNDETECTED) // extra check, because such statuses are incorrect on current stage
                             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "incorrect status");
                         break;
                     case IRREVOCABLE_ERASE_DETECTED:
                         processCascadeDeletion(draftCollector, eraseItem);
-                        if (eraseItem.getStatus() == DraftTwinEraseEntity.Status.UNDETECTED
-                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED
-                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.SKIP_DETECTED
-                                || eraseItem.getStatus() == DraftTwinEraseEntity.Status.STATUS_CHANGE_ERASE_DETECTED) // extra check, because such statuses are incorrect on current stage
+                        if (eraseItem.getStatus() == DraftTwinEraseStatus.UNDETECTED
+                                || eraseItem.getStatus() == DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED
+                                || eraseItem.getStatus() == DraftTwinEraseStatus.SKIP_DETECTED
+                                || eraseItem.getStatus() == DraftTwinEraseStatus.STATUS_CHANGE_ERASE_DETECTED) // extra check, because such statuses are incorrect on current stage
                             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "incorrect status");
                         break;
                     default:
@@ -193,17 +192,17 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 //                draftCollector.add(eraseItem);
                 flush(draftCollector); //we will flush here, because factory also can generate some deletes
             }
-            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseEntity.Status.UNDETECTED);
+            eraseNotReadyList = draftTwinEraseRepository.findByDraftIdAndStatusIn(draftCollector.getDraftId(), DraftTwinEraseStatus.UNDETECTED);
         }
     }
 
     private void processUndetectedDeletion(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
-        if (eraseEntity.getStatus() != DraftTwinEraseEntity.Status.UNDETECTED)
+        if (eraseEntity.getStatus() != DraftTwinEraseStatus.UNDETECTED)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Target deletion can not be started from status " + eraseEntity.getStatus());
         eraseflowService.loadEraseflow(eraseEntity.getTwin());
         UUID eraseFactoryId = detectCascadeDeletionFactory(eraseEntity);
         if (eraseFactoryId == null) { // no factory configured, so let's do irrevocable erase
-            eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
+            eraseEntity.setStatus(DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED);
             processCascadeDeletion(draftCollector, eraseEntity);
             return;
         }
@@ -237,7 +236,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     } else if (twinDelete.getEraseAction().getAction() == TwinFactoryEraserEntity.Action.ERASE_IRREVOCABLE) { //p.4
                         log.warn("{} was marked by eraser as 'ERASE_IRREVOCABLE'", eraseEntity.getTwin().logShort());
                         eraseEntity
-                                .setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED)
+                                .setStatus(DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED)
                                 .setStatusDetails(twinDelete.getEraseAction().getDetails());
                     }
                 } else { //p.1, p.2
@@ -246,11 +245,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                             && twinUpdate.getTwinEntity().getTwinStatusId() != null
                             && !twinUpdate.getTwinEntity().getTwinStatusId().equals(twinUpdate.getDbTwinEntity().getTwinStatusId())) { // p.2
                         eraseEntity
-                                .setStatus(DraftTwinEraseEntity.Status.STATUS_CHANGE_ERASE_DETECTED)
+                                .setStatus(DraftTwinEraseStatus.STATUS_CHANGE_ERASE_DETECTED)
                                 .setStatusDetails("Twin status was changed by factory[" + eraseFactoryId + "]");
+                        //todo check that such twin be stored in draft_persist table
                     } else { // p.1
                         eraseEntity
-                                .setStatus(DraftTwinEraseEntity.Status.SKIP_DETECTED)
+                                .setStatus(DraftTwinEraseStatus.SKIP_DETECTED)
                                 .setStatusDetails("Twin erase was skipped factory[" + eraseFactoryId + "]");
                     }
                 }
@@ -278,10 +278,10 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     // currently we can only pause cascade, because we can not be absolutely sure,
                     // that new related twin won't be deleted by some future factory in current draft.
                     // We need to recheck this at the end of draft creation
-                    eraseEntity.setStatus(DraftTwinEraseEntity.Status.CASCADE_DELETION_PAUSE);
+                    eraseEntity.setStatus(DraftTwinEraseStatus.CASCADE_DELETION_PAUSE);
                     draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
                 } else { // p.4
-                    eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED);
+                    eraseEntity.setStatus(DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED);
                     draftFactoryResult(draftCollector, factoryResultUncommited, eraseEntity.getTwin());
                     processCascadeDeletion(draftCollector, eraseEntity);
                 }
@@ -291,14 +291,14 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private static void lock(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity, TwinDelete twinDelete) {
         log.warn("{} was marked by eraser as 'locked'. This provokes draft lock", eraseEntity.getTwin().logShort());
         eraseEntity
-                .setStatus(DraftTwinEraseEntity.Status.LOCK_DETECTED)
+                .setStatus(DraftTwinEraseStatus.LOCK_DETECTED)
                 .setStatusDetails(twinDelete.getEraseAction().getDetails());
         lockDraft(draftCollector, eraseEntity.getTwin());
     }
 
     private static void lockDraft(DraftCollector draftCollector, TwinEntity twinEntity) {
         draftCollector.getDraftEntity()
-                .setStatus(DraftEntity.Status.LOCKED)
+                .setStatus(DraftStatus.LOCKED)
                 .setStatusDetails("locked by: " + twinEntity.logNormal());
     }
 
@@ -339,7 +339,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     private boolean checkNewRelatedTwin(DraftTwinEraseEntity eraseEntity, UUID newRelatedTwin) {
         //let's check that new twin is safe (it's should not be deleted)
         DraftTwinEraseEntity newHeadEraseEntity = draftTwinEraseRepository.findByDraftIdAndTwinId(eraseEntity.getDraftId(), newRelatedTwin);
-        if (newHeadEraseEntity != null && newHeadEraseEntity.getStatus() == DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED) {
+        if (newHeadEraseEntity != null && newHeadEraseEntity.getStatus() == DraftTwinEraseStatus.IRREVOCABLE_ERASE_HANDLED) {
             log.info("{} was not extracted from deletion, because related twin [{}] should be also deleted", eraseEntity.logDetailed(), newRelatedTwin);
             return false;
 
@@ -351,7 +351,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
     }
 
     private void processCascadeDeletion(DraftCollector draftCollector, DraftTwinEraseEntity eraseEntity) throws ServiceException {
-        if (eraseEntity.getStatus() != DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED)
+        if (eraseEntity.getStatus() != DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED)
             throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "Incorrect method call. Cascade deletion can not be started from status " + eraseEntity.getStatus());
         // after running erase factory we can have updated child twins with new heads (not current twin)
         // so we should exclude them from deletion, this will be done in db query
@@ -360,8 +360,8 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         // so we should exclude them from deletion
         draftTwinEraseRepository.addLinked(draftCollector.getDraftId(), eraseEntity.getTwinId());
         // no factory should be run for current item, because has  DETECTED_IRREVOCABLE_ERASE status
-        eraseEntity.setStatus(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED);
-        draftCollector.getHistoryCollector().forTwin(eraseEntity.getTwin()).add(HistoryType.twinDeleted, null);
+        eraseEntity.setStatus(DraftTwinEraseStatus.IRREVOCABLE_ERASE_HANDLED);
+        // draftCollector.getHistoryCollector().forTwin(eraseEntity.getTwin()).add(HistoryType.twinDeleted, null); //todo link delete history to BA main twin, because of FK
     }
 
     public UUID detectCascadeDeletionFactory(DraftTwinEraseEntity eraseEntity) throws ServiceException {
@@ -393,7 +393,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
             endDraft(draftCollector);
         } catch (ServiceException e) {
             draftCollector.getDraftEntity()
-                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatus(DraftStatus.CONSTRUCTION_EXCEPTION)
                     .setStatusDetails(e.log());
             endDraft(draftCollector);
             throw e;
@@ -415,7 +415,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
 
     private DraftCollector draftFactoryResult(DraftCollector draftCollector, FactoryResultUncommited factoryResultUncommited, TwinEntity reasonTwin) throws ServiceException {
         if (!factoryResultUncommited.isCommittable()) // we will anyway create draft to show locked twin
-            draftCollector.getDraftEntity().setStatus(DraftEntity.Status.LOCKED);
+            draftCollector.getDraftEntity().setStatus(DraftStatus.LOCKED);
         if (CollectionUtils.isNotEmpty(factoryResultUncommited.getCreates()))
             for (TwinCreate twinCreate : factoryResultUncommited.getCreates())
                 draftTwinCreate(draftCollector, twinCreate);
@@ -433,12 +433,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     log.debug("{} is already drafted for erase", twinDelete.getTwinEntity());
                     continue;
                 }
-                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseEntity.Reason.FACTORY, twinDelete.getEraseAction());
+                draftErase(draftCollector, twinDelete.getTwinEntity(), reasonTwin, DraftTwinEraseReason.FACTORY, twinDelete.getEraseAction());
             }
         return draftCollector;
     }
 
-    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, EraseAction eraseAction) throws ServiceException {
+    public DraftCollector draftErase(DraftCollector draftCollector, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseReason reason, EraseAction eraseAction) throws ServiceException {
         if (eraseAction.isCauseGlobalLock()) //adding extra lock
             lockDraft(draftCollector, twinEntity);
         else if (eraseAction.getAction() == TwinFactoryEraserEntity.Action.NOT_SPECIFIED)
@@ -610,12 +610,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 .setCreateElseUpdate(true);
     }
 
-    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseEntity.Reason reason, EraseAction eraseAction) throws ServiceException {
-        DraftTwinEraseEntity.Status status = null;
+    public DraftTwinEraseEntity createTwinEraseDraft(DraftEntity draftEntity, TwinEntity twinEntity, TwinEntity reasonTwin, DraftTwinEraseReason reason, EraseAction eraseAction) throws ServiceException {
+        DraftTwinEraseStatus status = null;
         switch (eraseAction.getAction()) {
-            case ERASE_CANDIDATE -> status = DraftTwinEraseEntity.Status.UNDETECTED;
-            case ERASE_IRREVOCABLE -> status = DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED;
-            case RESTRICT -> status = DraftTwinEraseEntity.Status.LOCK_DETECTED;
+            case ERASE_CANDIDATE -> status = DraftTwinEraseStatus.UNDETECTED;
+            case ERASE_IRREVOCABLE -> status = DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED;
+            case RESTRICT -> status = DraftTwinEraseStatus.LOCK_DETECTED;
             case NOT_SPECIFIED -> log.warn("This is unreachable log message! If you see this something is going wrong");
         }
         return new DraftTwinEraseEntity()
@@ -904,12 +904,12 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         switch (draftCollector.getDraftEntity().getStatus()) {
             case UNDER_CONSTRUCTION: // case for minor draft, with no deletion (called from start draft thread)
             case ERASE_SCOPE_COLLECT_IN_PROGRESS:  // case for major draft, with deletion (called from erase scope collect task)
-                draftCollector.getDraftEntity().setStatus(DraftEntity.Status.UNCOMMITED);
+                draftCollector.getDraftEntity().setStatus(DraftStatus.UNCOMMITED);
                 try {
                     draftNormalizeService.normalizeDraft(draftCollector);
                 } catch (Exception e) { //todo create DraftException extends ServiceException + Status
                     draftCollector.getDraftEntity()
-                            .setStatus(DraftEntity.Status.NORMALIZE_EXCEPTION)
+                            .setStatus(DraftStatus.NORMALIZE_EXCEPTION)
                             .setStatusDetails(e.getMessage());
                     break;
                 }
@@ -917,13 +917,13 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                     draftCheckConflictsService.checkConflicts(draftCollector);
                 } catch (ServiceException e) { //todo DraftException
                     draftCollector.getDraftEntity()
-                            .setStatus(DraftEntity.Status.CHECK_CONFLICTS_EXCEPTION)
+                            .setStatus(DraftStatus.CHECK_CONFLICTS_EXCEPTION)
                             .setStatusDetails(e.getMessage());
                     break;
                 }
                 break;
             case ERASE_SCOPE_COLLECT_PLANNED:  // case for major draft, with deletion (called from start draft thread)
-                draftCollector.getDraftEntity().setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_NEED_START);
+                draftCollector.getDraftEntity().setStatus(DraftStatus.ERASE_SCOPE_COLLECT_NEED_START);
                 break;
         }
         entitySmartService.save(draftCollector.getDraftEntity(), draftRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

@@ -2,14 +2,12 @@ package org.twins.core.dao.draft;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.hibernate.Hibernate;
 import org.twins.core.dao.twin.TwinEntity;
 
 import java.io.Serial;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -31,8 +29,8 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     private long timeInMillis;
 
     @Column(name = "twin_erase_reason_id")
-    @Convert(converter = DraftTwinEraseReasonConverter.class)
-    private Reason reason;
+    @Enumerated(EnumType.STRING)
+    private DraftTwinEraseReason reason;
 
     @Column(name = "reason_twin_id")
     private UUID reasonTwinId;
@@ -41,8 +39,8 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     private UUID reasonLinkId;
 
     @Column(name = "draft_twin_erase_status_id")
-    @Convert(converter = DraftTwinEraseStatusConverter.class)
-    private Status status;
+    @Enumerated(EnumType.STRING)
+    private DraftTwinEraseStatus status;
 
     @Column(name = "cascade_break_twin_id")
     private UUID cascadeBreakTwinId;
@@ -69,7 +67,7 @@ public class DraftTwinEraseEntity implements EasyLoggable {
     }
 
     public boolean isEraseReady() {
-        return status != Status.UNDETECTED;
+        return status != DraftTwinEraseStatus.UNDETECTED;
     }
 //
 //    @ManyToOne(fetch = FetchType.EAGER, optional = false)
@@ -97,51 +95,6 @@ public class DraftTwinEraseEntity implements EasyLoggable {
         public int hashCode() {
             return Objects.hash(twinId, draftId);
         }
-    }
-
-    @Getter
-    public enum Reason {
-        TARGET("TARGET"),
-        CHILD("CHILD"),
-        LINK("LINK"),
-        FACTORY("FACTORY");
-
-        private final String id;
-
-        Reason(String id) {
-            this.id = id;
-        }
-
-        public static Reason valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElseThrow();
-        }
-
-    }
-
-    @Getter
-    public enum Status {
-        // we do not know what should be done with current twin. so we will run target delete factory for it
-        UNDETECTED("UNDETECTED"),
-        // current twin must be deleted. but we still do run cascade erase children and string links
-        IRREVOCABLE_ERASE_DETECTED("IRREVOCABLE_ERASE_DETECTED"),
-        IRREVOCABLE_ERASE_HANDLED("IRREVOCABLE_ERASE_HANDLED"),
-        CASCADE_DELETION_PAUSE("CASCADE_DELETION_PAUSE"),
-        CASCADE_DELETION_EXTRACTED("CASCADE_DELETION_EXTRACTED"),
-        STATUS_CHANGE_ERASE_DETECTED("STATUS_CHANGE_ERASE_DETECTED"),
-        SKIP_DETECTED("SKIP_DETECTED"),
-        // current twin locks deletion
-        LOCK_DETECTED("LOCK_DETECTED");
-
-        private final String id;
-
-        Status(String id) {
-            this.id = id;
-        }
-
-        public static Status valueOd(String type) {
-            return Arrays.stream(values()).filter(t -> t.id.equals(type)).findAny().orElseThrow();
-        }
-
     }
 
 }

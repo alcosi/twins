@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.draft.DraftEntity;
+import org.twins.core.dao.draft.DraftStatus;
 import org.twins.core.domain.draft.DraftCollector;
 import org.twins.core.service.auth.AuthService;
 
@@ -40,12 +41,12 @@ public class DraftEraseScopeCollectTask implements Runnable {
         } catch (ServiceException e) {
             log.error(e.log());
             draftCollector.getDraftEntity()
-                    .setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_EXCEPTION)
+                    .setStatus(DraftStatus.ERASE_SCOPE_COLLECT_EXCEPTION)
                     .setStatusDetails(e.log());
         } catch (Throwable e) {
             log.error("Exception: ", e);
             draftCollector.getDraftEntity()
-                    .setStatus(DraftEntity.Status.ERASE_SCOPE_COLLECT_EXCEPTION)
+                    .setStatus(DraftStatus.ERASE_SCOPE_COLLECT_EXCEPTION)
                     .setStatusDetails(e.getMessage());
         } finally {
             try {

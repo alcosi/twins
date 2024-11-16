@@ -22,7 +22,7 @@ public interface DraftTwinAttachmentRepository extends CrudRepository<DraftTwinA
             "delete from draft_twin_attachment dtp " +
                     "using draft_twin_erase dte " +
                     "where dtp.draft_id = :draftId and dtp.draft_id = dte.draft_id " +
-                    "and dtp.twin_id = dte.twin_id and dte.draft_twin_erase_status_id is null " +
+                    "and dtp.twin_id = dte.twin_id and dte.draft_twin_erase_status_id = 'IRREVOCABLE_ERASE_HANDLED'" +
                     "and dtp.time_in_millis < dte.time_in_millis")
     int normalizeDraft(@Param("draftId") UUID draftId);
 

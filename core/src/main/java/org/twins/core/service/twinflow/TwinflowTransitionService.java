@@ -27,13 +27,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.draft.DraftEntity;
+import org.twins.core.dao.draft.DraftStatus;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinflow.*;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinflowTransitionValidatorRuleRepository;
 import org.twins.core.domain.ApiUser;
@@ -762,7 +763,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
             draftService.endDraft(draftCollector);
         } catch (ServiceException e) {
             draftCollector.getDraftEntity()
-                    .setStatus(DraftEntity.Status.CONSTRUCTION_EXCEPTION)
+                    .setStatus(DraftStatus.CONSTRUCTION_EXCEPTION)
                     .setStatusDetails(e.log());
             draftService.endDraft(draftCollector);
             throw e;

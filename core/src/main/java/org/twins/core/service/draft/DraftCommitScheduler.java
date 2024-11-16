@@ -11,6 +11,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.draft.DraftRepository;
+import org.twins.core.dao.draft.DraftStatus;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ public class DraftCommitScheduler {
             LoggerUtils.logSession();
             LoggerUtils.logController("draftCommitScheduler$");
             log.debug("Loading draft commit task from database");
-            List<DraftEntity> draftEntities = draftRepository.findDraftsForCommit(DraftEntity.Status.UNCOMMITED);
+            List<DraftEntity> draftEntities = draftRepository.findDraftsForCommit();
             if (CollectionUtils.isEmpty(draftEntities)) {
                 log.debug("No draft need to be commited");
                 return;
@@ -39,7 +40,7 @@ public class DraftCommitScheduler {
             for (DraftEntity draftEntity : draftEntities) {
                 try {
                     log.info("Running draft commit[{}] from status[{}]", draftEntity.getId(), draftEntity.getStatus());
-                    draftEntity.setStatus(DraftEntity.Status.COMMIT_IN_PROGRESS);
+                    draftEntity.setStatus(DraftStatus.COMMIT_IN_PROGRESS);
                     draftRepository.save(draftEntity);
                     DraftCommitTask draftCommitTask = applicationContext.getBean(DraftCommitTask.class, draftEntity);
                     taskExecutor.execute(draftCommitTask);

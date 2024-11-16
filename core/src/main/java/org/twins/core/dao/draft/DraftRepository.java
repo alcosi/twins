@@ -14,22 +14,14 @@ import java.util.UUID;
 
 @Repository
 public interface DraftRepository extends JpaRepository<DraftEntity, UUID>, JpaSpecificationExecutor<DraftEntity> {
-    @Transactional
-    @Modifying
-    @Query(nativeQuery = true, value =
-            "delete from :tableName " +
-                    "where draft_id = :draftId " +
-                    "and twin_id in (select dte.twin_id from draft_twin_erase dte where dte.draft_id = :draftId and dte.draft_twin_erase_status_id is null)")
-    void normalizeDraft(@Param("draftId") UUID draftId, @Param("tableName") String tableName);
-
     @Query(value = "select d from DraftEntity d where d.status in (:statusIds)")
-    List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftEntity.Status> statusIds);
+    List<DraftEntity> findByStatusIdIn(@Param("statusIds") Collection<DraftStatus> statusIds);
 
-    @Query(value = "select d from DraftEntity d where d.status = :status and d.autoCommit = true")
-    List<DraftEntity> findDraftsForCommit(@Param("status") DraftEntity.Status status);
+    @Query(value = "select d from DraftEntity d where d.status = org.twins.core.dao.draft.DraftStatus.UNCOMMITED and d.autoCommit = true")
+    List<DraftEntity> findDraftsForCommit();
 
     @Transactional
     @Modifying
     @Query(value = "update DraftEntity set status = :statusId where id = :draftId")
-    void setStatus(@Param("draftId") UUID draftId, @Param("statusId") DraftEntity.Status statusId);
+    void setStatus(@Param("draftId") UUID draftId, @Param("statusId") DraftStatus statusId);
 }

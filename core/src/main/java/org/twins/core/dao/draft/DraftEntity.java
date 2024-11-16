@@ -3,7 +3,6 @@ package org.twins.core.dao.draft;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.user.UserEntity;
@@ -39,7 +38,7 @@ public class DraftEntity implements EasyLoggable {
 
     @Column(name = "draft_status_id")
     @Enumerated(EnumType.STRING)
-    private Status status;
+    private DraftStatus status;
 
     @Column(name = "draft_status_details")
     private String statusDetails;
@@ -68,22 +67,4 @@ public class DraftEntity implements EasyLoggable {
 
     }
 
-    @Getter
-    public enum Status {
-        UNDER_CONSTRUCTION,
-        CONSTRUCTION_EXCEPTION,
-        ERASE_SCOPE_COLLECT_PLANNED,
-        ERASE_SCOPE_COLLECT_NEED_START,
-        ERASE_SCOPE_COLLECT_IN_PROGRESS,
-        ERASE_SCOPE_COLLECT_EXCEPTION,
-        NORMALIZE_EXCEPTION,
-        CHECK_CONFLICTS_EXCEPTION,
-        UNCOMMITED,
-        COMMIT_NEED_START,
-        COMMIT_IN_PROGRESS,
-        COMMIT_EXCEPTION,
-        LOCKED,
-        OUT_OF_DATE,
-        COMMITED;
-    }
 }

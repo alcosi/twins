@@ -83,11 +83,11 @@ public class DraftCommitService {
             commitTwinTags(draftEntity);
             commitTwinAttachments(draftEntity);
             commitHistory(draftEntity);
-            draftEntity.setStatus(DraftEntity.Status.COMMITED);
+            draftEntity.setStatus(DraftStatus.COMMITED);
             draftRepository.save(draftEntity);
         } catch (Exception e) {
             draftEntity
-                    .setStatus(DraftEntity.Status.COMMIT_EXCEPTION)
+                    .setStatus(DraftStatus.COMMIT_EXCEPTION)
                     .setStatusDetails(e instanceof ServiceException se ? se.log() : e.getMessage());
             updateDraftInNewTransaction(draftEntity);
             throw e;
@@ -105,6 +105,7 @@ public class DraftCommitService {
 
 
     private void commitHistory(DraftEntity draftEntity) {
+        log.info("commiting history");
         draftHistoryRepository.moveFromDraft(draftEntity.getId());
     }
 
@@ -113,7 +114,8 @@ public class DraftCommitService {
             return;
         log.info("commiting {} erase", draftEntity.getCounters().getOrZero(ERASES));
         commitTwinEraseIrrevocable(draftEntity);
-        commit(draftEntity, draftEntity.getCounters().getOrZero(ERASE_BY_STATUS), draftTwinEraseRepository::commitEraseByStatus, "erase by status changes");
+        //todo todo check if such twins are stored in draft_persist table, looks so
+//        commit(draftEntity, draftEntity.getCounters().getOrZero(ERASE_BY_STATUS), draftTwinEraseRepository::commitEraseByStatus, "erase by status changes");
     }
 
     private void commitTwinEraseIrrevocable(DraftEntity draftEntity) {
@@ -121,11 +123,11 @@ public class DraftCommitService {
         if (counter == 0)
             return;
         log.info("commiting {} erase irrevocable", counter);
-        String irrevocableDeleteIds = draftTwinEraseRepository.getIrrevocableDeleteIds(draftEntity.getId(), DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED);
+        String irrevocableDeleteIds = draftTwinEraseRepository.getIrrevocableDeleteIds(draftEntity.getId());
         if (StringUtils.isEmpty(irrevocableDeleteIds))
             return;
         checkCount(
-                draftTwinEraseRepository.commitEraseIrrevocable(draftEntity.getId(), DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED),
+                draftTwinEraseRepository.commitEraseIrrevocable(draftEntity.getId()),
                 counter,
                 "commitTwinEraseIrrevocable"); //this is the fastest way
         log.info("twins[{}] perhaps were deleted", irrevocableDeleteIds);

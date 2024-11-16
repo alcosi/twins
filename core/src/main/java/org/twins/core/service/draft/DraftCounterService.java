@@ -124,14 +124,14 @@ public class DraftCounterService {
         if (draftEntity.getCounters().isValid(ERASES))
             return;
         Map<Object, Integer> countersMap = toMap(draftTwinEraseRepository.getCounters(draftEntity.getId()));
-        draftEntity.getCounters().set(ERASE_UNDETECTED, countersMap.getOrDefault(DraftTwinEraseEntity.Status.UNDETECTED, 0));
-        draftEntity.getCounters().set(ERASE_BY_STATUS, countersMap.getOrDefault(DraftTwinEraseEntity.Status.STATUS_CHANGE_ERASE_DETECTED, 0));
-        draftEntity.getCounters().set(ERASE_LOCK, countersMap.getOrDefault(DraftTwinEraseEntity.Status.LOCK_DETECTED, 0));
-        draftEntity.getCounters().set(ERASE_IRREVOCABLE_DETECTED, countersMap.getOrDefault(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_DETECTED, 0));
-        draftEntity.getCounters().set(ERASE_IRREVOCABLE_HANDLED, countersMap.getOrDefault(DraftTwinEraseEntity.Status.IRREVOCABLE_ERASE_HANDLED, 0));
-        draftEntity.getCounters().set(ERASE_CASCADE_PAUSE, countersMap.getOrDefault(DraftTwinEraseEntity.Status.CASCADE_DELETION_PAUSE, 0));
-        draftEntity.getCounters().set(ERASE_CASCADE_EXTRACTED, countersMap.getOrDefault(DraftTwinEraseEntity.Status.CASCADE_DELETION_EXTRACTED, 0));
-        draftEntity.getCounters().set(ERASE_SKIP, countersMap.getOrDefault(DraftTwinEraseEntity.Status.SKIP_DETECTED, 0));
+        draftEntity.getCounters().set(ERASE_UNDETECTED, countersMap.getOrDefault(DraftTwinEraseStatus.UNDETECTED, 0));
+        draftEntity.getCounters().set(ERASE_BY_STATUS, countersMap.getOrDefault(DraftTwinEraseStatus.STATUS_CHANGE_ERASE_DETECTED, 0));
+        draftEntity.getCounters().set(ERASE_LOCK, countersMap.getOrDefault(DraftTwinEraseStatus.LOCK_DETECTED, 0));
+        draftEntity.getCounters().set(ERASE_IRREVOCABLE_DETECTED, countersMap.getOrDefault(DraftTwinEraseStatus.IRREVOCABLE_ERASE_DETECTED, 0));
+        draftEntity.getCounters().set(ERASE_IRREVOCABLE_HANDLED, countersMap.getOrDefault(DraftTwinEraseStatus.IRREVOCABLE_ERASE_HANDLED, 0));
+        draftEntity.getCounters().set(ERASE_CASCADE_PAUSE, countersMap.getOrDefault(DraftTwinEraseStatus.CASCADE_DELETION_PAUSE, 0));
+        draftEntity.getCounters().set(ERASE_CASCADE_EXTRACTED, countersMap.getOrDefault(DraftTwinEraseStatus.CASCADE_DELETION_EXTRACTED, 0));
+        draftEntity.getCounters().set(ERASE_SKIP, countersMap.getOrDefault(DraftTwinEraseStatus.SKIP_DETECTED, 0));
     }
 
     private Map<Object, Integer> toMap(List<Object[]> counters) {

@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
-import org.twins.core.dao.draft.DraftEntity;
+import org.twins.core.dao.draft.DraftStatus;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
 
@@ -98,5 +98,5 @@ public class DraftBaseDTOv1 {
     public Integer twinFieldDataListDeleteCount;
 
     @Schema(description = "draft status")
-    public DraftEntity.Status status;
+    public DraftStatus status;
 }
