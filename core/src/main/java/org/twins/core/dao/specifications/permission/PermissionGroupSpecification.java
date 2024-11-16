@@ -38,7 +38,8 @@ public class PermissionGroupSpecification extends CommonSpecification<Permission
                         cb.isNull(root.get(PermissionGroupEntity.Fields.domainId)),
                         cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId)
                 );
-            return cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId);
+            else
+                return cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId);
         };
     }
 }
