@@ -75,4 +75,24 @@ public enum PermissionMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum PermissionSchemaUser2PermissionMode implements MapperModePointer<PermissionMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public PermissionMode point() {
+            return switch (this) {
+                case HIDE -> PermissionMode.HIDE;
+                case SHORT -> PermissionMode.SHORT;
+                case DETAILED -> PermissionMode.DETAILED;
+            };
+        }
+    }
 }
