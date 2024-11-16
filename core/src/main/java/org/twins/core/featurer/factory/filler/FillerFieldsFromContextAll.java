@@ -43,7 +43,7 @@ public class FillerFieldsFromContextAll extends Filler {
                 factoryItem.getOutput().addField(fieldValue.getValue().clone());
             }
         }
-        if (logMsgs.size() > 0)
+        if (!logMsgs.isEmpty())
             log.info(String.join(System.lineSeparator(), logMsgs));
     }
 }

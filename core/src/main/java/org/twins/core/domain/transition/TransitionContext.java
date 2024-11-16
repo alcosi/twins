@@ -9,7 +9,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinBasicFields;
-import org.twins.core.domain.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.HashMap;
@@ -26,6 +26,8 @@ public class TransitionContext extends TransitionDraftContext {
     private EntityCUD<TwinAttachmentEntity> attachmentCUD;
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
     private TwinBasicFields basics;
+    private boolean validated = false;
+    private boolean attachmentsFilled = false;
 
     public boolean isSimple() {
         return MapUtils.isEmpty(fields)

@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.domain.TwinOperation;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinOperation;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 

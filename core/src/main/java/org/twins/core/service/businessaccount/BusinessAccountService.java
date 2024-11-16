@@ -24,6 +24,7 @@ import org.twins.core.service.user.UserService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -42,6 +43,11 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
     @Override
     public CrudRepository<BusinessAccountEntity, UUID> entityRepository() {
         return businessAccountRepository;
+    }
+
+    @Override
+    public Function<BusinessAccountEntity, UUID> entityGetIdFunction() {
+        return BusinessAccountEntity::getId;
     }
 
     @Override

@@ -176,12 +176,10 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
 
     public void deleteOutOfDateLinks(TwinChangesCollector twinChangesCollector, Map<UUID, TwinLinkEntity> outOfDateStoredLinksMap) {
         if (outOfDateStoredLinksMap != null && CollectionUtils.isNotEmpty(outOfDateStoredLinksMap.entrySet())) { // old values must be deleted
-            List<UUID> deleteIdList = new ArrayList<>();
             for (TwinLinkEntity twinLinkEntity : outOfDateStoredLinksMap.values()) {
-                deleteIdList.add(twinLinkEntity.getId());
                 twinChangesCollector.getHistoryCollector().add(historyService.linkDeleted(twinLinkEntity));
             }
-            twinChangesCollector.deleteAll(TwinLinkEntity.class, deleteIdList);
+            twinChangesCollector.deleteAll(outOfDateStoredLinksMap.values());
         }
     }
 

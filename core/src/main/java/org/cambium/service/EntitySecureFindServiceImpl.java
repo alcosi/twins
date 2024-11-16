@@ -4,10 +4,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFindService<T> {
@@ -20,6 +24,7 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     }
 
     public abstract CrudRepository<T, UUID> entityRepository();
+    public abstract Function<T, UUID> entityGetIdFunction();
 
     public T findEntity(UUID entityId,
                         EntitySmartService.FindMode findMode,
@@ -41,6 +46,24 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return entity;
     }
 
+    @Override
+    public Kit<T, UUID> findEntities(Collection<UUID> entityIds,
+                                EntitySmartService.ListFindMode findMode,
+                                EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                                EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        Kit<T, UUID> kit = entitySmartService.findByIdIn(entityIds, entityRepository(), entityGetIdFunction(), findMode);
+        Iterator<T> iterator = kit.iterator();
+        while (iterator.hasNext()) {
+            T entity = iterator.next();
+            if (entity == null || permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none))
+                continue;
+            if (isEntityReadDenied(entity, permissionCheckMode))
+                iterator.remove();
+            validateEntityAndThrow(entity, entityValidateMode);
+        }
+        return kit;
+    }
+
     public String getValidationErrorMessage(T entity) throws ServiceException {
         if (entity instanceof EasyLoggable easyLoggable)
             return easyLoggable.easyLog(EasyLoggable.Level.NORMAL) + " is invalid. Please check log for details";
@@ -53,6 +76,18 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
                 EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    public Kit<T, UUID> findEntitiesSafe(Collection<UUID> entityIds) throws ServiceException {
+        return findEntities(entityIds,
+                EntitySmartService.ListFindMode.ifMissedThrows,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    public T checkEntityReadAllow(T entity) throws ServiceException {
+        isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
+        return entity;
     }
 
     public boolean isEntityReadDenied(T entity) {
@@ -77,13 +112,13 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
-    public boolean validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+    public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
-            return true;
+            return entity;
         if (!validateEntity(entity, entityValidateMode)) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, getValidationErrorMessage(entity));
         }
-        return true;
+        return entity;
     }
 
     @Override

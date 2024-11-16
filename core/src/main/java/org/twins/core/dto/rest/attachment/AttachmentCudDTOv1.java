@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -18,5 +19,5 @@ public class AttachmentCudDTOv1 {
     public List<AttachmentUpdateDTOv1> update;
 
     @Schema(description = "Attachments id list for deleting")
-    public List<UUID> delete;
+    public Set<UUID> delete;
 }

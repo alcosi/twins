@@ -21,16 +21,6 @@ public class HistoryContextStatusChange extends HistoryContext {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return 0;
-    }
-
-    @Override
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = new HashMap<>();
         StatusSnapshot.extractTemplateVars(vars, fromStatus , "fromStatus");

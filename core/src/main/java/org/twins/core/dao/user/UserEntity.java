@@ -27,6 +27,13 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
     @Column(name = "email")
     private String email;
 
+    @PrePersist
+    @PreUpdate
+    public void normalizeEmail() {
+        if (email != null)
+            email = email.toLowerCase();
+    }
+
     @Column(name = "avatar")
     private String avatar;
 

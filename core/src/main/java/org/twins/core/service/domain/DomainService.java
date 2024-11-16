@@ -1,6 +1,5 @@
 package org.twins.core.service.domain;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -17,6 +16,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
@@ -179,7 +179,7 @@ public class DomainService {
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
     }
 
-    @Transactional(rollbackOn = Throwable.class)
+    @Transactional(rollbackFor = Throwable.class)
     public void updateDomainBusinessAccount(DomainBusinessAccountEntity updateEntity, String name) throws ServiceException {
         DomainBusinessAccountEntity dbEntity = getDomainBusinessAccountEntitySafe(updateEntity.getDomainId(), updateEntity.getBusinessAccountId());
         ChangesHelper changesHelper = new ChangesHelper();

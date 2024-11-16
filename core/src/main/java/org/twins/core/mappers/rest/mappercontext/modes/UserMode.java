@@ -315,4 +315,44 @@ public enum UserMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum PermissionSchemaUser2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum Draft2UserMode implements MapperModePointer<UserMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public UserMode point() {
+            return switch (this) {
+                case HIDE -> UserMode.HIDE;
+                case SHORT -> UserMode.SHORT;
+                case DETAILED -> UserMode.DETAILED;
+            };
+        }
+    }
 }

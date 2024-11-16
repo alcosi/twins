@@ -4,11 +4,14 @@ import lombok.Data;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 
@@ -191,16 +194,41 @@ public class EntitySmartService {
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + "[" + uuid + "]");
                 return optional.get();
         }
         return null;
+    }
+
+    public <T> Kit<T, UUID> findByIdIn(Collection<UUID> ids, CrudRepository<T, UUID> repository, Function<T, UUID> functionGetId, ListFindMode mode) throws ServiceException {
+        Iterable<T> iterable = repository.findAllById(ids);
+        Kit<T, UUID> kit = new Kit<>(IterableUtils.toList(iterable), functionGetId);
+        for (UUID id : ids) {
+            if (!kit.containsKey(id)) {
+                switch (mode) {
+                    case ifMissedIgnore:
+                        continue;
+                    case ifMissedLog:
+                        log.error(entityShortName(repository) + " can not find entity with id[" + id + "]");
+                        continue;
+                    case ifMissedThrows:
+                            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "unknown " + entityShortName(repository) + "[" + id + "]");
+                }
+            }
+        }
+        return kit;
     }
 
     public enum FindMode {
         ifEmptyNull,
         ifEmptyLogAndNull,
         ifEmptyThrows,
+    }
+
+    public enum ListFindMode {
+        ifMissedIgnore,
+        ifMissedLog,
+        ifMissedThrows,
     }
 
     public UUID check(UUID uuid, CrudRepository<?, UUID> repository, CheckMode checkMode) throws ServiceException {
@@ -246,18 +274,40 @@ public class EntitySmartService {
 
     public <T> void deleteAndLog(UUID uuid, CrudRepository<T, UUID> repository) throws ServiceException {
         repository.deleteById(throwIfEmptyId(uuid));
-        log.info(entityShortName(repository) + "[" + uuid +  "] perhaps was deleted");
+        log.info(entityShortName(repository) + "[" + uuid + "] perhaps was deleted");
     }
 
     public <T> void deleteAllAndLog(Iterable<UUID> uuidList, CrudRepository<T, UUID> repository) {
         repository.deleteAllById(uuidList);
-        log.info(entityShortName(repository) + "[" + StringUtils.join(uuidList, ",") +  "] perhaps was deleted");
+        log.info("{}[{}] perhaps were deleted", entityShortName(repository), StringUtils.join(uuidList, ","));
     }
 
-    public <T> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
+    public <T> void deleteAllEntitiesAndLog(Iterable<T> entities, CrudRepository<T, UUID> repository) {
+        repository.deleteAll(entities);
+        StringJoiner  entityLog = new StringJoiner(", ");
+        for (T entity : entities) {
+            if (entity instanceof EasyLoggable prettyLoggable)
+                entityLog.add(prettyLoggable.logShort());
+            else
+                entityLog.add("<not loggable>");
+        }
+        log.info("{}[{}] perhaps were deleted", entityShortName(repository), entityLog);
+    }
+
+    public <T, K> Iterable<T> saveAllAndLog(Iterable<T> entities, CrudRepository<T, K> repository) {
         Iterable<T> result = repository.saveAll(entities);
         List<String> messages = new ArrayList<>();
-        for(T e : result) {
+        for (T e : result) {
+            messages.add(createSaveLogMsg(null, e));
+        }
+        log.info(String.join(System.lineSeparator(), messages));
+        return result;
+    }
+
+    public <T, K> Iterable<T> saveAllAndFlushAndLog(Iterable<T> entities, JpaRepository<T, K> repository) {
+        Iterable<T> result  = repository.saveAllAndFlush(entities);
+        List<String> messages = new ArrayList<>();
+        for (T e : result) {
             messages.add(createSaveLogMsg(null, e));
         }
         log.info(String.join(System.lineSeparator(), messages));
@@ -270,8 +320,13 @@ public class EntitySmartService {
         return result;
     }
 
-    public <T> void saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, UUID> repository) {
-        saveAllAndLog(entityChangesMap.keySet(), repository);
+    public <T, K> Iterable<T>  saveAllAndLogChanges(Map<T, ChangesHelper> entityChangesMap, CrudRepository<T, K> repository) {
+        return saveAllAndLog(entityChangesMap.keySet(), repository);
+        //todo collect an log changes
+    }
+
+    public <T, K> Iterable<T>  saveAllAndFlushAndLogChanges(Map<T, ChangesHelper> entityChangesMap, JpaRepository<T, K> repository) {
+        return saveAllAndFlushAndLog(entityChangesMap.keySet(), repository);
         //todo collect an log changes
     }
 

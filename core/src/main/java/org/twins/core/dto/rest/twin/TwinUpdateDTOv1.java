@@ -1,5 +1,6 @@
 package org.twins.core.dto.rest.twin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,6 +13,7 @@ import org.twins.core.dto.rest.link.TwinLinkUpdateDTOv1;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -41,11 +43,14 @@ public class TwinUpdateDTOv1 extends Request {
     public List<TwinLinkAddDTOv1> twinLinksAdd;
 
     @Schema(description = "TwinLinks id list for deleting")
-    public List<UUID> twinLinksDelete;
+    public Set<UUID> twinLinksDelete;
 
     @Schema(description = "TwinLinks for updating")
     public List<TwinLinkUpdateDTOv1> twinLinksUpdate;
 
     @Schema(description = "TwinTags for updating")
     public TwinTagManageDTOv1 tagsUpdate;
+
+    @JsonIgnore
+    public UUID twinId;
 }

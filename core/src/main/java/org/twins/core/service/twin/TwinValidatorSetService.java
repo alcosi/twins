@@ -11,13 +11,15 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.dao.validator.TwinValidatorSetEntity;
 import org.twins.core.dao.validator.TwinValidatorSetRepository;
-import org.twins.core.dao.validator.ContainsTwinValidatorSet;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -31,6 +33,11 @@ public class TwinValidatorSetService extends EntitySecureFindServiceImpl<TwinVal
     @Override
     public CrudRepository<TwinValidatorSetEntity, UUID> entityRepository() {
         return twinValidatorSetRepository;
+    }
+
+    @Override
+    public Function<TwinValidatorSetEntity, UUID> entityGetIdFunction() {
+        return TwinValidatorSetEntity::getId;
     }
 
     @Override
