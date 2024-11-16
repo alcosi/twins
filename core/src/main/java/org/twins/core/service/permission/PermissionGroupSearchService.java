@@ -29,7 +29,7 @@ public class PermissionGroupSearchService {
     public PaginationResult<PermissionGroupEntity> findPermissionGroupForDomain(PermissionGroupSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGroupEntity> spec = createPermissionGroupSearchSpecification(search)
-                .and(checkDomainId(domainId));
+                .and(checkDomainId(domainId, search.isShowSystemGroups()));
         Page<PermissionGroupEntity> ret = permissionGroupRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
