@@ -21,4 +21,5 @@ public class PermissionGroupSearch {
     Set<String> nameNotLikeList;
     Set<String> descriptionLikeList;
     Set<String> descriptionNotLikeList;
+    boolean showSystemGroups;
 }
