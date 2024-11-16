@@ -7,14 +7,10 @@ import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.domain.transition.TransitionResult;
-import org.twins.core.domain.transition.TransitionResultMajor;
 import org.twins.core.domain.transition.TransitionResultMinor;
-import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMajorDTOv1;
-import org.twins.core.dto.rest.transition.TwinTransitionPerformResultMinorDTOv1;
 import org.twins.core.dto.rest.transition.TwinTransitionPerformRsDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.draft.DraftRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionResultMode;
@@ -22,18 +18,15 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 
 import java.util.*;
 
-
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TransitionResultMode.class)
-public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<TransitionResult, TwinTransitionPerformRsDTOv1> {
+public class TwinTransitionPerformRsRestDTOMapperV1 extends RestSimpleDTOMapper<TransitionResult, TwinTransitionPerformRsDTOv1> {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
-    private final DraftRestDTOMapper draftRestDTOMapper;
 
     @Override
     public void map(TransitionResult src, TwinTransitionPerformRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         if (src instanceof TransitionResultMinor transitionResultMinor) {
-            TwinTransitionPerformResultMinorDTOv1 transitionResultMinorDTO = new TwinTransitionPerformResultMinorDTOv1();
             switch (mapperContext.getModeOrUse(TransitionResultMode.DETAILED)) {
                 case DETAILED:
                     List<TwinDTOv2> processedList = twinRestDTOMapperV2.convertCollection(transitionResultMinor.getProcessedTwinList(), mapperContext);
@@ -43,19 +36,14 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tr
                             List<TwinDTOv2> twinsGroupedByClass = processedGroupedByClass.computeIfAbsent(twinDTOv2.twinClassId(), k -> new ArrayList<>());
                             twinsGroupedByClass.add(twinDTOv2);
                         }
-                        transitionResultMinorDTO.setProcessedTwinList(processedGroupedByClass);
+                        dst.setProcessedTwinList(processedGroupedByClass);
                     }
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    dst.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
                     break;
                 case SHORT:
-                    transitionResultMinorDTO.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
+                    dst.setTransitionedTwinList(twinRestDTOMapperV2.convertCollection(transitionResultMinor.getTransitionedTwinList(), mapperContext));
                     break;
             }
-            dst.setResult(transitionResultMinorDTO);
-        } else if (src instanceof TransitionResultMajor transitionResultMajor) {
-            TwinTransitionPerformResultMajorDTOv1 transitionResultMajorDTO = new TwinTransitionPerformResultMajorDTOv1()
-                    .setDraft(draftRestDTOMapper.convert(transitionResultMajor.getCommitedDraftEntity()));
-            dst.setResult(transitionResultMajorDTO);
         } else
             throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED);
     }
@@ -64,5 +52,4 @@ public class TwinTransitionPerformRsRestDTOMapper extends RestSimpleDTOMapper<Tr
     public boolean hideMode(MapperContext mapperContext) {
         return mapperContext.hasModeOrEmpty(StatusMode.HIDE);
     }
-
 }
