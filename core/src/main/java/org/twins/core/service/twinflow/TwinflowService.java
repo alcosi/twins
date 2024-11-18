@@ -47,6 +47,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -77,6 +78,11 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
     @Override
     public CrudRepository<TwinflowEntity, UUID> entityRepository() {
         return twinflowRepository;
+    }
+
+    @Override
+    public Function<TwinflowEntity, UUID> entityGetIdFunction() {
+        return TwinflowEntity::getId;
     }
 
     @Override
@@ -160,7 +166,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
             twinflowEntity = twinflowMap.get(twinEntity.getTwinClassId().toString() + (twinEntity.getTwinflowSchemaSpaceId() != null ? twinEntity.getTwinflowSchemaSpaceId() : ""));
             if (twinflowEntity == null)
                 throw new ServiceException(ErrorCodeTwins.TWINFLOW_SCHEMA_NOT_CONFIGURED, twinEntity.logNormal() + " can not detect twinflow");
-            twinEntity.setTwinflow(twinflowEntity);
+            twinEntity.setTwinflow(validateEntityAndThrow(twinflowEntity, EntitySmartService.EntityValidateMode.afterRead));
         }
     }
 

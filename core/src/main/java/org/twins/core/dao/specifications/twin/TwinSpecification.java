@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.*;
@@ -142,7 +143,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
             List<Predicate> predicates = new ArrayList<>();
             for (UUID id : hierarchyTreeContainsIdList) {
-                String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
+                String ltreeId = LTreeUtils.matchInTheMiddle(id);
                 Expression<String> hierarchyTreeExpression = root.get(field);
                 predicates.add(cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
             }
@@ -173,6 +174,38 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
+    public static Specification<TwinEntity> checkDomainId(UUID domainId) {
+        return (twin, query, cb) -> {
+            Predicate predicate;
+            if (domainId == null) {
+                // do not show any twins if domain not specified.
+                predicate = cb.disjunction();
+            } else {
+                Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
+                predicate = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), domainId);
+//                TODO uncomment if need view twins of out-domain class.
+//                predicate = cb.or(
+//                        cb.isNull(twinClass.get(TwinClassEntity.Fields.domainId)),
+//                        cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), domainId)
+//                );
+            }
+            return predicate;
+        };
+    }
+
+    public static Specification<TwinEntity> checkClassId(final Collection<UUID> twinClassUuids) {
+        return (twin, query, cb) -> {
+            if (!CollectionUtils.isEmpty(twinClassUuids)) {
+                List<Predicate> predicates = new ArrayList<>();
+                for (UUID twinClassId : twinClassUuids) {
+                    Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
+                    predicates.add(checkClassId);
+                }
+                return getPredicate(cb, predicates, true);
+            }
+            return cb.conjunction();
+        };
+    }
 
     public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
         UUID finalUserId;

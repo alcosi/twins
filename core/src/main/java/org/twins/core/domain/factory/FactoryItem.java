@@ -6,10 +6,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.StringUtils;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.domain.TwinCreate;
-import org.twins.core.domain.TwinOperation;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinSave;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.ArrayList;
@@ -22,8 +23,12 @@ import java.util.Set;
 public class FactoryItem implements EasyLoggable {
     private FactoryBranchId factoryBranchId;
     private FactoryContext factoryContext;
-    private TwinOperation output;
+    private TwinSave output;
     private List<FactoryItem> contextFactoryItemList;
+    private EraseAction eraseAction = new EraseAction(TwinFactoryEraserEntity.Action.NOT_SPECIFIED, "");
+    // this will help to detect items, which were passed to factory from launch
+    // all other items (created by multipliers) will have this flag set to false)
+    private boolean factoryInputItem = false;
 
     public TwinEntity getTwin() {
         if (output == null)
@@ -111,4 +116,12 @@ public class FactoryItem implements EasyLoggable {
         }
         return ret + "]";
     }
+
+
+//    public enum EraseMarker {
+//        ERASE,
+//        DO_NOT_ERASE,
+//        CURRENT_ITEM_SKIPPED,
+//        GLOBALLY_LOCKED
+//    }
 }

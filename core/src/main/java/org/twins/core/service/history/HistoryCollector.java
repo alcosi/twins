@@ -32,4 +32,8 @@ public class HistoryCollector {
         historyList.addAll(otherCollector.getHistoryList());
         return this;
     }
+
+    public boolean hasChanges() {
+        return historyList != null && !historyList.isEmpty();
+    }
 }

@@ -5,12 +5,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.dto.rest.twin.TwinUpdateDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDRestDTOReverseMapper;
 import org.twins.core.mappers.rest.link.TwinLinkCUDRestDTOReverseMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.user.UserService;
 
 @Component
@@ -33,8 +33,8 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
                     .setHeadTwinId(twinUpdateDTO.getHeadTwinId())
                     .setDescription(twinUpdateDTO.getDescription());
             dst
-                    .setTwinEntity(updatedTwinEntity)
-                    .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(dbTwinEntity.getTwinClassId(), twinUpdateDTO.getFields()));
+                    .setFields(twinFieldValueRestDTOReverseMapperV2.mapFields(dbTwinEntity.getTwinClassId(), twinUpdateDTO.getFields()))
+                    .setTwinEntity(updatedTwinEntity);
             dst
                     .setAttachmentCUD(twinAttachmentCUDRestDTOReverseMapper.convert(twinUpdateDTO))
                     .setTwinLinkCUD(twinLinkCUDRestDTOReverseMapper.convert(twinUpdateDTO));
@@ -49,8 +49,8 @@ public class TwinUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Pair<Twi
             if (twinUpdateDTO.getTagsUpdate() != null) {
                 dst
                         .setTagsDelete(twinUpdateDTO.getTagsUpdate().deleteTags())
-                        .setExistingTags(twinUpdateDTO.getTagsUpdate().existingTags())
-                        .setNewTags(twinUpdateDTO.getTagsUpdate().newTags());
+                        .setTagsAddExisted(twinUpdateDTO.getTagsUpdate().existingTags())
+                        .setTagsAddNew(twinUpdateDTO.getTagsUpdate().newTags());
             }
         }
     }

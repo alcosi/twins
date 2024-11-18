@@ -17,7 +17,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv1;
 import org.twins.core.dto.rest.twin.TwinCreateRqDTOv2;
 import org.twins.core.dto.rest.twin.TwinCreateRsDTOv1;
@@ -70,20 +70,20 @@ public class TwinCreateController extends ApiController {
                             .twinClassId(request.getClassId()));
             TwinCreate twinCreate = new TwinCreate();
             twinCreate
+                    .setFields(twinFieldValueRestDTOReverseMapper.convertCollection(fields))
                     .setTwinEntity(new TwinEntity()
                             .setTwinClassId(request.getClassId())
                             .setName(request.getName())
                             .setCreatedByUserId(apiUser.getUser().getId())
                             .setHeadTwinId(request.getHeadTwinId())
                             .setAssignerUserId(userService.checkId(request.getAssignerUserId(), EntitySmartService.CheckMode.EMPTY_OR_DB_EXISTS))
-                            .setDescription(request.getDescription()))
-                    .setFields(twinFieldValueRestDTOReverseMapper.convertCollection(fields));
+                            .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
                     .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(apiUser, twinCreate));
+                            .createTwin(twinCreate));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
@@ -104,11 +104,10 @@ public class TwinCreateController extends ApiController {
             @RequestBody TwinCreateRqDTOv2 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
             TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
-                            .createTwin(apiUser, twinCreate));
+                            .createTwin(twinCreate));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

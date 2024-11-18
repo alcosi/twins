@@ -26,6 +26,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 
@@ -44,6 +45,11 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     @Override
     public CrudRepository<TwinStatusEntity, UUID> entityRepository() {
         return twinStatusRepository;
+    }
+
+    @Override
+    public Function<TwinStatusEntity, UUID> entityGetIdFunction() {
+        return TwinStatusEntity::getId;
     }
 
     @Override

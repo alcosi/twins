@@ -22,6 +22,15 @@ public class TwinSearchDTOv1 {
     @Schema(description = "Twin name like list")
     public List<String> twinNameLikeList;
 
+    @Schema(description = "Twin name like list")
+    public List<String> twinNameNotLikeList;
+
+    @Schema(description = "Twin name like list")
+    public List<String> descriptionLikeList;
+
+    @Schema(description = "Twin name like list")
+    public List<String> descriptionNotLikeList;
+
     @Schema(description = "Head twin id list")
     public List<UUID> headTwinIdList;
 

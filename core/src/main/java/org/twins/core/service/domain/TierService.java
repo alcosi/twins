@@ -8,13 +8,15 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.domain.*;
+import org.twins.core.dao.domain.TierEntity;
+import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -30,6 +32,11 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     @Override
     public CrudRepository<TierEntity, UUID> entityRepository() {
         return tierRepository;
+    }
+
+    @Override
+    public Function<TierEntity, UUID> entityGetIdFunction() {
+        return TierEntity::getId;
     }
 
     @Override

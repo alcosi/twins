@@ -20,6 +20,7 @@ public class PermissionGroupSearchDTOReverseMapper extends RestSimpleDTOMapper<P
                 .setNameLikeList(src.getNameLikeList())
                 .setNameNotLikeList(src.getNameNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
-                .setDescriptionNotLikeList(src.getDescriptionNotLikeList());
+                .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
+                .setShowSystemGroups(src.isShowSystemGroups());
     }
 }

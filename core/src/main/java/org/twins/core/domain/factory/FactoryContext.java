@@ -7,7 +7,7 @@ import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinBasicFields;
-import org.twins.core.domain.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;
@@ -15,14 +15,20 @@ import java.util.*;
 @Data
 @Accessors(chain = true)
 public class FactoryContext {
+    // we need to know where from factory was launched
+    private FactoryLauncher factoryLauncher;
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
     private List<FactoryItem> factoryItemList = new ArrayList<>();
     private TwinBasicFields basics = null;
     private FactoryBranchId rootFactoryBranchId;
     private FactoryBranchId currentFactoryBranchId;
+    // If some factory was run from previous factory pipeline,
+    // we had to limit items scope for this factory with items filtered for pipeline
+    private Map<FactoryBranchId, List<FactoryItem>> pipelineScopes = new HashMap<>();
 
-    public FactoryContext(FactoryBranchId rootFactoryBranchId) {
+    public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
+        this.factoryLauncher = factoryLauncher;
         this.rootFactoryBranchId = rootFactoryBranchId;
     }
 
@@ -30,33 +36,30 @@ public class FactoryContext {
 
     public FactoryContext addInputTwin(TwinEntity twinEntity) {
         inputTwinList = CollectionUtils.safeAdd(inputTwinList, twinEntity);
-        addFactoryItem(twinEntity);
-        return this;
-    }
-
-    public FactoryContext addInputTwin(Collection<TwinEntity> twinEntityList) {
-        inputTwinList = CollectionUtils.safeAdd(inputTwinList, twinEntityList);
-        for (TwinEntity twinEntity : twinEntityList)
-            addFactoryItem(twinEntity);
+        createFactoryInputItemAndAdd(twinEntity);
         return this;
     }
 
     public FactoryContext setInputTwinList(Collection<TwinEntity> inputTwinList) {
         this.inputTwinList = inputTwinList;
         for (TwinEntity twinEntity : inputTwinList)
-            addFactoryItem(twinEntity);
+            createFactoryInputItemAndAdd(twinEntity);
         return this;
     }
 
     public List<FactoryItem> getFactoryItemList() {
-        return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
+        FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
+        if (pipelineScopes.containsKey(currentPipeline)) // we will use limited scope
+            return pipelineScopes.get(currentPipeline);
+        else
+            return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
     }
 
     public List<FactoryItem> getAllFactoryItemList() {
         return factoryItemList;
     }
 
-    private void addFactoryItem(TwinEntity inputTwin) { // inputTwins can be updated in pipelines, so we have to wrap them to FactoryItem
+    private void createFactoryInputItemAndAdd(TwinEntity inputTwin) {
         TwinUpdate twinUpdate = new TwinUpdate();
         twinUpdate
                 .setDbTwinEntity(inputTwin)
@@ -72,14 +75,23 @@ public class FactoryContext {
                 .setOutput(twinUpdate);
         // we have to do so, because all data for items can be looked up only from context
         // see TwinFactoryService.lookupFieldValue
-        factoryItem.setContextFactoryItemList(List.of(rootItem));
+        factoryItem
+                .setContextFactoryItemList(List.of(rootItem))
+                .setFactoryInputItem(true);
         add(factoryItem);
     }
 
     public void add(FactoryItem factoryItem) {
-        factoryItemList.add(factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId));
+        factoryItem
+                .setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId)
+                .setFactoryInputItem(false);
+        factoryItemList.add(factoryItem);
+        if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
+            FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
+            if (pipelineScopes.containsKey(currentPipeline)) // we will add it to limited scope
+                pipelineScopes.get(currentPipeline).add(factoryItem);
+        }
     }
-
 
     public Map<UUID, FieldValue> getFields() {
         if (fields == null)
@@ -100,5 +112,26 @@ public class FactoryContext {
 
     public void currentFactoryBranchLevelUp() {
         currentFactoryBranchId = currentFactoryBranchId.previous();
+    }
+
+    public void currentFactoryBranchLevelDown(UUID id) {
+        currentFactoryBranchId = currentFactoryBranchId.next(id);
+    }
+
+    public void currentFactoryBranchEnterPipeline(UUID id) {
+        currentFactoryBranchId = currentFactoryBranchId.enterPipeline(id);
+    }
+
+    public void currentFactoryBranchExitPipeline() {
+        currentFactoryBranchId = currentFactoryBranchId.exitPipeline();
+    }
+
+    public void snapshotPipelineScope(List<FactoryItem> pipelineInputList) {
+        pipelineScopes.put(currentFactoryBranchId, pipelineInputList);
+    }
+
+    // if we move to next pipeline or even to top factory we can evict scope
+    public void evictPipelineScope() {
+        pipelineScopes.remove(currentFactoryBranchId);
     }
 }

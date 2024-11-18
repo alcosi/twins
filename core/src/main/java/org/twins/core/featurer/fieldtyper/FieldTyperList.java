@@ -26,7 +26,10 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -60,8 +63,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
                     .stream().collect(Collectors.toMap(TwinFieldDataListEntity::getDataListOptionId, Function.identity()));
         if (FieldValueChangeHelper.isSingleValueAdd(dataListOptionEntityList, storedOptions)) {
             DataListOptionEntity dataListOptionEntity = dataListOptionEntityList.get(0);
-            twinChangesCollector.getHistoryCollector(twin)
-                    .add(historyService.fieldChangeDataList(value.getTwinClassField(), null, dataListOptionEntity));
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(twin)
+                        .add(historyService.fieldChangeDataList(value.getTwinClassField(), null, dataListOptionEntity));
             twinChangesCollector.add(new TwinFieldDataListEntity()
                     .setTwin(twin)
                     .setTwinId(twin.getId())
@@ -74,8 +78,9 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             DataListOptionEntity dataListOptionEntity = dataListOptionEntityList.get(0);
             TwinFieldDataListEntity storeField = storedOptions.values().iterator().next();
             if (!storeField.getDataListOptionId().equals(dataListOptionEntity.getId())) {
-                twinChangesCollector.getHistoryCollector(twin)
-                        .add(historyService.fieldChangeDataList(value.getTwinClassField(), storeField.getDataListOption(), dataListOptionEntity));
+                if (twinChangesCollector.isHistoryCollectorEnabled())
+                    twinChangesCollector.getHistoryCollector(twin)
+                            .add(historyService.fieldChangeDataList(value.getTwinClassField(), storeField.getDataListOption(), dataListOptionEntity));
                 twinChangesCollector.add(storeField //we can update existing record
                         .setDataListOptionId(checkOptionAllowed(twin, value.getTwinClassField(), dataListOptionEntity))
                         .setDataListOption(dataListOptionEntity));
@@ -87,7 +92,8 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             if (!dataListOptionEntity.getDataListId().equals(fieldListId))
                 throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_LIST, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " optionId[" + dataListOptionEntity.getId() + "] is not valid for list[" + fieldListId + "]");
             if (FieldValueChangeHelper.notSaved(dataListOptionEntity.getId(), storedOptions)) { // no values were saved before
-                historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
+                if (twinChangesCollector.isHistoryCollectorEnabled())
+                    historyItem.getContext().shotAddedDataListOption(dataListOptionEntity, i18nService);
                 twinChangesCollector.add(new TwinFieldDataListEntity()
                         .setTwin(twin)
                         .setTwinId(twin.getId())
@@ -99,14 +105,13 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             }
         }
         if (FieldValueChangeHelper.hasOutOfDateValues(storedOptions)) { // old values must be deleted
-            List<UUID> deleteIds = new ArrayList<>();
-            for (TwinFieldDataListEntity deleteField : storedOptions.values()) {
-                deleteIds.add(deleteField.getId());
-                historyItem.getContext().shotDeletedDataListOption(deleteField.getDataListOption(), i18nService);
-            }
-            twinChangesCollector.deleteAll(TwinFieldDataListEntity.class, deleteIds);
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                for (TwinFieldDataListEntity deleteField : storedOptions.values()) {
+                    historyItem.getContext().shotDeletedDataListOption(deleteField.getDataListOption(), i18nService);
+                }
+            twinChangesCollector.deleteAll(storedOptions.values());
         }
-        if (historyItem.getContext().notEmpty())
+        if (twinChangesCollector.isHistoryCollectorEnabled() && historyItem.getContext().notEmpty())
             twinChangesCollector.getHistoryCollector(twin).add(historyItem);
     }
 

@@ -7,9 +7,9 @@ import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinCreate;
 import org.twins.core.domain.factory.FactoryContext;
 import org.twins.core.domain.factory.FactoryItem;
+import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;

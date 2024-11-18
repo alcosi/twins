@@ -12,9 +12,9 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name =  "AttachmentAddV1")
 public class AttachmentAddDTOv1 extends AttachmentBaseDTOv1 {
-
     @Schema(description = "link to the field to which attachment was added (if any)")
     public UUID twinClassFieldId;
+
     @Schema(description = "link to the comment to which attachment was added (if any)")
     public UUID commentId;
 

@@ -43,6 +43,7 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -82,6 +83,11 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Override
     public boolean isEntityReadDenied(PermissionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         return false;
+    }
+
+    @Override
+    public Function<PermissionEntity, UUID> entityGetIdFunction() {
+        return PermissionEntity::getId;
     }
 
     @Override

@@ -42,4 +42,9 @@ public class HistoryCollectorMultiTwin {
         }
         return this;
     }
+
+    public void clear() {
+        if (multiTwinHistory != null)
+            multiTwinHistory.clear();
+    }
 }

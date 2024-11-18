@@ -24,6 +24,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -43,6 +44,11 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     @Override
     public CrudRepository<UserEntity, UUID> entityRepository() {
         return userRepository;
+    }
+
+    @Override
+    public Function<UserEntity, UUID> entityGetIdFunction() {
+        return UserEntity::getId;
     }
 
     @Override

@@ -20,7 +20,7 @@ public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
     }
 
     @Override
-    public Kit<E, K> add(E e) {
+    public boolean add(E e) {
         groupingObjectMap = null; //invalidate
         return super.add(e);
     }

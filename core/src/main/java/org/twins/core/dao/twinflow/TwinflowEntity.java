@@ -9,6 +9,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
+import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -41,6 +42,9 @@ public class TwinflowEntity implements EasyLoggable {
 
     @Column(name = "initial_twin_status_id")
     private UUID initialTwinStatusId;
+
+    @Column(name = "eraseflow_id")
+    private UUID eraseflowId;
 
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -83,6 +87,11 @@ public class TwinflowEntity implements EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private Kit<TwinflowTransitionEntity, UUID> transitionsKit;
+
+    // only for manual load (needed only for deletion)
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private EraseflowEntity eraseflow;
 
     @Override
     public String easyLog(Level level) {

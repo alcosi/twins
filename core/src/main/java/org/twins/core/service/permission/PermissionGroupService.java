@@ -14,6 +14,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
+import java.util.function.Function;
 
 @Slf4j
 @Service
@@ -25,6 +26,11 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
     @Override
     public CrudRepository<PermissionGroupEntity, UUID> entityRepository() {
         return permissionGroupRepository;
+    }
+
+    @Override
+    public Function<PermissionGroupEntity, UUID> entityGetIdFunction() {
+        return PermissionGroupEntity::getId;
     }
 
     @Override

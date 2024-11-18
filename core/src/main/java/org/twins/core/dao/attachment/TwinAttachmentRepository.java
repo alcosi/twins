@@ -15,12 +15,13 @@ public interface TwinAttachmentRepository extends CrudRepository<TwinAttachmentE
     TwinAttachmentEntity getById(UUID twinId);
     List<TwinAttachmentEntity> findByTwinId(UUID twinId);
     List<TwinAttachmentEntity> findByTwinCommentId(UUID twinId);
+    List<TwinAttachmentEntity> findByIdIn(Collection<UUID> attachmentIdList);
     List<TwinAttachmentEntity> findByTwinIdIn(Collection<UUID> twinIdList);
     List<TwinAttachmentEntity> findByTwinCommentIdIn(Collection<UUID> twinCommentIdList);
 
-    List<TwinAttachmentEntity> findByTwinIdAndIdIn(UUID twinId, List<UUID> idList);
+    List<TwinAttachmentEntity> findByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
 
-    void deleteAllByTwinIdAndIdIn(UUID twinId, List<UUID> idList);
+    void deleteAllByTwinIdAndIdIn(UUID twinId, Collection<UUID> idList);
 
     @Query(value = """
         SELECT 
