@@ -24,6 +24,7 @@ DROP TRIGGER IF EXISTS tiers_tier_update_trigger ON public.tier;
 DROP FUNCTION IF EXISTS public.permission_check(uuid, uuid, uuid, uuid, uuid, uuid[], uuid, boolean, boolean);
 DROP FUNCTION IF EXISTS public.permissioncheckbyschema(uuid, uuid, uuid, uuid[]);
 DROP FUNCTION IF EXISTS public.permission_check_by_grant_group_or_user(uuid, uuid, uuid, uuid[]);
+DROP FUNCTION IF EXISTS public.permission_check_by_group_or_user(uuid, uuid, uuid, uuid[]);
 DROP FUNCTION IF EXISTS public.permissioncheckspacerolepermissions(uuid, uuid, uuid, uuid, uuid[]);
 DROP FUNCTION IF EXISTS public.permissiongetroles(uuid, uuid);
 DROP FUNCTION IF EXISTS public.permission_get_roles(uuid, uuid);
@@ -38,7 +39,7 @@ DROP FUNCTION IF EXISTS public.permission_detect_schema(uuid, uuid, uuid);
 
 
 
-create OR REPLACE function permission_check_by_grant_group_or_user(permissionschemaid uuid, permissionidforuse uuid, userid uuid, usergroupidlist uuid[]) returns boolean as $$
+create OR REPLACE function permission_check_by_group_or_user(permissionschemaid uuid, permissionidforuse uuid, userid uuid, usergroupidlist uuid[]) returns boolean as $$
 DECLARE
     userPermissionExists INT;
     groupPermissionExists INT;
@@ -238,7 +239,7 @@ BEGIN
     END IF;
 
     -- Check direct user or user group permissions
-    IF permission_check_by_grant_group_or_user(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
+    IF permission_check_by_group_or_user(permissionSchemaId, permissionId, userId, userGroupIdList) THEN
         RETURN TRUE;
     END IF;
 

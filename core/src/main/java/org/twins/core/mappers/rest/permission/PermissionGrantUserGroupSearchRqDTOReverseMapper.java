@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class PermissiongGrantUserGroupSearchRqDTOReverseMapper extends RestSimpleDTOMapper<PermissionGrantUserGroupSearchRqDTOv1, PermissionGrantUserGroupSearch> {
+public class PermissionGrantUserGroupSearchRqDTOReverseMapper extends RestSimpleDTOMapper<PermissionGrantUserGroupSearchRqDTOv1, PermissionGrantUserGroupSearch> {
 
     @Override
     public void map(PermissionGrantUserGroupSearchRqDTOv1 src, PermissionGrantUserGroupSearch dst, MapperContext mapperContext) {

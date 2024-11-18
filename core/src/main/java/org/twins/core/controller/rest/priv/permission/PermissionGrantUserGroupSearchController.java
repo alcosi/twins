@@ -23,7 +23,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSearchRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.PermissiongGrantUserGroupSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserGroupSearchService;
@@ -37,7 +37,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantUserGroupSearchService permissionGrantUserGroupSearchService;
-    private final PermissiongGrantUserGroupSearchRqDTOReverseMapper permissionSchemaSearchRqDTOReverseMapper;
+    private final PermissionGrantUserGroupSearchRqDTOReverseMapper permissionGrantUserGroupSearchRqDTOReverseMapper;
     private final PermissionGrantUserGroupRestDTOMapper permissionGrantUserGroupRestDTOMapper;
 
     @ParametersApiUserHeaders
@@ -55,7 +55,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
         PermissionGrantUserGroupSearchRsDTOv1 rs = new PermissionGrantUserGroupSearchRsDTOv1();
         try {
             PaginationResult<PermissionGrantUserGroupEntity> permissionGrants = permissionGrantUserGroupSearchService
-                    .findPermissionGrantUserGroups(permissionSchemaSearchRqDTOReverseMapper.convert(request), pagination);
+                    .findPermissionGrantUserGroups(permissionGrantUserGroupSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPermissionGrantUserGroups(permissionGrantUserGroupRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))

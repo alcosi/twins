@@ -55,11 +55,11 @@ public class PermissionGrantUserSearchController extends ApiController {
             @RequestBody PermissionGrantUserSearchRqDTOv1 request) {
         PermissionGrantUserSearchRsDTOv1 rs = new PermissionGrantUserSearchRsDTOv1();
         try {
-            PaginationResult<PermissionGrantUserEntity> permissionList = permissionGrantyUserSearchService
+            PaginationResult<PermissionGrantUserEntity> permissionGrants = permissionGrantyUserSearchService
                     .findPermissionGrantUsersByDomain(permissionGrantUserSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionGrantUsers(permissionGrantUserRestDTOMapperV2.convertCollection(permissionList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(permissionList))
+                    .setPermissionGrantUsers(permissionGrantUserRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
