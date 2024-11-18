@@ -42,6 +42,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
     final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
     final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
+    final TwinFactoryBranchRepository twinFactoryBranchRepository;
     final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
     final TwinFactoryEraserRepository twinFactoryEraserRepository;
     final TwinService twinService;
@@ -117,6 +118,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             factoryContext.currentFactoryBranchLevelDown(factoryEntity.getId()); //branchId must be incremented
         runMultipliers(factoryEntity, factoryContext);
         runPipelines(factoryEntity, factoryContext);
+        runBranches(factoryEntity, factoryContext);
         runErasers(factoryEntity, factoryContext);
         factoryContext.currentFactoryBranchLevelUp();
         log.info("Factory " + factoryEntity.logShort() + " ended");
@@ -183,15 +185,46 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             runPipelineSteps(factoryContext, factoryPipelineEntity, pipelineInputList);
             if (factoryPipelineEntity.getNextTwinFactoryId() != null) {
                 log.info("{} has nextFactoryId configured", factoryPipelineEntity.logShort());
-                //we will limit next factory items access only by current pipeline items
-                factoryContext.currentFactoryBranchEnterPipeline(factoryPipelineEntity.getId());
-                factoryContext.snapshotPipelineScope(pipelineInputList);
+                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                    //we will limit next factory items access only by current pipeline items
+                    factoryContext.currentFactoryBranchEnterPipeline(factoryPipelineEntity.getId());
+                    factoryContext.snapshotPipelineScope(pipelineInputList);
+                }
                 LoggerUtils.traceTreeLevelDown();
                 runFactory(factoryPipelineEntity.getNextTwinFactoryId(), factoryContext);
-                factoryContext.evictPipelineScope(); // we can clear it here
-                factoryContext.currentFactoryBranchExitPipeline();
+                if (factoryPipelineEntity.isNextTwinFactoryLimitScope()) {
+                    factoryContext.evictPipelineScope(); // we can clear it here
+                    factoryContext.currentFactoryBranchExitPipeline();
+                }
                 LoggerUtils.traceTreeLevelUp();
             }
+        }
+        LoggerUtils.traceTreeLevelUp();
+    }
+
+    private void runBranches(TwinFactoryEntity factoryEntity, FactoryContext factoryContext) throws ServiceException {
+        List<TwinFactoryBranchEntity> factoryBranchEntityList = twinFactoryBranchRepository.findByTwinFactoryIdAndActiveTrue(factoryEntity.getId());
+        log.info("Loaded " + factoryBranchEntityList.size() + " branches");
+        LoggerUtils.traceTreeLevelDown();
+        for (TwinFactoryBranchEntity factoryBranchEntity : factoryBranchEntityList) {
+            log.info("Checking input for " + factoryBranchEntity.logNormal() + " **" + factoryBranchEntity.getDescription() + "** ");
+            boolean selected = false;
+            for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
+                if (checkCondition(factoryBranchEntity.getTwinFactoryConditionSetId(), factoryBranchEntity.isTwinFactoryConditionInvert(), factoryItem)) {
+                    selected = true;
+                    log.info("Branch was selected because of success condition check for {}", factoryItem.toString());
+                    break;
+                }
+            }
+            if (!selected) {
+                log.info("Skipping " + factoryBranchEntity.logShort());
+                continue;
+            }
+            log.info("{} has nextFactoryId configured", factoryBranchEntity.logShort());
+            LoggerUtils.traceTreeLevelDown();
+            runFactory(factoryBranchEntity.getNextTwinFactoryId(), factoryContext);
+            LoggerUtils.traceTreeLevelUp();
+
         }
         LoggerUtils.traceTreeLevelUp();
     }
