@@ -119,7 +119,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return true;
         }
         if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL))
-            return true;
+            return false;
         if (entity.getTwinClass().getOwnerType().isBusinessAccountLevel()
                 && entity.getOwnerBusinessAccountId() != null //for twin_templates owner will not be filled
                 && !entity.getOwnerBusinessAccountId().equals(apiUser.getBusinessAccount().getId())) {
