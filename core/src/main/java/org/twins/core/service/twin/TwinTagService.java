@@ -130,18 +130,15 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         saveTags(twinEntity, newTags, existingTags, twinChangesCollector);
     }
 
-    public void removeTags(TwinEntity twinEntity, Set<UUID> tags, TwinChangesCollector twinChangesCollector) {
-        if (CollectionUtils.isEmpty(tags))
+    public void removeTags(TwinEntity twinEntity, Set<UUID> tagsDelete, TwinChangesCollector twinChangesCollector) {
+        if (CollectionUtils.isEmpty(tagsDelete))
             return;
         // it's not possible to delete it in such way, because we need to write history
         // twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tags);
-        loadTags(twinEntity);
-        for (UUID tag : tags) {
-            if (twinEntity.getTwinTagKit().containsKey(tag)) {
-                //todo add history
-                twinChangesCollector.delete(twinEntity.getTwinTagKit().get(tag));
-            }
-        }
+        List<TwinTagEntity> tags = twinTagRepository.findAllByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagsDelete);
+        //todo add history
+        for (TwinTagEntity tag : tags)
+            twinChangesCollector.delete(tag);
     }
 
     public void updateTwinTags(TwinEntity twinEntity, Set<UUID> tagsToRemove, Set<String> newTags, Set<UUID> existingTags, TwinChangesCollector twinChangesCollector) throws ServiceException {

@@ -17,10 +17,8 @@ import java.util.UUID;
 @Repository
 public interface TwinTagRepository extends CrudRepository<TwinTagEntity, UUID>, JpaSpecificationExecutor<TwinTagEntity> {
     List<TwinTagEntity> findByTwinId(UUID twinId);
-
     List<TwinTagEntity> findByTwinIdIn(Set<UUID> twinIdList);
-
-    List<TwinTagEntity> findAllByTwinIdAndTagDataListOptionIdIn(UUID twinId, List<UUID> tagIds);
+    List<TwinTagEntity> findAllByTwinIdAndTagDataListOptionIdIn(UUID twinId, Collection<UUID> tagIds);
 
     @Query(value = "select m.tagDataListOption from TwinTagEntity m where m.twinId = :twinId ")
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
