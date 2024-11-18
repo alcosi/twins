@@ -16,7 +16,6 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = BusinessAccountUserMode.class)
 public class BusinessAccountUserDTOMapperV2 extends RestSimpleDTOMapper<BusinessAccountUserEntity, BusinessAccountUserDTOv2> {
 
     private final BusinessAccountUserDTOMapper businessAccountUserDTOMapper;

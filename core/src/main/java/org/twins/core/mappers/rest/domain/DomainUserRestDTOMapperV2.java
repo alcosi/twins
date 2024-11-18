@@ -2,15 +2,14 @@ package org.twins.core.mappers.rest.domain;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dto.rest.domain.DomainUserDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountUserDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountUserCollectionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.DomainUserMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
@@ -19,7 +18,6 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = DomainUserMode.class)
 public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEntity, DomainUserDTOv2> {
 
     private final DomainUserRestDTOMapper domainUserRestDTOMapper;
@@ -27,6 +25,7 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
     @MapperModePointerBinding(modes = UserMode.DomainUser2UserMode.class)
     private final UserRestDTOMapper userDTOMapper;
 
+    @MapperModePointerBinding(modes = BusinessAccountMode.DomainUser2BusinessAccountMode.class)
     private final BusinessAccountUserDTOMapperV2 businessAccountUserDTOMapperV2;
 
     @Override
@@ -36,9 +35,9 @@ public class DomainUserRestDTOMapperV2 extends RestSimpleDTOMapper<DomainUserEnt
             dst
                     .setUser(userDTOMapper.convertOrPostpone(src.getUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.DomainUser2UserMode.SHORT))))
                     .setUserId(src.getUserId());
-        if (mapperContext.hasModeButNot(BusinessAccountUserCollectionMode.HIDE))
+        if (mapperContext.hasModeButNot(BusinessAccountMode.DomainUser2BusinessAccountMode.HIDE) && mapperContext.hasModeButNot(BusinessAccountUserCollectionMode.HIDE))
             dst
-                    .setBusinessAccountUsers(businessAccountUserDTOMapperV2.convertCollection(src.getBusinessAccountUserKit().getCollection(), mapperContext))
+                    .setBusinessAccountUsers(businessAccountUserDTOMapperV2.convertCollectionPostpone(src.getBusinessAccountUserKit().getCollection(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(BusinessAccountMode.DomainUser2BusinessAccountMode.SHORT))))
                     .setBusinessAccountUserIdList(src.getBusinessAccountUserKit().getIdSet());
     }
 
