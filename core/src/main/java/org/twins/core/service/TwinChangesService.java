@@ -8,6 +8,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
@@ -31,6 +32,7 @@ public class TwinChangesService {
     final EntitySmartService entitySmartService;
     final HistoryService historyService;
 
+    @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
         if (!twinChangesCollector.hasChanges())

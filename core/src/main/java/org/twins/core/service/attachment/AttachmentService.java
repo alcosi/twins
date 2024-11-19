@@ -83,7 +83,6 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             if (twinChangesCollector.isHistoryCollectorEnabled())
                 twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
         }
-        addAttachments(attachments, twinChangesCollector);
     }
 
     public void checkAndSetAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {

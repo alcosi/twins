@@ -18,6 +18,7 @@ import java.util.UUID;
 public interface TwinMarkerRepository extends CrudRepository<TwinMarkerEntity, UUID>, JpaSpecificationExecutor<TwinMarkerEntity> {
     List<TwinMarkerEntity> findByTwinId(UUID twinId);
     List<TwinMarkerEntity> findByTwinIdIn(Set<UUID> twinIdList);
+    List<TwinMarkerEntity> findByTwinIdAndMarkerDataListOptionIdIn(UUID twinId, Collection<UUID> optionIds);
 
     @Query(value = "select m.markerDataListOption from TwinMarkerEntity m where m.twinId = :twinId ")
     List<DataListOptionEntity> findDataListOptionByTwinId(@Param("twinId") UUID twinId);
