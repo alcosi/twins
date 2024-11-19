@@ -25,11 +25,11 @@ public class TwinClassUpdateRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
     public void map(TwinClassUpdateRqDTOv1 src, TwinClassUpdate dst, MapperContext mapperContext) throws Exception {
         dst
                 .setKey(src.getKey() != null ? src.getKey().toUpperCase() : null)
-                .setAbstractt(BooleanUtils.isTrue(src.getAbstractClass()))
-                .setAliasSpace(BooleanUtils.isTrue(src.getAliasSpace()))
-                .setPermissionSchemaSpace(BooleanUtils.isTrue(src.getPermissionSchemaSpace()))
-                .setTwinClassSchemaSpace(BooleanUtils.isTrue(src.getTwinClassSchemaSpace()))
-                .setTwinflowSchemaSpace(BooleanUtils.isTrue(src.getTwinflowSchemaSpace()))
+                .setAbstractt(src.getAbstractClass())
+                .setAliasSpace(src.getAliasSpace())
+                .setPermissionSchemaSpace(src.getPermissionSchemaSpace())
+                .setTwinClassSchemaSpace(src.getTwinClassSchemaSpace())
+                .setTwinflowSchemaSpace(src.getTwinflowSchemaSpace())
                 .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
                 .setHeadHunterParams(src.getHeadHunterParams())
                 .setLogo(src.getLogo())

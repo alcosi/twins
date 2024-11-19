@@ -1,10 +1,10 @@
 
-package org.twins.core.dao.attachment;
+package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
 
 import java.util.List;
 import java.util.UUID;
@@ -33,7 +33,7 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 
