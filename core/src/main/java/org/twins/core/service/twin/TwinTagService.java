@@ -32,6 +32,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Lazy
 @Slf4j
@@ -136,6 +137,11 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         // it's not possible to delete it in such way, because we need to write history
         // twinTagRepository.deleteByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tags);
         List<TwinTagEntity> tags = twinTagRepository.findAllByTwinIdAndTagDataListOptionIdIn(twinEntity.getId(), tagsDelete);
+        if(tags.size() != tagsDelete.size()) {
+            log.warn("Mismatch markers for deletion with existing: markers (IDs: {}) and markersDelete (IDs: {}).",
+                    tags.stream().map(TwinTagEntity::getId).collect(Collectors.toSet()),
+                    tagsDelete);
+        }
         //todo add history
         for (TwinTagEntity tag : tags)
             twinChangesCollector.delete(tag);
