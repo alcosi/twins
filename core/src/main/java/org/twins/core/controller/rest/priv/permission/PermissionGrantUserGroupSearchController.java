@@ -23,6 +23,7 @@ import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSearchRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
@@ -38,7 +39,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantUserGroupSearchService permissionGrantUserGroupSearchService;
     private final PermissionGrantUserGroupSearchRqDTOReverseMapper permissionGrantUserGroupSearchRqDTOReverseMapper;
-    private final PermissionGrantUserGroupRestDTOMapper permissionGrantUserGroupRestDTOMapper;
+    private final PermissionGrantUserGroupRestDTOMapperV2 permissionGrantUserGroupRestDTOMapperV2;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantUserGroupSearchV1", summary = "Permission grant user-group search")
@@ -47,9 +48,9 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantUserGroupSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/permission_schema/user_group/search/v1")
-    public ResponseEntity<?> permissionSchemaUserGroupSearchV1(
-            @MapperContextBinding(roots = PermissionSchemaUserGroupRestDTOMapper.class, response = PermissionSchemaUserGroupSearchRsDTOv1.class) MapperContext mapperContext,
+    @PostMapping(value = "/private/permission_grant/user_group/search/v1")
+    public ResponseEntity<?> permissionGrantUserGroupSearchV1(
+            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody PermissionGrantUserGroupSearchRqDTOv1 request) {
         PermissionGrantUserGroupSearchRsDTOv1 rs = new PermissionGrantUserGroupSearchRsDTOv1();
@@ -57,7 +58,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
             PaginationResult<PermissionGrantUserGroupEntity> permissionGrants = permissionGrantUserGroupSearchService
                     .findPermissionGrantUserGroups(permissionGrantUserGroupSearchRqDTOReverseMapper.convert(request), pagination);
             rs
-                    .setPermissionGrantUserGroups(permissionGrantUserGroupRestDTOMapper.convertCollection(permissionGrants.getList(), mapperContext))
+                    .setPermissionGrantUserGroups(permissionGrantUserGroupRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {

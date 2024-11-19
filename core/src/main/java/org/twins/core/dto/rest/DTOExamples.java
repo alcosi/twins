@@ -47,7 +47,7 @@ public interface DTOExamples {
     String BUSINESS_ACCOUNT_NAME = "Business account name";
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
-    String PERMISSION_SCHEMA_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
+    String PERMISSION_GRANT_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
@@ -65,7 +65,7 @@ public interface DTOExamples {
     String PERMISSION_KEY = "DENY_ALL";
     String PERMISSION_GROUP_ID = "7efd9df0-cae7-455f-a721-eaec455105a4";
     String PERMISSION_GROUP_KEY = "LOCAL_PERMISSION";
-    String PERMISSION_SCHEMA_USER_GROUP_ID = "12fd2df0-cae7-455f-a721-eaec415105a4";
+    String PERMISSION_GRANT_USER_GROUP_ID = "12fd2df0-cae7-455f-a721-eaec415105a4";
     String INSTANT = "2023-09-13T09:32:08";
     String LINK_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
     String ROLE_ID = "793e3120-e14a-4a22-ab09-060b9fedee35";

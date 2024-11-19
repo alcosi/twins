@@ -10,8 +10,8 @@ import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "PermissionSchemaUserGroupV2")
-public class PermissionSchemaUserGroupDTOv2 extends PermissionSchemaUserGroupDTOv1 {
+@Schema(name = "PermissionGrantUserGroupV2")
+public class PermissionGrantUserGroupDTOv2 extends PermissionGrantUserGroupDTOv1 {
     @Schema(description = "permission schema")
     public PermissionSchemaDTOv1 permissionSchema;
 

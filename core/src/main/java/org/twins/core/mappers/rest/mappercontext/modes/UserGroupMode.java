@@ -19,7 +19,7 @@ public enum UserGroupMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum PermissionSchemaUserGroup2UserGroupMode implements MapperModePointer<UserGroupMode> {
+    public enum PermissionGrantUserGroup2UserGroupMode implements MapperModePointer<UserGroupMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
