@@ -105,7 +105,7 @@ public class DataListController extends ApiController {
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListSearchV1(
             @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams(sortAsc = false, sortField = DataListEntity.Fields.updatedAt) SimplePagination pagination,
+            @SimplePaginationParams SimplePagination pagination,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
