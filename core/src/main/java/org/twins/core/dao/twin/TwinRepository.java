@@ -63,4 +63,5 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
             @Param("domainId") TypedParameterValue<UUID> domainId,
             @Param("twinClassId") TypedParameterValue<UUID> twinClassId);
 
+    List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
 }

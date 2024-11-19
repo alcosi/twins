@@ -6,6 +6,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -87,7 +88,7 @@ public interface UserRepository extends CrudRepository<UserEntity, UUID>, JpaSpe
             "and domainUser.domainId = :domainId")
     long countByBusinessAccountIdAndDomainId(@Param("businessAccountId") UUID businessAccountId, @Param("domainId") UUID domainId);
 
-    List<UserEntity> findByIdIn(List<UUID> idList);
+    List<UserEntity> findByIdIn(Collection<UUID> idList);
 
     @Query(value = "select u.id from UserEntity u " +
             "left join BusinessAccountUserEntity bau on u.id = bau.userId and bau.businessAccountId = :businessAccountId " +

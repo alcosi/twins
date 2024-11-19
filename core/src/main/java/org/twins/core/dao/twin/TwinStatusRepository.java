@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -13,4 +14,6 @@ public interface TwinStatusRepository extends CrudRepository<TwinStatusEntity, U
     List<TwinStatusEntity> findByTwinClassId(UUID twinClassId);
 
     List<TwinStatusEntity> findByTwinClassIdIn(Set<UUID> twinClassIdList);
+
+    List<TwinStatusEntity> findByIdIn(Collection<UUID> statusIds);
 }

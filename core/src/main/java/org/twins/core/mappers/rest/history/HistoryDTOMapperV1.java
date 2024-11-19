@@ -1,12 +1,13 @@
 package org.twins.core.mappers.rest.history;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dto.rest.history.HistoryDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 import org.twins.core.mappers.rest.twin.TwinBaseV2RestDTOMapper;
@@ -29,7 +30,7 @@ public class HistoryDTOMapperV1 extends RestSimpleDTOMapper<HistoryEntity, Histo
     @Override
     public void map(HistoryEntity src, HistoryDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .changeDescription(historyService.getChangeFreshestDescription(src))
+                .changeDescription(StringUtils.isNotEmpty(src.getFreshMessage()) ? src.getFreshMessage() : src.getSnapshotMessage())
                 .actorUserId(src.getActorUserId())
                 .twinId(src.getTwin().getId())
                 .batchId(src.getHistoryBatchId())

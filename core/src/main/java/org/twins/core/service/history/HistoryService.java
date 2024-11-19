@@ -7,6 +7,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
@@ -19,24 +20,20 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.history.HistoryEntity;
-import org.twins.core.dao.history.HistoryRepository;
-import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
+import org.twins.core.dao.history.*;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.RepositoryService;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -55,7 +52,11 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
     final TwinService twinService;
     final TwinClassFieldService twinClassFieldService;
     final HistoryRepository historyRepository;
-    final HistoryTypeDomainTemplateRepository historyTypeDomainTemplateRepository;
+    final HistoryTypeRepository historyTypeRepository;
+    final HistoryTypeConfigDomainRepository historyTypeConfigDomainRepository;
+    final HistoryTypeConfigTwinClassRepository historyTypeConfigTwinClassRepository;
+    final HistoryTypeConfigTwinClassFieldRepository historyTypeConfigTwinClassFieldRepository;
+    final RepositoryService repositoryService;
     private final TwinActionService twinActionService;
     final AuthService authService;
     final I18nService i18nService;
@@ -88,17 +89,67 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             historyList = historyRepository.findByTwinId(twinId, pageable);
         else //todo support different depth
             historyList = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable);
+        List<HistoryEntity> needMessageFinalization = new ArrayList<>();
+        HistoryMutableDataCollector mutableDataCollector = new HistoryMutableDataCollector(i18nService);
+        for (HistoryEntity historyEntity : historyList) {
+            loadFreshestMessageDraft(historyEntity);
+            if (!historyEntity.getFreshMessage().contains("${"))
+                continue; //message is already filled by all data
+            // we will check if template needs some data, that can be refreshed. If so, we collect data id and will try to load all
+            // needed data in few queries
+            if (historyEntity.getContext().collectMutableData(historyEntity.getFreshMessage(), mutableDataCollector))
+                needMessageFinalization.add(historyEntity);
+        }
+        loadMutableData(mutableDataCollector);
+        for (HistoryEntity historyEntity : needMessageFinalization) {
+            historyEntity.getContext().spoofSnapshots(mutableDataCollector);
+            // snapshots are spoofed with fresh data (or not if data can not be fetched because it was already deleted from DB)
+            // so we can use them to finalize message
+            historyEntity.setFreshMessage(createMessage(historyEntity.getFreshMessage(), historyEntity, true));
+        }
         return PaginationUtils.convertInPaginationResult(historyList, pagination);
     }
 
+    private void loadMutableData(HistoryMutableDataCollector mutableDataCollector) {
+        if (CollectionUtils.isNotEmpty(mutableDataCollector.getTwinIdSet()))
+            mutableDataCollector.setTwinKit(new Kit<>(
+                    repositoryService.getTwinRepository().findByIdIn(mutableDataCollector.getTwinIdSet()), TwinEntity::getId));
+        if (CollectionUtils.isNotEmpty(mutableDataCollector.getStatusIdSet()))
+            mutableDataCollector.setStatusKit(new Kit<>(
+                    repositoryService.getTwinStatusRepository().findByIdIn(mutableDataCollector.getStatusIdSet()), TwinStatusEntity::getId));
+        if (CollectionUtils.isNotEmpty(mutableDataCollector.getUserIdSet()))
+            mutableDataCollector.setUserKit(new Kit<>(
+                    repositoryService.getUserRepository().findByIdIn(mutableDataCollector.getUserIdSet()), UserEntity::getId));
+        if (CollectionUtils.isNotEmpty(mutableDataCollector.getLinkIdSet()))
+            mutableDataCollector.setLinkKit(new Kit<>(
+                    repositoryService.getLinkRepository().findByIdIn(mutableDataCollector.getLinkIdSet()), LinkEntity::getId));
+        if (CollectionUtils.isNotEmpty(mutableDataCollector.getDataListOptionIdSet()))
+            mutableDataCollector.setDataListOptionKit(new Kit<>(
+                    repositoryService.getDataListOptionRepository().findByIdIn(mutableDataCollector.getDataListOptionIdSet()), DataListOptionEntity::getId));
+    }
+
     public void saveHistory(TwinEntity twinEntity, HistoryType type, HistoryContext context) throws ServiceException {
-        HistoryEntity historyEntity = createEntity(twinEntity, type, context, getActor());
-        entitySmartService.save(historyEntity, historyRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+        HistoryEntity historyEntity = createEntityIfWritable(twinEntity, type, context, getActor());
+        if (historyEntity != null)
+            entitySmartService.save(historyEntity, historyRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }
 
     public void saveHistory(HistoryCollectorMultiTwin multiTwinHistoryCollector) throws ServiceException {
         List<HistoryEntity> historyEntityList = convertToEntities(multiTwinHistoryCollector);
         if (historyEntityList == null) return;
+        if (CollectionUtils.isNotEmpty(historyEntityList))
+            entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
+    }
+
+    public void saveHistory(TwinEntity twinEntity, HistoryCollector historyCollector) throws ServiceException {
+        if (historyCollector == null || CollectionUtils.isEmpty(historyCollector.getHistoryList()))
+            return;
+        List<HistoryEntity> historyEntityList = new ArrayList<>();
+        UserEntity actor = getActor();
+        for (Pair<HistoryType, HistoryContext> pair : historyCollector.getHistoryList()) {
+            HistoryEntity historyEntity = createEntityIfWritable(twinEntity, pair.getKey(), pair.getValue(), actor);
+            historyEntityList.add(historyEntity);
+        }
         if (CollectionUtils.isNotEmpty(historyEntityList))
             entitySmartService.saveAllAndLog(historyEntityList, historyRepository);
     }
@@ -112,14 +163,14 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
             if (twinHistory.getValue() == null || CollectionUtils.isEmpty(twinHistory.getValue().getHistoryList()))
                 continue;
             for (Pair<HistoryType, HistoryContext> pair : twinHistory.getValue().getHistoryList()) {
-                HistoryEntity historyEntity = createEntity(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor);
+                HistoryEntity historyEntity = createEntityIfWritable(twinHistory.getKey(), pair.getKey(), pair.getValue(), actor);
                 historyEntityList.add(historyEntity);
             }
         }
         return historyEntityList;
     }
 
-    public HistoryEntity createEntity(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
+    public HistoryEntity createEntityIfWritable(TwinEntity twinEntity, HistoryType type, HistoryContext context, UserEntity actor) throws ServiceException {
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
@@ -151,7 +202,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
                 }
             }
         }
-        fillSnapshotMessage(historyEntity);
+        if (authService.getApiUser() != null)
+            historyEntity.setHistoryBatchId(authService.getApiUser().getRequestId());
+        HistoryTypeConfig typeConfig = detectConfig(historyEntity);
+        if (typeConfig.getStatus().isDisabled()) //we check status only on write. it will be difficult to check it on read, cause of pagination
+            return;
+        fillSnapshotMessage(historyEntity, typeConfig);
     }
 
     private UserEntity getActor() throws ServiceException {
@@ -164,19 +220,20 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return actor;
     }
 
-
-
-    public void fillSnapshotMessage(HistoryEntity historyEntity) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        String snapshotTemplate = getSnapshotMessageTemplate(historyEntity.getHistoryType(), apiUser.isDomainSpecified() ? apiUser.getDomain().getId() : null);
+    public void fillSnapshotMessage(HistoryEntity historyEntity, HistoryTypeConfig typeConfig) throws ServiceException {
+        String snapshotTemplate = typeConfig.getSnapshotMessageTemplate();
         if (StringUtils.isEmpty(snapshotTemplate)) {
             historyEntity.setSnapshotMessage("History message template is not configured");
             return;
         }
-        Map<String, String> templateVars = prepareCommonTemplateVars(snapshotTemplate, historyEntity);
-        if (historyEntity.getContext() != null)
+        historyEntity.setSnapshotMessage(createMessage(snapshotTemplate, historyEntity, true));
+    }
+
+    public String createMessage(String template, HistoryEntity historyEntity, boolean useSnapshots) {
+        Map<String, String> templateVars = prepareCommonTemplateVars(template, historyEntity);
+        if (useSnapshots && historyEntity.getContext() != null)
             templateVars.putAll(historyEntity.getContext().getTemplateVars());
-        historyEntity.setSnapshotMessage(org.cambium.common.util.StringUtils.replaceVariables(snapshotTemplate, templateVars));
+        return org.cambium.common.util.StringUtils.replaceVariables(template, templateVars);
     }
 
     public Map<String, String> prepareCommonTemplateVars(String template, HistoryEntity historyEntity) {
@@ -189,18 +246,44 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return templateVars;
     }
 
-    //todo cache it
-    private String getSnapshotMessageTemplate(HistoryType historyType, UUID domainId) {
-        String snapshotTemplate = null;
-        if (domainId != null)
-            snapshotTemplate = historyTypeDomainTemplateRepository.findSnapshotMessageTemplate(historyType, domainId);
-        if (snapshotTemplate == null)
-            snapshotTemplate = historyTypeDomainTemplateRepository.findSnapshotMessageTemplate(historyType.getId());
-        return snapshotTemplate;
+    private HistoryTypeConfig detectConfig(HistoryEntity historyEntity) throws ServiceException {
+        HistoryTypeConfig config = new HistoryTypeConfig();
+        ApiUser apiUser = authService.getApiUser();
+        HistoryTypeConfigLevel configLevel;
+        configLevel = historyTypeRepository.findConfig(historyEntity.getHistoryType());
+        updateConfig(config, configLevel);
+        configLevel = historyTypeConfigDomainRepository.findConfig(historyEntity.getHistoryType(), apiUser.getDomain().getId());
+        updateConfig(config, configLevel);
+        if (config.getStatus().isBlocker())
+            return config;
+        configLevel = historyTypeConfigTwinClassRepository.findConfig(historyEntity.getHistoryType(), historyEntity.getTwin().getTwinClassId());
+        updateConfig(config, configLevel);
+        if (config.getStatus().isBlocker() || historyEntity.getTwinClassFieldId() == null)
+            return config;
+        configLevel = historyTypeConfigTwinClassFieldRepository.findConfig(historyEntity.getHistoryType(), historyEntity.getTwinClassFieldId());
+        updateConfig(config, configLevel);
+        return config;
     }
 
-    public String getChangeFreshestDescription(HistoryEntity historyEntity) {
-        return historyEntity.getSnapshotMessage(); //todo
+    public static void updateConfig(HistoryTypeConfig config, HistoryTypeConfigLevel lowConfigLevel) {
+        if (config.getStatus().isBlocker() || lowConfigLevel == null)
+            return;
+        config.setStatus(lowConfigLevel.getStatus());
+        if (StringUtils.isNotEmpty(lowConfigLevel.getSnapshotMessageTemplate()))
+            config.setSnapshotMessageTemplate(lowConfigLevel.getSnapshotMessageTemplate());
+        if (lowConfigLevel.getMessageTemplateI18nId() != null)
+            config.setMessageTemplateI18nId(lowConfigLevel.getMessageTemplateI18nId());
+    }
+
+    public void loadFreshestMessageDraft(HistoryEntity historyEntity) throws ServiceException {
+        HistoryTypeConfig config = detectConfig(historyEntity);
+        String freshMessageDraft = historyEntity.getSnapshotMessage();;
+        if (config.getMessageTemplateI18nId() != null) {
+            String messageTemplate = i18nService.translateToLocale(config.getMessageTemplateI18nId());
+            if (StringUtils.isNotEmpty(messageTemplate))
+                freshMessageDraft = createMessage(messageTemplate, historyEntity, false); //we want to use fresh data, not from snapshot
+        }
+        historyEntity.setFreshMessage(freshMessageDraft);
     }
 
     public HistoryItem<HistoryContextUserChange> assigneeChanged(UserEntity fromUser, UserEntity toUser) {

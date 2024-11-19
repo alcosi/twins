@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.cambium.i18n.service.I18nService;
 import org.twins.core.dao.history.context.snapshot.LinkSnapshot;
 import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.service.history.HistoryMutableDataCollector;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -32,7 +33,24 @@ public class HistoryContextLinkChange extends HistoryContextTwinChange implement
     protected HashMap<String, String> extractTemplateVars() {
         HashMap<String, String> vars = super.extractTemplateVars();
         vars.put("twinLink.id", twinLinkId != null ? twinLinkId.toString() : "");
-        LinkSnapshot.extractTemplateVars(vars, link, "link");
+        LinkSnapshot.extractTemplateVars(vars, link, HistoryContextLink.PLACEHOLDER_LINK);
         return vars;
+    }
+
+    @Override
+    public boolean collectMutableData(String messageTemplate, HistoryMutableDataCollector mutableDataCollector) {
+        boolean hasMutableData = false;
+        if (containPlaceHolder(messageTemplate, HistoryContextLink.PLACEHOLDER_LINK) && link != null) {
+            mutableDataCollector.getLinkIdSet().add(link.getId());
+            hasMutableData = true;
+        }
+        return super.collectMutableData(messageTemplate, mutableDataCollector) || hasMutableData;
+    }
+
+    @Override
+    public void spoofSnapshots(HistoryMutableDataCollector mutableDataCollector) {
+        super.spoofSnapshots(mutableDataCollector);
+        if (link != null && mutableDataCollector.getLinkKit().getMap().containsKey(link.getId()))
+            link = LinkSnapshot.convertEntity(mutableDataCollector.getLinkKit().get(link.getId()), link.isForward(), mutableDataCollector.getI18nService());
     }
 }

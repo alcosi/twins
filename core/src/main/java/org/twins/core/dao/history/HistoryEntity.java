@@ -10,6 +10,7 @@ import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
@@ -57,8 +58,15 @@ public class HistoryEntity implements EasyLoggable {
     private TwinEntity twin;
 
     @ManyToOne
+    @JoinColumn(name = "twin_class_field_id", insertable = false, updatable = false, nullable = true)
+    private TwinClassFieldEntity twinClassField;
+
+    @ManyToOne
     @JoinColumn(name = "actor_user_id", insertable = false, updatable = false, nullable = false)
     private UserEntity actorUser;
+
+    @Transient
+    private String freshMessage;
 
     @Override
     public String easyLog(Level level) {
