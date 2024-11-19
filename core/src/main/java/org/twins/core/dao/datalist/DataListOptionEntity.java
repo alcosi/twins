@@ -2,9 +2,12 @@ package org.twins.core.dao.datalist;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.I18nEntity;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -12,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "data_list_option")
 public class DataListOptionEntity implements EasyLoggable {
     @Id
@@ -58,6 +62,12 @@ public class DataListOptionEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    private I18nEntity optionI18n;
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)

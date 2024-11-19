@@ -34,7 +34,7 @@ public class TwinflowSchemaSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinflowSchemaEntity> createTwinflowSchemaSearchSpecification(TwinflowSchemaSearch search) throws ServiceException {
+    private Specification<TwinflowSchemaEntity> createTwinflowSchemaSearchSpecification(TwinflowSchemaSearch search) {
         return Specification.where(
                 checkFieldLikeIn(TwinflowSchemaEntity.Fields.name, search.getNameLikeList(), false, true)
                         .and(checkFieldLikeIn(TwinflowSchemaEntity.Fields.name, search.getNameNotLikeList(), true, true))
