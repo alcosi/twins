@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.dao.validator.TwinValidatorEntity;
+import org.twins.core.dao.validator.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twin.validator.TwinValidator;
 import org.twins.core.service.auth.AuthService;
