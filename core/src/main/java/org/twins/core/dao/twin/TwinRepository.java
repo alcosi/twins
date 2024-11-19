@@ -1,10 +1,10 @@
 package org.twins.core.dao.twin;
 
 import org.hibernate.query.TypedParameterValue;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @Repository
-public interface TwinRepository extends CrudRepository<TwinEntity, UUID>, JpaSpecificationExecutor<TwinEntity>, PagingAndSortingRepository<TwinEntity, UUID> {
+public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpecificationExecutor<TwinEntity>, PagingAndSortingRepository<TwinEntity, UUID> {
     List<TwinEntity> findByTwinClassDomainId(UUID domainId);
 
     List<TwinEntity> findByOwnerBusinessAccountId(UUID businessAccount);

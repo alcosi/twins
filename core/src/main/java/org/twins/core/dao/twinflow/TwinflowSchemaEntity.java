@@ -3,6 +3,7 @@ package org.twins.core.dao.twinflow;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -13,6 +14,7 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "twinflow_schema")
 public class TwinflowSchemaEntity {
     @Id
@@ -28,7 +30,8 @@ public class TwinflowSchemaEntity {
     @Column(name = "name")
     private String name;
 
-    private String descrption;
+    @Column(name = "description")
+    private String description;
 
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;

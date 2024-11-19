@@ -16,16 +16,6 @@ public class HistoryContextStringChange extends HistoryContext {
     }
 
     @Override
-    public boolean equals(Object o) {
-        return false;
-    }
-
-    @Override
-    public int hashCode() {
-        return 0;
-    }
-
-    @Override
     public String templateFromValue() {
         return fromValue != null ? fromValue : "";
     }

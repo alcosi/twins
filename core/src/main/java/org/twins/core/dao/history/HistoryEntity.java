@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.history.context.HistoryContext;
 import org.twins.core.dao.twin.TwinEntity;
@@ -19,6 +20,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Table(name = "history")
 @FieldNameConstants
+@DynamicUpdate
 public class HistoryEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")

@@ -31,6 +31,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -50,6 +51,11 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     @Override
     public CrudRepository<DataListEntity, UUID> entityRepository() {
         return dataListRepository;
+    }
+
+    @Override
+    public Function<DataListEntity, UUID> entityGetIdFunction() {
+        return DataListEntity::getId;
     }
 
     @Override

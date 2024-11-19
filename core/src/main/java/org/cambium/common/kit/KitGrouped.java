@@ -20,13 +20,13 @@ public class KitGrouped<E, K, GK> extends Kit<E, K>{
     }
 
     @Override
-    public Kit<E, K> add(E e) {
+    public boolean add(E e) {
         groupedMap = null; //invalidate
         return super.add(e);
     }
 
     @Override
-    public Kit<E, K> addAll(Collection<E> e) {
+    public boolean addAll(Collection<? extends E> e) {
         groupedMap = null; //invalidate
         return super.addAll(e);
     }

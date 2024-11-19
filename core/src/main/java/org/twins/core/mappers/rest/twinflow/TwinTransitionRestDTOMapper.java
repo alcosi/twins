@@ -3,9 +3,9 @@ package org.twins.core.mappers.rest.twinflow;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
-import org.twins.core.dto.rest.twinflow.TwinTransitionViewDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.dto.rest.transition.TwinTransitionViewDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
 
 @Component

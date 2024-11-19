@@ -93,6 +93,7 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setTwinId(twinId)
                 .setTwin(twin)
                 .setCreatedByUser(createdByUser)
+                .setCreatedByUserId(createdByUserId)
                 .setExternalId(externalId)
                 .setTitle(title)
                 .setDescription(description)

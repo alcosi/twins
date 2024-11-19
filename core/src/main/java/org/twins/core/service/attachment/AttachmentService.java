@@ -3,46 +3,53 @@ package org.twins.core.service.attachment;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.kit.KitGrouped;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.history.context.HistoryContextAttachment;
-import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.history.HistoryType;
+import org.twins.core.dao.history.context.HistoryContextAttachment;
+import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.user.UserEntity;
-import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinAttachmentsCount;
+import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.service.history.HistoryCollector;
-import org.twins.core.service.history.HistoryCollectorMultiTwin;
+import org.twins.core.service.TwinChangesService;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinActionService;
+import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AttachmentService {
-    final EntitySmartService entitySmartService;
-    final TwinActionService twinActionService;
-    final TwinAttachmentRepository twinAttachmentRepository;
-    final HistoryService historyService;
+public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmentEntity> {
+    private final TwinAttachmentRepository twinAttachmentRepository;
+    private final HistoryService historyService;
+    private final TwinActionService twinActionService;
+    private final TwinChangesService twinChangesService;
+    private final AuthService authService;
+    @Lazy
+    private final TwinService twinService;
     private final AttachmentActionService attachmentActionService;
 
-    public UUID checkAttachmentId(UUID attachmentId, EntitySmartService.CheckMode checkMode) throws ServiceException {
-        return entitySmartService.check(attachmentId, twinAttachmentRepository, checkMode);
+    public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
+        return twinAttachmentEntity.getTwinflowTransitionId() == null
+                && twinAttachmentEntity.getTwinCommentId() == null
+                && twinAttachmentEntity.getTwinClassFieldId() == null;
     }
 
     public TwinAttachmentEntity findAttachment(UUID attachmentId, EntitySmartService.FindMode findMode) throws ServiceException {
@@ -50,21 +57,63 @@ public class AttachmentService {
     }
 
     @Transactional
-    public List<TwinAttachmentEntity> addAttachments(TwinEntity twinEntity, UserEntity userEntity, List<TwinAttachmentEntity> attachments) throws ServiceException {
-        twinActionService.checkAllowed(twinEntity, TwinAction.ATTACHMENT_ADD);
-        HistoryCollector historyCollector = new HistoryCollector();
+    public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
+        checkAndSetAttachmentTwin(attachments, twinEntity);
+        return addAttachments(attachments);
+    }
+
+    @Transactional
+    public List<TwinAttachmentEntity> addAttachments(List<TwinAttachmentEntity> attachments) throws ServiceException {
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        addAttachments(attachments, twinChangesCollector);
+        TwinChangesApplyResult changesApplyResult = twinChangesService.applyChanges(twinChangesCollector);
+        return changesApplyResult.getForClassAsList(TwinAttachmentEntity.class);
+    }
+
+    public void addAttachments(List<TwinAttachmentEntity> attachments, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        loadTwins(attachments);
         for (TwinAttachmentEntity attachmentEntity : attachments) {
+            twinActionService.checkAllowed(attachmentEntity.getTwin(), TwinAction.ATTACHMENT_ADD);
             attachmentEntity
                     .setId(UUID.randomUUID()) // need for history
-                    .setTwinId(twinEntity.getId())
-                    .setTwin(twinEntity)
-                    .setCreatedByUserId(userEntity.getId())
-                    .setCreatedByUser(userEntity);
-            historyCollector.add(historyService.attachmentCreate(attachmentEntity));
+                    .setCreatedByUserId(apiUser.getUserId())
+                    .setCreatedByUser(apiUser.getUser());
+            twinChangesCollector.add(attachmentEntity);
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentCreate(attachmentEntity));
         }
-        List<TwinAttachmentEntity> ret = IterableUtils.toList(entitySmartService.saveAllAndLog(attachments, twinAttachmentRepository));
-        historyService.saveHistory(twinEntity, historyCollector);
-        return ret;
+        addAttachments(attachments, twinChangesCollector);
+    }
+
+    public void checkAndSetAttachmentTwin(List<TwinAttachmentEntity> attachments, TwinEntity twinEntity) throws ServiceException {
+        for (TwinAttachmentEntity attachmentEntity : attachments) {
+            //twin relink is not security safe
+            if (attachmentEntity.getTwinId() != null && !attachmentEntity.getTwinId().equals(twinEntity.getId()))
+                throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED);
+            attachmentEntity
+                    .setTwinId(twinEntity.getId())
+                    .setTwin(twinEntity);
+        }
+    }
+
+    public void loadTwins(List<TwinAttachmentEntity> attachments) throws ServiceException {
+        //be careful, TwinAttachmentEntity can be without id, because it's not saved yet, do not use kit.getMap function
+        KitGrouped<TwinAttachmentEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinAttachmentEntity::getId, TwinAttachmentEntity::getTwinId);
+        for (TwinAttachmentEntity attachmentEntity : attachments) {
+            if (attachmentEntity.getTwinId() == null)
+                throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_EMPTY_TWIN_ID);
+            if (attachmentEntity.getTwin() == null)
+                needLoad.add(attachmentEntity);
+        }
+        if (needLoad.isEmpty())
+            return;
+        Kit<TwinEntity, UUID> twinsKit = twinService.findEntitiesSafe(needLoad.getGroupedMap().keySet());
+        for (var entry : needLoad.getGroupedMap().entrySet()) {
+            for (TwinAttachmentEntity attachmentEntity : entry.getValue()) {
+                attachmentEntity.setTwin(twinsKit.get(attachmentEntity.getTwinId()));
+            }
+        }
     }
 
     public List<TwinAttachmentEntity> findAttachmentByTwinId(UUID twinId) {
@@ -103,7 +152,7 @@ public class AttachmentService {
             twinEntity.setAttachmentKit(new Kit<>(twinAttachmentList, TwinAttachmentEntity::getId));
         }
     }
-    
+
     public void loadAttachmentsCount(TwinEntity twinEntity) {
         loadAttachmentsCount(Collections.singletonList(twinEntity));
     }
@@ -139,12 +188,6 @@ public class AttachmentService {
         return ((Long) obj).intValue();
     }
 
-    public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
-        return twinAttachmentEntity.getTwinflowTransitionId() == null
-                && twinAttachmentEntity.getTwinCommentId() == null
-                && twinAttachmentEntity.getTwinClassFieldId() == null;
-    }
-
     @Transactional
     public void deleteById(ApiUser apiUser, UUID attachmentId) throws ServiceException {
         TwinAttachmentEntity attachmentEntity = twinAttachmentRepository.getById(attachmentId);
@@ -158,53 +201,60 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
-        updateAttachments(attachmentEntityList, CommentRelinkMode.denied);
+    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinEntity twinEntity) throws ServiceException {
+        checkAndSetAttachmentTwin(attachmentEntityList, twinEntity);
+        updateAttachments(attachmentEntityList);
     }
 
     @Transactional
-    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, CommentRelinkMode commentRelinkMode) throws ServiceException {
+    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList) throws ServiceException {
         if (CollectionUtils.isEmpty(attachmentEntityList))
             return;
-        ChangesHelper changesHelper = new ChangesHelper();
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        updateAttachments(attachmentEntityList, twinChangesCollector);
+        if (twinChangesCollector.hasChanges()) {
+            twinChangesService.applyChanges(twinChangesCollector);
+        }
+    }
+
+    //todo collect only delta for correct drafting (minimize lockers)
+    public void updateAttachments(List<TwinAttachmentEntity> attachmentEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentEntityList))
+            return;
+        Kit<TwinAttachmentEntity, UUID> newAttachmentKit = new Kit<>(attachmentEntityList, TwinAttachmentEntity::getId);
+        Kit<TwinAttachmentEntity, UUID> dbAttachmentKit = new Kit<>(twinAttachmentRepository.findByIdIn(newAttachmentKit.getIdSet()), TwinAttachmentEntity::getId);
         TwinAttachmentEntity dbAttachmentEntity;
-        HistoryCollectorMultiTwin historyCollector = new HistoryCollectorMultiTwin();
-        List<TwinAttachmentEntity> saveList = new ArrayList<>();
         for (TwinAttachmentEntity attachmentEntity : attachmentEntityList) {
-            changesHelper.flush();
-            dbAttachmentEntity = entitySmartService.findById(attachmentEntity.getId(), twinAttachmentRepository, EntitySmartService.FindMode.ifEmptyThrows);
+            dbAttachmentEntity = dbAttachmentKit.get(attachmentEntity.getId());
             attachmentActionService.checkAllowed(dbAttachmentEntity, TwinAttachmentAction.EDIT);
             HistoryItem<HistoryContextAttachmentChange> historyItem = historyService.attachmentUpdate(attachmentEntity);
-            if (changesHelper.isChanged("commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
-                if (CommentRelinkMode.denied.equals(commentRelinkMode))
-                    throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
-                //todo add history context
-                dbAttachmentEntity.setTwinCommentId(attachmentEntity.getTwinCommentId());
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "twinId", dbAttachmentEntity.getTwinId(), attachmentEntity.getTwinId())) {
+                // twin relink is not security safe, so it's currently denied. perhaps we can move it to permissions
+                throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_CAN_NOT_BE_RELINKED, "This attachment belongs to another twin");
             }
-            if (changesHelper.isChanged("description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "commentId", dbAttachmentEntity.getTwinCommentId(), attachmentEntity.getTwinCommentId())) {
+                // comment relink is not security safe, so it's currently denied. perhaps we can move it to permissions
+                throw new ServiceException(ErrorCodeTwins.TWIN_ATTACHMENT_INCORRECT_COMMENT, "This attachment belongs to another comment");
+            }
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "description", dbAttachmentEntity.getDescription(), attachmentEntity.getDescription())) {
                 historyItem.getContext().setNewDescription(attachmentEntity.getDescription());
                 dbAttachmentEntity.setDescription(attachmentEntity.getDescription());
             }
-            if (changesHelper.isChanged("title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "title", dbAttachmentEntity.getTitle(), attachmentEntity.getTitle())) {
                 historyItem.getContext().setNewTitle(attachmentEntity.getTitle());
                 dbAttachmentEntity.setTitle(attachmentEntity.getTitle());
             }
-            if (changesHelper.isChanged("storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "storageLink", dbAttachmentEntity.getStorageLink(), attachmentEntity.getStorageLink())) {
                 historyItem.getContext().setNewStorageLink(attachmentEntity.getStorageLink());
                 dbAttachmentEntity.setStorageLink(attachmentEntity.getStorageLink());
             }
-            if (changesHelper.isChanged("externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
+            if (twinChangesCollector.collectIfChanged(attachmentEntity, "externalId", dbAttachmentEntity.getExternalId(), attachmentEntity.getExternalId())) {
                 historyItem.getContext().setNewExternalId(attachmentEntity.getExternalId());
                 dbAttachmentEntity.setExternalId(attachmentEntity.getExternalId());
             }
-            if (changesHelper.hasChanges()) {
-                saveList.add(dbAttachmentEntity);
-                historyCollector.forTwin(dbAttachmentEntity.getTwin()).add(historyItem);
+            if (twinChangesCollector.hasChanges(attachmentEntity) && twinChangesCollector.isHistoryCollectorEnabled()) {
+                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyItem);
             }
-        }
-        if (CollectionUtils.isEmpty(saveList)) {
-            entitySmartService.saveAllAndLog(saveList, twinAttachmentRepository);
-            historyService.saveHistory(historyCollector);
         }
     }
 
@@ -213,30 +263,65 @@ public class AttachmentService {
     }
 
     @Transactional
-    public void deleteAttachments(UUID twinId, List<UUID> attachmentDeleteUUIDList) throws ServiceException {
-        if (CollectionUtils.isEmpty(attachmentDeleteUUIDList))
+    public void deleteAttachments(TwinEntity twinEntity, List<TwinAttachmentEntity> attachmentDeleteList) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentDeleteList))
             return;
-        List<TwinAttachmentEntity> deleteEntityList = twinAttachmentRepository.findByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList); //we have to load to create informative history
-        Iterator<TwinAttachmentEntity> iterator = deleteEntityList.iterator();
-        while (iterator.hasNext()) {
-            TwinAttachmentEntity deleteEntity = iterator.next();
-            if (attachmentActionService.isAllowed(deleteEntity, TwinAttachmentAction.DELETE)) // N+1
+        checkAndSetAttachmentTwin(attachmentDeleteList, twinEntity);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        deleteAttachments(attachmentDeleteList, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
+    }
+
+    public void deleteAttachments(List<TwinAttachmentEntity> attachmentDeleteList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(attachmentDeleteList))
+            return;
+        loadTwins(attachmentDeleteList);
+        for (TwinAttachmentEntity attachmentEntity : attachmentDeleteList) {
+            if (!attachmentActionService.isAllowed(attachmentEntity, TwinAttachmentAction.DELETE)) {// N+1
+                log.info("{} cannot be deleted because it is not allowed", attachmentEntity.logShort());
                 continue;
-            log.info("{} cannot be deleted because it is not allowed", deleteEntity.logShort());
-            iterator.remove();
+            }
+            twinChangesCollector.delete(attachmentEntity);
+            if (twinChangesCollector.isHistoryCollectorEnabled())
+                twinChangesCollector.getHistoryCollector(attachmentEntity.getTwin()).add(historyService.attachmentDelete(attachmentEntity));
         }
-        if (CollectionUtils.isEmpty(deleteEntityList))
+    }
+
+    public void cudAttachments(TwinEntity twinEntity, EntityCUD<TwinAttachmentEntity> attachmentCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (attachmentCUD == null)
             return;
-        HistoryCollector historyCollector = new HistoryCollector();
-        TwinEntity twinEntity = null;
-        for (TwinAttachmentEntity attachmentEntity : deleteEntityList) {
-            if (twinEntity == null)
-                twinEntity = attachmentEntity.getTwin(); // we need twinEntity for history save
-            log.info("{} will be deleted", attachmentEntity.logDetailed());
-            historyCollector.add(historyService.attachmentDelete(attachmentEntity));
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getCreateList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getCreateList(), twinEntity);
+            addAttachments(attachmentCUD.getCreateList(), twinChangesCollector);
         }
-        twinAttachmentRepository.deleteAllByTwinIdAndIdIn(twinId, attachmentDeleteUUIDList);
-        historyService.saveHistory(twinEntity, historyCollector);
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getUpdateList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getUpdateList(), twinEntity);
+            updateAttachments(attachmentCUD.getUpdateList(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(attachmentCUD.getDeleteList())) {
+            checkAndSetAttachmentTwin(attachmentCUD.getDeleteList(), twinEntity);
+            deleteAttachments(attachmentCUD.getDeleteList(), twinChangesCollector);
+        }
+    }
+
+    @Override
+    public CrudRepository<TwinAttachmentEntity, UUID> entityRepository() {
+        return twinAttachmentRepository;
+    }
+
+    @Override
+    public Function<TwinAttachmentEntity, UUID> entityGetIdFunction() {
+        return TwinAttachmentEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(TwinAttachmentEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(TwinAttachmentEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
     }
 
     public enum CommentRelinkMode {

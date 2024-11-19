@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -23,12 +22,14 @@ import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinMarkerRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.EntityRelinkOperation;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Lazy
@@ -47,6 +48,11 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     @Override
     public CrudRepository<TwinMarkerEntity, UUID> entityRepository() {
         return twinMarkerRepository;
+    }
+
+    @Override
+    public Function<TwinMarkerEntity, UUID> entityGetIdFunction() {
+        return TwinMarkerEntity::getId;
     }
 
     @Override
@@ -119,16 +125,14 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         return KitUtils.isNotEmpty(markers) && markers.getIdSet().contains(marker);
     }
 
-    public void addMarkers(TwinEntity twinEntity, Set<UUID> markersAdd) throws ServiceException {
+    public void addMarkers(TwinEntity twinEntity, Set<UUID> markersAdd, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(markersAdd))
             return;
-
         List<TwinMarkerEntity> existingMarkers = twinMarkerRepository.findByTwinId(twinEntity.getId());
         Set<UUID> existingMarkerIds = existingMarkers.stream()
                 .map(TwinMarkerEntity::getMarkerDataListOptionId)
                 .collect(Collectors.toSet());
 
-        List<TwinMarkerEntity> list = new ArrayList<>();
         for (UUID marker : markersAdd) {
             if (!existingMarkerIds.contains(marker)) {
                 TwinMarkerEntity twinMarkerEntity = new TwinMarkerEntity()
@@ -136,23 +140,29 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                         .setTwin(twinEntity)
                         .setMarkerDataListOptionId(marker);
                 validateEntityAndThrow(twinMarkerEntity, EntitySmartService.EntityValidateMode.beforeSave);
-                list.add(twinMarkerEntity);
+                //todo add history
+                twinChangesCollector.add(twinMarkerEntity);
             }
         }
-        entitySmartService.saveAllAndLog(list, twinMarkerRepository);
-        twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
     }
 
-    public void deleteMarkers(TwinEntity twinEntity, Set<UUID> markersDelete) throws ServiceException {
+    public void deleteMarkers(TwinEntity twinEntity, Set<UUID> markersDelete, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(markersDelete))
             return;
-        twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
-        log.info("Markers[" + StringUtils.join(markersDelete, ",") + "] perhaps were deleted from " + twinEntity.logShort());
-        twinEntity.setTwinMarkerKit(null); // invalidating already loaded kit
+        // it's not possible to delete it in such way, because we need to write history
+        // twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
+        loadMarkers(twinEntity);
+        for (UUID marker : markersDelete) {
+            if (twinEntity.getTwinMarkerKit().containsKey(marker)) {
+                //todo add history
+                twinChangesCollector.delete(twinEntity.getTwinMarkerKit().get(marker));
+            }
+        }
     }
 
     @Transactional
     public void deleteAllMarkersForTwinsOfClass(UUID twinClassId) {
+        //todo write history
         twinMarkerRepository.deleteByTwin_TwinClassId(twinClassId);
     }
 

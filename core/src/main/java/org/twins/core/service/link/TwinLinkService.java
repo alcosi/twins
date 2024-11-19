@@ -1,6 +1,5 @@
 package org.twins.core.service.link;
 
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dao.twin.TwinEntity;
@@ -25,9 +23,13 @@ import org.twins.core.dao.twin.TwinLinkNoRelationsProjection;
 import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -35,6 +37,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Function;
 
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkStrength;
 import static org.twins.core.dao.specifications.link.TwinLinkSpecification.checkUuidIn;
@@ -52,10 +55,17 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     @Lazy
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
+    private final HistoryService historyService;
+    private final TwinChangesService twinChangesService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
         return twinLinkRepository;
+    }
+
+    @Override
+    public Function<TwinLinkEntity, UUID> entityGetIdFunction() {
+        return TwinLinkEntity::getId;
     }
 
     @Override
@@ -157,16 +167,26 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList) throws ServiceException {
-        prepareTwinLinks(srcTwinEntity, linksEntityList);
-        processAlreadyExisted(linksEntityList);
-        entitySmartService.saveAllAndLog(linksEntityList, twinLinkRepository);
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        addLinks(srcTwinEntity, linksEntityList, twinChangesCollector);
+        twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    @Transactional
-    public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkEntity> twinLinkEntityList) throws ServiceException {
+    public void addLinks(TwinEntity srcTwinEntity, List<TwinLinkEntity> linksEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        prepareTwinLinks(srcTwinEntity, linksEntityList);
+        processAlreadyExisted(linksEntityList);
+        for (TwinLinkEntity twinLinkEntity : linksEntityList) {
+            twinChangesCollector.getHistoryCollector().add(historyService.linkCreated(twinLinkEntity));
+            twinChangesCollector.add(twinLinkEntity);
+        }
+    }
+
+    public void updateTwinLinks(TwinEntity twinEntity, List<TwinLinkEntity> twinLinkEntityList, TwinChangesCollector twinChangesCollector) throws ServiceException {
         if (CollectionUtils.isEmpty(twinLinkEntityList))
             return;
         TwinLinkEntity dbTwinLinkEntity;
+        TwinEntity unlinkedTwinEntity = null;
+        boolean forward = true;
         List<TwinLinkEntity> updatedTwinLinkEntityList = new ArrayList<>();
         for (TwinLinkEntity updateTwinLinkEntity : twinLinkEntityList) {
             dbTwinLinkEntity = entitySmartService.findById(updateTwinLinkEntity.getId(), twinLinkRepository, EntitySmartService.FindMode.ifEmptyLogAndNull);
@@ -176,15 +196,24 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 updateTwinLinkEntity
                         .setDstTwinId(updateTwinLinkEntity.getSrcTwinId()) //shift
                         .setSrcTwinId(null);
-            if (dbTwinLinkEntity.getSrcTwinId().equals(twinEntity.getId())) // forward link
+            if (dbTwinLinkEntity.getSrcTwinId().equals(twinEntity.getId())) {// forward link
+                unlinkedTwinEntity = dbTwinLinkEntity.getDstTwin();
+                forward = true;
                 dbTwinLinkEntity
                         .setDstTwinId(updateTwinLinkEntity.getDstTwinId());
+            }
             else if (dbTwinLinkEntity.getDstTwinId().equals(twinEntity.getId())) { //backward link
+                unlinkedTwinEntity = dbTwinLinkEntity.getSrcTwin();
+                forward = false;
                 dbTwinLinkEntity
                         .setSrcTwinId(updateTwinLinkEntity.getDstTwinId());
             }
             if (validateEntityAndLog(dbTwinLinkEntity, EntitySmartService.EntityValidateMode.beforeSave))
                 updatedTwinLinkEntityList.add(dbTwinLinkEntity);
+        }
+        for (TwinLinkEntity twinLinkEntity : updatedTwinLinkEntityList) {
+            twinChangesCollector.getHistoryCollector().add(historyService.linkUpdated(twinLinkEntity, unlinkedTwinEntity, forward));
+            twinChangesCollector.add(twinLinkEntity);
         }
         entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
     }
@@ -282,15 +311,10 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         return twinLinkEntityList;
     }
 
-    @Transactional
-    public void deleteTwinLinks(UUID twinId, List<UUID> twinLinksDeleteUUIDList) throws ServiceException {
-        if (CollectionUtils.isEmpty(twinLinksDeleteUUIDList))
+    public void deleteTwinLinks(UUID twinId, List<TwinLinkEntity> twinLinksDeleteList, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (CollectionUtils.isEmpty(twinLinksDeleteList))
             return;
-        TwinLinkEntity twinLinkEntity;
-        for (UUID twinLinkId : twinLinksDeleteUUIDList) {
-            twinLinkEntity = findEntity(twinLinkId, EntitySmartService.FindMode.ifEmptyNull, EntitySmartService.ReadPermissionCheckMode.ifDeniedLog);
-            if (twinLinkEntity == null)
-                continue;
+        for (TwinLinkEntity twinLinkEntity : twinLinksDeleteList) {
             if (!twinLinkEntity.getSrcTwinId().equals(twinId) && !twinLinkEntity.getDstTwinId().equals(twinId)) {
                 log.error(twinLinkEntity.logShort() + " can not be delete because it's from other twin");
                 continue;
@@ -299,7 +323,8 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 log.error(twinLinkEntity.logShort() + " can not be deleted because link is mandatory");
                 continue;
             }
-            entitySmartService.deleteAndLog(twinLinkId, twinLinkRepository);
+            twinChangesCollector.getHistoryCollector().add(historyService.linkDeleted(twinLinkEntity));
+            twinChangesCollector.delete(twinLinkEntity);
         }
     }
 
@@ -370,5 +395,19 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         if (twinEntity.getTwinLinks() != null && twinEntity.getTwinLinks().getForwardLinks() != null)
             return twinEntity.getTwinLinks().getForwardLinks().containsGroupedKey(linkId);
         return twinLinkRepository.existsBySrcTwinIdAndLinkId(twinEntity.getId(), linkId);
+    }
+
+    public void cudTwinLinks(TwinEntity twinEntity, EntityCUD<TwinLinkEntity> twinLinkCUD, TwinChangesCollector twinChangesCollector) throws ServiceException {
+        if (twinLinkCUD == null)
+            return;
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getCreateList())) {
+            addLinks(twinEntity, twinLinkCUD.getCreateList(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getUpdateList())) {
+            updateTwinLinks(twinEntity, twinLinkCUD.getUpdateList(), twinChangesCollector);
+        }
+        if (CollectionUtils.isNotEmpty(twinLinkCUD.getDeleteList())) {
+            deleteTwinLinks(twinEntity.getId(), twinLinkCUD.getDeleteList(), twinChangesCollector);
+        }
     }
 }

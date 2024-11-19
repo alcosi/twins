@@ -7,7 +7,6 @@ import org.cambium.common.PublicCloneable;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * CD - create, delete
@@ -16,17 +15,17 @@ import java.util.UUID;
 @Accessors(chain = true)
 public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<EntityCD<T>> {
     protected List<T> createList;
-    protected List<UUID> deleteUUIDList;
+    protected List<T> deleteList;
 
     public boolean isEmpty() {
-        return CollectionUtils.isEmpty(createList) && CollectionUtils.isEmpty(deleteUUIDList);
+        return CollectionUtils.isEmpty(createList) && CollectionUtils.isEmpty(deleteList);
     }
 
     @Override
     public EntityCD<T> clone() {
         EntityCD<T> clone = new EntityCD<>();
         clone.createList = cloneCreateList();
-        clone.deleteUUIDList = cloneDeleteList();
+        clone.deleteList = cloneDeleteList();
         return clone;
     }
 
@@ -41,9 +40,9 @@ public class EntityCD<T extends PublicCloneable<T>> implements PublicCloneable<E
         return null;
     }
 
-    protected List<UUID> cloneDeleteList() {
-        if (CollectionUtils.isNotEmpty(deleteUUIDList)) {
-            List<UUID> ret = new ArrayList<>(this.deleteUUIDList);
+    protected List<T> cloneDeleteList() {
+        if (CollectionUtils.isNotEmpty(deleteList)) {
+            List<T> ret = new ArrayList<>(this.deleteList);
             return ret;
         }
         return null;

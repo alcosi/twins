@@ -4,23 +4,16 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.ArrayUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.util.CollectionUtils;
-import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.businessaccount.BusinessAccountRepository;
-import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
-import org.twins.core.dao.businessaccount.BusinessAccountUserRepository;
-import org.twins.core.dao.domain.*;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dao.user.UserRepository;
 import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.auth.ApiUserResolverService;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -59,17 +52,7 @@ public class ApiUser {
     @Setter
     private boolean checkMembershipMode = true;
 
-    final EntitySmartService entitySmartService;
-    final DomainRepository domainRepository;
-    final DomainUserRepository domainUserRepository;
-    final DomainBusinessAccountRepository domainBusinessAccountRepository;
-    final BusinessAccountRepository businessAccountRepository;
-    final BusinessAccountUserRepository businessAccountUserRepository;
-    final UserRepository userRepository;
-    final DomainResolverHeaders domainResolverHeaders;
-    final LocaleResolverDomainUser localeResolverDomainUser;
-    final LocaleResolverHeader localeResolverHeader;
-    final UserBusinessAccountResolverAuthToken userBusinessAccountResolverAuthToken;
+    final ApiUserResolverService apiUserResolverService;
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
         this.domainResolver = domainResolver;
@@ -99,7 +82,7 @@ public class ApiUser {
         resolveDomainId();
         if (domainId == null)
             throw new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN);
-        domain = entitySmartService.findById(domainId, domainRepository, EntitySmartService.FindMode.ifEmptyThrows);
+        domain = apiUserResolverService.findDomain(domainId);
         return domain;
     }
 
@@ -135,7 +118,7 @@ public class ApiUser {
         if (locale != null)
             return;
         if (localeResolver == null)
-            localeResolver = localeResolverDomainUser;
+            localeResolver = apiUserResolverService.getLocaleResolverDomainUser();
         try {
             locale = localeResolver.resolveCurrentLocale();
         } catch (ServiceException e) {
@@ -147,7 +130,7 @@ public class ApiUser {
         if (domainId != null)
             return;
         if (domainResolver == null)
-            domainResolver = domainResolverHeaders;
+            domainResolver = apiUserResolverService.getDomainResolverHeaders();
         try {
             domainId = domainResolver.resolveCurrentDomainId();
         } catch (ServiceException e) {
@@ -161,7 +144,7 @@ public class ApiUser {
         if (businessAccountId != null)
             return;
         if (businessAccountResolver == null)
-            businessAccountResolver = userBusinessAccountResolverAuthToken;
+            businessAccountResolver = apiUserResolverService.getUserBusinessAccountResolverAuthToken();
         try {
             businessAccountId = businessAccountResolver.resolveCurrentBusinessAccountId();
         } catch (ServiceException e) {
@@ -175,7 +158,7 @@ public class ApiUser {
         if (userId != null)
             return;
         if (userResolver == null)
-            userResolver = userBusinessAccountResolverAuthToken;
+            userResolver = apiUserResolverService.getUserBusinessAccountResolverAuthToken();
         try {
             userId = userResolver.resolveCurrentUserId();
         } catch (ServiceException e) {
@@ -185,13 +168,15 @@ public class ApiUser {
             userId = NOT_SPECIFIED;
     }
 
+    //this method only indicates that we have some data about domain id, but it's unchecked
     public boolean isDomainSpecified() {
         if (domain != null)
             return true;
         resolveDomainId();
-        return domainId != null && !NOT_SPECIFIED.equals(businessAccountId);
+        return domainId != null && !NOT_SPECIFIED.equals(domainId);
     }
 
+    //this method only indicates that we have some data about domain id, but it's unchecked
     public boolean isBusinessAccountSpecified() {
         if (businessAccount != null)
             return true;
@@ -199,6 +184,7 @@ public class ApiUser {
         return businessAccountId != null && !NOT_SPECIFIED.equals(businessAccountId);
     }
 
+    //this method only indicates that we have some data about domain id, but it's unchecked
     public boolean isUserSpecified() {
         if (user != null)
             return true;
@@ -229,51 +215,19 @@ public class ApiUser {
      * D - domain
      * B - businessAccount
      * U - user
-     *
+     * This method is very important to for checking membership
      * @throws ServiceException
      */
     private void loadDBU() throws ServiceException {
         resolveDomainId();
         resolveBusinessAccountId();
         resolveUserId();
-        if (checkMembershipMode) {
-            if (isUserSpecified() && isDomainSpecified() && isBusinessAccountSpecified() && (domain == null || businessAccount == null || user == null)) {
-                List<Object[]> dbuList = userRepository.findDBU_ByUserIdAndBusinessAccountIdAndDomainId(userId, businessAccountId, domainId);
-                if (CollectionUtils.isEmpty(dbuList) || dbuList.size() != 1 || ArrayUtils.isEmpty(dbuList.get(0)) || dbuList.get(0).length != 3)
-                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "] or business account[" + businessAccountId + "]");
-                domain = (DomainEntity) dbuList.get(0)[0];
-                businessAccount = (BusinessAccountEntity) dbuList.get(0)[1];
-                user = (UserEntity) dbuList.get(0)[2];
-                return;
-            } else if (isDomainSpecified() && isBusinessAccountSpecified() && (domain == null || businessAccount == null)) {
-                DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(domainId, businessAccountId);
-                if (domainBusinessAccountEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "Business account[" + businessAccountId + "] is not registered in domain[" + domainId + "]");
-                domain = domainBusinessAccountEntity.getDomain();
-                businessAccount = domainBusinessAccountEntity.getBusinessAccount();
-                return;
-            } else if (isDomainSpecified() && isUserSpecified() && (domain == null || user == null)) {
-                DomainUserEntity domainUserEntity = domainUserRepository.findByDomainIdAndUserId(domainId, userId, DomainUserEntity.class);
-                if (domainUserEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in domain[" + domainId + "]");
-                domain = domainUserEntity.getDomain();
-                user = domainUserEntity.getUser();
-                return;
-            } else if (isBusinessAccountSpecified() && isUserSpecified() && (businessAccount == null || user == null)) {
-                BusinessAccountUserEntity businessAccountUserEntity = businessAccountUserRepository.findByBusinessAccountIdAndUserId(businessAccountId, userId, BusinessAccountUserEntity.class);
-                if (businessAccountUserEntity == null)
-                    throw new ServiceException(ErrorCodeTwins.USER_UNKNOWN, "User[" + userId + "] is not registered in business account[" + businessAccountId + "]");
-                businessAccount = businessAccountUserEntity.getBusinessAccount();
-                user = businessAccountUserEntity.getUser();
-                return;
-            }
-        }
-        if (isDomainSpecified() && domain == null)
-            domain = entitySmartService.findById(domainId, domainRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        if (isBusinessAccountSpecified() && businessAccount == null)
-            businessAccount = entitySmartService.findById(businessAccountId, businessAccountRepository, EntitySmartService.FindMode.ifEmptyThrows);
-        if (isUserSpecified() && user == null)
-            user = entitySmartService.findById(userId, userRepository, EntitySmartService.FindMode.ifEmptyThrows);
+
+        ApiUserResolverService.DBU dbu = new ApiUserResolverService.DBU(domain, businessAccount, user); //all args can be null
+        apiUserResolverService.loadDBU(domainId, businessAccountId, userId, dbu, checkMembershipMode);
+        domain = dbu.getDomain();
+        businessAccount = dbu.getBusinessAccount();
+        user = dbu.getUser();
     }
 
     public Channel getChannel() {
@@ -283,19 +237,19 @@ public class ApiUser {
     public ApiUser setAnonymous(UUID domainId) {
         return setDomainResolver(new DomainResolverGivenId(domainId))
                 .setUserResolver(new UserResolverNotSpecified())
-                .setLocaleResolver(localeResolverHeader)
+                .setLocaleResolver(apiUserResolverService.getLocaleResolverHeader())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 
     public ApiUser setAnonymous() {
-        return setDomainResolver(domainResolverHeaders)
+        return setDomainResolver(apiUserResolverService.getDomainResolverHeaders())
                 .setUserResolver(new UserResolverNotSpecified())
-                .setLocaleResolver(localeResolverHeader)
+                .setLocaleResolver(apiUserResolverService.getLocaleResolverHeader())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());
     }
 
     public ApiUser setAnonymousWithDefaultLocale() {
-        return setDomainResolver(domainResolverHeaders)
+        return setDomainResolver(apiUserResolverService.getDomainResolverHeaders())
                 .setUserResolver(new UserResolverNotSpecified())
                 .setLocaleResolver(new LocaleResolverEnglish())
                 .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified());

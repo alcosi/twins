@@ -29,14 +29,17 @@ public class PermissionGroupSpecification extends CommonSpecification<Permission
         };
     }
 
-    public static Specification<PermissionGroupEntity> checkDomainId(UUID domainId) {
+    public static Specification<PermissionGroupEntity> checkDomainId(UUID domainId, boolean showSystemGroup) {
         return (root, query, cb) -> {
             if (domainId == null)
                 return cb.conjunction();
-            return cb.or(
-                    cb.isNull(root.get(PermissionGroupEntity.Fields.domainId)),
-                    cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId)
-            );
+            if (showSystemGroup)
+                return cb.or(
+                        cb.isNull(root.get(PermissionGroupEntity.Fields.domainId)),
+                        cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId)
+                );
+            else
+                return cb.equal(root.get(PermissionGroupEntity.Fields.domainId), domainId);
         };
     }
 }

@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -22,8 +21,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapperV2;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
 
@@ -53,7 +52,7 @@ public class AttachmentViewController extends ApiController {
         try {
             rs.setAttachment(
                     attachmentRestDTOMapperV2.convert(
-                            attachmentService.findAttachment(attachmentId, EntitySmartService.FindMode.ifEmptyThrows), mapperContext
+                            attachmentService.findEntitySafe(attachmentId), mapperContext
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

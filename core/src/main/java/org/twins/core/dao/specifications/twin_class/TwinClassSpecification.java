@@ -4,6 +4,7 @@ import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
@@ -20,7 +21,7 @@ public class TwinClassSpecification extends CommonSpecification<TwinClassEntity>
 
     public static Specification<TwinClassEntity> checkHierarchyIsChild(String field, final UUID id) {
         return (root, query, cb) -> {
-            String ltreeId = "*." + id.toString().replace("-", "_") + ".*";
+            String ltreeId = LTreeUtils.matchInTheMiddle(id);
             Expression<String> hierarchyTreeExpression = root.get(field);
             return cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId)));
         };
