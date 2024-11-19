@@ -23,7 +23,7 @@ import static org.twins.core.dao.specifications.permission.PermissionGrantUserSp
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionGrantyUserSearchService {
+public class PermissionGrantUserSearchService {
     private final AuthService authService;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
 
