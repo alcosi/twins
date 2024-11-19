@@ -32,7 +32,7 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @OneToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 

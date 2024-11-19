@@ -1,13 +1,11 @@
 
-package org.twins.core.dao.attachment;
+package org.twins.core.dao.validator;
 
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.validator.ContainsTwinValidatorSet;
-import org.twins.core.dao.validator.TwinValidatorEntity;
-import org.twins.core.dao.validator.TwinValidatorSetEntity;
+import org.twins.core.dao.attachment.TwinAttachmentAction;
 
 import java.util.List;
 import java.util.UUID;
@@ -37,7 +35,7 @@ public class TwinAttachmentActionAlienValidatorRuleEntity implements ContainsTwi
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", insertable = false, updatable = false)
     private List<TwinValidatorEntity> twinValidators;
 
