@@ -70,9 +70,10 @@ public class AttachmentActionService {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                twinAttachmentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionAlienValidatorRule.getTwinValidators());
+                sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
-                for (TwinValidatorEntity twinValidatorEntity : twinAttachmentActionAlienValidatorRule.getTwinValidators()) {
+                for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
@@ -105,8 +106,9 @@ public class AttachmentActionService {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                     continue;
                 }
-                twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                for (TwinValidatorEntity twinValidatorEntity : twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators()) {
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionSelfValidatorRuleEntity.getTwinValidators());
+                sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.logNormal(), twinAttachmentActionSelfValidatorRuleEntity.logNormal());
                         continue;

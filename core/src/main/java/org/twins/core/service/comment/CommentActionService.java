@@ -76,9 +76,10 @@ public class CommentActionService {
                     log.info("{} will not be used, since it is inactive.", twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                     continue;
                 }
-                twinCommentActionAlienValidatorRule.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinCommentActionAlienValidatorRule.getTwinValidators());
+                sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
                 isValid = true;
-                for(TwinValidatorEntity twinValidatorEntity : twinCommentActionAlienValidatorRule.getTwinValidators()) {
+                for(TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
                         log.info("{} from {} will not be used, since it is inactive.", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinCommentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
                         continue;
