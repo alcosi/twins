@@ -10,14 +10,13 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class DataListSearch {
+public class DataListOptionSearch {
     Set<UUID> idList;
     Set<UUID> idExcludeList;
-    Set<String> nameLikeList;
-    Set<String> nameNotLikeList;
-    Set<String> descriptionLikeList;
-    Set<String> descriptionNotLikeList;
-    Set<String> keyLikeList;
-    Set<String> keyNotLikeList;
-    DataListOptionSearch optionSearch;
+    Set<String> optionLikeList;
+    Set<String> optionNotLikeList;
+    Set<String> optionI18nLikeList;
+    Set<String> optionI18nNotLikeList;
+    Set<UUID> businessAccountIdList;
+    Set<UUID> businessAccountIdExcludeList;
 }

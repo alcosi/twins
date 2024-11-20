@@ -100,10 +100,14 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 .and(checkDataListFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
                 .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
                 .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionLikeList(), false, true))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), locale,false, false))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), locale,true, true))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch().getIdList(),false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch().getIdExcludeList(),true, false))
+                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch().getOptionLikeList(), false, true))
+                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch().getOptionNotLikeList(), true, true))
+                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch().getOptionI18nLikeList(), locale,false, false))
+                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch().getOptionI18nNotLikeList(), locale,true, true))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch().getBusinessAccountIdList(),false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch().getBusinessAccountIdExcludeList(),true, true))
         );
     }
 
