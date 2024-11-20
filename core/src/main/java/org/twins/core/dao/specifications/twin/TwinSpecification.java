@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.*;
 
@@ -151,12 +152,13 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-    public static Specification<TwinEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<TwinEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(search))
                 for (String s : search) {
                     Predicate predicate = cb.like(cb.lower(root.get(field)), s.toLowerCase());
+                    if (not) predicate = cb.not(predicate);
                     predicates.add(predicate);
                 }
             return getPredicate(cb, predicates, or);
