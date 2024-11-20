@@ -60,8 +60,9 @@ public class TwinActionService {
             }
             for (TwinActionValidatorRuleEntity twinActionValidatorRuleEntity : twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction)) {
                 boolean isValid = true;
-                twinActionValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                for (TwinValidatorEntity twinValidatorEntity : twinActionValidatorRuleEntity.getTwinValidators()) {
+                List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinActionValidatorRuleEntity.getTwinValidators());
+                sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
                         log.info(twinValidatorEntity.logShort() + " from " + twinActionValidatorRuleEntity.logShort() + " is inactive");
                         continue;
@@ -182,8 +183,9 @@ public class TwinActionService {
                         // Map for checked and valid twin for current action <twin.id:uuid, valid: boolean>
                         Map<UUID, Boolean> twinByTwinValidatorsIsValid = new HashMap<>();
                         // Check each validator for the action
-                        actionValidatorRuleEntity.getTwinValidators().sort(Comparator.comparing(TwinValidatorEntity::getOrder));
-                        for (TwinValidatorEntity twinValidatorEntity : actionValidatorRuleEntity.getTwinValidators()) {
+                        List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(actionValidatorRuleEntity.getTwinValidators());
+                        sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                        for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                             if (!twinValidatorEntity.isActive()) {
                                 log.info(twinValidatorEntity.logShort() + " from " + actionValidatorRuleEntity.logShort() + " is inactive");
                                 continue;

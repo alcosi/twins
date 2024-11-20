@@ -5,16 +5,20 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.twins.core.dao.twin.TwinTagEntity;
 
 import java.sql.Timestamp;
+import java.util.Collection;
 import java.util.UUID;
 
 @Entity
 @Data
 @Accessors(chain = true)
 @Table(name = "data_list")
+@FieldNameConstants
 public class DataListEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -55,4 +59,10 @@ public class DataListEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @ToString.Exclude
     Kit<DataListOptionEntity, UUID> options;
+
+    //needed for specification
+    @Deprecated
+    @OneToMany(mappedBy = "dataList")
+    @EqualsAndHashCode.Exclude
+    private Collection<DataListOptionEntity> dataListOptions;
 }

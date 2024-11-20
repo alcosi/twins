@@ -6,7 +6,7 @@ import lombok.Data;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -33,9 +33,10 @@ public class TwinAttachmentActionSelfValidatorRuleEntity implements EasyLoggable
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    //TODO think over @ManyToMany https://alcosi.atlassian.net/browse/TWINS-220
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    private List<TwinValidatorEntity> twinValidators;
+    private Set<TwinValidatorEntity> twinValidators;
 
     @Override
     public String easyLog(Level level) {

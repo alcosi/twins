@@ -6,14 +6,30 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
-@EqualsAndHashCode(callSuper = true)
+@Accessors(chain = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "DataListSearchRqV1")
 public class DataListSearchRqDTOv1 extends Request {
-    @Schema(description = "data list id list", example = "")
-    public List<UUID> dataListIdList;
+    @Schema(description = "datalist id list")
+    public Set<UUID> idList;
+    @Schema(description = "datalist id exclude list")
+    public Set<UUID> idExcludeList;
+    @Schema(description = "datalist name like list")
+    public Set<String> nameLikeList;
+    @Schema(description = "datalist name not like list")
+    public Set<String> nameNotLikeList;
+    @Schema(description = "datalist description like list")
+    public Set<String> descriptionLikeList;
+    @Schema(description = "datalist description not like list")
+    public Set<String> descriptionNotLikeList;
+    @Schema(description = "datalist class key like list")
+    public Set<String> keyLikeList;
+    @Schema(description = "datalist class key not like list")
+    public Set<String> keyNotLikeList;
+    @Schema(description = "data list option search")
+    public DataListOptionSearchDTOv1 optionSearch;
 }

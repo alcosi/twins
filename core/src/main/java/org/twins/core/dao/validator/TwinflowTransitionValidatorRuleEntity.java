@@ -32,9 +32,10 @@ public class TwinflowTransitionValidatorRuleEntity implements ContainsTwinValida
     @Column(name = "twin_validator_set_id")
     private UUID twinValidatorSetId;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    //TODO think over @ManyToMany https://alcosi.atlassian.net/browse/TWINS-220
+    @OneToMany(fetch = FetchType.EAGER)
     @JoinColumn(name = "twin_validator_set_id", referencedColumnName = "twin_validator_set_id", insertable = false, updatable = false)
-    private List<TwinValidatorEntity> twinValidators;
+    private Set<TwinValidatorEntity> twinValidators;
 
     @Transient
     private TwinValidatorSetEntity twinValidatorSet;

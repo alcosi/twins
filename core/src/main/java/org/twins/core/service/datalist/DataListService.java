@@ -7,14 +7,19 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.KitUtils;
+import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -24,6 +29,7 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.DataListSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
@@ -33,6 +39,9 @@ import org.twins.core.service.twinclass.TwinClassFieldService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.cambium.i18n.dao.specifications.I18nSpecification.doubleJoinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
 @Slf4j
 @Service
@@ -73,14 +82,33 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return true;
     }
 
-    public List<DataListEntity> findDataLists(List<UUID> uuidLists) throws ServiceException {
-        List<DataListEntity> dataListEntityList = null;
-        ApiUser apiUser = authService.getApiUser();
-        if (CollectionUtils.isNotEmpty(uuidLists)) {
-            dataListEntityList = dataListRepository.findByDomainIdAndIdIn(apiUser.getDomain().getId(), uuidLists);
-        } else
-            dataListEntityList = dataListRepository.findByDomainId(apiUser.getDomain().getId());
-        return dataListEntityList;
+    public PaginationResult<DataListEntity> findDataListsForDomain(DataListSearch search, SimplePagination pagination) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        Specification<DataListEntity> spec = createDataListSpecification(search).and(checkDomainId(domainId));
+        Page<DataListEntity> ret = dataListRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<DataListEntity> createDataListSpecification(DataListSearch search) throws ServiceException {
+        Locale locale = authService.getApiUser().getLocale();
+        return Specification.where(joinWithDataListOptions()
+                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, true))
+                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
+                .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch().getIdList(),false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch().getIdExcludeList(),true, false))
+                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch().getOptionLikeList(), false, true))
+                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch().getOptionNotLikeList(), true, true))
+                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch().getOptionI18nLikeList(), locale,false, false))
+                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch().getOptionI18nNotLikeList(), locale,true, true))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch().getBusinessAccountIdList(),false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch().getBusinessAccountIdExcludeList(),true, true))
+        );
     }
 
     public DataListEntity findDataListByKey(ApiUser apiUser, String dataListKey) throws ServiceException {
@@ -90,22 +118,9 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dataListEntity;
     }
 
-    public List<DataListOptionEntity> findDataListOptions(UUID dataListId) throws ServiceException {
-        return authService.getApiUser().isBusinessAccountSpecified() ?
-                dataListOptionRepository.findByDataListIdAndBusinessAccountId(dataListId, authService.getApiUser().getBusinessAccount().getId()) :
-                dataListOptionRepository.findByDataListId(dataListId);
-    }
-
     //todo cache it
-    public Kit<DataListOptionEntity, UUID> findDataListOptionsAsKit(UUID dataListId) throws ServiceException {
-        return new Kit<>(findDataListOptions(dataListId), DataListOptionEntity::getId);
-    }
-
-    public Kit<DataListOptionEntity, UUID> loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
-        if (dataListEntity.getOptions() != null)
-            return dataListEntity.getOptions();
-        dataListEntity.setOptions(findDataListOptionsAsKit(dataListEntity.getId()));
-        return dataListEntity.getOptions();
+    public void loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
+        loadDataListOptions(Collections.singletonList(dataListEntity));
     }
 
     public void loadDataListOptions(Collection<DataListEntity> dataListEntityCollection) throws ServiceException {
@@ -120,9 +135,8 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 findOptionsForDataLists(needLoad.getIdSet()),
                 DataListOptionEntity::getId,
                 DataListOptionEntity::getDataListId);
-        for (DataListEntity dataListEntity : needLoad.getCollection()) {
+        for (DataListEntity dataListEntity : needLoad.getCollection())
             dataListEntity.setOptions(new Kit<>(optionsKit.getGrouped(dataListEntity.getId()), DataListOptionEntity::getId));
-        }
     }
 
     public List<DataListOptionEntity> findOptionsForDataLists(Set<UUID> dataListIds) throws ServiceException {
