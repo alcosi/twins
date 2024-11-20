@@ -8,6 +8,9 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
+import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.twin.*;
 import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
@@ -28,9 +31,11 @@ public class TwinChangesService {
     final TwinFieldUserRepository twinFieldUserRepository;
     final TwinMarkerRepository twinMarkerRepository;
     final TwinTagRepository twinTagRepository;
+    final TwinAttachmentRepository twinAttachmentRepository;
     final EntitySmartService entitySmartService;
     final HistoryService historyService;
 
+    @Transactional(rollbackFor = Throwable.class)
     public TwinChangesApplyResult applyChanges(TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinChangesApplyResult changesApplyResult = new TwinChangesApplyResult();
         if (!twinChangesCollector.hasChanges())
@@ -43,6 +48,7 @@ public class TwinChangesService {
         saveEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinMarkerEntity.class, twinMarkerRepository, changesApplyResult);
         saveEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository, changesApplyResult);
+        saveEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository, changesApplyResult);
         if (!twinChangesCollector.getSaveEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Map<Object, ChangesHelper>> classChanges : twinChangesCollector.getSaveEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for saving", classChanges.getKey().getSimpleName());
@@ -54,6 +60,7 @@ public class TwinChangesService {
         deleteEntities(twinChangesCollector, TwinLinkEntity.class, twinLinkRepository);
         deleteEntities(twinChangesCollector, TwinMarkerEntity.class, twinMarkerRepository);
         deleteEntities(twinChangesCollector, TwinTagEntity.class, twinTagRepository);
+        deleteEntities(twinChangesCollector, TwinAttachmentEntity.class, twinAttachmentRepository);
         if (!twinChangesCollector.getDeleteEntityMap().isEmpty())
             for (Map.Entry<Class<?>, Set<Object>> classChanges : twinChangesCollector.getDeleteEntityMap().entrySet()) {
                 log.warn("Unsupported entity class[{}] for deletion", classChanges.getKey().getSimpleName());
@@ -88,6 +95,9 @@ public class TwinChangesService {
                         break;
                     case fieldValuesKit:
                         entry.getKey().setFieldValuesKit(null);
+                        break;
+                    case twinAttachments:
+                        entry.getKey().setAttachmentKit(null);
                         break;
                 }
             }

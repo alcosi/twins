@@ -11,7 +11,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "PermissionGrantUserV1")
 public class PermissionGrantUserDTOv1 {
-    @Schema(description = "id", example = DTOExamples.PERMISSION_SCHEMA_USER_ID)
+    @Schema(description = "id", example = DTOExamples.PERMISSION_GRANT_USER_ID)
     public UUID id;
 
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)

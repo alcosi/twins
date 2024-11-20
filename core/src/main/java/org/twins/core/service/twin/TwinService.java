@@ -478,7 +478,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    @Transactional
     public void updateTwinFields(TwinEntity twinEntity, List<FieldValue> values, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinField twinField;
         for (FieldValue fieldValue : values) {
@@ -488,7 +487,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    @Transactional
     public void updateTwin(TwinUpdate twinUpdate) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
@@ -502,7 +500,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         twinChangesService.applyChanges(twinChangesCollector);
     }
 
-    @Transactional
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
@@ -586,7 +583,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     public void updateTwinStatus(ChangesRecorder<TwinEntity, ?> changesRecorder) {
-        if (changesRecorder.isChanged("status", changesRecorder.getDbEntity().getTwinStatusId(), changesRecorder.getUpdateEntity().getId())) {
+        if (changesRecorder.isChanged("status", changesRecorder.getDbEntity().getTwinStatusId(), changesRecorder.getUpdateEntity().getTwinStatusId())) {
             if (changesRecorder.isHistoryCollectorEnabled())
                 changesRecorder.getHistoryCollector().add(historyService.statusChanged(changesRecorder.getDbEntity().getTwinStatus(), changesRecorder.getUpdateEntity().getTwinStatus()));
             if (changesRecorder.getRecorder() instanceof DraftTwinPersistEntity draftTwinPersistEntity)

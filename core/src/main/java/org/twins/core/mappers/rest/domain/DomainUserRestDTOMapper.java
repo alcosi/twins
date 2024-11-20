@@ -17,7 +17,7 @@ import java.util.Locale;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {BusinessAccountUserCollectionMode.class})
+@MapperModeBinding(modes = {DomainUserMode.class, BusinessAccountUserCollectionMode.class})
 public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntity, DomainUserDTOv1> {
 
     private final BusinessAccountService businessAccountService;
@@ -35,7 +35,9 @@ public class DomainUserRestDTOMapper extends RestSimpleDTOMapper<DomainUserEntit
                         .setCurrentLocale(src.getI18nLocaleId() != null ? src.getI18nLocaleId() : Locale.ROOT);
                 break;
             case SHORT:
-                dst.setId(src.getId());
+                dst
+                        .setId(src.getId())
+                        .setUserId(src.getUserId());
                 break;
         }
         if (showBusinessAccountUserCollection(mapperContext))

@@ -80,7 +80,6 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
         }
         BusinessAccountUserEntity businessAccountUserEntity = new BusinessAccountUserEntity()
                 .setBusinessAccountId(businessAccountId)
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setUserId(userId);
         entitySmartService.save(businessAccountUserEntity, businessAccountUserRepository, EntitySmartService.SaveMode.saveAndLogOnException);
     }

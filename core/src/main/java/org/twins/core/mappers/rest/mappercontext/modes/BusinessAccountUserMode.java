@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum UserGroupMode implements MapperMode {
+public enum BusinessAccountUserMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum UserGroupMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum PermissionGrantUserGroup2UserGroupMode implements MapperModePointer<UserGroupMode> {
+    public enum DomainUser2BusinessAccountUserMode implements MapperModePointer<BusinessAccountUserMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum UserGroupMode implements MapperMode {
         final int priority;
 
         @Override
-        public UserGroupMode point() {
+        public BusinessAccountUserMode point() {
             return switch (this) {
-                case HIDE -> UserGroupMode.HIDE;
-                case SHORT -> UserGroupMode.SHORT;
-                case DETAILED -> UserGroupMode.DETAILED;
+                case HIDE -> BusinessAccountUserMode.HIDE;
+                case SHORT -> BusinessAccountUserMode.SHORT;
+                case DETAILED -> BusinessAccountUserMode.DETAILED;
             };
         }
     }

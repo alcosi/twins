@@ -28,7 +28,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.*;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.permission.PermissionGrantyUserSearchService;
+import org.twins.core.service.permission.PermissionGrantUserSearchService;
 
 @Tag(name = ApiTag.PERMISSION)
 @RestController
@@ -37,7 +37,7 @@ import org.twins.core.service.permission.PermissionGrantyUserSearchService;
 public class PermissionGrantUserSearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
-    private final PermissionGrantyUserSearchService permissionGrantyUserSearchService;
+    private final PermissionGrantUserSearchService permissionGrantUserSearchService;
     private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
     private final PermissionGrantUserSearchDTOReverseMapper permissionGrantUserSearchDTOReverseMapper;
 
@@ -55,7 +55,7 @@ public class PermissionGrantUserSearchController extends ApiController {
             @RequestBody PermissionGrantUserSearchRqDTOv1 request) {
         PermissionGrantUserSearchRsDTOv1 rs = new PermissionGrantUserSearchRsDTOv1();
         try {
-            PaginationResult<PermissionGrantUserEntity> permissionGrants = permissionGrantyUserSearchService
+            PaginationResult<PermissionGrantUserEntity> permissionGrants = permissionGrantUserSearchService
                     .findPermissionGrantUsersByDomain(permissionGrantUserSearchDTOReverseMapper.convert(request), pagination);
             rs
                     .setPermissionGrantUsers(permissionGrantUserRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
