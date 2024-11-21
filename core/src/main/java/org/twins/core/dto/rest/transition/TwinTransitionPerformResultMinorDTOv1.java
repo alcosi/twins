@@ -11,7 +11,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "TwinTransitionPerformRsV1")
+@Schema(name =  "TwinTransitionPerformResultMinorRsV1")
 public class TwinTransitionPerformResultMinorDTOv1 implements TwinTransitionPerformResultDTO {
     public static final String KEY = "minor";
     public String resultType = KEY;
