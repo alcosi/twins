@@ -9,8 +9,6 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
 import org.twins.core.dao.domain.DomainBusinessAccountRepository;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.SystemEntityService;
-import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.HashMap;
@@ -23,23 +21,18 @@ import java.util.Properties;
 @Slf4j
 public abstract class BusinessAccountInitiator extends FeaturerTwins {
     @Autowired
-    EntitySmartService entitySmartService;
+    private EntitySmartService entitySmartService;
     @Autowired
-    DomainBusinessAccountRepository domainBusinessAccountRepository;
+    private DomainBusinessAccountRepository domainBusinessAccountRepository;
     @Lazy
     @Autowired
-    TwinService twinService;
-    @Lazy
-    @Autowired
-    AuthService authService;
-    @Lazy
-    @Autowired
-    SystemEntityService systemEntityService;
+    private TwinService twinService;
 
     public void init(HashMap<String, String> initiatorParams, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
         domainBusinessAccountEntity
                 .setPermissionSchemaId(domainBusinessAccountEntity.getTier().getPermissionSchemaId())
+                .setPermissionSchema(domainBusinessAccountEntity.getTier().getPermissionSchema())
                 .setTwinClassSchemaId(domainBusinessAccountEntity.getTier().getTwinClassSchemaId())
                 .setTwinflowSchemaId(domainBusinessAccountEntity.getTier().getTwinflowSchemaId());
         init(properties, domainBusinessAccountEntity);
