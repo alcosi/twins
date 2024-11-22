@@ -175,8 +175,9 @@ public class DomainService {
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
-                .setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()))
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
+
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
     }
