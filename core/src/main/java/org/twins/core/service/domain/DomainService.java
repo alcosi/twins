@@ -89,6 +89,7 @@ public class DomainService {
 
     @Lazy
     private final UserGroupService userGroupService;
+    private final TierService tierService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -174,6 +175,7 @@ public class DomainService {
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
+                .setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()))
                 .setCreatedAt(Timestamp.from(Instant.now()));
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
