@@ -119,7 +119,7 @@ public class TwinTransitionPerformControllerOld extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = TwinTransitionPerformRsDTOv2.class))}),
+                    @Schema(implementation = TwinTransitionPerformRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @RequestMapping(value = "/private/transition/{transitionId}/perform/batch/v1", method = RequestMethod.POST)
     public ResponseEntity<?> twinTransitionPerformBatchV1(

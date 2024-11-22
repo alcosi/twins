@@ -38,6 +38,10 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
 
     public void init(HashMap<String, String> initiatorParams, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, initiatorParams, new HashMap<>());
+        domainBusinessAccountEntity
+                .setPermissionSchemaId(domainBusinessAccountEntity.getTier().getPermissionSchemaId())
+                .setTwinClassSchemaId(domainBusinessAccountEntity.getTier().getTwinClassSchemaId())
+                .setTwinflowSchemaId(domainBusinessAccountEntity.getTier().getTwinflowSchemaId());
         init(properties, domainBusinessAccountEntity);
         domainBusinessAccountEntity = entitySmartService.save(domainBusinessAccountEntity, domainBusinessAccountRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         postInit(properties, domainBusinessAccountEntity);
