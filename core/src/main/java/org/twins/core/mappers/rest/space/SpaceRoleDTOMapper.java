@@ -23,15 +23,15 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
         switch (mapperContext.getModeOrUse(SpaceRoleMode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .key(src.getKey())
-                        .name(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
-                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "");
+                        .setId(src.getId())
+                        .setKey(src.getKey())
+                        .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
+                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "");
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .key(src.getKey());
+                        .setId(src.getId())
+                        .setKey(src.getKey());
                 break;
         }
     }

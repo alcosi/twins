@@ -25,6 +25,9 @@ public class DataListDTOv1 {
     @Schema(description = "description", example = "Supported country list")
     public String description;
 
+    @Schema(description = "key", example = DTOExamples.DATA_LIST_KEY)
+    public String key;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public LocalDateTime updatedAt;

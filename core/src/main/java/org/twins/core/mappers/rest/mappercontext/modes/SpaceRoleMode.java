@@ -55,4 +55,24 @@ public enum SpaceRoleMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum PermissionGrantSpaceRole2SpaceRoleMode implements MapperModePointer<SpaceRoleMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public SpaceRoleMode point() {
+            return switch (this) {
+                case HIDE -> SpaceRoleMode.HIDE;
+                case SHORT -> SpaceRoleMode.SHORT;
+                case DETAILED -> SpaceRoleMode.DETAILED;
+            };
+        }
+    }
 }
