@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
-import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
+import org.twins.core.dto.rest.space.SpaceRoleDTOv2;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -49,7 +49,7 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, DataListOptionDTOv1> dataListsOptionMap;
 
     @Schema(description = "related space role map", example = "{space role map}")
-    public Map<UUID, SpaceRoleDTOv1> spaceRoleMap;
+    public Map<UUID, SpaceRoleDTOv2> spaceRoleMap;
 
     @Schema(description = "related business account map", example = "{business account map}")
     public Map<UUID, BusinessAccountDTOv1> businessAccountMap;
