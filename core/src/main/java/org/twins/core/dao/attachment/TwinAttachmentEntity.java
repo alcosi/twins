@@ -56,6 +56,9 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @Column(name = "size")
+    private Long size;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")

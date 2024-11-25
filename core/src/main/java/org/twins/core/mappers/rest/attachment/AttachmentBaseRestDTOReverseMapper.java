@@ -17,6 +17,7 @@ public class AttachmentBaseRestDTOReverseMapper extends RestSimpleDTOMapper<Atta
         dst
                 .setStorageLink(src.getStorageLink())
                 .setTitle(src.getTitle())
+                .setSize(src.getSize())
                 .setDescription(src.getDescription())
                 .setExternalId(src.getExternalId());
     }

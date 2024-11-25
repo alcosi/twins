@@ -28,6 +28,9 @@ public class AttachmentBaseDTOv1 extends Request {
     @Schema(description = "Description", example = DTOExamples.ATTACHMENT_TITLE)
     public String description;
 
+    @Schema(description = "File size in bytes")
+    public Long size;
+
     @JsonIgnore
     public UUID twinId;
 

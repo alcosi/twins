@@ -69,6 +69,12 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "business_account_initiator_featurer_id")
     private Integer businessAccountInitiatorFeaturerId;
 
+    @Column(name = "attachments_storage_used_count")
+    private Long attachmentsStorageUsedCount;
+
+    @Column(name = "attachments_storage_used_size")
+    private Long attachmentsStorageUsedSize;
+
     @FeaturerList(type = BusinessAccountInitiator.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "business_account_initiator_featurer_id", insertable = false, updatable = false)
