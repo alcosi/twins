@@ -10,17 +10,13 @@ import org.twins.core.featurer.FeaturerTwins;
 import java.util.Properties;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_1103,
-        name = "BusinessAccountInitiatorFromParams",
+@Featurer(id = FeaturerTwins.ID_1101,
+        name = "BusinessAccountInitiatorImpl",
         description = "")
 @RequiredArgsConstructor
-public class BusinessAccountInitiatorFromDomain extends BusinessAccountInitiator {
+public class BusinessAccountInitiatorImpl extends BusinessAccountInitiator {
+
     @Override
     protected void init(Properties properties, DomainBusinessAccountEntity domainBusinessAccountEntity) throws ServiceException {
-        //todo perhaps this can be set to nulls
-        domainBusinessAccountEntity
-                .setPermissionSchemaId(domainBusinessAccountEntity.getDomain().getPermissionSchemaId())
-                .setTwinClassSchemaId(domainBusinessAccountEntity.getDomain().getTwinClassSchemaId())
-                .setTwinflowSchemaId(domainBusinessAccountEntity.getDomain().getTwinflowSchemaId());
     }
 }

@@ -54,6 +54,10 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
 
+    @ManyToOne
+    @JoinColumn(name = "tier_id", insertable = false, updatable = false)
+    private TierEntity tier;
+
 //    @ManyToOne
 //    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
 //    private TwinflowSchemaEntity twinflowSchema;

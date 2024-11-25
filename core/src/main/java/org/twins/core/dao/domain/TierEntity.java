@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 
 import java.util.UUID;
 
@@ -48,6 +49,11 @@ public class TierEntity implements EasyLoggable {
 
     @Column(name = "user_count_quota")
     private Integer userCountQuota;
+
+    //Performance safe because tier is not used in operations
+    @ManyToOne
+    @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
+    private PermissionSchemaEntity permissionSchema;
 
     @Override
     public String easyLog(Level level) {

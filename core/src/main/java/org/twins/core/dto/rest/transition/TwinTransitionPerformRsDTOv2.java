@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name =  "TwinTransitionPerformRsV1")
+@Schema(name =  "TwinTransitionPerformRsV2")
 public class TwinTransitionPerformRsDTOv2 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "major/minor result")
     public TwinTransitionPerformResultDTO result;
