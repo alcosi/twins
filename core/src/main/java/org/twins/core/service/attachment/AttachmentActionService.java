@@ -64,7 +64,7 @@ public class AttachmentActionService {
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules()))
                 continue;
-            boolean isValid = false;
+            boolean someRuleIsValid = false;
             for (TwinAttachmentActionAlienValidatorRuleEntity twinAttachmentActionAlienValidatorRule : twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules().getGrouped(twinAttachmentAction)) {
                 if (!twinAttachmentActionAlienValidatorRule.isActive()) {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
@@ -72,6 +72,7 @@ public class AttachmentActionService {
                 }
                 List<TwinValidatorEntity> sortedTwinValidators = new ArrayList<>(twinAttachmentActionAlienValidatorRule.getTwinValidators());
                 sortedTwinValidators.sort(Comparator.comparing(TwinValidatorEntity::getOrder));
+                boolean allRuleValidatorsAreValid = true;
                 for (TwinValidatorEntity twinValidatorEntity : sortedTwinValidators) {
                     if (!twinValidatorEntity.isActive()) {
                         log.info("{} from {} will not be used, since it is inactive. ", twinValidatorEntity.easyLog(EasyLoggable.Level.NORMAL), twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
@@ -79,18 +80,18 @@ public class AttachmentActionService {
                     }
                     TwinValidator twinValidator = featurerService.getFeaturer(twinValidatorEntity.getTwinValidatorFeaturer(), TwinValidator.class);
                     TwinValidator.ValidationResult validationResult = twinValidator.isValid(twinValidatorEntity.getTwinValidatorParams(), twinEntity, twinValidatorEntity.isInvert());
-                    if (validationResult.isValid()) {
+                    if (!validationResult.isValid()) {
                         log.error(validationResult.getMessage());
-                        isValid = true;
-                    } else {
-                        log.error(validationResult.getMessage());
-                        isValid = false;
+                        allRuleValidatorsAreValid = false;
                         break;
                     }
                 }
-                if (isValid) break;
+                if (allRuleValidatorsAreValid) {
+                    someRuleIsValid = true;
+                    break;
+                }
             }
-            if (isValid)
+            if (someRuleIsValid)
                 twinAttachment.getAttachmentActions().add(twinAttachmentAction);
         }
     }
