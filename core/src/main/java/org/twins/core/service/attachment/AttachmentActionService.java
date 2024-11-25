@@ -64,7 +64,7 @@ public class AttachmentActionService {
             }
             if (KitUtils.isEmpty(twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules()))
                 continue;
-            boolean isValid = true;
+            boolean isValid = false;
             for (TwinAttachmentActionAlienValidatorRuleEntity twinAttachmentActionAlienValidatorRule : twinEntity.getTwinClass().getAttachmentAlienActionsProtectedByValidatorRules().getGrouped(twinAttachmentAction)) {
                 if (!twinAttachmentActionAlienValidatorRule.isActive()) {
                     log.info("{} will not be used, since it is inactive", twinAttachmentActionAlienValidatorRule.easyLog(EasyLoggable.Level.NORMAL));
