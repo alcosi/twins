@@ -40,7 +40,7 @@ public class AttachmentDomainQuotasController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Attachment quotas data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = AttachmentViewRsDTOv1.class))}),
+                    @Schema(implementation = AttachmentQuotasRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/attachment/quotas/domain/v1")
     public ResponseEntity<?> attachmentDomainQuotasV1(
