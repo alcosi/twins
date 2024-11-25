@@ -36,11 +36,11 @@ public class PermissionGrantTwinRoleRestDTOMapperV2 extends RestSimpleDTOMapper<
                     .setPermissionId(src.getPermissionId());
         if (mapperContext.hasModeButNot(TwinClassMode.PermissionGrantTwinRole2TwinClassMode.HIDE))
             dst
-                    .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint()))
+                    .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.PermissionGrantTwinRole2TwinClassMode.SHORT)))
                     .setTwinClassId(src.getTwinClassId());
         if (mapperContext.hasModeButNot(UserMode.PermissionGrantTwinRole2UserMode.HIDE))
             dst
-                    .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint()))
+                    .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantTwinRole2UserMode.SHORT)))
                     .setGrantedByUserId(src.getGrantedByUserId());
 
     }
