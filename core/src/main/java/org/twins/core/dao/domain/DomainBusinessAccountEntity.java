@@ -42,6 +42,12 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "attachments_storage_used_count")
+    private Long attachmentsStorageUsedCount;
+
+    @Column(name = "attachments_storage_used_size")
+    private Long attachmentsStorageUsedSize;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;

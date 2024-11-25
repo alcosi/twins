@@ -2,9 +2,13 @@ package org.twins.core.dao.factory;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.user.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Entity
@@ -27,6 +31,22 @@ public class TwinFactoryEntity implements EasyLoggable {
 
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
+
+    @Column(name = "shared")
+    private boolean shared; // factory may be used in some transitions or pipelines.
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @ManyToOne
+    @EqualsAndHashCode.Exclude
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    private UserEntity createdByUser;
 
     public String easyLog(Level level) {
         return switch (level) {

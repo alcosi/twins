@@ -2,6 +2,7 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dto.rest.permission.TwinRole;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@FieldNameConstants
 @Table(name = "permission_grant_twin_role")
 public class PermissionGrantTwinRoleEntity {
 
