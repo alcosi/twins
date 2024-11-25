@@ -27,6 +27,6 @@ public class SpaceRoleUserDTOv1 {
     public UUID createdByUserId;
 
     @Schema(description = "space role")
-    public SpaceRoleDTOv1 spaceRole;
+    public SpaceRoleDTOv2 spaceRole;
 
 }

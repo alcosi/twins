@@ -18,7 +18,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.SpaceRoleUserGroupMode;
 public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUserGroupEntity, SpaceRoleUserGroupDTOv1> {
 
     @MapperModePointerBinding(modes = SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.class)
-    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
+    private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
 
     @Override
     public void map(SpaceRoleUserGroupEntity src, SpaceRoleUserGroupDTOv1 dst, MapperContext mapperContext) throws Exception {
@@ -30,7 +30,7 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
                         .setSpaceRoleId(src.getSpaceRoleId())
                         .setUserGroupId(src.getUserGroupId())
                         .setCreatedByUserId(src.getCreatedByUserId())
-                        .setSpaceRole(spaceRoleDTOMapper.convert(src.getSpaceRole(), mapperContext));
+                        .setSpaceRole(spaceRoleDTOMapperV2.convert(src.getSpaceRole(), mapperContext));
                 break;
             case SHORT:
                 dst
@@ -42,7 +42,7 @@ public class SpaceRoleUserGroupDTOMapper extends RestSimpleDTOMapper<SpaceRoleUs
         }
         if (mapperContext.hasModeButNot(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.HIDE))
             dst
-                    .setSpaceRole(spaceRoleDTOMapper.convert(src.getSpaceRole(), mapperContext
+                    .setSpaceRole(spaceRoleDTOMapperV2.convert(src.getSpaceRole(), mapperContext
                             .forkOnPoint(SpaceRoleMode.SpaceRoleUserGroup2SpaceRoleMode.SHORT)));
     }
 

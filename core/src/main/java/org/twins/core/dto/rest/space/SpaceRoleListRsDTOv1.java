@@ -14,5 +14,5 @@ import java.util.List;
 @Schema(name = "SpaceRoleListRsv1")
 public class SpaceRoleListRsDTOv1 extends Response {
     @Schema(description = "space role user list")
-    public List<SpaceRoleDTOv1> spaceRoleUserList;
+    public List<SpaceRoleDTOv2> spaceRoleUserList;
 }

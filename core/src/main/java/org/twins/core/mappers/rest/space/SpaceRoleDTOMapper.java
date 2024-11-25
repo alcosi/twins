@@ -26,7 +26,9 @@ public class SpaceRoleDTOMapper extends RestSimpleDTOMapper<SpaceRoleEntity, Spa
                         .setId(src.getId())
                         .setKey(src.getKey())
                         .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
-                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "");
+                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setTwinClassId(src.getTwinClassId())
+                        .setBusinessAccountId(src.getBusinessAccountId());
                 break;
             case SHORT:
                 dst

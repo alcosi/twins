@@ -7,7 +7,6 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
-import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
