@@ -28,7 +28,8 @@ public class PermissionGrantTwinRoleRestDTOMapper extends RestSimpleDTOMapper<Pe
                 dst
                         .setId(src.getId())
                         .setPermissionId(src.getPermissionId())
-                        .setTwinClassId(src.getTwinClassId());
+                        .setTwinClassId(src.getTwinClassId())
+                        .setTwinRole(src.getTwinRole());
                 break;
         }
     }
