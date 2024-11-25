@@ -28,6 +28,7 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
+                        .setKey(src.getKey())
                         .setUpdatedAt(src.getUpdatedAt().toLocalDateTime())
                         .setDescription(src.getDescription());
                 break;

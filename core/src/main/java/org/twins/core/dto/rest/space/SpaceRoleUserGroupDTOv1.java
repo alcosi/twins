@@ -10,7 +10,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name = "SpaceRoleUserGroupV1")
 public class SpaceRoleUserGroupDTOv1 extends Request {
 
@@ -30,5 +30,5 @@ public class SpaceRoleUserGroupDTOv1 extends Request {
     public UUID createdByUserId;
 
     @Schema(description = "")
-    public SpaceRoleDTOv1 spaceRole;
+    public SpaceRoleDTOv2 spaceRole;
 }
