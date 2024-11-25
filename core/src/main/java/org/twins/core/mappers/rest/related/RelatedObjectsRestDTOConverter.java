@@ -22,7 +22,7 @@ import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
-import org.twins.core.dto.rest.space.SpaceRoleDTOv2;
+import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -38,7 +38,7 @@ import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
-import org.twins.core.mappers.rest.space.SpaceRoleDTOMapperV2;
+import org.twins.core.mappers.rest.space.SpaceRoleDTOMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
@@ -65,7 +65,7 @@ public class RelatedObjectsRestDTOConverter {
     private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
     private final DataListRestDTOMapper dataListRestDTOMapper;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
-    private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
+    private final SpaceRoleDTOMapper spaceRoleDTOMapper;
     private final BusinessAccountDTOMapper businessAccountDTOMapper;
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
     private final PermissionRestDTOMapper permissionRestDTOMapper;
@@ -83,7 +83,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinflowTransitionBaseDTOv1> twinflowTransitionMap = new HashMap<>();
         Map<UUID, DataListDTOv1> dataListMap = new HashMap<>();
         Map<UUID, DataListOptionDTOv1> dataListOptionMap = new HashMap<>();
-        Map<UUID, SpaceRoleDTOv2> spaceRoleMap = new HashMap<>();
+        Map<UUID, SpaceRoleDTOv1> spaceRoleMap = new HashMap<>();
         Map<UUID, BusinessAccountDTOv1> businessAccountMap = new HashMap<>();
         Map<UUID, PermissionGroupDTOv1> permissionGroupMap = new HashMap<>();
         Map<UUID, PermissionDTOv1> permissionMap = new HashMap<>();
@@ -107,7 +107,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContext.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel2, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContext.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapperV2, mapperContextLevel2, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContext.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel2, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContext.getRelatedBusinessAccountMap().isEmpty())
             convertAndPut(mapperContext.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel2, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContext.getRelatedPermissionGroupMap().isEmpty())
@@ -136,7 +136,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel2.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), spaceRoleDTOMapperV2, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContextLevel2.getRelatedBusinessAccountMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel2.getRelatedPermissionGroupMap().isEmpty())
@@ -166,7 +166,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedDataListOptionMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedDataListOptionMap(), dataListOptionRestDTOMapper, mapperContextLevel3, dataListOptionMap, DataListOptionEntity::getId);
         if (!mapperContextLevel3.getRelatedSpaceRoleMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), spaceRoleDTOMapperV2, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedSpaceRoleMap(), spaceRoleDTOMapper, mapperContextLevel3, spaceRoleMap, SpaceRoleEntity::getId);
         if (!mapperContextLevel3.getRelatedBusinessAccountMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedBusinessAccountMap(), businessAccountDTOMapper, mapperContextLevel3, businessAccountMap, BusinessAccountEntity::getId);
         if (!mapperContextLevel3.getRelatedPermissionGroupMap().isEmpty())
