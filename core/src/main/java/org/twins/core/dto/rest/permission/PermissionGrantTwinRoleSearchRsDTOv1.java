@@ -13,11 +13,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantUserGroupSearchRsV1")
-public class PermissionGrantTwinRoleSearchRsDTOv1 extends Response {
+@Schema(name = "PermissionGrantTwinRoleSearchRsV1")
+public class PermissionGrantTwinRoleSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "results - permission grant twin role list")
-    public List<PermissionGrantTwinRoleDTOv2> permissionGrantTwinRoles;
+    @Schema(description = "results - permission grant space role list")
+    public List<PermissionGrantSpaceRoleDTOv2> permissionGrantSpaceRoles;
 }

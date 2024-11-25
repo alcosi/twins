@@ -8,6 +8,5 @@ public enum TwinAction {
     WATCH,
     TIME_TRACK,
     ATTACHMENT_ADD,
-    ATTACHMENT_DELETE,
     HISTORY_VIEW
 }

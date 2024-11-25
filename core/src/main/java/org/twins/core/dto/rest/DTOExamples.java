@@ -74,6 +74,7 @@ public interface DTOExamples {
     String LAZY_RELATION_MODE_ON = " Will be filled only if lazyRelations mode is true";
     String LAZY_RELATION_MODE_OFF = " Will be filled only in lazyRelations mode is false";
     String SPACE_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String SPACE_ROLE = "creator";
     String SPACE_ROLE_USER_ID = "275bf3c4-951a-4d26-bb82-5e18361d301c";
     String SEARCH_ALIAS = "tools";
     String SEARCH_ID = "8c580967-c050-47cf-ac27-4096c6dda2d1";

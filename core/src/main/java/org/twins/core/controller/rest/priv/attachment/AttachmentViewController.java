@@ -33,7 +33,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class AttachmentViewController extends ApiController {
-    private final AuthService authService;
+
     private final AttachmentService attachmentService;
     private final AttachmentViewRestDTOMapperV2 attachmentRestDTOMapperV2;
 

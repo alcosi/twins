@@ -13,6 +13,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
@@ -321,6 +322,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     @Override
     public boolean validateEntity(TwinAttachmentEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    public AttachmentCUDValidateResult validateCUD(UUID twinId, EntityCUD<TwinAttachmentEntity> convert) {
+        return new AttachmentCUDValidateResult();
     }
 
     public enum CommentRelinkMode {

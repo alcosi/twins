@@ -6,6 +6,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.kit.KitGroupedObj;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySmartService;
@@ -54,7 +55,7 @@ public class TwinActionService {
                     continue;
                 }
             }
-            if (KitUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidatorRules())) {
+            if (CollectionUtils.isEmpty(twinEntity.getTwinClass().getActionsProtectedByValidatorRules().getGrouped(twinAction))) {
                 twinEntity.getActions().add(twinAction); // current action is permitted
                 continue;
             }
@@ -80,7 +81,6 @@ public class TwinActionService {
                     break;
                 }
             }
-
         }
     }
 

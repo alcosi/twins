@@ -23,6 +23,7 @@ import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
+import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
@@ -89,6 +90,7 @@ public class DomainService {
 
     @Lazy
     private final UserGroupService userGroupService;
+    private final TierService tierService;
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -175,6 +177,8 @@ public class DomainService {
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
+
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
     }
@@ -296,5 +300,15 @@ public class DomainService {
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
         );
+    }
+
+    public AttachmentQuotas getDomainBusinessAccountQuotas() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return new AttachmentQuotas();
+    }
+
+    public AttachmentQuotas getDomainQuotas() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return new AttachmentQuotas();
     }
 }

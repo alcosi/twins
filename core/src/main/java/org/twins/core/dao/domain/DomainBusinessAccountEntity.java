@@ -42,6 +42,12 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "attachments_storage_used_count")
+    private Long attachmentsStorageUsedCount;
+
+    @Column(name = "attachments_storage_used_size")
+    private Long attachmentsStorageUsedSize;
+
     @ManyToOne
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
@@ -53,6 +59,10 @@ public class DomainBusinessAccountEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
+
+    @ManyToOne
+    @JoinColumn(name = "tier_id", insertable = false, updatable = false)
+    private TierEntity tier;
 
 //    @ManyToOne
 //    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
