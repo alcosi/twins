@@ -45,7 +45,7 @@ public class TwinFactoryEntity implements EasyLoggable {
 
     @ManyToOne
     @EqualsAndHashCode.Exclude
-    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
 
     public String easyLog(Level level) {
