@@ -54,6 +54,7 @@ public class DraftCommitService {
                 }
                 break;
             case ERASE_SCOPE_COLLECT_PLANNED:
+            case ERASE_SCOPE_COLLECT_NEED_START:
                 markAutocommit(draftEntity);
                 break;
             default:
