@@ -30,7 +30,7 @@ public class TwinSearchDTOReverseMapper extends RestSimpleDTOMapper<TwinSearchDT
                 .setTwinIdList(convertToSetSafe(src.getTwinIdList()))
                 .setTwinIdExcludeList(convertToSetSafe(src.getTwinIdExcludeList()))
                 .setTwinNameLikeList(convertToSetSafe(src.getTwinNameLikeList()))
-                .setTwinNameNotLikeList(convertToSetSafe(src.getTwinNameLikeList()))
+                .setTwinNameNotLikeList(convertToSetSafe(src.getTwinNameNotLikeList()))
                 .setTwinDescriptionLikeList(convertToSetSafe(src.getDescriptionLikeList()))
                 .setTwinDescriptionNotLikeList(convertToSetSafe(src.getDescriptionNotLikeList()))
                 .setCreatedByUserIdList(convertToSetSafe(src.getCreatedByUserIdList()))
