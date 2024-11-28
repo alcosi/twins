@@ -106,7 +106,8 @@ public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntit
                 .setTwinflowTransition(twinflowTransition)
                 .setTwinflowTransitionId(twinflowTransitionId)
                 .setViewPermission(viewPermission)
-                .setViewPermissionId(viewPermissionId);
+                .setViewPermissionId(viewPermissionId)
+                .setSize(size);
     }
 
     public String easyLog(Level level) {
