@@ -11,9 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
-import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
-import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
-import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleSearch;
+import org.twins.core.domain.search.PermissionGrantSpaceRoleSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;

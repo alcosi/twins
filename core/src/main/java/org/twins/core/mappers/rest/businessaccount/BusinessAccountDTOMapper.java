@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.BusinessAccountMode;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {BusinessAccountMode.class})
+@MapperModeBinding(modes = BusinessAccountMode.class)
 public class BusinessAccountDTOMapper extends RestSimpleDTOMapper<BusinessAccountEntity, BusinessAccountDTOv1> {
 
     @Override
@@ -25,7 +25,9 @@ public class BusinessAccountDTOMapper extends RestSimpleDTOMapper<BusinessAccoun
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
-                dst.setId(src.getId());
+                dst
+                        .setId(src.getId())
+                        .setName(src.getName());
                 break;
         }
     }

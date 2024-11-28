@@ -1,7 +1,7 @@
 package org.twins.core.mappers.rest.permission;
 
 import org.springframework.stereotype.Component;
-import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleSearch;
+import org.twins.core.domain.search.PermissionGrantSpaceRoleSearch;
 import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

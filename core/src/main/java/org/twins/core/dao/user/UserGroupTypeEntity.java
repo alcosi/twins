@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.Type;
@@ -14,6 +15,7 @@ import java.util.HashMap;
 @Entity
 @Data
 @Accessors(chain = true)
+@FieldNameConstants
 @Table(name = "user_group_type")
 public class UserGroupTypeEntity {
     @Id
@@ -34,6 +36,11 @@ public class UserGroupTypeEntity {
     @JoinColumn(name = "slugger_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity sluggerFeaturer;
 
-
+    public enum UserGroupType {
+        domainScopeDomainManage,
+        domainScopeBusinessAccountManage,
+        businessAccountScopeBusinessAccountManage,
+        domainAndBusinessAccountScopeBusinessAccountManage
+    }
 
 }
