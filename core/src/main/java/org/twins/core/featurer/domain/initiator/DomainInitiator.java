@@ -93,7 +93,8 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setTokenHandlerParams(domainTypeEntity.getDefaultTokenHandlerParams())
                 .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
-        ;
+                .setAttachmentsStorageUsedSize(0L)
+                .setAttachmentsStorageUsedCount(0L);
         if (domainEntity.getDefaultI18nLocaleId() == null)
             domainEntity.setDefaultI18nLocaleId(Locale.ENGLISH); //todo get from I18nService
 

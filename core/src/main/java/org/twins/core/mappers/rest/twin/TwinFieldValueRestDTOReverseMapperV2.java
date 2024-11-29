@@ -18,8 +18,8 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperList;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -49,56 +49,71 @@ public class TwinFieldValueRestDTOReverseMapperV2 extends RestSimpleDTOMapper<Fi
         if (fieldTyper.getValueType() == FieldValueText.class)
             fieldValue = fieldValueText;
         if (fieldTyper.getValueType() == FieldValueColorHEX.class)
-            fieldValue = new FieldValueColorHEX(fieldValueText.getTwinClassField())
-                    .setHex(fieldValueText.getValue());
+            fieldValue = new FieldValueColorHEX(fieldValueText.getTwinClassField());
         if (fieldTyper.getValueType() == FieldValueDate.class)
-            fieldValue = new FieldValueDate(fieldValueText.getTwinClassField())
-                    .setDate(fieldValueText.getValue());
-        if (fieldTyper.getValueType() == FieldValueSelect.class) {
+            fieldValue = new FieldValueDate(fieldValueText.getTwinClassField());
+        if (fieldTyper.getValueType() == FieldValueSelect.class)
             fieldValue = new FieldValueSelect(fieldValueText.getTwinClassField());
-            for (String dataListOption : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+        if (fieldTyper.getValueType() == FieldValueUser.class)
+            fieldValue = new FieldValueUser(fieldValueText.getTwinClassField());
+        if (fieldTyper.getValueType() == FieldValueLink.class)
+            fieldValue = new FieldValueLink(fieldValueText.getTwinClassField());
+        if (fieldTyper.getValueType() == FieldValueInvisible.class)
+            fieldValue = new FieldValueInvisible(fieldValueText.getTwinClassField());
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
+
+        if (fieldValueText.getValue() == null) // nullify
+            fieldValue.nullify();
+        else
+            setValue(fieldValue, fieldValueText.getValue());
+        return fieldValue;
+    }
+
+    private void setValue(FieldValue fieldValue, String value) throws ServiceException {
+        if (fieldValue instanceof FieldValueText fieldValueText)
+            fieldValueText.setValue(value);
+        if (fieldValue instanceof FieldValueColorHEX fieldValueColorHEX)
+            fieldValueColorHEX.setHex(value);
+        if (fieldValue instanceof FieldValueDate fieldValueDate)
+            fieldValueDate.setDate(value);
+        if (fieldValue instanceof FieldValueSelect fieldValueSelect){
+            for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dataListOption)) continue;
                 DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
                 if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
                 else dataListOptionEntity.setOption(dataListOption);
-                ((FieldValueSelect) fieldValue).add(dataListOptionEntity);
+                fieldValueSelect.add(dataListOptionEntity);
             }
         }
-        if (fieldTyper.getValueType() == FieldValueUser.class) {
-            fieldValue = new FieldValueUser(fieldValueText.getTwinClassField());
-            for (String userId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+        if (fieldValue instanceof FieldValueUser fieldValueUser){
+            for (String userId : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(userId))
                     continue;
                 UUID userUUID;
                 try {
                     userUUID = UUID.fromString(userId);
                 } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueUser.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
                 }
-                ((FieldValueUser) fieldValue).add(new UserEntity()
+                fieldValueUser.add(new UserEntity()
                         .setId(userUUID));
             }
         }
-        if (fieldTyper.getValueType() == FieldValueLink.class) {
-            fieldValue = new FieldValueLink(fieldValueText.getTwinClassField());
-            for (String dstTwinId : fieldValueText.getValue().split(FieldTyperList.LIST_SPLITTER)) {
+        if (fieldValue instanceof FieldValueLink fieldValueLink){
+            for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
                 if (StringUtils.isEmpty(dstTwinId))
                     continue;
                 UUID dstTwinUUID;
                 try {
                     dstTwinUUID = UUID.fromString(dstTwinId);
                 } catch (Exception e) {
-                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueText.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
                 }
                 ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
                         .setDstTwinId(dstTwinUUID));
             }
         }
-        if (fieldTyper.getValueType() == FieldValueInvisible.class)
-            fieldValue = new FieldValueInvisible(fieldValueText.getTwinClassField());
-        if (fieldValue == null)
-            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
-        return fieldValue;
     }
 
     public FieldValueText createValueByClassIdAndFieldKey(UUID twinClassId, String fieldKey, String fieldValue) {
