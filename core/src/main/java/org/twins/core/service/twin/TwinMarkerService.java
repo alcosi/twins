@@ -153,8 +153,9 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         // twinMarkerRepository.deleteByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
         List<TwinMarkerEntity> markers = twinMarkerRepository.findByTwinIdAndMarkerDataListOptionIdIn(twinEntity.getId(), markersDelete);
         if(markers.size() != markersDelete.size()) {
-            log.warn("Mismatch markers for deletion with existing: markers (IDs: {}) and markersDelete (IDs: {}).",
-                    markers.stream().map(TwinMarkerEntity::getId).collect(Collectors.toSet()),
+            log.warn("Mismatch markers for deletion with existing for twin(id: {}) : markers (optionIDs: {}) and markersDelete (optionIDs: {}).",
+                    twinEntity.getId(),
+                    markers.stream().map(TwinMarkerEntity::getMarkerDataListOptionId).collect(Collectors.toSet()),
                     markersDelete);
         }
         //todo add history

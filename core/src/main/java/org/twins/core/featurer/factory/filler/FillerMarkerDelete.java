@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
@@ -24,9 +25,16 @@ public class FillerMarkerDelete extends Filler {
     @FeaturerParam(name = "markerId", description = "")
     public static final FeaturerParamUUID markerId = new FeaturerParamUUIDTwinsMarkerId("markerId");
 
+    @FeaturerParam(name = "softDelete", description = "")
+    public static final FeaturerParamBoolean softDelete = new FeaturerParamBoolean("softDelete");
+
+
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
-            twinUpdate.deleteMarker(markerId.extract(properties));
+        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate) {
+            boolean soft = softDelete.extract(properties);
+            if (!soft || !twinUpdate.getMarkersAdd().contains(markerId.extract(properties)))
+                twinUpdate.deleteMarker(markerId.extract(properties));
+        }
     }
 }
