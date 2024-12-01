@@ -32,7 +32,7 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListOptionSearchService;
 
-@Tag(name = ApiTag.PERMISSION)
+@Tag(name = ApiTag.DATA_LIST)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
