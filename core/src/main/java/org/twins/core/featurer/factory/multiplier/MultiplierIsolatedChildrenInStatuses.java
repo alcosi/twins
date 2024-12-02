@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -54,19 +55,14 @@ public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
         search
                 .addHeaderTwinId(inputTwinIds)
                 .addStatusId(statusIds.extract(properties), false);
-        final List<TwinEntity> relatedTwins = twinSearchService.findTwins(search);
-        Map<UUID, List<TwinEntity>> relativesTwinEntityMap = new HashMap<>();
-        for (TwinEntity twinEntity : relatedTwins) {
-            relativesTwinEntityMap.computeIfAbsent(twinEntity.getHeadTwinId(), k -> new ArrayList<>());
-            relativesTwinEntityMap.get(twinEntity.getHeadTwinId()).add(twinEntity);
-        }
+        KitGrouped<TwinEntity, UUID, UUID> relatedTwinsKit = new KitGrouped<>(twinSearchService.findTwins(search), TwinEntity::getId, TwinEntity::getHeadTwinId);
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            if (CollectionUtils.isEmpty(relativesTwinEntityMap.get(inputItem.getTwin().getId()))) {
+            if (CollectionUtils.isEmpty(relatedTwinsKit.getGrouped(inputItem.getTwin().getId()))) {
                 log.error(inputTwin.logShort() + " no relatives twins by head[" + inputTwin.getId() + "] in statuses[" + statusIds.extract(properties) + "]");
                 continue;
             }
-            for (TwinEntity relativeTwinEntity : relativesTwinEntityMap.get(inputItem.getTwin().getId())) {
+            for (TwinEntity relativeTwinEntity : relatedTwinsKit.getGrouped(inputItem.getTwin().getId())) {
                 TwinUpdate twinUpdate = new TwinUpdate();
                 twinUpdate.setDbTwinEntity(relativeTwinEntity) // original twin
                         .setTwinEntity(relativeTwinEntity.clone()); // collecting updated in new twin
