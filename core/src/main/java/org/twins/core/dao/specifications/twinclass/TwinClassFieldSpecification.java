@@ -58,6 +58,8 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
 
     public static Specification<TwinClassFieldEntity> checkDomainId(UUID domainId) {
         return (root, query, cb) -> {
+            if (domainId == null)
+                return cb.disjunction();
             Join<TwinClassFieldEntity, TwinClassEntity> twinClassJoin = root.join(TwinClassFieldEntity.Fields.twinClass, JoinType.INNER);
             return cb.equal(twinClassJoin.get(TwinClassEntity.Fields.domainId), domainId);
         };
