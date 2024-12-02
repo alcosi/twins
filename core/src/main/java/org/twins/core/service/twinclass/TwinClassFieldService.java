@@ -176,15 +176,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                 .setEditPermissionId(srcFieldEntity.getEditPermissionId())
                 .setRequired(srcFieldEntity.getRequired());
         I18nEntity i18nEntity;
-        if (srcFieldEntity.getNameI18NId() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18NId());
+        if (srcFieldEntity.getNameI18nId() != null) {
+            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getNameI18nId());
             duplicateFieldEntity
-                    .setNameI18NId(i18nEntity.getId());
+                    .setNameI18nId(i18nEntity.getId());
         }
-        if (srcFieldEntity.getDescriptionI18NId() != null) {
-            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18NId());
+        if (srcFieldEntity.getDescriptionI18nId() != null) {
+            i18nEntity = i18nService.duplicateI18n(srcFieldEntity.getDescriptionI18nId());
             duplicateFieldEntity
-                    .setDescriptionI18NId(i18nEntity.getId());
+                    .setDescriptionI18nId(i18nEntity.getId());
         }
         entitySmartService.save(duplicateFieldEntity, twinClassFieldRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
@@ -231,8 +231,8 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         }
 
         twinClassFieldEntity
-                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_NAME, nameI18n).getId())
+                .setDescriptionI18nId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_FIELD_DESCRIPTION, descriptionI18n).getId())
                 .setFieldTyperFeaturerId(fieldTyper.getId())
                 .setFieldTyperFeaturer(fieldTyper)
                 .setFieldTyperParams(params);
@@ -308,21 +308,21 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public void updateTwinClassFieldName(TwinClassFieldEntity dbTwinClassFieldEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
         if (nameI18n == null)
             return;
-        if (dbTwinClassFieldEntity.getNameI18NId() != null)
-            nameI18n.setId(dbTwinClassFieldEntity.getNameI18NId());
+        if (dbTwinClassFieldEntity.getNameI18nId() != null)
+            nameI18n.setId(dbTwinClassFieldEntity.getNameI18nId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, nameI18n);
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.nameI18NId, dbTwinClassFieldEntity.getNameI18NId(), nameI18n.getId()))
-            dbTwinClassFieldEntity.setNameI18NId(nameI18n.getId());
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.nameI18nId, dbTwinClassFieldEntity.getNameI18nId(), nameI18n.getId()))
+            dbTwinClassFieldEntity.setNameI18nId(nameI18n.getId());
     }
 
     public void updateTwinClassFieldDescription(TwinClassFieldEntity dbTwinClassFieldEntity, I18nEntity descriptionI18n, ChangesHelper changesHelper) throws ServiceException {
         if (descriptionI18n == null)
             return;
-        if (dbTwinClassFieldEntity.getDescriptionI18NId() != null)
-            descriptionI18n.setId(dbTwinClassFieldEntity.getDescriptionI18NId());
+        if (dbTwinClassFieldEntity.getDescriptionI18nId() != null)
+            descriptionI18n.setId(dbTwinClassFieldEntity.getDescriptionI18nId());
         i18nService.saveTranslations(I18nType.TWIN_CLASS_NAME, descriptionI18n);
-        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.descriptionI18NId, dbTwinClassFieldEntity.getDescriptionI18NId(), descriptionI18n.getId()))
-            dbTwinClassFieldEntity.setDescriptionI18NId(descriptionI18n.getId());
+        if (changesHelper.isChanged(TwinClassFieldEntity.Fields.descriptionI18nId, dbTwinClassFieldEntity.getDescriptionI18nId(), descriptionI18n.getId()))
+            dbTwinClassFieldEntity.setDescriptionI18nId(descriptionI18n.getId());
     }
 
     public void updateTwinClassFieldViewPermission(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newViewPermissionId, ChangesHelper changesHelper) {

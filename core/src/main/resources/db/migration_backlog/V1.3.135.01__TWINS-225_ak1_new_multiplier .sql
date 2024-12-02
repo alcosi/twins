@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2209, 22, 'org.twins.core.featurer.factory.multiplier.MultiplierIsolatedChildrenInStatuses', 'MultiplierIsolatedChildrenInStatuses', 'Output list of twin relatives for each input. Output twin will be loaded by head and filtered by statusIds', false) on conflict (id) do nothing;

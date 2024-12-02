@@ -3,11 +3,13 @@ package org.twins.core.dao.twinclass;
 import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
+import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 
@@ -31,10 +33,10 @@ public class TwinClassFieldEntity implements EasyLoggable {
     private String key;
 
     @Column(name = "name_i18n_id")
-    private UUID nameI18NId;
+    private UUID nameI18nId;
 
     @Column(name = "description_i18n_id")
-    private UUID descriptionI18NId;
+    private UUID descriptionI18nId;
 
     @Column(name = "field_typer_featurer_id")
     private Integer fieldTyperFeaturerId;
@@ -56,13 +58,17 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "twin_class_id", insertable = false, updatable = false, nullable = false)
     private TwinClassEntity twinClass;
 
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity nameI18n;
-//
-//    @ManyToOne(fetch = FetchType.EAGER)
-//    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
-//    private I18nEntity descriptionI18n;
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    private I18nEntity nameI18n;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    private I18nEntity descriptionI18n;
 
     @FeaturerList(type = FieldTyper.class)
     @ManyToOne(fetch = FetchType.EAGER)
