@@ -38,12 +38,12 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 dst
                         .id(src.getId())
                         .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .name(i18nService.translateToLocale(src.getNameI18nId()))
                         .required(src.getRequired())
-                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .twinClassId(src.getTwinClassId())
-                        .nameI18nId(src.getNameI18NId())
-                        .descriptionI18nId(src.getDescriptionI18NId())
+                        .nameI18nId(src.getNameI18nId())
+                        .descriptionI18nId(src.getDescriptionI18nId())
                         .fieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .fieldTyperParams(src.getFieldTyperParams())
                         .viewPermissionId(src.getViewPermissionId())
@@ -56,9 +56,9 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 dst
                         .id(src.getId())
                         .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()))
+                        .name(i18nService.translateToLocale(src.getNameI18nId()))
                         .required(src.getRequired())
-                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
                         .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
                 break;
             case SHORT:

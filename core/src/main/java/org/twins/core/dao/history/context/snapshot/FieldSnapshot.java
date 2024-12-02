@@ -21,7 +21,7 @@ public class FieldSnapshot {
             return null;
         return new FieldSnapshot()
                 .setId(fieldEntity.getId())
-                .setName(i18nService.translateToLocale(fieldEntity.getNameI18NId()))
+                .setName(i18nService.translateToLocale(fieldEntity.getNameI18nId()))
                 .setKey(fieldEntity.getKey());
     }
 
