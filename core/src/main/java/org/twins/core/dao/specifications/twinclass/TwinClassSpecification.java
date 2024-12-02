@@ -1,4 +1,4 @@
-package org.twins.core.dao.specifications.twin_class;
+package org.twins.core.dao.specifications.twinclass;
 
 import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Predicate;
