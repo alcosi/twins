@@ -2,6 +2,7 @@ package org.twins.core.dto.rest.permission;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.domain.TwinRole;
 
 import java.util.Set;
 import java.util.UUID;
