@@ -18,7 +18,7 @@ public class DataListOptionRestDTOMapperV2 extends RestSimpleDTOMapper<DataListO
     @Override
     public void map(DataListOptionEntity src, DataListOptionDTOv2 dst, MapperContext mapperContext) {
         dataListOptionRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(DataListOptionMode.HIDE)) {
+        if (mapperContext.hasMode(DataListOptionMode.DETAILED)) {
             dst
                     .setDataListId(src.getDataListId())
                     .setBusinessAccountId(src.getBusinessAccountId());

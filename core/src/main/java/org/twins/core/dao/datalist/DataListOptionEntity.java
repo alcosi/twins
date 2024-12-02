@@ -64,7 +64,7 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
     private DataListEntity dataList;
 
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 

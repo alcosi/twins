@@ -21,8 +21,11 @@ public class DataListRestDTOMapperV2 extends RestSimpleDTOMapper<DataListEntity,
 
     private final DataListService dataListService;
 
+    private final DataListRestDTOMapper dataListRestDTOMapper;
+
     @Override
     public void map(DataListEntity src, DataListDTOv2 dst, MapperContext mapperContext) throws Exception {
+        dataListRestDTOMapper.map(src, dst, mapperContext);
         if (mapperContext.hasModeButNot(DataListOptionMode.HIDE)) {
             dataListService.loadDataListOptions(src);
 //            dst.setOptions(dataListOptionRestDTOMapper.convertMap(src.getOptions().getMap(), mapperContext)); //todo remove me after gateway support of relateMap of dataListOptions
