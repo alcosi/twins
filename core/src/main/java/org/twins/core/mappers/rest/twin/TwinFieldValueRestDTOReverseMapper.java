@@ -47,8 +47,8 @@ public class TwinFieldValueRestDTOReverseMapper extends RestSimpleDTOMapper<Twin
             fieldValue = new FieldValueSelect(twinClassFieldEntity);
             for (DataListOptionDTOv1 dataListOptionDTO : select.selectedOptions()) {
                 ((FieldValueSelect)fieldValue).add(new DataListOptionEntity()
-                        .setId(dataListOptionDTO.id())
-                        .setOption(dataListOptionDTO.name));
+                        .setId(dataListOptionDTO.getId())
+                        .setOption(dataListOptionDTO.getName()));
             }
         }
 

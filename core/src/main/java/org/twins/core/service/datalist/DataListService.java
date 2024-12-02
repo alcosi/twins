@@ -103,6 +103,8 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null,false, false))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdExcludeList() : null,true, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdList() : null,false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdExcludeList() : null,true, false))
                 .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionLikeList() : null, false, true))
                 .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionNotLikeList() : null, true, true))
                 .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(),false, false))
