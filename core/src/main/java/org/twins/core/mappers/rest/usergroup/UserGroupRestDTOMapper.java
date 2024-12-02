@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.usergroup;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.user.UserGroupEntity;
+import org.twins.core.dao.user.UserGroupTypeEntity;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -16,15 +17,15 @@ public class UserGroupRestDTOMapper extends RestSimpleDTOMapper<UserGroupEntity,
         switch (mapperContext.getModeOrUse(UserGroupMode.SHORT)) {
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(src.getName());
+                        .setId(src.getId())
+                        .setName(src.getName());
                 break;
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(src.getName())
-                        .businessAccountId(src.getBusinessAccountId())
-                        .type(src.getUserGroupTypeId());
+                        .setId(src.getId())
+                        .setName(src.getName())
+                        .setBusinessAccountId(src.getBusinessAccountId())
+                        .setType(UserGroupTypeEntity.UserGroupType.valueOf(src.getUserGroupTypeId()));
                 break;
         }
     }

@@ -11,15 +11,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.permission.PermissionGroupEntity;
-import org.twins.core.dao.permission.PermissionGroupRepository;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
-import org.twins.core.dto.rest.permission.PermissionGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.UUID;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
