@@ -13,6 +13,8 @@ import java.util.UUID;
 public class DataListOptionSearch {
     Set<UUID> idList;
     Set<UUID> idExcludeList;
+    Set<UUID> dataListIdList;
+    Set<UUID> dataListIdExcludeList;
     Set<String> optionLikeList;
     Set<String> optionNotLikeList;
     Set<String> optionI18nLikeList;

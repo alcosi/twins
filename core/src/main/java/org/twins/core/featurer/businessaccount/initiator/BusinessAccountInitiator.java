@@ -34,7 +34,10 @@ public abstract class BusinessAccountInitiator extends FeaturerTwins {
                 .setPermissionSchemaId(domainBusinessAccountEntity.getTier().getPermissionSchemaId())
                 .setPermissionSchema(domainBusinessAccountEntity.getTier().getPermissionSchema())
                 .setTwinClassSchemaId(domainBusinessAccountEntity.getTier().getTwinClassSchemaId())
-                .setTwinflowSchemaId(domainBusinessAccountEntity.getTier().getTwinflowSchemaId());
+                .setTwinflowSchemaId(domainBusinessAccountEntity.getTier().getTwinflowSchemaId())
+                .setAttachmentsStorageUsedCount(0L)
+                .setAttachmentsStorageUsedSize(0L);
+
         init(properties, domainBusinessAccountEntity);
         domainBusinessAccountEntity = entitySmartService.save(domainBusinessAccountEntity, domainBusinessAccountRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         postInit(properties, domainBusinessAccountEntity);
