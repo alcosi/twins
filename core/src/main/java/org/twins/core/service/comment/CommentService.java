@@ -73,11 +73,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("text", currentComment.getText(), commentText)) {
-            currentComment
-                    .setText(commentText)
-                    .setChangedAt(Timestamp.from(Instant.now()));
-        }
+        if (changesHelper.isChanged("text", currentComment.getText(), commentText))
+            currentComment.setText(commentText);
         if (attachmentCUD != null) {
             addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
             addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());

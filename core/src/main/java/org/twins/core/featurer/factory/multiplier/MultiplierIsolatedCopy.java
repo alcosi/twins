@@ -34,7 +34,6 @@ public class MultiplierIsolatedCopy extends Multiplier {
                     .setName("")
                     .setTwinClass(inputItem.getTwin().getTwinClass())
                     .setTwinClassId(inputItem.getTwin().getTwinClassId())
-                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
             if (copyHead.extract(properties))
