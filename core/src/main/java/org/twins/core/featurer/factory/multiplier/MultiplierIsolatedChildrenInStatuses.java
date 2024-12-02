@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.multiplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -20,9 +21,7 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -47,26 +46,33 @@ public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         List<FactoryItem> ret = new ArrayList<>();
+        List<UUID> inputTwinIds = inputFactoryItemList.stream().map(inputItem -> inputItem.getTwin().getId()).toList();
+        BasicSearch search = new BasicSearch();
+        if (exclude.extract(properties))
+            search
+                    .setTwinIdExcludeList(factoryContext.getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
+        search
+                .addHeaderTwinId(inputTwinIds)
+                .addStatusId(statusIds.extract(properties), false);
+        final List<TwinEntity> relatedTwins = twinSearchService.findTwins(search);
+        Map<UUID, List<TwinEntity>> relativesTwinEntityMap = new HashMap<>();
+        for (TwinEntity twinEntity : relatedTwins) {
+            relativesTwinEntityMap.computeIfAbsent(twinEntity.getHeadTwinId(), k -> new ArrayList<>());
+            relativesTwinEntityMap.get(twinEntity.getHeadTwinId()).add(twinEntity);
+        }
         for (FactoryItem inputItem : inputFactoryItemList) {
             TwinEntity inputTwin = inputItem.getTwin();
-            BasicSearch search = new BasicSearch();
-            if (exclude.extract(properties))
-                search
-                        .setTwinIdExcludeList(factoryContext.getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
-            search
-                    .addHeaderTwinId(inputTwin.getId())
-                    .addStatusId(statusIds.extract(properties), false);
-            List<TwinEntity> relativesTwinEntityList = twinSearchService.findTwins(search);
-            if (CollectionUtils.isEmpty(relativesTwinEntityList)) {
+            if (CollectionUtils.isEmpty(relativesTwinEntityMap.get(inputItem.getTwin().getId()))) {
                 log.error(inputTwin.logShort() + " no relatives twins by head[" + inputTwin.getId() + "] in statuses[" + statusIds.extract(properties) + "]");
                 continue;
             }
-            for (TwinEntity relativeTwinEntity : relativesTwinEntityList) {
+            for (TwinEntity relativeTwinEntity : relativesTwinEntityMap.get(inputItem.getTwin().getId())) {
                 TwinUpdate twinUpdate = new TwinUpdate();
                 twinUpdate.setDbTwinEntity(relativeTwinEntity) // original twin
                         .setTwinEntity(relativeTwinEntity.clone()); // collecting updated in new twin
                 ret.add(new FactoryItem().setOutput(twinUpdate).setContextFactoryItemList(List.of(inputItem)));
             }
-        } return ret;
+        }
+        return ret;
     }
 }
