@@ -147,20 +147,19 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             if (!multiplierFilters.isEmpty()) {
                 log.info("Filtering multiplier output...");
                 for (FactoryItem factoryItem : multiplierOutput) {
-                    boolean allowed = true;
+                    boolean allowed = false;
                     for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
                         if (filter.isActive()) {
                             allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
-                            if (!allowed) {
-                                log.info(factoryItem.logNormal() + " was skipped");
+                            if (allowed)
                                 break;
-                            }
                         }
                     }
                     if (allowed) {
                         log.info(factoryItem.logDetailed());
                         multiplierOutputFiltered.add(factoryItem);
-                    }
+                    } else
+                        log.info(factoryItem.logNormal() + " was skipped");
                 }
                 log.info("Filtered result:" + multiplierOutputFiltered.size() + " factoryItems");
             } else
