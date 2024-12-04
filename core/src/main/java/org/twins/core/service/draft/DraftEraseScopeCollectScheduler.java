@@ -24,8 +24,7 @@ public class DraftEraseScopeCollectScheduler {
     @Qualifier("draftCollectEraseScopeExecutor")
     final TaskExecutor taskExecutor;
 
-    //todo add to settings
-    @Scheduled(fixedDelayString = "2000")
+    @Scheduled(fixedDelayString = "${draft.erase.scope.collect.scheduler.delay:2000}")
     public void collectEraseScope() {
         try {
             LoggerUtils.logSession();
