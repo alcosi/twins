@@ -7,6 +7,7 @@ import jakarta.persistence.criteria.Root;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -68,6 +69,19 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
                 .filter(j -> j.getAttribute().getName().equals(DataListEntity.Fields.dataListOptions))
                 .findFirst()
                 .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptions, JoinType.LEFT));
+    }
+
+    public static Specification<DataListEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            Join<DataListEntity, DataListSubsetEntity> joinDataListSubset = root.join(DataListEntity.Fields.dataListSubsets);
+
+            Predicate predicate = joinDataListSubset.get(DataListSubsetEntity.Fields.id).in(search);
+            if (not) predicate = cb.not(predicate);
+            return predicate;
+        };
     }
 
     public static Specification<DataListEntity> checkDomainId(UUID domainId) {
