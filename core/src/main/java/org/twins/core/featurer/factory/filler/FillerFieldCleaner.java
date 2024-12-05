@@ -38,7 +38,7 @@ public class FillerFieldCleaner extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromItemOutputFields);
+        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromItemOutputDbFields);
         if(null != fieldValue) {
             fieldValue.nullify();
             factoryItem.getOutput().addField(fieldValue);

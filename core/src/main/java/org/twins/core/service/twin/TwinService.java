@@ -743,6 +743,18 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public void loadFieldsValues(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getFieldValuesKit() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.isEmpty())
+            return;
+        loadTwinFields(needLoad.values());
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
+            loadFieldsValues(entry.getValue());
+    }
+
     public FieldValue copyToField(FieldValue src, UUID dstTwinClassFieldId) throws ServiceException {
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId);
         if (!isCopyable(src.getTwinClassField(), dstTwinClassField))
