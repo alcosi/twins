@@ -3,6 +3,7 @@ package org.twins.core.dao.permission;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.FieldNameConstants;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -38,6 +39,8 @@ public class PermissionGrantAssigneePropagationEntity {
     @Column(name = "granted_by_user_id")
     private UUID grantedByUserId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "granted_at")
     private Timestamp grantedAt;
 

@@ -45,8 +45,7 @@ public class SystemEntityService {
     public void postConstruct() throws ServiceException {
         UserEntity systemUser = new UserEntity()
                 .setId(USER_SYSTEM)
-                .setName("SYSTEM")
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setName("SYSTEM");
         entitySmartService.save(USER_SYSTEM, systemUser, userRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinClassEntity twinClassEntity;
@@ -54,15 +53,13 @@ public class SystemEntityService {
                 .setId(TWIN_CLASS_USER)
                 .setKey("USER")
                 .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
         twinClassEntity = new TwinClassEntity()
                 .setId(TWIN_CLASS_BUSINESS_ACCOUNT)
                 .setKey("BUSINESS_ACCOUNT")
                 .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinStatusEntity twinStatusEntity;
@@ -81,16 +78,14 @@ public class SystemEntityService {
                 .setName("User")
                 .setTwinClassId(TWIN_CLASS_USER)
                 .setTwinStatusId(TWIN_STATUS_USER)
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         entitySmartService.save(twinEntity.getId(), twinEntity, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
         twinEntity = new TwinEntity()
                 .setId(TWIN_TEMPLATE_BUSINESS_ACCOUNT)
                 .setName("Business account")
                 .setTwinClassId(TWIN_CLASS_BUSINESS_ACCOUNT)
                 .setTwinStatusId(TWIN_STATUS_BUSINESS_ACCOUNT)
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         entitySmartService.save(twinEntity.getId(), twinEntity, twinRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
     }
 
@@ -123,8 +118,7 @@ public class SystemEntityService {
                 .setDomainId(domainId)
                 .setKey("DOMAIN_BUSINESS_ACCOUNT")
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId());
@@ -133,8 +127,7 @@ public class SystemEntityService {
                 .setName("Domain business account")
                 .setTwinClassId(twinClassEntity.getId())
                 .setTwinStatusId(twinStatusEntity.getId())
-                .setCreatedByUserId(USER_SYSTEM)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedByUserId(USER_SYSTEM);
         twinEntity = entitySmartService.save(twinEntity.getId(), twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinEntity;
     }

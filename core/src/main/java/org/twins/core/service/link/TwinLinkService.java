@@ -135,7 +135,6 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created from twinId[" + twinLinkEntity.getSrcTwinId() + "] of twinClass[" + twinLinkEntity.getSrcTwin().getTwinClassId() + "]");
             if (!dstTwinExtendedClasses.contains(twinLinkEntity.getLink().getDstTwinClassId()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_LINK_INCORRECT, twinLinkEntity.getLink().logNormal() + " can not be created to twinId[" + twinLinkEntity.getDstTwinId() + "] of twinClass[" + twinLinkEntity.getDstTwin().getTwinClassId() + "]");
-            twinLinkEntity.setCreatedAt(Timestamp.from(Instant.now()));
             if (twinLinkEntity.getCreatedByUserId() == null)
                 twinLinkEntity
                         .setCreatedByUserId(apiUser.getUser().getId())

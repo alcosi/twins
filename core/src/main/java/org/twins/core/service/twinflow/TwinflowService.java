@@ -224,7 +224,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
         validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
@@ -239,7 +238,6 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         twinflowEntity
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);

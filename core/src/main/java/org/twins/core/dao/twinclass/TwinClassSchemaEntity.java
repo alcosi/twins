@@ -3,6 +3,7 @@ package org.twins.core.dao.twinclass;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -28,6 +29,8 @@ public class TwinClassSchemaEntity {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
