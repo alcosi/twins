@@ -36,8 +36,8 @@ public class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldVa
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputFields);
-        FieldValue comparisonValue = factoryService.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties), FieldLookupMode.fromContextTwinFields);
+        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputDbFields);
+        FieldValue comparisonValue = factoryService.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties), FieldLookupMode.fromContextTwinUncommitedFields);
         double greater, comparison;
         if (greaterValue instanceof FieldValueText greaterValueText) {
             Number greaterNumber = NumberUtils.createNumber(greaterValueText.getValue());

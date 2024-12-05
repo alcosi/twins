@@ -149,6 +149,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 for (FactoryItem factoryItem : multiplierOutput) {
                     boolean allowed = false;
                     for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
+                        if(!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
+                            continue;
                         if (filter.isActive()) {
                             allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
                             if (allowed)
@@ -165,7 +167,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             } else
                 multiplierOutputFiltered.addAll(multiplierOutput);
             LoggerUtils.traceTreeLevelUp();
-            factoryContext.addAll(multiplierOutput);
+            factoryContext.addAll(multiplierOutputFiltered);
         }
         LoggerUtils.traceTreeLevelUp();
     }
@@ -390,19 +392,26 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = null;
         TwinEntity contextTwin, outputTwin;
+        FactoryItem contextItem;
         switch (fieldLookupMode) {
             case fromContextFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields");
                 break;
-            case fromContextTwinFields:
+            case fromContextTwinUncommitedFields:
+                contextItem = factoryItem.checkSingleContextItem();
+                fieldValue = contextItem.getOutput().getField(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
+                break;
+            case fromContextTwinDbFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
                 fieldValue = twinService.getTwinFieldValue(twinService.wrapField(contextTwin, twinClassFieldId));
                 if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin db fields");
                 break;
-            case fromContextFieldsAndContextTwinFields:
+            case fromContextFieldsAndContextTwinDbFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
                 if (TwinService.isFilled(fieldValue))
                     break;
@@ -417,7 +426,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 if (!TwinService.isFilled(fieldValue))
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
                 break;
-            case fromContextTwinFieldsAndContextFields:
+            case fromContextDbTwinFieldsAndContextFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
                 fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
                 if (TwinService.isFilled(fieldValue))
@@ -432,13 +441,13 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 if (!TwinService.isFilled(fieldValue))
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
                 break;
-            case fromContextTwinHeadTwinFields:
+            case fromContextTwinHeadTwinDbFields:
                 twinService.loadHeadForTwin(factoryItem.getTwin());
                 fieldValue = twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), twinClassFieldId);
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in head twin fields");
                 break;
-            case fromItemOutputFields:
+            case fromItemOutputDbFields:
                 outputTwin = factoryItem.getOutput().getTwinEntity();
                 fieldValue = twinService.getTwinFieldValue(outputTwin, twinClassFieldId);
                 if (fieldValue == null)

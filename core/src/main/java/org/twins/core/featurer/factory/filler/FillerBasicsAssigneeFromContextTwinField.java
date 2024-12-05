@@ -19,6 +19,6 @@ public class FillerBasicsAssigneeFromContextTwinField extends FillerBasicsAssign
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextTwinFields);
+        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextTwinDbFields);
     }
 }

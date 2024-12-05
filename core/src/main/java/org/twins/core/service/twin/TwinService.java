@@ -743,14 +743,14 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
-    //TODO think about perfomance improve
     public void loadFieldsValues(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList)
-            if (twinEntity.getTwinFieldDatalistKit() == null)
+            if (twinEntity.getFieldValuesKit() == null)
                 needLoad.put(twinEntity.getId(), twinEntity);
         if (needLoad.isEmpty())
             return;
+        loadTwinFields(needLoad.values());
         for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
             loadFieldsValues(entry.getValue());
     }
