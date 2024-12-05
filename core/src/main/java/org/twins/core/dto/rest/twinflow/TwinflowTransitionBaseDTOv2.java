@@ -29,6 +29,12 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
     @Schema(description = "permission details")
     public PermissionDTOv1 permission;
 
+    @Schema(description = "twinflow id", example = DTOExamples.TWINFLOW_ID)
+    public UUID twinflowId;
+
+    @Schema(description = "twinflow")
+    public TwinflowBaseDTOv2 twinflow;
+
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "created at", example = DTOExamples.INSTANT)
     public LocalDateTime createdAt;

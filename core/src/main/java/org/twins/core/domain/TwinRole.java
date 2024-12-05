@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.domain;
 
 public enum TwinRole {
     assignee,

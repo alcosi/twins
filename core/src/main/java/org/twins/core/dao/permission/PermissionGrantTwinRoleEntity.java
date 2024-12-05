@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
-import org.twins.core.dto.rest.permission.TwinRole;
+import org.twins.core.domain.TwinRole;
 
 import java.sql.Timestamp;
 import java.util.UUID;

@@ -34,7 +34,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.*;
@@ -95,18 +94,22 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 checkDomainId(apiUser.getDomainId())
                 .and(checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false))
                 .and(checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
-                .and(checkDataListFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
+                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null,false, false))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdExcludeList() : null,true, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdList() : null,false, false))
+                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdExcludeList() : null,true, false))
                 .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionLikeList() : null, false, true))
                 .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionNotLikeList() : null, true, true))
                 .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(),false, false))
                 .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nNotLikeList() : null, apiUser.getLocale(),true, true))
+                .and(checkDataListSubset(search.getDataListSubsetIdList(), false))
+                .and(checkDataListSubset(search.getDataListSubsetIdList(), true))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null,false, false))
                 .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null,true, true))
         );

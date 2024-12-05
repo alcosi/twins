@@ -25,16 +25,16 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
         switch (mapperContext.getModeOrUse(DataListOptionMode.DETAILED)) {
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .name(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
-                        .icon(src.getIcon())
-                        .attributes(getAttributes(src))
-                        .disabled(src.isDisabled());
+                        .setId(src.getId())
+                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
+                        .setIcon(src.getIcon())
+                        .setAttributes(getAttributes(src))
+                        .setDisabled(src.isDisabled());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
+                        .setId(src.getId())
+                        .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption());
                 break;
         }
     }

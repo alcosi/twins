@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -10,16 +10,15 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
-public class PermissionGroupSearch {
+public class PermissionSchemaSearch {
     Set<UUID> idList;
     Set<UUID> idExcludeList;
-    Set<UUID> twinClassIdList;
-    Set<UUID> twinClassIdExcludeList;
-    Set<String> keyLikeList;
-    Set<String> keyNotLikeList;
     Set<String> nameLikeList;
     Set<String> nameNotLikeList;
     Set<String> descriptionLikeList;
     Set<String> descriptionNotLikeList;
-    boolean showSystemGroups;
+    Set<UUID> businessAccountIdList;
+    Set<UUID> businessAccountIdExcludeList;
+    Set<UUID> createdByUserIdList;
+    Set<UUID> createdByUserIdExcludeList;
 }
