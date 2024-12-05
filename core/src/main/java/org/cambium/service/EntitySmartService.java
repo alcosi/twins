@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
@@ -201,6 +202,8 @@ public class EntitySmartService {
     }
 
     public <T> Kit<T, UUID> findByIdIn(Collection<UUID> ids, CrudRepository<T, UUID> repository, Function<T, UUID> functionGetId, ListFindMode mode) throws ServiceException {
+        if (CollectionUtils.isEmpty(ids)) // if someone pass null or empty list, we will create empty kit
+            return new Kit<>(functionGetId);
         Iterable<T> iterable = repository.findAllById(ids);
         Kit<T, UUID> kit = new Kit<>(IterableUtils.toList(iterable), functionGetId);
         for (UUID id : ids) {
