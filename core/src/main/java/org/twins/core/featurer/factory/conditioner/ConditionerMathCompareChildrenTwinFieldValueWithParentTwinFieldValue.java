@@ -66,7 +66,6 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
         FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromContextTwinUncommitedFields);
         twinService.loadFieldsValues(children);
         double comparison, greater;
-        if(children.isEmpty()) return true;
         for(TwinEntity child : children) {
             FieldValue comparisonValue = child.getFieldValuesKit().get(comparisonTwinClassField.extract(properties));
             if (comparisonValue instanceof FieldValueText greaterValueText) {
