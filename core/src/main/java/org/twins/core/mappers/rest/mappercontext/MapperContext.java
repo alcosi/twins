@@ -13,6 +13,7 @@ import org.twins.core.dao.space.SpaceRoleEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
@@ -53,6 +54,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<PermissionSchemaEntity>> relatedPermissionSchemaMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<PermissionEntity>> relatedPermissionMap = new LinkedHashMap<>();
+    @Getter
+    private Map<UUID, RelatedObject<TwinflowEntity>> relatedTwinflowMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -172,6 +175,8 @@ public class MapperContext {
             smartPut(relatedPermissionMap, permission, permission.getId());
         else if (relatedObject instanceof PermissionSchemaEntity permissionSchema)
             smartPut(relatedPermissionSchemaMap, permissionSchema, permissionSchema.getId());
+        else if (relatedObject instanceof TwinflowEntity twinflow)
+            smartPut(relatedTwinflowMap, twinflow, twinflow.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -359,6 +364,7 @@ public class MapperContext {
         dstMapperContext.relatedPermissionGroupMap = srcMapperContext.relatedPermissionGroupMap;
         dstMapperContext.relatedPermissionMap = srcMapperContext.relatedPermissionMap;
         dstMapperContext.relatedPermissionSchemaMap = srcMapperContext.relatedPermissionSchemaMap;
+        dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {
