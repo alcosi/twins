@@ -63,7 +63,7 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
                 .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
                 .addStatusId(statusIds.extract(properties), false);
         List<TwinEntity> children = twinSearchService.findTwins(search);
-        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromContextTwinUncommitedFields);
+        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputUncommitedFields);
         twinService.loadFieldsValues(children);
         double comparison, greater;
         for(TwinEntity child : children) {

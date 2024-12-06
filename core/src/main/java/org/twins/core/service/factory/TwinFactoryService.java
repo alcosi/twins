@@ -18,6 +18,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
+import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
@@ -393,6 +394,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         FieldValue fieldValue = null;
         TwinEntity contextTwin, outputTwin;
         FactoryItem contextItem;
+        TwinSave twinSave;
         switch (fieldLookupMode) {
             case fromContextFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
@@ -402,6 +404,12 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             case fromContextTwinUncommitedFields:
                 contextItem = factoryItem.checkSingleContextItem();
                 fieldValue = contextItem.getOutput().getField(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
+                break;
+            case fromItemOutputUncommitedFields:
+                twinSave = factoryItem.getOutput();
+                fieldValue = twinSave.getField(twinClassFieldId);
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
                 break;
