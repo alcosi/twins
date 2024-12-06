@@ -49,9 +49,8 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
             query.distinct(true);
 
             Join<DataListOptionEntity, DataListSubsetOptionEntity> subsetOptionJoin = root.join(DataListOptionEntity.Fields.subsetOptions, JoinType.INNER);
-            Join<DataListSubsetOptionEntity, DataListSubsetEntity> subsetJoin = subsetOptionJoin.join(DataListSubsetOptionEntity.Fields.dataListSubset, JoinType.INNER);
 
-            Predicate predicate = subsetJoin.get(DataListSubsetEntity.Fields.id).in(search);
+            Predicate predicate = subsetOptionJoin.get(DataListSubsetOptionEntity.Fields.dataListSubsetId).in(search);
             if (not) predicate = cb.not(predicate);
             return predicate;
         };
