@@ -58,7 +58,7 @@ public class DataListOptionSearchController extends ApiController {
         DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
         try {
             PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findPermissionGroupForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
+                    .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
             rs
                     .setOptions(dataListOptionRestDTOMapperV3.convertCollection(dataListOptionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListOptionList))

@@ -27,7 +27,7 @@ public class DataListOptionSearchService {
     private final AuthService authService;
     private final DataListOptionRepository dataListOptionRepository;
 
-    public PaginationResult<DataListOptionEntity> findPermissionGroupForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<DataListOptionEntity> findDataListOptionForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
         Specification<DataListOptionEntity> spec = createDataListOptionSearchSpecification(search);
         Page<DataListOptionEntity> ret = dataListOptionRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
