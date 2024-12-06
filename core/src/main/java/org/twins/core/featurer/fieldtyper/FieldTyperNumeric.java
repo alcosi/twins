@@ -71,18 +71,20 @@ public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, 
         String finalValue;
         try {
             finalValue = value.getValue();
-            if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
-                DecimalFormat df = new DecimalFormat("#.############");
-                finalValue = df.format(Double.parseDouble(finalValue));
-            }
-            finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
-                    .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
-            String[] parts = finalValue.split("\\.");
-            if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
-                throw new Exception();
-            double doubleValue = Double.parseDouble(finalValue);
-            if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
-                throw new Exception();
+            if (!StringUtils.isBlank(finalValue)) {
+                if (finalValue.matches(EXPONENTIAL_FORM_REGEXP)) {
+                    DecimalFormat df = new DecimalFormat("#.############");
+                    finalValue = df.format(Double.parseDouble(finalValue));
+                }
+                finalValue.replaceAll(Pattern.quote(thousandSeparatorValue), "")
+                        .replaceAll(Pattern.quote(decimalSeparatorValue), ".");
+                String[] parts = finalValue.split("\\.");
+                if ((null != decimalPlacesValue && parts.length > 1 && parts[1].length() > decimalPlacesValue))
+                    throw new Exception();
+                double doubleValue = Double.parseDouble(finalValue);
+                if ((null != minValue && doubleValue < minValue) || (null != maxValue && doubleValue > maxValue))
+                    throw new Exception();
+            } // else value setting null
         } catch (Exception e) {
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_INCORRECT,
                     twinFieldEntity.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) +

@@ -17,6 +17,9 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     @Id
     private UUID id;
 
+    @Column(name = "input_twin_class_id")
+    private UUID inputTwinClassId;
+
     @Column(name = "twin_factory_multiplier_id")
     private UUID twinFactoryMultiplierId;
 

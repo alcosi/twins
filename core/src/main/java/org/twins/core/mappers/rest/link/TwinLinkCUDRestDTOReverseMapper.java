@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.link;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.EntityCUD;
@@ -23,6 +24,7 @@ public class TwinLinkCUDRestDTOReverseMapper extends RestSimpleDTOMapper<TwinUpd
                 .setUpdateList(twinLinkUpdateRestDTOReverseMapper.convertCollection(src.getTwinLinksUpdate()))
                 .setCreateList(twinLinkAddRestDTOReverseMapper.convertCollection(src.getTwinLinksAdd()))
                 .setDeleteList(twinLinkService.findEntitiesSafe(src.getTwinLinksDelete()).getList());
-        dst.getCreateList().forEach(tl -> tl.setSrcTwinId(src.getTwinId()));
+        if (CollectionUtils.isNotEmpty(dst.getCreateList()))
+            dst.getCreateList().forEach(tl -> tl.setSrcTwinId(src.getTwinId()));
     }
 }

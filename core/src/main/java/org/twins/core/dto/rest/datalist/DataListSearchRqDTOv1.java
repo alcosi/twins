@@ -30,10 +30,6 @@ public class DataListSearchRqDTOv1 extends Request {
     public Set<String> keyLikeList;
     @Schema(description = "datalist class key not like list")
     public Set<String> keyNotLikeList;
-    @Schema(description = "datalist class subset id list")
-    public Set<UUID> dataListSubsetIdList;
-    @Schema(description = "datalist class subset id exclude list")
-    public Set<UUID> dataListSubsetIdExcludeList;
     @Schema(description = "data list option search")
     public DataListOptionSearchDTOv1 optionSearch;
 }

@@ -28,7 +28,7 @@ public class ConditionerHeadTwinFieldExistsAndValueFilled extends Conditioner {
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValue fieldValue = null;
         try {
-            fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextTwinHeadTwinFields);
+            fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextTwinHeadTwinDbFields);
         } catch (ServiceException e) {
            return false;
         }

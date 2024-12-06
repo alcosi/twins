@@ -27,7 +27,7 @@ public class DataListOptionSearchService {
     private final AuthService authService;
     private final DataListOptionRepository dataListOptionRepository;
 
-    public PaginationResult<DataListOptionEntity> findPermissionGroupForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<DataListOptionEntity> findDataListOptionForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
         Specification<DataListOptionEntity> spec = createDataListOptionSearchSpecification(search);
         Page<DataListOptionEntity> ret = dataListOptionRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
@@ -37,6 +37,7 @@ public class DataListOptionSearchService {
         ApiUser apiUser = authService.getApiUser();
         return Specification.where(
                 checkDomainId(apiUser.getDomainId())
+                        .and(createBusinessAccountSpecification(apiUser, search))
                         .and(checkUuidIn(DataListOptionEntity.Fields.id, search.getIdList(), false, false))
                         .and(checkUuidIn(DataListOptionEntity.Fields.id, search.getIdExcludeList(), true, false))
                         .and(checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdList(), false, false))
@@ -45,8 +46,18 @@ public class DataListOptionSearchService {
                         .and(checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
-                        .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true))
+                        .and(checkDataListSubset(search.getDataListSubsetIdList(), false))
+                        .and(checkDataListSubset(search.getDataListSubsetIdExcludeList(), true))
         );
+    }
+
+    private Specification<DataListOptionEntity> createBusinessAccountSpecification(ApiUser apiUser, DataListOptionSearch search) {
+        if (!apiUser.isBusinessAccountSpecified())
+            return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
+        else {
+            return Specification.where(empty())
+                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
+                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true));
+        }
     }
 }

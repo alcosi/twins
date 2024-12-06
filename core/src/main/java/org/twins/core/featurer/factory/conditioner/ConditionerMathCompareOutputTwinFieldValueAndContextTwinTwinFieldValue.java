@@ -20,10 +20,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2428,
-        name = "ConditionerMathCompareContextTwinFieldValueAndContextTwinHeadTwinFieldValue",
+        name = "ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue",
         description = "")
 @Slf4j
-public class ConditionerMathCompareContextTwinFieldValueAndContextTwinHeadTwinFieldValue extends Conditioner {
+public class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue extends Conditioner {
 
     @FeaturerParam(name = "greaterTwinClassField", description = "")
     public static final FeaturerParamUUID greaterTwinClassField = new FeaturerParamUUIDTwinsTwinClassFieldId("greaterTwinClassField");
@@ -36,8 +36,8 @@ public class ConditionerMathCompareContextTwinFieldValueAndContextTwinHeadTwinFi
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromContextTwinFields);
-        FieldValue comparisonValue = factoryService.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties), FieldLookupMode.fromContextTwinHeadTwinFields);
+        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputDbFields);
+        FieldValue comparisonValue = factoryService.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties), FieldLookupMode.fromContextTwinUncommitedFields);
         double greater, comparison;
         if (greaterValue instanceof FieldValueText greaterValueText) {
             Number greaterNumber = NumberUtils.createNumber(greaterValueText.getValue());

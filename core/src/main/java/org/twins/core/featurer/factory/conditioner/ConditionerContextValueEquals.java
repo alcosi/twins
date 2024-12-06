@@ -29,7 +29,7 @@ public class ConditionerContextValueEquals extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, FieldLookupMode.fromContextFieldsAndContextTwinFields);
+        return check(properties, factoryItem, FieldLookupMode.fromContextFieldsAndContextTwinDbFields);
     }
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookupMode fieldLookupMode) throws ServiceException {

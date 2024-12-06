@@ -43,7 +43,7 @@ public class FillerFieldFromContext extends Filler {
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFieldsAndContextTwinFields);
+        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFieldsAndContextTwinDbFields);
     }
 
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookupMode fieldLookupMode) throws ServiceException {

@@ -33,7 +33,12 @@ public class FillerMarkerDelete extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate) {
             boolean soft = softDelete.extract(properties);
-            if (!soft || !twinUpdate.getMarkersAdd().contains(markerId.extract(properties)))
+            if (soft)
+                if(null != twinUpdate.getMarkersAdd() && twinUpdate.getMarkersAdd().contains(markerId.extract(properties)))
+                    return;
+                else
+                    twinUpdate.deleteMarker(markerId.extract(properties));
+            else
                 twinUpdate.deleteMarker(markerId.extract(properties));
         }
     }

@@ -20,7 +20,5 @@ public class DataListSearch {
     Set<String> descriptionNotLikeList;
     Set<String> keyLikeList;
     Set<String> keyNotLikeList;
-    Set<UUID> dataListSubsetIdList;
-    Set<UUID> dataListSubsetIdExcludeList;
     DataListOptionSearch optionSearch;
 }
