@@ -21,11 +21,11 @@ public class DataListSubsetOptionEntity {
     @Column(name = "data_list_option_id")
     private UUID dataListOptionId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_list_subset_id", insertable = false, updatable = false)
-    private DataListEntity dataListSubsets;
+    private DataListSubsetEntity dataListSubset;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "data_list_option_id", insertable = false, updatable = false)
-    private DataListOptionEntity dataListOptions;
+    private DataListOptionEntity dataListOption;
 }

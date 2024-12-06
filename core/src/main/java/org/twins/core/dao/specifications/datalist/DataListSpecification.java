@@ -71,19 +71,6 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
                 .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptions, JoinType.LEFT));
     }
 
-    public static Specification<DataListEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            Join<DataListEntity, DataListSubsetEntity> joinDataListSubset = root.join(DataListEntity.Fields.dataListSubsets);
-
-            Predicate predicate = joinDataListSubset.get(DataListSubsetEntity.Fields.id).in(search);
-            if (not) predicate = cb.not(predicate);
-            return predicate;
-        };
-    }
-
     public static Specification<DataListEntity> checkDomainId(UUID domainId) {
         return (root, query, cb) -> {
             if (domainId == null)

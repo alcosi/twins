@@ -7,6 +7,8 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetEntity;
+import org.twins.core.dao.datalist.DataListSubsetOptionEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -17,6 +19,12 @@ import java.util.UUID;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class DataListOptionSpecification extends CommonSpecification<DataListOptionEntity> {
+
+    public static Specification<DataListOptionEntity> empty() {
+        return (root, query, cb) -> {
+            return cb.conjunction();
+        };
+    }
 
     public static Specification<DataListOptionEntity> checkFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
@@ -30,6 +38,22 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
                 predicates.add(predicate);
             }
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<DataListOptionEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            query.distinct(true);
+
+            Join<DataListOptionEntity, DataListSubsetOptionEntity> subsetOptionJoin = root.join(DataListOptionEntity.Fields.subsetOptions, JoinType.INNER);
+            Join<DataListSubsetOptionEntity, DataListSubsetEntity> subsetJoin = subsetOptionJoin.join(DataListSubsetOptionEntity.Fields.dataListSubset, JoinType.INNER);
+
+            Predicate predicate = subsetJoin.get(DataListSubsetEntity.Fields.id).in(search);
+            if (not) predicate = cb.not(predicate);
+            return predicate;
         };
     }
 
