@@ -7,10 +7,8 @@ import lombok.ToString;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.kit.Kit;
 
-import java.sql.Timestamp;
-import java.util.Collection;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -35,12 +33,13 @@ public class DataListSubsetEntity implements EasyLoggable {
     @Column(name = "key")
     private String key;
 
-    @ManyToOne
-    @JoinColumn(name = "data_list_id", insertable = false, updatable = false)
-    private DataListEntity dataList;
+    //needed for specification
+    @Deprecated
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "dataListSubset")
+    private Set<DataListSubsetOptionEntity> subsetOptions;
 
     public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";
     }
-
 }
