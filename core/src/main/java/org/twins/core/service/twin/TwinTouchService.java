@@ -32,8 +32,8 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     private final TwinRepository twinRepository;
 
     @Transactional
-    public TwinTouchEntity addTouch(UUID twinId, String touchId) throws ServiceException {
-        List<TwinTouchEntity> list = addTouch(Collections.singleton(twinId), touchId);
+    public TwinTouchEntity addTouch(UUID twinId, TwinTouchEntity.Touch touch) throws ServiceException {
+        List<TwinTouchEntity> list = addTouch(Collections.singleton(twinId), touch);
         if (CollectionUtils.isNotEmpty(list))
             return list.get(0);
         else
@@ -41,11 +41,10 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     }
 
     @Transactional
-    public List<TwinTouchEntity> addTouch(Set<UUID> twinIds, String touchId) throws ServiceException {
+    public List<TwinTouchEntity> addTouch(Set<UUID> twinIds, TwinTouchEntity.Touch touch) throws ServiceException {
         if (CollectionUtils.isEmpty(twinIds))
             return Collections.emptyList();
         UUID userId = authService.getApiUser().getUserId();
-        TwinTouchEntity.Touch touch = TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase());
         List<TwinTouchEntity> dbEntities = twinTouchRepository.findByTwinIdInAndTouchIdAndUserId(twinIds, touch, userId);
         Kit<TwinTouchEntity, UUID> kit = new Kit<>(dbEntities, TwinTouchEntity::getTwinId);
         List<TwinTouchEntity> ret = new ArrayList<>();

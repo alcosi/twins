@@ -52,7 +52,7 @@ public class TwinTouchAddController extends ApiController {
             @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) MapperContext mapperContext) {
         TwinTouchRsDTOv1 rs = new TwinTouchRsDTOv1();
         try {
-            TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, touchId);
+            TwinTouchEntity twinTouchEntity = twinTouchService.addTouch(twinId, TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase()));
             rs
                     .twinTouch(twinTouchRestDTOMapper.convert(twinTouchEntity, mapperContext));
         } catch (ServiceException se) {
@@ -77,7 +77,7 @@ public class TwinTouchAddController extends ApiController {
             @RequestBody TwinListTouchAddRqDTOv1 request) {
         TwinTouchListRsDTOv1 rs = new TwinTouchListRsDTOv1();
         try {
-            List<TwinTouchEntity> list = twinTouchService.addTouch(request.getTwinIdList(), touchId);
+            List<TwinTouchEntity> list = twinTouchService.addTouch(request.getTwinIdList(), TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase()));
             rs
                     .setTouchTwins(twinTouchRestDTOMapper.convertCollection(list, mapperContext));
         } catch (ServiceException se) {
