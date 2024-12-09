@@ -2,13 +2,11 @@ package org.twins.core.mappers.rest.datalist;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.controller.rest.annotation.MapperModeBinding;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.DataListMode;
 import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
 import org.twins.core.service.datalist.DataListService;
 
@@ -17,6 +15,7 @@ import org.twins.core.service.datalist.DataListService;
 @RequiredArgsConstructor
 public class DataListRestDTOMapperV2 extends RestSimpleDTOMapper<DataListEntity, DataListDTOv2> {
 
+    @MapperModePointerBinding(modes = DataListOptionMode.class)
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     private final DataListService dataListService;
