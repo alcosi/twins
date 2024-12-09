@@ -123,7 +123,6 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         HistoryEntity historyEntity = new HistoryEntity()
                 .setTwin(twinEntity)
                 .setTwinId(twinEntity.getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setActorUser(actor)
                 .setActorUserId(actor.getId())
                 .setHistoryType(type)

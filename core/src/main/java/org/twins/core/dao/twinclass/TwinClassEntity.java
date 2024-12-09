@@ -13,6 +13,7 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -84,6 +85,8 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

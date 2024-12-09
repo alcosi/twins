@@ -140,8 +140,7 @@ public class DomainService {
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
         DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
-                .setUserId(userId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setUserId(userId);
         entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
@@ -175,8 +174,7 @@ public class DomainService {
                 .setDomain(domain)
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
-                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId);
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
