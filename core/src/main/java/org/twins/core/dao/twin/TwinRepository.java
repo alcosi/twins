@@ -24,6 +24,8 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     List<TwinEntity> findByTwinClassId(UUID twinClassId);
 
+    List<TwinEntity> findByIdIn(Collection<UUID> twinIds);
+
     boolean existsByTwinClassId(UUID twinClassId);
 
     @Query(value = "select t.assignerUser from TwinEntity t where t.id = :twinId")

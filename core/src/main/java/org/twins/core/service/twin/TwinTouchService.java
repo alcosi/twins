@@ -3,18 +3,20 @@ package org.twins.core.service.twin;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dao.twin.TwinTouchRepository;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 import java.util.function.Function;
 
 @Slf4j
@@ -24,23 +26,29 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
     private final AuthService authService;
     private final TwinService twinService;
     private final TwinTouchRepository twinTouchRepository;
+    private final TwinRepository twinRepository;
 
+    @Transactional
     public TwinTouchEntity addTouch(UUID twinId, String touchId) throws ServiceException {
-        return addTouch(twinService.findEntitySafe(twinId), touchId);
+        List<TwinTouchEntity> list = addTouch(Collections.singleton(twinId), touchId);
+        if (CollectionUtils.isNotEmpty(list))
+            return list.get(0);
+        else
+            return new TwinTouchEntity();
     }
 
-    private TwinTouchEntity addTouch(TwinEntity twin, String touchId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        TwinTouchEntity.Touch touch = TwinTouchEntity.Touch.valueOf(touchId.toUpperCase());
-        TwinTouchEntity twinTouchEntityFromDB = twinTouchRepository.findByTwinIdAndTouchIdAndUserId(twin.getId(), touch, apiUser.getUserId());
-        if (twinTouchEntityFromDB == null) {
-            TwinTouchEntity twinTouchEntity = new TwinTouchEntity()
-                    .setUserId(apiUser.getUserId())
-                    .setTouchId(touch)
-                    .setTwinId(twin.getId());
-            twinTouchEntityFromDB = entitySmartService.save(twinTouchEntity, twinTouchRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+    @Transactional
+    public List<TwinTouchEntity> addTouch(Set<UUID> twinIds, String touchId) throws ServiceException {
+        UUID userId = authService.getApiUser().getUserId();
+        List<TwinEntity> dbEntities = twinRepository.findByIdIn(twinIds);
+        if (CollectionUtils.isEmpty(dbEntities))
+            return Collections.emptyList();
+        List<TwinTouchEntity> savedTouches = new ArrayList<>();
+        for (TwinEntity twin : dbEntities) {
+            Optional<TwinTouchEntity> savedEntity = twinTouchRepository.saveOrGetIfExists(UUID.randomUUID() , twin.getId(), touchId, userId, Instant.now());
+            savedEntity.ifPresent(savedTouches::add);
         }
-        return twinTouchEntityFromDB;
+        return savedTouches;
     }
 
     @Transactional
