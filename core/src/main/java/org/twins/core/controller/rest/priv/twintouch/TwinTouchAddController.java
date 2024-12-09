@@ -32,21 +32,21 @@ import java.util.UUID;
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class TwinTouchCreateController extends ApiController {
+public class TwinTouchAddController extends ApiController {
 
     private final TwinTouchRestDTOMapper twinTouchRestDTOMapper;
 
     private final TwinTouchService twinTouchService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTouchV1", summary = "Mark twin as touched for user")
+    @Operation(operationId = "twinTouchAddV1", summary = "Mark twin as touched for user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinTouchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/twin/{twinId}/touch/{touchId}/v1")
-    public ResponseEntity<?> twinTouchV1(
+    public ResponseEntity<?> twinTouchAddV1(
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable String touchId,
             @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchRsDTOv1.class) MapperContext mapperContext) {
@@ -64,14 +64,14 @@ public class TwinTouchCreateController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "twinTouchListV1 ", summary = "Mark twin list as touched for user")
+    @Operation(operationId = "twinTouchAddListV1 ", summary = "Mark twin list as touched for user")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin touch data list", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinTouchListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin/touch/{touchId}/v1")
-    public ResponseEntity<?> twinTouchListV1 (
+    public ResponseEntity<?> twinTouchAddListV1 (
             @MapperContextBinding(roots = TwinTouchRestDTOMapper.class, response = TwinTouchListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_TOUCH) @PathVariable String touchId,
             @RequestBody TwinListTouchAddRqDTOv1 request) {
