@@ -2,7 +2,9 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -13,6 +15,7 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dao.twin.TwinTouchRepository;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.time.Instant;
@@ -34,21 +37,35 @@ public class TwinTouchService extends EntitySecureFindServiceImpl<TwinTouchEntit
         if (CollectionUtils.isNotEmpty(list))
             return list.get(0);
         else
-            return new TwinTouchEntity();
+            throw new ServiceException(ErrorCodeTwins.TWIN_ID_IS_INCORRECT);
     }
 
     @Transactional
     public List<TwinTouchEntity> addTouch(Set<UUID> twinIds, String touchId) throws ServiceException {
-        UUID userId = authService.getApiUser().getUserId();
-        List<TwinEntity> dbEntities = twinRepository.findByIdIn(twinIds);
-        if (CollectionUtils.isEmpty(dbEntities))
+        if (CollectionUtils.isEmpty(twinIds))
             return Collections.emptyList();
-        List<TwinTouchEntity> savedTouches = new ArrayList<>();
-        for (TwinEntity twin : dbEntities) {
-            Optional<TwinTouchEntity> savedEntity = twinTouchRepository.saveOrGetIfExists(UUID.randomUUID() , twin.getId(), touchId, userId, Instant.now());
-            savedEntity.ifPresent(savedTouches::add);
+        UUID userId = authService.getApiUser().getUserId();
+        TwinTouchEntity.Touch touch = TwinTouchEntity.Touch.valueOfId(touchId.toUpperCase());
+        List<TwinTouchEntity> dbEntities = twinTouchRepository.findByTwinIdInAndTouchIdAndUserId(twinIds, touch, userId);
+        Kit<TwinTouchEntity, UUID> kit = new Kit<>(dbEntities, TwinTouchEntity::getTwinId);
+        List<TwinTouchEntity> ret = new ArrayList<>();
+        List<TwinTouchEntity> needSave = new ArrayList<>();
+        for (UUID twinId : twinIds) {
+            if (kit.containsKey(twinId))
+                ret.add(kit.get(twinId));
+            else {
+                TwinTouchEntity forSave = new TwinTouchEntity()
+                        .setTwinId(twinId)
+                        .setTouchId(touch)
+                        .setUserId(userId);
+                needSave.add(forSave);
+                ret.add(forSave);
+            }
         }
-        return savedTouches;
+        //todo there will be an error if an incorrect twins is transmitted
+        // and check permission
+        ret.addAll((List<TwinTouchEntity>) twinTouchRepository.saveAll(needSave));
+        return ret;
     }
 
     @Transactional
