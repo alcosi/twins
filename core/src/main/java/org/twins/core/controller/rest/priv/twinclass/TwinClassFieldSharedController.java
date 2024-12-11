@@ -21,6 +21,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.service.datalist.DataListService;
@@ -33,7 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinClassFieldSharedController extends ApiController {
     private final DataListService dataListService;
-    private final DataListRestDTOMapper dataListRestDTOMapper;
+    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldDataListSharedInHeadV1", summary = "Returns twin class field options shared in head (free for select)")
@@ -49,7 +50,7 @@ public class TwinClassFieldSharedController extends ApiController {
             @Parameter(example = DTOExamples.HEAD_TWIN_ID) @PathVariable UUID headTwinId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            rs.dataList = dataListRestDTOMapper.convert(
+            rs.dataList = dataListRestDTOMapperV2.convert(
                     dataListService.findDataListOptionsSharedInHead(twinClassFieldId, headTwinId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

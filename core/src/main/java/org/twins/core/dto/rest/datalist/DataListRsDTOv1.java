@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Response;
 @Schema(name = "DataListRsV1")
 public class DataListRsDTOv1 extends Response {
     @Schema(description = "results - data lists list")
-    public DataListDTOv1 dataList;
+    public DataListDTOv2 dataList;
 }
