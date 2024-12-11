@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -32,6 +33,8 @@ public class EraseflowLinkCascadeEntity implements EasyLoggable {
     @Column(name = "cascade_deletion_factory_id")
     private UUID cascadeDeletionFactoryId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

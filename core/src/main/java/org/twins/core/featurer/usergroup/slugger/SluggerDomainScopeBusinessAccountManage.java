@@ -72,8 +72,7 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
                 .setBusinessAccountId(apiUser.getBusinessAccountId())
                 .setBusinessAccount(apiUser.getBusinessAccount())
                 .setAddedByUserId(apiUser.getUser().getId())
-                .setAddedByUser(apiUser.getUser())
-                .setAddedAt(Timestamp.from(Instant.now()));
+                .setAddedByUser(apiUser.getUser());
     }
 
     @Override
