@@ -41,6 +41,23 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
+    public static Specification<DataListOptionEntity> checkKeyLikeIn(Collection<String> search, boolean not, boolean or) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            Join<DataListOptionEntity, DataListEntity> joinDataListOption = root.join(DataListOptionEntity.Fields.dataList, JoinType.INNER);
+
+            List<Predicate> predicates = new ArrayList<>();
+            for (String value : search) {
+                Predicate predicate = cb.like(cb.lower(joinDataListOption.get(DataListEntity.Fields.key)), value.toLowerCase());
+                if (not) predicate = cb.not(predicate);
+                predicates.add(predicate);
+            }
+            return getPredicate(cb, predicates, or);
+        };
+    }
+
     public static Specification<DataListOptionEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))

@@ -15,6 +15,8 @@ public class DataListOptionSearch {
     Set<UUID> idExcludeList;
     Set<UUID> dataListIdList;
     Set<UUID> dataListIdExcludeList;
+    Set<String> dataListKeyList;
+    Set<String> dataListKeyExcludeList;
     Set<String> optionLikeList;
     Set<String> optionNotLikeList;
     Set<String> optionI18nLikeList;

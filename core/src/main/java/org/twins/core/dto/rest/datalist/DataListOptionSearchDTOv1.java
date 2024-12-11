@@ -22,6 +22,10 @@ public class DataListOptionSearchDTOv1 extends Request {
     public Set<UUID> dataListIdList;
     @Schema(description = "data list id exclude list")
     public Set<UUID> dataListIdExcludeList;
+    @Schema(description = "data list key list")
+    public Set<String> dataListKeyList;
+    @Schema(description = "data list key exclude list")
+    public Set<String> dataListKeyExcludeList;
     @Schema(description = "option like list")
     public Set<String> optionLikeList;
     @Schema(description = "option not like list")
