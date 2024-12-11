@@ -55,10 +55,6 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
     @Autowired
     private TwinFieldSimpleSearchService twinFieldSimpleSearchService;
 
-    @Lazy
-    @Autowired
-    private TwinSearchService twinSearchService;
-
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         BasicSearch search = new BasicSearch();
@@ -68,8 +64,7 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
                 .addStatusId(statusIds.extract(properties), false);
         FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputUncommitedFields);
         double comparison, greater;
-        Kit<TwinIdNoRelationsProjection, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjection.class), TwinIdNoRelationsProjection::id);
-        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldSimpleValuesByTwinIds(twinIds.getIdSet());
+        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldSimpleValuesByTwinIds(search);
         for(TwinFieldSimpleNoRelationsProjection field : twinFieldSimpleValues) {
             if (field.twinClassFieldId().equals(comparisonTwinClassField.extract(properties))) {
                 try {
