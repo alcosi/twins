@@ -7,7 +7,6 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dao.datalist.DataListSubsetEntity;
 import org.twins.core.dao.datalist.DataListSubsetOptionEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
@@ -41,7 +40,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
-    public static Specification<DataListOptionEntity> checkKeyLikeIn(Collection<String> search, boolean not, boolean or) {
+    public static Specification<DataListOptionEntity> checkDataListKeyLikeIn(Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
