@@ -44,6 +44,8 @@ public class DataListOptionSearchService {
                         .and(checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdExcludeList(), true, true))
                         .and(checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionLikeList(), false, true))
                         .and(checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true))
+                        .and(checkDataListKeyLikeIn(search.getDataListKeyList(), false, true))
+                        .and(checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true))
                         .and(checkDataListSubset(search.getDataListSubsetIdList(), false))

@@ -16,6 +16,8 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setIdExcludeList(src.getIdExcludeList())
                 .setDataListIdList(src.getDataListIdList())
                 .setDataListIdExcludeList(src.getDataListIdExcludeList())
+                .setDataListKeyList(src.getDataListKeyList())
+                .setDataListKeyExcludeList(src.getDataListKeyExcludeList())
                 .setOptionLikeList(src.getOptionLikeList())
                 .setOptionNotLikeList(src.getOptionNotLikeList())
                 .setOptionI18nLikeList(src.getOptionI18nLikeList())
