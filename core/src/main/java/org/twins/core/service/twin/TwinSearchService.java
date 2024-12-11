@@ -52,7 +52,6 @@ import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 public class TwinSearchService {
     private final EntityManager entityManager;
     private final TwinRepository twinRepository;
-    private final TwinService twinService;
     private final UserGroupService userGroupService;
     private final SearchRepository searchRepository;
     private final SearchAliasRepository searchAliasRepository;

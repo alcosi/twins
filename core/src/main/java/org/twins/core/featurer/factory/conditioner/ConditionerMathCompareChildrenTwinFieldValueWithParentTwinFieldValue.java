@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -21,6 +22,7 @@ import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
+import org.twins.core.service.twin.TwinFieldSimpleSearchService;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
@@ -49,7 +51,7 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
 
     @Lazy
     @Autowired
-    private TwinSearchService twinSearchService;
+    private TwinFieldSimpleSearchService twinFieldSimpleSearchService;
 
     @Lazy
     @Autowired
@@ -62,24 +64,25 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
                 .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
                 .addStatusId(statusIds.extract(properties), false);
-        List<TwinEntity> children = twinSearchService.findTwins(search);
         FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputUncommitedFields);
-        twinService.loadFieldsValues(children);
         double comparison, greater;
-        for(TwinEntity child : children) {
-            FieldValue comparisonValue = child.getFieldValuesKit().get(comparisonTwinClassField.extract(properties));
-            if (comparisonValue instanceof FieldValueText greaterValueText) {
-                Number greaterNumber = NumberUtils.createNumber(greaterValueText.getValue());
-                comparison = greaterNumber.doubleValue();
-            } else
-                throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "greaterTwinClassField[" + greaterTwinClassField + "] is not instance of text field and can not be converted to number");
-            if (greaterValue instanceof FieldValueText comparisonValueText) {
-                Number comparisonNumber = NumberUtils.createNumber(comparisonValueText.getValue());
-                greater = comparisonNumber.doubleValue();
-            } else
-                throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "comparisonTwinClassField[" + comparisonTwinClassField + "] is not instance of text field and can not be converted to number");
-            if(equals.extract(properties) ? greater >= comparison : greater > comparison)
-                return false;
+        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldSimpleValuesKit(search);
+        for(TwinFieldSimpleNoRelationsProjection field : twinFieldSimpleValues) {
+            if (field.twinClassFieldId().equals(comparisonTwinClassField.extract(properties))) {
+                try {
+                    Number greaterNumber = NumberUtils.createNumber(field.value());
+                    comparison = greaterNumber.doubleValue();
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "greaterTwinClassField[" + greaterTwinClassField + "] can not be converted to number");
+                }
+                if (greaterValue instanceof FieldValueText comparisonValueText) {
+                    Number comparisonNumber = NumberUtils.createNumber(comparisonValueText.getValue());
+                    greater = comparisonNumber.doubleValue();
+                } else
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "comparisonTwinClassField[" + comparisonTwinClassField + "] is not instance of text field and can not be converted to number");
+                if (equals.extract(properties) ? greater >= comparison : greater > comparison)
+                    return false;
+            }
         }
         return true;
     }

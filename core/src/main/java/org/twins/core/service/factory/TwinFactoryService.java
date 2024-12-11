@@ -411,7 +411,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 twinSave = factoryItem.getOutput();
                 fieldValue = twinSave.getField(twinClassFieldId);
                 if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in output twin uncommited fields");
                 break;
             case fromContextTwinDbFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
