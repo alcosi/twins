@@ -142,6 +142,11 @@ public class TwinSearchService {
         return ret;
     }
 
+    public <T> List<T> findTwins(BasicSearch basicSearch, Class<T> projection) throws ServiceException {
+        //https://github.com/spring-projects/spring-data-jpa/pull/430
+        return twinRepository.findBy(createTwinEntitySearchSpecification(basicSearch), t -> t.as(projection).all());
+    }
+
     //***********************************************************************//
     //todo clarify about offset and multiplicity of size.                    //
     // because in the repository pagination is paginated                     //

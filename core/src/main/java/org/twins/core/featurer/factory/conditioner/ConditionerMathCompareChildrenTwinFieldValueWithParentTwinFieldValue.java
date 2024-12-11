@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.conditioner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
+import org.twins.core.dao.twin.TwinIdNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -24,10 +26,10 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinFieldSimpleSearchService;
 import org.twins.core.service.twin.TwinSearchService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.List;
 import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Component
@@ -55,7 +57,7 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
 
     @Lazy
     @Autowired
-    private TwinService twinService;
+    private TwinSearchService twinSearchService;
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
@@ -66,7 +68,8 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
                 .addStatusId(statusIds.extract(properties), false);
         FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputUncommitedFields);
         double comparison, greater;
-        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldSimpleValuesKit(search);
+        Kit<TwinIdNoRelationsProjection, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjection.class), TwinIdNoRelationsProjection::id);
+        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldSimpleValuesByTwinIds(twinIds.getIdSet());
         for(TwinFieldSimpleNoRelationsProjection field : twinFieldSimpleValues) {
             if (field.twinClassFieldId().equals(comparisonTwinClassField.extract(properties))) {
                 try {

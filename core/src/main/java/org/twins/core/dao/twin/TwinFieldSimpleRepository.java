@@ -68,5 +68,5 @@ public interface TwinFieldSimpleRepository extends CrudRepository<TwinFieldSimpl
     @Query(value = "update TwinFieldSimpleEntity set twinClassFieldId = :toTwinClassFieldId where twinClassFieldId = :fromTwinClassFieldId and twin.twinClassId = :twinClassId")
     void replaceTwinClassFieldForTwinsOfClass(@Param("twinClassId") UUID twinClassId, @Param("fromTwinClassFieldId") UUID fromTwinClassFieldId, @Param("toTwinClassFieldId") UUID toTwinClassFieldId);
 
-    List<TwinFieldSimpleNoRelationsProjection> loadValues(Specification<TwinFieldSimpleEntity> spec);
+
 }
