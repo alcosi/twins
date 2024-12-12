@@ -2,7 +2,6 @@ package org.twins.core.service.twin;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -13,12 +12,9 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.*;
-import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
-import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.permission.Permissions;
 
 import java.util.List;
 import java.util.UUID;
@@ -58,15 +54,15 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
 
 
 
-    public List<TwinFieldSimpleNoRelationsProjection> findTwinFieldSimpleValuesByTwinIds(BasicSearch search) throws ServiceException {
+    public List<TwinFieldSimpleNoRelationsProjectionInterfaceBased> findTwinFieldsSimple(BasicSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        Kit<TwinIdNoRelationsProjection, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjection.class), TwinIdNoRelationsProjection::id);
+        Kit<TwinIdNoRelationsProjectionInterfaceBased, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjectionInterfaceBased.class), TwinIdNoRelationsProjectionInterfaceBased::getId);
         Specification<TwinFieldSimpleEntity> spec = Specification.where(
                 checkDomainId(apiUser.getDomainId())
                         .and(CommonSpecification.checkUuidIn(TwinFieldSimpleEntity.Fields.twinId, twinIds.getIdSet(), false, false))
         );
         //https://github.com/spring-projects/spring-data-jpa/pull/430
-        return twinFieldSimpleRepository.findBy(spec, q -> q.as(TwinFieldSimpleNoRelationsProjection.class).all());
+        return twinFieldSimpleRepository.findBy(spec, q -> q.as(TwinFieldSimpleNoRelationsProjectionInterfaceBased.class).all());
     }
 
 
