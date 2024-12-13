@@ -18,24 +18,6 @@ public enum FactoryCountMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum FactoryUsagesCountMode implements MapperModePointer<FactoryCountMode> {
-        @FieldNameConstants.Include HIDE(0),
-        @FieldNameConstants.Include SHOW(1);
-
-        final int priority;
-
-        @Override
-        public FactoryCountMode point() {
-            return switch (this) {
-                case HIDE -> FactoryCountMode.HIDE;
-                case SHOW -> FactoryCountMode.SHOW;
-            };
-        }
-    }
-
-    @Getter
-    @AllArgsConstructor
-    @FieldNameConstants(onlyExplicitlyIncluded = true)
     public enum FactoryPipelinesCountMode implements MapperModePointer<FactoryCountMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHOW(1);

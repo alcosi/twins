@@ -8,16 +8,15 @@ import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.FactoryCountMode;
-import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {FactoryMode.class, FactoryCountMode.FactoryUsagesCountMode.class, FactoryCountMode.FactoryPipelinesCountMode.class,
-        FactoryCountMode.FactoryMultipliersCountMode.class, FactoryCountMode.FactoryBranchesCountMode.class, FactoryCountMode.FactoryErasersCountMode.class})
+@MapperModeBinding(modes = {FactoryMode.class, FactoryUsagesCountMode.class, FactoryPipelinesCountMode.class, FactoryMultipliersCountMode.class,
+        FactoryBranchesCountMode.class, FactoryErasersCountMode.class})
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
 
     private final I18nService i18nService;
@@ -65,23 +64,23 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
     }
 
     private static boolean showFactoryUsagesCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryCountMode.FactoryUsagesCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryUsagesCountMode.HIDE);
     }
 
     private static boolean showFactoryPipelinesCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryCountMode.FactoryPipelinesCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryPipelinesCountMode.HIDE);
     }
 
     private static boolean showFactoryMultipliersCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryCountMode.FactoryMultipliersCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryMultipliersCountMode.HIDE);
     }
 
     private static boolean showFactoryBranchesCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryCountMode.FactoryBranchesCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryBranchesCountMode.HIDE);
     }
 
     private static boolean showFactoryErasersCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryCountMode.FactoryErasersCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryErasersCountMode.HIDE);
     }
 
     @Override
