@@ -5,6 +5,7 @@ public interface DTOExamples {
     String BOOLEAN_TRUE = "true";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
+    String COUNT = "3";
     String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
@@ -85,4 +86,7 @@ public interface DTOExamples {
     String FEATURER_PARAM_NAME = "listUUID";
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String COLOR_HEX = "#ff00ff";
+    String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_KEY = "taskReassign";
+
 }

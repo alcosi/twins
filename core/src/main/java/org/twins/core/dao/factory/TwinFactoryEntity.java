@@ -4,17 +4,20 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
 
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "twin_factory")
-@Accessors(chain = true)
-@Data
 public class TwinFactoryEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -32,9 +35,6 @@ public class TwinFactoryEntity implements EasyLoggable {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
 
-    @Column(name = "shared")
-    private boolean shared; // factory may be used in some transitions or pipelines.
-
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
@@ -47,6 +47,33 @@ public class TwinFactoryEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
     private UserEntity createdByUser;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    private I18nEntity nameI18n;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    private I18nEntity descriptionI18n;
+
+    @Transient
+    public Integer factoryUsagesCount;
+
+    @Transient
+    public Integer factoryPipelinesCount;
+
+    @Transient
+    public Integer factoryMultipliersCount;
+
+    @Transient
+    public Integer factoryBranchesCount;
+
+    @Transient
+    public Integer factoryErasersCount;
 
     public String easyLog(Level level) {
         return switch (level) {

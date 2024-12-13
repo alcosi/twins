@@ -6,6 +6,7 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -66,4 +67,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related twinflow map", example = "{twinflow map}")
     public Map<UUID, TwinflowBaseDTOv1> twinflowMap;
+
+    @Schema(description = "related factory map", example = "{factory map}")
+    public Map<UUID, FactoryDTOv1> factoryMap;
 }
