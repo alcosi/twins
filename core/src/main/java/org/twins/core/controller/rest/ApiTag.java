@@ -22,4 +22,5 @@ public class ApiTag {
     public static final String LOCALE = "locale";
     public static final String SPACE = "space";
     public static final String SYSTEM = "system";
+    public static final String FACTORY = "factory";
 }
