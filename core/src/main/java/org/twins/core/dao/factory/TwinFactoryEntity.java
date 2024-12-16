@@ -32,9 +32,6 @@ public class TwinFactoryEntity implements EasyLoggable {
     @Column(name = "description_i18n_id")
     private UUID descriptionI18NId;
 
-    @Column(name = "shared")
-    private boolean shared; // factory may be used in some transitions or pipelines.
-
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
