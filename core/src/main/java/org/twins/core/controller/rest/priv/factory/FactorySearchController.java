@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.datalist;
+package org.twins.core.controller.rest.priv.factory;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,47 +21,46 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.datalist.DataListOptionEntity;
-import org.twins.core.dto.rest.datalist.DataListOptionSearchRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionSearchRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
-import org.twins.core.mappers.rest.datalist.DataListOptionSearchDTOReverseMapper;
+import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dto.rest.factory.FactorySearchRqDTOv1;
+import org.twins.core.dto.rest.factory.FactorySearchRsDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryRestDTOMapperV2;
+import org.twins.core.mappers.rest.factory.FactorySearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.datalist.DataListOptionSearchService;
+import org.twins.core.service.factory.FactorySearchService;
 
-@Tag(name = ApiTag.DATA_LIST)
+@Tag(name = ApiTag.FACTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class DataListOptionSearchController extends ApiController {
+public class FactorySearchController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PaginationMapper paginationMapper;
-
-    private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
-    private final DataListOptionSearchService dataListOptionSearchService;
-    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
+    private final FactorySearchDTOReverseMapper factorySearchDTOReverseMapper;
+    private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
+    private final FactorySearchService factorySearchService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "dataListOptionSearchListV1", summary = "Return a list of all data list option for the current domain")
+    @Operation(operationId = "factorySearchListV1", summary = "Return a list of all factories for the current domain")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListOptionSearchRsDTOv1.class))}),
+                    @Schema(implementation = FactorySearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/data_list_option/search/v1")
-    public ResponseEntity<?> dataListOptionSearchListV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionSearchRsDTOv1.class) MapperContext mapperContext,
-            @RequestBody DataListOptionSearchRqDTOv1 request,
-            @SimplePaginationParams(sortField = DataListOptionEntity.Fields.option) SimplePagination pagination) {
-        DataListOptionSearchRsDTOv1 rs = new DataListOptionSearchRsDTOv1();
+    @PostMapping(value = "/private/factory/search/v1")
+    public ResponseEntity<?> factorySearchListV1(
+            @MapperContextBinding(roots = FactoryRestDTOMapperV2.class, response = FactorySearchRsDTOv1.class) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+            @RequestBody FactorySearchRqDTOv1 request) {
+        FactorySearchRsDTOv1 rs = new FactorySearchRsDTOv1();
         try {
-            PaginationResult<DataListOptionEntity> dataListOptionList = dataListOptionSearchService
-                    .findDataListOptionForDomain(dataListOptionSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinFactoryEntity> factoryList = factorySearchService
+                    .findFactoriesInDomain(factorySearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setOptions(dataListOptionRestDTOMapperV3.convertCollection(dataListOptionList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(dataListOptionList))
+                    .setFactories(factoryRestDTOMapperV2.convertCollection(factoryList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(factoryList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

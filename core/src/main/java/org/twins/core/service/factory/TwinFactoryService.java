@@ -3,7 +3,9 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
@@ -35,6 +38,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -58,6 +62,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Lazy
     final DraftService draftService;
     final DraftCommitService draftCommitService;
+    private final TwinflowTransitionRepository twinflowTransitionRepository;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -463,5 +468,105 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 break;
         }
         return fieldValue;
+    }
+
+    public void countFactoryUsages(TwinFactoryEntity twinFactory) {
+        countFactoryUsages(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryUsages(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryUsagesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> twinflowTransitionCounts = convertToMap(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryBranchCounts = convertToMap(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryPipelineCounts = convertToMap(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+
+        needLoad.getCollection().forEach(twinFactory -> {
+            int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinFactoryBranchCount = twinFactoryBranchCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinFactoryPipelineCount = twinFactoryPipelineCounts.getOrDefault(twinFactory.getId(), 0);
+            twinFactory.setFactoryUsagesCount(twinflowTransitionCount + twinFactoryBranchCount + twinFactoryPipelineCount);
+        });
+    }
+
+    public void countFactoryPipelines(TwinFactoryEntity twinFactory) {
+        countFactoryPipelines(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryPipelines(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryPipelinesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryPipelines = convertToMap(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryPipelinesCount(factoryPipelines.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryMultipliers(TwinFactoryEntity twinFactory) {
+        countFactoryMultipliers(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryMultipliers(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryMultipliersCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryMultipliers = convertToMap(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryMultipliersCount(factoryMultipliers.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryBranches(TwinFactoryEntity twinFactory) {
+        countFactoryBranches(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryBranches(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryBranchesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryBranches = convertToMap(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryBranchesCount(factoryBranches.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryErasers(TwinFactoryEntity twinFactory) {
+        countFactoryErasers(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryErasers(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryErasersCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryErasers = convertToMap(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryErasersCount(factoryErasers.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {
+        return resultList.stream().collect(Collectors.toMap(
+                row -> (UUID) row[0],
+                row -> ((Long) row[1]).intValue()
+        ));
     }
 }

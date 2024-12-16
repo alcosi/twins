@@ -1,0 +1,1 @@
+INSERT INTO public.featurer (id, featurer_type_id, class, name, description, deprecated) VALUES (2334, 23, 'org.twins.core.featurer.factory.filler.FillerFieldAsContextFieldHead', 'FillerFieldAsContextFieldHead', 'Get head for twin from src field(link). Set this head to dst field(link)', false) on conflict (id) do nothing;

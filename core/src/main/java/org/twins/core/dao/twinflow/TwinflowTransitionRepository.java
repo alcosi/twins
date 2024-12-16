@@ -66,4 +66,7 @@ public interface TwinflowTransitionRepository extends CrudRepository<TwinflowTra
     List<TwinflowTransitionEntity> findByTwinflowId(UUID twinflowId);
 
     List<TwinflowTransitionEntity> findByTwinflowIdIn(Collection<UUID> twinflowIds);
+
+    @Query("SELECT t.inbuiltTwinFactoryId, COUNT(t) FROM TwinflowTransitionEntity t WHERE t.inbuiltTwinFactoryId IN :ids GROUP BY t.inbuiltTwinFactoryId")
+    List<Object[]> countByInbuiltTwinFactoryIds(Collection<UUID> ids);
 }
