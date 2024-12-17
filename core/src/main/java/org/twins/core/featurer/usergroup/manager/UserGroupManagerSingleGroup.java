@@ -51,7 +51,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
             Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
             slugger.enterGroup(userGroup, userId);
             List<UserGroupMapEntity> allEnteredGroups = userGroupService.getUserGroupsMap(userId);
-            userGroupMapRepository.deleteAll(allEnteredGroups.stream().filter(m -> m.getUserGroupId() != enterUserGroupId).collect(Collectors.toList()));
+            userGroupMapRepository.deleteAll(allEnteredGroups.stream().filter(m -> !m.getUserGroupId().equals(enterUserGroupId)).collect(Collectors.toList()));
         }
 
         if (CollectionUtils.isNotEmpty(userGroupExitList)) {
