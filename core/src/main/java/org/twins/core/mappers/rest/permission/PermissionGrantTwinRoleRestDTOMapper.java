@@ -22,7 +22,8 @@ public class PermissionGrantTwinRoleRestDTOMapper extends RestSimpleDTOMapper<Pe
                         .setPermissionId(src.getPermissionId())
                         .setTwinClassId(src.getTwinClassId())
                         .setTwinRole(src.getTwinRole())
-                        .setGrantedByUserId(src.getGrantedByUserId());
+                        .setGrantedByUserId(src.getGrantedByUserId())
+                        .setGrantedAt(src.getGrantedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
