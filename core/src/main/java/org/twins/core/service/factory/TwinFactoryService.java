@@ -563,6 +563,91 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryErasersCount(factoryErasers.getOrDefault(twinFactory.getId(), 0)));
     }
 
+    public void countConditionSetInFactoryPipelineUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryPipelineUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryPipelineUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryPipelineUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryPipelineStepUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryPipelineStepUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryPipelineStepUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryPipelineStepUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineStepUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryMultiplierFilterUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryMultiplierFilterUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryMultiplierFilterUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryMultiplierFilterUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryMultiplierFilterUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryBranchUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryBranchUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryBranchUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryBranchUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryBranchUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryEraserUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryEraserUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryEraserUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryEraserUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
     private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {
         return resultList.stream().collect(Collectors.toMap(
                 row -> (UUID) row[0],
