@@ -1,6 +1,7 @@
 package org.twins.core.domain.factory;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
@@ -23,8 +24,10 @@ import java.util.Set;
 public class FactoryItem implements EasyLoggable {
     // helps to identify on which branch current item was created.
     private FactoryBranchId factoryBranchId;
+    @EqualsAndHashCode.Exclude
     private FactoryContext factoryContext;
     private TwinSave output;
+    @EqualsAndHashCode.Exclude
     private List<FactoryItem> contextFactoryItemList;
     private EraseAction eraseAction = new EraseAction(TwinFactoryEraserEntity.Action.NOT_SPECIFIED, "");
     // this will help to detect items, which were passed to factory from launch

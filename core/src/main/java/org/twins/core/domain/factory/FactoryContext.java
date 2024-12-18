@@ -92,6 +92,8 @@ public class FactoryContext {
         } else {
             factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId);
             factoryItemList.add(factoryItem);
+            if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
+                factoryItemWithTwinUpdates.put(twinUpdate.getTwinEntity().getId(), factoryItem);
         }
         if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
             FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
