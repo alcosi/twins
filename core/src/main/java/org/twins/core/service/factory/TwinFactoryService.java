@@ -184,7 +184,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
-            List<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(pipelineInputList)) {
                 log.info("Skipping " + factoryPipelineEntity.logShort() + " because of empty input");
                 continue;
@@ -236,7 +236,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, List<FactoryItem> pipelineInputList) throws ServiceException {
+    private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, Set<FactoryItem> pipelineInputList) throws ServiceException {
         log.info("Running {} **{}** ", factoryPipelineEntity.logNormal(), factoryPipelineEntity.getDescription());
         List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineIdAndActiveTrueOrderByOrder(factoryPipelineEntity.getId());
         LoggerUtils.traceTreeLevelDown();
@@ -284,7 +284,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryEraserEntity eraserEntity : eraserEntityList) {
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
-            List<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(eraserInputList)) {
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
@@ -303,8 +303,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private List<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
-        List<FactoryItem> filtered = new ArrayList<>();
+    private Set<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
+        Set<FactoryItem> filtered = new HashSet<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
             if (twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), inputTwinClassId)) {
                 if (checkCondition(twinFactoryConditionSetId, conditionInvert, factoryItem))
