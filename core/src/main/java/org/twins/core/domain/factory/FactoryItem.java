@@ -21,6 +21,7 @@ import java.util.Set;
 @Data
 @Accessors(chain = true)
 public class FactoryItem implements EasyLoggable {
+    // helps to identify on which branch current item was created.
     private FactoryBranchId factoryBranchId;
     private FactoryContext factoryContext;
     private TwinSave output;
