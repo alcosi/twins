@@ -34,5 +34,5 @@ public class PermissionGrantAssigneePropagationDTOv1 {
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "granted at", example = DTOExamples.INSTANT)
-    public LocalDateTime grantedBy;
+    public LocalDateTime grantedAt;
 }
