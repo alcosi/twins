@@ -28,6 +28,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantTwinRoleSearchService;
 
 @Tag(name = ApiTag.PERMISSION)
@@ -36,6 +37,7 @@ import org.twins.core.service.permission.PermissionGrantTwinRoleSearchService;
 @RequiredArgsConstructor
 public class PermissionGrantTwinRoleSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final PermissionGrantTwinRoleRestDTOMapperV2 permissionGrantTwinRoleRestDTOMapperV2;
     private final PermissionGrantTwinRoleSearchService permissionGrantTwinRoleSearchService;
     private final PermissionGrantTwinRoleSearchRqDTOReverseMapper permissionGrantTwinRoleSearchRqDTOReverseMapper;
@@ -58,7 +60,8 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
                     .findPermissionGrantTwinRoles(permissionGrantTwinRoleSearchRqDTOReverseMapper.convert(request), pagination);
             rs
                     .setPermissionGrantTwinRoles(permissionGrantTwinRoleRestDTOMapperV2.convertCollection(permissionGrantTwinRoleList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(permissionGrantTwinRoleList));
+                    .setPagination(paginationMapper.convert(permissionGrantTwinRoleList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
