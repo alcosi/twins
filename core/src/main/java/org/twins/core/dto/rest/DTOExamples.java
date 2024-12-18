@@ -87,6 +87,7 @@ public interface DTOExamples {
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String COLOR_HEX = "#ff00ff";
     String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_CONDITION_SET_ID = "69856a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_KEY = "taskReassign";
 
 }
