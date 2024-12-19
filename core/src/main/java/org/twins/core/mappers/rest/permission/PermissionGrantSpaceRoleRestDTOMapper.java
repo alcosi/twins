@@ -21,7 +21,8 @@ public class PermissionGrantSpaceRoleRestDTOMapper extends RestSimpleDTOMapper<P
                         .setPermissionSchemaId(src.getPermissionSchemaId())
                         .setPermissionId(src.getPermissionId())
                         .setSpaceRoleId(src.getSpaceRoleId())
-                        .setGrantedByUserId(src.getGrantedByUserId());
+                        .setGrantedByUserId(src.getGrantedByUserId())
+                        .setGrantedAt(src.getGrantedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
