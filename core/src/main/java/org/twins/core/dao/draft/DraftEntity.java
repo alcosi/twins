@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.draft.DraftCounters;
 
@@ -46,6 +47,8 @@ public class DraftEntity implements EasyLoggable {
     @Column(name = "auto_commit")
     private boolean autoCommit;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

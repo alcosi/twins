@@ -442,8 +442,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void createTwin(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        twinEntity
-                .setCreatedAt(Timestamp.from(Instant.now()));
         checkAssignee(twinEntity);
         validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinChangesCollector.add(twinEntity);

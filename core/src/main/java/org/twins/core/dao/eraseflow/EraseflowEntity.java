@@ -8,6 +8,7 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -45,6 +46,8 @@ public class EraseflowEntity implements EasyLoggable {
     @Column(name = "cascade_deletion_by_link_default_factory_id")
     private UUID cascadeDeletionByLinkDefaultFactoryId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

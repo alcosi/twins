@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.sql.Timestamp;
@@ -32,6 +33,8 @@ public class TwinMarkerEntity implements EasyLoggable {
     @Column(name = "marker_data_list_option_id")
     private UUID markerDataListOptionId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

@@ -27,6 +27,7 @@ import org.twins.core.mappers.rest.card.CardRestDTOMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.card.CardService;
 
+import java.time.Instant;
 import java.util.UUID;
 
 @Tag(description = "Get card list", name = ApiTag.CARD)
