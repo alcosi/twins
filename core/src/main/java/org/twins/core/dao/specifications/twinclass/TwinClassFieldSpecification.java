@@ -21,10 +21,14 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFieldEntity> {
 
     public static Specification<TwinClassFieldEntity> checkRequired(Ternary required) {
-        return (root, query, cb) -> switch (required) {
-            case ONLY -> cb.isTrue(root.get(TwinClassFieldEntity.Fields.required));
-            case ONLY_NOT -> cb.isFalse(root.get(TwinClassFieldEntity.Fields.required));
-            default -> cb.conjunction();
+        return (root, query, cb) -> {
+            if (required == null)
+                return cb.conjunction();
+            return switch (required) {
+                case ONLY -> cb.isTrue(root.get(TwinClassFieldEntity.Fields.required));
+                case ONLY_NOT -> cb.isFalse(root.get(TwinClassFieldEntity.Fields.required));
+                default -> cb.conjunction();
+            };
         };
     }
 

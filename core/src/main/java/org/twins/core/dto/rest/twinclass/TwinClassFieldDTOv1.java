@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "TwinClassFieldV1")
 public class TwinClassFieldDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_CLASS_FIELD_ID)

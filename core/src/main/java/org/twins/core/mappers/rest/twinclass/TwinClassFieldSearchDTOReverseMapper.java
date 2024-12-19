@@ -13,6 +13,8 @@ public class TwinClassFieldSearchDTOReverseMapper extends RestSimpleDTOMapper<Tw
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
+                .setTwinClassIdList(src.getTwinClassIdList())
+                .setTwinClassIdExcludeList(src.getTwinClassIdExcludeList())
                 .setKeyLikeList(src.getKeyLikeList())
                 .setKeyNotLikeList(src.getKeyNotLikeList())
                 .setNameI18nLikeList(src.getNameI18nLikeList())
