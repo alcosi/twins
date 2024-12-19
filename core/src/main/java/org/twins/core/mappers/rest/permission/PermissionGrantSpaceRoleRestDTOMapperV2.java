@@ -20,7 +20,7 @@ public class PermissionGrantSpaceRoleRestDTOMapperV2 extends RestSimpleDTOMapper
 
     private final PermissionGrantSpaceRoleRestDTOMapper permissionGrantSpaceRoleRestDTOMapper;
 
-    @MapperModePointerBinding(modes = PermissionSchemaMode.PermissionGrantUserGroup2PermissionSchemaMode.class)
+    @MapperModePointerBinding(modes = PermissionSchemaMode.PermissionGrantSpaceRole2PermissionSchemaMode.class)
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionMode.PermissionGrantUserGroup2PermissionMode.class)
@@ -29,7 +29,7 @@ public class PermissionGrantSpaceRoleRestDTOMapperV2 extends RestSimpleDTOMapper
     @MapperModePointerBinding(modes = SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.class)
     private final SpaceRoleDTOMapperV2 spaceRoleDTOMapperV2;
 
-    @MapperModePointerBinding(modes = UserMode.PermissionGrantUserGroup2UserMode.class)
+    @MapperModePointerBinding(modes = UserMode.PermissionGrantSpaceRole2UserMode.class)
     private final UserRestDTOMapper userRestDTOMapper;
 
     @Override
@@ -47,9 +47,9 @@ public class PermissionGrantSpaceRoleRestDTOMapperV2 extends RestSimpleDTOMapper
             dst
                     .setSpaceRole(spaceRoleDTOMapperV2.convertOrPostpone(src.getSpaceRole(), mapperContext.forkOnPoint(SpaceRoleMode.PermissionGrantSpaceRole2SpaceRoleMode.SHORT)))
                     .setSpaceRoleId(src.getSpaceRoleId());
-        if (mapperContext.hasModeButNot(UserMode.PermissionGrantUserGroup2UserMode.HIDE))
+        if (mapperContext.hasModeButNot(UserMode.PermissionGrantSpaceRole2UserMode.HIDE))
             dst
-                    .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantUserGroup2UserMode.SHORT)))
+                    .setGrantedByUser(userRestDTOMapper.convertOrPostpone(src.getGrantedByUser(), mapperContext.forkOnPoint(UserMode.PermissionGrantSpaceRole2UserMode.SHORT)))
                     .setGrantedByUserId(src.getGrantedByUserId());
     }
 }
