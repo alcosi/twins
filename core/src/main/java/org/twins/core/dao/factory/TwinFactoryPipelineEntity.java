@@ -51,19 +51,19 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     @Column(name = "output_twin_status_id")
     private UUID outputTwinStatusId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity twinFactory;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false)
     private TwinFactoryEntity nextTwinFactory;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
     private TwinClassEntity inputTwinClass;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
     private TwinFactoryConditionSetEntity conditionSet;
 
