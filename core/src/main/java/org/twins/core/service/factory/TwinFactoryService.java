@@ -512,6 +512,23 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryPipelinesCount(factoryPipelines.getOrDefault(twinFactory.getId(), 0)));
     }
 
+    public void countFactoryPipelineSteps(TwinFactoryPipelineEntity twinFactoryPipeline) {
+        countFactoryPipelineSteps(Collections.singletonList(twinFactoryPipeline));
+    }
+
+    public void countFactoryPipelineSteps(Collection<TwinFactoryPipelineEntity> twinFactoryPipelines) {
+        Kit<TwinFactoryPipelineEntity, UUID> needLoad = new Kit<>(TwinFactoryPipelineEntity::getId);
+        for (TwinFactoryPipelineEntity twinFactoryPipeline : twinFactoryPipelines) {
+            if (twinFactoryPipeline.getPipelineStepsCount() == null)
+                needLoad.add(twinFactoryPipeline);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryPipelineSteps = convertToMap(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactoryPipeline -> twinFactoryPipeline.setPipelineStepsCount(factoryPipelineSteps.getOrDefault(twinFactoryPipeline.getId(), 0)));
+    }
+
     public void countFactoryMultipliers(TwinFactoryEntity twinFactory) {
         countFactoryMultipliers(Collections.singletonList(twinFactory));
     }

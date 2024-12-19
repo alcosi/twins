@@ -15,8 +15,13 @@ import java.util.Collection;
 
 @Component
 @RequiredArgsConstructor
-@MapperModeBinding(modes = {FactoryMode.class, FactoryUsagesCountMode.class, FactoryPipelinesCountMode.class, FactoryMultipliersCountMode.class,
-        FactoryBranchesCountMode.class, FactoryErasersCountMode.class})
+@MapperModeBinding(modes = {
+        FactoryMode.class,
+        FactoryUsagesCountMode.class,
+        FactoryPipelineCountMode.class,
+        FactoryMultipliersCountMode.class,
+        FactoryBranchesCountMode.class,
+        FactoryErasersCountMode.class})
 public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity, FactoryDTOv1> {
 
     private final I18nService i18nService;
@@ -68,7 +73,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
     }
 
     private static boolean showFactoryPipelinesCount(MapperContext mapperContext) {
-        return mapperContext.hasModeButNot(FactoryPipelinesCountMode.HIDE);
+        return mapperContext.hasModeButNot(FactoryPipelineCountMode.HIDE);
     }
 
     private static boolean showFactoryMultipliersCount(MapperContext mapperContext) {
