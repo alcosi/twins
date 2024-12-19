@@ -20,8 +20,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum Twinflow2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum Twinflow2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -43,8 +42,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum TwinClassExtends2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum TwinClassExtends2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -66,8 +64,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum TwinClassHead2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum TwinClassHead2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -89,8 +86,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum LinkDst2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum LinkDst2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -112,8 +108,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum LinkSrc2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum LinkSrc2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -135,8 +130,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum Twin2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum Twin2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -158,8 +152,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum PermissionGroup2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum PermissionGroup2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -181,8 +174,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum PermissionGrantTwinRole2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum PermissionGrantTwinRole2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -204,8 +196,7 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum SpaceRole2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum SpaceRole2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),
@@ -227,8 +218,29 @@ public enum TwinClassMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public
-    enum PermissionGrantAssigneePropagation2TwinClassMode implements MapperModePointer<TwinClassMode> {
+    public enum PermissionGrantAssigneePropagation2TwinClassMode implements MapperModePointer<TwinClassMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
+
+        final int priority;
+
+        @Override
+        public TwinClassMode point() {
+            return switch (this) {
+                case HIDE -> TwinClassMode.HIDE;
+                case SHORT -> TwinClassMode.SHORT;
+                case DETAILED -> TwinClassMode.DETAILED;
+                case MANAGED -> TwinClassMode.MANAGED;
+            };
+        }
+    }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum FactoryPipeline2TwinClassMode implements MapperModePointer<TwinClassMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2),

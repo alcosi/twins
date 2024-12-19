@@ -3,16 +3,19 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "twin_factory_pipeline")
-@Accessors(chain = true)
 @Data
+@Entity
+@Accessors(chain = true)
+@FieldNameConstants
+@Table(name = "twin_factory_pipeline")
 public class TwinFactoryPipelineEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
@@ -49,12 +52,31 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     private UUID outputTwinStatusId;
 
     @ManyToOne
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactory;
+
+    @ManyToOne
+    @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity nextTwinFactory;
+
+    @ManyToOne
+    @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClass;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity conditionSet;
+
+    @ManyToOne
     @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false, nullable = false)
     private TwinStatusEntity outputTwinStatus;
 
     @ManyToOne
     @JoinColumn(name = "template_twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity templateTwin;
+
+    @Transient
+    private Integer pipelineStepsCount;
 
     public String easyLog(Level level) {
         return switch (level) {
