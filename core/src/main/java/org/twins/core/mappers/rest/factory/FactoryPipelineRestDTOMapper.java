@@ -1,5 +1,6 @@
 package org.twins.core.mappers.rest.factory;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
@@ -17,14 +18,11 @@ import org.twins.core.service.factory.TwinFactoryService;
 import java.util.Collection;
 
 @Component
+@RequiredArgsConstructor
 @MapperModeBinding(modes = FactoryPipelineMode.class)
 public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryPipelineEntity, FactoryPipelineDTOv1> {
 
     private final TwinFactoryService twinFactoryService;
-
-    public FactoryPipelineRestDTOMapper(TwinFactoryService twinFactoryService) {
-        this.twinFactoryService = twinFactoryService;
-    }
 
     @Override
     public void map(TwinFactoryPipelineEntity src, FactoryPipelineDTOv1 dst, MapperContext mapperContext) throws Exception {
