@@ -20,11 +20,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -131,7 +134,7 @@ public class DomainService {
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
-        userService.addUser(userId, userCreateMode);
+        UserEntity user = userService.addUser(userId, userCreateMode);
         DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (existed != null)
             if (ignoreAlreadyExists)
@@ -142,7 +145,16 @@ public class DomainService {
                 .setDomainId(domainId)
                 .setUserId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        DomainEntity domain = domainRepository.findById(domainId).orElseThrow(() -> new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "Domain not found for id: " + domainId));
+        if (domain.getDomainUserTemplateTwinId() != null) {
+            TwinEntity duplicateTwin = twinService.duplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
+            duplicateTwin.setHeadTwinId(user.getId());
+            TwinUpdate twinUpdate = new TwinUpdate().setDbTwinEntity(duplicateTwin);
+            twinUpdate.setTwinEntity(duplicateTwin.setHeadTwinId(userId));
+            twinService.updateTwin(twinUpdate);
+        }
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
@@ -286,7 +298,7 @@ public class DomainService {
     }
 
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
-        UUID domainId= authService.getApiUser().getDomainId();
+        UUID domainId = authService.getApiUser().getDomainId();
         return where(
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))

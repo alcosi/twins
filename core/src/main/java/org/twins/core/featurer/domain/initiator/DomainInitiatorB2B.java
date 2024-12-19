@@ -47,17 +47,18 @@ public class DomainInitiatorB2B extends DomainInitiator {
         };
     }
 
-    @Transactional
+
     @Override
+    @Transactional(rollbackFor = Throwable.class)
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
         super.postInit(properties, domainEntity);
         domainEntity
                 .setBusinessAccountInitiatorFeaturerId(1103)
                 .setBusinessAccountInitiatorParams(null) // 1103 does not need params
-                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity));
+                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity))
+                .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
     }
 
-    @Transactional
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         TwinClassEntity twinClassEntity = new TwinClassEntity()
@@ -91,7 +92,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setTwinClassId(twinClassEntity.getId())
                 .setTwinflowId(twinflowEntity.getId())
                 .setTwinflow(twinflowEntity);
-        twinflowSchemaMapEntity   = entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         TwinEntity twinEntity = new TwinEntity()
                 .setTwinClassId(twinClassEntity.getId())
