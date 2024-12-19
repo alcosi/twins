@@ -5,20 +5,37 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.stereotype.Component;
+import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
+import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.value.*;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.DataListOptionMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinMode;
+import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.StringJoiner;
 
 
 @Component
 @RequiredArgsConstructor
 public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValue, FieldValueText> {
+    @MapperModePointerBinding(modes = DataListOptionMode.TwinField2DataListOptionMode.class)
+    private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+
+    @MapperModePointerBinding(modes = UserMode.TwinField2UserMode.class)
+    private final UserRestDTOMapper userRestDTOMapper;
+
+    @MapperModePointerBinding(modes = TwinMode.TwinField2TwinMode.class)
+    private final TwinBaseRestDTOMapper twinBaseRestDTOMapper;
 
     @Override
     public FieldValueText convert(FieldValue src, MapperContext mapperContext) throws Exception {
@@ -34,21 +51,40 @@ public class TwinFieldValueRestDTOMapperV2 extends RestSimpleDTOMapper<FieldValu
         } else if (src instanceof FieldValueInvisible) {
             dst.setValue("");
         } else if (src instanceof FieldValueSelect select) {
-            dst.setValue(String.join(",", select.getOptions().stream().map(o -> o.getId().toString()).toList()));
-        } else if (src instanceof FieldValueUser userField) {
-            List<String> userIdList = new ArrayList<>();
-            for (UserEntity userEntity : userField.getUsers()) {
-                mapperContext.addRelatedObject(userEntity); // we have to put users to related object
-                userIdList.add(userEntity.getId().toString());
+            StringJoiner stringJoiner = new StringJoiner(",");
+            for (DataListOptionEntity dataListOptionEntity : select.getOptions()) {
+                stringJoiner.add(dataListOptionEntity.getId().toString());
+                if (mapperContext.hasModeButNot(DataListOptionMode.TwinField2DataListOptionMode.HIDE)) {
+                    dataListOptionRestDTOMapper.postpone(dataListOptionEntity, mapperContext.forkOnPoint(DataListOptionMode.TwinField2DataListOptionMode.SHORT));
+                }
             }
-            dst.setValue(String.join(",", userIdList));
+            dst.setValue(stringJoiner.toString());
+        } else if (src instanceof FieldValueUser userField) {
+            StringJoiner stringJoiner = new StringJoiner(",");
+            for (UserEntity userEntity : userField.getUsers()) {
+                stringJoiner.add(userEntity.getId().toString());
+                if (mapperContext.hasModeButNot(UserMode.TwinField2UserMode.HIDE)) {
+                    userRestDTOMapper.postpone(userEntity, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                }
+            }
+            dst.setValue(stringJoiner.toString());
         } else if (src instanceof FieldValueLink link) {
-            if (link.isForwardLink())
-                dst.setValue(String.join(",", link.getTwinLinks().stream().map(l -> l.getDstTwinId().toString()).toList()));
-            else
-                dst.setValue(String.join(",", link.getTwinLinks().stream().map(l -> l.getSrcTwinId().toString()).toList()));
+            StringJoiner stringJoiner = new StringJoiner(",");
+            TwinEntity linkedTwin;
+            for (TwinLinkEntity twinLinkEntity : link.getTwinLinks()) {
+                if (link.isForwardLink())
+                    linkedTwin = twinLinkEntity.getDstTwin();
+                else
+                    linkedTwin = twinLinkEntity.getSrcTwin();
+                stringJoiner.add(linkedTwin.getId().toString());
+                if (mapperContext.hasModeButNot(TwinMode.TwinField2TwinMode.HIDE)) {
+                    twinBaseRestDTOMapper.postpone(linkedTwin, mapperContext.forkOnPoint(UserMode.TwinField2UserMode.HIDE));
+                }
+            }
+            dst.setValue(stringJoiner.toString());
         } else
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_TYPE_INCORRECT, src.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " unknown value type");
+
         return dst;
     }
 

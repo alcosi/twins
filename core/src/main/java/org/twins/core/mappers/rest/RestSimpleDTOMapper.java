@@ -20,7 +20,7 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
         if (dstType instanceof Class<?>)
             type = (Class) dstType;
         else
-            type = (Class)((ParameterizedType) dstType).getRawType();
+            type = (Class) ((ParameterizedType) dstType).getRawType();
     }
 
     public S convert(T src) throws Exception {
@@ -62,6 +62,21 @@ public abstract class RestSimpleDTOMapper<T, S> extends RestListDTOMapper<T, S> 
                 ret = CollectionUtils.safeAdd(ret, this.convert(src, mapperContext));
         }
         return ret;
+    }
+
+    public void postpone(T src, MapperContext mapperContext) throws Exception {
+        if (hideMode(mapperContext))
+            return;
+        if (!mapperContext.isLazyRelations())
+            mapperContext.addRelatedObject(src);
+    }
+
+    public void postpone(Collection<T> srcList, MapperContext mapperContext) throws Exception {
+        if (srcList == null)
+            return;
+        for (T src : srcList) {
+            postpone(src, mapperContext);
+        }
     }
 
     public boolean hideMode(MapperContext mapperContext) {
