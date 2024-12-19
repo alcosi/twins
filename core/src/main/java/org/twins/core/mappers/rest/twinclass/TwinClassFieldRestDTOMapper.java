@@ -36,35 +36,35 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                 if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
                 dst
-                        .id(src.getId())
-                        .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()))
-                        .required(src.getRequired())
-                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .twinClassId(src.getTwinClassId())
-                        .nameI18nId(src.getNameI18nId())
-                        .descriptionI18nId(src.getDescriptionI18nId())
-                        .fieldTyperFeaturerId(src.getFieldTyperFeaturerId())
-                        .fieldTyperParams(src.getFieldTyperParams())
-                        .viewPermissionId(src.getViewPermissionId())
-                        .editPermissionId(src.getEditPermissionId());
+                        .setId(src.getId())
+                        .setKey(src.getKey())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setRequired(src.getRequired())
+                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setTwinClassId(src.getTwinClassId())
+                        .setNameI18nId(src.getNameI18nId())
+                        .setDescriptionI18nId(src.getDescriptionI18nId())
+                        .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
+                        .setFieldTyperParams(src.getFieldTyperParams())
+                        .setViewPermissionId(src.getViewPermissionId())
+                        .setEditPermissionId(src.getEditPermissionId());
 
                 break;
             case DETAILED:
                 FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
                 FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
-                        .id(src.getId())
-                        .key(src.getKey())
-                        .name(i18nService.translateToLocale(src.getNameI18nId()))
-                        .required(src.getRequired())
-                        .description(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
-                        .descriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
+                        .setId(src.getId())
+                        .setKey(src.getKey())
+                        .setName(i18nService.translateToLocale(src.getNameI18nId()))
+                        .setRequired(src.getRequired())
+                        .setDescription(src.getDescriptionI18nId() != null ? i18nService.translateToLocale(src.getDescriptionI18nId()) : "")
+                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .key(src.getKey());
+                        .setId(src.getId())
+                        .setKey(src.getKey());
                 break;
         }
     }

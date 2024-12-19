@@ -38,6 +38,8 @@ public class TwinClassFieldSearchService {
                 checkDomainId(apiUser.getDomainId())
                         .and(checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdList(), false, false))
                         .and(checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdExcludeList(), true, false))
+                        .and(checkUuidIn(TwinClassFieldEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false))
+                        .and(checkUuidIn(TwinClassFieldEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, false))
                         .and(checkFieldLikeIn(TwinClassFieldEntity.Fields.key, search.getKeyLikeList(), false, true))
                         .and(checkFieldLikeIn(TwinClassFieldEntity.Fields.key, search.getKeyNotLikeList(), true, true))
                         .and(joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false))

@@ -26,7 +26,9 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSearchDTOReverseMapper;
 import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 
@@ -37,8 +39,9 @@ import org.twins.core.service.twinclass.TwinClassFieldSearchService;
 public class TwinClassFieldSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final TwinClassFieldSearchDTOReverseMapper twinClassFieldSearchDTOReverseMapper;
-    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldRestDTOMapperV2 twinClassFieldRestDTOMapperV2;
     private final TwinClassFieldSearchService twinClassFieldSearchService;
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "twinClassFieldSearchV1", summary = "Return a list of all twin class field for the current domain")
@@ -49,7 +52,7 @@ public class TwinClassFieldSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class_fields/search/v1")
     public ResponseEntity<?> twinClassFieldSearchV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody TwinClassFieldSearchRqDTOv1 request) {
         TwinClassFieldSearchRsDTOv1 rs = new TwinClassFieldSearchRsDTOv1();
@@ -57,8 +60,9 @@ public class TwinClassFieldSearchController extends ApiController {
             PaginationResult<TwinClassFieldEntity> twinClassFieldList = twinClassFieldSearchService
                     .findTwinClassFieldForDomain(twinClassFieldSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setFields(twinClassFieldRestDTOMapper.convertCollection(twinClassFieldList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinClassFieldList));
+                    .setFields(twinClassFieldRestDTOMapperV2.convertCollection(twinClassFieldList.getList(), mapperContext))
+                    .setPagination(paginationMapper.convert(twinClassFieldList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
