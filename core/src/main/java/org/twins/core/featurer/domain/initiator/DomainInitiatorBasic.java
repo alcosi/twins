@@ -36,6 +36,7 @@ public class DomainInitiatorBasic extends DomainInitiator {
                 .setBusinessAccountInitiatorFeaturer(null)
                 .setBusinessAccountInitiatorFeaturerId(null)
                 .setBusinessAccountInitiatorParams(null)
-                .setBusinessAccountTemplateTwinId(null);
+                .setBusinessAccountTemplateTwinId(null)
+                .setDomainUserTemplateTwinId(null);
     }
 }
