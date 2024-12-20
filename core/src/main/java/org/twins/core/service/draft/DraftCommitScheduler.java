@@ -24,8 +24,7 @@ public class DraftCommitScheduler {
     @Qualifier("draftCommitExecutor")
     final TaskExecutor taskExecutor;
 
-    //todo add to settings
-    @Scheduled(fixedDelayString = "2000")
+    @Scheduled(fixedDelayString = "${draft.commit.scheduler.delay:2000}")
     public void processDraftCommits() {
         try {
             LoggerUtils.logSession();

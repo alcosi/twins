@@ -5,6 +5,7 @@ public interface DTOExamples {
     String BOOLEAN_TRUE = "true";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
+    String COUNT = "3";
     String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
@@ -39,6 +40,8 @@ public interface DTOExamples {
     String DATA_LIST_OPTION_ID = "7de977d4-df6d-4250-9cb2-088363d139a1";
     String USER_ID = "608c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String USER_GROUP_ID = "e155e05b-f353-49ff-9869-da1e62aab1793";
+    String USER_GROUP_NAME = "Manager";
+    String USER_GROUP_TYPE = "domainScopeDomainManage";
     String DOMAIN_ID = "f67ad556-dd27-4871-9a00-16fb0e8a4102";
     String DOMAIN_KEY = "alcosi";
     String DOMAIN_TYPE = "basic";
@@ -81,5 +84,10 @@ public interface DTOExamples {
     String FEATURER_ID = "1000";
     String FEATURER_NAME = "InjectorImpl";
     String FEATURER_PARAM_NAME = "listUUID";
+    String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String COLOR_HEX = "#ff00ff";
+    String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_CONDITION_SET_ID = "69856a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_KEY = "taskReassign";
+
 }

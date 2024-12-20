@@ -57,6 +57,9 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "default_tier_id")
     private UUID defaultTierId;
 
+    @Column(name = "domain_user_template_twin_id")
+    private UUID domainUserTemplateTwinId;
+
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")

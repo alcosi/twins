@@ -52,7 +52,6 @@ import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 public class TwinSearchService {
     private final EntityManager entityManager;
     private final TwinRepository twinRepository;
-    private final TwinService twinService;
     private final UserGroupService userGroupService;
     private final SearchRepository searchRepository;
     private final SearchAliasRepository searchAliasRepository;
@@ -141,6 +140,11 @@ public class TwinSearchService {
         List<TwinEntity> ret = twinRepository.findAll(createTwinEntitySearchSpecification(basicSearch), sortType(false, TwinEntity.Fields.createdAt));
         //todo someone's responsibility for checking if we previously checked the user's domain and business account. Purely a log for control if something slips through?
         return ret;
+    }
+
+    public <T> List<T> findTwins(BasicSearch basicSearch, Class<T> projection) throws ServiceException {
+        //https://github.com/spring-projects/spring-data-jpa/pull/430
+        return twinRepository.findBy(createTwinEntitySearchSpecification(basicSearch), t -> t.as(projection).all());
     }
 
     //***********************************************************************//

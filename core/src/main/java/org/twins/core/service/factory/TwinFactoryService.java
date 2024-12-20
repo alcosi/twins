@@ -3,7 +3,9 @@ package org.twins.core.service.factory;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -15,9 +17,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
+import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
@@ -34,6 +38,7 @@ import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.*;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -57,6 +62,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Lazy
     final DraftService draftService;
     final DraftCommitService draftCommitService;
+    private final TwinflowTransitionRepository twinflowTransitionRepository;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -147,26 +153,27 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
             if (!multiplierFilters.isEmpty()) {
                 log.info("Filtering multiplier output...");
                 for (FactoryItem factoryItem : multiplierOutput) {
-                    boolean allowed = true;
+                    boolean allowed = false;
                     for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
+                        if(!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
+                            continue;
                         if (filter.isActive()) {
                             allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
-                            if (!allowed) {
-                                log.info(factoryItem.logNormal() + " was skipped");
+                            if (allowed)
                                 break;
-                            }
                         }
                     }
                     if (allowed) {
                         log.info(factoryItem.logDetailed());
                         multiplierOutputFiltered.add(factoryItem);
-                    }
+                    } else
+                        log.info(factoryItem.logNormal() + " was skipped");
                 }
                 log.info("Filtered result:" + multiplierOutputFiltered.size() + " factoryItems");
             } else
                 multiplierOutputFiltered.addAll(multiplierOutput);
             LoggerUtils.traceTreeLevelUp();
-            factoryContext.addAll(multiplierOutput);
+            factoryContext.addAll(multiplierOutputFiltered);
         }
         LoggerUtils.traceTreeLevelUp();
     }
@@ -177,7 +184,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryPipelineEntity factoryPipelineEntity : factoryPipelineEntityList) {
             log.info("Checking input for " + factoryPipelineEntity.logNormal() + " **" + factoryPipelineEntity.getDescription() + "** ");
-            List<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> pipelineInputList = getInputItems(factoryContext, factoryPipelineEntity.getInputTwinClassId(), factoryPipelineEntity.getTwinFactoryConditionSetId(), factoryPipelineEntity.isTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(pipelineInputList)) {
                 log.info("Skipping " + factoryPipelineEntity.logShort() + " because of empty input");
                 continue;
@@ -229,7 +236,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, List<FactoryItem> pipelineInputList) throws ServiceException {
+    private void runPipelineSteps(FactoryContext factoryContext, TwinFactoryPipelineEntity factoryPipelineEntity, Set<FactoryItem> pipelineInputList) throws ServiceException {
         log.info("Running {} **{}** ", factoryPipelineEntity.logNormal(), factoryPipelineEntity.getDescription());
         List<TwinFactoryPipelineStepEntity> pipelineStepEntityList = twinFactoryPipelineStepRepository.findByTwinFactoryPipelineIdAndActiveTrueOrderByOrder(factoryPipelineEntity.getId());
         LoggerUtils.traceTreeLevelDown();
@@ -277,7 +284,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryEraserEntity eraserEntity : eraserEntityList) {
             log.info("Checking input for {} **{}** ", eraserEntity.logNormal(), eraserEntity.getDescription());
-            List<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
+            Set<FactoryItem> eraserInputList = getInputItems(factoryContext, eraserEntity.getInputTwinClassId(), eraserEntity.getTwinFactoryConditionSetId(), eraserEntity.isTwinFactoryConditionInvert());
             if (CollectionUtils.isEmpty(eraserInputList)) {
                 log.info("Skipping {} because of empty input", eraserEntity.logShort());
                 continue;
@@ -296,8 +303,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         LoggerUtils.traceTreeLevelUp();
     }
 
-    private List<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
-        List<FactoryItem> filtered = new ArrayList<>();
+    private Set<FactoryItem> getInputItems(FactoryContext factoryContext, UUID inputTwinClassId, UUID twinFactoryConditionSetId, boolean conditionInvert) throws ServiceException {
+        Set<FactoryItem> filtered = new HashSet<>();
         for (FactoryItem factoryItem : factoryContext.getFactoryItemList()) {
             if (twinClassService.isInstanceOf(factoryItem.getOutput().getTwinEntity().getTwinClass(), inputTwinClassId)) {
                 if (checkCondition(twinFactoryConditionSetId, conditionInvert, factoryItem))
@@ -391,19 +398,33 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
         FieldValue fieldValue = null;
         TwinEntity contextTwin, outputTwin;
+        FactoryItem contextItem;
+        TwinSave twinSave;
         switch (fieldLookupMode) {
             case fromContextFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields");
                 break;
-            case fromContextTwinFields:
+            case fromContextTwinUncommitedFields:
+                contextItem = factoryItem.checkSingleContextItem();
+                fieldValue = contextItem.getOutput().getField(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
+                break;
+            case fromItemOutputUncommitedFields:
+                twinSave = factoryItem.getOutput();
+                fieldValue = twinSave.getField(twinClassFieldId);
+                if (fieldValue == null)
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in output twin uncommited fields");
+                break;
+            case fromContextTwinDbFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
                 fieldValue = twinService.getTwinFieldValue(twinService.wrapField(contextTwin, twinClassFieldId));
                 if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
+                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin db fields");
                 break;
-            case fromContextFieldsAndContextTwinFields:
+            case fromContextFieldsAndContextTwinDbFields:
                 fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
                 if (TwinService.isFilled(fieldValue))
                     break;
@@ -418,7 +439,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 if (!TwinService.isFilled(fieldValue))
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
                 break;
-            case fromContextTwinFieldsAndContextFields:
+            case fromContextDbTwinFieldsAndContextFields:
                 contextTwin = factoryItem.checkSingleContextTwin();
                 fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
                 if (TwinService.isFilled(fieldValue))
@@ -433,13 +454,13 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 if (!TwinService.isFilled(fieldValue))
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
                 break;
-            case fromContextTwinHeadTwinFields:
+            case fromContextTwinHeadTwinDbFields:
                 twinService.loadHeadForTwin(factoryItem.getTwin());
                 fieldValue = twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), twinClassFieldId);
                 if (fieldValue == null)
                     throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in head twin fields");
                 break;
-            case fromItemOutputFields:
+            case fromItemOutputDbFields:
                 outputTwin = factoryItem.getOutput().getTwinEntity();
                 fieldValue = twinService.getTwinFieldValue(outputTwin, twinClassFieldId);
                 if (fieldValue == null)
@@ -447,5 +468,207 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 break;
         }
         return fieldValue;
+    }
+
+    public void countFactoryUsages(TwinFactoryEntity twinFactory) {
+        countFactoryUsages(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryUsages(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryUsagesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> twinflowTransitionCounts = convertToMap(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryBranchCounts = convertToMap(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryPipelineCounts = convertToMap(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+
+        needLoad.getCollection().forEach(twinFactory -> {
+            int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinFactoryBranchCount = twinFactoryBranchCounts.getOrDefault(twinFactory.getId(), 0);
+            int twinFactoryPipelineCount = twinFactoryPipelineCounts.getOrDefault(twinFactory.getId(), 0);
+            twinFactory.setFactoryUsagesCount(twinflowTransitionCount + twinFactoryBranchCount + twinFactoryPipelineCount);
+        });
+    }
+
+    public void countFactoryPipelines(TwinFactoryEntity twinFactory) {
+        countFactoryPipelines(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryPipelines(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryPipelinesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryPipelines = convertToMap(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryPipelinesCount(factoryPipelines.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryPipelineSteps(TwinFactoryPipelineEntity twinFactoryPipeline) {
+        countFactoryPipelineSteps(Collections.singletonList(twinFactoryPipeline));
+    }
+
+    public void countFactoryPipelineSteps(Collection<TwinFactoryPipelineEntity> twinFactoryPipelines) {
+        Kit<TwinFactoryPipelineEntity, UUID> needLoad = new Kit<>(TwinFactoryPipelineEntity::getId);
+        for (TwinFactoryPipelineEntity twinFactoryPipeline : twinFactoryPipelines) {
+            if (twinFactoryPipeline.getPipelineStepsCount() == null)
+                needLoad.add(twinFactoryPipeline);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryPipelineSteps = convertToMap(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactoryPipeline -> twinFactoryPipeline.setPipelineStepsCount(factoryPipelineSteps.getOrDefault(twinFactoryPipeline.getId(), 0)));
+    }
+
+    public void countFactoryMultipliers(TwinFactoryEntity twinFactory) {
+        countFactoryMultipliers(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryMultipliers(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryMultipliersCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryMultipliers = convertToMap(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryMultipliersCount(factoryMultipliers.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryBranches(TwinFactoryEntity twinFactory) {
+        countFactoryBranches(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryBranches(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryBranchesCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryBranches = convertToMap(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryBranchesCount(factoryBranches.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countFactoryErasers(TwinFactoryEntity twinFactory) {
+        countFactoryErasers(Collections.singletonList(twinFactory));
+    }
+
+    public void countFactoryErasers(Collection<TwinFactoryEntity> twinFactories) {
+        Kit<TwinFactoryEntity, UUID> needLoad = new Kit<>(TwinFactoryEntity::getId);
+        for (TwinFactoryEntity twinFactory : twinFactories) {
+            if (twinFactory.getFactoryErasersCount() == null)
+                needLoad.add(twinFactory);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> factoryErasers = convertToMap(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryErasersCount(factoryErasers.getOrDefault(twinFactory.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryPipelineUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryPipelineUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryPipelineUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryPipelineUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryPipelineStepUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryPipelineStepUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryPipelineStepUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryPipelineStepUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineStepUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryMultiplierFilterUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryMultiplierFilterUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryMultiplierFilterUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryMultiplierFilterUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryMultiplierFilterUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryBranchUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryBranchUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryBranchUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryBranchUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryBranchUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countConditionSetInFactoryEraserUsages(TwinFactoryConditionSetEntity conditionSet) {
+        countConditionSetInFactoryEraserUsages(Collections.singletonList(conditionSet));
+    }
+
+    public void countConditionSetInFactoryEraserUsages(Collection<TwinFactoryConditionSetEntity> conditionSetList) {
+        Kit<TwinFactoryConditionSetEntity, UUID> needLoad = new Kit<>(TwinFactoryConditionSetEntity::getId);
+        for (TwinFactoryConditionSetEntity conditionSet : conditionSetList) {
+            if (conditionSet.getInFactoryEraserUsagesCount() == null)
+                needLoad.add(conditionSet);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {
+        return resultList.stream().collect(Collectors.toMap(
+                row -> (UUID) row[0],
+                row -> ((Long) row[1]).intValue()
+        ));
     }
 }

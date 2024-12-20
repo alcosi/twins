@@ -11,6 +11,7 @@ import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.Type;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 
 import java.util.HashMap;
@@ -75,13 +76,13 @@ public class TwinClassFieldEntity implements EasyLoggable {
     @JoinColumn(name = "field_typer_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity fieldTyperFeaturer;
 
-//    @ManyToOne
-//    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
-//    private PermissionEntity viewPermission;
-//
-//    @ManyToOne
-//    @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
-//    private PermissionEntity editPermission;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "view_permission_id", insertable = false, updatable = false)
+    private PermissionEntity viewPermission;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "edit_permission_id", insertable = false, updatable = false)
+    private PermissionEntity editPermission;
 
     public String easyLog(Level level) {
         return "twinClassField[id:" + id + ", key:" + key + "]";

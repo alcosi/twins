@@ -2,6 +2,7 @@ package org.twins.core.domain.factory;
 
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
@@ -11,7 +12,9 @@ import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
+@Slf4j
 @Data
 @Accessors(chain = true)
 public class FactoryContext {
@@ -19,13 +22,14 @@ public class FactoryContext {
     private FactoryLauncher factoryLauncher;
     private Collection<TwinEntity> inputTwinList;
     private Map<UUID, FieldValue> fields; // key: twinClassFieldId
-    private List<FactoryItem> factoryItemList = new ArrayList<>();
+    private Set<FactoryItem> factoryItemList = new HashSet<>();
+    private Map<UUID, FactoryItem> factoryItemWithTwinUpdates = new Hashtable<>(); // this will help to avoid conflict updates of same twin
     private TwinBasicFields basics = null;
     private FactoryBranchId rootFactoryBranchId;
     private FactoryBranchId currentFactoryBranchId;
     // If some factory was run from previous factory pipeline,
     // we had to limit items scope for this factory with items filtered for pipeline
-    private Map<FactoryBranchId, List<FactoryItem>> pipelineScopes = new HashMap<>();
+    private Map<FactoryBranchId, Set<FactoryItem>> pipelineScopes = new HashMap<>();
 
     public FactoryContext(FactoryLauncher factoryLauncher, FactoryBranchId rootFactoryBranchId) {
         this.factoryLauncher = factoryLauncher;
@@ -47,15 +51,15 @@ public class FactoryContext {
         return this;
     }
 
-    public List<FactoryItem> getFactoryItemList() {
+    public Set<FactoryItem> getFactoryItemList() {
         FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
         if (pipelineScopes.containsKey(currentPipeline)) // we will use limited scope
             return pipelineScopes.get(currentPipeline);
         else
-            return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).toList();
+            return factoryItemList.stream().filter(fi -> fi.getFactoryBranchId().accessibleFrom(currentFactoryBranchId)).collect(Collectors.toSet());
     }
 
-    public List<FactoryItem> getAllFactoryItemList() {
+    public Set<FactoryItem> getAllFactoryItemList() {
         return factoryItemList;
     }
 
@@ -82,10 +86,15 @@ public class FactoryContext {
     }
 
     public void add(FactoryItem factoryItem) {
-        factoryItem
-                .setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId)
-                .setFactoryInputItem(false);
-        factoryItemList.add(factoryItem);
+        if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate && factoryItemWithTwinUpdates.containsKey(twinUpdate.getTwinEntity().getId())) {
+            factoryItem = factoryItemWithTwinUpdates.get(twinUpdate.getTwinEntity().getId()); // we will use already existed factory item, but not new one
+            log.warn("Repeated factory item load. Factory context already has {}. ContextFactoryItemList from new item will be skipped", factoryItem);
+        } else {
+            factoryItem.setFactoryBranchId(currentFactoryBranchId != null ? currentFactoryBranchId : rootFactoryBranchId);
+            factoryItemList.add(factoryItem);
+            if (factoryItem.getOutput() instanceof TwinUpdate twinUpdate)
+                factoryItemWithTwinUpdates.put(twinUpdate.getTwinEntity().getId(), factoryItem);
+        }
         if (!pipelineScopes.isEmpty()) { //if factoryItem was created by multiplier we should also add it to current pipeline limited scope
             FactoryBranchId currentPipeline = currentFactoryBranchId.getCurrentPipeline();
             if (pipelineScopes.containsKey(currentPipeline)) // we will add it to limited scope
@@ -126,7 +135,7 @@ public class FactoryContext {
         currentFactoryBranchId = currentFactoryBranchId.exitPipeline();
     }
 
-    public void snapshotPipelineScope(List<FactoryItem> pipelineInputList) {
+    public void snapshotPipelineScope(Set<FactoryItem> pipelineInputList) {
         pipelineScopes.put(currentFactoryBranchId, pipelineInputList);
     }
 

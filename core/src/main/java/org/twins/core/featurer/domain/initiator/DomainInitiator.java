@@ -3,6 +3,7 @@ package org.twins.core.featurer.domain.initiator;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
+import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,16 +14,15 @@ import org.twins.core.dao.domain.DomainRepository;
 import org.twins.core.dao.domain.DomainTypeEntity;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinRepository;
+import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
 import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
 import org.twins.core.dao.twinclass.TwinClassSchemaRepository;
-import org.twins.core.dao.twinflow.TwinflowRepository;
-import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
-import org.twins.core.dao.twinflow.TwinflowSchemaMapRepository;
-import org.twins.core.dao.twinflow.TwinflowSchemaRepository;
+import org.twins.core.dao.twinflow.*;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
@@ -35,6 +35,8 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.UUID;
+
+import static org.twins.core.service.SystemEntityService.TWIN_CLASS_USER;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_25,
@@ -83,7 +85,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
     @Autowired
     SystemEntityService systemEntityService;
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     public DomainEntity init(DomainEntity domainEntity) throws ServiceException {
         DomainTypeEntity domainTypeEntity = domainService.loadDomainType(domainEntity);
         Properties properties = featurerService.extractProperties(this, domainTypeEntity.getDomainInitiatorParams(), new HashMap<>());
@@ -108,14 +110,59 @@ public abstract class DomainInitiator extends FeaturerTwins {
     public abstract TwinClassEntity.OwnerType getDefaultTwinClassOwnerType();
     public abstract boolean isSupportedTwinClassOwnerType(TwinClassEntity.OwnerType ownerType);
 
-    @Transactional
+    @Transactional(rollbackFor = Throwable.class)
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
         //todo create twin for domain
         domainEntity
                 .setAncestorTwinClassId(createAncestorTwinClass(domainEntity))
                 .setTwinflowSchemaId(createDefaultTwinflowSchema(domainEntity))
                 .setTwinClassSchemaId(createDefaultTwinClassSchema(domainEntity))
-                .setPermissionSchemaId(createDefaultPermissionsSchema(domainEntity));
+                .setPermissionSchemaId(createDefaultPermissionsSchema(domainEntity))
+                .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
+    }
+
+    protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
+        TwinClassEntity twinClassEntity = new TwinClassEntity()
+                .setDomainId(domainEntity.getId())
+                .setAbstractt(false)
+                .setKey("DOMAIN_USER_FOR_" + domainEntity.getKey().toUpperCase())
+                .setHeadTwinClassId(TWIN_CLASS_USER)
+                .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_USER)
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+        twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setKey("Active")
+                .setNameI18nId(i18nService.createI18nAndDefaultTranslation(I18nType.TWIN_STATUS_NAME,"Active").getId());
+        twinStatusEntity = entitySmartService.save(twinStatusEntity, twinStatusRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        String twinflowName = "Default domain user twinflow";
+        TwinflowEntity twinflowEntity = new TwinflowEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
+                .setInitialTwinStatusId(twinStatusEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+        twinflowEntity = entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        TwinflowSchemaMapEntity twinflowSchemaMapEntity = new TwinflowSchemaMapEntity()
+                .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
+                .setTwinClassId(twinClassEntity.getId())
+                .setTwinflowId(twinflowEntity.getId())
+                .setTwinflow(twinflowEntity);
+        entitySmartService.save(twinflowSchemaMapEntity, twinflowSchemaMapRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        TwinEntity twinEntity = new TwinEntity()
+                .setTwinClassId(twinClassEntity.getId())
+                .setTwinStatusId(twinStatusEntity.getId())
+                .setName("Domain user template")
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(systemEntityService.getUserIdSystem());
+        twinEntity = entitySmartService.save(twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return twinEntity.getId();
     }
 
     @Transactional

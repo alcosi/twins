@@ -7,6 +7,7 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.datalist.DataListSubsetOptionEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
@@ -17,6 +18,12 @@ import java.util.UUID;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class DataListOptionSpecification extends CommonSpecification<DataListOptionEntity> {
+
+    public static Specification<DataListOptionEntity> empty() {
+        return (root, query, cb) -> {
+            return cb.conjunction();
+        };
+    }
 
     public static Specification<DataListOptionEntity> checkFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
@@ -30,6 +37,38 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
                 predicates.add(predicate);
             }
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<DataListOptionEntity> checkDataListKeyLikeIn(Collection<String> search, boolean not, boolean or) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            Join<DataListOptionEntity, DataListEntity> joinDataListOption = root.join(DataListOptionEntity.Fields.dataList, JoinType.INNER);
+
+            List<Predicate> predicates = new ArrayList<>();
+            for (String value : search) {
+                Predicate predicate = cb.like(cb.lower(joinDataListOption.get(DataListEntity.Fields.key)), value.toLowerCase());
+                if (not) predicate = cb.not(predicate);
+                predicates.add(predicate);
+            }
+            return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<DataListOptionEntity> checkDataListSubset(Collection<UUID> search, boolean not) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(search))
+                return cb.conjunction();
+
+            query.distinct(true);
+
+            Join<DataListOptionEntity, DataListSubsetOptionEntity> subsetOptionJoin = root.join(DataListOptionEntity.Fields.subsetOptions, JoinType.INNER);
+
+            Predicate predicate = subsetOptionJoin.get(DataListSubsetOptionEntity.Fields.dataListSubsetId).in(search);
+            if (not) predicate = cb.not(predicate);
+            return predicate;
         };
     }
 

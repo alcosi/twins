@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.domain.search;
 
 import lombok.Data;
 import lombok.experimental.Accessors;

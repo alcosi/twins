@@ -15,6 +15,9 @@ public class PermissionGrantTwinRoleDTOv2 extends PermissionGrantTwinRoleDTOv1 {
     @Schema(description = "permission")
     public PermissionDTOv1 permission;
 
+    @Schema(description = "permission schema")
+    public PermissionSchemaDTOv1 permissionSchema;
+
     @Schema(description = "twin class")
     public TwinClassDTOv1 twinClass;
 

@@ -50,6 +50,7 @@ public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
         List<UUID> inputTwinIds = inputFactoryItemList.stream().map(inputItem -> inputItem.getTwin().getId()).toList();
         BasicSearch search = new BasicSearch();
         if (exclude.extract(properties))
+            //TODO
             search
                     .setTwinIdExcludeList(factoryContext.getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()));
         search

@@ -8,10 +8,7 @@ import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv2;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TransitionMode;
-import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
@@ -22,6 +19,7 @@ import org.twins.core.service.twinflow.TwinflowTransitionService;
 @MapperModeBinding(modes = TransitionMode.class)
 public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowTransitionEntity, TwinflowTransitionBaseDTOv2> {
 
+    private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
 
     @MapperModePointerBinding(modes = {StatusMode.Transition2StatusMode.class})
     private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
@@ -29,7 +27,8 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @MapperModePointerBinding(modes = {PermissionMode.Transition2PermissionMode.class})
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
-    private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
+    @MapperModePointerBinding(modes = TwinflowMode.Transition2TwinflowMode.class)
+    private final TwinflowBaseV2RestDTOMapper twinflowBaseV2RestDTOMapper;
 
     @MapperModePointerBinding(modes = {UserMode.Transition2UserMode.class})
     private final UserRestDTOMapper userRestDTOMapper;
@@ -44,6 +43,7 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                 dst
                         .setSrcTwinStatusId(src.getSrcTwinStatusId())
                         .setPermissionId(src.getPermissionId())
+                        .setTwinflowId(src.getTwinflowId())
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId());
                 break;
@@ -58,6 +58,10 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
             dst
                     .setPermissionId(src.getPermissionId())
                     .setPermission(permissionRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadPermission(src), mapperContext.forkOnPoint(PermissionMode.Transition2PermissionMode.SHORT)));
+        if (mapperContext.hasModeButNot(TwinflowMode.Transition2TwinflowMode.HIDE) && src.getTwinflowId() != null)
+            dst
+                    .setTwinflowId(src.getTwinflowId())
+                    .setTwinflow(twinflowBaseV2RestDTOMapper.convertOrPostpone(src.getTwinflow(), mapperContext.forkOnPoint(TwinflowMode.Transition2TwinflowMode.SHORT)));
         if (mapperContext.hasModeButNot(UserMode.Transition2UserMode.HIDE) && src.getCreatedByUserId() != null)
             dst
                     .setCreatedByUserId(src.getCreatedByUserId())

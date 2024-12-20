@@ -6,11 +6,14 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
+import org.twins.core.dto.rest.factory.FactoryDTOv1;
+import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
@@ -62,4 +65,13 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related permission schema map", example = "{permission schema map}")
     public Map<UUID, PermissionSchemaDTOv2> permissionSchemaMap;
+
+    @Schema(description = "related twinflow map", example = "{twinflow map}")
+    public Map<UUID, TwinflowBaseDTOv1> twinflowMap;
+
+    @Schema(description = "related factory map", example = "{factory map}")
+    public Map<UUID, FactoryDTOv1> factoryMap;
+
+    @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
+    public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
 }

@@ -669,6 +669,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
                 if (twinFieldSimpleEntity.getId() == null)
                     throw new ServiceException(ErrorCodeTwins.TWIN_DRAFT_GENERAL_ERROR, "twin class field id required for field update");
                 draftTwinFieldSimpleEntity
+                        .setTwinClassFieldId(twinFieldSimpleEntity.getTwinClassFieldId())
                         .setTwinFieldSimpleId(twinFieldSimpleEntity.getId())
                         .setValue(twinFieldSimpleEntity.getValue());
                 break;

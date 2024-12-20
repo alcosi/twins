@@ -76,13 +76,13 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
         UserEntity dbEntity = entitySmartService.findById(updateEntity.getId(), userRepository, EntitySmartService.FindMode.ifEmptyThrows);
         ChangesHelper changesHelper = new ChangesHelper();
         // The logic of updating fields[name, email, avatar] in twin and twin_field_simple is implemented through a trigger in the database
-        if (changesHelper.isChanged("name", dbEntity.getName(), updateEntity.getName(), maskName(dbEntity.getName()), maskName(updateEntity.getName())))
+        if (changesHelper.isChanged(UserEntity.Fields.name, dbEntity.getName(), updateEntity.getName(), maskName(dbEntity.getName()), maskName(updateEntity.getName())))
             dbEntity.setName(updateEntity.getName());
-        if (changesHelper.isChanged("email", dbEntity.getEmail(), updateEntity.getEmail(), maskEmail(dbEntity.getEmail()), maskEmail(updateEntity.getEmail())))
+        if (changesHelper.isChanged(UserEntity.Fields.email, dbEntity.getEmail(), updateEntity.getEmail(), maskEmail(dbEntity.getEmail()), maskEmail(updateEntity.getEmail())))
             dbEntity.setEmail(updateEntity.getEmail());
-        if (changesHelper.isChanged("avatar", dbEntity.getAvatar(), updateEntity.getAvatar()))
+        if (changesHelper.isChanged(UserEntity.Fields.avatar, dbEntity.getAvatar(), updateEntity.getAvatar()))
             dbEntity.setAvatar(updateEntity.getAvatar());
-        if (changesHelper.isChanged("user_status_id", dbEntity.getUserStatusId(), updateEntity.getUserStatusId()))
+        if (changesHelper.isChanged(UserEntity.Fields.userStatusId, dbEntity.getUserStatusId(), updateEntity.getUserStatusId()))
             dbEntity.setUserStatusId(updateEntity.getUserStatusId());
         if (changesHelper.hasChanges())
             entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);

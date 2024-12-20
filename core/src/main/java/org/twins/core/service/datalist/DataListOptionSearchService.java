@@ -11,15 +11,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.permission.PermissionGroupEntity;
-import org.twins.core.dao.permission.PermissionGroupRepository;
-import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
-import org.twins.core.dto.rest.permission.PermissionGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.UUID;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
@@ -32,7 +27,7 @@ public class DataListOptionSearchService {
     private final AuthService authService;
     private final DataListOptionRepository dataListOptionRepository;
 
-    public PaginationResult<DataListOptionEntity> findPermissionGroupForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<DataListOptionEntity> findDataListOptionForDomain(DataListOptionSearch search, SimplePagination pagination) throws ServiceException {
         Specification<DataListOptionEntity> spec = createDataListOptionSearchSpecification(search);
         Page<DataListOptionEntity> ret = dataListOptionRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
@@ -42,16 +37,29 @@ public class DataListOptionSearchService {
         ApiUser apiUser = authService.getApiUser();
         return Specification.where(
                 checkDomainId(apiUser.getDomainId())
+                        .and(createBusinessAccountSpecification(apiUser, search))
                         .and(checkUuidIn(DataListOptionEntity.Fields.id, search.getIdList(), false, false))
                         .and(checkUuidIn(DataListOptionEntity.Fields.id, search.getIdExcludeList(), true, false))
                         .and(checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdList(), false, false))
                         .and(checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdExcludeList(), true, true))
                         .and(checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionLikeList(), false, true))
                         .and(checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true))
+                        .and(checkDataListKeyLikeIn(search.getDataListKeyList(), false, true))
+                        .and(checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false))
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
-                        .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true))
+                        .and(checkDataListSubset(search.getDataListSubsetIdList(), false))
+                        .and(checkDataListSubset(search.getDataListSubsetIdExcludeList(), true))
         );
+    }
+
+    private Specification<DataListOptionEntity> createBusinessAccountSpecification(ApiUser apiUser, DataListOptionSearch search) {
+        if (!apiUser.isBusinessAccountSpecified())
+            return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
+        else {
+            return Specification.where(empty())
+                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
+                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true));
+        }
     }
 }

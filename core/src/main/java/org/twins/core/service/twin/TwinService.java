@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
@@ -21,6 +22,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.twin.*;
@@ -35,7 +37,8 @@ import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
+import org.twins.core.featurer.fieldtyper.FieldTyperList;
+import org.twins.core.featurer.fieldtyper.value.*;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.attachment.AttachmentService;
@@ -740,6 +743,96 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             src.getFieldValuesKit().add(fieldValue);
         }
     }
+
+    public void loadFieldsValues(Collection<TwinEntity> twinEntityList) throws ServiceException {
+        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        for (TwinEntity twinEntity : twinEntityList)
+            if (twinEntity.getFieldValuesKit() == null)
+                needLoad.put(twinEntity.getId(), twinEntity);
+        if (needLoad.isEmpty())
+            return;
+        loadTwinFields(needLoad.values());
+        for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
+            loadFieldsValues(entry.getValue());
+    }
+
+    public FieldValue createFieldValue(UUID twinClassFieldEntityId, String value) throws ServiceException {
+        return createFieldValue(twinClassFieldService.findEntitySafe(twinClassFieldEntityId), value);
+    }
+
+    public FieldValue createFieldValue(TwinClassFieldEntity twinClassFieldEntity, String value) throws ServiceException {
+        FieldTyper fieldTyper = featurerService.getFeaturer(twinClassFieldEntity.getFieldTyperFeaturer(), FieldTyper.class);
+        FieldValue fieldValue = null;
+        if (fieldTyper.getValueType() == FieldValueText.class)
+            fieldValue = new FieldValueText(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueColorHEX.class)
+            fieldValue = new FieldValueColorHEX(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueDate.class)
+            fieldValue = new FieldValueDate(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueSelect.class)
+            fieldValue = new FieldValueSelect(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueUser.class)
+            fieldValue = new FieldValueUser(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueLink.class)
+            fieldValue = new FieldValueLink(twinClassFieldEntity);
+        if (fieldTyper.getValueType() == FieldValueInvisible.class)
+            fieldValue = new FieldValueInvisible(twinClassFieldEntity);
+        if (fieldValue == null)
+            throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, "unknown fieldTyper[" + fieldTyper.getValueType() + "]");
+
+        if (value == null) // nullify
+            fieldValue.nullify();
+        else
+            setFieldValue(fieldValue, value);
+        return fieldValue;
+    }
+
+    public void setFieldValue(FieldValue fieldValue, String value) throws ServiceException {
+        if (fieldValue instanceof FieldValueText fieldValueText)
+            fieldValueText.setValue(value);
+        if (fieldValue instanceof FieldValueColorHEX fieldValueColorHEX)
+            fieldValueColorHEX.setHex(value);
+        if (fieldValue instanceof FieldValueDate fieldValueDate)
+            fieldValueDate.setDate(value);
+        if (fieldValue instanceof FieldValueSelect fieldValueSelect) {
+            for (String dataListOption : value.split(FieldTyperList.LIST_SPLITTER)) {
+                if (org.cambium.common.util.StringUtils.isEmpty(dataListOption)) continue;
+                DataListOptionEntity dataListOptionEntity = new DataListOptionEntity();
+                if (UuidUtils.isUUID(dataListOption)) dataListOptionEntity.setId(UUID.fromString(dataListOption));
+                else dataListOptionEntity.setOption(dataListOption);
+                fieldValueSelect.add(dataListOptionEntity);
+            }
+        }
+        if (fieldValue instanceof FieldValueUser fieldValueUser) {
+            for (String userId : value.split(FieldTyperList.LIST_SPLITTER)) {
+                if (org.cambium.common.util.StringUtils.isEmpty(userId))
+                    continue;
+                UUID userUUID;
+                try {
+                    userUUID = UUID.fromString(userId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueUser.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect user UUID[" + userId + "]");
+                }
+                fieldValueUser.add(new UserEntity()
+                        .setId(userUUID));
+            }
+        }
+        if (fieldValue instanceof FieldValueLink fieldValueLink) {
+            for (String dstTwinId : value.split(FieldTyperList.LIST_SPLITTER)) {
+                if (org.cambium.common.util.StringUtils.isEmpty(dstTwinId))
+                    continue;
+                UUID dstTwinUUID;
+                try {
+                    dstTwinUUID = UUID.fromString(dstTwinId);
+                } catch (Exception e) {
+                    throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, fieldValueLink.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " incorrect link UUID[" + dstTwinId + "]");
+                }
+                ((FieldValueLink) fieldValue).add(new TwinLinkEntity()
+                        .setDstTwinId(dstTwinUUID));
+            }
+        }
+    }
+
 
     public FieldValue copyToField(FieldValue src, UUID dstTwinClassFieldId) throws ServiceException {
         TwinClassFieldEntity dstTwinClassField = twinClassFieldService.findEntitySafe(dstTwinClassFieldId);

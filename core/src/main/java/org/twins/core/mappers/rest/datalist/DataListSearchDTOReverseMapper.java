@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
 @RequiredArgsConstructor
-public class DataListSearchRqDTOReverseMapper extends RestSimpleDTOMapper<DataListSearchRqDTOv1, DataListSearch> {
+public class DataListSearchDTOReverseMapper extends RestSimpleDTOMapper<DataListSearchRqDTOv1, DataListSearch> {
 
     private final DataListOptionSearchDTOReverseMapper dataListOptionSearchDTOReverseMapper;
 

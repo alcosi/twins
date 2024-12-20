@@ -15,10 +15,14 @@ public class DataListOptionSearch {
     Set<UUID> idExcludeList;
     Set<UUID> dataListIdList;
     Set<UUID> dataListIdExcludeList;
+    Set<String> dataListKeyList;
+    Set<String> dataListKeyExcludeList;
     Set<String> optionLikeList;
     Set<String> optionNotLikeList;
     Set<String> optionI18nLikeList;
     Set<String> optionI18nNotLikeList;
     Set<UUID> businessAccountIdList;
     Set<UUID> businessAccountIdExcludeList;
+    Set<UUID> dataListSubsetIdList;
+    Set<UUID> dataListSubsetIdExcludeList;
 }

@@ -10,8 +10,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
-import java.util.Arrays;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Data
@@ -68,11 +67,16 @@ public class DataListOptionEntity implements EasyLoggable {
     @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
     private BusinessAccountEntity businessAccount;
 
+    @Deprecated //for specification only
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)
-    @Deprecated //for specification only
     @EqualsAndHashCode.Exclude
     private I18nEntity optionI18n;
+
+    @Deprecated //for specification only
+    @EqualsAndHashCode.Exclude
+    @OneToMany(mappedBy = "dataListOption")
+    private Set<DataListSubsetOptionEntity> subsetOptions;
 
 //    @ManyToOne(fetch = FetchType.EAGER)
 //    @JoinColumn(name = "option_i18n_id", insertable = false, updatable = false)

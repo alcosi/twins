@@ -17,6 +17,8 @@ import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 @RequiredArgsConstructor
 public class PermissionGrantTwinRoleRestDTOMapperV2 extends RestSimpleDTOMapper<PermissionGrantTwinRoleEntity, PermissionGrantTwinRoleDTOv2> {
     private final PermissionGrantTwinRoleRestDTOMapper permissionGrantTwinRoleRestDTOMapper;
+    @MapperModePointerBinding(modes = PermissionSchemaMode.PermissionGrantTwinRole2PermissionSchemaMode.class)
+    private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionMode.PermissionGrantTwinRole2PermissionMode.class)
     private final PermissionRestDTOMapper permissionRestDTOMapper;
@@ -30,6 +32,10 @@ public class PermissionGrantTwinRoleRestDTOMapperV2 extends RestSimpleDTOMapper<
     @Override
     public void map(PermissionGrantTwinRoleEntity src, PermissionGrantTwinRoleDTOv2 dst, MapperContext mapperContext) throws Exception {
         permissionGrantTwinRoleRestDTOMapper.map(src, dst, mapperContext);
+        if (mapperContext.hasModeButNot(PermissionSchemaMode.PermissionGrantTwinRole2PermissionSchemaMode.HIDE))
+            dst
+                    .setPermissionSchema(permissionSchemaRestDTOMapper.convertOrPostpone(src.getPermissionSchema(), mapperContext.forkOnPoint(PermissionSchemaMode.PermissionGrantTwinRole2PermissionSchemaMode.SHORT)))
+                    .setPermissionSchemaId(src.getPermissionSchemaId());
         if (mapperContext.hasModeButNot(PermissionMode.PermissionGrantTwinRole2PermissionMode.HIDE))
             dst
                     .setPermission(permissionRestDTOMapper.convertOrPostpone(src.getPermission(), mapperContext.forkOnPoint(PermissionMode.PermissionGrantTwinRole2PermissionMode.SHORT)))

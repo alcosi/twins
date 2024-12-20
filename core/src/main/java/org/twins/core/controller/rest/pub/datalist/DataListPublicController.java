@@ -26,7 +26,8 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListSearchRqDTOReverseMapper;
+import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
+import org.twins.core.mappers.rest.datalist.DataListSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -42,8 +43,8 @@ import java.util.UUID;
 public class DataListPublicController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
-    private final DataListRestDTOMapper dataListRestDTOMapper;
-    private final DataListSearchRqDTOReverseMapper dataListSearchRqDTOReverseMapper;
+    private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
+    private final DataListSearchDTOReverseMapper dataListSearchDTOReverseMapper;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserAnonymousHeaders
@@ -56,12 +57,12 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list/{dataListId}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
-            rs.dataList = dataListRestDTOMapper.convert(
+            rs.dataList = dataListRestDTOMapperV2.convert(
                     dataListService.findEntitySafe(dataListId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -81,13 +82,13 @@ public class DataListPublicController extends ApiController {
     @GetMapping(value = "/public/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicByKeyViewV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
             ApiUser apiUser = authService.getApiUser().setAnonymous();
             rs
-                    .setDataList(dataListRestDTOMapper.convert(
+                    .setDataList(dataListRestDTOMapperV2.convert(
                             dataListService.findDataListByKey(apiUser, dataListKey), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
@@ -107,15 +108,15 @@ public class DataListPublicController extends ApiController {
     @PostMapping(value = "/public/data_list/search/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListPublicSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapper.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody DataListSearchRqDTOv1 request) {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
-            PaginationResult<DataListEntity> dataListsList = dataListService.findDataListsForDomain(dataListSearchRqDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DataListEntity> dataListsList = dataListService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
             rs
-                    .setDataListList(dataListRestDTOMapper.convertCollection(dataListsList.getList(), mapperContext))
+                    .setDataListList(dataListRestDTOMapperV2.convertCollection(dataListsList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListsList));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

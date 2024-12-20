@@ -18,6 +18,6 @@ import java.util.Properties;
 public class ConditionerOutputTwinFieldValueEquals extends ConditionerContextValueEquals {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, FieldLookupMode.fromItemOutputFields);
+        return check(properties, factoryItem, FieldLookupMode.fromItemOutputDbFields);
     }
 }

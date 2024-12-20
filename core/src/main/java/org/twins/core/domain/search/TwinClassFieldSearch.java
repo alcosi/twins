@@ -13,19 +13,21 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 public class TwinClassFieldSearch {
-    Set<UUID> idList;
-    Set<UUID> idExcludeList;
-    Set<String> keyLikeList;
-    Set<String> keyNotLikeList;
-    Set<String> nameI18nLikeList;
-    Set<String> nameI18nNotLikeList;
-    Set<String> descriptionI18nLikeList;
-    Set<String> descriptionI18nNotLikeList;
-    Set<Integer> fieldTyperIdList;
-    Set<Integer> fieldTyperIdExcludeList;
-    Set<UUID> viewPermissionIdList;
-    Set<UUID> viewPermissionIdExcludeList;
-    Set<UUID> editPermissionIdList;
-    Set<UUID> editPermissionIdExcludeList;
-    Ternary required;
+    private Set<UUID> idList;
+    private Set<UUID> idExcludeList;
+    private Set<UUID> twinClassIdList;
+    private Set<UUID> twinClassIdExcludeList;
+    private Set<String> keyLikeList;
+    private Set<String> keyNotLikeList;
+    private Set<String> nameI18nLikeList;
+    private Set<String> nameI18nNotLikeList;
+    private Set<String> descriptionI18nLikeList;
+    private Set<String> descriptionI18nNotLikeList;
+    private Set<Integer> fieldTyperIdList;
+    private Set<Integer> fieldTyperIdExcludeList;
+    private Set<UUID> viewPermissionIdList;
+    private Set<UUID> viewPermissionIdExcludeList;
+    private Set<UUID> editPermissionIdList;
+    private Set<UUID> editPermissionIdExcludeList;
+    private Ternary required;
 }

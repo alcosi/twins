@@ -57,7 +57,7 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
-        FieldValue subtrahendFieldValue = factoryService.lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId, FieldLookupMode.fromContextFieldsAndContextTwinFields);
+        FieldValue subtrahendFieldValue = factoryService.lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId, FieldLookupMode.fromContextFieldsAndContextTwinDbFields);
         if (!(subtrahendFieldValue instanceof FieldValueText))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         Number subtrahendNumber = NumberUtils.createNumber(((FieldValueText) subtrahendFieldValue).getValue());

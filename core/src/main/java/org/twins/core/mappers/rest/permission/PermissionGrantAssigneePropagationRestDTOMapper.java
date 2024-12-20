@@ -22,7 +22,8 @@ public class PermissionGrantAssigneePropagationRestDTOMapper extends RestSimpleD
                         .setPermissionId(src.getPermissionId())
                         .setPropagationTwinClassId(src.getPropagationByTwinClassId())
                         .setPropagationTwinStatusId(src.getPropagationByTwinStatusId())
-                        .setGrantedByUserId(src.getGrantedByUserId());
+                        .setGrantedByUserId(src.getGrantedByUserId())
+                        .setGrantedAt(src.getGrantedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
