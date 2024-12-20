@@ -11,6 +11,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.LocaleConverter;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
@@ -59,6 +60,8 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "domain_user_template_twin_id")
     private UUID domainUserTemplateTwinId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

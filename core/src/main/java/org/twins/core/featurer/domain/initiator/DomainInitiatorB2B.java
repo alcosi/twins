@@ -66,7 +66,6 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setExtendsTwinClassId(domainEntity.getAncestorTwinClassId())
                 .setKey("DOMAIN_BUSINESS_ACCOUNT_FOR_" + domainEntity.getKey().toUpperCase())
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
@@ -82,7 +81,6 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setNameI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_NAME, twinflowName).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndDefaultTranslation(I18nType.TWINFLOW_DESCRIPTION, twinflowName).getId())
                 .setInitialTwinStatusId(twinStatusEntity.getId())
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinflowEntity = entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
@@ -97,7 +95,6 @@ public class DomainInitiatorB2B extends DomainInitiator {
                 .setTwinClassId(twinClassEntity.getId())
                 .setTwinStatusId(twinStatusEntity.getId())
                 .setName("Business account template")
-                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(systemEntityService.getUserIdSystem());
         twinEntity = entitySmartService.save(twinEntity, twinRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         return twinEntity.getId();

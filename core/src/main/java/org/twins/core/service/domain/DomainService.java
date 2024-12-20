@@ -209,8 +209,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setDomain(domain)
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
-                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId);
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
