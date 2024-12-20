@@ -55,8 +55,7 @@ public class DomainInitiatorB2B extends DomainInitiator {
         domainEntity
                 .setBusinessAccountInitiatorFeaturerId(1103)
                 .setBusinessAccountInitiatorParams(null) // 1103 does not need params
-                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity))
-                .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
+                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity));
     }
 
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {
