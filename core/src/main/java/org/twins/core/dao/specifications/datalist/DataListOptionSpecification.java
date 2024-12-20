@@ -73,7 +73,7 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
-    public static Specification<DataListOptionEntity> checkDataListSubsetOption(Collection<String> search, boolean not, boolean or) {
+    public static Specification<DataListOptionEntity> checkDataListSubsetKey(Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
