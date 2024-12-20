@@ -11,10 +11,12 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nLocaleRepository;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -49,6 +51,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -59,7 +62,7 @@ import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpec
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class DomainService {
+public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     private final FeaturerService featurerService;
     private final UserService userService;
     private final BusinessAccountService businessAccountService;
@@ -94,6 +97,26 @@ public class DomainService {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+
+    @Override
+    public CrudRepository<DomainEntity, UUID> entityRepository() {
+        return domainRepository;
+    }
+
+    @Override
+    public Function<DomainEntity, UUID> entityGetIdFunction() {
+        return DomainEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(DomainEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(DomainEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -146,8 +169,7 @@ public class DomainService {
                 .setUserId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
-
-        DomainEntity domain = domainRepository.findById(domainId).orElseThrow(() -> new ServiceException(ErrorCodeTwins.DOMAIN_UNKNOWN, "Domain not found for id: " + domainId));
+        DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainUserTemplateTwinId() != null) {
             TwinEntity duplicateTwin = twinService.duplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
             duplicateTwin.setHeadTwinId(user.getId());
