@@ -42,4 +42,8 @@ public class DataListOptionSearchDTOv1 extends Request {
     public Set<UUID> dataListSubsetIdList;
     @Schema(description = "data list class subset id exclude list")
     public Set<UUID> dataListSubsetIdExcludeList;
+    @Schema(description = "data list class subset option list")
+    public Set<String> dataListSubsetOptionList;
+    @Schema(description = "data list class subset option exclude list")
+    public Set<String> dataListSubsetOptionExcludeList;
 }
