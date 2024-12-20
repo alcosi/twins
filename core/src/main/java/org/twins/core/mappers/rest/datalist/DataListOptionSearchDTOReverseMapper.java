@@ -26,7 +26,7 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setBusinessAccountIdExcludeList(src.getBusinessAccountIdExcludeList())
                 .setDataListSubsetIdList(src.getDataListSubsetIdList())
                 .setDataListSubsetIdExcludeList(src.getDataListSubsetIdExcludeList())
-                .setDataListSubsetOptionList(src.getDataListSubsetOptionList())
-                .setDataListSubsetOptionExcludeList(src.getDataListSubsetOptionExcludeList());
+                .setDataListSubsetKeyList(src.getDataListSubsetOptionList())
+                .setDataListSubsetKeyExcludeList(src.getDataListSubsetOptionExcludeList());
     }
 }

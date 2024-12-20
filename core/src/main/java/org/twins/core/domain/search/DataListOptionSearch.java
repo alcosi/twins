@@ -25,6 +25,6 @@ public class DataListOptionSearch {
     private Set<UUID> businessAccountIdExcludeList;
     private Set<UUID> dataListSubsetIdList;
     private Set<UUID> dataListSubsetIdExcludeList;
-    private Set<String> dataListSubsetOptionList;
-    private Set<String> dataListSubsetOptionExcludeList;
+    private Set<String> dataListSubsetKeyList;
+    private Set<String> dataListSubsetKeyExcludeList;
 }

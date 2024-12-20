@@ -50,8 +50,8 @@ public class DataListOptionSearchService {
                         .and(joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true))
                         .and(checkDataListSubset(search.getDataListSubsetIdList(), false))
                         .and(checkDataListSubset(search.getDataListSubsetIdExcludeList(), true))
-                        .and(checkDataListSubsetOption(search.getDataListSubsetOptionList(), false, true))
-                        .and(checkDataListSubsetOption(search.getDataListSubsetOptionExcludeList(), true, true))
+                        .and(checkDataListSubsetOption(search.getDataListSubsetKeyList(), false, true))
+                        .and(checkDataListSubsetOption(search.getDataListSubsetKeyExcludeList(), true, true))
         );
     }
 
