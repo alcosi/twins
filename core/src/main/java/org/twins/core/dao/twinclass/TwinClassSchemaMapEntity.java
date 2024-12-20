@@ -19,9 +19,6 @@ public class TwinClassSchemaMapEntity {
     @Column(name = "twin_class_id")
     private UUID twinClassId;
 
-    @Column(name = "create_permission_id")
-    private UUID createPermissionId;
-
     @ManyToOne
     @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false, nullable = false)
     private TwinClassSchemaEntity twinClassSchema;

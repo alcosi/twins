@@ -72,6 +72,15 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @Column(name = "create_permission_id")
+    private UUID createPermissionId;
+
+    @Column(name = "edit_permission_id")
+    private UUID editPermissionId;
+
+    @Column(name = "delete_permission_id")
+    private UUID deletePermissionId;
+
     @Column(name = "abstract")
     private boolean abstractt;
 
