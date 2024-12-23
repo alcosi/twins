@@ -32,7 +32,7 @@ public class HistorySearchService {
 
     private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
         return Specification.where(
-                checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.getIncludeDirectChildren() != null && search.getIncludeDirectChildren(), false)
+                checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
                 .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
                 .and(checkUuidIn(HistoryEntity.Fields.id, search.getIdList(), false, false))
                 .and(checkUuidIn(HistoryEntity.Fields.id, search.getIdExcludeList(), true, false))
