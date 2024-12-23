@@ -58,7 +58,7 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
         if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE))
             dst
                     .setValidatorFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getTwinValidatorFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT)))
-                    .setTwinValidatorSetId(src.getTwinValidatorSetId());
+                    .setValidatorFeaturerId(src.getTwinValidatorFeaturerId());
     }
 
     @Override
