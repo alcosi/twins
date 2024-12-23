@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 
 @Data
@@ -19,4 +20,7 @@ public class TwinClassFieldDTOv2 extends TwinClassFieldDTOv1 {
 
     @Schema(description = "edit permission")
     public PermissionDTOv1 editPermission;
+
+    @Schema(description = "field typer featurer")
+    public FeaturerDTOv1 fieldTyperFeaturer;
 }

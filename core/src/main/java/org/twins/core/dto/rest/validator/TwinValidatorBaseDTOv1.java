@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.validator;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -39,4 +40,6 @@ public class TwinValidatorBaseDTOv1 {
     @Schema(description = "grouping set of twin validator")
     public TwinValidatorSetBaseDTOv1 twinValidatorSet;
 
+    @Schema(description = "validator featurer")
+    public FeaturerDTOv1 validatorFeaturer;
 }

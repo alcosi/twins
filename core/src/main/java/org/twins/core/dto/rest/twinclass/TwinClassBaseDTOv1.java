@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "TwinClassBaseV1")
 public class TwinClassBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_CLASS_ID)
@@ -39,7 +39,7 @@ public class TwinClassBaseDTOv1 {
     public Boolean abstractClass;
 
     @Schema(description = "head class id or empty if class is not linked to any head", example = DTOExamples.TWIN_CLASS_HEAD_CLASS_ID)
-    public UUID headClassId;
+    public UUID headTwinClassId;
 
     @Schema(description = "some markers for twins. Are domain level and not editable by user")
     public UUID markersDataListId;

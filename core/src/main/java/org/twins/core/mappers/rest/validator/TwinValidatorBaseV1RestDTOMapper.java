@@ -8,7 +8,9 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.validator.TwinValidatorEntity;
 import org.twins.core.dto.rest.validator.TwinValidatorBaseDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinValidatorSetMode;
 import org.twins.core.service.twin.TwinValidatorSetService;
@@ -22,6 +24,9 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
 
     @MapperModePointerBinding(modes = {TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.class})
     private final TwinValidatorSetBaseV1RestDTOMapper twinValidatorSetBaseV1RestDTOMapper;
+
+    @MapperModePointerBinding(modes = FeaturerMode.TwinValidator2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
     private final TwinValidatorSetService twinValidatorSetService;
 
@@ -49,6 +54,10 @@ public class TwinValidatorBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinVa
             dst
                     .setTwinValidatorSet(twinValidatorSetBaseV1RestDTOMapper.convert(
                             twinValidatorSetService.loadTwinValidatorSet(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinValidatorSetMode.TwinValidator2TwinValidatorSetMode.SHORT))))
+                    .setTwinValidatorSetId(src.getTwinValidatorSetId());
+        if (mapperContext.hasModeButNot(FeaturerMode.TwinValidator2FeaturerMode.HIDE))
+            dst
+                    .setValidatorFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getTwinValidatorFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinValidator2FeaturerMode.SHORT)))
                     .setTwinValidatorSetId(src.getTwinValidatorSetId());
     }
 
