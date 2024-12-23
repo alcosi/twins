@@ -7,9 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
-import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -25,12 +23,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.cambium.featurer.dao.specifications.FeaturerSpecification;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
-import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FeaturerSearch;
-import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 
@@ -310,11 +304,11 @@ public class FeaturerService {
         return featurerRepository.getById(featurerId);
     }
 
-    public void loadFeaturer(TwinClassEntity twinClassEntity) {
-        loadFeaturer(Collections.singletonList(twinClassEntity));
+    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
+        loadHeadHunter(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadFeaturer(Collection<TwinClassEntity> twinClassCollection) {
+    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
         Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
         for (TwinClassEntity twinClass : twinClassCollection) {
             if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)

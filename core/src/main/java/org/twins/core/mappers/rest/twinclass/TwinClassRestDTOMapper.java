@@ -142,7 +142,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setViewPermissionId(src.getViewPermissionId());
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            featurerService.loadFeaturer(src);
+            featurerService.loadHeadHunter(src);
             dst
                     .setHeadHunterFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getHeadHunterFeaturer(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(FeaturerMode.TwinClass2FeaturerMode.SHORT))))
                     .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId());
@@ -171,7 +171,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadViewPermission(srcCollection);
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
-            featurerService.loadFeaturer(srcCollection);
+            featurerService.loadHeadHunter(srcCollection);
         }
     }
 
