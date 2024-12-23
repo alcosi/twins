@@ -12,9 +12,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.domain.search.FactoryConditionSetSearch;
+import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.*;
 
 
 @Slf4j
@@ -22,6 +22,7 @@ import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpeci
 @RequiredArgsConstructor
 public class FactoryConditionSetSearchService {
     private final TwinFactoryConditionSetRepository twinFactoryConditionSetRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryConditionSetEntity> findFactoryConditionSets(FactoryConditionSetSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryConditionSetEntity> spec = createFactoryConditionSetSearchSpecification(search);
@@ -29,9 +30,10 @@ public class FactoryConditionSetSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryConditionSetEntity> createFactoryConditionSetSearchSpecification(FactoryConditionSetSearch search) {
+    private Specification<TwinFactoryConditionSetEntity> createFactoryConditionSetSearchSpecification(FactoryConditionSetSearch search) throws ServiceException {
         return Specification.where(
-                checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameLikeList(), false, true)
+                checkDomainId(authService.getApiUser().getDomainId())
+                        .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameLikeList(), false, true))
                         .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameNotLikeList(), true, true))
                         .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionLikeList(), false, true))
                         .and(checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
