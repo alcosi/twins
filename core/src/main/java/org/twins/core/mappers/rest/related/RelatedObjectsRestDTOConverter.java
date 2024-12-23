@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.related;
 
 import lombok.RequiredArgsConstructor;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
@@ -23,6 +24,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -38,6 +40,7 @@ import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryPipelineRestDTOMapper;
 import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.RelatedObject;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
@@ -83,6 +86,7 @@ public class RelatedObjectsRestDTOConverter {
     private final TwinflowBaseV1RestDTOMapper twinflowBaseV1RestDTOMapper;
     private final FactoryRestDTOMapper factoryRestDTOMapper;
     private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
 
     public RelatedObjectsDTOv1 convert(MapperContext mapperContext) throws Exception {
         if (mapperContext.isLazyRelations())
@@ -104,6 +108,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
         Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
+        Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
         if (!mapperContext.getRelatedTwinClassMap().isEmpty())
@@ -138,6 +143,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContext.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel2, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContext.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContext.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel2, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContext.getRelatedFeaturerMap().isEmpty())
+            convertAndPut(mapperContext.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel2, featurerMap, FeaturerEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         MapperContext mapperContextLevel3 = mapperContextLevel2.cloneIgnoreRelatedObjects();
@@ -173,6 +180,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel2.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel2.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContextLevel2.getRelatedFeaturerMap().isEmpty())
+            convertAndPut(mapperContextLevel2.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
         //run mappers one more time, because related objects can also contain relations (they were added to isolatedMapperContext on previous step)
         //this level was added because of dataLists. In case of search twins, twinClass will be detected on level1, twinClass.tagDataList will be detected on level2 and list options for tagDataList will be detected only on level3
@@ -209,6 +218,8 @@ public class RelatedObjectsRestDTOConverter {
             convertAndPut(mapperContextLevel3.getRelatedFactoryMap(), factoryRestDTOMapper, mapperContextLevel3, factoryMap, TwinFactoryEntity::getId);
         if (!mapperContextLevel3.getRelatedFactoryPipelineMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedFactoryPipelineMap(), factoryPipelineRestDTOMapper, mapperContextLevel3, factoryPipelineMap, TwinFactoryPipelineEntity::getId);
+        if (!mapperContextLevel3.getRelatedFeaturerMap().isEmpty())
+            convertAndPut(mapperContextLevel3.getRelatedFeaturerMap(), featurerRestDTOMapper, mapperContextLevel3, featurerMap, FeaturerEntity::getId);
 
         ret
                 .setTwinClassMap(twinClassMap.isEmpty() ? null : twinClassMap)
@@ -227,11 +238,12 @@ public class RelatedObjectsRestDTOConverter {
                 .setTwinflowMap(twinflowMap.isEmpty() ? null : twinflowMap)
                 .setFactoryMap(factoryMap.isEmpty() ? null : factoryMap)
                 .setFactoryPipelineMap(factoryPipelineMap.isEmpty() ? null : factoryPipelineMap)
+                .setFeaturerMap(featurerMap.isEmpty() ? null : featurerMap)
         ;
         return ret;
     }
 
-    public <E, D> void convertAndPut(Map<UUID, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, D> mapper, MapperContext mapperContext, Map<UUID, D> map, Function<? super E, ? extends UUID> functionGetId) throws Exception {
+    public <E, D, K> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, D> mapper, MapperContext mapperContext, Map<K, D> map, Function<? super E, ? extends K> functionGetId) throws Exception {
         for (RelatedObject<E> relatedObject : relatedObjects.values())
             map.put(functionGetId.apply(relatedObject.getObject()), mapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
     }

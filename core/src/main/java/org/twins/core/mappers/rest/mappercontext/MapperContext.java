@@ -3,6 +3,7 @@ package org.twins.core.mappers.rest.mappercontext;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -62,6 +63,8 @@ public class MapperContext {
     private Map<UUID, RelatedObject<TwinFactoryEntity>> relatedFactoryMap = new LinkedHashMap<>();
     @Getter
     private Map<UUID, RelatedObject<TwinFactoryPipelineEntity>> relatedFactoryPipelineMap = new LinkedHashMap<>();
+    @Getter
+    private Map<Integer, RelatedObject<FeaturerEntity>> relatedFeaturerMap = new LinkedHashMap<>();
 
     private MapperModeMap modes = new MapperModeMap();
     private Hashtable<Class, Hashtable<String, Object>> cachedObjects = new Hashtable<>(); //already converted objects
@@ -187,6 +190,8 @@ public class MapperContext {
             smartPut(relatedFactoryMap, twinFactory, twinFactory.getId());
         else if (relatedObject instanceof TwinFactoryPipelineEntity twinFactoryPipeline)
             smartPut(relatedFactoryPipelineMap, twinFactoryPipeline, twinFactoryPipeline.getId());
+        else if (relatedObject instanceof FeaturerEntity featurer)
+            smartPut(relatedFeaturerMap, featurer, featurer.getId());
         else {
             debugLog(relatedObject, " can not be stored in mapperContext");
             return false;
@@ -201,7 +206,7 @@ public class MapperContext {
      * In some case we can already have an object with same id in map, but with more detailed modes.
      * So we have to use the most detailed modes in such case
      */
-    public <E> void smartPut(Map<UUID, RelatedObject<E>> map, E object, UUID id) {
+    public <E, K> void smartPut(Map<K, RelatedObject<E>> map, E object, K id) {
         RelatedObject<E> alreadyRelated = map.get(id);
         if (alreadyRelated == null) {
             MapperModeMap relatedObjectModes = isolateModes();
@@ -377,6 +382,7 @@ public class MapperContext {
         dstMapperContext.relatedTwinflowMap = srcMapperContext.relatedTwinflowMap;
         dstMapperContext.relatedFactoryMap = srcMapperContext.relatedFactoryMap;
         dstMapperContext.relatedFactoryPipelineMap = srcMapperContext.relatedFactoryPipelineMap;
+        dstMapperContext.relatedFeaturerMap = srcMapperContext.relatedFeaturerMap;
     }
 
     public MapperContext cloneWithIsolatedModes(MapperModeCollection mapperModeCollection) {

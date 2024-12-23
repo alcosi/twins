@@ -8,6 +8,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
@@ -22,9 +23,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
 import org.cambium.featurer.dao.specifications.FeaturerSpecification;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FeaturerSearch;
-import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 
@@ -302,5 +302,23 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
         extractProperties(featurer, featurerParams, new HashMap<>());
         return featurerRepository.getById(featurerId);
+    }
+
+    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
+        loadHeadHunter(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
+        Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
+        for (TwinClassEntity twinClass : twinClassCollection) {
+            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
+                needLoad.put(twinClass.getHeadHunterFeaturerId() ,twinClass);
+        }
+        if (MapUtils.isEmpty(needLoad))
+            return;
+        List<FeaturerEntity> featurerList = featurerRepository.findByIdIn(needLoad.keySet());
+        for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
+            map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
+        }
     }
 }

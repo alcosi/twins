@@ -24,10 +24,10 @@ public class FactoryPipelineDTOv1 {
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean factoryConditionSetInvert;
+    public Boolean factoryConditionSetInvert;
 
     @Schema(description = "is active", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean active;
+    public Boolean active;
 
     @Schema(description = "output twin status id", example = DTOExamples.TWIN_STATUS_ID)
     public UUID outputTwinStatusId;
@@ -36,7 +36,7 @@ public class FactoryPipelineDTOv1 {
     public UUID nextFactoryId;
 
     @Schema(description = "next factory limit scope", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean nextFactoryLimitScope;
+    public Boolean nextFactoryLimitScope;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;

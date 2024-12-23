@@ -8,6 +8,7 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
@@ -74,4 +75,7 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
     public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
+
+    @Schema(description = "related featurer map", example = "{featurer map}")
+    public Map<Integer, FeaturerDTOv1> featurerMap;
 }

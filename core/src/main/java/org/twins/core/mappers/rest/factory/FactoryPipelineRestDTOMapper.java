@@ -26,7 +26,7 @@ public class FactoryPipelineRestDTOMapper extends RestSimpleDTOMapper<TwinFactor
 
     @Override
     public void map(TwinFactoryPipelineEntity src, FactoryPipelineDTOv1 dst, MapperContext mapperContext) throws Exception {
-        switch (mapperContext.getModeOrUse(PermissionGrantSpaceRoleMode.DETAILED)) {
+        switch (mapperContext.getModeOrUse(FactoryPipelineMode.DETAILED)) {
             case DETAILED:
                 twinFactoryService.countFactoryPipelineSteps(src);
                 dst
