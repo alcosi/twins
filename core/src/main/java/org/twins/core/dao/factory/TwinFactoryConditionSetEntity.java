@@ -25,6 +25,9 @@ public class TwinFactoryConditionSetEntity {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "domain_id")
+    private UUID domainId;
+
     @Transient
     private Integer inFactoryPipelineUsagesCount;
 

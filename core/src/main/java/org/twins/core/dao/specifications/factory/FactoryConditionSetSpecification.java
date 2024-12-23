@@ -9,6 +9,7 @@ import org.twins.core.dao.specifications.CommonSpecification;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.UUID;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
@@ -27,6 +28,14 @@ public class FactoryConditionSetSpecification extends CommonSpecification<TwinFa
                 predicates.add(predicate);
             }
             return getPredicate(cb, predicates, or);
+        };
+    }
+
+    public static Specification<TwinFactoryConditionSetEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> {
+            if (domainId == null)
+                return cb.disjunction();
+            return cb.equal(root.get(TwinFactoryConditionSetEntity.Fields.domainId), domainId);
         };
     }
 
