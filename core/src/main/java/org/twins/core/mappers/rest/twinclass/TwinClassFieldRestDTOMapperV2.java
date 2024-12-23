@@ -7,7 +7,9 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.PermissionMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
@@ -26,6 +28,9 @@ public class TwinClassFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinClass
     @MapperModePointerBinding(modes = PermissionMode.TwinClassField2PermissionMode.class)
     private final PermissionRestDTOMapper permissionRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FeaturerMode.TwinClassField2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv2 dst, MapperContext mapperContext) throws Exception {
         twinClassFieldRestDTOMapper.map(src, dst, mapperContext);
@@ -36,6 +41,10 @@ public class TwinClassFieldRestDTOMapperV2 extends RestSimpleDTOMapper<TwinClass
             dst
                     .setTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getTwinClass(), mapperContext.forkOnPoint(TwinClassMode.TwinClassField2TwinClassMode.SHORT)))
                     .setTwinClassId(src.getTwinClassId());
+        if (mapperContext.hasModeButNot(FeaturerMode.TwinClassField2FeaturerMode.HIDE))
+            dst
+                    .setFieldTyperFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getFieldTyperFeaturer(), mapperContext.forkOnPoint(FeaturerMode.TwinClassField2FeaturerMode.SHORT)))
+                    .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId());
         if (mapperContext.hasModeButNot(PermissionMode.TwinClassField2PermissionMode.HIDE)) {
             dst
                     .setViewPermission(permissionRestDTOMapper.convertOrPostpone(src.getViewPermission(), mapperContext.forkOnPoint(PermissionMode.TwinClassField2PermissionMode.SHORT)))
