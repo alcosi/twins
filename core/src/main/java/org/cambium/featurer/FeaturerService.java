@@ -317,7 +317,7 @@ public class FeaturerService {
     public void loadFeaturer(Collection<TwinClassEntity> twinClassCollection) {
         Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
         for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getHeadHunterFeaturer() == null)
+            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
                 needLoad.put(twinClass.getHeadHunterFeaturerId() ,twinClass);
         }
         if (MapUtils.isEmpty(needLoad))

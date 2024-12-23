@@ -31,7 +31,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setHeadTwinClassId(src.getHeadTwinClassId())
+                        .setHeadClassId(src.getHeadTwinClassId())
                         .setAbstractClass(src.isAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())
                         .setTagsDataListId(src.getTagDataListId())
@@ -55,7 +55,7 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setHeadTwinClassId(src.getHeadTwinClassId())
+                        .setHeadClassId(src.getHeadTwinClassId())
 //                        .setHeadClass(convertOrPostpone(src))
                         .setAbstractClass(src.isAbstractt())
                         .setMarkersDataListId(src.getMarkerDataListId())

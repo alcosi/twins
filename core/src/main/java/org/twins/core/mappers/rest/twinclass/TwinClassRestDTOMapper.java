@@ -127,7 +127,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadHeadTwinClass(src);
             dst
                     .setHeadClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getHeadTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassHead2TwinClassMode.SHORT))))
-                    .setHeadTwinClassId(src.getHeadTwinClassId());
+                    .setHeadClassId(src.getHeadTwinClassId());
         }
         if (mapperContext.hasModeButNot(TwinClassMode.TwinClassExtends2TwinClassMode.HIDE) && src.getExtendsTwinClassId() != null) {
             twinClassService.loadExtendsTwinClass(src);
