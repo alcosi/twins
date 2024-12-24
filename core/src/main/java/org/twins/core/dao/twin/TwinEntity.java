@@ -92,8 +92,6 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Column(name = "assigner_user_id")
     private UUID assignerUserId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
