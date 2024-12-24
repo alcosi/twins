@@ -4,6 +4,7 @@ import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -13,10 +14,11 @@ import org.twins.core.featurer.factory.multiplier.Multiplier;
 import java.util.HashMap;
 import java.util.UUID;
 
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "twin_factory_pipeline_step")
-@Accessors(chain = true)
-@Data
 public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
@@ -44,8 +46,8 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @Column(name = "filler_featurer_id")
     private int fillerFeaturerId;
 
-    @Column(name = "comment")
-    private String comment;
+    @Column(name = "description")
+    private String description;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "filler_params", columnDefinition = "hstore")
@@ -56,12 +58,20 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @JoinColumn(name = "filler_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity fillerFeaturer;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_pipeline_id", insertable = false, updatable = false)
+    private TwinFactoryPipelineEntity twinFactoryPipeline;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity twinFactoryConditionSet;
+
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryPipelineStep[" + id + "]";
-            case NORMAL -> "twinFactoryPipelineStep[" + id + "] **" + comment + "**";
+            case NORMAL -> "twinFactoryPipelineStep[" + id + "] **" + description + "**";
             default ->
-                    "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + comment + "]";
+                    "twinFactoryPipelineStep[id:" + id + ", twinFactoryPipelineId:" + twinFactoryPipelineId + ", comment:" + description + "]";
         };
 
     }
