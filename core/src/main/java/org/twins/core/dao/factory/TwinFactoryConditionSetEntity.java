@@ -1,11 +1,9 @@
 package org.twins.core.dao.factory;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.UUID;
 
