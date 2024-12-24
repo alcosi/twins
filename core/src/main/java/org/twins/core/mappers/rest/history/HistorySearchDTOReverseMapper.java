@@ -18,7 +18,7 @@ public class HistorySearchDTOReverseMapper extends RestSimpleDTOMapper<HistorySe
                 .setIdExcludeList(src.getIdExcludeList())
                 .setTwinIdList(src.getTwinIdList())
                 .setTwinIdExcludeList(src.getTwinIdExcludeList())
-                .setIncludeDirectChildren(src.getIncludeDirectChildren())
+                .setIncludeDirectChildren(src.isIncludeDirectChildren())
                 .setActorUseridList(src.getActorUseridList())
                 .setActorUserIdExcludeList(src.getActorUserIdExcludeList())
                 .setTypeList(src.getTypeList())
