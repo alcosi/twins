@@ -14,7 +14,6 @@ import org.twins.core.dao.history.context.HistoryContextDatalistMultiChange;
 import org.twins.core.dao.specifications.twin.TwinSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
-import org.twins.core.dao.twin.TwinFieldDataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -23,6 +22,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
 
@@ -41,7 +41,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     DataListService dataListService;
 
     @Autowired
-    TwinFieldDataListRepository twinFieldDataListRepository;
+    DataListOptionService dataListOptionService;
 
     @FeaturerParam(name = "listUUID", description = "")
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsLinkId("listUUID");
@@ -54,7 +54,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_MULTIPLY_OPTIONS_ARE_NOT_ALLOWED, value.getTwinClassField().easyLog(EasyLoggable.Level.NORMAL) + " multiply options are not allowed");
         UUID fieldListId = listUUID.extract(properties);
 
-        List<DataListOptionEntity> dataListOptionEntityList = dataListService.reloadOptionsOnDataListAbsent(value.getOptions());
+        List<DataListOptionEntity> dataListOptionEntityList = dataListOptionService.reloadOptionsOnDataListAbsent(value.getOptions());
 
         Map<UUID, TwinFieldDataListEntity> storedOptions = null;
         twinService.loadTwinFields(twin);
