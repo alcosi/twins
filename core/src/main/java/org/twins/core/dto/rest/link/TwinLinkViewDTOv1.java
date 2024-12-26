@@ -34,6 +34,9 @@ public class TwinLinkViewDTOv1 extends TwinLinkAddDTOv1 {
     @Schema(description = "Link")
     public LinkDTOv1 link;
 
+    @Schema(description = "Source twin")
+    public TwinBaseDTOv2 srcTwin;
+
     @Schema(description = "Destination twin")
     public TwinBaseDTOv2 dstTwin;
 }
