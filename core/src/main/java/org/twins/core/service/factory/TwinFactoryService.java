@@ -136,7 +136,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
-            log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getComment() + "**");
+            log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getDescription() + "**");
+            if (!factoryMultiplierEntity.getActive()) {
+                log.info("Skipping: not active[" + factoryMultiplierEntity.getId() + "]");
+                continue;
+            }
             List<FactoryItem> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
@@ -663,6 +667,23 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
         Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        countFactoryMultiplierFilters(Collections.singletonList(multiplier));
+    }
+
+    public void countFactoryMultiplierFilters(Collection<TwinFactoryMultiplierEntity> multiplierList) {
+        Kit<TwinFactoryMultiplierEntity, UUID> needLoad = new Kit<>(TwinFactoryMultiplierEntity::getId);
+        for (TwinFactoryMultiplierEntity multiplier : multiplierList) {
+            if (multiplier.getFactoryMultiplierFiltersCount() == null)
+                needLoad.add(multiplier);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> mulitplierFilterMap = convertToMap(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
     }
 
     private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {

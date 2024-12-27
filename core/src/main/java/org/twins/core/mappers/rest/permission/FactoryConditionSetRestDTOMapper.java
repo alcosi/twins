@@ -18,8 +18,8 @@ import java.util.Collection;
         FactoryConditionSetMode.class,
         ConditionSetInFactoryPipelineUsagesCountMode.class,
         ConditionSetInFactoryPipelineStepUsagesCountMode.class,
-        ConditionSetInFactoryMultiplierFilterUsagesCount.class,
-        ConditionSetInFactoryBranchUsagesCount.class,
+        ConditionSetInFactoryMultiplierFilterUsagesCountMode.class,
+        ConditionSetInFactoryBranchUsagesCountMode.class,
         ConditionSetInFactoryEraserUsagesCountMode.class})
 public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryConditionSetEntity, FactoryConditionSetDTOv1> {
 
@@ -48,11 +48,11 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             twinFactoryService.countConditionSetInFactoryPipelineStepUsages(src);
             dst.setId(src.getId()).setInFactoryPipelineStepUsagesCount(src.getInFactoryPipelineStepUsagesCount());
         }
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCount.HIDE)) {
+        if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryMultiplierFilterUsages(src);
             dst.setId(src.getId()).setInFactoryMultiplierFilterUsagesCount(src.getInFactoryMultiplierFilterUsagesCount());
         }
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCount.HIDE)) {
+        if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryBranchUsages(src);
             dst.setId(src.getId()).setInFactoryBranchUsagesCount(src.getInFactoryBranchUsagesCount());
         }
@@ -69,9 +69,9 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
             twinFactoryService.countConditionSetInFactoryPipelineUsages(srcCollection);
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineStepUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryPipelineStepUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCount.HIDE))
+        if (mapperContext.hasModeButNot(ConditionSetInFactoryMultiplierFilterUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryMultiplierFilterUsages(srcCollection);
-        if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCount.HIDE))
+        if (mapperContext.hasModeButNot(ConditionSetInFactoryBranchUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryBranchUsages(srcCollection);
         if (mapperContext.hasModeButNot(ConditionSetInFactoryEraserUsagesCountMode.HIDE))
             twinFactoryService.countConditionSetInFactoryEraserUsages(srcCollection);
