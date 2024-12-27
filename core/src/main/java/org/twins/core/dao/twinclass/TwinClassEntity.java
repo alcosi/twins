@@ -232,6 +232,18 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private PermissionEntity createPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity editPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity deletePermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private TwinClassEntity headTwinClass;
 
     @Transient

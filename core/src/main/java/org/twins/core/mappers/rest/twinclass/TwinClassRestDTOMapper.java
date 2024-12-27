@@ -136,10 +136,16 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setExtendsClassId(src.getExtendsTwinClassId());
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) && src.getViewPermissionId() != null) {
-            twinClassService.loadViewPermission(src);
+            twinClassService.loadPermissions(src);
             dst
                     .setViewPermission(permissionRestDTOMapper.convert(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
-                    .setViewPermissionId(src.getViewPermissionId());
+                    .setCreatePermission(permissionRestDTOMapper.convert(src.getCreatePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setEditPermission(permissionRestDTOMapper.convert(src.getEditPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setDeletePermission(permissionRestDTOMapper.convert(src.getDeletePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setViewPermissionId(src.getViewPermissionId())
+                    .setCreatePermissionId(src.getCreatePermissionId())
+                    .setEditPermissionId(src.getEditPermissionId())
+                    .setDeletePermissionId(src.getDeletePermissionId());
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             featurerService.loadHeadHunter(src);
@@ -168,7 +174,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
-            twinClassService.loadViewPermission(srcCollection);
+            twinClassService.loadPermissions(srcCollection);
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             featurerService.loadHeadHunter(srcCollection);
