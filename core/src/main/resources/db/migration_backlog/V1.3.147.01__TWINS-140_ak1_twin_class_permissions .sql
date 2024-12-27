@@ -1,0 +1,69 @@
+alter table public.twin_class add column if not exists create_permission_id uuid;
+alter table public.twin_class add column if not exists edit_permission_id uuid;
+alter table public.twin_class add column if not exists delete_permission_id uuid;
+
+alter table public.twin_class drop constraint if exists fk_twinclass_create_permission_id;
+alter table public.twin_class drop constraint if exists fk_twinclass_edit_permission_id;
+alter table public.twin_class drop constraint if exists fk_twinclass_delete_permission_id;
+
+ALTER TABLE public.twin_class
+    ADD CONSTRAINT fk_twinclass_create_permission_id FOREIGN KEY (create_permission_id) REFERENCES permission (id),
+    ADD CONSTRAINT fk_twinclass_delete_permission_id FOREIGN KEY (delete_permission_id) REFERENCES permission (id),
+    ADD CONSTRAINT fk_twinclass_edit_permission_id FOREIGN KEY (edit_permission_id) REFERENCES permission (id);
+
+UPDATE twin_class
+SET create_permission_id = tcm.create_permission_id
+FROM twin_class_schema_map tcm
+         JOIN twin_class_schema tcs ON tcs.id = tcm.twin_class_schema_id
+WHERE twin_class.id = tcm.twin_class_id and twin_class.domain_id = tcs.domain_id;
+
+alter table public.twin_class_schema_map drop column create_permission_id;
+
+
+
+DROP FUNCTION IF EXISTS public.create_permission_id_detect(uuid, uuid, uuid, uuid);
+DROP FUNCTION IF EXISTS public.twin_class_schema_id_detect(uuid, uuid, uuid);
+DROP FUNCTION IF EXISTS public.twin_class_create_permission_id_detect(uuid);
+DROP FUNCTION IF EXISTS public.twin_class_delete_permission_id_detect(uuid);
+
+CREATE or replace FUNCTION public.twin_class_create_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
+    IMMUTABLE
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    create_permission_uuid UUID;
+BEGIN
+    SELECT tc.create_permission_id INTO create_permission_uuid
+    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
+    RETURN create_permission_uuid;
+END;
+$$;
+
+CREATE or replace FUNCTION public.twin_class_edit_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
+    IMMUTABLE
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    edit_permission_uuid UUID;
+BEGIN
+    SELECT tc.edit_permission_id INTO edit_permission_uuid
+    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
+    RETURN edit_permission_uuid;
+END;
+$$;
+
+CREATE or replace FUNCTION public.twin_class_delete_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
+    IMMUTABLE
+    LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    delete_permission_uuid UUID;
+BEGIN
+    SELECT tc.delete_permission_id INTO delete_permission_uuid
+    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
+    RETURN delete_permission_uuid;
+END;
+$$;

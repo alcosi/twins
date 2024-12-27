@@ -327,6 +327,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public void createTwin(TwinCreate twinCreate, TwinChangesCollector twinChangesCollector) throws ServiceException {
         TwinEntity twinEntity = twinCreate.getTwinEntity();
+        ApiUser apiUser = authService.getApiUser();
+        if(twinCreate.isCheckCreatePermission())
+            checkCreatePermission(twinEntity, apiUser);
         createTwinEntity(twinEntity, twinChangesCollector);
         saveTwinFields(twinEntity, twinCreate.getFields(), twinChangesCollector);
         if (CollectionUtils.isNotEmpty(twinCreate.getAttachmentEntityList())) {
@@ -348,8 +351,6 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         if (twinEntity.getId() == null)
             twinEntity.setId(UUID.randomUUID()); // this id is necessary for fields and links. Because entity is not stored currently
         twinEntity.setHeadTwinId(twinHeadService.checkHeadTwinAllowedForClass(twinEntity.getHeadTwinId(), twinEntity.getTwinClass()));
-        ApiUser apiUser = authService.getApiUser();
-        checkCreatePermission(twinEntity, apiUser);
         if (twinEntity.getTwinStatusId() == null) {
             TwinflowEntity twinflowEntity = twinflowService.loadTwinflow(twinEntity);
             twinEntity
@@ -360,22 +361,40 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwin(twinEntity, twinChangesCollector);
     }
 
-    public UUID detectCreatePermissionId(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
-        return twinRepository.detectCreatePermissionId(
-                TypedParameterTwins.uuidNullable(twinEntity.getHeadTwinId()),
-                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
-                TypedParameterTwins.uuidNullable(apiUser.getDomainId()),
-                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId())
-        );
+    public UUID detectDeletePermissionId(TwinEntity twinEntity) {
+        if(null != twinEntity.getTwinClass())
+            return twinEntity.getTwinClass().getCreatePermissionId();
+        return twinRepository.detectDeletePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
+    }
+
+    public UUID detectCreatePermissionId(TwinEntity twinEntity) {
+        if(null != twinEntity.getTwinClass())
+            return twinEntity.getTwinClass().getCreatePermissionId();
+        return twinRepository.detectCreatePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
     }
 
     public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
-        UUID createPermissionId = detectCreatePermissionId(twinEntity, apiUser);
+        UUID createPermissionId = detectCreatePermissionId(twinEntity);
         if (null == createPermissionId)
             return;
         boolean hasPermission = permissionService.hasPermission(twinEntity, createPermissionId);
         if (!hasPermission)
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinEntity.logNormal());
+    }
+
+    public UUID detectUpdatePermissionId(TwinEntity twinEntity) {
+        if(null != twinEntity.getTwinClass())
+            return twinEntity.getTwinClass().getCreatePermissionId();
+        return twinRepository.detectUpdatePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
+    }
+
+    public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
+        UUID updatePermissionId = detectUpdatePermissionId(twinEntity);
+        if (null == updatePermissionId)
+            return;
+        boolean hasPermission = permissionService.hasPermission(twinEntity, updatePermissionId);
+        if (!hasPermission)
+            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to edit " + twinEntity.logNormal());
     }
 
     public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {
@@ -506,6 +525,9 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public void updateTwin(TwinUpdate twinUpdate, TwinChangesCollector twinChangesCollector, ChangesRecorder<TwinEntity, ?> twinChangesRecorder) throws ServiceException {
         if (!twinUpdate.isChanged())
             return;
+        ApiUser apiUser = authService.getApiUser();
+        if(twinUpdate.isCheckEditPermission())
+            checkUpdatePermission(twinUpdate.getDbTwinEntity(), apiUser);
         updateTwinBasics(twinChangesRecorder);
         if (twinChangesRecorder.hasChanges())
             twinChangesCollector.add(twinChangesRecorder.getRecorder());
