@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -37,6 +38,8 @@ public class PermissionSchemaEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

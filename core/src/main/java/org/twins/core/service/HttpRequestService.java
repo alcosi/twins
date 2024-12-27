@@ -49,7 +49,8 @@ public class HttpRequestService extends SessionLocaleResolver {
 
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
-        Locale locale = Locale.ENGLISH;
+        return getHeaderLocale().orElse(Locale.ENGLISH);
+//        Locale locale = Locale.ENGLISH;
 //                getSessionLocale(request)
 //                        .orElseGet(() -> getHeaderLocale()
 //                                .orElseGet(() -> {
@@ -67,8 +68,8 @@ public class HttpRequestService extends SessionLocaleResolver {
 //                                        }
 //                                    }
 //                                }));
-        log.trace("Locale resolved {}", locale);
-        return locale;
+//        log.trace("Locale resolved {}", locale);
+//        return locale;
     }
 
     private Optional<Locale> getSessionLocale(HttpServletRequest request) {

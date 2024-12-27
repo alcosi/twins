@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.link.LinkDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "TwinClassV1")
 public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "Class fields list")
@@ -66,4 +67,7 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
 
     @Schema(description = "delete permission")
     public PermissionDTOv1 deletePermission;
+
+    @Schema(description = "head hunter featurer")
+    public FeaturerDTOv1 headHunterFeaturer;
 }

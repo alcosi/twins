@@ -35,8 +35,6 @@ import org.cambium.common.pagination.PaginationResult;
 
 import java.util.UUID;
 
-import static org.cambium.common.util.PaginationUtils.*;
-
 @Tag(description = "", name = ApiTag.HISTORY)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -87,7 +85,7 @@ public class HistoryListController extends ApiController {
     @PostMapping(value = "/private/twin/history/search/v1")
     public ResponseEntity<?> historySearchV1(
             @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistorySearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortAsc = false, sortField = HistoryEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody HistorySearchRqDTOv1 request) {
         HistorySearchRsDTOv1 rs = new HistorySearchRsDTOv1();
         try {

@@ -1,5 +1,6 @@
 package org.twins.core.mappers.rest.user;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.user.UserEntity;
@@ -9,6 +10,7 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.UserMode;
 
 @Component
+@RequiredArgsConstructor
 @MapperModeBinding(modes = {UserMode.class})
 public class UserRestDTOMapper extends RestSimpleDTOMapper<UserEntity, UserDTOv1> {
     @Override

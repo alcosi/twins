@@ -29,46 +29,46 @@ public class TwinClassBaseRestDTOMapper extends RestSimpleDTOMapper<TwinClassEnt
                 if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassMode.MANAGED + "] is not allowed for current user");
                 dst
-                        .id(src.getId())
-                        .key(src.getKey())
-                        .headClassId(src.getHeadTwinClassId())
-                        .abstractClass(src.isAbstractt())
-                        .markersDataListId(src.getMarkerDataListId())
-                        .tagsDataListId(src.getTagDataListId())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()))
-                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .logo(src.getLogo())
-                        .createdAt(src.getCreatedAt().toLocalDateTime())
-                        .headHunterFeaturerId(src.getHeadHunterFeaturerId())
-                        .headHunterParams(src.getHeadHunterParams())
-                        .viewPermissionId(src.getViewPermissionId())
-                        .nameI18nId(src.getNameI18NId())
-                        .descriptionI18nId(src.getDescriptionI18NId())
-                        .extendsClassId(src.getExtendsTwinClassId())
-                        .twinflowSchemaSpace(src.isTwinflowSchemaSpace())
-                        .twinClassSchemaSpace(src.isTwinClassSchemaSpace())
-                        .permissionSchemaSpace(src.isPermissionSchemaSpace())
-                        .aliasSpace(src.isAliasSpace())
-                        .ownerType(src.getOwnerType());
+                        .setId(src.getId())
+                        .setKey(src.getKey())
+                        .setHeadClassId(src.getHeadTwinClassId())
+                        .setAbstractClass(src.isAbstractt())
+                        .setMarkersDataListId(src.getMarkerDataListId())
+                        .setTagsDataListId(src.getTagDataListId())
+                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
+                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setLogo(src.getLogo())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setHeadHunterFeaturerId(src.getHeadHunterFeaturerId())
+                        .setHeadHunterParams(src.getHeadHunterParams())
+                        .setViewPermissionId(src.getViewPermissionId())
+                        .setNameI18nId(src.getNameI18NId())
+                        .setDescriptionI18nId(src.getDescriptionI18NId())
+                        .setExtendsClassId(src.getExtendsTwinClassId())
+                        .setTwinflowSchemaSpace(src.isTwinflowSchemaSpace())
+                        .setTwinClassSchemaSpace(src.isTwinClassSchemaSpace())
+                        .setPermissionSchemaSpace(src.isPermissionSchemaSpace())
+                        .setAliasSpace(src.isAliasSpace())
+                        .setOwnerType(src.getOwnerType());
                 break;
             case DETAILED:
                 dst
-                        .id(src.getId())
-                        .key(src.getKey())
-                        .headClassId(src.getHeadTwinClassId())
-//                        .headClass(convertOrPostpone(src))
-                        .abstractClass(src.isAbstractt())
-                        .markersDataListId(src.getMarkerDataListId())
-                        .tagsDataListId(src.getTagDataListId())
-                        .name(i18nService.translateToLocale(src.getNameI18NId()))
-                        .description(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
-                        .logo(src.getLogo())
-                        .createdAt(src.getCreatedAt().toLocalDateTime());
+                        .setId(src.getId())
+                        .setKey(src.getKey())
+                        .setHeadClassId(src.getHeadTwinClassId())
+//                        .setHeadClass(convertOrPostpone(src))
+                        .setAbstractClass(src.isAbstractt())
+                        .setMarkersDataListId(src.getMarkerDataListId())
+                        .setTagsDataListId(src.getTagDataListId())
+                        .setName(i18nService.translateToLocale(src.getNameI18NId()))
+                        .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setLogo(src.getLogo())
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .key(src.getKey());
+                        .setId(src.getId())
+                        .setKey(src.getKey());
                 break;
         }
     }

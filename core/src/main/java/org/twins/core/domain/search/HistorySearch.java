@@ -17,7 +17,7 @@ public class HistorySearch {
     Set<UUID> idExcludeList;
     Set<UUID> twinIdList;
     Set<UUID> twinIdExcludeList;
-    Boolean includeDirectChildren;
+    boolean includeDirectChildren = false;
     Set<UUID> actorUseridList;
     Set<UUID> actorUserIdExcludeList;
     Set<HistoryType> typeList;

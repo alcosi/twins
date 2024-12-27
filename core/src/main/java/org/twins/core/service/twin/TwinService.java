@@ -31,6 +31,7 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -461,10 +462,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     }
 
     private void createTwin(TwinEntity twinEntity, TwinChangesCollector twinChangesCollector) throws ServiceException {
-        twinEntity
-                .setCreatedAt(Timestamp.from(Instant.now()));
         checkAssignee(twinEntity);
         validateEntityAndThrow(twinEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        if (twinEntity.getCreatedAt() == null)
+            twinEntity.setCreatedAt(Timestamp.from(Instant.now()));
         twinChangesCollector.add(twinEntity);
         if (twinChangesCollector.isHistoryCollectorEnabled())
             twinChangesCollector.getHistoryCollector(twinEntity).add(HistoryType.twinCreated, null);

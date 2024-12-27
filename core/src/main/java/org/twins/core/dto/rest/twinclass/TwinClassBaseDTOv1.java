@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "TwinClassBaseV1")
 public class TwinClassBaseDTOv1 {
     @Schema(description = "id", example = DTOExamples.TWIN_CLASS_ID)

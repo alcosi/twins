@@ -17,6 +17,9 @@ public class TwinLinkBaseDTOv1 extends Request {
     @Schema(description = "Link id", example = DTOExamples.LINK_ID)
     public UUID linkId;
 
+    @Schema(description = "Source twin id", example = DTOExamples.TWIN_ID)
+    public UUID srcTwinId;
+
     @Schema(description = "Destination twin id", example = DTOExamples.TWIN_ID)
     public UUID dstTwinId;
 }

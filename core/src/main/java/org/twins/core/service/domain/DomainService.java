@@ -11,20 +11,25 @@ import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nLocaleRepository;
+import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
+import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -46,6 +51,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.springframework.data.jpa.domain.Specification.where;
@@ -56,7 +62,7 @@ import static org.twins.core.dao.specifications.domain.DomainBusinessAccountSpec
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class DomainService {
+public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     private final FeaturerService featurerService;
     private final UserService userService;
     private final BusinessAccountService businessAccountService;
@@ -91,6 +97,26 @@ public class DomainService {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+
+    @Override
+    public CrudRepository<DomainEntity, UUID> entityRepository() {
+        return domainRepository;
+    }
+
+    @Override
+    public Function<DomainEntity, UUID> entityGetIdFunction() {
+        return DomainEntity::getId;
+    }
+
+    @Override
+    public boolean isEntityReadDenied(DomainEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        return false;
+    }
+
+    @Override
+    public boolean validateEntity(DomainEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        return true;
+    }
 
     public UUID checkDomainId(UUID domainId, EntitySmartService.CheckMode checkMode) throws ServiceException {
         return entitySmartService.check(domainId, domainRepository, checkMode);
@@ -131,7 +157,7 @@ public class DomainService {
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
-        userService.addUser(userId, userCreateMode);
+        UserEntity user = userService.addUser(userId, userCreateMode);
         DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
         if (existed != null)
             if (ignoreAlreadyExists)
@@ -142,7 +168,15 @@ public class DomainService {
                 .setDomainId(domainId)
                 .setUserId(userId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        DomainEntity domain = authService.getApiUser().getDomain();
+        if (domain.getDomainUserTemplateTwinId() != null) {
+            TwinEntity duplicateTwin = twinService.duplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
+            duplicateTwin.setHeadTwinId(user.getId());
+            TwinUpdate twinUpdate = new TwinUpdate().setDbTwinEntity(duplicateTwin);
+            twinUpdate.setTwinEntity(duplicateTwin.setHeadTwinId(userId));
+            twinService.updateTwin(twinUpdate);
+        }
     }
 
     public void deleteUser(UUID domainId, UUID userId) throws ServiceException {
@@ -175,8 +209,7 @@ public class DomainService {
                 .setDomain(domain)
                 .setBusinessAccountId(businessAccountId)
                 .setBusinessAccount(businessAccountEntity)
-                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setTierId(null == tierId ? domain.getDefaultTierId() : tierId);
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
@@ -286,7 +319,7 @@ public class DomainService {
     }
 
     public Specification<DomainBusinessAccountEntity> createDomainBusinessAccountEntitySearchSpecification(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
-        UUID domainId= authService.getApiUser().getDomainId();
+        UUID domainId = authService.getApiUser().getDomainId();
         return where(
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))

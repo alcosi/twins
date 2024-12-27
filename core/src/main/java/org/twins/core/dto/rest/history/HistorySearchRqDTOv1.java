@@ -27,7 +27,7 @@ public class HistorySearchRqDTOv1 {
     public Set<UUID> twinIdExcludeList;
 
     @Schema(description = "need include direct children", example = DTOExamples.BOOLEAN_TRUE)
-    public Boolean includeDirectChildren;
+    public boolean includeDirectChildren = false;
 
     @Schema(description = "actor user id list")
     public Set<UUID> actorUseridList;

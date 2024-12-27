@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
@@ -37,6 +38,8 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
     @Column(name = "avatar")
     private String avatar;
 
+    @CreationTimestamp
+    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

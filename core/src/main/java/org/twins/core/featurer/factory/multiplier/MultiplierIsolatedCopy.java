@@ -12,8 +12,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.featurer.FeaturerTwins;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -34,7 +32,6 @@ public class MultiplierIsolatedCopy extends Multiplier {
                     .setName("")
                     .setTwinClass(inputItem.getTwin().getTwinClass())
                     .setTwinClassId(inputItem.getTwin().getTwinClassId())
-                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
             if (copyHead.extract(properties))
