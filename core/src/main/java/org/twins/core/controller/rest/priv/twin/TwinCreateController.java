@@ -80,7 +80,8 @@ public class TwinCreateController extends ApiController {
                             .setDescription(request.getDescription()));
             twinCreate
                     .setAttachmentEntityList(attachmentAddRestDTOReverseMapper.convertCollection(request.getAttachments()))
-                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()));
+                    .setLinksEntityList(twinLinkAddRestDTOReverseMapper.convertCollection(request.getLinks()))
+                    .setCheckCreatePermission(true);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));
@@ -104,7 +105,7 @@ public class TwinCreateController extends ApiController {
             @RequestBody TwinCreateRqDTOv2 request) {
         TwinCreateRsDTOv1 rs = new TwinCreateRsDTOv1();
         try {
-            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request);
+            TwinCreate twinCreate = twinCreateRqRestDTOReverseMapper.convert(request).setCheckCreatePermission(true);
             rs = twinCreateRsRestDTOMapper
                     .convert(twinService
                             .createTwin(twinCreate));

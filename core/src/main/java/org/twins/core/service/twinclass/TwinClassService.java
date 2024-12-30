@@ -51,8 +51,6 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -164,7 +162,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
-                .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
+                        .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false, false))
                         .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true, false))
                         .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
@@ -249,24 +247,64 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return childClassIdSet;
     }
 
-    public void loadViewPermission(TwinClassEntity twinClassEntity) {
-        loadViewPermission(Collections.singletonList(twinClassEntity));
+    public void loadPermissions(TwinClassEntity twinClassEntity) {
+        loadPermissions(Collections.singletonList(twinClassEntity));
     }
 
-    public void loadViewPermission(Collection<TwinClassEntity> twinClassEntityCollection) {
-        KitGrouped<TwinClassEntity, UUID, UUID> needLoad = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getViewPermissionId);
+    public void loadPermissions(Collection<TwinClassEntity> twinClassEntityCollection) {
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoadView = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getViewPermissionId);
         for (TwinClassEntity twinClass : twinClassEntityCollection) {
             if (twinClass.getViewPermission() == null && twinClass.getViewPermissionId() != null)
-                needLoad.add(twinClass);
+                needLoadView.add(twinClass);
         }
-        if (KitUtils.isEmpty(needLoad))
-            return;
-        List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoad.getGroupedMap().keySet());
-        for (PermissionEntity permission : permissions) {
-            for (TwinClassEntity twinClass : needLoad.getGrouped(permission.getId())) {
-                twinClass.setViewPermission(permission);
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoadCreate = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getCreatePermissionId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getCreatePermission() == null && twinClass.getCreatePermissionId() != null)
+                needLoadCreate.add(twinClass);
+        }
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoadEdit = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getEditPermissionId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getEditPermission() == null && twinClass.getEditPermissionId() != null)
+                needLoadEdit.add(twinClass);
+        }
+        KitGrouped<TwinClassEntity, UUID, UUID> needLoadDelete = new KitGrouped<>(TwinClassEntity::getId, TwinClassEntity::getDeletePermissionId);
+        for (TwinClassEntity twinClass : twinClassEntityCollection) {
+            if (twinClass.getDeletePermission() == null && twinClass.getDeletePermissionId() != null)
+                needLoadDelete.add(twinClass);
+        }
+        if (!KitUtils.isEmpty(needLoadView)) {
+            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadView.getGroupedMap().keySet());
+            for (PermissionEntity permission : permissions) {
+                for (TwinClassEntity twinClass : needLoadView.getGrouped(permission.getId())) {
+                    twinClass.setViewPermission(permission);
+                }
             }
         }
+        if (!KitUtils.isEmpty(needLoadCreate)) {
+            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadCreate.getGroupedMap().keySet());
+            for (PermissionEntity permission : permissions) {
+                for (TwinClassEntity twinClass : needLoadCreate.getGrouped(permission.getId())) {
+                    twinClass.setCreatePermission(permission);
+                }
+            }
+        }
+        if (!KitUtils.isEmpty(needLoadEdit)) {
+            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadEdit.getGroupedMap().keySet());
+            for (PermissionEntity permission : permissions) {
+                for (TwinClassEntity twinClass : needLoadEdit.getGrouped(permission.getId())) {
+                    twinClass.setEditPermission(permission);
+                }
+            }
+        }
+        if (!KitUtils.isEmpty(needLoadDelete)) {
+            List<PermissionEntity> permissions = permissionRepository.findByIdIn(needLoadDelete.getGroupedMap().keySet());
+            for (PermissionEntity permission : permissions) {
+                for (TwinClassEntity twinClass : needLoadDelete.getGrouped(permission.getId())) {
+                    twinClass.setDeletePermission(permission);
+                }
+            }
+        }
+
     }
 
     public boolean isInstanceOf(TwinClassEntity instanceClass, UUID ofClass) throws ServiceException {

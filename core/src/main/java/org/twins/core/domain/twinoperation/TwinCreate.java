@@ -16,6 +16,7 @@ import java.util.UUID;
 public class TwinCreate extends TwinSave {
     private List<TwinAttachmentEntity> attachmentEntityList;
     private List<TwinLinkEntity> linksEntityList;
+    private boolean checkCreatePermission = false;
 
     public TwinCreate addLink(TwinLinkEntity link) {
         linksEntityList = CollectionUtils.safeAdd(linksEntityList, link);

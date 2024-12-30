@@ -57,12 +57,4 @@ public interface TwinRepository extends JpaRepository<TwinEntity, UUID>, JpaSpec
 
     @Query(value = "select t.id from TwinEntity t where t.twinClassId = :twinClassId and t.id in :ids")
     Set<UUID> findIdByTwinClassIdAndIdIn(@Param("twinClassId") UUID twinClassId, @Param("ids") Collection<UUID> ids);
-
-    @Query(value = "SELECT create_permission_id_detect(:headTwinId, :businessAccountId, :domainId, :twinClassId)")
-    UUID detectCreatePermissionId(
-            @Param("headTwinId") TypedParameterValue<UUID> headTwinId,
-            @Param("businessAccountId") TypedParameterValue<UUID> domainBusinessAccountId,
-            @Param("domainId") TypedParameterValue<UUID> domainId,
-            @Param("twinClassId") TypedParameterValue<UUID> twinClassId);
-
 }

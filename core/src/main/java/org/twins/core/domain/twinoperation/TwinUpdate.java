@@ -24,6 +24,7 @@ public class TwinUpdate extends TwinSave {
     private EntityCUD<TwinLinkEntity> twinLinkCUD;
     protected Set<UUID> markersDelete;
     protected Set<UUID> tagsDelete;
+    private boolean checkEditPermission = false;
 
     @Override
     public UUID nullifyUUID() {

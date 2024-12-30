@@ -36,8 +36,6 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, TwinFiel
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

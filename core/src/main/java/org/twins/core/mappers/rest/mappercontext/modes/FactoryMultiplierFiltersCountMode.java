@@ -8,7 +8,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperMode;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum ConditionSetInFactoryMultiplierFilterUsagesCount implements MapperMode {
+public enum FactoryMultiplierFiltersCountMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHOW(1);
 
