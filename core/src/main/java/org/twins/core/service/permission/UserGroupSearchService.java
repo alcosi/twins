@@ -42,7 +42,7 @@ public class UserGroupSearchService {
                         .and(checkUuidIn(UserGroupEntity.Fields.id, search.getIdExcludeList(), true, false))
                         .and(joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18NLikeList(), apiUser.getLocale(), false, true))
                         .and(joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, true))
+                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, false))
                         .and(joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NNotLikeList(), apiUser.getLocale(), true, true))
                         .and(checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeList(), false, true))
                         .and(checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeExcludeList(), true, true))
