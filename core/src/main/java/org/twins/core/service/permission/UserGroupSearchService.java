@@ -17,6 +17,7 @@ import org.twins.core.domain.search.UserGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
 
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.usergroup.UserGroupSpecification.*;
 
 
@@ -34,14 +35,15 @@ public class UserGroupSearchService {
     }
 
     private Specification<UserGroupEntity> createUserGroupSearchSpecification(UserGroupSearch search) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
         return Specification.where(
-                checkDomainId(authService.getApiUser().getDomainId())
+                checkDomainId(apiUser.getDomainId())
                         .and(checkUuidIn(UserGroupEntity.Fields.id, search.getIdList(), false, false))
                         .and(checkUuidIn(UserGroupEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(UserGroupEntity.Fields.name, search.getNameLikeList(), false, true))
-                        .and(checkFieldLikeIn(UserGroupEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(UserGroupEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(UserGroupEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18NLikeList(), apiUser.getLocale(), false, true))
+                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true))
+                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, true))
+                        .and(joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NNotLikeList(), apiUser.getLocale(), true, true))
                         .and(checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeList(), false, true))
                         .and(checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeExcludeList(), true, true))
         );
