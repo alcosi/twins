@@ -361,10 +361,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         createTwin(twinEntity, twinChangesCollector);
     }
 
-    public UUID detectDeletePermissionId(TwinEntity twinEntity) {
-        if(null != twinEntity.getTwinClass())
-            return twinEntity.getTwinClass().getCreatePermissionId();
-        return twinRepository.detectDeletePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
+    public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
+        if(null == twinEntity.getTwinClass())
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+        return twinEntity.getTwinClass().getDeletePermissionId();
     }
 
     public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
@@ -377,10 +377,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_DELETE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to delete " + twinEntity.logNormal());
     }
 
-    public UUID detectCreatePermissionId(TwinEntity twinEntity) {
-        if(null != twinEntity.getTwinClass())
-            return twinEntity.getTwinClass().getCreatePermissionId();
-        return twinRepository.detectCreatePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
+    public UUID detectCreatePermissionId(TwinEntity twinEntity) throws ServiceException {
+        if(null == twinEntity.getTwinClass())
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+        return twinEntity.getTwinClass().getCreatePermissionId();
     }
 
     public void checkCreatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {
@@ -392,10 +392,10 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to create " + twinEntity.logNormal());
     }
 
-    public UUID detectUpdatePermissionId(TwinEntity twinEntity) {
-        if(null != twinEntity.getTwinClass())
-            return twinEntity.getTwinClass().getCreatePermissionId();
-        return twinRepository.detectUpdatePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
+    public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
+        if(null == twinEntity.getTwinClass())
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+        return twinEntity.getTwinClass().getEditPermissionId();
     }
 
     public void checkUpdatePermission(TwinEntity twinEntity, ApiUser apiUser) throws ServiceException {

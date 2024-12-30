@@ -35,45 +35,4 @@ DROP FUNCTION IF EXISTS public.create_permission_id_detect(uuid, uuid, uuid, uui
 DROP FUNCTION IF EXISTS public.twin_class_schema_id_detect(uuid, uuid, uuid);
 DROP FUNCTION IF EXISTS public.twin_class_create_permission_id_detect(uuid);
 DROP FUNCTION IF EXISTS public.twin_class_delete_permission_id_detect(uuid);
-
-CREATE or replace FUNCTION public.twin_class_create_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
-    IMMUTABLE
-    LANGUAGE plpgsql
-AS
-$$
-DECLARE
-    create_permission_uuid UUID;
-BEGIN
-    SELECT tc.create_permission_id INTO create_permission_uuid
-    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
-    RETURN create_permission_uuid;
-END;
-$$;
-
-CREATE or replace FUNCTION public.twin_class_edit_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
-    IMMUTABLE
-    LANGUAGE plpgsql
-AS
-$$
-DECLARE
-    edit_permission_uuid UUID;
-BEGIN
-    SELECT tc.edit_permission_id INTO edit_permission_uuid
-    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
-    RETURN edit_permission_uuid;
-END;
-$$;
-
-CREATE or replace FUNCTION public.twin_class_delete_permission_id_detect(twin_class_uuid uuid) RETURNS UUID
-    IMMUTABLE
-    LANGUAGE plpgsql
-AS
-$$
-DECLARE
-    delete_permission_uuid UUID;
-BEGIN
-    SELECT tc.delete_permission_id INTO delete_permission_uuid
-    FROM twin_class tc WHERE tc.id = twin_class_uuid LIMIT 1;
-    RETURN delete_permission_uuid;
-END;
-$$;
+DROP FUNCTION IF EXISTS public.twin_class_edit_permission_id_detect(uuid);
