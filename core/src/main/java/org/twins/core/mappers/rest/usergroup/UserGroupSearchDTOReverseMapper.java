@@ -19,10 +19,10 @@ public class UserGroupSearchDTOReverseMapper extends RestSimpleDTOMapper<UserGro
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
-                .setNameLikeList(src.getNameLikeList())
-                .setNameNotLikeList(src.getNameNotLikeList())
-                .setDescriptionLikeList(src.getDescriptionLikeList())
-                .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
+                .setNameI18NLikeList(src.getNameI18NLikeList())
+                .setNameI18nNotLikeList(src.getNameI18nNotLikeList())
+                .setDescriptionI18NLikeList(src.getDescriptionI18NLikeList())
+                .setDescriptionI18NNotLikeList(src.getDescriptionI18NNotLikeList())
                 .setTypeList(safeConvert(src.getTypeList()))
                 .setTypeExcludeList(safeConvert(src.getTypeExcludeList()));
     }

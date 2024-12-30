@@ -21,17 +21,17 @@ public class UserGroupSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
-    @Schema(description = "name like list")
-    public Set<String> nameLikeList;
+    @Schema(description = "name i18n like list")
+    public Set<String> nameI18NLikeList;
 
-    @Schema(description = "name not like list")
-    public Set<String> nameNotLikeList;
+    @Schema(description = "name i18n not like list")
+    public Set<String> nameI18nNotLikeList;
 
-    @Schema(description = "description like list")
-    public Set<String> descriptionLikeList;
+    @Schema(description = "description i18n like list")
+    public Set<String> descriptionI18NLikeList;
 
-    @Schema(description = "description not like list")
-    public Set<String> descriptionNotLikeList;
+    @Schema(description = "description i18n not like list")
+    public Set<String> descriptionI18NNotLikeList;
 
     @Schema(description = "type list")
     public Set<UserGroupTypeEntity.UserGroupType> typeList;
