@@ -19,7 +19,7 @@ public enum FactoryMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum FactoryPipelineTwinFactory2FactoryMode implements MapperModePointer<FactoryMode> {
+    public enum FactoryPipeline2FactoryMode implements MapperModePointer<FactoryMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -59,7 +59,7 @@ public enum FactoryMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum FactoryMultiplierTwinFactory2FactoryMode implements MapperModePointer<FactoryMode> {
+    public enum FactoryMultiplier2FactoryMode implements MapperModePointer<FactoryMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);

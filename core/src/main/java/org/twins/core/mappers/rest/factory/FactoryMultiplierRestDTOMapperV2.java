@@ -4,18 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dto.rest.factory.FactoryMultiplierDTOv2;
-import org.twins.core.dto.rest.factory.FactoryPipelineDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMode;
-import org.twins.core.mappers.rest.mappercontext.modes.StatusMode;
 import org.twins.core.mappers.rest.mappercontext.modes.TwinClassMode;
-import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
 import java.util.Collection;
 
@@ -25,7 +19,7 @@ public class FactoryMultiplierRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFa
 
     private final FactoryMultiplierRestDTOMapper factoryMultiplierRestDTOMapper;
 
-    @MapperModePointerBinding(modes = FactoryMode.FactoryMultiplierTwinFactory2FactoryMode.class)
+    @MapperModePointerBinding(modes = FactoryMode.FactoryMultiplier2FactoryMode.class)
     private final FactoryRestDTOMapper factoryRestDTOMapper;
 
     @MapperModePointerBinding(modes = TwinClassMode.FactoryMultiplier2TwinClassMode.class)
@@ -34,9 +28,9 @@ public class FactoryMultiplierRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFa
     @Override
     public void map(TwinFactoryMultiplierEntity src, FactoryMultiplierDTOv2 dst, MapperContext mapperContext) throws Exception {
         factoryMultiplierRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplierTwinFactory2FactoryMode.HIDE))
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryMultiplier2FactoryMode.HIDE))
             dst
-                    .setFactory(factoryRestDTOMapper.convertOrPostpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryMultiplierTwinFactory2FactoryMode.SHORT)))
+                    .setFactory(factoryRestDTOMapper.convertOrPostpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryMultiplier2FactoryMode.SHORT)))
                     .setFactoryId(src.getTwinFactoryId());
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryMultiplier2TwinClassMode.HIDE))
             dst
