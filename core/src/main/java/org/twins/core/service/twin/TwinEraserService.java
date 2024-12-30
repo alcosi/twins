@@ -18,6 +18,7 @@ import java.util.UUID;
 @Lazy
 @RequiredArgsConstructor
 public class TwinEraserService {
+
     @Lazy
     private final TwinService twinService;
     @Lazy
@@ -33,10 +34,13 @@ public class TwinEraserService {
     }
 
     public DraftEntity eraseTwinDrafted(TwinEntity twinEntity) throws ServiceException {
+        twinService.checkDeletePermission(twinEntity);
         return draftService.draftErase(twinEntity);
     }
 
     public DraftEntity eraseTwins(TwinEntity... twinEntityList) throws ServiceException {
+        for (TwinEntity twinEntity : twinEntityList)
+            twinService.checkDeletePermission(twinEntity);
         DraftEntity draftEntity = draftService.draftErase(twinEntityList);
         draftCommitService.commitNowOrInQueue(draftEntity);
         return draftEntity;
@@ -45,5 +49,6 @@ public class TwinEraserService {
     public DraftEntity eraseTwins(Set<UUID> twinIds) throws ServiceException {
         return eraseTwins(twinService.findEntitiesSafe(twinIds).getList().toArray(TwinEntity[]::new));
     }
+
 
 }

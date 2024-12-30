@@ -135,11 +135,18 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
                     .setExtendsClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getExtendsTwinClass(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(TwinClassMode.TwinClassExtends2TwinClassMode.SHORT))))
                     .setExtendsClassId(src.getExtendsTwinClassId());
         }
-        if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) && src.getViewPermissionId() != null) {
-            twinClassService.loadViewPermission(src);
+        if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE) &&
+                (src.getViewPermissionId() != null || src.getCreatePermissionId() != null || src.getEditPermissionId() != null || src.getDeletePermissionId() != null)) {
+            twinClassService.loadPermissions(src);
             dst
-                    .setViewPermission(permissionRestDTOMapper.convert(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
-                    .setViewPermissionId(src.getViewPermissionId());
+                    .setViewPermission(permissionRestDTOMapper.convertOrPostpone(src.getViewPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setCreatePermission(permissionRestDTOMapper.convertOrPostpone(src.getCreatePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setEditPermission(permissionRestDTOMapper.convertOrPostpone(src.getEditPermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setDeletePermission(permissionRestDTOMapper.convertOrPostpone(src.getDeletePermission(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(PermissionMode.TwinClass2PermissionMode.SHORT))))
+                    .setViewPermissionId(src.getViewPermissionId())
+                    .setCreatePermissionId(src.getCreatePermissionId())
+                    .setEditPermissionId(src.getEditPermissionId())
+                    .setDeletePermissionId(src.getDeletePermissionId());
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             featurerService.loadHeadHunter(src);
@@ -168,7 +175,7 @@ public class TwinClassRestDTOMapper extends RestSimpleDTOMapper<TwinClassEntity,
             twinClassService.loadMarkerDataList(srcCollection, true);
         }
         if (mapperContext.hasModeButNot(PermissionMode.TwinClass2PermissionMode.HIDE)) {
-            twinClassService.loadViewPermission(srcCollection);
+            twinClassService.loadPermissions(srcCollection);
         }
         if (mapperContext.hasModeButNot(FeaturerMode.TwinClass2FeaturerMode.HIDE)) {
             featurerService.loadHeadHunter(srcCollection);

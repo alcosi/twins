@@ -59,6 +59,15 @@ public class TwinClassDTOv1 extends TwinClassBaseDTOv1 {
     @Schema(description = "view permission")
     public PermissionDTOv1 viewPermission;
 
+    @Schema(description = "create permission")
+    public PermissionDTOv1 createPermission;
+
+    @Schema(description = "edit permission")
+    public PermissionDTOv1 editPermission;
+
+    @Schema(description = "delete permission")
+    public PermissionDTOv1 deletePermission;
+
     @Schema(description = "head hunter featurer")
     public FeaturerDTOv1 headHunterFeaturer;
 }
