@@ -363,7 +363,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public UUID detectDeletePermissionId(TwinEntity twinEntity) throws ServiceException {
         if(null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getDeletePermissionId();
     }
 
@@ -379,7 +379,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public UUID detectCreatePermissionId(TwinEntity twinEntity) throws ServiceException {
         if(null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getCreatePermissionId();
     }
 
@@ -394,7 +394,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
 
     public UUID detectUpdatePermissionId(TwinEntity twinEntity) throws ServiceException {
         if(null == twinEntity.getTwinClass())
-            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()))
+            twinEntity.setTwinClass(twinClassService.findEntitySafe(twinEntity.getTwinClassId()));
         return twinEntity.getTwinClass().getEditPermissionId();
     }
 
