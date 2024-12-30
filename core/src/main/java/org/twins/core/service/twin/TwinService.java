@@ -31,7 +31,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.TwinChangesApplyResult;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.twinoperation.TwinCreate;
@@ -368,6 +367,16 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         return twinRepository.detectDeletePermissionId(TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()));
     }
 
+    public void checkDeletePermission(TwinEntity twinEntity) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        UUID deletePermissionId = detectDeletePermissionId(twinEntity);
+        if (null == deletePermissionId)
+            return;
+        boolean hasPermission = permissionService.hasPermission(twinEntity, deletePermissionId);
+        if (!hasPermission)
+            throw new ServiceException(ErrorCodeTwins.TWIN_DELETE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to delete " + twinEntity.logNormal());
+    }
+
     public UUID detectCreatePermissionId(TwinEntity twinEntity) {
         if(null != twinEntity.getTwinClass())
             return twinEntity.getTwinClass().getCreatePermissionId();
@@ -395,7 +404,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
             return;
         boolean hasPermission = permissionService.hasPermission(twinEntity, updatePermissionId);
         if (!hasPermission)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CREATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to edit " + twinEntity.logNormal());
+            throw new ServiceException(ErrorCodeTwins.TWIN_UPDATE_ACCESS_DENIED, apiUser.getUser().logShort() + " does not have permission to edit " + twinEntity.logNormal());
     }
 
     public TwinEntity fillOwner(TwinEntity twinEntity) throws ServiceException {

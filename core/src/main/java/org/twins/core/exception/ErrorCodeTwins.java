@@ -91,6 +91,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     SHOW_MODE_ACCESS_DENIED(11701, "show mode access denied"),
     TWIN_CREATE_ACCESS_DENIED(11801, "Twin can't be created by current user"),
     TWIN_ERASE_LOCKED(11802, "erase locked"),
+    TWIN_UPDATE_ACCESS_DENIED(11803, "Twin can't be updated by current user"),
+    TWIN_DELETE_ACCESS_DENIED(11804, "Twin can't be deleted by current user"),
     TWIN_DRAFT_GENERAL_ERROR(11901, "erase locked"),
     TWIN_DRAFT_CASCADE_ERASE_LIMIT(11902, "cascade erase reaches current limit"),
     TWIN_DRAFT_NOT_STARTED(11903, "draft was not started correctly"),
