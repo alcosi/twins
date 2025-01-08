@@ -3,14 +3,16 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "twin_factory_multiplier_filter")
-@Accessors(chain = true)
-@Data
 public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
 
     @GeneratedValue(generator = "uuid")
@@ -32,14 +34,24 @@ public class TwinFactoryMultiplierFilterEntity implements EasyLoggable {
     @Column(name = "active")
     private boolean active;
 
-    @Column(name = "comment")
-    private String comment;
+    @Column(name = "description")
+    private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_multiplier_id", insertable = false, updatable = false)
+    private TwinFactoryMultiplierEntity multiplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity conditionSet;
 
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT -> "twinFactoryMultiplierFilter[" + id + "]";
-            case NORMAL -> "twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + "]";
-            default -> "**" + comment + "** twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + ", twinFactoryConditionSetId:" + twinFactoryConditionSetId + ", invert:" + twinFactoryConditionInvert + "]";
+            case NORMAL ->
+                    "twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + "]";
+            default ->
+                    "**" + description + "** twinFactoryMultiplierFilter[id:" + id + ", twinFactoryMultiplierId:" + twinFactoryMultiplierId + ", twinFactoryConditionSetId:" + twinFactoryConditionSetId + ", invert:" + twinFactoryConditionInvert + "]";
         };
     }
 }
