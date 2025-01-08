@@ -55,4 +55,24 @@ public enum FactoryConditionSetMode implements MapperMode {
             };
         }
     }
+
+    @Getter
+    @AllArgsConstructor
+    @FieldNameConstants(onlyExplicitlyIncluded = true)
+    public enum FactoryMultiplierFilter2FactoryConditionSetMode implements MapperModePointer<FactoryConditionSetMode> {
+        @FieldNameConstants.Include HIDE(0),
+        @FieldNameConstants.Include SHORT(1),
+        @FieldNameConstants.Include DETAILED(2);
+
+        final int priority;
+
+        @Override
+        public FactoryConditionSetMode point() {
+            return switch (this) {
+                case HIDE -> FactoryConditionSetMode.HIDE;
+                case SHORT -> FactoryConditionSetMode.SHORT;
+                case DETAILED -> FactoryConditionSetMode.DETAILED;
+            };
+        }
+    }
 }
