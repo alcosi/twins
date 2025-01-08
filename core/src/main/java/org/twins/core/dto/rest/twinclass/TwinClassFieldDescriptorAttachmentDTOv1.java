@@ -11,7 +11,7 @@ import java.util.List;
 @Accessors(fluent = true)
 @Schema(name =  "TwinClassFieldDescriptorAttachmentV1")
 public class TwinClassFieldDescriptorAttachmentDTOv1 implements TwinClassFieldDescriptorDTO {
-    public static final String KEY = "attachmentFieldDescriptorV1";
+    public static final String KEY = "attachmentFieldV1";
     public String fieldType = KEY;
 
     @Schema(description = "Min count of files to upload", example = "1")
