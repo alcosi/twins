@@ -337,11 +337,29 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getDomainBusinessAccountQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        if(!apiUser.isBusinessAccountSpecified())
+            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
+            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+            attachmentQuotas
+                    .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                    .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                    .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                    .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        return attachmentQuotas;
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        DomainEntity domain = apiUser.getDomain();
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domain.getAttachmentsStorageUsedCount())
+                .setUsedSize(domain.getAttachmentsStorageUsedSize())
+                //TODO quotas for domain level
+                .setQuotaCount(0L)
+                .setQuotaSize(0L);
+
+        return attachmentQuotas;
     }
 }
