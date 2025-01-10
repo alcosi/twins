@@ -11,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -36,8 +35,8 @@ public class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldVa
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputDbFields);
-        FieldValue comparisonValue = factoryService.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties), FieldLookupMode.fromContextTwinUncommitedFields);
+        FieldValue greaterValue = fieldLookupers.fromItemOutputDbFields.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties));
+        FieldValue comparisonValue = fieldLookupers.fromContextTwinUncommitedFields.lookupFieldValue(factoryItem, comparisonTwinClassField.extract(properties));
         double greater, comparison;
         if (greaterValue instanceof FieldValueText greaterValueText) {
             Number greaterNumber = NumberUtils.createNumber(greaterValueText.getValue());

@@ -21,7 +21,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.TypedParameterTwins;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.draft.DraftTwinPersistEntity;
 import org.twins.core.dao.history.HistoryType;
@@ -172,7 +171,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
     public FieldValue getTwinFieldValue(TwinField twinField) throws ServiceException {
         if (twinField == null)
             return null;
-        FieldTyper fieldTyper = featurerService.getFeaturer(twinField.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
+        var fieldTyper = featurerService.getFeaturer(twinField.getTwinClassField().getFieldTyperFeaturer(), FieldTyper.class);
         return fieldTyper.deserializeValue(twinField);
     }
 
@@ -181,6 +180,7 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
      * @param twinClassFieldId - class field id
      * @return null - if twinClassFieldId does not belong to twins class
      * FieldValue.isFilled = false in case when field is not filled for given twin in DB
+     * //TODO cache field values inside twin
      * @throws ServiceException
      */
     public FieldValue getTwinFieldValue(TwinEntity twinEntity, UUID twinClassFieldId) throws ServiceException {
