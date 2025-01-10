@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.twinstatus;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,11 +12,11 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinStatusSearchRsV1")
-public class TwinStatusSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
+@Schema(name = "FactoryConditionSetSearchRsV1")
+public class FactoryBranchSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "pagination data")
     public PaginationDTOv1 pagination;
 
-    @Schema(description = "results - status list")
-    public List<TwinStatusDTOv2> statuses;
+    @Schema(description = "results - condition list")
+    public List<FactoryBranchDTOv2> branches;
 }
