@@ -16,7 +16,8 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.*;
+import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2331,
@@ -38,7 +39,7 @@ public class FillerFieldCleaner extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromItemOutputDbFields);
+        FieldValue fieldValue = fieldLookupers.fromItemOutputDbFields.lookupFieldValue(factoryItem, twinClassFieldIdExtracted);
         if(null != fieldValue) {
             fieldValue.nullify();
             factoryItem.getOutput().addField(fieldValue);

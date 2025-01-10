@@ -384,7 +384,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public static class FindTwinLinksResult {
         UUID twinId;
         KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
-        KitGrouped<TwinLinkEntity, UUID, UUID> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        KitGrouped<TwinLinkEntity, UUID, UUID> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId); //todo delete me, I can cause large memory usage
     }
 
     public static boolean equalsInSrcTwinIdAndDstTwinId(TwinLinkEntity one, TwinLinkEntity two) {
