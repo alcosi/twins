@@ -4,15 +4,18 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 
 import java.util.Arrays;
 import java.util.UUID;
 
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "twin_factory_eraser")
-@Accessors(chain = true)
-@Data
 public class TwinFactoryEraserEntity implements EasyLoggable {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -40,6 +43,18 @@ public class TwinFactoryEraserEntity implements EasyLoggable {
     @Column(name = "twin_factory_eraser_action")
     @Convert(converter = TwinFactoryEraserActionConverter.class)
     private Action eraserAction;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity twinFactory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity conditionSet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "input_twin_class_id", insertable = false, updatable = false)
+    private TwinClassEntity inputTwinClass;
 
     @Override
     public String easyLog(Level level) {
