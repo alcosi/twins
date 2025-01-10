@@ -29,14 +29,12 @@ public class FactoryBranchRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFactor
         if (mapperContext.hasModeButNot(FactoryMode.FactoryBranch2FactoryMode.HIDE))
             dst
                     .setFactory(factoryRestDTOMapper.convertOrPostpone(src.getFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT)))
-                    .setFactoryId(src.getTwinFactoryId());
+                    .setNextFactory(factoryRestDTOMapper.convertOrPostpone(src.getNextFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT)))
+                    .setFactoryId(src.getTwinFactoryId())
+                    .setNextFactoryId(src.getNextTwinFactoryId());
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.HIDE))
             dst
                     .setFactoryConditionSet(factoryConditionSetRestDTOMapper.convertOrPostpone(src.getConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryBranch2FactoryConditionSetMode.SHORT)))
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
-        if (mapperContext.hasModeButNot(FactoryMode.FactoryBranch2FactoryMode.HIDE))
-            dst
-                    .setNextFactory(factoryRestDTOMapper.convertOrPostpone(src.getNextFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryBranch2FactoryMode.SHORT)))
-                    .setNextFactoryId(src.getNextTwinFactoryId());
     }
 }
