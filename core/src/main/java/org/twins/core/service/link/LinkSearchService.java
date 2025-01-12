@@ -1,0 +1,58 @@
+package org.twins.core.service.link;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.PaginationUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+import org.twins.core.dao.link.LinkEntity;
+import org.twins.core.dao.link.LinkRepository;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.LinkSearch;
+import org.twins.core.service.auth.AuthService;
+
+import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.link.LinkSpecification.*;
+
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class LinkSearchService {
+    private final LinkRepository linkRepository;
+    private final AuthService authService;
+
+    public PaginationResult<LinkEntity> findLinks(LinkSearch search, SimplePagination pagination) throws ServiceException {
+        Specification<LinkEntity> spec = createLinkSearchSpecification(search);
+        Page<LinkEntity> ret = linkRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<LinkEntity> createLinkSearchSpecification(LinkSearch search) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return Specification.where(
+                checkDomainId(apiUser.getDomainId())
+                        .and(checkUuidIn(LinkEntity.Fields.id, search.getIdList(), false, false))
+                        .and(checkUuidIn(LinkEntity.Fields.id, search.getIdExcludeList(), true, false))
+                        .and(checkUuidIn(LinkEntity.Fields.srcTwinClassId, search.getSrcTwinClassIdList(), false, false))
+                        .and(checkUuidIn(LinkEntity.Fields.srcTwinClassId, search.getSrcTwinClassIdExcludeList(), true, false))
+                        .and(checkUuidIn(LinkEntity.Fields.dstTwinClassId, search.getDstTwinClassIdList(), false, false))
+                        .and(checkUuidIn(LinkEntity.Fields.dstTwinClassId, search.getDstTwinClassIdExcludeList(), true, false))
+                        .and(checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdList(), false))
+                        .and(checkSrcOrDstTwinClassIdIn(search.getSrcOrDstTwinClassIdExcludeList(), true))
+                        .and(joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameLikeList(), apiUser.getLocale(), true, false))
+                        .and(joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), apiUser.getLocale(), true, true))
+                        .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), apiUser.getLocale(), true, false))
+                        .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), apiUser.getLocale(), true, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.type, search.getTypeLikeList(), false, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.type, search.getTypeNotLikeList(), true, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, search.getStrengthLikeList(), false, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, search.getStrengthNotLikeList(), true, true))
+        );
+    }
+}
