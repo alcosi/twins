@@ -12,6 +12,9 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.domain.search.FactoryEraserSearch;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.*;
 
@@ -40,9 +43,13 @@ public class FactoryEraserSearchService {
                         .and(checkUuidIn(TwinFactoryEraserEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false))
                         .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
                         .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, search.getEraseActionLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, search.getEraseActionNotLikeList(), true, true))
+                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionLikeList()), false, true))
+                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionNotLikeList()), true, true))
                         .and(checkTernary(TwinFactoryEraserEntity.Fields.active, search.getActive()))
         );
+    }
+
+    private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {
+        return collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

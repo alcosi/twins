@@ -1,12 +1,10 @@
 package org.twins.core.domain.search;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
-import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,7 +23,7 @@ public class FactoryEraserSearch {
     private Set<UUID> factoryConditionSetIdExcludeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
-    private Set<String> eraseActionLikeList;
-    private Set<String> eraseActionNotLikeList;
+    private Set<TwinFactoryEraserEntity.Action> eraseActionLikeList;
+    private Set<TwinFactoryEraserEntity.Action> eraseActionNotLikeList;
     private Ternary active;
 }
