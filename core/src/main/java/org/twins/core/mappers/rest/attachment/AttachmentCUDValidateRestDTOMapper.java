@@ -17,13 +17,13 @@ public class AttachmentCUDValidateRestDTOMapper extends RestSimpleDTOMapper<Atta
     @MapperModePointerBinding(modes = AttachmentMode.AttachmentCUDValidate2AttachmentMode.class)
     private final AttachmentViewRestDTOMapperV2 attachmentViewRestDTOMapperV2;
 
-    private final AttachmentProblemRestDTOMapper attachmentProblemRestDTOMapper;
+    private final AttachmentProblemsRestDTOMapper attachmentProblemsRestDTOMapper;
 
 
     @Override
     public void map(AttachmentCUDValidateResult src, AttachmentCUDValidateRsDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setAttachmentsForUD(attachmentViewRestDTOMapperV2.convertCollection(src.getAttachmentsForUD()))
-                .setCudProblems(attachmentProblemRestDTOMapper.convert(src.getCudProblems(), mapperContext));
+                .setCudProblems(attachmentProblemsRestDTOMapper.convert(src.getCudProblems(), mapperContext));
     }
 }
