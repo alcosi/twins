@@ -7,12 +7,15 @@ import org.cambium.common.util.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @FieldNameConstants
 public class TransitionSearch {
+    Set<UUID> idList;
+    Set<UUID> idExcludeList;
     List<UUID> twinClassIdList;
     List<UUID> twinClassIdExcludeList;
     List<UUID> twinflowIdList;
