@@ -18,6 +18,6 @@ import java.util.Properties;
 public class FillerFieldFromContextTwinField extends FillerFieldFromContext {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextTwinDbFields);
+        fill(properties, factoryItem, templateTwin, fieldLookupers.fromContextTwinDbFields);
     }
 }

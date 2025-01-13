@@ -8,7 +8,7 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
 import java.util.Properties;
@@ -24,12 +24,12 @@ public class ConditionerContextValueExists extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, FieldLookupMode.fromContextFields);
+        return check(properties, factoryItem, fieldLookupers.fromContextFields);
     }
 
-    public boolean check(Properties properties, FactoryItem factoryItem, FieldLookupMode fieldLookupMode) throws ServiceException {
+    public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {
         try {
-            return null != factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), fieldLookupMode);
+            return null != fieldLookuper.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         } catch (ServiceException e) {
             return false;
         }

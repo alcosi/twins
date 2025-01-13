@@ -17,6 +17,8 @@ public class TransitionSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Tr
     @Override
     public void map(TransitionSearchRqDTOv1 src, TransitionSearch dst, MapperContext mapperContext) throws Exception {
         dst
+                .setIdList(src.getIdList())
+                .setIdExcludeList(src.getIdExcludeList())
                 .setTwinClassIdList(src.twinClassIdList)
                 .setTwinClassIdExcludeList(src.twinClassIdExcludeList)
                 .setTwinflowIdList(src.twinflowIdList)

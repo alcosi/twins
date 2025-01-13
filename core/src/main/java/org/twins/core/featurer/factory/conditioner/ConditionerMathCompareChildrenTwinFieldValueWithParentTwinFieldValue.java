@@ -17,7 +17,6 @@ import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueText;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
@@ -58,7 +57,7 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
                 .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
                 .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
                 .addStatusId(statusIds.extract(properties), false);
-        FieldValue greaterValue = factoryService.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties), FieldLookupMode.fromItemOutputUncommitedFields);
+        FieldValue greaterValue = fieldLookupers.fromItemOutputUncommitedFields.lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties));
         double comparison, greater;
         List<TwinFieldSimpleNoRelationsProjectionInterfaceBased> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldsSimple(search);
         for(TwinFieldSimpleNoRelationsProjectionInterfaceBased field : twinFieldSimpleValues) {

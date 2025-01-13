@@ -6,7 +6,6 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 
 import java.util.Properties;
 
@@ -18,6 +17,6 @@ import java.util.Properties;
 public class ConditionerContextFieldValueEquals extends ConditionerContextValueEquals {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, FieldLookupMode.fromContextFields);
+        return check(properties, factoryItem, fieldLookupers.fromContextFields);
     }
 }

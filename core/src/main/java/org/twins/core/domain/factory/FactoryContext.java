@@ -143,4 +143,11 @@ public class FactoryContext {
     public void evictPipelineScope() {
         pipelineScopes.remove(currentFactoryBranchId);
     }
+
+    public FactoryItem getFactoryItem(UUID twinId) {
+        if (twinId == null)
+            return null;
+        // we have to check only updated twins
+        return factoryItemWithTwinUpdates.get(twinId);
+    }
 }
