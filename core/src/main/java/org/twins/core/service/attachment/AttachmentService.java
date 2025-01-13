@@ -17,6 +17,10 @@ import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.attachment.TwinAttachmentRepository;
+import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
@@ -25,6 +29,8 @@ import org.twins.core.domain.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.domain.TierService;
 import org.twins.core.service.history.HistoryItem;
 import org.twins.core.service.history.HistoryService;
 import org.twins.core.service.twin.TwinActionService;
@@ -45,6 +51,10 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
     private final AuthService authService;
     @Lazy
     private final TwinService twinService;
+    @Lazy
+    private final TierService tierService;
+    @Lazy
+    private final DomainService domainService;
     private final AttachmentActionService attachmentActionService;
 
     public boolean checkOnDirect(TwinAttachmentEntity twinAttachmentEntity) {
@@ -324,8 +334,21 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
         return true;
     }
 
-    public AttachmentCUDValidateResult validateCUD(UUID twinId, EntityCUD<TwinAttachmentEntity> convert) {
-        return new AttachmentCUDValidateResult();
+    public AttachmentCUDValidateResult validateCUD(UUID twinId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
+        AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
+        ApiUser apiUser = authService.getApiUser();
+        DomainEntity domain = apiUser.getDomain();
+        BusinessAccountEntity ba = null;
+        List<TwinAttachmentEntity> deletes = cud.getDeleteList()
+
+
+        if (apiUser.isBusinessAccountSpecified())
+            ba = apiUser.getBusinessAccount();
+        if(ba != null) {
+            DomainBusinessAccountEntity dba = domainService.getDomainBusinessAccountEntitySafe(domain.getId(), ba.getId());
+            checkCreates(result, cud.getCreateList());
+        }
+        return result;
     }
 
     public enum CommentRelinkMode {

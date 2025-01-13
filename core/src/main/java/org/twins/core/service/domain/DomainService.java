@@ -80,7 +80,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
-    private final TierService domainBusinessAccountTierService;
     private final I18nLocaleRepository i18nLocaleRepository;
     private final DomainLocaleRepository domainLocaleRepository;
     @Lazy
@@ -230,7 +229,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
         if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
-            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId()));
+            dbEntity.setTierId(tierService.checkTierAllowed(updateEntity.getTierId()));
         }
         if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
             dbEntity.getBusinessAccount().setName(name);
