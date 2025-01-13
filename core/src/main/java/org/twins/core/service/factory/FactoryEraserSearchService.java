@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.*;
 import org.twins.core.domain.search.FactoryEraserSearch;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,6 +51,6 @@ public class FactoryEraserSearchService {
     }
 
     private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {
-        return collection.stream().map(Enum::name).collect(Collectors.toSet());
+        return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }
