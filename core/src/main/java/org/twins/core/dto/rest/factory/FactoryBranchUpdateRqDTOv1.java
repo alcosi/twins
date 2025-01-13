@@ -13,6 +13,4 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = true)
 @Schema(name = "FactoryBranchUpdateRqv1")
 public class FactoryBranchUpdateRqDTOv1 extends FactoryBranchSaveRqDTOv1 {
-    @Schema(description = "factory id", example = DTOExamples.FACTORY_ID)
-    public UUID factoryId;
 }
