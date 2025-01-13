@@ -11,9 +11,15 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
+import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.LinkSearch;
 import org.twins.core.service.auth.AuthService;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
@@ -49,10 +55,18 @@ public class LinkSearchService {
                         .and(joinAndSearchByI18NField(LinkEntity.Fields.forwardNameI18n, search.getForwardNameNotLikeList(), apiUser.getLocale(), true, true))
                         .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameLikeList(), apiUser.getLocale(), true, false))
                         .and(joinAndSearchByI18NField(LinkEntity.Fields.backwardNameI18n, search.getBackwardNameNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.type, search.getTypeLikeList(), false, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.type, search.getTypeNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, search.getStrengthLikeList(), false, true))
-                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, search.getStrengthNotLikeList(), true, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.type, safeConvertTypeLink(search.getTypeLikeList()), false, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.type, safeConvertTypeLink(search.getTypeNotLikeList()), true, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, safeConvertStrengthLink(search.getStrengthLikeList()), false, true))
+                        .and(checkFieldLikeIn(LinkEntity.Fields.linkStrengthId, safeConvertStrengthLink(search.getStrengthNotLikeList()), true, true))
         );
+    }
+
+    private Set<String> safeConvertTypeLink(Collection<LinkEntity.TwinlinkType> list) {
+        return list == null ? Collections.emptySet() : list.stream().map(Enum::name).collect(Collectors.toSet());
+    }
+
+    private Set<String> safeConvertStrengthLink(Collection<LinkStrength> list) {
+        return list == null ? Collections.emptySet() : list.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }
