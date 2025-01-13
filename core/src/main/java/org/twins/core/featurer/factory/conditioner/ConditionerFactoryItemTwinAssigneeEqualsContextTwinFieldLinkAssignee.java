@@ -12,7 +12,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.auth.AuthService;
@@ -45,7 +44,7 @@ public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigne
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValueLink fieldValue = (FieldValueLink) factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextFields);
+        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.fromContextFields.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         TwinLinkEntity twinLinkEntity = fieldValue.getTwinLinks().get(0);
         TwinEntity dstTwin = twinLinkEntity.getDstTwin();
         if (dstTwin == null) {

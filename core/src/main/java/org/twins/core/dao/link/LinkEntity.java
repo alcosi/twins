@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -14,11 +15,11 @@ import org.twins.core.dao.user.UserEntity;
 import java.sql.Timestamp;
 import java.util.UUID;
 
-@Entity
 @Data
-@Table(name = "link")
 @FieldNameConstants
 @Accessors(chain = true)
+@Entity
+@Table(name = "link")
 public class LinkEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
@@ -71,13 +72,17 @@ public class LinkEntity implements EasyLoggable {
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
 
-//    @ManyToOne
-//    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false, nullable = false)
-//    private I18nEntity forwardNameI18n;
+    @Deprecated //for specification only
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "forward_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity forwardNameI18n;
 
-//    @ManyToOne
-//    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false, nullable = false)
-//    private I18nEntity backwardNameI18n;
+    @Deprecated //for specification only
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity backwardNameI18n;
 
     public String easyLog(Level level) {
         return switch (level) {

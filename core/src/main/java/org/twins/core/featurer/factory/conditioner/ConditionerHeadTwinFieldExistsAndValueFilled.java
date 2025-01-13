@@ -8,7 +8,6 @@ import org.cambium.featurer.params.FeaturerParamUUID;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 
@@ -28,7 +27,7 @@ public class ConditionerHeadTwinFieldExistsAndValueFilled extends Conditioner {
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         FieldValue fieldValue = null;
         try {
-            fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextTwinHeadTwinDbFields);
+            fieldValue = fieldLookupers.fromContextTwinHeadTwinDbFields.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         } catch (ServiceException e) {
            return false;
         }

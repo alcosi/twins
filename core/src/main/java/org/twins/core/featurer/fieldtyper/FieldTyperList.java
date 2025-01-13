@@ -21,7 +21,7 @@ import org.twins.core.domain.search.TwinFieldSearchList;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
 import org.twins.core.featurer.fieldtyper.value.FieldValueSelect;
-import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
+import org.twins.core.featurer.params.FeaturerParamUUIDTwinsDataListId;
 import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.history.HistoryItem;
@@ -44,7 +44,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     DataListOptionService dataListOptionService;
 
     @FeaturerParam(name = "listUUID", description = "")
-    public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsLinkId("listUUID");
+    public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
 
     @Override
     protected void serializeValue(Properties properties, TwinEntity twin, FieldValueSelect value, TwinChangesCollector twinChangesCollector) throws ServiceException {

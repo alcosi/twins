@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Lazy;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.factory.TwinFactoryService;
+import org.twins.core.featurer.factory.lookuper.FieldLookupers;
 
 import java.util.HashMap;
 import java.util.Properties;
@@ -21,7 +21,7 @@ import java.util.Properties;
 public abstract class Filler extends FeaturerTwins {
     @Lazy
     @Autowired
-    TwinFactoryService factoryService;
+    FieldLookupers fieldLookupers;
 
     public void fill(HashMap<String, String> fillerParams, FactoryItem factoryItem, TwinEntity templateTwin, String logMsg) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, fillerParams, new HashMap<>());

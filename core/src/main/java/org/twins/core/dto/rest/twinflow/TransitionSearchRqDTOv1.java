@@ -7,13 +7,20 @@ import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TransitionSearchRqV1")
 public class TransitionSearchRqDTOv1 extends Request {
+    @Schema(description = "id list")
+    public Set<UUID> idList;
+
+    @Schema(description = "id exclude list")
+    public Set<UUID> idExcludeList;
+
     @Schema(description = "twin class id list")
     public List<UUID> twinClassIdList;
 
