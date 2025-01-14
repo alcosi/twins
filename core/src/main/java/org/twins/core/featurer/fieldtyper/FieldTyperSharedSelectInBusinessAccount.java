@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1308,
-        name = "FieldTyperBusinessAccountSharedSelect",
+        name = "BusinessAccountSharedSelect",
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInBusinessAccount extends FieldTyperList {

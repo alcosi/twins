@@ -20,11 +20,11 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2326,
-        name = "FillerBasicsAssigneeFromContextTwinOfClassAssignee",
+        name = "BasicsAssigneeFromContextTwinOfClassAssignee",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {
-    @FeaturerParam(name = "twinClassId", description = "")
+    @FeaturerParam(name = "Twin class id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassId = new FeaturerParamUUIDTwinsTwinClassId("twinClassId");
 
     @Lazy

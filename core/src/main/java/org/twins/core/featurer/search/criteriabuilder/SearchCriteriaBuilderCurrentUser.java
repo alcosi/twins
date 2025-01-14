@@ -20,7 +20,7 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2702,
-        name = "SearchCriteriaBuilderCurrentUser",
+        name = "CurrentUser",
         description = "")
 public class SearchCriteriaBuilderCurrentUser extends SearchCriteriaBuilder {
     @Autowired

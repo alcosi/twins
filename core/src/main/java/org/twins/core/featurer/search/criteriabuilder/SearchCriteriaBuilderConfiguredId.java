@@ -16,10 +16,10 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2701,
-        name = "SearchCriteriaBuilderConfiguredId",
+        name = "ConfiguredId",
         description = "")
 public class SearchCriteriaBuilderConfiguredId extends SearchCriteriaBuilderSingleUUID {
-    @FeaturerParam(name = "entityId", description = "")
+    @FeaturerParam(name = "Entity id", description = "", order = 1)
     public static final FeaturerParamUUID entityId = new FeaturerParamUUID("entityId"); //todo UI problems (TWINS-113)
 
     @Override

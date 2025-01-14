@@ -20,10 +20,8 @@ import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1313,
-        name = "FieldTyperCalcChildrenFieldV2",
-        description = """
-Save sum of child.fields.values on serializeValue, and return saved total from database
-                              """)
+        name = "CalcChildrenFieldV2",
+        description = "Save sum of child.fields.values on serializeValue, and return saved total from database")
 public class FieldTyperCalcChildrenFieldV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1313;
 

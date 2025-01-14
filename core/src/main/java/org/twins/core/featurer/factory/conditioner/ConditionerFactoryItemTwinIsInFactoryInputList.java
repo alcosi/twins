@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2406,
-        name = "ConditionerFactoryItemTwinIsInFactoryInputList",
+        name = "FactoryItemTwinIsInFactoryInputList",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinIsInFactoryInputList extends Conditioner {

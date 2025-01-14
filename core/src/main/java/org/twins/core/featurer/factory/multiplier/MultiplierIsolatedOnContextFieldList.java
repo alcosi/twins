@@ -26,12 +26,13 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2206,
-        name = "MultiplierIsolatedOnContextFieldList",
+        name = "IsolatedOnContextFieldList",
         description = "New output twin for each input. Output class is selected by checking if fields in context (in loop). Order is important." +
                 "If field is present then output twin class will be selected from this field class, otherwise loop will continue")
 public class MultiplierIsolatedOnContextFieldList extends Multiplier {
-    @FeaturerParam(name = "contextFieldList", description = "")
+    @FeaturerParam(name = "Context field list", description = "", order = 1)
     public static final FeaturerParamUUIDSet contextFieldIdList = new FeaturerParamUUIDSetTwinsTwinClassFieldId("contextFieldIdList");
+
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         UUID outputTwinClassId = null;

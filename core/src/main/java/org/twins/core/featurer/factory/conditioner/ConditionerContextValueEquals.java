@@ -17,14 +17,14 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2415,
-        name = "ConditionerContextValueEquals",
+        name = "ValueEquals",
         description = "")
 @Slf4j
 public class ConditionerContextValueEquals extends Conditioner {
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
-    @FeaturerParam(name = "value", description = "")
+    @FeaturerParam(name = "Value", description = "", order = 2)
     public static final FeaturerParamString value = new FeaturerParamString("value");
 
     @Override

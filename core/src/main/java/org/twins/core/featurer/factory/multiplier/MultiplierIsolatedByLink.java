@@ -31,17 +31,17 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2208,
-        name = "MultiplierIsolatedByLink",
+        name = "IsolatedByLink",
         description = "Output list of twin relatives for each input. Output twin list will be loaded by link and filtered by statusIds")
 public class MultiplierIsolatedByLink extends Multiplier {
 
-    @FeaturerParam(name = "linkId", description = "Link from sought twin to factory input twin")
+    @FeaturerParam(name = "Link id", description = "Link from sought twin to factory input twin", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "statusIds", description = "Statuses of src(fwd) linked twin. If empty - twins with any status will be found")
+    @FeaturerParam(name = "Status ids", description = "Statuses of src(fwd) linked twin. If empty - twins with any status will be found", order = 2)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "excludeStatues", description = "Exclude(true)/Include(false) child Twin.Status.IDs from query result")
+    @FeaturerParam(name = "Exclude statues", description = "Exclude(true)/Include(false) child Twin.Status.IDs from query result", order = 3)
     public static final FeaturerParamBoolean excludeStatuses = new FeaturerParamBoolean("excludeStatuses");
 
     @Lazy

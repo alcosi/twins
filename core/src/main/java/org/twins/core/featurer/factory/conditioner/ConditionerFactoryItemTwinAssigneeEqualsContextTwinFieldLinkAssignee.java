@@ -22,12 +22,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2425,
-        name = "ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee",
+        name = "FactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee extends Conditioner {
 
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Lazy

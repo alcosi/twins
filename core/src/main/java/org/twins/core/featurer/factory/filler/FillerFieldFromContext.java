@@ -23,14 +23,14 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2323,
-        name = "FillerFieldFromContext",
+        name = "FieldFromContext",
         description = "")
 @Slf4j
 public class FillerFieldFromContext extends Filler {
-    @FeaturerParam(name = "srcTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
 
-    @FeaturerParam(name = "dstTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Dst twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Lazy

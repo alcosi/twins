@@ -18,7 +18,7 @@ import java.util.*;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2310,
-        name = "FillerFieldsFromContextAll",
+        name = "FieldsFromContextAll",
         description = "")
 @Slf4j
 public class FillerFieldsFromContextAll extends Filler {

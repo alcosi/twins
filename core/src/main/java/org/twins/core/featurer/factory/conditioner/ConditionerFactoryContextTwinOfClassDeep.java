@@ -14,11 +14,11 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2419,
-        name = "ConditionerFactoryContextTwinOfClassDeep",
+        name = "FactoryContextTwinOfClassDeep",
         description = "")
 @Slf4j
 public class ConditionerFactoryContextTwinOfClassDeep extends Conditioner {
-    @FeaturerParam(name = "ofTwinClassId", description = "")
+    @FeaturerParam(name = "Of twin class id", description = "", order = 1)
     public static final FeaturerParamUUID ofTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("ofTwinClassId");
 
     @Override

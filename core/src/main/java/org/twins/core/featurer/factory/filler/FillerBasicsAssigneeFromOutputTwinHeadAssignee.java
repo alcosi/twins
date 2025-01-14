@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2329,
-        name = "FillerBasicsAssigneeFromHeadTwinAssignee",
+        name = "BasicsAssigneeFromHeadTwinAssignee",
         description = "Fill the assignee from own head twin assignee")
 @Slf4j
 public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends Filler {

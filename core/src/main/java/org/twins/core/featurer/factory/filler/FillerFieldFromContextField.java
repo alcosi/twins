@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2312,
-        name = "FillerFieldFromContextField",
+        name = "FieldFromContextField",
         description = "")
 @Slf4j
 public class FillerFieldFromContextField extends FillerFieldFromContext {

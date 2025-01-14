@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1304,
-        name = "FieldTyperColorPicker",
+        name = "ColorPicker",
         description = "")
 public class FieldTyperColorPicker extends FieldTyperSimple<FieldDescriptorColorPicker, FieldValueColorHEX, TwinFieldSearchNotImplemented> {
     private static final String HEX_PATTERN

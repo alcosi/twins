@@ -15,12 +15,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2426,
-        name = "ConditionerHeadTwinFieldExistsAndValueFilled",
+        name = "HeadTwinFieldExistsAndValueFilled",
         description = "Check head twin has field and its value not empty")
 @Slf4j
 public class ConditionerHeadTwinFieldExistsAndValueFilled extends Conditioner {
 
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Override

@@ -27,13 +27,15 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Component
-@Featurer(id = FeaturerTwins.ID_2209, name = "MultiplierIsolatedChildrenInStatuses", description = "Output list of twin relatives for each input. Output twin will be loaded by head and filtered by statusIds")
+@Featurer(id = FeaturerTwins.ID_2209,
+        name = "IsolatedChildrenInStatuses",
+        description = "Output list of twin relatives for each input. Output twin will be loaded by head and filtered by statusIds")
 public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
 
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "exclude", description = "")
+    @FeaturerParam(name = "Exclude", description = "", order = 2)
     public static final FeaturerParamBoolean exclude = new FeaturerParamBoolean("exclude");
 
     @Lazy

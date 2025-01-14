@@ -16,12 +16,12 @@ import java.util.Set;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2327,
-        name = "FillerTwinBasicFieldsFromContextBasics",
+        name = "TwinBasicFieldsFromContextBasics",
         description = "")
 @Slf4j
 public class FillerTwinBasicFieldsFromContextBasics extends Filler {
 
-    @FeaturerParam(name = "fields", description = "List of basic fields to fill")
+    @FeaturerParam(name = "Fields", description = "List of basic fields to fill", order = 1)
     public static final FeaturerParamBasicsSetTwinBasicField fields = new FeaturerParamBasicsSetTwinBasicField("fields");
 
     @Override

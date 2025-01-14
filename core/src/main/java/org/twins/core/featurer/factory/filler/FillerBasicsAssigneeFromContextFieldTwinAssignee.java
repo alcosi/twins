@@ -25,11 +25,11 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2322,
-        name = "FillerBasicsAssigneeFromContextFieldTwinAssignee",
+        name = "BasicsAssigneeFromContextFieldTwinAssignee",
         description = "If value of context field is an id of other twin (link) we will get assignee from that twin")
 @Slf4j
 public class FillerBasicsAssigneeFromContextFieldTwinAssignee extends Filler {
-    @FeaturerParam(name = "linkField", description = "")
+    @FeaturerParam(name = "Link field", description = "", order = 1)
     public static final FeaturerParamUUID linkField = new FeaturerParamUUIDTwinsTwinClassFieldId("linkField");
 
     @Lazy

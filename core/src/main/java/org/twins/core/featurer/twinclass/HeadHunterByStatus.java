@@ -23,17 +23,17 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2602,
-        name = "HeadHunterByStatus",
+        name = "ByStatus",
         description = "")
 public class HeadHunterByStatus extends HeadHunter {
     @Lazy
     @Autowired
     TwinSearchService twinSearchService;
 
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "excludeStatusInput", description = "")
+    @FeaturerParam(name = "Exclude status input", description = "")
     public static final FeaturerParamBoolean excludeStatusInput = new FeaturerParamBoolean("excludeStatusInput");
 
     @Override

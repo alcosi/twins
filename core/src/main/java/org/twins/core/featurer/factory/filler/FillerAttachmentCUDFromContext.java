@@ -14,7 +14,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2320,
-        name = "FillerAttachmentCUDFromContext",
+        name = "AttachmentCUDFromContext",
         description = "")
 public class FillerAttachmentCUDFromContext extends Filler {
     @Override

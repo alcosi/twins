@@ -27,10 +27,10 @@ import java.util.Properties;
 @Component
 @Slf4j
 @Featurer(id = FeaturerTwins.ID_1302,
-        name = "FieldTyperDateScroll",
+        name = "DateScroll",
         description = "")
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
-    @FeaturerParam(name = "pattern", description = "pattern for date value")
+    @FeaturerParam(name = "Pattern", description = "pattern for date value")
     public static final FeaturerParamString pattern = new FeaturerParamString("pattern");
 
     @Override
