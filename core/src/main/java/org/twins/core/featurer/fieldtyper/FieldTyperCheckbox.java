@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1306,
-        name = "FieldTyperCheckbox",
+        name = "Checkbox",
         description = "")
 @RequiredArgsConstructor
 public class FieldTyperCheckbox extends FieldTyperChecks<FieldDescriptorChecks, FieldValueSelect, TwinFieldSearchNotImplemented> {

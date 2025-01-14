@@ -16,7 +16,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1601,
-        name = "TransitionValidatorTwinAssigneeToCurrentUser",
+        name = "TwinAssigneeToCurrentUser",
         description = "")
 public class TwinValidatorTwinAssigneeToCurrentUser extends TwinValidator {
     @Lazy

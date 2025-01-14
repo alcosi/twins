@@ -19,7 +19,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2601,
-        name = "HeadHunterImpl",
+        name = "Impl",
         description = "")
 public class HeadHunterImpl extends HeadHunter {
     @Lazy

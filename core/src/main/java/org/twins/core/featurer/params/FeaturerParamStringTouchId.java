@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "STRING:TWINS_TWIN_TOUCH_ID",
+        id = "STRING:TWINS:TWIN_TOUCH_ID",
         description = "WATCHED",
         regexp = ".*",
         example = "name")

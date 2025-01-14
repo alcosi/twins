@@ -19,7 +19,7 @@ import java.util.*;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2101,
-        name = "UserGroupManagerImpl",
+        name = "Impl",
         description = "")
 @RequiredArgsConstructor
 public class UserGroupManagerImpl extends UserGroupManager {

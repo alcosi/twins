@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2311,
-        name = "FillerFieldFromContextTwinField",
+        name = "FieldFromContextTwinField",
         description = "")
 @Slf4j
 public class FillerFieldFromContextTwinField extends FillerFieldFromContext {

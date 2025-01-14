@@ -18,14 +18,14 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1503,
-        name = "TransitionTriggerClearAllUsersTouch",
+        name = "ClearAllUsersTouch",
         description = "")
 @RequiredArgsConstructor
 public class TransitionTriggerClearAllUsersTouch extends TransitionTrigger {
     @Lazy
     final TwinTouchService twinTouchService;
 
-    @FeaturerParam(name = "touchId", description = "")
+    @FeaturerParam(name = "Touch id", description = "", order = 1)
     public static final FeaturerParamStringTouchId touchId = new FeaturerParamStringTouchId("touchId");
 
     @Override

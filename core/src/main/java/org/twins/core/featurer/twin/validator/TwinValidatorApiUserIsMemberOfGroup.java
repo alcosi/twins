@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1607,
-        name = "TwinValidatorApiUserIsMemberOfGroup",
+        name = "ApiUserIsMemberOfGroup",
         description = "")
 @Slf4j
 public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
@@ -33,7 +33,7 @@ public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
     @Autowired
     private UserGroupService userGroupService;
 
-    @FeaturerParam(name = "userGroupIds", description = "")
+    @FeaturerParam(name = "User group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetTwinsUserGroupId("userGroupIds");
 
     @Override

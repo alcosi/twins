@@ -17,15 +17,15 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2319,
-        name = "FillerMarkerDelete",
+        name = "MarkerDelete",
         description = "")
 @Slf4j
 public class FillerMarkerDelete extends Filler {
 
-    @FeaturerParam(name = "markerId", description = "")
+    @FeaturerParam(name = "Marker id", description = "", order = 1)
     public static final FeaturerParamUUID markerId = new FeaturerParamUUIDTwinsMarkerId("markerId");
 
-    @FeaturerParam(name = "softDelete", description = "")
+    @FeaturerParam(name = "Soft delete", description = "", order = 2)
     public static final FeaturerParamBoolean softDelete = new FeaturerParamBoolean("softDelete");
 
 

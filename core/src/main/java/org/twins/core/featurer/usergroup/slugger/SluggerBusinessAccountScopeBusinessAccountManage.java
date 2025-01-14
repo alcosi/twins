@@ -20,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2003,
-        name = "SluggerBusinessAccountScopeBusinessAccountManage",
+        name = "BusinessAccountScopeBusinessAccountManage",
         description = "")
 @RequiredArgsConstructor
 public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {

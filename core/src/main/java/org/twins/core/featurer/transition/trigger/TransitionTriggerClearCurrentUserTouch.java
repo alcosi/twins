@@ -19,7 +19,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1502,
-        name = "TransitionTriggerClearCurrentUserTouch",
+        name = "ClearCurrentUserTouch",
         description = "")
 @RequiredArgsConstructor
 public class TransitionTriggerClearCurrentUserTouch extends TransitionTrigger {
@@ -29,7 +29,7 @@ public class TransitionTriggerClearCurrentUserTouch extends TransitionTrigger {
     @Lazy
     final AuthService authService;
 
-    @FeaturerParam(name = "touchId", description = "")
+    @FeaturerParam(name = "Touch id", description = "", order = 1)
     public static final FeaturerParamStringTouchId touchId = new FeaturerParamStringTouchId("touchId");
 
     @Override

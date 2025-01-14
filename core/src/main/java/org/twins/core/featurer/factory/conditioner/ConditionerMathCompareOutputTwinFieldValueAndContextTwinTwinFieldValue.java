@@ -19,18 +19,18 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2428,
-        name = "ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue",
+        name = "MathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue",
         description = "")
 @Slf4j
 public class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue extends Conditioner {
 
-    @FeaturerParam(name = "greaterTwinClassField", description = "")
+    @FeaturerParam(name = "Greater twin class field", description = "", order = 1)
     public static final FeaturerParamUUID greaterTwinClassField = new FeaturerParamUUIDTwinsTwinClassFieldId("greaterTwinClassField");
 
-    @FeaturerParam(name = "comparisonTwinClassField", description = "")
+    @FeaturerParam(name = "Comparison twin class field", description = "", order = 2)
     public static final FeaturerParamUUID comparisonTwinClassField = new FeaturerParamUUIDTwinsTwinClassFieldId("comparisonTwinClassField");
 
-    @FeaturerParam(name = "equals", description = "")
+    @FeaturerParam(name = "Equals", description = "", order = 3)
     public static final FeaturerParamBoolean equals = new FeaturerParamBoolean("equals");
 
     @Override

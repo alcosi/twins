@@ -22,11 +22,11 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2324,
-        name = "FillerBasicsAssigneeFromContext",
+        name = "BasicsAssigneeFromContext",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContext extends Filler {
-    @FeaturerParam(name = "assigneeField", description = "")
+    @FeaturerParam(name = "Assignee field", description = "", order = 1)
     public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
     @Override

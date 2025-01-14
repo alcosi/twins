@@ -17,11 +17,11 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2413,
-        name = "ConditionerFactoryItemTwinInstanceOf",
+        name = "FactoryItemTwinInstanceOf",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinInstanceOf extends Conditioner {
-    @FeaturerParam(name = "instanceOfTwinClassId", description = "")
+    @FeaturerParam(name = "Instance of twin class id", description = "", order = 1)
     public static final FeaturerParamUUID instanceOfTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("instanceOfTwinClassId");
 
     @Lazy

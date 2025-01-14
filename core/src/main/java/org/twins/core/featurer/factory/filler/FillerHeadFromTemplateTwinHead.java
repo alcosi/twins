@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2306,
-        name = "FillerHeadFromTemplateTwinHead",
+        name = "HeadFromTemplateTwinHead",
         description = "")
 public class FillerHeadFromTemplateTwinHead extends Filler {
     @Override

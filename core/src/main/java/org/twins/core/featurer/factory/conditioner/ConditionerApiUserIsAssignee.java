@@ -14,7 +14,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2404,
-        name = "ConditionerApiUserIsAssignee",
+        name = "IsAssignee",
         description = "")
 @Slf4j
 public class ConditionerApiUserIsAssignee extends Conditioner {

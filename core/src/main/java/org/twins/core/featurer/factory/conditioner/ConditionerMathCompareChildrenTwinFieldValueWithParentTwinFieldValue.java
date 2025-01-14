@@ -29,21 +29,21 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2429,
-        name = "ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValue",
+        name = "MathCompareChildrenTwinFieldValueWithParentTwinFieldValue",
         description = "Is there NOT at least one twin in statuses that satisfies the condition? children-comparison, parent-greater.")
 @Slf4j
 public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValue extends Conditioner {
 
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "greaterTwinClassField", description = "")
+    @FeaturerParam(name = "Greater twin class field", description = "", order = 2)
     public static final FeaturerParamUUID greaterTwinClassField = new FeaturerParamUUIDTwinsTwinClassFieldId("greaterTwinClassField");
 
-    @FeaturerParam(name = "comparisonTwinClassField", description = "")
+    @FeaturerParam(name = "Comparison twin class field", description = "", order = 3)
     public static final FeaturerParamUUID comparisonTwinClassField = new FeaturerParamUUIDTwinsTwinClassFieldId("comparisonTwinClassField");
 
-    @FeaturerParam(name = "equals", description = "")
+    @FeaturerParam(name = "Equals", description = "", order = 4)
     public static final FeaturerParamBoolean equals = new FeaturerParamBoolean("equals");
 
     @Lazy

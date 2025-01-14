@@ -18,11 +18,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2207,
-        name = "MultiplierIsolatedCopy",
+        name = "IsolatedCopy",
         description = "New output twin for each input. Output class will be taken from input twin.")
 public class MultiplierIsolatedCopy extends Multiplier {
-    @FeaturerParam(name = "copyHead", description = "")
+    @FeaturerParam(name = "Copy head", description = "", order = 1)
     public static final FeaturerParamBoolean copyHead = new FeaturerParamBoolean("copyHead");
+
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();

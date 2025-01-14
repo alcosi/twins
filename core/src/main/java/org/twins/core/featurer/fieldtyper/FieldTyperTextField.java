@@ -26,10 +26,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1301,
-        name = "FieldTyperTextField",
+        name = "TextField",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "regexp", description = "")
+    @FeaturerParam(name = "Regexp", description = "", order = 2)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
     @Override

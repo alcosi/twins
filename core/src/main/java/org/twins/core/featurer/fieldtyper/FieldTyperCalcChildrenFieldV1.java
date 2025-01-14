@@ -21,7 +21,7 @@ import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1312,
-        name = "FieldTyperCalcChildrenFieldV1",
+        name = "CalcChildrenFieldV1",
         description = "Get sum of child.fields.values on fly")
 public class FieldTyperCalcChildrenFieldV1 extends FieldTyper<FieldDescriptorText, FieldValueText, TwinFieldStorageSpirit, TwinFieldSearchNotImplemented> implements FieldTyperCalcChildrenField {
     public static final Integer ID = 1312;
