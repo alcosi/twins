@@ -19,7 +19,7 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryBranchCreateRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryBranchCreateRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -43,14 +43,14 @@ public class FactoryBranchCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Factory branch add", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = FactoryBranchCreateRsDTOv1.class))}),
+                    @Schema(implementation = FactoryBranchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory/{factoryId}/factory_branch/v1")
     public ResponseEntity<?> factoryBranchCreateV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = FactoryBranchRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable UUID factoryId,
             @RequestBody FactoryBranchCreateRqDTOv1 request) {
-        FactoryBranchCreateRsDTOv1 rs = new FactoryBranchCreateRsDTOv1();
+        FactoryBranchRsDTOv1 rs = new FactoryBranchRsDTOv1();
         try {
             TwinFactoryBranchEntity branchEntity = factoryBranchCreateDTOReverseMapper.convert(request);
             branchEntity.setTwinFactoryId(factoryId);
