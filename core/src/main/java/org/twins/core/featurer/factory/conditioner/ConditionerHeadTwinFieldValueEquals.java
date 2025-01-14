@@ -18,6 +18,6 @@ public class ConditionerHeadTwinFieldValueEquals extends ConditionerContextValue
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, fieldLookupers.fromContextTwinHeadTwinDbFields);
+        return check(properties, factoryItem, fieldLookupers.getFromContextTwinHeadTwinDbFields());
     }
 }

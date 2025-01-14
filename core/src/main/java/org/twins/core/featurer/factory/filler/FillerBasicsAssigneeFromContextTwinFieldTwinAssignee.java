@@ -21,7 +21,7 @@ public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends Filler
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID assigneeFieldId = linkField.extract(properties);
-        FieldValue assigneeField = fieldLookupers.fromContextTwinDbFields.lookupFieldValue(factoryItem, assigneeFieldId);
+        FieldValue assigneeField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, assigneeFieldId);
         fill(properties, factoryItem, templateTwin, assigneeField, assigneeFieldId);
     }
 }

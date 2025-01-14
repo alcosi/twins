@@ -24,7 +24,7 @@ public class ConditionerContextValueExists extends Conditioner {
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, fieldLookupers.fromContextFields);
+        return check(properties, factoryItem, fieldLookupers.getFromContextFields());
     }
 
     public boolean check(Properties properties, FactoryItem factoryItem, FieldLookuperNearest fieldLookuper) throws ServiceException {
