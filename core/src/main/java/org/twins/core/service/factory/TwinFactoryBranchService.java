@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
+import org.twins.core.exception.ErrorCodeTwins;
 
 import java.util.UUID;
 import java.util.function.Function;
@@ -47,21 +48,23 @@ public class TwinFactoryBranchService extends EntitySecureFindServiceImpl<TwinFa
         dbFactoryBranchEntity.setTwinFactoryConditionSetId(UuidUtils.nullifyIfNecessary(twinFactoryConditionSetId));
     }
 
-    private void updateFactoryBranchConditionSerInvert(TwinFactoryBranchEntity dbFactoryBranchEntity, boolean twinFactoryConditionInvert, ChangesHelper changesHelper) {
+    private void updateFactoryBranchConditionSerInvert(TwinFactoryBranchEntity dbFactoryBranchEntity, Boolean twinFactoryConditionInvert, ChangesHelper changesHelper) {
         if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert, dbFactoryBranchEntity.isTwinFactoryConditionInvert(), twinFactoryConditionInvert))
             return;
         dbFactoryBranchEntity.setTwinFactoryConditionInvert(twinFactoryConditionInvert);
     }
 
-    private void updateFactoryBranchActive(TwinFactoryBranchEntity dbFactoryBranchEntity, boolean active, ChangesHelper changesHelper) {
+    private void updateFactoryBranchActive(TwinFactoryBranchEntity dbFactoryBranchEntity, Boolean active, ChangesHelper changesHelper) {
         if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.active, dbFactoryBranchEntity.isActive(), active))
             return;
         dbFactoryBranchEntity.setActive(active);
     }
 
-    private void updateFactoryBranchNextFactoryId(TwinFactoryBranchEntity dbFactoryBranchEntity, UUID nextTwinFactoryId, ChangesHelper changesHelper) {
+    private void updateFactoryBranchNextFactoryId(TwinFactoryBranchEntity dbFactoryBranchEntity, UUID nextTwinFactoryId, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(TwinFactoryBranchEntity.Fields.nextTwinFactoryId, dbFactoryBranchEntity.getNextTwinFactoryId(), nextTwinFactoryId))
             return;
+        if (UuidUtils.isNullifyMarker(nextTwinFactoryId))
+            throw new ServiceException(ErrorCodeTwins.UUID_NOT_BE_NULLIFY_MARKER);
         dbFactoryBranchEntity.setNextTwinFactoryId(UuidUtils.nullifyIfNecessary(nextTwinFactoryId));
     }
 
