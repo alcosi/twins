@@ -17,6 +17,6 @@ import java.util.Properties;
 public class ConditionerContextFieldValueEquals extends ConditionerContextValueEquals {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        return check(properties, factoryItem, fieldLookupers.fromContextFields);
+        return check(properties, factoryItem, fieldLookupers.getFromContextFields());
     }
 }

@@ -44,7 +44,7 @@ public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigne
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.fromContextFields.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
+        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         TwinLinkEntity twinLinkEntity = fieldValue.getTwinLinks().get(0);
         TwinEntity dstTwin = twinLinkEntity.getDstTwin();
         if (dstTwin == null) {

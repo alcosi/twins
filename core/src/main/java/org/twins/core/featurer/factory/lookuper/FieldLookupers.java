@@ -1,21 +1,23 @@
 package org.twins.core.featurer.factory.lookuper;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Getter
 public class FieldLookupers {
-    public final FieldLookuperFromContextFields fromContextFields;
-    public final FieldLookuperFromContextFieldsAndContextTwinDbFields fromContextFieldsAndContextTwinDbFields;
-    public final FieldLookuperFromContextTwinDbFields fromContextTwinDbFields;
-    public final FieldLookuperFromContextTwinHeadTwinDbFields fromContextTwinHeadTwinDbFields;
-    public final FieldLookuperFromContextTwinUncommitedFields fromContextTwinUncommitedFields;
-    public final FieldLookuperFromItemOutputDbFields fromItemOutputDbFields;
-    public final FieldLookuperFromItemOutputUncommitedFields fromItemOutputUncommitedFields;
-    public final FieldLookuperFromItemOutputFields fromItemOutputFields;
-    public final FieldLookuperFromItemOutputHeadTwinFields fromItemOutputHeadTwinFields;
-    public final FieldLookuperFromItemOutputLinkedTwinFields fromItemOutputLinkedTwinFields;
-    public final FieldLookuperFromItemOutputHeadTwinLinkedTwinFields fromItemOutputHeadTwinLinkedTwinFields;
-    public final FieldLookuperFromItemOutputLinkedTwinHeadTwinFields fromItemOutputLinkedTwinHeadTwinFields;
+    private final FieldLookuperFromContextFields fromContextFields;
+    private final FieldLookuperFromContextFieldsAndContextTwinDbFields fromContextFieldsAndContextTwinDbFields;
+    private final FieldLookuperFromContextTwinDbFields fromContextTwinDbFields;
+    private final FieldLookuperFromContextTwinHeadTwinDbFields fromContextTwinHeadTwinDbFields;
+    private final FieldLookuperFromContextTwinUncommitedFields fromContextTwinUncommitedFields;
+    private final FieldLookuperFromItemOutputDbFields fromItemOutputDbFields;
+    private final FieldLookuperFromItemOutputUncommitedFields fromItemOutputUncommitedFields;
+    private final FieldLookuperFromItemOutputFields fromItemOutputFields;
+    private final FieldLookuperFromItemOutputHeadTwinFields fromItemOutputHeadTwinFields;
+    private final FieldLookuperFromItemOutputLinkedTwinFields fromItemOutputLinkedTwinFields;
+    private final FieldLookuperFromItemOutputHeadTwinLinkedTwinFields fromItemOutputHeadTwinLinkedTwinFields;
+    private final FieldLookuperFromItemOutputLinkedTwinHeadTwinFields fromItemOutputLinkedTwinHeadTwinFields;
 }

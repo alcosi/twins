@@ -41,7 +41,7 @@ public class FillerFieldAsContextFieldHead extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
-        FieldValue srcFieldValue = fieldLookupers.fromContextFields.lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
+        FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
 
         UUID detectedHeadId = null;
         if (srcFieldValue instanceof FieldValueLink fieldValueLink) {
