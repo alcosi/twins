@@ -5,8 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Data
 @Accessors(fluent = true)
@@ -24,8 +23,7 @@ public class TwinClassFieldDescriptorListDTOv1 implements TwinClassFieldDescript
     @Schema(description = "Valid options", example = "")
     public List<DataListOptionDTOv1> options = new ArrayList<>();
 
-    public TwinClassFieldDescriptorListDTOv1 add(DataListOptionDTOv1 dataListOption) {
-        options.add(dataListOption);
-        return this;
-    }
+    @Schema(description = "Valid option id list", example = "")
+    public Set<UUID> optionIdList = new HashSet<>();
+
 }
