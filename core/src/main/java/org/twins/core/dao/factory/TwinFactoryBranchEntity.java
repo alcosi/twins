@@ -45,7 +45,7 @@ public class TwinFactoryBranchEntity implements EasyLoggable {
     private TwinFactoryConditionSetEntity conditionSet;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false)
+    @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false, nullable = false)
     private TwinFactoryEntity nextFactory;
 
     public String easyLog(Level level) {
