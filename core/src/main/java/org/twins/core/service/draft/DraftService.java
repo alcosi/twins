@@ -111,6 +111,7 @@ public class DraftService extends EntitySecureFindServiceImpl<DraftEntity> {
         return new DraftCollector(
                 new DraftEntity()
                         .setId(UUID.randomUUID())
+                        .setCreatedAt(Timestamp.from(Instant.now()))
                         .setCreatedByUser(authService.getApiUser().getUser())
                         .setCreatedByUserId(authService.getApiUser().getUserId())
                         .setStatus(DraftStatus.UNDER_CONSTRUCTION)

@@ -62,6 +62,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
     }
 
     public UserEntity addUser(UserEntity userEntity, EntitySmartService.SaveMode userSaveMode) throws ServiceException {
+        userEntity.setCreatedAt(Timestamp.from(Instant.now()));
         userEntity.setUserStatusId(UserStatus.ACTIVE);
         EntitySmartService.SaveResult<UserEntity> saveResult = entitySmartService.saveWithResult(userEntity.getId(), userEntity, userRepository, userSaveMode);
         // The logic of creating a user record in twin is implemented through a trigger in the database
