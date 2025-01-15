@@ -65,7 +65,7 @@ public class TwinFactoryBranchService extends EntitySecureFindServiceImpl<TwinFa
             return;
         if (UuidUtils.isNullifyMarker(nextTwinFactoryId))
             throw new ServiceException(ErrorCodeTwins.UUID_NOT_BE_NULLIFY_MARKER);
-        dbFactoryBranchEntity.setNextTwinFactoryId(UuidUtils.nullifyIfNecessary(nextTwinFactoryId));
+        dbFactoryBranchEntity.setNextTwinFactoryId(nextTwinFactoryId);
     }
 
     private void updateFactoryBranchDescription(TwinFactoryBranchEntity dbFactoryBranchEntity, String description, ChangesHelper changesHelper) {
