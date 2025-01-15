@@ -8,8 +8,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.twins.core.dao.twin.TwinTagEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -37,8 +35,6 @@ public class DataListEntity implements EasyLoggable {
     @Column(name = "domain_id")
     private UUID domainId;
 
-    @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
