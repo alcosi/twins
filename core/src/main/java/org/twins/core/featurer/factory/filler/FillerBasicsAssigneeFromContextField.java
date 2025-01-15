@@ -18,6 +18,6 @@ import java.util.Properties;
 public class FillerBasicsAssigneeFromContextField extends FillerBasicsAssigneeFromContext {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.fromContextFields);
+        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFields());
     }
 }

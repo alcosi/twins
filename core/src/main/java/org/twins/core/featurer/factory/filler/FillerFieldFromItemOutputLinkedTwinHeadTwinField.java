@@ -18,6 +18,6 @@ import java.util.Properties;
 public class FillerFieldFromItemOutputLinkedTwinHeadTwinField extends FillerFieldFromItemOutputLinked {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, fieldLookupers.fromItemOutputLinkedTwinHeadTwinFields);
+        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromItemOutputLinkedTwinHeadTwinFields());
     }
 }
