@@ -16,7 +16,9 @@ import java.util.UUID;
 public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUID>, JpaSpecificationExecutor<TwinAliasEntity> {
 
     List<TwinAliasEntity> findAllByTwinId(UUID twinId);
+    List<TwinAliasEntity> findAllByTwinIdAndArchivedFalse(UUID twinId);
     List<TwinAliasEntity> findAllByTwinIdIn(Collection<UUID> twinIds);
+    List<TwinAliasEntity> findAllByTwinIdInAndArchivedFalse(Collection<UUID> twinIds);
 
     @Query("SELECT t FROM TwinAliasEntity t WHERE t.alias = :alias AND " +
             "(t.domainId = :domainId OR t.domainId IS NULL) AND " +

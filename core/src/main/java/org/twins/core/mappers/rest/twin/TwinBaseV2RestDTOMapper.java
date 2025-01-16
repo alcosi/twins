@@ -8,8 +8,8 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv2;
-import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
@@ -70,7 +70,7 @@ public class TwinBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
         if (mapperContext.hasModeButNot(TwinAliasMode.HIDE)) {
             twinAliasService.loadAliases(src);
             dst
-                    .aliases(twinAliasRestDTOMapper.convertCollection(src.getTwinAliases().getCollection(), mapperContext));
+                    .aliases(twinAliasRestDTOMapper.convert(src, mapperContext));
         }
     }
 

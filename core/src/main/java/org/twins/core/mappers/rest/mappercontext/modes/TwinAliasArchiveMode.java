@@ -8,7 +8,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperMode;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum TwinAliasMode implements MapperMode {
+public enum TwinAliasArchiveMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include D(1),
     @FieldNameConstants.Include C(1),
@@ -19,4 +19,6 @@ public enum TwinAliasMode implements MapperMode {
     @FieldNameConstants.Include ALL(2);
 
     final int priority;
+
+
 }
