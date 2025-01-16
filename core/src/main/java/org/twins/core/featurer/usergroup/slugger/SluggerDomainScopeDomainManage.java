@@ -45,7 +45,8 @@ public class SluggerDomainScopeDomainManage extends Slugger {
                 .setUserGroup(userGroup)
                 .setUserId(userId)
                 .setAddedByUserId(apiUser.getUser().getId())
-                .setAddedByUser(apiUser.getUser());
+                .setAddedByUser(apiUser.getUser())
+                .setAddedAt(Timestamp.from(Instant.now()));
     }
 
     @Override

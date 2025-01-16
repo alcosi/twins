@@ -26,6 +26,8 @@ public enum I18nType  {
     SPACE_ROLE_NAME("spaceRoleName", "Space role name", Category.TEXT),
     PERMISSION_NAME("permissionName", "Permission name", Category.TEXT),
     PERMISSION_DESCRIPTION("permissionDescription", "Permission description", Category.TEXT),
+    TWIN_FACTORY_NAME("twinFactoryName", "Twin factory name", Category.TEXT),
+    TWIN_FACTORY_DESCRIPTION("twinFactoryDescription", "Twin factory description", Category.TEXT),
     ERROR("error","Error", Category.TEXT)
         ;
 

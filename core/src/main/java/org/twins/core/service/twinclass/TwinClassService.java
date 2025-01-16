@@ -51,6 +51,8 @@ import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -218,6 +220,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setLogo(srcTwinClassEntity.getLogo())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
                 .setOwnerType(srcTwinClassEntity.getOwnerType());
         I18nEntity i18nDuplicate;
@@ -351,6 +354,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
