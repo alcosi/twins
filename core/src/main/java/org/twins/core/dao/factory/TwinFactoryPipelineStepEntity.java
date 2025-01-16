@@ -58,7 +58,7 @@ public class TwinFactoryPipelineStepEntity implements EasyLoggable {
     @JoinColumn(name = "filler_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity fillerFeaturer;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "twin_factory_pipeline_id", insertable = false, updatable = false)
     private TwinFactoryPipelineEntity twinFactoryPipeline;
 
