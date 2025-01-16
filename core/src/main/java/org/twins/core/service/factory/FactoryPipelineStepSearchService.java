@@ -38,8 +38,8 @@ public class FactoryPipelineStepSearchService {
                         .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getFactoryPipelineIdExcludeList(), true, false))
                         .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
                         .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getDescriptionLikeList(), false, false))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getDescriptionNotLikeList(), true, true))
+                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionLikeList(), false, false))
+                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdList(), false))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdExcludeList(), true))
         );
