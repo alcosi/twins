@@ -1,21 +1,34 @@
 # TODO
 
-It was resolved to control like '%' wrapping on frontend side. 
-So we should update frontend for old controllers. After updating frontend we should change deprecated `org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeContainsIn` to `org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn` 
+The issue was resolved by controlling the `LIKE` operator wrapping (`%`) on the frontend side.  
+We need to update the frontend for older controllers to align with this approach.
 
-Still have to update:
+### After updating the frontend:
+- Replace the deprecated method:
+    - `org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeContainsIn`
+    - With: `org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn`
 
-| Method | Uri                                    |
+---
+
+## Still to Update
+
+The following endpoints still need frontend updates:
+
+| Method | URI                                    |
 |--------|----------------------------------------|
 | `POST` | `/private/twinflow_schema/search/v1`   |
 | `POST` | `/private/permission/search/v1`        |
 | `POST` | `/private/permission_schema/search/v1` |
 | `POST` | `/private/twin_status/search/v1`       |
-| `POST` | `/private/permission_group/search/v1`       |
+| `POST` | `/private/permission_group/search/v1`  |
 
-Already controlled by frontend
+---
 
-| Method | Uri                                              |
+## Already Controlled by Frontend
+
+The following endpoints are already handled by the frontend:
+
+| Method | URI                                              |
 |--------|--------------------------------------------------|
 | `POST` | `/private/factory_pipeline/search/v1`            |
 | `POST` | `/private/link/search/v1`                        |
@@ -42,5 +55,3 @@ Already controlled by frontend
 | `POST` | `/private/twin/search/v1`                        |
 | `POST` | `/private/twin_class/list/v1`                    |
 | `POST` | `/private/twin_class/search/v1`                  |
-
-
