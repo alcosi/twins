@@ -16,12 +16,4 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 public class UserGroupSpecification extends CommonSpecification<UserGroupEntity> {
 
 
-    //todo this method can be moved to the common specification with constant field name "domainId"
-    public static Specification<UserGroupEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            return cb.equal(root.get(UserGroupEntity.Fields.domainId), domainId);
-        };
-    }
 }

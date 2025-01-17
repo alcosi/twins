@@ -31,11 +31,5 @@ public class LinkSpecification extends CommonSpecification<TwinFactoryEntity> {
         };
     }
 
-    public static Specification<LinkEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            return cb.equal(root.get(LinkEntity.Fields.domainId), domainId);
-        };
-    }
+
 }

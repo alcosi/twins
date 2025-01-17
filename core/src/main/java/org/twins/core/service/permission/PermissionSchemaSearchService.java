@@ -16,9 +16,7 @@ import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeContainsIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionSchemaSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
 
 
 @Slf4j
@@ -31,7 +29,7 @@ public class PermissionSchemaSearchService {
     public PaginationResult<PermissionSchemaEntity> findPermissionSchemasByDomain(PermissionSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionSchemaEntity> spec = createPermissionSchemaSearchSpecification(search)
-                .and(checkDomainId(domainId));
+                .and(checkDomainId(domainId,PermissionSchemaEntity.Fields.domainId));
         Page<PermissionSchemaEntity> ret = permissionSchemaRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }

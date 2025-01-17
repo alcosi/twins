@@ -77,12 +77,4 @@ public class DataListOptionSpecification extends CommonSpecification<DataListOpt
         };
     }
 
-    public static Specification<DataListOptionEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            Join<DataListOptionEntity, DataListEntity> joinDataListOption = root.join(DataListOptionEntity.Fields.dataList, JoinType.INNER);
-            return cb.equal(joinDataListOption.get(DataListEntity.Fields.domainId), domainId);
-        };
-    }
 }

@@ -79,11 +79,4 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
         };
     }
 
-    public static Specification<DomainUserEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.conjunction();
-            return cb.equal(root.get(DomainUserEntity.Fields.domain).get(DomainEntity.Fields.id), domainId);
-        };
-    }
 }

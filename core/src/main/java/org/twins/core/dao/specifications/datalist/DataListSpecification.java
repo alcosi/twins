@@ -57,11 +57,4 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
                 .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptions, JoinType.LEFT));
     }
 
-    public static Specification<DataListEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            return cb.equal(root.get(DataListEntity.Fields.domainId), domainId);
-        };
-    }
 }

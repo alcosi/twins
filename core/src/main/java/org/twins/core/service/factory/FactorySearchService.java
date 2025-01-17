@@ -34,16 +34,15 @@ public class FactorySearchService {
 
     private Specification<TwinFactoryEntity> createFactorySearchSpecification(FactorySearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                        .and(checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyLikeList(), false, false))
-                        .and(checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                        .and(joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true))
-        );
+        return Specification.allOf(
+                checkDomainId(apiUser.getDomainId(), TwinFactoryEntity.Fields.domainId),
+                checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyLikeList(), false, false),
+                checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyNotLikeList(), true, true),
+                joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionNotLikeList(), apiUser.getLocale(), true, true));
     }
 }

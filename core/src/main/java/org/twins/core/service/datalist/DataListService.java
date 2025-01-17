@@ -90,26 +90,26 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
     private Specification<DataListEntity> createDataListSpecification(DataListSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false))
-                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false))
-                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdExcludeList() : null,true, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdExcludeList() : null,true, false))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionLikeList() : null, false, true))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionNotLikeList() : null, true, true))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(),false, false))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nNotLikeList() : null, apiUser.getLocale(),true, true))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null,true, true))
+        return Specification.allOf(
+                checkDomainId(apiUser.getDomainId(), DataListEntity.Fields.domainId),
+                checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true),
+                checkFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true),
+                checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true),
+                checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
+                checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true),
+                checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null, false, false),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdExcludeList() : null, true, false),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdList() : null, false, false),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdExcludeList() : null, true, false),
+                checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionLikeList() : null, false, true),
+                checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionNotLikeList() : null, true, true),
+                doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(), false, false),
+                doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nNotLikeList() : null, apiUser.getLocale(), true, true),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null, false, false),
+                checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null, true, true)
         );
     }
 
@@ -196,7 +196,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(UUID listId, UUID twinClassFieldId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(UUID listId, UUID twinClassFieldId, UUID businessAccountId) {
@@ -204,13 +204,14 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
     //Method for reloading options if dataList is not present in entity;
     public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
         List<UUID> idsForReload = new ArrayList<>();
-        for(var option : options) if(null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+        for (var option : options)
+            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
         if (!idsForReload.isEmpty()) {
             options.removeIf(o -> idsForReload.contains(o.getId()));
             options.addAll(dataListOptionRepository.findByIdIn(idsForReload));

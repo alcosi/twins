@@ -11,7 +11,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjectionInterfaceBased;
+import org.twins.core.dao.twin.TwinFieldSimpleRepository;
+import org.twins.core.dao.twin.TwinIdNoRelationsProjectionInterfaceBased;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.auth.AuthService;
@@ -20,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.twins.core.dao.specifications.twin.TwinFieldSimpleSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.CommonSpecification.checkDomainId;
 
 @Lazy
 @Slf4j
@@ -53,13 +58,12 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
     }
 
 
-
     public List<TwinFieldSimpleNoRelationsProjectionInterfaceBased> findTwinFieldsSimple(BasicSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Kit<TwinIdNoRelationsProjectionInterfaceBased, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjectionInterfaceBased.class), TwinIdNoRelationsProjectionInterfaceBased::getId);
-        Specification<TwinFieldSimpleEntity> spec = Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                        .and(CommonSpecification.checkUuidIn(TwinFieldSimpleEntity.Fields.twinId, twinIds.getIdSet(), false, false))
+        Specification<TwinFieldSimpleEntity> spec = Specification.allOf(
+                checkDomainId(apiUser.getDomainId(),TwinFieldSimpleEntity.Fields.twinClassField,TwinClassFieldEntity.Fields.twinClass,TwinClassEntity.Fields.domainId),
+                CommonSpecification.checkUuidIn(TwinFieldSimpleEntity.Fields.twinId, twinIds.getIdSet(), false, false)
         );
         //https://github.com/spring-projects/spring-data-jpa/pull/430
         return twinFieldSimpleRepository.findBy(spec, q -> q.as(TwinFieldSimpleNoRelationsProjectionInterfaceBased.class).all());

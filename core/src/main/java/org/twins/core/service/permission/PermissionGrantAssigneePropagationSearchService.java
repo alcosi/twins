@@ -11,13 +11,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationRepository;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.domain.search.PermissionGrantAssigneePropagationSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkDomainId;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionGrantAssigneePropagationSpecification.checkDomainId;
 
 
 @Slf4j
@@ -36,21 +37,20 @@ public class PermissionGrantAssigneePropagationSearchService {
     }
 
     private Specification<PermissionGrantAssigneePropagationEntity> createPermissionAssigneePropagationSearchSpecification(PermissionGrantAssigneePropagationSearch search, UUID domainId) {
-        return Specification.where(
-                checkDomainId(domainId)
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true))
-        );
+        return Specification.allOf(
+                checkDomainId(domainId, PermissionGrantAssigneePropagationEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false),
+                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
     }
 
 }

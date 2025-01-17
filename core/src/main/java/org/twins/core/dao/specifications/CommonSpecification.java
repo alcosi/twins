@@ -37,7 +37,7 @@ public class CommonSpecification<T> {
      *         domain ID and field path
      */
     public static <T> Specification<T> checkDomainId(UUID domainId, String... domainFiledPath) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> cb.equal(property, filedValue), domainFiledPath);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), domainFiledPath);
     }
 
     /**
@@ -56,9 +56,9 @@ public class CommonSpecification<T> {
         if (filedValue == null || filedPath == null || filedPath.length == 0) {
             return criteriaBuilder.disjunction();
         }
-        List<String> domainFiledPathList = Arrays.stream(filedPath).toList();
+        List<String> domainFiledPathList = Arrays.stream(filedPath).collect(Collectors.toList());
         //Get real filedValue property name
-        String domainFiled = domainFiledPathList.removeLast();
+        String domainFiled = domainFiledPathList.remove(domainFiledPathList.size() - 1);
         //Get Entity that really contains filedValue property with inner joins
         From reducedRoot = domainFiledPathList.stream().reduce(srcRoot, (from, filed) -> from.join(filed, JoinType.INNER), defaultParallelAccumulatorOperator(From.class));
         //Get filedValue property path
