@@ -40,6 +40,9 @@ public class TwinAliasEntity {
     @Column(name = "created_at")
     private Timestamp createdAt;
 
+    @Column(name = "archived")
+    private boolean archived;
+
     @ManyToOne
     @JoinColumn(name = "twin_id", insertable = false, updatable = false, nullable = true)
     private TwinEntity twin;
