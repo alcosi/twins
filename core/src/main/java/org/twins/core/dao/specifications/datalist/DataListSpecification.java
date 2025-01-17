@@ -34,20 +34,6 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
         };
     }
 
-    public static Specification<DataListEntity> checkFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            List<Predicate> predicates = new ArrayList<>();
-            for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), value.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<DataListEntity> checkDataListOptionFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {

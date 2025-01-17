@@ -152,18 +152,6 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-    public static Specification<TwinEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search))
-                for (String s : search) {
-                    Predicate predicate = cb.like(cb.lower(root.get(field)), s.toLowerCase());
-                    if (not) predicate = cb.not(predicate);
-                    predicates.add(predicate);
-                }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<TwinEntity> checkTwinClassUuidFieldIn(final String field, final Collection<UUID> uuids) {
         return (root, query, cb) -> {

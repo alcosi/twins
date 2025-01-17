@@ -19,7 +19,7 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Slf4j
 public class DomainBusinessAccountSpecification extends CommonSpecification<DomainBusinessAccountEntity> {
 
-    public static Specification<DomainBusinessAccountEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainBusinessAccountEntity> checkBusinessAccountFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);
@@ -33,7 +33,7 @@ public class DomainBusinessAccountSpecification extends CommonSpecification<Doma
         };
     }
 
-    public static Specification<DomainBusinessAccountEntity> checkFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainBusinessAccountEntity> checkBusinessAccountFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             Join<DomainBusinessAccountEntity, BusinessAccountEntity> baJoin = root.join(DomainBusinessAccountEntity.Fields.businessAccount, JoinType.INNER);

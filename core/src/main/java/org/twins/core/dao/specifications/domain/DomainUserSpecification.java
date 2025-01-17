@@ -17,7 +17,7 @@ import java.util.*;
 
 public class DomainUserSpecification extends CommonSpecification<DomainUserEntity> {
 
-    public static Specification<DomainUserEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainUserEntity> checkDomainUserFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
@@ -31,7 +31,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
         };
     }
 
-    public static Specification<DomainUserEntity> checkFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainUserEntity> checkDomainUserFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);

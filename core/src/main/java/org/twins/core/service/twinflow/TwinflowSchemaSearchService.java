@@ -35,17 +35,17 @@ public class TwinflowSchemaSearchService {
     }
 
     private Specification<TwinflowSchemaEntity> createTwinflowSchemaSearchSpecification(TwinflowSchemaSearch search) {
-        return Specification.where(
-                checkFieldLikeIn(TwinflowSchemaEntity.Fields.name, search.getNameLikeList(), false, true)
-                        .and(checkFieldLikeIn(TwinflowSchemaEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(TwinflowSchemaEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinflowSchemaEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.id, search.getIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, true))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false))
-                        .and(checkUuidIn(TwinflowSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true))
-        );
+        return Specification.allOf(
+                checkFieldLikeContainsIn(TwinflowSchemaEntity.Fields.name, search.getNameLikeList(), false, true),
+                checkFieldLikeContainsIn(TwinflowSchemaEntity.Fields.name, search.getNameNotLikeList(), true, true),
+                checkFieldLikeContainsIn(TwinflowSchemaEntity.Fields.description, search.getDescriptionLikeList(), false, true),
+                checkFieldLikeContainsIn(TwinflowSchemaEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
+                checkUuidIn(TwinflowSchemaEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(TwinflowSchemaEntity.Fields.id, search.getIdExcludeList(), true, true),
+                checkUuidIn(TwinflowSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, true),
+                checkUuidIn(TwinflowSchemaEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true),
+                checkUuidIn(TwinflowSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false),
+                checkUuidIn(TwinflowSchemaEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true));
+
     }
 }

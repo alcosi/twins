@@ -15,19 +15,7 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class PermissionGroupSpecification extends CommonSpecification<PermissionEntity> {
 
-    public static Specification<PermissionGroupEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search)) {
-                for (String name : search) {
-                    Predicate predicate = cb.like(cb.lower(root.get(field)), "%" + name.toLowerCase() + "%");
-                    if (not) predicate = cb.not(predicate);
-                    predicates.add(predicate);
-                }
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
+
 
     public static Specification<PermissionGroupEntity> checkDomainId(UUID domainId, boolean showSystemGroup) {
         return (root, query, cb) -> {

@@ -18,19 +18,6 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Slf4j
 public class PermissionGrantTwinRoleSpecification extends CommonSpecification<PermissionGrantTwinRoleEntity> {
 
-    public static Specification<PermissionGrantTwinRoleEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search)) {
-                for (String name : search) {
-                    Predicate predicate = cb.like(cb.lower(root.get(field)),  name.toLowerCase() );
-                    if (not) predicate = cb.not(predicate);
-                    predicates.add(predicate);
-                }
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<PermissionGrantTwinRoleEntity> checkDomainId(UUID domainId) {
         return (root, query, cb) -> {
