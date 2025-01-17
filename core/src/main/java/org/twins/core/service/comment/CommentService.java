@@ -15,6 +15,7 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,9 +24,11 @@ import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
@@ -35,6 +38,10 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
+
 
 @Service
 @Slf4j
@@ -49,6 +56,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
     private final CommentActionService commentActionService;
+
 
     @Transactional
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -167,4 +175,30 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         return true;
     }
 
+    @Transactional(readOnly = true)
+    public PaginationResult<TwinCommentEntity> findCommentForDomain(CommentSearch search, SimplePagination pagination) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        Specification<TwinCommentEntity> spec = createCommentSearchSpecification(search)
+                .and(checkDomainId(domainId));
+        Page<TwinCommentEntity> ret = commentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<TwinCommentEntity> createCommentSearchSpecification(CommentSearch search) throws ServiceException {
+        UUID domainId = authService.getApiUser().getDomainId();
+        Specification<TwinCommentEntity> specification = Specification.where(
+                checkDomainId(domainId)
+                        .and(checkUuidIn(TwinCommentEntity.Fields.id, search.getIdList(), false, false))
+                        .and(checkUuidIn(TwinCommentEntity.Fields.id, search.getIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdList(), false, false))
+                        .and(checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdExcludeList(), true, true))
+                        .and(checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false))
+                        .and(checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true))
+                        .and(checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false))
+                        .and(checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false))
+                        .and(localDateTimeBetween(TwinCommentEntity.Fields.createdAt, search.getCreatedAt()))
+                        .and(localDateTimeBetween(TwinCommentEntity.Fields.changedAt, search.getUpdatedAt()))
+        );
+        return specification;
+    }
 }
