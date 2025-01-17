@@ -25,13 +25,14 @@ import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
@@ -52,10 +53,10 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final EntitySmartService entitySmartService;
     final AttachmentService attachmentService;
     final TwinService twinService;
-    final TwinRepository twinRepository;
+    final PermissionService permissionService;
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
-    private final CommentActionService commentActionService;
+    final CommentActionService commentActionService;
 
 
     @Transactional
@@ -185,20 +186,26 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     private Specification<TwinCommentEntity> createCommentSearchSpecification(CommentSearch search) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        Specification<TwinCommentEntity> specification = Specification.where(
-                checkDomainId(domainId)
-                        .and(checkUuidIn(TwinCommentEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinCommentEntity.Fields.id, search.getIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdList(), false, false))
-                        .and(checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false))
-                        .and(checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true))
-                        .and(checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false))
-                        .and(checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false))
-                        .and(localDateTimeBetween(TwinCommentEntity.Fields.createdAt, search.getCreatedAt()))
-                        .and(localDateTimeBetween(TwinCommentEntity.Fields.changedAt, search.getUpdatedAt()))
+        ApiUser apiUser = authService.getApiUser();
+        Specification<TwinCommentEntity> specification = Specification.allOf(
+                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdExcludeList(), true, true),
+                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdList(), false, false),
+                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdExcludeList(), true, true),
+                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false),
+                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true),
+                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false),
+                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false),
+                localDateTimeBetween(TwinCommentEntity.Fields.createdAt, search.getCreatedAt()),
+                localDateTimeBetween(TwinCommentEntity.Fields.changedAt, search.getUpdatedAt())
         );
+        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
+            specification = specification
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUserGroups()));
+        } else {
+            specification = specification
+                    .and(checkDomainId(apiUser.getDomainId()));
+        }
         return specification;
     }
 }
