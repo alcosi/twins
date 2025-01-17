@@ -16,6 +16,8 @@ public interface DataListRepository extends CrudRepository<DataListEntity, UUID>
 
     DataListEntity findByDomainIdAndKey(UUID domainId, String key);
 
+    boolean existsByDomainIdAndKey(UUID domainId, String key);
+
     List<DataListEntity> findByDomainIdAndIdIn(UUID domainId, Collection<UUID> ids);
 
     boolean existsByIdAndDomainIdOrIdAndDomainIdIsNull(UUID dataListId, UUID domainId, UUID dataListIdSame);
