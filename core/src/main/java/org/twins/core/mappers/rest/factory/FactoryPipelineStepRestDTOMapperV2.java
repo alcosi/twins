@@ -17,7 +17,7 @@ public class FactoryPipelineStepRestDTOMapperV2 extends RestSimpleDTOMapper<Twin
 
     private final FactoryPipelineStepRestDTOMapper factoryPipelineStepRestDTOMapper;
 
-    @MapperModePointerBinding(modes = FactoryPipelineMode.FactoryPipelineStep2FactoryPipeline.class)
+    @MapperModePointerBinding(modes = FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.class)
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
 
     @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.class)
@@ -26,9 +26,9 @@ public class FactoryPipelineStepRestDTOMapperV2 extends RestSimpleDTOMapper<Twin
     @Override
     public void map(TwinFactoryPipelineStepEntity src, FactoryPipelineStepDTOv2 dst, MapperContext mapperContext) throws Exception {
         factoryPipelineStepRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipeline.HIDE))
+        if (mapperContext.hasModeButNot(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.HIDE))
             dst
-                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convertOrPostpone(src.getTwinFactoryPipeline(), mapperContext.forkOnPoint(FactoryPipelineMode.FactoryPipelineStep2FactoryPipeline.SHORT)))
+                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convertOrPostpone(src.getTwinFactoryPipeline(), mapperContext.forkOnPoint(FactoryPipelineMode.FactoryPipelineStep2FactoryPipelineMode.SHORT)))
                     .setFactoryPipelineId(src.getTwinFactoryPipelineId());
         if (mapperContext.hasModeButNot(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.HIDE))
             dst
