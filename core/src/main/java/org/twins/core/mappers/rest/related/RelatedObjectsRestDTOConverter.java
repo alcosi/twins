@@ -35,6 +35,7 @@ import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
+import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv2;
 import org.twins.core.dto.rest.user.UserDTOv1;
 import org.twins.core.dto.rest.usergroup.UserGroupDTOv1;
 import org.twins.core.mappers.rest.businessaccount.BusinessAccountDTOMapper;
@@ -54,8 +55,7 @@ import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TransitionBaseV1RestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowBaseV1RestDTOMapper;
-import org.twins.core.mappers.rest.twinflow.TwinflowBaseV2RestDTOMapper;
-import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
+import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapperV2;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.mappers.rest.usergroup.UserGroupRestDTOMapper;
 
@@ -74,7 +74,7 @@ public class RelatedObjectsRestDTOConverter {
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final UserRestDTOMapper userRestDTOMapper;
     private final UserGroupRestDTOMapper userGroupRestDTOMapper;
-    private final TwinStatusRestDTOMapper twinStatusRestDTOMapper;
+    private final TwinStatusRestDTOMapperV2 twinStatusRestDTOMapperV2;
     private final TransitionBaseV1RestDTOMapper transitionBaseV1RestDTOMapper;
     private final DataListRestDTOMapper dataListRestDTOMapper;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
@@ -93,7 +93,7 @@ public class RelatedObjectsRestDTOConverter {
             return null;
         RelatedObjectsDTOv1 ret = new RelatedObjectsDTOv1();
         Map<UUID, TwinDTOv2> twinMap = new HashMap<>();
-        Map<UUID, TwinStatusDTOv1> statusMap = new HashMap<>();
+        Map<UUID, TwinStatusDTOv2> statusMap = new HashMap<>();
         Map<UUID, UserDTOv1> userMap = new HashMap<>();
         Map<UUID, UserGroupDTOv1> userGroupMap = new HashMap<>();
         Map<UUID, TwinClassDTOv1> twinClassMap = new HashMap<>();
@@ -116,7 +116,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContext.getRelatedTwinMap().isEmpty())
             convertAndPut(mapperContext.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel2, twinMap, TwinEntity::getId);
         if (!mapperContext.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContext.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel2, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContext.getRelatedTwinStatusMap(), twinStatusRestDTOMapperV2, mapperContextLevel2, statusMap, TwinStatusEntity::getId);
         if (!mapperContext.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContext.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel2, userMap, UserEntity::getId);
         if (!mapperContext.getRelatedUserGroupMap().isEmpty())
@@ -153,7 +153,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel2.getRelatedTwinMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel2.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContextLevel2.getRelatedTwinStatusMap(), twinStatusRestDTOMapperV2, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
         if (!mapperContextLevel2.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel2.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel2.getRelatedUserGroupMap().isEmpty())
@@ -191,7 +191,7 @@ public class RelatedObjectsRestDTOConverter {
         if (!mapperContextLevel3.getRelatedTwinMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedTwinMap(), twinRestDTOMapperV2, mapperContextLevel3, twinMap, TwinEntity::getId);
         if (!mapperContextLevel3.getRelatedTwinStatusMap().isEmpty())
-            convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), twinStatusRestDTOMapper, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
+            convertAndPut(mapperContextLevel3.getRelatedTwinStatusMap(), twinStatusRestDTOMapperV2, mapperContextLevel3, statusMap, TwinStatusEntity::getId);
         if (!mapperContextLevel3.getRelatedUserMap().isEmpty())
             convertAndPut(mapperContextLevel3.getRelatedUserMap(), userRestDTOMapper, mapperContextLevel3, userMap, UserEntity::getId);
         if (!mapperContextLevel3.getRelatedUserGroupMap().isEmpty())
