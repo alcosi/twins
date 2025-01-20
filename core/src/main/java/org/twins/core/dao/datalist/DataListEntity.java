@@ -8,6 +8,9 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
+import org.cambium.i18n.dao.I18nEntity;
+import org.hibernate.annotations.UpdateTimestamp;
+import org.twins.core.dao.twin.TwinTagEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -23,11 +26,11 @@ public class DataListEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     private UUID id;
 
-    @Column(name = "name")
-    private String name;
+    @Column(name = "name_i18n_id")
+    private UUID nameI18nId;
 
-    @Column(name = "description")
-    private String description;
+    @Column(name = "description_i18n_id")
+    private UUID descriptionI18NId;
 
     @Column(name = "key")
     private String key;
@@ -35,24 +38,65 @@ public class DataListEntity implements EasyLoggable {
     @Column(name = "domain_id")
     private UUID domainId;
 
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
     @Column(name = "attribute_1_key")
     private String attribute1key;
 
+    @Column(name = "attribute_1_name_i18n_id")
+    private UUID attribute1nameI18nId;
+
     @Column(name = "attribute_2_key")
     private String attribute2key;
+
+    @Column(name = "attribute_2_name_i18n_id")
+    private UUID attribute2nameI18nId;
 
     @Column(name = "attribute_3_key")
     private String attribute3key;
 
+    @Column(name = "attribute_3_name_i18n_id")
+    private UUID attribute3nameI18nId;
+
     @Column(name = "attribute_4_key")
     private String attribute4key;
 
-    public String easyLog(Level level) {
-        return "dataList[id:" + id + ", key:" + key + "]";
-    }
+    @Column(name = "attribute_4_name_i18n_id")
+    private UUID attribute4nameI18nId;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity descriptionI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attribute_1_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity attribute1nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attribute_2_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity attribute2nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attribute_3_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity attribute3nameI18n;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "attribute_4_name_i18n_id", insertable = false, updatable = false)
+    @EqualsAndHashCode.Exclude
+    private I18nEntity attribute4nameI18n;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -64,4 +108,8 @@ public class DataListEntity implements EasyLoggable {
     @OneToMany(mappedBy = "dataList")
     @EqualsAndHashCode.Exclude
     private Collection<DataListOptionEntity> dataListOptions;
+
+    public String easyLog(Level level) {
+        return "dataList[id:" + id + ", key:" + key + "]";
+    }
 }

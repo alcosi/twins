@@ -28,8 +28,8 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
 
             return not ?
                     (ifNotIsTrueIncludeNullValues ?
-                            cb.or(joinDataListOption.get(uuidField).in(uuids).not(), joinDataListOption.get(uuidField).isNull())
-                            : joinDataListOption.get(uuidField).in(uuids).not())
+                            cb.or(cb.not(joinDataListOption.get(uuidField).in(uuids)), joinDataListOption.get(uuidField).isNull())
+                            : cb.not(joinDataListOption.get(uuidField).in(uuids)))
                     : joinDataListOption.get(uuidField).in(uuids);
         };
     }

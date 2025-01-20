@@ -33,7 +33,7 @@ public class TwinClassSpecification extends CommonSpecification<TwinClassEntity>
             if (CollectionUtils.isNotEmpty(ownerTypes)) {
                 for (TwinClassEntity.OwnerType ownerType : ownerTypes) {
                     Predicate predicate = cb.equal(root.get(TwinClassEntity.Fields.ownerType), ownerType);
-                    if (not) predicate.not();
+                    if (not) predicate = cb.not(predicate);
                     predicates.add(predicate);
                 }
             }

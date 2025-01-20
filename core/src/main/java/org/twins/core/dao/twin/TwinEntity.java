@@ -260,6 +260,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @EqualsAndHashCode.Exclude
     private TwinAttachmentsCount twinAttachmentsCount;
 
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
+
     @Override
     public String toString() {
         return logDetailed();

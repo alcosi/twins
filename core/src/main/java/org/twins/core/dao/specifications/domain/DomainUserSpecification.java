@@ -53,7 +53,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             List<Predicate> predicates = new ArrayList<>();
             for (UserStatus status : statuses) {
                 Predicate predicate = cb.equal(userJoin.get(UserEntity.Fields.userStatusId), status);
-                predicates.add(not ? predicate.not() : predicate);
+                predicates.add(not ? cb.not(predicate) : predicate);
             }
             return getPredicate(cb, predicates, false);
         };

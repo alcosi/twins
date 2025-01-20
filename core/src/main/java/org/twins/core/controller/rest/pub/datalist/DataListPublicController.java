@@ -29,9 +29,9 @@ import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.datalist.DataListSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListSearchService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
@@ -46,6 +46,7 @@ public class DataListPublicController extends ApiController {
     private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
     private final DataListSearchDTOReverseMapper dataListSearchDTOReverseMapper;
     private final PaginationMapper paginationMapper;
+    private final DataListSearchService dataListSearchService;
 
     @ParametersApiUserAnonymousHeaders
     @Operation(operationId = "dataListPublicViewV1", summary = "Returns public data list")
@@ -114,7 +115,7 @@ public class DataListPublicController extends ApiController {
         DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
         try {
             authService.getApiUser().setAnonymous();
-            PaginationResult<DataListEntity> dataListsList = dataListService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
+            PaginationResult<DataListEntity> dataListsList = dataListSearchService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
             rs
                     .setDataListList(dataListRestDTOMapperV2.convertCollection(dataListsList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(dataListsList));

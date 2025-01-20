@@ -9,8 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,18 +17,11 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.Loggable;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
-import org.twins.core.controller.rest.annotation.SimplePaginationParams;
-import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
-import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListSearchRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
-import org.twins.core.mappers.rest.datalist.DataListSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.datalist.DataListRestDTOMapper;
-import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 
@@ -44,8 +35,6 @@ public class DataListController extends ApiController {
     private final AuthService authService;
     private final DataListService dataListService;
     private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
-    private final DataListSearchDTOReverseMapper dataListSearchDTOReverseMapper;
-    private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListViewV1", summary = "Returns list data")
@@ -77,7 +66,7 @@ public class DataListController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DataListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/data_list_by_key/{dataListKey}/v1", method = RequestMethod.GET)
+    @GetMapping(value = "/private/data_list_by_key/{dataListKey}/v1")
     @Loggable(rsBodyThreshold = 1000)
     public ResponseEntity<?> dataListByKeyViewV1(
             @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
@@ -94,32 +83,4 @@ public class DataListController extends ApiController {
         }
         return new ResponseEntity<>(rs, HttpStatus.OK);
     }
-
-    @ParametersApiUserHeaders
-    @Operation(operationId = "dataListSearchV1", summary = "Returns lists details")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List details prepared", content = {
-                    @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListSearchRsDTOv1.class)) }),
-            @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @RequestMapping(value = "/private/data_list/search/v1", method = RequestMethod.POST)
-    @Loggable(rsBodyThreshold = 1000)
-    public ResponseEntity<?> dataListSearchV1(
-            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListSearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
-            @RequestBody DataListSearchRqDTOv1 request) {
-        DataListSearchRsDTOv1 rs = new DataListSearchRsDTOv1();
-        try {
-            PaginationResult<DataListEntity> dataListsList = dataListService.findDataListsForDomain(dataListSearchDTOReverseMapper.convert(request), pagination);
-            rs
-                    .setDataListList(dataListRestDTOMapperV2.convertCollection(dataListsList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(dataListsList));
-        } catch (ServiceException se) {
-            return createErrorRs(se, rs);
-        } catch (Exception e) {
-            return createErrorRs(e, rs);
-        }
-        return new ResponseEntity<>(rs, HttpStatus.OK);
-    }
-
 }

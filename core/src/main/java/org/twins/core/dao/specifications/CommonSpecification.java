@@ -18,8 +18,8 @@ public class CommonSpecification<T> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
             return not ?
                     (ifNotIsTrueIncludeNullValues ?
-                            cb.or(root.get(uuidField).in(uuids).not(), root.get(uuidField).isNull())
-                            : root.get(uuidField).in(uuids).not())
+                            cb.or(cb.not(root.get(uuidField).in(uuids)), root.get(uuidField).isNull())
+                            : cb.not(root.get(uuidField).in(uuids)))
                     : root.get(uuidField).in(uuids);
         };
     }
