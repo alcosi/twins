@@ -4,7 +4,9 @@ import jakarta.persistence.criteria.*;
 import org.apache.commons.lang3.function.TriFunction;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,6 +14,50 @@ import static org.cambium.common.util.FunctionalUtils.defaultParallelAccumulator
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class CommonSpecification<T> {
+    /**
+     * Creates a JPA specification to filter entities based on a LocalDateTime field being between
+     * a specified range. Dynamically generates joins as needed for the provided field path and
+     * applies the filter conditions using a DataTimeRangeDTOv1 object.
+     *
+     * @param <T>       the type of the entity for which the specification is created
+     * @param range     an object containing the starting and ending LocalDateTime values defining
+     *                  the range; can be null to apply no constraints
+     * @param filedPath the hierarchical path representing the fields to navigate and join,
+     *                  ending with the target field
+     * @return a JPA {@code Specification} matching entities where the field is between the
+     *         specified range, or an unconstrained {@code Specification} if {@code range} is null
+     */
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRangeDTOv1 range, String... filedPath) {
+        if (range == null) return (root, query, cb) -> cb.conjunction();
+        else return checkFieldLocalDateTimeBetween(range.from, range.to, filedPath);
+    }
+
+    /**
+     * Creates a JPA specification to filter entities based on a LocalDateTime field being between a specified range.
+     * It dynamically generates joins as needed for the provided field path and applies the filter conditions.
+     *
+     * @param <T>       the type of the entity for which the specification is created
+     * @param from      the starting LocalDateTime for the range; if null, no lower bound is applied
+     * @param to        the ending LocalDateTime for the range; if null, no upper bound is applied
+     * @param filedPath the hierarchical path representing the fields to navigate and join, ending with the target field
+     * @return a JPA {@code Specification} matching entities where the field is between the specified range,
+     *         or an unconstrained {@code Specification} if both {@code from} and {@code to} are null
+     */
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final LocalDateTime from, final LocalDateTime to, String... filedPath) {
+        return (root, query, cb) -> {
+            Predicate predicate = cb.conjunction();
+            if (from == null && to == null) return predicate;
+            if (from != null) {
+                Predicate tmpPredicate = predicate;
+                predicate = createPredicateWithJoins(root, cb, from, (property, criteriaBuilder, filedValue) -> criteriaBuilder.and(tmpPredicate, criteriaBuilder.greaterThanOrEqualTo(property, filedValue)), filedPath);
+            }
+            if (to != null) {
+                Predicate tmpPredicate = predicate;
+                predicate = createPredicateWithJoins(root, cb, to, (property, criteriaBuilder, filedValue) -> criteriaBuilder.and(tmpPredicate, criteriaBuilder.lessThanOrEqualTo(property, filedValue)), filedPath);
+            }
+            return predicate;
+        };
+    }
 
     public static <T> Specification<T> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {
         return (root, query, cb) -> {
@@ -29,10 +75,10 @@ public class CommonSpecification<T> {
      * specified by the provided entity field path. The method dynamically generates joins if required
      * by the field path and applies the equality condition on the target field.
      *
-     * @param <T> the type of the entity for which the specification is created
-     * @param domainId the UUID value to be compared against the target field
+     * @param <T>             the type of the entity for which the specification is created
+     * @param domainId        the UUID value to be compared against the target field
      * @param domainFiledPath the hierarchical path representing the fields to navigate and join,
-     * ending with the target field
+     *                        ending with the target field
      * @return a JPA {@code Specification} matching entities where the specified UUID equals the target field;
      * null-safe and returns appropriate predicates even when field paths are invalid or null
      */
@@ -43,12 +89,12 @@ public class CommonSpecification<T> {
     /**
      * Reduces inner joins for a given root entity and creates a predicate based on a comparison function.
      *
-     * @param <V> the type of the value used in the comparison
-     * @param srcRoot the root entity from which the joins will be created
+     * @param <V>             the type of the value used in the comparison
+     * @param srcRoot         the root entity from which the joins will be created
      * @param criteriaBuilder the CriteriaBuilder used for generating predicates
-     * @param filedValue the value to compare against; if null, no comparison is performed
+     * @param filedValue      the value to compare against; if null, no comparison is performed
      * @param compareFunction a function that takes a property path, a CriteriaBuilder, and a value, and returns a predicate
-     * @param filedPath the hierarchical path representing the fields to navigate and join, ending with the target field
+     * @param filedPath       the hierarchical path representing the fields to navigate and join, ending with the target field
      * @return a predicate representing the comparison, or a disjunction if the input is invalid
      */
     public static <V> Predicate createPredicateWithJoins(From srcRoot, CriteriaBuilder criteriaBuilder, V filedValue, TriFunction<Path, CriteriaBuilder, V, Predicate> compareFunction, String... filedPath) {
@@ -78,11 +124,11 @@ public class CommonSpecification<T> {
      * Creates a JPA specification for filtering entities based on a field's value using a case-insensitive "like" operation.
      * Supports inclusion or exclusion of values, and combines predicates with logical AND or OR operators.
      *
-     * @param <T> the type of the entity for which the specification is created
-     * @param field the name of the field to be filtered
+     * @param <T>    the type of the entity for which the specification is created
+     * @param field  the name of the field to be filtered
      * @param search a collection of string values to be used for the "like" comparison
-     * @param not if true, negates the "like" operation, effectively creating a "not like" filter
-     * @param or if true, combines the predicates using a logical OR; otherwise, combines using a logical AND
+     * @param not    if true, negates the "like" operation, effectively creating a "not like" filter
+     * @param or     if true, combines the predicates using a logical OR; otherwise, combines using a logical AND
      * @return a JPA {@code Specification} representing the applied filter conditions, or {@code cb.conjunction()} if the search collection is empty
      */
     public static <T> Specification<T> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
