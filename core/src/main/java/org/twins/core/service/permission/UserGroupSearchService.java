@@ -35,7 +35,7 @@ public class UserGroupSearchService {
     private Specification<UserGroupEntity> createUserGroupSearchSpecification(UserGroupSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFiledUuid(apiUser.getDomainId(), UserGroupEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), UserGroupEntity.Fields.domainId),
                 checkUuidIn(UserGroupEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(UserGroupEntity.Fields.id, search.getIdExcludeList(), true, false),
                 joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18NLikeList(), apiUser.getLocale(), true, false),

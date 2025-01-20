@@ -32,7 +32,7 @@ public class FactoryConditionSetSearchService {
 
     private Specification<TwinFactoryConditionSetEntity> createFactoryConditionSetSearchSpecification(FactoryConditionSetSearch search) throws ServiceException {
         return Specification.allOf(
-                checkFiledUuid(authService.getApiUser().getDomainId(), TwinFactoryConditionSetEntity.Fields.domainId),
+                checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryConditionSetEntity.Fields.domainId),
                 checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameLikeList(), false, true),
                 checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameNotLikeList(), true, true),
                 checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionLikeList(), false, true),

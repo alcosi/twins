@@ -36,7 +36,7 @@ public class DataListOptionSearchService {
     private Specification<DataListOptionEntity> createDataListOptionSearchSpecification(DataListOptionSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFiledUuid(apiUser.getDomainId(),DataListOptionEntity.Fields.dataList,DataListEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(),DataListOptionEntity.Fields.dataList,DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
                 checkUuidIn(DataListOptionEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(DataListOptionEntity.Fields.id, search.getIdExcludeList(), true, false),

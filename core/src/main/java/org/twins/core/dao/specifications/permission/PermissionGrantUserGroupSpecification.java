@@ -15,7 +15,7 @@ public class PermissionGrantUserGroupSpecification extends CommonSpecification<P
 
     public static Specification<PermissionGrantUserGroupEntity> checkDomainId(UUID domainId) {
         Specification<PermissionGrantUserGroupEntity>  specification = Specification.allOf(
-                checkFiledUuid(domainId, PermissionGrantUserGroupEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkFieldUuid(domainId, PermissionGrantUserGroupEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), PermissionGrantUserGroupEntity.Fields.permission, PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId)
         );
         return specification;

@@ -15,7 +15,7 @@ public class PermissionGroupSpecification extends CommonSpecification<Permission
         if (showSystemGroup) {
             return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), PermissionGroupEntity.Fields.domainId);
         } else {
-            return checkFiledUuid(domainId, PermissionGroupEntity.Fields.domainId);
+            return checkFieldUuid(domainId, PermissionGroupEntity.Fields.domainId);
 
         }
     }

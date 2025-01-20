@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFiledUuid;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 
 @Lazy
 @Slf4j
@@ -62,7 +62,7 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
         ApiUser apiUser = authService.getApiUser();
         Kit<TwinIdNoRelationsProjectionInterfaceBased, UUID> twinIds = new Kit<>(twinSearchService.findTwins(search, TwinIdNoRelationsProjectionInterfaceBased.class), TwinIdNoRelationsProjectionInterfaceBased::getId);
         Specification<TwinFieldSimpleEntity> spec = Specification.allOf(
-                checkFiledUuid(apiUser.getDomainId(),TwinFieldSimpleEntity.Fields.twinClassField,TwinClassFieldEntity.Fields.twinClass,TwinClassEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(),TwinFieldSimpleEntity.Fields.twinClassField,TwinClassFieldEntity.Fields.twinClass,TwinClassEntity.Fields.domainId),
                 CommonSpecification.checkUuidIn(TwinFieldSimpleEntity.Fields.twinId, twinIds.getIdSet(), false, false)
         );
         //https://github.com/spring-projects/spring-data-jpa/pull/430

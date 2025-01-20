@@ -36,7 +36,7 @@ public class TwinClassFieldSearchService {
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFiledUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
                 checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkUuidIn(TwinClassFieldEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false),

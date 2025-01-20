@@ -114,7 +114,7 @@ public class TwinSearchService {
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         } else {
             specification = specification
-                    .and(checkFiledUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
+                    .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
         }
 

@@ -35,7 +35,7 @@ public class FactorySearchService {
     private Specification<TwinFactoryEntity> createFactorySearchSpecification(FactorySearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFiledUuid(apiUser.getDomainId(), TwinFactoryEntity.Fields.domainId),
+                checkFieldUuid(apiUser.getDomainId(), TwinFactoryEntity.Fields.domainId),
                 checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyLikeList(), false, false),

@@ -36,7 +36,7 @@ public class CommonSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the specified UUID equals the target field;
      * null-safe and returns appropriate predicates even when field paths are invalid or null
      */
-    public static <T> Specification<T> checkFiledUuid(UUID domainId, String... domainFiledPath) {
+    public static <T> Specification<T> checkFieldUuid(UUID domainId, String... domainFiledPath) {
         return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), domainFiledPath);
     }
 
