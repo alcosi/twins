@@ -25,6 +25,7 @@ import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.search.CommentSearch;
@@ -178,9 +179,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     @Transactional(readOnly = true)
     public PaginationResult<TwinCommentEntity> findCommentForDomain(CommentSearch search, SimplePagination pagination) throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        Specification<TwinCommentEntity> spec = createCommentSearchSpecification(search)
-                .and(checkDomainId(domainId));
+        Specification<TwinCommentEntity> spec = createCommentSearchSpecification(search);
         Page<TwinCommentEntity> ret = commentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
@@ -196,15 +195,16 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
                 checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true),
                 checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false),
                 checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false),
-                localDateTimeBetween(TwinCommentEntity.Fields.createdAt, search.getCreatedAt()),
-                localDateTimeBetween(TwinCommentEntity.Fields.changedAt, search.getUpdatedAt())
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
+                checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
         );
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUserGroups()));
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUserGroups()))
+                    .and(checkClass(apiUser));
         } else {
             specification = specification
-                    .and(checkDomainId(apiUser.getDomainId()));
+                    .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
         }
         return specification;
     }
