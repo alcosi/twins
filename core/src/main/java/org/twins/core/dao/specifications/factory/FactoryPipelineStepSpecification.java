@@ -19,7 +19,7 @@ public class FactoryPipelineStepSpecification extends CommonSpecification<TwinFa
     public static Specification<TwinFactoryPipelineStepEntity> checkIntegerIn(final String field, final Collection<Integer> ids, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
-            return not ? root.get(field).in(ids).not() : root.get(field).in(ids);
+            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
 

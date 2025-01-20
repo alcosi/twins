@@ -39,8 +39,8 @@ public class TwinClassFieldSpecification extends CommonSpecification<TwinClassFi
             String id = TwinClassFieldEntity.Fields.fieldTyperFeaturerId;
             return not ?
                     (ifNotIsTrueIncludeNullValues ?
-                            cb.or(root.get(id).in(ids).not(), root.get(id).isNull())
-                            : root.get(id).in(ids).not())
+                            cb.or(cb.not(root.get(id).in(ids)), root.get(id).isNull())
+                            : cb.not(root.get(id).in(ids)))
                     : root.get(id).in(ids);
         };
     }
