@@ -7,21 +7,21 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.KitUtils;
-import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.ObjectUtils;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
@@ -29,19 +29,22 @@ import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.search.DataListSearch;
+import org.twins.core.domain.datalist.DataListAttribute;
+import org.twins.core.domain.datalist.DataListSave;
+import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static org.cambium.i18n.dao.specifications.I18nSpecification.doubleJoinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.datalist.DataListSpecification.*;
 
 @Slf4j
 @Service
@@ -56,6 +59,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
     @Lazy
     final AuthService authService;
+    private final I18nService i18nService;
 
     @Override
     public CrudRepository<DataListEntity, UUID> entityRepository() {
@@ -79,39 +83,111 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 
     @Override
     public boolean validateEntity(DataListEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        switch (entityValidateMode) {
+            case beforeSave -> {
+                if (dataListRepository.existsByDomainIdAndKey(apiUser.getDomainId(), entity.getKey()))
+                    throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+            }
+        }
         return true;
     }
 
-    public PaginationResult<DataListEntity> findDataListsForDomain(DataListSearch search, SimplePagination pagination) throws ServiceException {
-        Specification<DataListEntity> spec = createDataListSpecification(search);
-        Page<DataListEntity> ret = dataListRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
-        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    @Transactional(rollbackFor = Throwable.class)
+    public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
+        DataListEntity dataListEntity = new DataListEntity()
+                .setDomainId(authService.getApiUser().getDomainId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
+                .setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId())
+                .setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId())
+                .setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId())
+                .setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId())
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        return dataListRepository.save(dataListEntity);
     }
 
-    private Specification<DataListEntity> createDataListSpecification(DataListSearch search) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        return Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false))
-                .and(checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false))
-                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyLikeList(), false, true))
-                .and(checkFieldLikeIn(DataListEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.id, search.getOptionSearch() != null ? search.getOptionSearch().getIdExcludeList() : null,true, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.dataListId, search.getOptionSearch() != null ? search.getOptionSearch().getDataListIdExcludeList() : null,true, false))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionLikeList() : null, false, true))
-                .and(checkDataListOptionFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionSearch() != null ? search.getOptionSearch().getOptionNotLikeList() : null, true, true))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nLikeList() : null, apiUser.getLocale(),false, false))
-                .and(doubleJoinAndSearchByI18NField(DataListEntity.Fields.dataListOptions, DataListOptionEntity.Fields.optionI18n, search.getOptionSearch() != null ? search.getOptionSearch().getOptionI18nNotLikeList() : null, apiUser.getLocale(),true, true))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdList() : null,false, false))
-                .and(checkDataListOptionUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getOptionSearch() != null ? search.getOptionSearch().getBusinessAccountIdExcludeList() : null,true, true))
-        );
+    @Transactional(rollbackFor = Throwable.class)
+    public DataListEntity updateDataList(DataListUpdate dataListUpdate) throws ServiceException {
+        DataListEntity dbDataListEntity = findEntitySafe(dataListUpdate.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateDataListKey(dataListUpdate, dbDataListEntity, changesHelper);
+        updateDataListName(dataListUpdate.getNameI18n(), dbDataListEntity, changesHelper);
+        updateDataListDescription(dataListUpdate.getDescriptionI18n(), dbDataListEntity, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1key, dbDataListEntity, DataListEntity::getAttribute1key, DataListEntity::setAttribute1key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1nameI18nId, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2key, dbDataListEntity, DataListEntity::getAttribute2key, DataListEntity::setAttribute2key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2nameI18nId, dbDataListEntity, DataListEntity::getAttribute2nameI18nId, DataListEntity::setAttribute2nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3key, dbDataListEntity, DataListEntity::getAttribute3key, DataListEntity::setAttribute3key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
+        dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
+        if (changesHelper.hasChanges()) {
+            validateEntityAndThrow(dbDataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(dbDataListEntity, dataListRepository, changesHelper);
+        }
+        return dbDataListEntity;
     }
+
+    private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(DataListEntity.Fields.key, dbEntity.getKey(), dataListSave.getKey()))
+            return;
+        dbEntity.setKey(dataListSave.getKey());
+    }
+
+    private void updateDataListName(I18nEntity nameI18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18nId() != null)
+            nameI18n.setId(dbEntity.getNameI18nId());
+        i18nService.saveTranslations(I18nType.DATA_LIST_NAME, nameI18n);
+        if (changesHelper.isChanged(DataListEntity.Fields.nameI18nId, dbEntity.getNameI18nId(), nameI18n.getId()))
+            dbEntity.setNameI18nId(nameI18n.getId());
+    }
+
+    private void updateDataListDescription(I18nEntity descriptionI18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.DATA_LIST_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(DataListEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
+    }
+
+    private void updateDataListAttributeKey(DataListAttribute attribute, String fieldName, DataListEntity dbEntity, Function<DataListEntity, String> getAttributeKey, BiConsumer<DataListEntity, String> setAttributeKey, ChangesHelper changesHelper) throws ServiceException {
+        if (attribute == null || attribute.getKey() == null)
+            return;
+        String key = getAttributeKey.apply(dbEntity);
+        if (!changesHelper.isChanged(fieldName, key, attribute.getKey()))
+            return;
+        setAttributeKey.accept(dbEntity, attribute.getKey());
+    }
+
+    private void updateDataListAttributeI18n(DataListAttribute attribute, String fieldName, DataListEntity dbEntity, Function<DataListEntity, UUID> getAttribute, BiConsumer<DataListEntity, UUID> setAttribute, ChangesHelper changesHelper) throws ServiceException {
+        if (attribute == null || attribute.getAttributeI18n() == null)
+            return;
+        UUID currentId = getAttribute.apply(dbEntity);
+        if (currentId != null)
+            attribute.getAttributeI18n().setId(currentId);
+        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, attribute.getAttributeI18n());
+        UUID newId = attribute.getAttributeI18n().getId();
+        if (changesHelper.isChanged(fieldName, currentId, newId)) {
+            setAttribute.accept(dbEntity, newId);
+        }
+    }
+
+//    private void updateDataListAttribute1I18n(I18nEntity attribute1I18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+//        if (attribute1I18n == null)
+//            return;
+//        if (dbEntity.getAttribute1nameI18nId() != null)
+//            attribute1I18n.setId(dbEntity.getAttribute1nameI18nId());
+//        i18nService.saveTranslations(I18nType.DATA_LIST_OPTION_VALUE, attribute1I18n);
+//        if (changesHelper.isChanged(DataListEntity.Fields.attribute1nameI18nId, dbEntity.getAttribute1nameI18nId(), attribute1I18n.getId()))
+//            dbEntity.setAttribute1nameI18nId(attribute1I18n.getId());
+//    }
 
     public DataListEntity findDataListByKey(ApiUser apiUser, String dataListKey) throws ServiceException {
         DataListEntity dataListEntity = dataListRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), dataListKey);

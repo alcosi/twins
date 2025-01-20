@@ -29,4 +29,19 @@ public class DataListDTOv1 {
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public LocalDateTime updatedAt;
+
+    @Schema(description = "attribute1")
+    public DataListAttributeDTOv1 attribute1;
+
+    @Schema(description = "attribute2")
+    public DataListAttributeDTOv1 attribute2;
+
+    @Schema(description = "attribute3")
+    public DataListAttributeDTOv1 attribute3;
+
+    @Schema(description = "attribute4")
+    public DataListAttributeDTOv1 attribute4;
+
+    @Schema(description = "attribute5")
+    public DataListAttributeDTOv1 attribute5;
 }
