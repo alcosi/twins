@@ -42,7 +42,7 @@ public class LinkSearchService {
     private Specification<LinkEntity> createLinkSearchSpecification(LinkSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkDomainId(apiUser.getDomainId(), LinkEntity.Fields.domainId),
+                checkFiledUuid(apiUser.getDomainId(), LinkEntity.Fields.domainId),
                 checkUuidIn(LinkEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(LinkEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkUuidIn(LinkEntity.Fields.srcTwinClassId, search.getSrcTwinClassIdList(), false, false),

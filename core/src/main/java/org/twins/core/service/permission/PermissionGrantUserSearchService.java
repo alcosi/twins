@@ -18,7 +18,7 @@ import org.twins.core.service.auth.AuthService;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionGrantUserSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.permission.PermissionGrantUserSpecification.checkFiledUuid;
 
 
 @Slf4j
@@ -38,7 +38,7 @@ public class PermissionGrantUserSearchService {
     private Specification<PermissionGrantUserEntity> createPermissionGrantUserSearchSpecification(PermissionGrantUserSearch search, UUID domainId) throws ServiceException {
 
         return Specification.allOf(
-                checkDomainId(domainId, PermissionGrantUserEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkFiledUuid(domainId, PermissionGrantUserEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdList(), false, true),
                 checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdExcludeList(), true, true),
                 checkUuidIn(PermissionGrantUserEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, true),

@@ -37,7 +37,7 @@ import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
-import static org.twins.core.dao.specifications.CommonSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFiledUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinstatus.TwinStatusSpecification.checkFieldLikeContainsIn;
 
@@ -72,7 +72,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public PaginationResult<TwinStatusEntity> findTwinStatusesForDomain(TwinStatusSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<TwinStatusEntity> spec = createTwinStatusSearchSpecification(search)
-                .and(checkDomainId(domainId,TwinStatusEntity.Fields.twinClass,TwinClassEntity.Fields.domainId));
+                .and(checkFiledUuid(domainId,TwinStatusEntity.Fields.twinClass,TwinClassEntity.Fields.domainId));
         Page<TwinStatusEntity> ret = twinStatusRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }

@@ -91,7 +91,7 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     private Specification<DataListEntity> createDataListSpecification(DataListSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkDomainId(apiUser.getDomainId(), DataListEntity.Fields.domainId),
+                checkFiledUuid(apiUser.getDomainId(), DataListEntity.Fields.domainId),
                 checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkFieldLikeIn(DataListEntity.Fields.name, search.getNameLikeList(), false, true),

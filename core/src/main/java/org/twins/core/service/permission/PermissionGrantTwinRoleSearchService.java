@@ -21,7 +21,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFiledUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.permission.PermissionGrantTwinRoleSpecification.checkFieldLikeIn;
 
@@ -43,7 +43,7 @@ public class PermissionGrantTwinRoleSearchService {
 
     private Specification<PermissionGrantTwinRoleEntity> createPermissionGrantTwinRoleSearchSpecification(PermissionGrantTwinRoleSearch search, UUID domainId) {
         return Specification.allOf(
-                checkDomainId(domainId,PermissionGrantTwinRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkFiledUuid(domainId,PermissionGrantTwinRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 checkUuidIn(PermissionGrantTwinRoleEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(PermissionGrantTwinRoleEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkUuidIn(PermissionGrantTwinRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),

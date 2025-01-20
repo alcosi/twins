@@ -30,7 +30,7 @@ public class DomainUserSearchService {
     public PaginationResult<DomainUserEntity> findDomainUser(DomainUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainUserEntity> spec = createDomainUserSearchSpecification(search)
-                .and(checkDomainId(domainId, DomainUserEntity.Fields.domain, DomainEntity.Fields.id));
+                .and(checkFiledUuid(domainId, DomainUserEntity.Fields.domain, DomainEntity.Fields.id));
         Page<DomainUserEntity> ret = domainUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }

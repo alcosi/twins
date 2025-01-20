@@ -30,7 +30,7 @@ public class TwinflowSchemaSearchService {
     public PaginationResult<TwinflowSchemaEntity> findTwinflowSchemaForDomain(TwinflowSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<TwinflowSchemaEntity> spec = createTwinflowSchemaSearchSpecification(search)
-                .and(checkDomainId(domainId, PermissionGroupEntity.Fields.domainId));
+                .and(checkFiledUuid(domainId, PermissionGroupEntity.Fields.domainId));
         Page<TwinflowSchemaEntity> ret = twinflowSchemaRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
