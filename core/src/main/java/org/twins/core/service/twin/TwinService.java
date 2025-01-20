@@ -970,6 +970,13 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         }
     }
 
+    public void loadCreatableChildTwinClasses(TwinEntity twinEntity) {
+        loadCreatableChildTwinClasses(Collections.singletonList(twinEntity));
+    }
+
+    public void loadCreatableChildTwinClasses(Collection<TwinEntity> twinEntityCollection) {
+    }
+
     @Data
     @Accessors(chain = true)
     public static class TwinCreateResult {
