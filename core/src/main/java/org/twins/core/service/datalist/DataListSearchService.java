@@ -37,7 +37,7 @@ public class DataListSearchService {
     private Specification<DataListEntity> createDataListSpecification(DataListSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
-                checkFieldUuid(apiUser.getDomainId(), DataListEntity.Fields.domainId)
+                checkFieldUuid(apiUser.getDomainId(), DataListEntity.Fields.domainId),
                 checkUuidIn(DataListEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(DataListEntity.Fields.id, search.getIdExcludeList(), true, false),
                 joinAndSearchByI18NField(DataListEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), false, true),
