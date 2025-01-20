@@ -36,7 +36,9 @@ END $$;
 alter table public.data_list
     alter column name_i18n_id drop not null;
 
-UPDATE public.data_list SET name_i18n_id = NULL;
+UPDATE public.data_list
+SET name_i18n_id = NULL
+WHERE name_i18n_id is not null ;
 
 alter table public.data_list
 alter column name_i18n_id type uuid using name_i18n_id::uuid;
