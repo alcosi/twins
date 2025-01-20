@@ -30,7 +30,8 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
-import org.twins.core.domain.datalist.DataListField;
+import org.twins.core.domain.datalist.DataListSave;
+import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
@@ -93,35 +94,35 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListEntity createDataList(DataListEntity dataListEntity, DataListField dataListField) throws ServiceException {
-        dataListEntity
+    public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
+        DataListEntity dataListEntity = new DataListEntity()
                 .setDomainId(authService.getApiUser().getDomainId())
-                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListField.getNameI18n()).getId())
-                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListField.getDescriptionI18n()).getId())
-                .setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListField.getAttribute1().getAttributeI18n()).getId())
-                .setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListField.getAttribute2().getAttributeI18n()).getId())
-                .setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListField.getAttribute3().getAttributeI18n()).getId())
-                .setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListField.getAttribute4().getAttributeI18n()).getId())
+                .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
+                .setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId())
+                .setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId())
+                .setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId())
+                .setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
         validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return dataListRepository.save(dataListEntity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public DataListEntity updateDataList(DataListEntity dataListEntity, DataListField dataListField) throws ServiceException {
-        DataListEntity dbDataListEntity = findEntitySafe(dataListEntity.getId());
+    public DataListEntity updateDataList(DataListUpdate dataListUpdate) throws ServiceException {
+        DataListEntity dbDataListEntity = findEntitySafe(dataListUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        updateDataListKey(dataListEntity, dbDataListEntity, changesHelper);
-        updateDataListName(dataListField.getNameI18n(), dbDataListEntity, changesHelper);
-        updateDataListDescription(dataListField.getDescriptionI18n(), dbDataListEntity, changesHelper);
-        updateDataListAttributeKey(dataListField.getAttribute1(), DataListEntity.Fields.attribute1key, dbDataListEntity, DataListEntity::getAttribute1key, DataListEntity::setAttribute1key, changesHelper);
-        updateDataListAttributeI18n(dataListField.getAttribute1(), DataListEntity.Fields.attribute1nameI18nId, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, changesHelper);
-        updateDataListAttributeKey(dataListField.getAttribute2(), DataListEntity.Fields.attribute2key, dbDataListEntity, DataListEntity::getAttribute2key, DataListEntity::setAttribute2key, changesHelper);
-        updateDataListAttributeI18n(dataListField.getAttribute2(), DataListEntity.Fields.attribute2nameI18nId, dbDataListEntity, DataListEntity::getAttribute2nameI18nId, DataListEntity::setAttribute2nameI18nId, changesHelper);
-        updateDataListAttributeKey(dataListField.getAttribute3(), DataListEntity.Fields.attribute3key, dbDataListEntity, DataListEntity::getAttribute3key, DataListEntity::setAttribute3key, changesHelper);
-        updateDataListAttributeI18n(dataListField.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
-        updateDataListAttributeKey(dataListField.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
-        updateDataListAttributeI18n(dataListField.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
+        updateDataListKey(dataListUpdate, dbDataListEntity, changesHelper);
+        updateDataListName(dataListUpdate.getNameI18n(), dbDataListEntity, changesHelper);
+        updateDataListDescription(dataListUpdate.getDescriptionI18n(), dbDataListEntity, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1key, dbDataListEntity, DataListEntity::getAttribute1key, DataListEntity::setAttribute1key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute1(), DataListEntity.Fields.attribute1nameI18nId, dbDataListEntity, DataListEntity::getAttribute1nameI18nId, DataListEntity::setAttribute1nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2key, dbDataListEntity, DataListEntity::getAttribute2key, DataListEntity::setAttribute2key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute2(), DataListEntity.Fields.attribute2nameI18nId, dbDataListEntity, DataListEntity::getAttribute2nameI18nId, DataListEntity::setAttribute2nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3key, dbDataListEntity, DataListEntity::getAttribute3key, DataListEntity::setAttribute3key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute3(), DataListEntity.Fields.attribute3nameI18nId, dbDataListEntity, DataListEntity::getAttribute3nameI18nId, DataListEntity::setAttribute3nameI18nId, changesHelper);
+        updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
+        updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
         if (changesHelper.hasChanges()) {
             validateEntityAndThrow(dbDataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
@@ -130,10 +131,10 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
         return dbDataListEntity;
     }
 
-    private void updateDataListKey(DataListEntity factoryEntity, DataListEntity dbEntity, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(DataListEntity.Fields.key, dbEntity.getKey(), factoryEntity.getKey()))
+    private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(DataListEntity.Fields.key, dbEntity.getKey(), dataListSave.getKey()))
             return;
-        dbEntity.setKey(factoryEntity.getKey());
+        dbEntity.setKey(dataListSave.getKey());
     }
 
     private void updateDataListName(I18nEntity nameI18n, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

@@ -19,13 +19,10 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.domain.datalist.DataListField;
 import org.twins.core.dto.rest.datalist.DataListCreateRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
-import org.twins.core.mappers.rest.datalist.DataListAttributeRestDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
-import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.datalist.DataListService;
@@ -37,11 +34,9 @@ import org.twins.core.service.datalist.DataListService;
 @RequiredArgsConstructor
 public class DataListCreateController extends ApiController {
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
     private final DataListCreateDTOReverseMapper dataListCreateDTOReverseMapper;
     private final DataListRestDTOMapperV2 dataListRestDTOMapperV2;
     private final DataListService dataListService;
-    private final DataListAttributeRestDTOReverseMapper dataListAttributeRestDTOReverseMapper;
 
 
     @ParametersApiUserHeaders
@@ -57,14 +52,7 @@ public class DataListCreateController extends ApiController {
             @RequestBody DataListCreateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            DataListField dataListField = new DataListField()
-                    .setNameI18n(i18nRestDTOReverseMapper.convert(request.getNameI18n(), mapperContext))
-                    .setDescriptionI18n(i18nRestDTOReverseMapper.convert(request.getDescriptionI18n(), mapperContext))
-                    .setAttribute1(dataListAttributeRestDTOReverseMapper.convert(request.getAttribute1()))
-                    .setAttribute2(dataListAttributeRestDTOReverseMapper.convert(request.getAttribute2()))
-                    .setAttribute3(dataListAttributeRestDTOReverseMapper.convert(request.getAttribute3()))
-                    .setAttribute4(dataListAttributeRestDTOReverseMapper.convert(request.getAttribute4()));
-            DataListEntity dataListEntity = dataListService.createDataList(dataListCreateDTOReverseMapper.convert(request), dataListField);
+            DataListEntity dataListEntity = dataListService.createDataList(dataListCreateDTOReverseMapper.convert(request));
             rs
                     .setDataList(dataListRestDTOMapperV2.convert(dataListEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

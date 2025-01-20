@@ -6,7 +6,8 @@ import org.cambium.i18n.dao.I18nEntity;
 
 @Data
 @Accessors(chain = true)
-public class DataListField {
+public class DataListSave {
+    private String key;
     private I18nEntity nameI18n;
     private I18nEntity descriptionI18n;
     private DataListAttribute attribute1;
