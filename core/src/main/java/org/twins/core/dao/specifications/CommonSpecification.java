@@ -4,7 +4,9 @@ import jakarta.persistence.criteria.*;
 import org.apache.commons.lang3.function.TriFunction;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -12,6 +14,50 @@ import static org.cambium.common.util.FunctionalUtils.defaultParallelAccumulator
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public class CommonSpecification<T> {
+    /**
+     * Creates a JPA specification to filter entities based on a LocalDateTime field being between
+     * a specified range. Dynamically generates joins as needed for the provided field path and
+     * applies the filter conditions using a DataTimeRangeDTOv1 object.
+     *
+     * @param <T>       the type of the entity for which the specification is created
+     * @param range     an object containing the starting and ending LocalDateTime values defining
+     *                  the range; can be null to apply no constraints
+     * @param filedPath the hierarchical path representing the fields to navigate and join,
+     *                  ending with the target field
+     * @return a JPA {@code Specification} matching entities where the field is between the
+     *         specified range, or an unconstrained {@code Specification} if {@code range} is null
+     */
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRangeDTOv1 range, String... filedPath) {
+        if (range == null) return (root, query, cb) -> cb.conjunction();
+        else return checkFieldLocalDateTimeBetween(range.from, range.to, filedPath);
+    }
+
+    /**
+     * Creates a JPA specification to filter entities based on a LocalDateTime field being between a specified range.
+     * It dynamically generates joins as needed for the provided field path and applies the filter conditions.
+     *
+     * @param <T>       the type of the entity for which the specification is created
+     * @param from      the starting LocalDateTime for the range; if null, no lower bound is applied
+     * @param to        the ending LocalDateTime for the range; if null, no upper bound is applied
+     * @param filedPath the hierarchical path representing the fields to navigate and join, ending with the target field
+     * @return a JPA {@code Specification} matching entities where the field is between the specified range,
+     *         or an unconstrained {@code Specification} if both {@code from} and {@code to} are null
+     */
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final LocalDateTime from, final LocalDateTime to, String... filedPath) {
+        return (root, query, cb) -> {
+            Predicate predicate = cb.conjunction();
+            if (from == null && to == null) return predicate;
+            if (from != null) {
+                Predicate tmpPredicate = predicate;
+                predicate = createPredicateWithJoins(root, cb, from, (property, criteriaBuilder, filedValue) -> criteriaBuilder.and(tmpPredicate, criteriaBuilder.greaterThanOrEqualTo(property, filedValue)), filedPath);
+            }
+            if (to != null) {
+                Predicate tmpPredicate = predicate;
+                predicate = createPredicateWithJoins(root, cb, to, (property, criteriaBuilder, filedValue) -> criteriaBuilder.and(tmpPredicate, criteriaBuilder.lessThanOrEqualTo(property, filedValue)), filedPath);
+            }
+            return predicate;
+        };
+    }
 
     public static <T> Specification<T> checkUuidIn(final String uuidField, final Collection<UUID> uuids, boolean not, boolean ifNotIsTrueIncludeNullValues) {
         return (root, query, cb) -> {

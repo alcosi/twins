@@ -89,4 +89,5 @@ nb-configuration.xml
 .DS_Store
 /gradlew.bat
 /gradlew
+/dev/
 /core/src/main/resources/application-devlocal.properties
