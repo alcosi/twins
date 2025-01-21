@@ -8,14 +8,20 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dao.permission.PermissionGrantUserGroupRepository;
+import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.search.PermissionGrantUserGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Optional;
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.permission.PermissionGrantUserGroupSpecification.checkDomainId;
 
@@ -27,6 +33,17 @@ public class PermissionGrantUserGroupSearchService {
 
     private final AuthService authService;
     private final PermissionGrantUserGroupRepository permissionGrantUserGroupRepository;
+
+    @Transactional(readOnly = true)
+    public PermissionGrantUserGroupEntity findPermissionGrantUserGroupById(UUID id) throws ServiceException {
+        Optional<PermissionGrantUserGroupEntity> entity = permissionGrantUserGroupRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGrantUserGroupEntity.Fields.userGroup, UserGroupEntity.Fields.domainId),
+                        checkFieldUuid(id, PermissionGrantTwinRoleEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
 
     public PaginationResult<PermissionGrantUserGroupEntity> findPermissionGrantUserGroups(PermissionGrantUserGroupSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();

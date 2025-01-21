@@ -8,15 +8,19 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantTwinRoleRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.TwinRole;
 import org.twins.core.domain.search.PermissionGrantTwinRoleSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,7 +37,16 @@ public class PermissionGrantTwinRoleSearchService {
 
     private final AuthService authService;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
-
+    @Transactional(readOnly = true)
+    public PermissionGrantTwinRoleEntity findPermissionGrantTwinRoleById(UUID id) throws ServiceException {
+        Optional<PermissionGrantTwinRoleEntity> entity = permissionGrantTwinRoleRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(),   PermissionGrantTwinRoleEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(id, PermissionGrantTwinRoleEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
     public PaginationResult<PermissionGrantTwinRoleEntity> findPermissionGrantTwinRoles(PermissionGrantTwinRoleSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGrantTwinRoleEntity> spec = createPermissionGrantTwinRoleSearchSpecification(search, domainId);

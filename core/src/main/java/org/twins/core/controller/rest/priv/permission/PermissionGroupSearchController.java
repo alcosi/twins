@@ -1,6 +1,7 @@
 package org.twins.core.controller.rest.priv.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,24 +13,26 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.permission.PermissionGroupEntity;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGroupSearchRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupSearchRsDTOv1;
+import org.twins.core.dto.rest.permission.PermissionGroupViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGroupSearchService;
+
+import java.util.UUID;
 
 @Tag(name = ApiTag.PERMISSION)
 @RestController
@@ -61,6 +64,64 @@ public class PermissionGroupSearchController extends ApiController {
             rs
                     .setPermissionGroups(permissionGroupRestDTOMapper.convertCollection(permissionList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "permissionGroupViewV1", summary = "Return the permission groups for the current domain")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionGroupViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/permission_group/{groupId}/v1")
+    public ResponseEntity<?> permissionGroupViewV1(
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.PERMISSION_GROUP_ID )@PathVariable("groupId") UUID groupId) {
+        PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
+        try {
+            PermissionGroupEntity permission = permissionGroupSearchService
+                    .findPermissionGroupById(groupId);
+            if (permission == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupId+ " in current domain." );
+            }
+            rs
+                    .setPermissionGroup(permissionGroupRestDTOMapper.convert(permission, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "permissionGroupViewByKeyV1", summary = "Return the permission groups for the current domain by key")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionGroupViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/permission_group_by_key/{groupId}/v1")
+    public ResponseEntity<?> permissionGroupViewByKeyV1(
+            @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.PERMISSION_GROUP_KEY )@PathVariable("groupKey") String groupKey) {
+        PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
+        try {
+            PermissionGroupEntity permission = permissionGroupSearchService
+                    .findPermissionGroupByKey(groupKey);
+            if (permission == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupKey+ " in current domain." );
+            }
+            rs
+                    .setPermissionGroup(permissionGroupRestDTOMapper.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

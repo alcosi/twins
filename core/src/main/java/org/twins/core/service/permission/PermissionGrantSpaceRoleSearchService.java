@@ -8,13 +8,16 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.domain.search.PermissionGrantSpaceRoleSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
@@ -29,6 +32,16 @@ public class PermissionGrantSpaceRoleSearchService {
     private final AuthService authService;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
 
+    @Transactional(readOnly = true)
+    public PermissionGrantSpaceRoleEntity findPermissionGrantSpaceRoleById(UUID id) throws ServiceException {
+        Optional<PermissionGrantSpaceRoleEntity> entity = permissionGrantSpaceRoleRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(id, PermissionGrantSpaceRoleEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
+
     public PaginationResult<PermissionGrantSpaceRoleEntity> findPermissionGrantSpaceRoles(PermissionGrantSpaceRoleSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGrantSpaceRoleEntity> spec = createPermissionGrantSpaceRoleSearchSpecification(search, domainId);
@@ -38,7 +51,7 @@ public class PermissionGrantSpaceRoleSearchService {
 
     private Specification<PermissionGrantSpaceRoleEntity> createPermissionGrantSpaceRoleSearchSpecification(PermissionGrantSpaceRoleSearch search, UUID domainId) {
         return Specification.allOf(
-                checkFieldUuid(domainId,PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkFieldUuid(domainId, PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdList(), false, false),
                 checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdExcludeList(), true, false),
                 checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),

@@ -1,7 +1,9 @@
 # New endpoints have been created in [Task-270](https://alcosi.atlassian.net/issues/TWINS-270)
+
     - ✅ - added endpoints
     - ✔ - already existed endpoints
     - 🚫 - does not exist
+    - ⿻ - duplicated by other controller
 
 | URI                                                        | By UUID | By Key | 
 |------------------------------------------------------------|---------|--------|
@@ -22,15 +24,15 @@
 | `/private/twin/history/search/v1`                          | ✅       | 🚫     |
 | `/private/link/search/v1`                                  | ✅       | 🚫     |
 | `/private/permission_grant/assignee_propagation/search/v1` | ✅       | 🚫     |
-| `/private/permission_grant/space_role/search/v1`           |         |        |
-| `/private/permission_grant/twin_role/search/v1`            |         |        |
-| `/private/permission_grant/user_group/search/v1`           |         |        |
-| `/private/permission_grant/user/search/v1`                 |         |        |
-| `/private/permission_group/search/v1`                      |         |        |
-| `/private/permission_schema/search/v1`                     |         |        |
-| `/private/permission/search/v1`                            |         |        |
-| `/private/space/{spaceId}/users/search/v1`                 |         |        |
-| `/private/twin/search/v1`                                  |         |        |
-| `/private/twin/search/v2`                                  |         |        |
-| `/private/twin/search/v3`                                  |         |        |
+| `/private/permission_grant/space_role/search/v1`           | ✅       | 🚫     | No Domain check
+| `/private/permission_grant/twin_role/search/v1`            | ✅       | 🚫     |
+| `/private/permission_grant/user_group/search/v1`           | ✅       | 🚫     |
+| `/private/permission_grant/user/search/v1`                 | ✅       | 🚫     |
+| `/private/permission_group/search/v1`                      | ✅       | ✅      |
+| `/private/permission_schema/search/v1`                     | ✅       | 🚫     |
+| `/private/permission/search/v1`                            | ✅       | ✅      |
+| `/private/space/{spaceId}/users/search/v1`                 | ✅       | ✅      |
+| `/private/twin/search/v1`                                  | ✔       | 🚫     |
+| `/private/twin/search/v2`                                  | ⿻       | 🚫     |
+| `/private/twin/search/v3`                                  | ⿻       | 🚫     |
 

@@ -8,12 +8,16 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.PermissionGroupSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.permission.PermissionGroupSpecification.*;
@@ -25,6 +29,27 @@ import static org.twins.core.dao.specifications.permission.PermissionGroupSpecif
 public class PermissionGroupSearchService {
     private final AuthService authService;
     private final PermissionGroupRepository permissionGroupRepository;
+
+    @Transactional(readOnly = true)
+    public PermissionGroupEntity findPermissionGroupById(UUID id) throws ServiceException {
+        Optional<PermissionGroupEntity> entity = permissionGroupRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(id, PermissionGroupEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
+    @Transactional(readOnly = true)
+    public PermissionGroupEntity findPermissionGroupByKey(String id) throws ServiceException {
+        Optional<PermissionGroupEntity> entity = permissionGroupRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldStringLike(id, PermissionGroupEntity.Fields.key)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
 
     public PaginationResult<PermissionGroupEntity> findPermissionGroupForDomain(PermissionGroupSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
