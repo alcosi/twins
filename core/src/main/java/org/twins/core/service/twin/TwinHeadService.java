@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
@@ -23,13 +25,9 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
-import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.twinclass.TwinClassService;
-import org.twins.core.service.user.UserService;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -40,12 +38,8 @@ public class TwinHeadService {
     final TwinRepository twinRepository;
     final TwinHeadRepository twinHeadRepository;
     @Lazy
-    final TwinService twinService;
-    final TwinSearchService twinSearchService;
     final TwinClassService twinClassService;
     final AuthService authService;
-    final UserService userService;
-    final BusinessAccountService businessAccountService;
     final FeaturerService featurerService;
 
     public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
@@ -138,5 +132,32 @@ public class TwinHeadService {
                 break;
         }
         return businessAccountList;
+    }
+
+    public void loadCreatableChildTwinClasses(TwinEntity twinEntity) throws ServiceException {
+        loadCreatableChildTwinClasses(Collections.singletonList(twinEntity));
+    }
+
+    public void loadCreatableChildTwinClasses(Collection<TwinEntity> twinEntityCollection) throws ServiceException {
+        KitGroupedObj<TwinEntity, UUID, UUID, TwinClassEntity> needLoad = new KitGroupedObj<>(TwinEntity::getId, TwinEntity::getTwinClassId, TwinEntity::getTwinClass);
+        for (TwinEntity twinEntity : twinEntityCollection) {
+            if (twinEntity.getCreatableChildTwinClasses() != null)
+                continue;
+            needLoad.add(twinEntity);
+        }
+        twinClassService.loadHeadHierarchyChildClasses(needLoad.getGroupingObjectMap().values());
+        for (TwinEntity twinEntity : needLoad.getList()) {
+            Kit<TwinClassEntity, UUID> creatableChildTwinClasses = new Kit<>(TwinClassEntity::getId);
+            for (TwinClassEntity childTwinClassEntity : twinEntity.getTwinClass().getHeadHierarchyChildClassKit().getList()) {
+                if (childTwinClassEntity.getHeadHunterFeaturer() == null)
+                    continue;
+                HeadHunter headHunter = featurerService.getFeaturer(childTwinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+                if (headHunter.isCreatableChildClass(childTwinClassEntity.getHeadHunterParams(), twinEntity, childTwinClassEntity)) {
+                    //todo check permission
+                    creatableChildTwinClasses.add(childTwinClassEntity);
+                }
+            }
+            twinEntity.setCreatableChildTwinClasses(creatableChildTwinClasses);
+        }
     }
 }

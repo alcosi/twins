@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -28,7 +29,6 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.specifications.twinclass.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -55,7 +55,6 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -167,7 +166,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false, false))
                         .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(),false, true))
+                        .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), false, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
@@ -239,15 +238,54 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return duplicateTwinClassEntity;
     }
 
-    public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getChildClassIdSet() != null)
-            return twinClassEntity.getChildClassIdSet();
+    public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadExtendsHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
 
-        Set<UUID> childClassIdSet = twinClassRepository.findAll(
-                        TwinClassSpecification.checkHierarchyIsChild(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
-                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
-        twinClassEntity.setChildClassIdSet(childClassIdSet);
-        return childClassIdSet;
+    public void loadExtendsHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getExtendsHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setExtendsHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndExtendsHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getExtendedClassIdSet().contains(twinClass.getId()))
+                    twinClass.getExtendsHierarchyChildClassKit().add(childClass);
+            }
+        }
+    }
+
+    public void loadHeadHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadHeadHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadHeadHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getHeadHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setHeadHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
+                    twinClass.getHeadHierarchyChildClassKit().add(childClass);
+            }
+        }
     }
 
     public void loadPermissions(TwinClassEntity twinClassEntity) {

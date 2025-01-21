@@ -329,29 +329,34 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     }
 
     public List<TwinEntity> findValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
-        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
-            return twinSearchService.findTwins(search);
-        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
+        BasicSearch search = createValidDstTwinsSearch(linkEntity, srcTwinClass);
+        if (search != null) {// forward link
             return twinSearchService.findTwins(search);
         } else
             return null;
     }
 
     public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
-        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
-            return twinSearchService.count(search);
-        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
+        BasicSearch search = createValidDstTwinsSearch(linkEntity, srcTwinClass);
+        if (search != null) {// forward link
             return twinSearchService.count(search);
         } else
             return 0L;
+    }
+
+    private BasicSearch createValidDstTwinsSearch(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
+        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
+            BasicSearch search = new BasicSearch();
+            twinClassService.loadExtendsHierarchyChildClasses(linkEntity.getDstTwinClass());
+            search.addTwinClassId(linkEntity.getDstTwinClass().getExtendsHierarchyChildClassKit().getIdSet(), false);
+            return search;
+        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
+            BasicSearch search = new BasicSearch();
+            twinClassService.loadExtendsHierarchyChildClasses(srcTwinClass);
+            search.addTwinClassId(srcTwinClass.getExtendsHierarchyChildClassKit().getIdSet(), false);
+            return search;
+        } else
+            return null;
     }
 
     public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
