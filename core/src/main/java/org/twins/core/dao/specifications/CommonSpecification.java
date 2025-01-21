@@ -30,14 +30,14 @@ public class CommonSpecification<T> {
      * by the field path and applies the equality condition on the target field.
      *
      * @param <T> the type of the entity for which the specification is created
-     * @param domainId the UUID value to be compared against the target field
+     * @param fieldValue the UUID value to be compared against the target field
      * @param domainFiledPath the hierarchical path representing the fields to navigate and join,
      * ending with the target field
      * @return a JPA {@code Specification} matching entities where the specified UUID equals the target field;
      * null-safe and returns appropriate predicates even when field paths are invalid or null
      */
-    public static <T> Specification<T> checkFieldUuid(UUID domainId, String... domainFiledPath) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), domainFiledPath);
+    public static <T> Specification<T> checkFieldUuid(UUID fieldValue, String... domainFiledPath) {
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue), domainFiledPath);
     }
 
     /**
