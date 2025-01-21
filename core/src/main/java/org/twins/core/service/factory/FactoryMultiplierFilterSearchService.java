@@ -14,7 +14,6 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.domain.search.FactoryMultiplierFilterSearch;
 
-
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryMultiplierFilterSpecification.*;
 
@@ -32,20 +31,19 @@ public class FactoryMultiplierFilterSearchService {
     }
 
     private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) {
-        return Specification.where(
-                checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionLikeList(), false, true)
-                        .and(checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkFactoryIdIn(search.getFactoryIdList(), false))
-                        .and(checkFactoryIdIn(search.getFactoryIdExcludeList(), true))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true))
-                        .and(checkTernary(TwinFactoryMultiplierFilterEntity.Fields.active, search.getActive()))
-        );
+        return Specification.allOf(
+                checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionLikeList(), false, true),
+                checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkFactoryIdIn(search.getFactoryIdList(), false),
+                checkFactoryIdIn(search.getFactoryIdExcludeList(), true),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdList(), false, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdExcludeList(), true, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false),
+                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true),
+                checkTernary(TwinFactoryMultiplierFilterEntity.Fields.active, search.getActive()));
     }
 }

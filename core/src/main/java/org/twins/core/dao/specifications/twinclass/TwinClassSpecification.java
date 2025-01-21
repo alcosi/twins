@@ -27,18 +27,6 @@ public class TwinClassSpecification extends CommonSpecification<TwinClassEntity>
         };
     }
 
-    public static Specification<TwinClassEntity> checkFieldLikeIn(final String fieldName, final Collection<String> search, final boolean or) {
-        return (root, query, cb) -> {
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(search))
-                for (String s : search) {
-                    Predicate predicate = cb.like(cb.lower(root.get(fieldName)), s.toLowerCase());
-                    predicates.add(predicate);
-                }
-            return getPredicate(cb, predicates, or);
-        };
-    }
-
     public static Specification<TwinClassEntity> checkOwnerTypeIn(final Collection<TwinClassEntity.OwnerType> ownerTypes, final boolean not) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();

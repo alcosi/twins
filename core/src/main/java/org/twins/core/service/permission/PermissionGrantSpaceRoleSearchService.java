@@ -11,13 +11,14 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
+import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.domain.search.PermissionGrantSpaceRoleSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.permission.PermissionGrantSpaceRoleSpecification.checkDomainId;
 
 
 @Slf4j
@@ -36,19 +37,18 @@ public class PermissionGrantSpaceRoleSearchService {
     }
 
     private Specification<PermissionGrantSpaceRoleEntity> createPermissionGrantSpaceRoleSearchSpecification(PermissionGrantSpaceRoleSearch search, UUID domainId) {
-        return Specification.where(
-                checkDomainId(domainId)
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true))
-        );
+        return Specification.allOf(
+                checkFieldUuid(domainId,PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdList(), false, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdList(), false, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdExcludeList(), true, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false),
+                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
     }
 
 }

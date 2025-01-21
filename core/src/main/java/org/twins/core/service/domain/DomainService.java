@@ -323,8 +323,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         UUID domainId = authService.getApiUser().getDomainId();
         return where(
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
-                        .and(checkFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
-                        .and(checkFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
+                        .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
+                        .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true))
                         .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false))
