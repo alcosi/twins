@@ -178,7 +178,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     }
 
     @Transactional(readOnly = true)
-    public PaginationResult<TwinCommentEntity> findCommentForDomain(CommentSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinCommentEntity> findComments(CommentSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinCommentEntity> spec = createCommentSearchSpecification(search);
         Page<TwinCommentEntity> ret = commentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
