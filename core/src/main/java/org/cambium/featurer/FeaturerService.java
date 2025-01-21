@@ -33,9 +33,9 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.jpa.domain.Specification.where;
-import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkFieldLikeIn;
+import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
 
 @Component
 @Slf4j
@@ -288,10 +288,10 @@ public class FeaturerService {
     }
 
     public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
-        return where(
-                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false))
-                .and(checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false))
-                .and(checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), true));
+        return allOf(
+                checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false),
+                checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false),
+                checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), false,true));
     }
 
     public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {

@@ -35,17 +35,17 @@ public class PermissionGroupSearchService {
     }
 
     private Specification<PermissionGroupEntity> createPermissionGroupSearchSpecification(PermissionGroupSearch search) throws ServiceException {
-        return Specification.where(
-                checkFieldLikeIn(PermissionGroupEntity.Fields.key, search.getKeyLikeList(), false, true)
-                        .and(checkFieldLikeIn(PermissionGroupEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                        .and(checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false))
-                        .and(checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, true))
-                        .and(checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdExcludeList(), true, true))
-                        .and(checkFieldLikeIn(PermissionGroupEntity.Fields.name, search.getNameLikeList(), false, true))
-                        .and(checkFieldLikeIn(PermissionGroupEntity.Fields.name, search.getNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(PermissionGroupEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(PermissionGroupEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-        );
+        return Specification.allOf(
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.key, search.getKeyLikeList(), false, true),
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.key, search.getKeyNotLikeList(), true, true),
+                checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false),
+                checkUuidIn(PermissionGroupEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, true),
+                checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(PermissionGroupEntity.Fields.id, search.getIdExcludeList(), true, true),
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.name, search.getNameLikeList(), false, true),
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.name, search.getNameNotLikeList(), true, true),
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.description, search.getDescriptionLikeList(), false, true),
+                checkFieldLikeContainsIn(PermissionGroupEntity.Fields.description, search.getDescriptionNotLikeList(), true, true));
+
     }
 }

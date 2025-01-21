@@ -16,7 +16,6 @@ public enum I18nType  {
     TWIN_CLASS_FIELD_DESCRIPTION("twinClassFieldDescription", "Twin class field description", Category.TEXT),
     CARD_NAME("cardName", "Twin card name", Category.TEXT),
     UNKNOWN("unknown", "Unknown", Category.TEXT),
-    DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
     LINK_FORWARD_NAME("linkForwardName", "Twin link forward name", Category.TEXT),
     LINK_BACKWARD_NAME("linkBackwardName", "Twin link backward name", Category.TEXT),
     TWINFLOW_NAME("twinflowName", "Twinflow name", Category.TEXT),
@@ -28,6 +27,9 @@ public enum I18nType  {
     PERMISSION_DESCRIPTION("permissionDescription", "Permission description", Category.TEXT),
     TWIN_FACTORY_NAME("twinFactoryName", "Twin factory name", Category.TEXT),
     TWIN_FACTORY_DESCRIPTION("twinFactoryDescription", "Twin factory description", Category.TEXT),
+    DATA_LIST_NAME("dataListName", "Data list name", Category.TEXT),
+    DATA_LIST_DESCRIPTION("dataListDescription", "Data list description", Category.TEXT),
+    DATA_LIST_OPTION_VALUE("dataListOptionValue", "Data list option value", Category.TEXT),
     ERROR("error","Error", Category.TEXT)
         ;
 

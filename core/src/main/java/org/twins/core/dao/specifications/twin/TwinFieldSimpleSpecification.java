@@ -15,16 +15,6 @@ public class TwinFieldSimpleSpecification {
     private TwinFieldSimpleSpecification() {
     }
 
-    public static Specification<TwinFieldSimpleEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            Join<TwinFieldSimpleEntity, TwinClassFieldEntity> classFieldjoin = root.join(TwinFieldSimpleEntity.Fields.twinClassField);
-            Join<TwinClassFieldEntity, TwinClassEntity> twinClassjoin = classFieldjoin.join(TwinClassFieldEntity.Fields.twinClass);
-            return cb.equal(twinClassjoin.get(TwinClassEntity.Fields.domainId), domainId);
-        };
-    }
-
 
 }
 

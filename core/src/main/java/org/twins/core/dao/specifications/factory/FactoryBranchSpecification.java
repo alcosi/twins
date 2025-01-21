@@ -21,20 +21,6 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Slf4j
 public class FactoryBranchSpecification extends CommonSpecification<TwinFactoryBranchEntity> {
 
-    public static Specification<TwinFactoryBranchEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            for (String name : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), name.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<TwinFactoryBranchEntity> checkTernary(final String field, Ternary ternary) {
         return (root, query, cb) -> {

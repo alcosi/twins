@@ -28,26 +28,12 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
 
             return not ?
                     (ifNotIsTrueIncludeNullValues ?
-                            cb.or(joinDataListOption.get(uuidField).in(uuids).not(), joinDataListOption.get(uuidField).isNull())
-                            : joinDataListOption.get(uuidField).in(uuids).not())
+                            cb.or(cb.not(joinDataListOption.get(uuidField).in(uuids)), joinDataListOption.get(uuidField).isNull())
+                            : cb.not(joinDataListOption.get(uuidField).in(uuids)))
                     : joinDataListOption.get(uuidField).in(uuids);
         };
     }
 
-    public static Specification<DataListEntity> checkFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            List<Predicate> predicates = new ArrayList<>();
-            for (String value : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), value.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<DataListEntity> checkDataListOptionFieldLikeIn(String field, Collection<String> search, boolean not, boolean or) {
         return (root, query, cb) -> {
@@ -71,11 +57,4 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
                 .orElseGet(() -> root.join(DataListEntity.Fields.dataListOptions, JoinType.LEFT));
     }
 
-    public static Specification<DataListEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.disjunction();
-            return cb.equal(root.get(DataListEntity.Fields.domainId), domainId);
-        };
-    }
 }
