@@ -1,6 +1,7 @@
 package org.twins.core.controller.rest.priv.factory;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,24 +13,26 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryEraserSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryEraserSearchRsDTOv1;
+import org.twins.core.dto.rest.factory.FactoryEraserViewRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryEraserRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryEraserSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserSearchService;
+
+import java.util.UUID;
 
 
 @Tag(name = ApiTag.FACTORY)
@@ -63,6 +66,37 @@ public class FactoryEraserSearchController extends ApiController {
             rs
                     .setErasers(factoryEraserRestDTOMapperV2.convertCollection(eraserList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(eraserList))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "factoryEraserViewV1", summary = "Factory eraser view by id")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Factory eraser data", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = FactoryEraserViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/factory_eraser/{eraserId}/v1")
+    public ResponseEntity<?> factoryEraserViewV1(
+            @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) MapperContext mapperContext,
+            @SimplePaginationParams SimplePagination pagination,
+           @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
+        FactoryEraserViewRsDTOv1 rs = new FactoryEraserViewRsDTOv1();
+        try {
+            TwinFactoryEraserEntity eraser = factoryEraserSearchService
+                    .findFactoryEraserById(eraserId);
+            if (eraser == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such eraser: " + eraserId+" in current domain.");
+            }
+            rs
+                    .setEraser(factoryEraserRestDTOMapperV2.convert(eraser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

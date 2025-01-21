@@ -1,6 +1,7 @@
 package org.twins.core.controller.rest;
 
 import lombok.extern.slf4j.Slf4j;
+import org.cambium.common.exception.DefaultErrorCode;
 import org.cambium.common.exception.ErrorCode;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
@@ -8,6 +9,7 @@ import org.cambium.i18n.service.I18nService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.dao.error.ErrorEntity;
 import org.twins.core.dao.error.ErrorRepository;
 import org.twins.core.dto.rest.Response;
@@ -53,6 +55,8 @@ public abstract class ApiController {
     }
 
     public ResponseEntity<Response> createErrorRs(Exception ex, Response rs) {
+        if (ex instanceof ResponseStatusException)
+            return createErrorRs(ex,new DefaultErrorCode(((ResponseStatusException) ex)),rs);
         return createErrorRs(ex, ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, rs);
     }
 

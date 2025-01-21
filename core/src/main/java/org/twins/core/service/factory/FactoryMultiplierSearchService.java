@@ -8,10 +8,17 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.domain.search.FactoryMultiplierSearch;
+import org.twins.core.service.auth.AuthService;
+
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.twins.core.dao.specifications.factory.FactoryMultiplierSpecification.*;
 
@@ -21,7 +28,17 @@ import static org.twins.core.dao.specifications.factory.FactoryMultiplierSpecifi
 @RequiredArgsConstructor
 public class FactoryMultiplierSearchService {
     private final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
-
+    private final AuthService authService;
+    @Transactional(readOnly = true)
+    public TwinFactoryMultiplierEntity findFactoryMultiplierById(UUID id) throws ServiceException {
+        Optional<TwinFactoryMultiplierEntity> entity = twinFactoryMultiplierRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId),
+                        checkFieldUuid(id, TwinFactoryMultiplierEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
     public PaginationResult<TwinFactoryMultiplierEntity> findFactoryMultipliers(FactoryMultiplierSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryMultiplierEntity> spec = createFactoryMultiplierSearchSpecification(search);
         Page<TwinFactoryMultiplierEntity> ret = twinFactoryMultiplierRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

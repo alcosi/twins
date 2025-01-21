@@ -8,10 +8,18 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.domain.search.FactoryPipelineStepSearch;
+import org.twins.core.service.auth.AuthService;
+
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.*;
@@ -22,7 +30,17 @@ import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpeci
 @RequiredArgsConstructor
 public class FactoryPipelineStepSearchService {
     private final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
-
+    private final AuthService authService;
+    @Transactional(readOnly = true)
+    public TwinFactoryPipelineStepEntity findFactoryPipelineStepsById(UUID id) throws ServiceException {
+        Optional<TwinFactoryPipelineStepEntity> entity = twinFactoryPipelineStepRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryPipelineStepEntity.Fields.twinFactoryPipeline,TwinFactoryPipelineEntity.Fields.twinFactoryId, TwinFactoryEntity.Fields.domainId),
+                        checkFieldUuid(id, TwinFactoryPipelineStepEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
     public PaginationResult<TwinFactoryPipelineStepEntity> findFactoryPipelineSteps(FactoryPipelineStepSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryPipelineStepEntity> spec = createFactoryPipelineStepSearchSpecification(search);
         Page<TwinFactoryPipelineStepEntity> ret = twinFactoryPipelineStepRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

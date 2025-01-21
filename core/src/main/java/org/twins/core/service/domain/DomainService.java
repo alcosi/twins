@@ -17,6 +17,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
@@ -312,7 +313,16 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         Page<DomainBusinessAccountEntity> domainBusinessAccountsList = domainBusinessAccountRepository.findAll(createDomainBusinessAccountEntitySearchSpecification(domainBusinessAccountSearch), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainBusinessAccountsList, pagination);
     }
-
+    @Transactional(readOnly = true)
+    public DomainBusinessAccountEntity findDomainBusinessAccountById(UUID id) throws ServiceException {
+        Optional<DomainBusinessAccountEntity> accountEntity = domainBusinessAccountRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(id, DomainBusinessAccountEntity.Fields.id)  ,
+                        checkFieldUuid(authService.getApiUser().getDomainId(), DomainBusinessAccountEntity.Fields.domainId)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return accountEntity.orElse(null);
+    }
     public List<DomainBusinessAccountEntity> searchDomainBusinessAccounts(DomainBusinessAccountSearch domainBusinessAccountSearch) throws ServiceException {
         if (domainBusinessAccountSearch == null)
             domainBusinessAccountSearch = new DomainBusinessAccountSearch(); //no filters

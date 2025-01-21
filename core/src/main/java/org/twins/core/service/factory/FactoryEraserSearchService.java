@@ -8,15 +8,22 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.domain.search.FactoryEraserSearch;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkTernary;
@@ -27,7 +34,17 @@ import static org.twins.core.dao.specifications.factory.FactoryEraserSpecificati
 @RequiredArgsConstructor
 public class FactoryEraserSearchService {
     private final TwinFactoryEraserRepository twinFactoryEraserRepository;
-
+    private final AuthService authService;
+    @Transactional(readOnly = true)
+    public TwinFactoryEraserEntity findFactoryEraserById(UUID id) throws ServiceException {
+        Optional<TwinFactoryEraserEntity> entity = twinFactoryEraserRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryEraserEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId),
+                        checkFieldUuid(id, TwinFactoryEraserEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
     public PaginationResult<TwinFactoryEraserEntity> findFactoryEraser(FactoryEraserSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryEraserEntity> spec = createFactoryEraserSearchSpecification(search);
         Page<TwinFactoryEraserEntity> ret = twinFactoryEraserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

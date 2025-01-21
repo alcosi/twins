@@ -1,6 +1,7 @@
 package org.twins.core.controller.rest.priv.permission;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -12,30 +13,26 @@ import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.permission.PermissionGrantAssigneePropagationEntity;
-import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationSearchRqDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationSearchRsDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleSearchRqDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantSpaceRoleSearchRsDTOv1;
+import org.twins.core.dto.rest.permission.PermissionGrantAssigneePropagationViewRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationSearchDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantRoleSpaceSearchDTOReverseMapper;
-import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationSearchService;
-import org.twins.core.service.permission.PermissionGrantSpaceRoleSearchService;
+
+import java.util.UUID;
 
 @Tag(name = ApiTag.PERMISSION)
 @RestController
@@ -68,6 +65,35 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
             rs
                     .setPermissionGrantAssigneePropagations(permissionGrantAssigneePropagationRestDTOMapperV2.convertCollection(permissionGrants.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(permissionGrants))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "permissionGrantAssigneePropagationViewV1", summary = "Permission grant assignee propagation view")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Permission grant assignee propagation", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = PermissionGrantAssigneePropagationViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/permission_grant/assignee_propagation/{propagationId}/v1")
+    public ResponseEntity<?> permissionGrantAssigneePropagationViewV1(
+            @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable("propagationId") UUID propagationId) {
+        PermissionGrantAssigneePropagationViewRsDTOv1 rs = new PermissionGrantAssigneePropagationViewRsDTOv1();
+        try {
+            PermissionGrantAssigneePropagationEntity permissionGrant = permissionGrantAssigneePropagationSearchService
+                    .findPermissionAssigneePropagationById(propagationId);
+            if (permissionGrant == null) {
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission grant: " + propagationId + " in current domain.");
+            }
+            rs
+                    .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

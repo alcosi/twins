@@ -8,12 +8,17 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.FactorySearch;
 import org.twins.core.service.auth.AuthService;
+
+import java.util.Optional;
+import java.util.UUID;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.twins.core.dao.specifications.factory.FactorySpecification.*;
@@ -25,6 +30,17 @@ import static org.twins.core.dao.specifications.factory.FactorySpecification.*;
 public class FactorySearchService {
     private final AuthService authService;
     private final TwinFactoryRepository twinFactoryRepository;
+
+    @Transactional(readOnly = true)
+    public TwinFactoryEntity findFactoriesInDomainById(UUID id) throws ServiceException {
+        Optional<TwinFactoryEntity> entity = twinFactoryRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(),  TwinFactoryEntity.Fields.domainId),
+                        checkFieldUuid(id, TwinFactoryEntity.Fields.id)
+                ), FluentQuery.FetchableFluentQuery::one
+        );
+        return entity.orElse(null);
+    }
 
     public PaginationResult<TwinFactoryEntity> findFactoriesInDomain(FactorySearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryEntity> spec = createFactorySearchSpecification(search);
