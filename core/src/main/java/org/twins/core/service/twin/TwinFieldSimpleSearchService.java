@@ -21,6 +21,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -66,7 +67,7 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
                 CommonSpecification.checkUuidIn(TwinFieldSimpleEntity.Fields.twinId, twinIds.getIdSet(), false, false)
         );
         //https://github.com/spring-projects/spring-data-jpa/pull/430
-        return twinFieldSimpleRepository.findBy(spec, q -> q.as(TwinFieldSimpleNoRelationsProjectionInterfaceBased.class).all());
+        return twinIds.isEmpty() ? new ArrayList<>() : twinFieldSimpleRepository.findBy(spec, q -> q.as(TwinFieldSimpleNoRelationsProjectionInterfaceBased.class).all());
     }
 
 
