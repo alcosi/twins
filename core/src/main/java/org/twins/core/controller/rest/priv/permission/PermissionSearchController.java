@@ -109,7 +109,7 @@ public class PermissionSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission/{permissionId}/v1")
+    @GetMapping(value = "/private/permission_by_key/{permissionId}/v1")
     public ResponseEntity<?> permissionViewByKeyV1(
             @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_KEY )@PathVariable("permissionKey") String permissionKey) {
