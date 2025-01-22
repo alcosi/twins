@@ -9,4 +9,8 @@ import java.util.List;
 public class AttachmentCUDValidateResult {
     public AttachmentCUDProblems cudProblems = new AttachmentCUDProblems();
     public List<TwinAttachmentEntity> attachmentsForUD = new ArrayList<>();
+
+    public boolean hasProblems() {
+        return getCudProblems().hasProblems();
+    }
 }

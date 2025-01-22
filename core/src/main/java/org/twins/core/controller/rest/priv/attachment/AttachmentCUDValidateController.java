@@ -52,9 +52,7 @@ public class AttachmentCUDValidateController extends ApiController {
         try {
             AttachmentCUDValidateResult result = attachmentService.validateCUD(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
             rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
-            if (!result.getCudProblems().getCreateProblems().isEmpty() ||
-                    !result.getCudProblems().getUpdateProblems().isEmpty() ||
-                    !result.getCudProblems().getDeleteProblems().isEmpty())
+            if (result.hasProblems())
                 throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
 
         } catch (ServiceException se) {

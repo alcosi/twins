@@ -358,26 +358,20 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             updates.add(existingEntity);
             result.getAttachmentsForUD().add(existingEntity);
             size = size - existingEntity.getSize() + update.getSize();
-            if (size > tierQuotas.getQuotaSize()) {
-                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem()
-                        .setId(existingEntity.getId().toString())
-                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
-            }
+//            if (size > tierQuotas.getQuotaSize()) {
+//                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem()
+//                        .setId(existingEntity.getId().toString())
+//                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
+//            }
         }
         for (TwinAttachmentEntity create : creates) {
             size += create.getSize();
             count++;
-            if (size > tierQuotas.getQuotaSize()) {
-                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem()
-                        .setId(create.getExternalId())
-                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
-            }
-            if (count > tierQuotas.getQuotaCount()) {
-                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem()
-                        .setId(create.getExternalId())
-                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_TYPE));
-            }
         }
+        if (size > tierQuotas.getQuotaSize())
+            throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED);
+        if (count > tierQuotas.getQuotaCount())
+            throw new ServiceException(ErrorCodeTwins.TIER_COUNT_QUOTA_REACHED);
         return result;
     }
 
