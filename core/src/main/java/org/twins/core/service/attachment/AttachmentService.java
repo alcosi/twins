@@ -13,19 +13,13 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.action.TwinAction;
-import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
-import org.twins.core.dao.attachment.TwinAttachmentAction;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
-import org.twins.core.dao.attachment.TwinAttachmentRepository;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
-import org.twins.core.dao.domain.DomainBusinessAccountEntity;
-import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.dao.domain.TierEntity;
+import org.twins.core.dao.attachment.*;
 import org.twins.core.dao.history.HistoryType;
 import org.twins.core.dao.history.context.HistoryContextAttachment;
 import org.twins.core.dao.history.context.HistoryContextAttachmentChange;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.*;
+import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
@@ -336,20 +330,57 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
 
     public AttachmentCUDValidateResult validateCUD(UUID twinId, EntityCUD<TwinAttachmentEntity> cud) throws ServiceException {
         AttachmentCUDValidateResult result = new AttachmentCUDValidateResult();
-        ApiUser apiUser = authService.getApiUser();
-        DomainEntity domain = apiUser.getDomain();
-        BusinessAccountEntity ba = null;
-        List<TwinAttachmentEntity> deletes = cud.getDeleteList()
+        AttachmentQuotas tierQuotas = domainService.getTierQuotas();
 
+        List<TwinAttachmentEntity> deletes = cud.getDeleteList();
+        List<TwinAttachmentEntity> updates = cud.getUpdateList();
+        List<TwinAttachmentEntity> creates = cud.getCreateList();
 
-        if (apiUser.isBusinessAccountSpecified())
-            ba = apiUser.getBusinessAccount();
-        if(ba != null) {
-            DomainBusinessAccountEntity dba = domainService.getDomainBusinessAccountEntitySafe(domain.getId(), ba.getId());
-            checkCreates(result, cud.getCreateList());
+        long size = tierQuotas.getUsedSize();
+        long count = tierQuotas.getUsedCount();
+
+        for (TwinAttachmentEntity delete : deletes) {
+            if (!delete.getTwinId().equals(twinId))
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + delete.getId() + "] is not added to twin[" + twinId + "]");
+            size -= delete.getSize();
+            count--;
+            result.getAttachmentsForUD().add(delete);
+        }
+        List<UUID> updateIds = updates.stream().map(TwinAttachmentEntity::getId).collect(Collectors.toList());
+        Kit<TwinAttachmentEntity, UUID> existingEntities = findEntitiesSafe(updateIds);
+
+        for (TwinAttachmentEntity update : updates) {
+            TwinAttachmentEntity existingEntity = existingEntities.get(update.getId());
+            if (null == existingEntity)
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Updatable attachment [" + update.getId() + "] is not exists");
+            if (!existingEntity.getTwinId().equals(twinId))
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID, "Deletable attachment [" + update.getId() + "] is not added to twin[" + twinId + "]");
+            updates.add(existingEntity);
+            result.getAttachmentsForUD().add(existingEntity);
+            size = size - existingEntity.getSize() + update.getSize();
+            if (size > tierQuotas.getQuotaSize()) {
+                result.getCudProblems().getUpdateProblems().add(new AttachmentUpdateProblem()
+                        .setId(existingEntity.getId().toString())
+                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
+            }
+        }
+        for (TwinAttachmentEntity create : creates) {
+            size += create.getSize();
+            count++;
+            if (size > tierQuotas.getQuotaSize()) {
+                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem()
+                        .setId(create.getExternalId())
+                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_SIZE));
+            }
+            if (count > tierQuotas.getQuotaCount()) {
+                result.getCudProblems().getCreateProblems().add(new AttachmentCreateProblem()
+                        .setId(create.getExternalId())
+                        .setProblem(AttachmentFileCreateUpdateProblem.INVALID_TYPE));
+            }
         }
         return result;
     }
+
 
     public enum CommentRelinkMode {
         denied,

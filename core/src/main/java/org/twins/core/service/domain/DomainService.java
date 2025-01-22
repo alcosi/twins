@@ -335,7 +335,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         );
     }
 
-    public AttachmentQuotas getDomainBusinessAccountQuotas() throws ServiceException {
+    public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if(!apiUser.isBusinessAccountSpecified())
             throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
