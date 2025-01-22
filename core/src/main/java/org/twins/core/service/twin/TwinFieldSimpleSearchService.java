@@ -16,6 +16,7 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -51,12 +52,10 @@ public class TwinFieldSimpleSearchService extends EntitySecureFindServiceImpl<Tw
     }
 
 
-    public List<TwinFieldSimpleNoRelationsProjection> findTwinFieldsSimple(BasicSearch search) throws ServiceException {
+    public List<TwinFieldSimpleNoRelationsProjection> findTwinFieldsSimple(Collection<UUID> headerTwinIdList, Collection<UUID> twinIdExcludeList, Collection<UUID> statusIdList) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if(null == apiUser.getDomainId() || null == search.getHeaderTwinIdList() || null == search.getStatusIdList())
+        if(null == apiUser.getDomainId() || null == headerTwinIdList || null == statusIdList || null == twinIdExcludeList)
             return new ArrayList<>();
-        return twinFieldSimpleRepository.findTwinFieldSimpleEntityProjected(apiUser.getDomainId(), search.getHeaderTwinIdList(), search.getTwinIdExcludeList(), search.getStatusIdList());
+        return twinFieldSimpleRepository.findTwinFieldSimpleEntityProjected(apiUser.getDomainId(), headerTwinIdList, twinIdExcludeList, statusIdList);
     }
-
-
 }
