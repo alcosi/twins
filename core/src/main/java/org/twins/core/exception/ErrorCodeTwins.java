@@ -62,6 +62,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT(10602, "data list option is not valid for current business account"),
     DATALIST_LIST_UNKNOWN(10603, "data list is unknown"),
+    DATALIST_NAME_IS_NOT_UNIQUE(10604, "data list with this key is not unique"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),

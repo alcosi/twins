@@ -9,7 +9,8 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.*;
+import org.twins.core.dao.factory.TwinFactoryEraserEntity;
+import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.domain.search.FactoryEraserSearch;
 
 import java.util.Collections;
@@ -17,7 +18,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.*;
+import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkTernary;
 
 
 @Slf4j
@@ -33,21 +35,20 @@ public class FactoryEraserSearchService {
     }
 
     private Specification<TwinFactoryEraserEntity> createFactoryEraserSearchSpecification(FactoryEraserSearch search) {
-        return Specification.where(
-                checkFieldLikeIn(TwinFactoryEraserEntity.Fields.description, search.getDescriptionLikeList(), false, true)
-                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryId, search.getFactoryIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryId, search.getFactoryIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionLikeList()), false, true))
-                        .and(checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionNotLikeList()), true, true))
-                        .and(checkTernary(TwinFactoryEraserEntity.Fields.active, search.getActive()))
-        );
+        return Specification.allOf(
+                checkFieldLikeIn(TwinFactoryEraserEntity.Fields.description, search.getDescriptionLikeList(), false, true),
+                checkFieldLikeIn(TwinFactoryEraserEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.id, search.getIdList(), false, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryId, search.getFactoryIdList(), false, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryId, search.getFactoryIdExcludeList(), true, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false),
+                checkUuidIn(TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, false),
+                checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionLikeList()), false, true),
+                checkFieldLikeIn(TwinFactoryEraserEntity.Fields.eraserAction, safeConvert(search.getEraseActionNotLikeList()), true, true),
+                checkTernary(TwinFactoryEraserEntity.Fields.active, search.getActive()));
     }
 
     private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {

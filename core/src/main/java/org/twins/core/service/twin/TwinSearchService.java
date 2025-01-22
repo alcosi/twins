@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
@@ -30,8 +32,6 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserGroupService;
@@ -114,7 +114,7 @@ public class TwinSearchService {
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         } else {
             specification = specification
-                    .and(checkDomainId(apiUser.getDomainId()))
+                    .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
         }
 

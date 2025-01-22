@@ -18,7 +18,7 @@ import java.util.*;
 public class SpaceRoleUserSpecification extends CommonSpecification<SpaceRoleUserEntity> {
 
     public static Specification<SpaceRoleUserEntity> checkUuid(final String uuidField, final UUID uuid, boolean not) {
-        return (root, query, cb) -> not ? cb.equal(root.get(uuidField), uuid).not() : cb.equal(root.get(uuidField), uuid);
+        return (root, query, cb) -> not ? cb.not(cb.equal(root.get(uuidField), uuid)) : cb.equal(root.get(uuidField), uuid);
     }
 
     public static Specification<SpaceRoleUserEntity> checkUserInSpaceGroups(final Collection<UUID> groupIds, boolean not) {

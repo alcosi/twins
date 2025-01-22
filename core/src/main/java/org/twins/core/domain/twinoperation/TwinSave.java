@@ -1,12 +1,14 @@
 package org.twins.core.domain.twinoperation;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 
 import java.util.*;
 
 @Data
+@EqualsAndHashCode(callSuper = true) // TWINS-254 bug with hashcode generation during insert in factory items set
 @Accessors(chain = true)
 public abstract class TwinSave extends TwinOperation {
     protected Map<UUID, FieldValue> fields; // key: twinClassFieldId
@@ -51,3 +53,4 @@ public abstract class TwinSave extends TwinOperation {
 
     public abstract UUID nullifyUUID();
 }
+

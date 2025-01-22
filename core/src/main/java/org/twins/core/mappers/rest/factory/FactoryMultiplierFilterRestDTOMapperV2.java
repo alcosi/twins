@@ -9,7 +9,6 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryMultiplierMode;
-import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor

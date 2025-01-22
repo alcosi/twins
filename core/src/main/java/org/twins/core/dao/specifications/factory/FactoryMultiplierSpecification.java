@@ -22,24 +22,10 @@ public class FactoryMultiplierSpecification extends CommonSpecification<TwinFact
     public static Specification<TwinFactoryMultiplierEntity> checkIntegerIn(final String field, final Set<Integer> ids, boolean not) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
-            return not ? root.get(field).in(ids).not() : root.get(field).in(ids);
+            return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
 
-    public static Specification<TwinFactoryMultiplierEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(search))
-                return cb.conjunction();
-
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            for (String name : search) {
-                Predicate predicate = cb.like(cb.lower(root.get(field)), name.toLowerCase());
-                if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
-            return getPredicate(cb, predicates, or);
-        };
-    }
 
     public static Specification<TwinFactoryMultiplierEntity> checkTernary(final String field, Ternary ternary) {
         return (root, query, cb) -> {

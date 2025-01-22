@@ -26,6 +26,7 @@ import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRqDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusSearchRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
+import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusSearchRestDTOReverseMapper;
 import org.twins.core.service.twin.TwinStatusService;
@@ -35,6 +36,7 @@ import org.twins.core.service.twin.TwinStatusService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinStatusSearchController extends ApiController {
+    private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
     private final TwinStatusSearchRestDTOReverseMapper twinStatusSearchRestDTOReverseMapper;
     private final TwinStatusRestDTOMapperV2 twinStatusRestDTOMapperV2;
     private final PaginationMapper paginationMapper;
@@ -58,7 +60,8 @@ public class TwinStatusSearchController extends ApiController {
                     .findTwinStatusesForDomain(twinStatusSearchRestDTOReverseMapper.convert(request), pagination);
             rs
                     .setStatuses(twinStatusRestDTOMapperV2.convertCollection(twinStatusList.getList(), mapperContext))
-                    .setPagination(paginationMapper.convert(twinStatusList));
+                    .setPagination(paginationMapper.convert(twinStatusList))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

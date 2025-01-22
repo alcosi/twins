@@ -244,7 +244,13 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAliasEntity, UUID> twinAliases;
+    private Kit<TwinAliasEntity, TwinAliasType> twinAliases;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    // we use kitGrouped, because during moving twin to other space or even during class change a new alias will be created,
+    // but old aliases also should be accessible for correct url processing
+    private KitGrouped<TwinAliasEntity, UUID, TwinAliasType> twinAliasesArchive;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -253,6 +259,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinAttachmentsCount twinAttachmentsCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
     @Override
     public String toString() {

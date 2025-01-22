@@ -34,12 +34,9 @@ public class TwinCommentEntity {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @UpdateTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "changed_at")
     private Timestamp changedAt;
 
