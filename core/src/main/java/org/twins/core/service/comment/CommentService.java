@@ -66,8 +66,10 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
         ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUser().getId();
-        comment.setCreatedByUserId(userId);
-        comment.setCreatedByUser(apiUser.getUser());
+        comment
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(userId)
+                .setCreatedByUser(apiUser.getUser());
         TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
         if (CollectionUtils.isEmpty(attachmentList))
