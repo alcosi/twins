@@ -22,20 +22,14 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
-import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dto.rest.factory.FactoryBranchSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchSearchRsDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
-import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryBranchSearchDTOReverseMapper;
-import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
-import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryBranchSearchService;
-import org.twins.core.service.factory.FactoryConditionSetSearchService;
 
 @Tag(name = ApiTag.FACTORY)
 @RestController
