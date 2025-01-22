@@ -1,4 +1,4 @@
-package org.twins.core.mappers.rest.permission;
+package org.twins.core.mappers.rest.factory;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
