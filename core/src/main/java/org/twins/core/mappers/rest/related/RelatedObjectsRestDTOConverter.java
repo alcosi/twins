@@ -107,7 +107,7 @@ public class RelatedObjectsRestDTOConverter {
         Map<UUID, PermissionSchemaDTOv2> permissionSchemaMap = new HashMap<>();
         Map<UUID, TwinflowBaseDTOv1> twinflowMap = new HashMap<>();
         Map<UUID, FactoryDTOv1> factoryMap = new HashMap<>();
-        Map<UUID, FactoryPipelineDTOv2> factoryPipelineMap = new HashMap<>();
+        Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap = new HashMap<>();
         Map<Integer, FeaturerDTOv1> featurerMap = new HashMap<>();
 
         MapperContext mapperContextLevel2 = mapperContext.cloneIgnoreRelatedObjects();
@@ -243,7 +243,7 @@ public class RelatedObjectsRestDTOConverter {
         return ret;
     }
 
-    public <E, D, K> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, D> mapper, MapperContext mapperContext, Map<K, D> map, Function<? super E, ? extends K> functionGetId) throws Exception {
+    public <E, D, K> void convertAndPut(Map<K, RelatedObject<E>> relatedObjects, RestSimpleDTOMapper<E, ? extends D> mapper, MapperContext mapperContext, Map<K, D> map, Function<? super E, ? extends K> functionGetId) throws Exception {
         for (RelatedObject<E> relatedObject : relatedObjects.values())
             map.put(functionGetId.apply(relatedObject.getObject()), mapper.convert(relatedObject.getObject(), mapperContext.setModesMap(relatedObject.getModes())));
     }

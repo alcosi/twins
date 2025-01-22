@@ -75,8 +75,12 @@ public class RelatedObjectsDTOv1 {
     public Map<UUID, FactoryDTOv1> factoryMap;
 
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
-    public Map<UUID, FactoryPipelineDTOv2> factoryPipelineMap;
+    public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;
 }
+
+
+
+
