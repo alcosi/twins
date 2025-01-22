@@ -6,15 +6,21 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
 import java.util.function.Function;
+
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldStringLike;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 
 @Slf4j
 @Service
@@ -53,6 +59,15 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
         return true;
     }
 
+    public PermissionGroupEntity findEntitySafeByKey(String key) throws ServiceException {
+        PermissionGroupEntity entity = permissionGroupRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldStringLike(key, PermissionGroupEntity.Fields.key)
+                ), FluentQuery.FetchableFluentQuery::one
+        ).orElse(null);
+        return findEntitySafe(entity==null?null:entity.getId());
+    }
     //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup
 //    public void loadPermissionGroup(PermissionEntity entity) {
 //        loadPermissionGroup(Collections.singletonList(entity));

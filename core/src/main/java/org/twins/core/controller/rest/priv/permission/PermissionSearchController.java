@@ -31,6 +31,7 @@ import org.twins.core.mappers.rest.permission.PermissionRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionSearchService;
+import org.twins.core.service.permission.PermissionService;
 
 import java.util.UUID;
 
@@ -44,6 +45,7 @@ public class PermissionSearchController extends ApiController {
     private final PermissionSearchDTOReverseMapper permissionSearchDTOReverseMapper;
     private final PermissionRestDTOMapperV2 permissionRestDTOMapperV2;
     private final PermissionSearchService permissionSearchService;
+    private final PermissionService permissionService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionSearchListV1", summary = "Return a list of all permissions for the current domain")
@@ -86,8 +88,7 @@ public class PermissionSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_ID )@PathVariable("permissionId") UUID permissionId) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {
-            PermissionEntity permission = permissionSearchService
-                    .findPermissionById(permissionId);
+            PermissionEntity permission = permissionService.findEntitySafe(permissionId);
             if (permission == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission : " + permissionId+ " in current domain." );
             }
@@ -115,8 +116,7 @@ public class PermissionSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_KEY )@PathVariable("permissionKey") String permissionKey) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {
-            PermissionEntity permission = permissionSearchService
-                    .findPermissionByKey(permissionKey);
+            PermissionEntity permission = permissionService.findEntitySafeByKey(permissionKey);
             if (permission == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission key: " + permissionKey+ " in current domain." );
             }

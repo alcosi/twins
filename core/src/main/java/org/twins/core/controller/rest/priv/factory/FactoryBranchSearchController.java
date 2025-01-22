@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryBranchSearchService;
+import org.twins.core.service.factory.FactoryBranchService;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ public class FactoryBranchSearchController extends ApiController {
     private final FactoryBranchSearchDTOReverseMapper factoryBranchSearchDTOReverseMapper;
     private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
     private final FactoryBranchSearchService factoryBranchSearchService;
-
+    private final FactoryBranchService factoryBranchService;
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryBranchSearchV1", summary = "Factory branch search")
     @ApiResponses(value = {
@@ -86,11 +86,8 @@ public class FactoryBranchSearchController extends ApiController {
             @Parameter(example = DTOExamples.FACTORY_BRANCH_ID) @PathVariable("factoryBranchId")UUID factoryBranchId) {
         FactoryBranchViewRsDTOv1 rs = new FactoryBranchViewRsDTOv1();
         try {
-            TwinFactoryBranchEntity branch = factoryBranchSearchService
-                    .findFactoryBrancherById(factoryBranchId);
-            if (branch == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such factory branch: " + factoryBranchId);
-            }
+            TwinFactoryBranchEntity branch = factoryBranchService.findEntitySafe(factoryBranchId);
+
             rs
                     .setBranch(factoryBranchRestDTOMapperV2.convert(branch, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

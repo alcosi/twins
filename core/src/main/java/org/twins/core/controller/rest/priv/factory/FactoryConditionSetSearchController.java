@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryConditionSetSearchService;
+import org.twins.core.service.factory.FactoryConditionSetService;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ public class FactoryConditionSetSearchController extends ApiController {
     private final FactoryConditionSetSearchRqDTOReverseMapper factoryConditionSetSearchRqDTOReverseMapper;
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
     private final FactoryConditionSetSearchService factoryConditionSetSearchService;
-
+    private final FactoryConditionSetService factoryConditionSetService;
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryConditionSetSearchV1", summary = "Condition set search")
     @ApiResponses(value = {
@@ -86,11 +86,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @Parameter(example = DTOExamples.FACTORY_CONDITION_SET_ID)  @PathVariable("factoryConditionSetId")UUID factoryConditionSetId) {
         FactoryConditionSetViewRsDTOv1 rs = new FactoryConditionSetViewRsDTOv1();
         try {
-            TwinFactoryConditionSetEntity conditionSet = factoryConditionSetSearchService
-                    .findFactoryConditionSetById(factoryConditionSetId);
-            if (conditionSet == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such condition set: " + factoryConditionSetId+" in current domain.");
-            }
+            TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(factoryConditionSetId);
             rs
                     .setConditionSet(factoryConditionSetRestDTOMapper.convert(conditionSet, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

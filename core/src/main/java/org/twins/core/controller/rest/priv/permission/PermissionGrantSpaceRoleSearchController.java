@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.permission.PermissionGrantRoleSpaceSearchDTOR
 import org.twins.core.mappers.rest.permission.PermissionGrantSpaceRoleRestDTOMapperV2;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantSpaceRoleSearchService;
+import org.twins.core.service.permission.PermissionGrantSpaceRoleService;
 
 import java.util.UUID;
 
@@ -45,6 +45,7 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
     private final PermissionGrantSpaceRoleSearchService permissionGrantSpaceRoleSearchService;
     private final PermissionGrantRoleSpaceSearchDTOReverseMapper permissionGrantRoleSpaceSearchDTOReverseMapper;
     private final PermissionGrantSpaceRoleRestDTOMapperV2 permissionGrantSpaceRoleRestDTOMapperV2;
+    private final PermissionGrantSpaceRoleService permissionGrantSpaceRoleService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantSpaceRoleSearchV1", summary = "Permission grant space role search")
@@ -87,11 +88,8 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
             @Parameter(example = DTOExamples.SPACE_ROLE_USER_ID)@PathVariable("roleId") UUID roleId) {
         PermissionGrantSpaceRoleViewRsDTOv1 rs = new PermissionGrantSpaceRoleViewRsDTOv1();
         try {
-            PermissionGrantSpaceRoleEntity role = permissionGrantSpaceRoleSearchService
-                    .findPermissionGrantSpaceRoleById(roleId);
-            if (role == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant space role: " + roleId );
-            }
+            PermissionGrantSpaceRoleEntity role = permissionGrantSpaceRoleService.findEntitySafe(roleId);
+
             rs
                     .setPermissionGrantSpaceRole(permissionGrantSpaceRoleRestDTOMapperV2.convert(role, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

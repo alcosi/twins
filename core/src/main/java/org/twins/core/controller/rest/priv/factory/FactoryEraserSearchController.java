@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryEraserSearchService;
+import org.twins.core.service.factory.FactoryEraserService;
 
 import java.util.UUID;
 
@@ -46,6 +46,7 @@ public class FactoryEraserSearchController extends ApiController {
     private final FactoryEraserSearchDTOReverseMapper factoryEraserSearchDTOReverseMapper;
     private final FactoryEraserSearchService factoryEraserSearchService;
     private final FactoryEraserRestDTOMapperV2 factoryEraserRestDTOMapperV2;
+    private final FactoryEraserService factoryEraserService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryEraserSearchV1", summary = "Factory eraser search")
@@ -87,14 +88,10 @@ public class FactoryEraserSearchController extends ApiController {
     public ResponseEntity<?> factoryEraserViewV1(
             @MapperContextBinding(roots = FactoryEraserRestDTOMapperV2.class, response = FactoryEraserViewRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
-           @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
+            @Parameter(example = DTOExamples.FACTORY_ERASER_ID) @PathVariable("eraserId") UUID eraserId) {
         FactoryEraserViewRsDTOv1 rs = new FactoryEraserViewRsDTOv1();
         try {
-            TwinFactoryEraserEntity eraser = factoryEraserSearchService
-                    .findFactoryEraserById(eraserId);
-            if (eraser == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such eraser: " + eraserId+" in current domain.");
-            }
+            TwinFactoryEraserEntity eraser = factoryEraserService.findEntitySafe(eraserId);
             rs
                     .setEraser(factoryEraserRestDTOMapperV2.convert(eraser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

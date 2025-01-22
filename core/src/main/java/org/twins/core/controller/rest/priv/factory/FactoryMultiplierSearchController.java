@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryMultiplierSearchService;
+import org.twins.core.service.factory.FactoryMultiplierService;
 
 import java.util.UUID;
 
@@ -45,7 +45,7 @@ public class FactoryMultiplierSearchController extends ApiController {
     private final FactoryMultiplierSearchService factoryMultiplierSearchService;
     private final FactoryMultiplierRestDTOMapperV2 factoryMultiplierRestDTOMapperV2;
     private final FactoryMultiplierSearchRqDTOReverseMapper factoryMultiplierSearchRqDTOReverseMapper;
-
+    private final FactoryMultiplierService factoryMultiplierService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryMultiplierSearchV1", summary = "Factory multiplier search")
@@ -88,11 +88,7 @@ public class FactoryMultiplierSearchController extends ApiController {
             @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId) {
         FactoryMultiplierViewRsDTOv1 rs = new FactoryMultiplierViewRsDTOv1();
         try {
-            TwinFactoryMultiplierEntity multiplier = factoryMultiplierSearchService
-                    .findFactoryMultiplierById(multiplierId);
-            if (multiplier == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such multiplier: " + multiplierId + " in current domain.");
-            }
+            TwinFactoryMultiplierEntity multiplier = factoryMultiplierService.findEntitySafe(multiplierId);
             rs
                     .setMultiplier(factoryMultiplierRestDTOMapperV2.convert(multiplier, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

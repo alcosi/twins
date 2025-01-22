@@ -8,16 +8,13 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
 import org.twins.core.dao.permission.PermissionGrantSpaceRoleRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.domain.search.PermissionGrantSpaceRoleSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
@@ -31,16 +28,6 @@ public class PermissionGrantSpaceRoleSearchService {
 
     private final AuthService authService;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
-
-    @Transactional(readOnly = true)
-    public PermissionGrantSpaceRoleEntity findPermissionGrantSpaceRoleById(UUID id) throws ServiceException {
-        Optional<PermissionGrantSpaceRoleEntity> entity = permissionGrantSpaceRoleRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(id, PermissionGrantSpaceRoleEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
 
     public PaginationResult<PermissionGrantSpaceRoleEntity> findPermissionGrantSpaceRoles(PermissionGrantSpaceRoleSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();

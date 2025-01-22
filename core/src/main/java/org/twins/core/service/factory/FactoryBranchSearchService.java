@@ -8,18 +8,12 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.domain.search.FactoryBranchSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryBranchSpecification.checkFieldLikeIn;
 import static org.twins.core.dao.specifications.factory.FactoryBranchSpecification.checkTernary;
@@ -32,15 +26,6 @@ public class FactoryBranchSearchService {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
     private final AuthService authService;
 
-    @Transactional(readOnly = true)
-    public TwinFactoryBranchEntity findFactoryBrancherById(UUID id) throws ServiceException {
-        Optional<TwinFactoryBranchEntity> entity = twinFactoryBranchRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(id, TwinFactoryBranchEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
     public PaginationResult<TwinFactoryBranchEntity> findFactoryBranches(FactoryBranchSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryBranchEntity> spec = createFactoryBranchSearchSpecification(search);
         Page<TwinFactoryBranchEntity> ret = twinFactoryBranchRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

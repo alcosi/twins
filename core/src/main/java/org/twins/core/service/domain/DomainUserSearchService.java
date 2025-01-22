@@ -8,9 +8,7 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserRepository;
@@ -18,7 +16,6 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.search.DomainUserSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*;
@@ -29,18 +26,6 @@ import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*
 public class DomainUserSearchService {
     private final DomainUserRepository domainUserRepository;
     private final AuthService authService;
-
-    @Transactional(readOnly = true)
-    public DomainUserEntity findDomainUserById(UUID id) throws ServiceException {
-        Optional<DomainUserEntity> entity = domainUserRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), DomainUserEntity.Fields.domain, DomainEntity.Fields.id)  ,
-                        checkFieldUuid(id, DomainUserEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
-
 
     public PaginationResult<DomainUserEntity> findDomainUser(DomainUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();

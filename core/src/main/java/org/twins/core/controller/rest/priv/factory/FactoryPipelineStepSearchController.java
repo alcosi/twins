@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryPipelineStepSearchService;
+import org.twins.core.service.factory.FactoryPipelineStepService;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ public class FactoryPipelineStepSearchController extends ApiController {
     private final FactoryPipelineStepSearchDTOReverseMapper factoryPipelineStepSearchDTOReverseMapper;
     private final FactoryPipelineStepRestDTOMapperV2 factoryPipelineStepRestDTOMapperV2;
     private final FactoryPipelineStepSearchService factoryPipelineStepSearchService;
-
+    private final FactoryPipelineStepService factoryPipelineStepService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryPipelineStepSearchV1", summary = "Factory pipeline step search")
@@ -87,11 +87,8 @@ public class FactoryPipelineStepSearchController extends ApiController {
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_STEP_ID) @PathVariable("stepId") UUID stepId) {
         FactoryPipelineStepViewRsDTOv1 rs = new FactoryPipelineStepViewRsDTOv1();
         try {
-            TwinFactoryPipelineStepEntity pipelineStep = factoryPipelineStepSearchService
-                    .findFactoryPipelineStepsById(stepId);
-            if (pipelineStep == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such pipeline step: " + stepId + " in current domain.");
-            }
+            TwinFactoryPipelineStepEntity pipelineStep = factoryPipelineStepService.findEntitySafe(stepId);
+
             rs
                     .setStep(factoryPipelineStepRestDTOMapperV2.convert(pipelineStep, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

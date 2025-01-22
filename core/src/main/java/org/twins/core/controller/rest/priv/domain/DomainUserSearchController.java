@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.DomainUserSearchService;
+import org.twins.core.service.domain.DomainUserService;
 
 import java.util.UUID;
 
@@ -44,7 +44,7 @@ public class DomainUserSearchController extends ApiController {
     private final DomainUserRestDTOMapperV2 domainUserRestDTOMapperV2;
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
-
+    private final DomainUserService domainUserService;
     @ParametersApiUserHeaders
     @Operation(operationId = "domainUserSearchListV1", summary = "Return a list of users by current domain")
     @ApiResponses(value = {
@@ -85,11 +85,8 @@ public class DomainUserSearchController extends ApiController {
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();
         try {
-            DomainUserEntity domainUser = domainUserSearchService
-                    .findDomainUserById(userId);
-            if (domainUser == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such user: " + userId + " in current domain.");
-            }
+            DomainUserEntity domainUser = domainUserService
+                    .findEntitySafe(userId);
             rs
                     .setUser(domainUserRestDTOMapperV2.convert(domainUser, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.RestRequestParam;
@@ -119,11 +118,7 @@ public class HistoryListController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_HISTORY_ID)@PathVariable("historyId") UUID historyId) {
         HistoryViewRsDTOv1 rs = new HistoryViewRsDTOv1();
         try {
-            HistoryEntity history= historySearchService
-                    .findHistoryById(historyId);
-            if (history == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such history: " + historyId + " in current domain.");
-            }
+            HistoryEntity history= historyService.findEntitySafe(historyId);
             rs
                     .setHistory(historyDTOMapperV1.convert(history, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

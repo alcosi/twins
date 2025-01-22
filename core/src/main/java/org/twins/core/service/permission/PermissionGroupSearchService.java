@@ -31,16 +31,6 @@ public class PermissionGroupSearchService {
     private final PermissionGroupRepository permissionGroupRepository;
 
     @Transactional(readOnly = true)
-    public PermissionGroupEntity findPermissionGroupById(UUID id) throws ServiceException {
-        Optional<PermissionGroupEntity> entity = permissionGroupRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionGroupEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
-                        checkFieldUuid(id, PermissionGroupEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
-    @Transactional(readOnly = true)
     public PermissionGroupEntity findPermissionGroupByKey(String id) throws ServiceException {
         Optional<PermissionGroupEntity> entity = permissionGroupRepository.findBy(
                 Specification.allOf(

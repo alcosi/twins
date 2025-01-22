@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionSchemaSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionSchemaSearchService;
+import org.twins.core.service.permission.PermissionSchemaService;
 
 import java.util.UUID;
 
@@ -44,6 +44,7 @@ public class PermissionSchemaSearchController extends ApiController {
     private final PermissionSchemaSearchService permissionSchemaSearchService;
     private final PermissionSchemaRestDTOMapperV2 permissionSchemaRestDTOMapperV2;
     private final PermissionSchemaSearchDTOReverseMapper permissionSchemaSearchDTOReverseMapper;
+    private final PermissionSchemaService permissionSchemaService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionSchemaSearchV1", summary = "Return a list of all permission schemas for the current domain")
@@ -86,11 +87,8 @@ public class PermissionSchemaSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID )@PathVariable("schemaId") UUID schemaId) {
         PermissionSchemaViewRsDTOv1 rs = new PermissionSchemaViewRsDTOv1();
         try {
-            PermissionSchemaEntity permission = permissionSchemaSearchService
-                    .findPermissionSchemaById(schemaId);
-            if (permission == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission schema: " + schemaId+ " in current domain." );
-            }
+            PermissionSchemaEntity permission = permissionSchemaService.findEntitySafe(schemaId);
+
             rs
                     .setPermissionSchema(permissionSchemaRestDTOMapperV2.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

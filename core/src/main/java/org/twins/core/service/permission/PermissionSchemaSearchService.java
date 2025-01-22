@@ -8,15 +8,12 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.domain.search.PermissionSchemaSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
@@ -29,16 +26,6 @@ public class PermissionSchemaSearchService {
     private final AuthService authService;
     private final PermissionSchemaRepository permissionSchemaRepository;
 
-    @Transactional(readOnly = true)
-    public PermissionSchemaEntity findPermissionSchemaById(UUID id) throws ServiceException {
-        Optional<PermissionSchemaEntity> entity = permissionSchemaRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionSchemaEntity.Fields.domainId),
-                        checkFieldUuid(id, PermissionSchemaEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
 
     public PaginationResult<PermissionSchemaEntity> findPermissionSchemasByDomain(PermissionSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();

@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagation
 import org.twins.core.mappers.rest.permission.PermissionGrantAssigneePropagationSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantAssigneePropagationSearchService;
+import org.twins.core.service.permission.PermissionGrantAssigneePropagationService;
 
 import java.util.UUID;
 
@@ -45,6 +45,7 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
     private final PermissionGrantAssigneePropagationSearchService permissionGrantAssigneePropagationSearchService;
     private final PermissionGrantAssigneePropagationSearchDTOReverseMapper permissionGrantAssigneePropagationSearchDTOReverseMapper;
     private final PermissionGrantAssigneePropagationRestDTOMapperV2 permissionGrantAssigneePropagationRestDTOMapperV2;
+    private final PermissionGrantAssigneePropagationService permissionGrantAssigneePropagationService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantAssigneePropagationSearchV1", summary = "Permission grant assignee propagation search")
@@ -87,11 +88,8 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
             @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable("propagationId") UUID propagationId) {
         PermissionGrantAssigneePropagationViewRsDTOv1 rs = new PermissionGrantAssigneePropagationViewRsDTOv1();
         try {
-            PermissionGrantAssigneePropagationEntity permissionGrant = permissionGrantAssigneePropagationSearchService
-                    .findPermissionAssigneePropagationById(propagationId);
-            if (permissionGrant == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission grant: " + propagationId + " in current domain.");
-            }
+            PermissionGrantAssigneePropagationEntity permissionGrant = permissionGrantAssigneePropagationService.findEntitySafe(propagationId);
+
             rs
                     .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

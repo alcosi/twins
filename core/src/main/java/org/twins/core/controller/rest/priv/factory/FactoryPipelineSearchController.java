@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryPipelineSearchService;
+import org.twins.core.service.factory.FactoryPipelineService;
 
 import java.util.UUID;
 
@@ -45,7 +45,7 @@ public class FactoryPipelineSearchController extends ApiController {
     private final FactoryPipelineSearchService factoryPipelineSearchService;
     private final FactoryPipelineRestDTOMapperV2 factoryPipelineRestDTOMapperV2;
     private final FactoryPipelineSearchDTOReverseMapper factoryPipelineSearchDTOReverseMapper;
-
+    private final FactoryPipelineService factoryPipelineService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryPipelineSearchV1", summary = "Factory pipeline search")
@@ -88,11 +88,7 @@ public class FactoryPipelineSearchController extends ApiController {
             @Parameter(example = DTOExamples.FACTORY_PIPELINE_ID) @PathVariable("pipelineId") UUID pipelineId) {
         FactoryPipelineViewRsDTOv1 rs = new FactoryPipelineViewRsDTOv1();
         try {
-            TwinFactoryPipelineEntity pipeline = factoryPipelineSearchService
-                    .findFactoryConditionSetById(pipelineId);
-            if (pipeline == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such pipeline: " + pipelineId + " in current domain.");
-            }
+            TwinFactoryPipelineEntity pipeline = factoryPipelineService.findEntitySafe(pipelineId);
             rs
                     .setPipeline(factoryPipelineRestDTOMapperV2.convert(pipeline, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

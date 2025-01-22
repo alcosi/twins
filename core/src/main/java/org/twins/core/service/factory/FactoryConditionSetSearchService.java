@@ -8,16 +8,11 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.factory.TwinFactoryConditionSetEntity;
 import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.domain.search.FactoryConditionSetSearch;
 import org.twins.core.service.auth.AuthService;
-
-import java.util.Optional;
-import java.util.UUID;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
 
@@ -29,16 +24,6 @@ public class FactoryConditionSetSearchService {
     private final TwinFactoryConditionSetRepository twinFactoryConditionSetRepository;
     private final AuthService authService;
 
-    @Transactional(readOnly = true)
-    public TwinFactoryConditionSetEntity findFactoryConditionSetById(UUID id) throws ServiceException {
-        Optional<TwinFactoryConditionSetEntity> entity = twinFactoryConditionSetRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryConditionSetEntity.Fields.domainId),
-                        checkFieldUuid(id, TwinFactoryConditionSetEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
 
     public PaginationResult<TwinFactoryConditionSetEntity> findFactoryConditionSets(FactoryConditionSetSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryConditionSetEntity> spec = createFactoryConditionSetSearchSpecification(search);

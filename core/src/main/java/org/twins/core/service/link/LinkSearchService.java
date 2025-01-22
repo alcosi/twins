@@ -8,9 +8,7 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkRepository;
 import org.twins.core.dao.link.LinkStrength;
@@ -18,7 +16,9 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.LinkSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -33,16 +33,6 @@ public class LinkSearchService {
     private final LinkRepository linkRepository;
     private final AuthService authService;
 
-    @Transactional(readOnly = true)
-    public LinkEntity findLinkById(UUID id) throws ServiceException {
-        Optional<LinkEntity> entity = linkRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(),  LinkEntity.Fields.domainId),
-                        checkFieldUuid(id, LinkEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
 
     public PaginationResult<LinkEntity> findLinks(LinkSearch search, SimplePagination pagination) throws ServiceException {
         Specification<LinkEntity> spec = createLinkSearchSpecification(search);

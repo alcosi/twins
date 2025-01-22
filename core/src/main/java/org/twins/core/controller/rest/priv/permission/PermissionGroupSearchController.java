@@ -31,6 +31,7 @@ import org.twins.core.mappers.rest.permission.PermissionGroupRestDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGroupSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGroupSearchService;
+import org.twins.core.service.permission.PermissionGroupService;
 
 import java.util.UUID;
 
@@ -44,6 +45,7 @@ public class PermissionGroupSearchController extends ApiController {
     private final PermissionGroupSearchDTOReverseMapper permissionGroupSearchDTOReverseMapper;
     private final PermissionGroupRestDTOMapper permissionGroupRestDTOMapper;
     private final PermissionGroupSearchService permissionGroupSearchService;
+    private final PermissionGroupService permissionGroupService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGroupSearchListV1", summary = "Return a list of all permission groups for the current domain")
@@ -86,8 +88,7 @@ public class PermissionGroupSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_GROUP_ID )@PathVariable("groupId") UUID groupId) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {
-            PermissionGroupEntity permission = permissionGroupSearchService
-                    .findPermissionGroupById(groupId);
+            PermissionGroupEntity permission = permissionGroupService.findEntitySafe(groupId);
             if (permission == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupId+ " in current domain." );
             }

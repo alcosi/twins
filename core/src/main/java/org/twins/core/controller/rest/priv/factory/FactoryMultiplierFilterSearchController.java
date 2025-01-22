@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactoryMultiplierFilterSearchService;
+import org.twins.core.service.factory.FactoryMultiplierFilterService;
 
 import java.util.UUID;
 
@@ -45,7 +45,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
     private final FactoryMultiplierFilterSearchService factoryMultiplierFilterSearchService;
     private final FactoryMultiplierFilterRestDTOMapperV2 factoryMultiplierFilterRestDTOMapperV2;
     private final FactoryMultiplierFilerSearchDTOReverseMapper factoryMultiplierFilerSearchDTOReverseMapper;
-
+    private final FactoryMultiplierFilterService factoryMultiplierFilterService;
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryMultiplierFilterSearchV1", summary = "Factory multiplier filter search")
     @ApiResponses(value = {
@@ -87,11 +87,8 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
            @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId ) {
         FactoryMultiplierFilterViewRsDTOv1 rs = new FactoryMultiplierFilterViewRsDTOv1();
         try {
-            TwinFactoryMultiplierFilterEntity multiplierFilter = factoryMultiplierFilterSearchService
-                    .findFactoryMultiplierFilterById(multiplierId);
-            if (multiplierFilter == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such multiplier filter " + multiplierId);
-            }
+            TwinFactoryMultiplierFilterEntity multiplierFilter = factoryMultiplierFilterService.findEntitySafe(multiplierId);
+
             rs
                     .setMultiplierFilter(factoryMultiplierFilterRestDTOMapperV2.convert(multiplierFilter, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

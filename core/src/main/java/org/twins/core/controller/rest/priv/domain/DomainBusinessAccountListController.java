@@ -30,6 +30,7 @@ import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRestDTOReve
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 
 import java.util.UUID;
@@ -39,7 +40,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountListController extends ApiController {
-
+    private final AuthService authService;
     private final DomainService domainService;
     private final DomainBusinessAccountDTOMapper domainBusinessAccountDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -86,7 +87,7 @@ public class DomainBusinessAccountListController extends ApiController {
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable("businessAccountId") UUID businessAccountId) {
         DomainBusinessAccountViewRsDTOv1 rs = new DomainBusinessAccountViewRsDTOv1();
         try {
-            DomainBusinessAccountEntity domainBusinessAccount = domainService.findDomainBusinessAccountById(businessAccountId);
+            DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(),businessAccountId);
             if (domainBusinessAccount == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such business account: " + businessAccountId + " in current domain.");
             }

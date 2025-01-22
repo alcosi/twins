@@ -31,6 +31,7 @@ import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMap
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserGroupSearchService;
+import org.twins.core.service.permission.PermissionGrantUserGroupService;
 
 import java.util.UUID;
 
@@ -45,6 +46,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
     private final PermissionGrantUserGroupSearchService permissionGrantUserGroupSearchService;
     private final PermissionGrantUserGroupSearchDTOReverseMapper permissionGrantUserGroupSearchDTOReverseMapper;
     private final PermissionGrantUserGroupRestDTOMapperV2 permissionGrantUserGroupRestDTOMapperV2;
+    private final PermissionGrantUserGroupService permissionGrantUserGroupService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantUserGroupSearchV1", summary = "Permission grant user-group search")
@@ -87,8 +89,7 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID )@PathVariable("userGroupId") UUID userGroupId) {
         PermissionGrantUserGroupViewRsDTOv1 rs = new PermissionGrantUserGroupViewRsDTOv1();
         try {
-            PermissionGrantUserGroupEntity permissionGrant = permissionGrantUserGroupSearchService
-                    .findPermissionGrantUserGroupById(userGroupId);
+            PermissionGrantUserGroupEntity permissionGrant = permissionGrantUserGroupService.findEntitySafe(userGroupId);
             if (permissionGrant == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant user group: " + userGroupId + " in current domain.");
             }

@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.factory.FactorySearchService;
+import org.twins.core.service.factory.FactoryService;
 
 import java.util.UUID;
 
@@ -44,6 +44,7 @@ public class FactorySearchController extends ApiController {
     private final FactorySearchDTOReverseMapper factorySearchDTOReverseMapper;
     private final FactoryRestDTOMapperV2 factoryRestDTOMapperV2;
     private final FactorySearchService factorySearchService;
+    private final FactoryService factoryService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factorySearchListV1", summary = "Return a list of all factories for the current domain")
@@ -86,11 +87,8 @@ public class FactorySearchController extends ApiController {
             @Parameter(example = DTOExamples.FACTORY_ID) @PathVariable("factoryId") UUID factoryId) {
         FactoryViewRsDTOv1 rs = new FactoryViewRsDTOv1();
         try {
-            TwinFactoryEntity factory = factorySearchService
-                    .findFactoriesInDomainById(factoryId);
-            if (factory == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such factory: " + factoryId + " in current domain.");
-            }
+            TwinFactoryEntity factory = factoryService.findEntitySafe(factoryId);
+
             rs
                     .setFactory(factoryRestDTOMapperV2.convert(factory, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

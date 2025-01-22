@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.permission.PermissionGrantUserRestDTOMapperV2
 import org.twins.core.mappers.rest.permission.PermissionGrantUserSearchDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantUserSearchService;
+import org.twins.core.service.permission.PermissionGrantUserService;
 
 import java.util.UUID;
 
@@ -44,6 +44,7 @@ public class PermissionGrantUserSearchController extends ApiController {
     private final PermissionGrantUserSearchService permissionGrantUserSearchService;
     private final PermissionGrantUserRestDTOMapperV2 permissionGrantUserRestDTOMapperV2;
     private final PermissionGrantUserSearchDTOReverseMapper permissionGrantUserSearchDTOReverseMapper;
+    private final PermissionGrantUserService permissionGrantUserService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantUserSearchV1", summary = "Return a list of all permission grant users for the current domain")
@@ -88,11 +89,8 @@ public class PermissionGrantUserSearchController extends ApiController {
 
         PermissionGrantUserViewRsDTOv1 rs = new PermissionGrantUserViewRsDTOv1();
         try {
-            PermissionGrantUserEntity permissionGrant = permissionGrantUserSearchService
-                    .findPermissionGrantUserById(userId);
-            if (permissionGrant == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant user: " + userId+ " in current domain." );
-            }
+            PermissionGrantUserEntity permissionGrant = permissionGrantUserService.findEntitySafe(userId);
+
             rs
                     .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(permissionGrant, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

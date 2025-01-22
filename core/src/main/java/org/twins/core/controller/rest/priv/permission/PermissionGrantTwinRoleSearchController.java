@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -31,6 +30,7 @@ import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleRestDTOMapp
 import org.twins.core.mappers.rest.permission.PermissionGrantTwinRoleSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.permission.PermissionGrantTwinRoleSearchService;
+import org.twins.core.service.permission.PermissionGrantTwinRoleService;
 
 import java.util.UUID;
 
@@ -44,6 +44,7 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
     private final PermissionGrantTwinRoleRestDTOMapperV2 permissionGrantTwinRoleRestDTOMapperV2;
     private final PermissionGrantTwinRoleSearchService permissionGrantTwinRoleSearchService;
     private final PermissionGrantTwinRoleSearchRqDTOReverseMapper permissionGrantTwinRoleSearchRqDTOReverseMapper;
+    private final PermissionGrantTwinRoleService permissionGrantTwinRoleService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "permissionGrantTwinRoleSearchV1", summary = "Permission grant twin role search")
@@ -86,11 +87,8 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
             @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID)@PathVariable("roleId") UUID roleId) {
         PermissionGrantTwinRoleViewRsDTOv1 rs = new PermissionGrantTwinRoleViewRsDTOv1();
         try {
-            PermissionGrantTwinRoleEntity permissionGrantTwinRole= permissionGrantTwinRoleSearchService
-                    .findPermissionGrantTwinRoleById(roleId);
-            if (permissionGrantTwinRole == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant twin role: " + roleId + " in current domain.");
-            }
+            PermissionGrantTwinRoleEntity permissionGrantTwinRole= permissionGrantTwinRoleService.findEntitySafe(roleId);
+
             rs
                     .setPermissionGrantTwin(permissionGrantTwinRoleRestDTOMapperV2.convert(permissionGrantTwinRole, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

@@ -18,7 +18,9 @@ import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
@@ -33,8 +35,8 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.domain.TwinRole;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
@@ -45,6 +47,9 @@ import org.twins.core.service.user.UserGroupService;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldStringLike;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 
 @Slf4j
 @Service
@@ -89,7 +94,15 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     public Function<PermissionEntity, UUID> entityGetIdFunction() {
         return PermissionEntity::getId;
     }
-
+    public PermissionEntity findEntitySafeByKey(String key) throws ServiceException {
+        PermissionEntity entity = permissionRepository.findBy(
+                Specification.allOf(
+                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId),
+                        checkFieldStringLike(key, PermissionEntity.Fields.key)
+                ), FluentQuery.FetchableFluentQuery::one
+        ).orElse(null);
+        return findEntitySafe(entity==null?null:entity.getId());
+    }
     @Override
     public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getKey() == null)
