@@ -16,7 +16,6 @@ import org.twins.core.domain.search.*;
 import java.time.LocalDateTime;
 import java.util.*;
 
-import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
@@ -112,31 +111,6 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-    public static Specification<TwinEntity> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups) throws ServiceException {
-        return (root, query, cb) -> {
-
-            Expression<UUID> spaceId = root.get(TwinEntity.Fields.permissionSchemaSpaceId);
-            Expression<UUID> permissionIdTwin = root.get(TwinEntity.Fields.viewPermissionId);
-            Expression<UUID> permissionIdTwinClass = root.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.viewPermissionId);
-            Expression<UUID> twinClassId = root.join(TwinEntity.Fields.twinClass).get(TwinClassEntity.Fields.id);
-
-            Predicate isAssigneePredicate = cb.equal(root.get(TwinEntity.Fields.assignerUserId), cb.literal(userId));
-            Predicate isCreatorPredicate = cb.equal(root.get(TwinEntity.Fields.createdByUserId), cb.literal(userId));
-
-            return cb.isTrue(cb.function("permission_check", Boolean.class,
-                    cb.literal(domainId),
-                    cb.literal(businessAccountId),
-                    spaceId,
-                    permissionIdTwin,
-                    permissionIdTwinClass,
-                    cb.literal(userId),
-                    cb.literal(collectionUuidsToSqlArray(userGroups)),
-                    twinClassId,
-                    cb.selectCase().when(isAssigneePredicate, cb.literal(true)).otherwise(cb.literal(false)),
-                    cb.selectCase().when(isCreatorPredicate, cb.literal(true)).otherwise(cb.literal(false))
-            ));
-        };
-    }
 
     public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
         return (root, query, cb) -> {
