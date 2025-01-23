@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv2;
+import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -17,4 +18,7 @@ public class FactoryPipelineStepDTOv2 extends FactoryPipelineStepDTOv1 {
 
     @Schema(description = "factory condition set")
     public FactoryConditionSetDTOv1 factoryConditionSet;
+
+    @Schema(description = "filler featurer")
+    public FeaturerDTOv1 fillerFeaturer;
 }
