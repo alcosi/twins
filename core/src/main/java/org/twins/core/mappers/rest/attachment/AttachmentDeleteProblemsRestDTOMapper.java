@@ -18,7 +18,7 @@ public class AttachmentDeleteProblemsRestDTOMapper extends RestSimpleDTOMapper<A
     public void map(AttachmentDeleteProblem src, AttachmentFileDeleteProblemDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
                 .setProblem(src.getProblem())
-                .setExternalId(src.getExternalId())
+                .setExternalId(src.getId())
                 .setMessage(src.getMessage());
     }
 }
