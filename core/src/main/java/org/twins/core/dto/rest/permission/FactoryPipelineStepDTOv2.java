@@ -19,6 +19,6 @@ public class FactoryPipelineStepDTOv2 extends FactoryPipelineStepDTOv1 {
     @Schema(description = "factory condition set")
     public FactoryConditionSetDTOv1 factoryConditionSet;
 
-    @Schema(description = "field typer featurer")
+    @Schema(description = "filler featurer")
     public FeaturerDTOv1 fillerFeaturer;
 }
