@@ -38,16 +38,16 @@ public class PermissionGrantUserGroupSearchService {
     private Specification<PermissionGrantUserGroupEntity> createPermissionGrantUserGroupSearchSpecification(PermissionGrantUserGroupSearch search, UUID domainId) {
         return Specification.where(
                 checkDomainId(domainId)
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.permissionId, search.getPermissionIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.userGroupId, search.getUserGroupIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.userGroupId, search.getUserGroupIdExcludeList(), true, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false))
-                        .and(checkUuidIn(PermissionGrantUserGroupEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true))
+                        .and(checkUuidIn(search.getIdList(), false, false, PermissionGrantUserGroupEntity.Fields.id))
+                        .and(checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.id))
+                        .and(checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantUserGroupEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(search.getPermissionIdList(), false, false, PermissionGrantUserGroupEntity.Fields.permissionId))
+                        .and(checkUuidIn(search.getPermissionIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.permissionId))
+                        .and(checkUuidIn(search.getUserGroupIdList(), false, false, PermissionGrantUserGroupEntity.Fields.userGroupId))
+                        .and(checkUuidIn(search.getUserGroupIdExcludeList(), true, false, PermissionGrantUserGroupEntity.Fields.userGroupId))
+                        .and(checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantUserGroupEntity.Fields.grantedByUserId))
+                        .and(checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantUserGroupEntity.Fields.grantedByUserId))
         );
     }
 

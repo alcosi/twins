@@ -38,12 +38,12 @@ public class DataListOptionSearchService {
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(),DataListOptionEntity.Fields.dataList,DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
-                checkUuidIn(DataListOptionEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(DataListOptionEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdList(), false, false),
-                checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdExcludeList(), true, true),
-                checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionLikeList(), false, true),
-                checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true),
+                checkUuidIn(search.getIdList(), false, false, DataListOptionEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionEntity.Fields.id),
+                checkUuidIn(search.getDataListIdList(), false, false, DataListOptionEntity.Fields.dataListId),
+                checkUuidIn(search.getDataListIdExcludeList(), true, true, DataListOptionEntity.Fields.dataListId),
+                checkFieldLikeIn(search.getOptionLikeList(), false, true, DataListOptionEntity.Fields.option),
+                checkFieldLikeIn(search.getOptionNotLikeList(), true, true, DataListOptionEntity.Fields.option),
                 checkDataListKeyLikeIn(search.getDataListKeyList(), false, true),
                 checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true),
                 joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false),
@@ -59,8 +59,8 @@ public class DataListOptionSearchService {
             return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
         else {
             return Specification.where(empty())
-                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
-                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true));
+                    .and(checkUuidIn(search.getBusinessAccountIdList(), false, false, DataListOptionEntity.Fields.businessAccountId))
+                    .and(checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId));
         }
     }
 }

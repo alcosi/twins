@@ -39,18 +39,18 @@ public class PermissionGrantAssigneePropagationSearchService {
     private Specification<PermissionGrantAssigneePropagationEntity> createPermissionAssigneePropagationSearchSpecification(PermissionGrantAssigneePropagationSearch search, UUID domainId) {
         return Specification.allOf(
                 checkFieldUuid(domainId, PermissionGrantAssigneePropagationEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId, search.getPropagationTwinClassIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId, search.getPropagationTwinStatusIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false),
-                checkUuidIn(PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
+                checkUuidIn(search.getIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantAssigneePropagationEntity.Fields.id),
+                checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, false, PermissionGrantAssigneePropagationEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.permissionId),
+                checkUuidIn(search.getPermissionIdExcludeList(), true, false, PermissionGrantAssigneePropagationEntity.Fields.permissionId),
+                checkUuidIn(search.getPropagationTwinClassIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId),
+                checkUuidIn(search.getPropagationTwinClassIdExcludeList(), true, false, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinClassId),
+                checkUuidIn(search.getPropagationTwinStatusIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId),
+                checkUuidIn(search.getPropagationTwinStatusIdExcludeList(), true, false, PermissionGrantAssigneePropagationEntity.Fields.propagationByTwinStatusId),
+                checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId),
+                checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantAssigneePropagationEntity.Fields.grantedByUserId));
     }
 
 }

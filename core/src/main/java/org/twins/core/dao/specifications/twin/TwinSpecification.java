@@ -2,25 +2,28 @@ package org.twins.core.dao.specifications.twin;
 
 import jakarta.persistence.criteria.*;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.*;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.UUID;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
-public class TwinSpecification extends CommonSpecification<TwinEntity> {
+public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecification<TwinEntity> {
 
     public static Specification<TwinEntity> checkHeadTwin(Specification<TwinEntity> headSpecification, TwinSearch headSearch) {
         return (root, query, cb) -> {
@@ -63,80 +66,10 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-    public static Specification<TwinEntity> checkTagIds(final Collection<UUID> tagIds, final boolean exclude) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(tagIds)) return cb.conjunction();
-            Join<TwinEntity, TwinTagEntity> tagJoin = root.join(TwinEntity.Fields.tags, JoinType.LEFT);
-            Predicate tagIdIn = tagJoin.get(TwinTagEntity.Fields.tagDataListOptionId).in(tagIds);
-            query.distinct(true);
-            if (exclude) {
-                Predicate noTags = cb.isNull(tagJoin.get(TwinTagEntity.Fields.twinId));
-                return cb.or(noTags, cb.not(tagIdIn));
-            } else {
-                return cb.and(cb.isNotNull(tagJoin.get(TwinTagEntity.Fields.twinId)), tagIdIn);
-            }
-        };
-    }
-
-    public static Specification<TwinEntity> checkMarkerIds(final Collection<UUID> markerIds, final boolean exclude) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(markerIds)) return cb.conjunction();
-            Join<TwinEntity, TwinMarkerEntity> markerJoin = root.join(TwinEntity.Fields.markers, JoinType.LEFT);
-            Predicate markerIdIn = markerJoin.get(TwinMarkerEntity.Fields.markerDataListOptionId).in(markerIds);
-            query.distinct(true);
-            if (exclude) {
-                Predicate noMarkers = cb.isNull(markerJoin.get(TwinMarkerEntity.Fields.twinId));
-                return cb.or(noMarkers, cb.not(markerIdIn));
-            } else {
-                return cb.and(cb.isNotNull(markerJoin.get(TwinMarkerEntity.Fields.twinId)), markerIdIn);
-            }
-        };
-    }
-
-    public static Specification<TwinEntity> checkTouchIds(final Collection<TwinTouchEntity.Touch> touchIds, final UUID userId, final boolean exclude) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(touchIds)) return cb.conjunction();
-
-            Join<TwinEntity, TwinTouchEntity> touchJoin = root.join(TwinEntity.Fields.touches, JoinType.LEFT);
-
-            Predicate onUserId = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
-            Predicate onTouchId = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchIds);
-            touchJoin.on(cb.and(onUserId, onTouchId));
-
-            Predicate touchIsNull = cb.isNull(touchJoin.get(TwinTouchEntity.Fields.touchId));
-            if (exclude)
-                return cb.and(touchIsNull);
-            else
-                return cb.and(cb.not(touchIsNull));
-        };
-    }
 
 
-    public static Specification<TwinEntity> checkHierarchyContainsAny(String field, final Set<UUID> hierarchyTreeContainsIdList) {
-        return (root, query, cb) -> {
-            if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
-            List<Predicate> predicates = new ArrayList<>();
-            for (UUID id : hierarchyTreeContainsIdList) {
-                String ltreeId = LTreeUtils.matchInTheMiddle(id);
-                Expression<String> hierarchyTreeExpression = root.get(field);
-                predicates.add(cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(ltreeId))));
-            }
-            return getPredicate(cb, predicates, true);
-        };
-    }
 
 
-    public static Specification<TwinEntity> checkTwinClassUuidFieldIn(final String field, final Collection<UUID> uuids) {
-        return (root, query, cb) -> {
-            Join<TwinEntity, TwinClassEntity> twinClassJoin = root.join(TwinEntity.Fields.twinClass, JoinType.INNER);
-            Predicate predicate = cb.conjunction();
-            if (CollectionUtils.isNotEmpty(uuids)) {
-                predicate = twinClassJoin.get(field).in(uuids);
-            }
-            return predicate;
-        };
-    }
-    
 
     public static Specification<TwinEntity> checkClassId(final Collection<UUID> twinClassUuids) {
         return (twin, query, cb) -> {
@@ -223,74 +156,7 @@ public class TwinSpecification extends CommonSpecification<TwinEntity> {
         };
     }
 
-    public static Specification<TwinEntity> checkTwinLinks(Map<UUID, Set<UUID>> linksAnyOfList, Map<UUID, Set<UUID>> linksNoAnyOfList, Map<UUID, Set<UUID>> linksAllOfList, Map<UUID, Set<UUID>> linksNoAllOfList) {
-        return (root, query, cb) -> {
-            List<Predicate> predicatesAny = new ArrayList<>();
-            if (MapUtils.isNotEmpty(linksAnyOfList)) {
-                Join<TwinEntity, TwinLinkEntity> linkSrcTwinInnerJoin = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
-                for (Map.Entry<UUID, Set<UUID>> entry : linksAnyOfList.entrySet()) {
-                    Predicate linkCondition = cb.equal(linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                    Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
-                    predicatesAny.add(cb.and(linkCondition, dstTwinCondition));
-                }
-            }
-            List<Predicate> predicatesAll = new ArrayList<>();
-            if (MapUtils.isNotEmpty(linksAllOfList)) {
-                for (Map.Entry<UUID, Set<UUID>> entry : linksAllOfList.entrySet()) {
-                    Join<TwinEntity, TwinLinkEntity> linkSrcTwinInner = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.INNER);
-                    Predicate dstTwinCondition = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInner.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
-                    linkSrcTwinInner.on(dstTwinCondition);
-                    Predicate linkCondition = cb.equal(linkSrcTwinInner.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                    predicatesAll.add(cb.and(linkCondition));
-                }
-            }
 
-            Predicate include;
-            if (!predicatesAny.isEmpty() && !predicatesAll.isEmpty())
-                include = cb.and(cb.or(predicatesAny.toArray(new Predicate[0])), cb.and(predicatesAll.toArray(new Predicate[0])));
-            else if (!predicatesAny.isEmpty())
-                include = cb.or(predicatesAny.toArray(new Predicate[0]));
-            else if (!predicatesAll.isEmpty())
-                include = cb.and(predicatesAll.toArray(new Predicate[0]));
-            else
-                include = cb.conjunction();
-
-
-            List<Predicate> excludePredicatesAny = new ArrayList<>();
-            if (MapUtils.isNotEmpty(linksNoAnyOfList)) {
-                for (Map.Entry<UUID, Set<UUID>> entry : linksNoAnyOfList.entrySet()) {
-                    Join<TwinEntity, TwinLinkEntity> linkSrcTwinInnerJoin = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
-                    Predicate onLink = cb.equal(linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                    Predicate onDst = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
-                    linkSrcTwinInnerJoin.on(onLink, onDst);
-                    excludePredicatesAny.add(cb.isNull(linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.srcTwinId)));
-                }
-            }
-
-            List<Predicate> excludePredicatesAll = new ArrayList<>();
-            if (MapUtils.isNotEmpty(linksNoAllOfList)) {
-                for (Map.Entry<UUID, Set<UUID>> entry : linksNoAllOfList.entrySet()) {
-                    Join<TwinEntity, TwinLinkEntity> linkSrcTwinInnerJoin = root.join(TwinEntity.Fields.linksBySrcTwinId, JoinType.LEFT);
-                    Predicate onLink = cb.equal(linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.linkId), entry.getKey());
-                    Predicate onDst = entry.getValue().isEmpty() ? cb.conjunction() : linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.dstTwinId).in(entry.getValue());
-                    linkSrcTwinInnerJoin.on(onLink, onDst);
-                    excludePredicatesAll.add(cb.isNull(linkSrcTwinInnerJoin.get(TwinLinkEntity.Fields.srcTwinId)));
-                }
-            }
-
-            Predicate exclude;
-            if (!excludePredicatesAny.isEmpty() && !excludePredicatesAll.isEmpty())
-                exclude = cb.and(cb.or(excludePredicatesAny.toArray(new Predicate[0])), cb.and(excludePredicatesAll.toArray(new Predicate[0])));
-            else if (!excludePredicatesAny.isEmpty())
-                exclude = cb.or(excludePredicatesAny.toArray(new Predicate[0]));
-            else if (!excludePredicatesAll.isEmpty())
-                exclude = cb.and(excludePredicatesAll.toArray(new Predicate[0]));
-            else
-                exclude = cb.conjunction();
-
-            return cb.and(include, exclude);
-        };
-    }
 
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
         return (root, query, cb) -> {

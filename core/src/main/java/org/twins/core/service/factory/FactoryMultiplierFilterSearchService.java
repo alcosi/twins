@@ -32,18 +32,18 @@ public class FactoryMultiplierFilterSearchService {
 
     private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) {
         return Specification.allOf(
-                checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionLikeList(), false, true),
-                checkFieldLikeIn(TwinFactoryPipelineEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.description),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryMultiplierFilterEntity.Fields.id),
                 checkFactoryIdIn(search.getFactoryIdList(), false),
                 checkFactoryIdIn(search.getFactoryIdExcludeList(), true),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdList(), false, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId, search.getFactoryMultiplierIdExcludeList(), true, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false),
-                checkUuidIn(TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true),
+                checkUuidIn(search.getFactoryMultiplierIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId),
+                checkUuidIn(search.getFactoryMultiplierIdExcludeList(), true, false, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryMultiplierId),
+                checkUuidIn(search.getInputTwinClassIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId),
+                checkUuidIn(search.getInputTwinClassIdExcludeList(), true, false, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId),
+                checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
+                checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
                 checkTernary(TwinFactoryMultiplierFilterEntity.Fields.active, search.getActive()));
     }
 }

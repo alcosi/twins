@@ -189,14 +189,14 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     private Specification<TwinCommentEntity> createCommentSearchSpecification(CommentSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Specification<TwinCommentEntity> specification = Specification.allOf(
-                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdExcludeList(), true, true),
-                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdExcludeList(), true, true),
-                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true),
-                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false),
-                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false),
+                checkUuidIn(search.getIdList(), false, false, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getTwinIdList(), false, false, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getTwinIdExcludeList(), true, true, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinCommentEntity.Fields.createdByUserId),
+                checkUuidIn(search.getCreatedByUserIdExcludeList(), true, true, TwinCommentEntity.Fields.createdByUserId),
+                checkFieldLikeIn(search.getTextLikeList(), false, false, TwinCommentEntity.Fields.text),
+                checkFieldLikeIn(search.getTextNotLikeList(), true, false, TwinCommentEntity.Fields.text),
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
                 checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
         );

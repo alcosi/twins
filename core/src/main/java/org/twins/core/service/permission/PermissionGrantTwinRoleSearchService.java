@@ -44,18 +44,18 @@ public class PermissionGrantTwinRoleSearchService {
     private Specification<PermissionGrantTwinRoleEntity> createPermissionGrantTwinRoleSearchSpecification(PermissionGrantTwinRoleSearch search, UUID domainId) {
         return Specification.allOf(
                 checkFieldUuid(domainId,PermissionGrantTwinRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.permissionId, search.getPermissionIdList(), false, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, false),
-                checkFieldLikeIn(PermissionGrantTwinRoleEntity.Fields.twinRole, safeConvertToString(search.getTwinRoleList()), false, false),
-                checkFieldLikeIn(PermissionGrantTwinRoleEntity.Fields.twinRole, safeConvertToString(search.getTwinRoleExcludeList()), true, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false),
-                checkUuidIn(PermissionGrantTwinRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
+                checkUuidIn(search.getIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.id),
+                checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.permissionId),
+                checkUuidIn(search.getPermissionIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.permissionId),
+                checkUuidIn(search.getTwinClassIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.twinClassId),
+                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, PermissionGrantTwinRoleEntity.Fields.twinClassId),
+                checkFieldLikeIn(safeConvertToString(search.getTwinRoleList()), false, false, PermissionGrantTwinRoleEntity.Fields.twinRole),
+                checkFieldLikeIn(safeConvertToString(search.getTwinRoleExcludeList()), true, false, PermissionGrantTwinRoleEntity.Fields.twinRole),
+                checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantTwinRoleEntity.Fields.grantedByUserId),
+                checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantTwinRoleEntity.Fields.grantedByUserId));
     }
 
     private Set<String> safeConvertToString(Set<TwinRole> list) {

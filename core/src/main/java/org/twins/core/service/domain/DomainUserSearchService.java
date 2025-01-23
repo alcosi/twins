@@ -45,8 +45,8 @@ public class DomainUserSearchService {
                 checkDomainUserFieldNotLikeIn(UserEntity.Fields.email, search.getEmailNotLikeList(), true),
                 checkUserStatusIn(search.getStatusIdList(), false),
                 checkUserStatusIn(search.getStatusIdExcludeList(), true),
-                checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false, false),
-                checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true, false));
+                checkUuidIn(search.getUserIdList(), false, false, DomainUserEntity.Fields.userId),
+                checkUuidIn(search.getUserIdExcludeList(), true, false, DomainUserEntity.Fields.userId));
     }
 
 }

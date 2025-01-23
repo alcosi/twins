@@ -60,7 +60,7 @@ public class SpaceUserRoleService {
         Specification<SpaceRoleUserEntity> spec = where(
                 checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false)
                         .and(checkUserNameLikeWithPattern(search.getUserNameLike()))
-                        .and(checkUuidIn(SpaceRoleUserEntity.Fields.spaceRoleId, search.getSpaceRolesIdList(), false, false))
+                        .and(checkUuidIn(search.getSpaceRolesIdList(), false, false, SpaceRoleUserEntity.Fields.spaceRoleId))
                         .and(checkUserInGroups(search.getUserGroupIdList(), false))
         );
         Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
