@@ -35,8 +35,6 @@ import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinActionService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
@@ -80,14 +78,12 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
         return true;
     }
 
-    public PaginationResult<HistoryEntity> findHistory(UUID twinId, int childDepth, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<HistoryEntity> findHistory(UUID twinId, boolean includeDirectChildren, SimplePagination pagination) throws ServiceException {
         twinActionService.checkAllowed(twinId, TwinAction.HISTORY_VIEW);
         Pageable pageable = PaginationUtils.pageableOffset(pagination);
-        Page<HistoryEntity> historyList;
-        if (childDepth == 0)
-            historyList = historyRepository.findByTwinId(twinId, pageable);
-        else //todo support different depth
-            historyList = historyRepository.findByTwinIdIncludeFirstLevelChildren(twinId, pageable);
+        Page<HistoryEntity> historyList = includeDirectChildren
+                ? historyRepository.findByTwinIdIncludeChildren(twinId, pageable)
+                : historyRepository.findByTwinId(twinId, pageable);
         return PaginationUtils.convertInPaginationResult(historyList, pagination);
     }
 

@@ -15,7 +15,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
-import org.twins.core.controller.rest.RestRequestParam;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
@@ -58,11 +57,11 @@ public class HistoryListController extends ApiController {
     public ResponseEntity<?> historyListV1(
             @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
-            @RequestParam(name = RestRequestParam.childDepth, defaultValue = "0") int childDepth,
+            @RequestParam(defaultValue = "false") boolean includeDirectChildren,
             @SimplePaginationParams(sortAsc = false, sortField = HistoryEntity.Fields.createdAt) SimplePagination pagination) {
         HistoryListRsDTOv1 rs = new HistoryListRsDTOv1();
         try {
-            PaginationResult<HistoryEntity> historyList = historyService.findHistory(twinId, childDepth, pagination);
+            PaginationResult<HistoryEntity> historyList = historyService.findHistory(twinId, includeDirectChildren, pagination);
             rs
                     .setHistoryList(historyDTOMapperV1.convertCollection(historyList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(historyList))
