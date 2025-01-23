@@ -59,7 +59,7 @@ public class FactoryPipelineSearchController extends ApiController {
         FactoryPipelineSearchRsDTOv1 rs = new FactoryPipelineSearchRsDTOv1();
         try {
             PaginationResult<TwinFactoryPipelineEntity> pipelines = factoryPipelineSearchService
-                    .findFactoryConditionSets(factoryPipelineSearchDTOReverseMapper.convert(request), pagination);
+                    .findFactoryPipelines(factoryPipelineSearchDTOReverseMapper.convert(request), pagination);
             rs
                     .setPipelines(factoryPipelineRestDTOMapperV2.convertCollection(pipelines.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(pipelines))

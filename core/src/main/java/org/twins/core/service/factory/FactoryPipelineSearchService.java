@@ -24,7 +24,7 @@ import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecifica
 public class FactoryPipelineSearchService {
     private final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
 
-    public PaginationResult<TwinFactoryPipelineEntity> findFactoryConditionSets(FactoryPipelineSearch search, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinFactoryPipelineEntity> findFactoryPipelines(FactoryPipelineSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryPipelineEntity> spec = createFactoryPipelineSearchSpecification(search);
         Page<TwinFactoryPipelineEntity> ret = twinFactoryPipelineRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);

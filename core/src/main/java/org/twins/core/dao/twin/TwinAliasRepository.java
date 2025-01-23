@@ -35,7 +35,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "update domain set alias_counter = alias_counter + 1 " +
             "where id = :domainId ; " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
-            "select gen_random_uuid(), :twinId, 'D', concat(domain.key, '-D', domain.alias_counter), now(), domain.id " +
+            "select gen_random_uuid(), :twinId, 'D', concat(upper(domain.key), '-D', domain.alias_counter), now(), domain.id " +
             "from domain where :domainId = domain.id; " +
             "commit;")
     void createDomainAlias(@Param("twinId") UUID twinId, @Param("domainId") UUID domainId);
@@ -46,7 +46,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "update twin_class set domain_alias_counter = domain_alias_counter + 1 " +
             "where id = :twinClassId ; " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
-            "select gen_random_uuid(), :twinId, 'C', concat(twin_class.key, '-C', twin_class.domain_alias_counter), now(), twin_class.domain_id " +
+            "select gen_random_uuid(), :twinId, 'C', concat(upper(twin_class.key), '-C', twin_class.domain_alias_counter), now(), twin_class.domain_id " +
             "from twin_class where twin_class.id = :twinClassId ; " +
             "commit;")
     void createDomainClassAlias(@Param("twinId") UUID twinId, @Param("twinClassId") UUID twinClassId);
@@ -59,7 +59,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "from twin where twin.id = :twinId " +
             "on conflict ON CONSTRAINT twin_business_account_alias_counter_uniq do update set alias_counter = twin_business_account_alias_counter.alias_counter + 1; " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, business_account_id) " +
-            "select gen_random_uuid(), :twinId, 'B', concat( :twinClassKey , '-B', twin_business_account_alias_counter.alias_counter), now(), :businessAccountId " +
+            "select gen_random_uuid(), :twinId, 'B', concat(upper(:twinClassKey) , '-B', twin_business_account_alias_counter.alias_counter), now(), :businessAccountId " +
             "from twin_business_account_alias_counter " +
             "where twin_business_account_alias_counter.business_account_id = :businessAccountId " +
             "and twin_business_account_alias_counter.twin_class_id = :twinClassId " +
@@ -72,7 +72,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "update space set domain_alias_counter = domain_alias_counter + 1 " +
             "where twin_id = :twinId and exists (select 1 from space where twin_id = :twinId); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id) " +
-            "select gen_random_uuid(), :twinId, 'S', concat(space.key, '-S', space.domain_alias_counter), now(), twin_class.domain_id " +
+            "select gen_random_uuid(), :twinId, 'S', concat(upper(space.key), '-S', space.domain_alias_counter), now(), twin_class.domain_id " +
             "from space " +
             "join twin_class_schema_map map on space.twin_class_schema_id = map.twin_class_schema_id " +
             "join twin_class_schema twin_class on map.twin_class_id = twin_class.id " +
@@ -86,7 +86,7 @@ public interface TwinAliasRepository extends CrudRepository<TwinAliasEntity, UUI
             "update space set business_account_alias_counter = business_account_alias_counter + 1 " +
             "where twin_id = :twinId and :aliasType in ('K', 'T') and exists (select 1 from space where twin_id = :twinId); " +
             "insert into twin_alias(id, twin_id, twin_alias_type_id, alias_value, created_at, domain_id, business_account_id) " +
-            "select gen_random_uuid(), :twinId, :aliasType, concat(space.key, '-', :aliasType, space.business_account_alias_counter), now(), twin_class.domain_id, twin.owner_business_account_id " +
+            "select gen_random_uuid(), :twinId, :aliasType, concat(upper(space.key), '-', :aliasType, space.business_account_alias_counter), now(), twin_class.domain_id, twin.owner_business_account_id " +
             "from space " +
             "join twin_class_schema_map map on space.twin_class_schema_id = map.twin_class_schema_id " +
             "join twin_class_schema twin_class on map.twin_class_id = twin_class.id " +
