@@ -78,7 +78,7 @@ public class FactoryPipelineSearchController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryPipelineViewV1", summary = "Factory pipeline view")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory pipeline list", content = {
+            @ApiResponse(responseCode = "200", description = "Factory pipeline data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = FactoryPipelineViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})

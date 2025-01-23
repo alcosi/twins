@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryMultiplierViewRsDTOv1")
+@Schema(name = "FactoryMultiplierViewRsV1")
 public class FactoryMultiplierViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - factory multiplier")
     public FactoryMultiplierDTOv2 multiplier;

@@ -2,8 +2,8 @@ package org.twins.core.service.datalist;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
@@ -15,6 +15,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -44,14 +45,14 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 && entity.getBusinessAccountId() != null
                 && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId())));
         if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
         }
         return readDenied;
     }
 
     @Override
     public boolean validateEntity(DataListOptionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity, EntitySmartService.ReadPermissionCheckMode.none);
+        return true;
     }
 
     //Method for reloading options if dataList is not present in entity;
@@ -64,6 +65,15 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             options.addAll(findEntitiesSafe(idsForReload));
         }
         return options;
+    }
+
+    public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+        List<DataListOptionEntity> dataListOptionEntityList;
+        if (authService.getApiUser().isBusinessAccountSpecified())
+            dataListOptionEntityList = dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId());
+        else
+            dataListOptionEntityList = dataListOptionRepository.findByIdIn(dataListOptionIdSet);
+        return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 
     //todo move *options methods from  DataListService

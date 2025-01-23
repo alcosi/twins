@@ -82,14 +82,14 @@ public class PermissionGrantUserSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantUserViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/permission_grant/user/{userId}/v1")
+    @PostMapping(value = "/private/permission_grant/user/{grantId}/v1")
     public ResponseEntity<?> permissionGrantUserViewV1(
             @MapperContextBinding(roots = PermissionGrantUserRestDTOMapperV2.class, response = PermissionGrantUserViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID )@PathVariable("userId") UUID userId) {
+            @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_ID) @PathVariable("grantId") UUID grantId) {
 
         PermissionGrantUserViewRsDTOv1 rs = new PermissionGrantUserViewRsDTOv1();
         try {
-            PermissionGrantUserEntity permissionGrant = permissionGrantUserService.findEntitySafe(userId);
+            PermissionGrantUserEntity permissionGrant = permissionGrantUserService.findEntitySafe(grantId);
 
             rs
                     .setPermissionGrantUser(permissionGrantUserRestDTOMapperV2.convert(permissionGrant, mapperContext))

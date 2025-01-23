@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryPipelineViewRsDTOv1")
+@Schema(name = "FactoryPipelineViewRsV1")
 public class FactoryPipelineViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - factory pipeline")
     public FactoryPipelineDTOv2 pipeline;

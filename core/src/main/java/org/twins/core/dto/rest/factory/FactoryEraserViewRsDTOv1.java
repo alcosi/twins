@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryEraserViewRsDTOv1")
+@Schema(name = "FactoryEraserViewRsV1")
 public class FactoryEraserViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - eraser")
     public FactoryEraserDTOv2 eraser;

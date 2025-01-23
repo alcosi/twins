@@ -46,6 +46,7 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
     private final FactoryMultiplierFilterRestDTOMapperV2 factoryMultiplierFilterRestDTOMapperV2;
     private final FactoryMultiplierFilerSearchDTOReverseMapper factoryMultiplierFilerSearchDTOReverseMapper;
     private final FactoryMultiplierFilterService factoryMultiplierFilterService;
+
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryMultiplierFilterSearchV1", summary = "Factory multiplier filter search")
     @ApiResponses(value = {
@@ -77,14 +78,14 @@ public class FactoryMultiplierFilterSearchController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryMultiplierFilterViewV1", summary = "Factory multiplier filter search")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory multiplier filter list", content = {
+            @ApiResponse(responseCode = "200", description = "Factory multiplier filter data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = FactoryMultiplierFilterViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/factory_multiplier_filter/{multiplierId}/v1")
     public ResponseEntity<?> factoryMultiplierFilterViewV1(
             @MapperContextBinding(roots = FactoryMultiplierFilterRestDTOMapperV2.class, response = FactoryMultiplierFilterViewRsDTOv1.class) MapperContext mapperContext,
-           @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId ) {
+            @Parameter(example = DTOExamples.MULTIPLIER_ID) @PathVariable("multiplierId") UUID multiplierId) {
         FactoryMultiplierFilterViewRsDTOv1 rs = new FactoryMultiplierFilterViewRsDTOv1();
         try {
             TwinFactoryMultiplierFilterEntity multiplierFilter = factoryMultiplierFilterService.findEntitySafe(multiplierId);

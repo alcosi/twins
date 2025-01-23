@@ -75,7 +75,7 @@ public class FactorySearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "factoryViewV1", summary = "Return  the factory bu id for the current domain")
+    @Operation(operationId = "factoryViewV1", summary = "Factory data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =

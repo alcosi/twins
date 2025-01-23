@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "DomainBusinessAccountViewRsDTOv1")
+@Schema(name = "DomainBusinessAccountViewRsV1")
 public class DomainBusinessAccountViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - domain business account")
-    DomainBusinessAccountDTOv1 businessAccount;
+    public DomainBusinessAccountDTOv1 businessAccount;
 }

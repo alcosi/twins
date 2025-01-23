@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantUserGroupViewRsDTOv1")
+@Schema(name = "PermissionGrantUserGroupViewRsV1")
 public class PermissionGrantUserGroupViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - permission grant user-group")
     public PermissionGrantUserGroupDTOv2 permissionGrantUserGroup;

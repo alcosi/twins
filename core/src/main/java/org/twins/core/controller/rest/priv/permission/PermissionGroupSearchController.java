@@ -76,7 +76,7 @@ public class PermissionGroupSearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "permissionGroupViewV1", summary = "Return the permission groups for the current domain")
+    @Operation(operationId = "permissionGroupViewV1", summary = "Return the permission group by id")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
@@ -85,12 +85,12 @@ public class PermissionGroupSearchController extends ApiController {
     @GetMapping(value = "/private/permission_group/{groupId}/v1")
     public ResponseEntity<?> permissionGroupViewV1(
             @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GROUP_ID )@PathVariable("groupId") UUID groupId) {
+            @Parameter(example = DTOExamples.PERMISSION_GROUP_ID) @PathVariable("groupId") UUID groupId) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {
             PermissionGroupEntity permission = permissionGroupService.findEntitySafe(groupId);
             if (permission == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupId+ " in current domain." );
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupId + " in current domain.");
             }
             rs
                     .setPermissionGroup(permissionGroupRestDTOMapper.convert(permission, mapperContext))
@@ -104,23 +104,19 @@ public class PermissionGroupSearchController extends ApiController {
     }
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "permissionGroupViewByKeyV1", summary = "Return the permission groups for the current domain by key")
+    @Operation(operationId = "permissionGroupViewByKeyV1", summary = "Return the permission group by key")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGroupViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_group_by_key/{groupId}/v1")
+    @GetMapping(value = "/private/permission_group_by_key/{groupKey}/v1")
     public ResponseEntity<?> permissionGroupViewByKeyV1(
             @MapperContextBinding(roots = PermissionGroupRestDTOMapper.class, response = PermissionGroupViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GROUP_KEY )@PathVariable("groupKey") String groupKey) {
+            @Parameter(example = DTOExamples.PERMISSION_GROUP_KEY) @PathVariable("groupKey") String groupKey) {
         PermissionGroupViewRsDTOv1 rs = new PermissionGroupViewRsDTOv1();
         try {
-            PermissionGroupEntity permission = permissionGroupSearchService
-                    .findPermissionGroupByKey(groupKey);
-            if (permission == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission group: " + groupKey+ " in current domain." );
-            }
+            PermissionGroupEntity permission = permissionGroupService.findEntitySafe(groupKey);
             rs
                     .setPermissionGroup(permissionGroupRestDTOMapper.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

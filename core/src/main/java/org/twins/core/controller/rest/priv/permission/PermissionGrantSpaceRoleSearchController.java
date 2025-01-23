@@ -82,13 +82,13 @@ public class PermissionGrantSpaceRoleSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantSpaceRoleViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_grant/space_role/{roleId}/v1")
+    @GetMapping(value = "/private/permission_grant/space_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantSpaceRoleViewV1(
             @MapperContextBinding(roots = PermissionGrantSpaceRoleRestDTOMapperV2.class, response = PermissionGrantSpaceRoleViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.SPACE_ROLE_USER_ID)@PathVariable("roleId") UUID roleId) {
+            @Parameter(example = DTOExamples.SPACE_ROLE_USER_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantSpaceRoleViewRsDTOv1 rs = new PermissionGrantSpaceRoleViewRsDTOv1();
         try {
-            PermissionGrantSpaceRoleEntity role = permissionGrantSpaceRoleService.findEntitySafe(roleId);
+            PermissionGrantSpaceRoleEntity role = permissionGrantSpaceRoleService.findEntitySafe(grantId);
 
             rs
                     .setPermissionGrantSpaceRole(permissionGrantSpaceRoleRestDTOMapperV2.convert(role, mapperContext))

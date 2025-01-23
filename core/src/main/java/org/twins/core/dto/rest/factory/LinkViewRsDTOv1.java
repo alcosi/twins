@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.link.LinkDTOv3;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "LinkViewRsDTOv1")
+@Schema(name = "LinkViewRsV1")
 public class LinkViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - link")
     public LinkDTOv3 link;

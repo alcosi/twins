@@ -45,6 +45,7 @@ public class FactoryConditionSetSearchController extends ApiController {
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
     private final FactoryConditionSetSearchService factoryConditionSetSearchService;
     private final FactoryConditionSetService factoryConditionSetService;
+
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryConditionSetSearchV1", summary = "Condition set search")
     @ApiResponses(value = {
@@ -83,7 +84,7 @@ public class FactoryConditionSetSearchController extends ApiController {
     @GetMapping(value = "/private/factory_condition_set/{factoryConditionSetId}/v1")
     public ResponseEntity<?> factoryConditionSetViewV1(
             @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.FACTORY_CONDITION_SET_ID)  @PathVariable("factoryConditionSetId")UUID factoryConditionSetId) {
+            @Parameter(example = DTOExamples.FACTORY_CONDITION_SET_ID) @PathVariable("factoryConditionSetId") UUID factoryConditionSetId) {
         FactoryConditionSetViewRsDTOv1 rs = new FactoryConditionSetViewRsDTOv1();
         try {
             TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(factoryConditionSetId);

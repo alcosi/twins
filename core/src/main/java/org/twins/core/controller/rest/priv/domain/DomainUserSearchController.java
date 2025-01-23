@@ -80,7 +80,7 @@ public class DomainUserSearchController extends ApiController {
                     @Schema(implementation = DomainUserViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/domain/user/{userId}/v1")
-    public ResponseEntity<?> domainUserSearchListV1(
+    public ResponseEntity<?> domainUserViewV1(
             @MapperContextBinding(roots = DomainUserRestDTOMapperV2.class, response = DomainUserViewRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.USER_ID) @PathVariable("userId") UUID userId) {
         DomainUserViewRsDTOv1 rs = new DomainUserViewRsDTOv1();

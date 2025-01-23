@@ -84,7 +84,7 @@ public class PermissionSchemaSearchController extends ApiController {
     @GetMapping(value = "/private/permission_schema/{schemaId}/v1")
     public ResponseEntity<?> permissionSchemaViewV1(
             @MapperContextBinding(roots = PermissionSchemaRestDTOMapperV2.class, response = PermissionSchemaViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID )@PathVariable("schemaId") UUID schemaId) {
+            @Parameter(example = DTOExamples.PERMISSION_SCHEMA_ID) @PathVariable("schemaId") UUID schemaId) {
         PermissionSchemaViewRsDTOv1 rs = new PermissionSchemaViewRsDTOv1();
         try {
             PermissionSchemaEntity permission = permissionSchemaService.findEntitySafe(schemaId);

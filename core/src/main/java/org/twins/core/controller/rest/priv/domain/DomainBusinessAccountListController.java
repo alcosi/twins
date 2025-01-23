@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -87,11 +86,9 @@ public class DomainBusinessAccountListController extends ApiController {
             @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable("businessAccountId") UUID businessAccountId) {
         DomainBusinessAccountViewRsDTOv1 rs = new DomainBusinessAccountViewRsDTOv1();
         try {
-            DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(),businessAccountId);
-            if (domainBusinessAccount == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND,"No such business account: " + businessAccountId + " in current domain.");
-            }
-            rs.setBusinessAccount(domainBusinessAccountDTOMapper.convert(domainBusinessAccount, mapperContext))
+            DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(), businessAccountId);
+            rs
+                    .setBusinessAccount(domainBusinessAccountDTOMapper.convert(domainBusinessAccount, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

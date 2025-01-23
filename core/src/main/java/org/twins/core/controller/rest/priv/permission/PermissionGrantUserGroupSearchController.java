@@ -83,15 +83,15 @@ public class PermissionGrantUserGroupSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantUserGroupViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_grant/user_group/{userGroupId}/v1")
+    @GetMapping(value = "/private/permission_grant/user_group/{grantId}/v1")
     public ResponseEntity<?> permissionGrantUserGroupViewV1(
             @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID )@PathVariable("userGroupId") UUID userGroupId) {
+            @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantUserGroupViewRsDTOv1 rs = new PermissionGrantUserGroupViewRsDTOv1();
         try {
-            PermissionGrantUserGroupEntity permissionGrant = permissionGrantUserGroupService.findEntitySafe(userGroupId);
+            PermissionGrantUserGroupEntity permissionGrant = permissionGrantUserGroupService.findEntitySafe(grantId);
             if (permissionGrant == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant user group: " + userGroupId + " in current domain.");
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such grant user group: " + grantId + " in current domain.");
             }
             rs
                     .setPermissionGrantUserGroup(permissionGrantUserGroupRestDTOMapperV2.convert(permissionGrant, mapperContext))

@@ -45,6 +45,7 @@ public class LinkSearchController extends ApiController {
     private final LinkSearchDTOReverseMapper linkSearchDTOReverseMapper;
     private final LinkSearchService linkSearchService;
     private final LinkService linkService;
+
     @ParametersApiUserHeaders
     @Operation(operationId = "linkSearchV1", summary = "Link search")
     @ApiResponses(value = {
@@ -83,7 +84,7 @@ public class LinkSearchController extends ApiController {
     @GetMapping(value = "/private/link/{linkId}/v1")
     public ResponseEntity<?> linkViewV1(
             @MapperContextBinding(roots = LinkForwardRestDTOV3Mapper.class, response = LinkViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.LINK_ID)@PathVariable("linkId")UUID linkId) {
+            @Parameter(example = DTOExamples.LINK_ID) @PathVariable("linkId") UUID linkId) {
         LinkViewRsDTOv1 rs = new LinkViewRsDTOv1();
         try {
             LinkEntity link = linkService.findEntitySafe(linkId);

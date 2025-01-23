@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "UserWithinSpaceRolesViewRsDTOv1")
+@Schema(name = "UserWithinSpaceRolesViewRsV1")
 public class UserWithinSpaceRolesViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "space roles")
     public UserWithinSpaceRolesRsDTOv1 userRefSpaceRoles;

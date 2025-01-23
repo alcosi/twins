@@ -3,7 +3,6 @@ package org.twins.core.service.domain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -40,15 +39,15 @@ public class DomainUserService extends EntitySecureFindServiceImpl<DomainUserEnt
     @Override
     public boolean isEntityReadDenied(DomainUserEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied=!entity.getDomainId().equals(domain.getId());
+        boolean readDenied = !entity.getDomainId().equals(domain.getId());
         if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
         }
         return readDenied;
     }
 
     @Override
     public boolean validateEntity(DomainUserEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return true;
     }
 }

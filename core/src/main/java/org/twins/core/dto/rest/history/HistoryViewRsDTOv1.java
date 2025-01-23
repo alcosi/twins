@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "HistoryViewRsDTOv1")
+@Schema(name = "HistoryViewRsV1")
 public class HistoryViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "history")
     public HistoryDTOv1 history;

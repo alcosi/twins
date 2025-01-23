@@ -3,7 +3,6 @@ package org.twins.core.service.factory;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
@@ -42,13 +41,13 @@ public class FactoryBranchService extends EntitySecureFindServiceImpl<TwinFactor
         DomainEntity domain = authService.getApiUser().getDomain();
         boolean readDenied=!entity.getFactory().getDomainId().equals(domain.getId());
         if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
         }
         return readDenied;
     }
 
     @Override
     public boolean validateEntity(TwinFactoryBranchEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+        return true;
     }
 }

@@ -24,7 +24,6 @@ public class FactoryConditionSetSearchService {
     private final TwinFactoryConditionSetRepository twinFactoryConditionSetRepository;
     private final AuthService authService;
 
-
     public PaginationResult<TwinFactoryConditionSetEntity> findFactoryConditionSets(FactoryConditionSetSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryConditionSetEntity> spec = createFactoryConditionSetSearchSpecification(search);
         Page<TwinFactoryConditionSetEntity> ret = twinFactoryConditionSetRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

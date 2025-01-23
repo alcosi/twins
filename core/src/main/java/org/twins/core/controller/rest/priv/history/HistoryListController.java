@@ -115,10 +115,10 @@ public class HistoryListController extends ApiController {
     @GetMapping(value = "/private/twin/history/{historyId}/v1")
     public ResponseEntity<?> historyViewV1(
             @MapperContextBinding(roots = HistoryDTOMapperV1.class, response = HistoryViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_HISTORY_ID)@PathVariable("historyId") UUID historyId) {
+            @Parameter(example = DTOExamples.TWIN_HISTORY_ID) @PathVariable("historyId") UUID historyId) {
         HistoryViewRsDTOv1 rs = new HistoryViewRsDTOv1();
         try {
-            HistoryEntity history= historyService.findEntitySafe(historyId);
+            HistoryEntity history = historyService.findEntitySafe(historyId);
             rs
                     .setHistory(historyDTOMapperV1.convert(history, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

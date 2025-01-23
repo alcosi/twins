@@ -76,7 +76,7 @@ public class FactoryBranchSearchController extends ApiController {
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryBranchViewV1", summary = "Factory branch by id")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Factory branch", content = {
+            @ApiResponse(responseCode = "200", description = "Factory branch data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = FactoryBranchViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})

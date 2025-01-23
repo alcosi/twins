@@ -15,12 +15,9 @@ import org.cambium.common.util.StreamUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.TypedParameterTwins;
@@ -38,6 +35,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinRole;
 import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -45,16 +43,14 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldStringLike;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
+public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
 
     private final PermissionRepository permissionRepository;
     private final PermissionSchemaRepository permissionSchemaRepository;
@@ -94,15 +90,13 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     public Function<PermissionEntity, UUID> entityGetIdFunction() {
         return PermissionEntity::getId;
     }
-    public PermissionEntity findEntitySafeByKey(String key) throws ServiceException {
-        PermissionEntity entity = permissionRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId),
-                        checkFieldStringLike(key, PermissionEntity.Fields.key)
-                ), FluentQuery.FetchableFluentQuery::one
-        ).orElse(null);
-        return findEntitySafe(entity==null?null:entity.getId());
+
+    @Override
+    public BiFunction<UUID, String, Optional<PermissionEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        //todo that is not uniq safe! domain_id should be also added to permission entity
+        return permissionRepository::findByPermissionGroup_DomainIdAndKey;
     }
+
     @Override
     public boolean validateEntity(PermissionEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entity.getKey() == null)

@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantAssigneePropagationViewRsDTOv1")
+@Schema(name = "PermissionGrantAssigneePropagationViewRsV1")
 public class PermissionGrantAssigneePropagationViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - permission assignee propagation ")
     public PermissionGrantAssigneePropagationDTOv2 permissionGrantAssigneePropagation;

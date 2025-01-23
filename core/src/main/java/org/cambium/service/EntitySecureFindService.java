@@ -12,6 +12,10 @@ public interface EntitySecureFindService<T> {
                  EntitySmartService.FindMode findMode,
                  EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
                  EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
+    T findEntity(String key,
+                 EntitySmartService.FindMode findMode,
+                 EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                 EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException;
     Kit<T, UUID> findEntities(Collection<UUID> entityId,
                               EntitySmartService.ListFindMode findMode,
                               EntitySmartService.ReadPermissionCheckMode permissionCheckMode,

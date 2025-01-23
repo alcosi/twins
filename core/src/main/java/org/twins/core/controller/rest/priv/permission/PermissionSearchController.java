@@ -14,7 +14,6 @@ import org.cambium.common.pagination.SimplePagination;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 import org.twins.core.controller.rest.ApiController;
 import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
@@ -85,13 +84,10 @@ public class PermissionSearchController extends ApiController {
     @GetMapping(value = "/private/permission/{permissionId}/v1")
     public ResponseEntity<?> permissionViewV1(
             @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_ID )@PathVariable("permissionId") UUID permissionId) {
+            @Parameter(example = DTOExamples.PERMISSION_ID) @PathVariable("permissionId") UUID permissionId) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {
             PermissionEntity permission = permissionService.findEntitySafe(permissionId);
-            if (permission == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission : " + permissionId+ " in current domain." );
-            }
             rs
                     .setPermission(permissionRestDTOMapperV2.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
@@ -110,16 +106,13 @@ public class PermissionSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_by_key/{permissionId}/v1")
+    @GetMapping(value = "/private/permission_by_key/{permissionKey}/v1")
     public ResponseEntity<?> permissionViewByKeyV1(
             @MapperContextBinding(roots = PermissionRestDTOMapperV2.class, response = PermissionViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_KEY )@PathVariable("permissionKey") String permissionKey) {
+            @Parameter(example = DTOExamples.PERMISSION_KEY) @PathVariable("permissionKey") String permissionKey) {
         PermissionViewRsDTOv1 rs = new PermissionViewRsDTOv1();
         try {
-            PermissionEntity permission = permissionService.findEntitySafeByKey(permissionKey);
-            if (permission == null) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "No such permission key: " + permissionKey+ " in current domain." );
-            }
+            PermissionEntity permission = permissionService.findEntitySafe(permissionKey);
             rs
                     .setPermission(permissionRestDTOMapperV2.convert(permission, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

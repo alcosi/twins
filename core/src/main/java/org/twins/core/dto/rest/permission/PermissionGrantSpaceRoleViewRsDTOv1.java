@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "PermissionGrantSpaceRoleViewRsDTOv1")
+@Schema(name = "PermissionGrantSpaceRoleViewRsV1")
 public class PermissionGrantSpaceRoleViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - permission grant space role")
     public PermissionGrantSpaceRoleDTOv2 permissionGrantSpaceRole;

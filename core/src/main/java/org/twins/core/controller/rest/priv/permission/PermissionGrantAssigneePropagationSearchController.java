@@ -82,13 +82,13 @@ public class PermissionGrantAssigneePropagationSearchController extends ApiContr
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantAssigneePropagationViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_grant/assignee_propagation/{propagationId}/v1")
+    @GetMapping(value = "/private/permission_grant/assignee_propagation/{grantId}/v1")
     public ResponseEntity<?> permissionGrantAssigneePropagationViewV1(
             @MapperContextBinding(roots = PermissionGrantAssigneePropagationRestDTOMapperV2.class, response = PermissionGrantAssigneePropagationViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable("propagationId") UUID propagationId) {
+            @Parameter(example = DTOExamples.PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID) @PathVariable("grantId") UUID grentId) {
         PermissionGrantAssigneePropagationViewRsDTOv1 rs = new PermissionGrantAssigneePropagationViewRsDTOv1();
         try {
-            PermissionGrantAssigneePropagationEntity permissionGrant = permissionGrantAssigneePropagationService.findEntitySafe(propagationId);
+            PermissionGrantAssigneePropagationEntity permissionGrant = permissionGrantAssigneePropagationService.findEntitySafe(grentId);
 
             rs
                     .setPermissionGrantAssigneePropagation(permissionGrantAssigneePropagationRestDTOMapperV2.convert(permissionGrant, mapperContext))

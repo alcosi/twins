@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.permission.FactoryPipelineStepDTOv2;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryPipelineStepViewRsDTOv1")
+@Schema(name = "FactoryPipelineStepViewRsV1")
 public class FactoryPipelineStepViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - factory pipeline step")
     public FactoryPipelineStepDTOv2 step;

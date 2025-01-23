@@ -81,13 +81,13 @@ public class PermissionGrantTwinRoleSearchController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantTwinRoleViewRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/permission_grant/twin_role/{roleId}/v1")
+    @GetMapping(value = "/private/permission_grant/twin_role/{grantId}/v1")
     public ResponseEntity<?> permissionGrantTwinRoleViewV1(
             @MapperContextBinding(roots = PermissionGrantTwinRoleRestDTOMapperV2.class, response = PermissionGrantTwinRoleViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID)@PathVariable("roleId") UUID roleId) {
+            @Parameter(example = DTOExamples.PERMISSION_GRANT_TWIN_ROLE_ID) @PathVariable("grantId") UUID grantId) {
         PermissionGrantTwinRoleViewRsDTOv1 rs = new PermissionGrantTwinRoleViewRsDTOv1();
         try {
-            PermissionGrantTwinRoleEntity permissionGrantTwinRole= permissionGrantTwinRoleService.findEntitySafe(roleId);
+            PermissionGrantTwinRoleEntity permissionGrantTwinRole = permissionGrantTwinRoleService.findEntitySafe(grantId);
 
             rs
                     .setPermissionGrantTwin(permissionGrantTwinRoleRestDTOMapperV2.convert(permissionGrantTwinRole, mapperContext))

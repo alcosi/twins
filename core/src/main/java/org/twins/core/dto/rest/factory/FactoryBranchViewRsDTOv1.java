@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryBranchViewRsDTOv1")
+@Schema(name = "FactoryBranchViewRsV1")
 public class FactoryBranchViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - branch")
     public FactoryBranchDTOv2 branch;

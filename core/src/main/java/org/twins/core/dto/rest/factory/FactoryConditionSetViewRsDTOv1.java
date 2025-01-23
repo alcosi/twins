@@ -9,7 +9,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryConditionSetViewRsDTOv1")
+@Schema(name = "FactoryConditionSetViewRsV1")
 public class FactoryConditionSetViewRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "result - condition set")
     public FactoryConditionSetDTOv1 conditionSet;
