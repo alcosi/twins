@@ -291,7 +291,7 @@ public class FeaturerService {
         return allOf(
                 checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false),
                 checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false),
-                checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), false,true));
+                checkFieldLikeIn(featurerSearch.getNameLikeList(), false, true, FeaturerEntity.Fields.name));
     }
 
     public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {

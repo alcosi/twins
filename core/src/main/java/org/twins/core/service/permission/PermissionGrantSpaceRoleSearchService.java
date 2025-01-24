@@ -39,16 +39,16 @@ public class PermissionGrantSpaceRoleSearchService {
     private Specification<PermissionGrantSpaceRoleEntity> createPermissionGrantSpaceRoleSearchSpecification(PermissionGrantSpaceRoleSearch search, UUID domainId) {
         return Specification.allOf(
                 checkFieldUuid(domainId, PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdList(), false, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdList(), false, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.spaceRoleId, search.getSpaceRoleIdExcludeList(), true, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, false),
-                checkUuidIn(PermissionGrantSpaceRoleEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
+                checkUuidIn(search.getIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantSpaceRoleEntity.Fields.id),
+                checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, false, PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.permissionId),
+                checkUuidIn(search.getPermissionIdExcludeList(), true, false, PermissionGrantSpaceRoleEntity.Fields.permissionId),
+                checkUuidIn(search.getSpaceRoleIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.spaceRoleId),
+                checkUuidIn(search.getSpaceRoleIdExcludeList(), true, false, PermissionGrantSpaceRoleEntity.Fields.spaceRoleId),
+                checkUuidIn(search.getGrantedByUserIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.grantedByUserId),
+                checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantSpaceRoleEntity.Fields.grantedByUserId));
     }
 
 }

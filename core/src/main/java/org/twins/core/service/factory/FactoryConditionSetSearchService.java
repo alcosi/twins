@@ -33,11 +33,11 @@ public class FactoryConditionSetSearchService {
     private Specification<TwinFactoryConditionSetEntity> createFactoryConditionSetSearchSpecification(FactoryConditionSetSearch search) throws ServiceException {
         return Specification.allOf(
                 checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryConditionSetEntity.Fields.domainId),
-                checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameLikeList(), false, true),
-                checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.name, search.getNameNotLikeList(), true, true),
-                checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionLikeList(), false, true),
-                checkFieldLikeIn(TwinFactoryConditionSetEntity.Fields.description, search.getDescriptionNotLikeList(), true, true),
-                checkUuidIn(TwinFactoryConditionSetEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinFactoryConditionSetEntity.Fields.id, search.getIdExcludeList(), true, false));
+                checkFieldLikeIn(search.getNameLikeList(), false, true, TwinFactoryConditionSetEntity.Fields.name),
+                checkFieldLikeIn(search.getNameNotLikeList(), true, true, TwinFactoryConditionSetEntity.Fields.name),
+                checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryConditionSetEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryConditionSetEntity.Fields.description),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryConditionSetEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryConditionSetEntity.Fields.id));
     }
 }
