@@ -26,6 +26,7 @@ public class FactorySearchService {
     private final AuthService authService;
     private final TwinFactoryRepository twinFactoryRepository;
 
+
     public PaginationResult<TwinFactoryEntity> findFactoriesInDomain(FactorySearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryEntity> spec = createFactorySearchSpecification(search);
         Page<TwinFactoryEntity> ret = twinFactoryRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

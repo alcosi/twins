@@ -13,6 +13,7 @@ import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterRepository;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.domain.search.FactoryMultiplierFilterSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryMultiplierFilterSpecification.*;
@@ -23,6 +24,7 @@ import static org.twins.core.dao.specifications.factory.FactoryMultiplierFilterS
 @RequiredArgsConstructor
 public class FactoryMultiplierFilterSearchService {
     private final TwinFactoryMultiplierFilterRepository twinFactoryMultiplierFilterRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryMultiplierFilterEntity> findFactoryMultiplierFilters(FactoryMultiplierFilterSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryMultiplierFilterEntity> spec = createFactoryMultiplierFilterSearchSpecification(search);

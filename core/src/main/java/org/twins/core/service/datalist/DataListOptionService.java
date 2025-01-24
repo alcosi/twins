@@ -7,6 +7,7 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
+import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
@@ -19,8 +20,12 @@ import org.twins.core.dao.datalist.DataListRepository;
 import org.twins.core.domain.datalist.DataListOptionCreate;
 import org.twins.core.domain.datalist.DataListOptionSave;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.domain.ApiUser;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.BiConsumer;
@@ -31,6 +36,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class DataListOptionService extends EntitySecureFindServiceImpl<DataListOptionEntity> {
     final DataListOptionRepository dataListOptionRepository;
+    final AuthService authService;
     private final I18nService i18nService;
     private final DataListRepository dataListRepository;
 
@@ -46,7 +52,15 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
     @Override
     public boolean isEntityReadDenied(DataListOptionEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        ApiUser apiUser = authService.getApiUser();
+        DomainEntity domain = apiUser.getDomain();
+        boolean readDenied = (!entity.getDataList().getDomainId().equals(domain.getId()) || (apiUser.isBusinessAccountSpecified()
+                && entity.getBusinessAccountId() != null
+                && !entity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId())));
+        if (readDenied) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allowed in " + domain.logShort());
+        }
+        return readDenied;
     }
 
     @Override
@@ -136,6 +150,15 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             options.addAll(findEntitiesSafe(idsForReload));
         }
         return options;
+    }
+
+    public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
+        List<DataListOptionEntity> dataListOptionEntityList;
+        if (authService.getApiUser().isBusinessAccountSpecified())
+            dataListOptionEntityList = dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId());
+        else
+            dataListOptionEntityList = dataListOptionRepository.findByIdIn(dataListOptionIdSet);
+        return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 
     //todo move *options methods from  DataListService
