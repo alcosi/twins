@@ -70,6 +70,9 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
 
     protected static TriFunction<Path, CriteriaBuilder, Set<UUID>, Predicate> checkHierarchyFunction() {
         return (path, cbi, values) -> {
+            if (values==null || values.isEmpty()){
+                return cbi.conjunction();
+            }
             Predicate[] predicates = values
                     .stream()
                     .map(id -> cbi.isTrue(cbi.function("hierarchy_check_lquery", Boolean.class, path, cbi.literal(LTreeUtils.matchInTheMiddle(id))))).toArray(Predicate[]::new);
@@ -79,6 +82,9 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
 
     protected static BiFunction<Collection<TwinTouchEntity.Touch>, Boolean, Specification> checkTouchSearch(UUID userId, String[] touchFieldPath) {
         return (touchCollection, exclude) -> (root, q, cb) -> {
+            if (touchCollection==null || touchCollection.isEmpty()){
+                return cb.conjunction();
+            }
             Join touchJoin = (Join) getReducedRoot(root, JoinType.LEFT, touchFieldPath);
             Predicate onUserId = cb.equal(touchJoin.get(TwinTouchEntity.Fields.userId), userId);
             Predicate onTouchId = touchJoin.get(TwinTouchEntity.Fields.touchId).in(touchCollection);
@@ -89,6 +95,9 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
     }
 
     protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields) {
+        if (fields == null || fields.isEmpty()){
+            return new Specification[0];
+        }
         Specification[] twinSearchFieldsSpecifications = fields.stream().map(fieldSearch -> {
             try {
                 return fieldSearch.getFieldTyper().searchBy(fieldSearch);
