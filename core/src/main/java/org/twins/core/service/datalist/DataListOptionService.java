@@ -112,6 +112,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (dbEntity.getOptionI18NId() != null)
             nameI18n.setId(dbEntity.getOptionI18NId());
         i18nService.saveTranslations(I18nType.DATA_LIST_NAME, nameI18n);
+        //todo changesHelper for i18n doesn't work
         if (changesHelper.isChanged(DataListEntity.Fields.nameI18nId, dbEntity.getOptionI18NId(), nameI18n.getId()))
             dbEntity.setOptionI18NId(nameI18n.getId());
     }
