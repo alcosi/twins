@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
 import org.twins.core.domain.search.FactoryMultiplierSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.factory.FactoryMultiplierSpecification.*;
 
@@ -21,6 +22,7 @@ import static org.twins.core.dao.specifications.factory.FactoryMultiplierSpecifi
 @RequiredArgsConstructor
 public class FactoryMultiplierSearchService {
     private final TwinFactoryMultiplierRepository twinFactoryMultiplierRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryMultiplierEntity> findFactoryMultipliers(FactoryMultiplierSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryMultiplierEntity> spec = createFactoryMultiplierSearchSpecification(search);

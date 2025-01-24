@@ -33,6 +33,7 @@ public class LinkSearchService {
     private final LinkRepository linkRepository;
     private final AuthService authService;
 
+
     public PaginationResult<LinkEntity> findLinks(LinkSearch search, SimplePagination pagination) throws ServiceException {
         Specification<LinkEntity> spec = createLinkSearchSpecification(search);
         Page<LinkEntity> ret = linkRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

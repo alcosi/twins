@@ -27,6 +27,8 @@ public interface TwinClassFieldRepository extends CrudRepository<TwinClassFieldE
 
     TwinClassFieldEntity findByTwinClassIdAndKey(UUID twinClassId, String key);
 
+    TwinClassFieldEntity findByTwinClass_KeyAndKey(String twinClassKey, String key);
+
     @Query(value = "from TwinClassFieldEntity field, TwinClassEntity  class " +
             "where field.key = :key " +
             "and field.twinClassId = class.extendsTwinClassId and class.id = :twinClassId")

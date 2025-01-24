@@ -13,7 +13,6 @@ import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -27,6 +26,7 @@ import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.datalist.DataListAttribute;
@@ -35,6 +35,7 @@ import org.twins.core.domain.datalist.DataListUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.FieldTyperSharedSelectInHead;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
@@ -42,6 +43,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -49,7 +51,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class DataListService extends EntitySecureFindServiceImpl<DataListEntity> {
+public class DataListService extends TwinsEntitySecureFindService<DataListEntity> {
     final DataListRepository dataListRepository;
     final DataListOptionRepository dataListOptionRepository;
     final EntitySmartService entitySmartService;
@@ -72,10 +74,15 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
     }
 
     @Override
+    public BiFunction<UUID, String, Optional<DataListEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        return dataListRepository::findByDomainIdAndKey;
+    }
+
+    @Override
     public boolean isEntityReadDenied(DataListEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(apiUser.getDomain().getId())) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + apiUser.getDomain().easyLog(EasyLoggable.Level.NORMAL));
+        DomainEntity domain = authService.getApiUser().getDomain();
+        if (!entity.getDomainId().equals(domain.getId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logNormal() + " is not allowed in " + domain.logShort());
             return true;
         }
         return false;
@@ -189,13 +196,6 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
 //            dbEntity.setAttribute1nameI18nId(attribute1I18n.getId());
 //    }
 
-    public DataListEntity findDataListByKey(ApiUser apiUser, String dataListKey) throws ServiceException {
-        DataListEntity dataListEntity = dataListRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), dataListKey);
-        if (dataListEntity == null)
-            throw new ServiceException(ErrorCodeTwins.DATALIST_LIST_UNKNOWN, "unknown data_list_key[" + dataListKey + "]");
-        return dataListEntity;
-    }
-
     //todo cache it
     public void loadDataListOptions(DataListEntity dataListEntity) throws ServiceException {
         loadDataListOptions(Collections.singletonList(dataListEntity));
@@ -239,15 +239,6 @@ public class DataListService extends EntitySecureFindServiceImpl<DataListEntity>
                 && !dataListOptionEntity.getBusinessAccountId().equals(apiUser.getBusinessAccount().getId()))
             throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT, dataListOptionEntity.logShort() + " is not valid for " + apiUser.getBusinessAccount().logShort());
         return dataListOptionEntity;
-    }
-
-    public Kit<DataListOptionEntity, UUID> findDataListOptionsByIds(Collection<UUID> dataListOptionIdSet) throws ServiceException {
-        List<DataListOptionEntity> dataListOptionEntityList;
-        if (authService.getApiUser().isBusinessAccountSpecified())
-            dataListOptionEntityList = dataListOptionRepository.findByIdInAndBusinessAccountId(dataListOptionIdSet, authService.getApiUser().getBusinessAccount().getId());
-        else
-            dataListOptionEntityList = dataListOptionRepository.findByIdIn(dataListOptionIdSet);
-        return new Kit<>(dataListOptionEntityList, DataListOptionEntity::getId);
     }
 
     public void forceDeleteOptions(UUID businessAccountId) throws ServiceException {

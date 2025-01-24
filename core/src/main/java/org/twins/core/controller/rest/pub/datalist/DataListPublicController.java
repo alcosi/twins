@@ -21,7 +21,6 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserAnonymousHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListSearchRqDTOv1;
@@ -87,10 +86,10 @@ public class DataListPublicController extends ApiController {
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser().setAnonymous();
+            authService.getApiUser().setAnonymous();
             rs
                     .setDataList(dataListRestDTOMapperV2.convert(
-                            dataListService.findDataListByKey(apiUser, dataListKey), mapperContext));
+                            dataListService.findEntitySafe(dataListKey), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
