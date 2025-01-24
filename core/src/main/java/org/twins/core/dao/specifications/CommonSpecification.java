@@ -131,7 +131,7 @@ public class CommonSpecification<T> {
     //    Use checkFieldLikeIn
     @Deprecated
     public static <T> Specification<T> checkFieldLikeContainsIn(final String field, final Collection<String> search, final boolean not, final boolean or) {
-        return checkFieldLikeIn(field, search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or);
+        return checkFieldLikeIn(field, CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or);
     }
 
     /**

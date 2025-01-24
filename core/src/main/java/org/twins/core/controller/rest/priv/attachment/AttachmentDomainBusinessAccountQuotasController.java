@@ -18,7 +18,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dto.rest.attachment.AttachmentQuotasRsDTOv1;
-import org.twins.core.dto.rest.attachment.AttachmentViewRsDTOv1;
 import org.twins.core.mappers.rest.attachment.AttachmentQuotasRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.DomainService;
@@ -50,7 +49,7 @@ public class AttachmentDomainBusinessAccountQuotasController extends ApiControll
         try {
             rs.setQuotas(
                     attachmentQuotasRestDTOMapper.convert(
-                            domainService.getDomainBusinessAccountQuotas(), mapperContext
+                            domainService.getTierQuotas(), mapperContext
                     ));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

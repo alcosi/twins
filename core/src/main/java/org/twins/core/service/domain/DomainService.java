@@ -80,7 +80,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
-    private final TierService domainBusinessAccountTierService;
     private final I18nLocaleRepository i18nLocaleRepository;
     private final DomainLocaleRepository domainLocaleRepository;
     @Lazy
@@ -231,7 +230,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
         if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
-            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId()));
+            dbEntity.setTierId(tierService.checkTierAllowed(updateEntity.getTierId()));
         }
         if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
             dbEntity.getBusinessAccount().setName(name);
@@ -336,13 +335,31 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         );
     }
 
-    public AttachmentQuotas getDomainBusinessAccountQuotas() throws ServiceException {
+    public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        if(!apiUser.isBusinessAccountSpecified())
+            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
+            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+            AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+            attachmentQuotas
+                    .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                    .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                    .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                    .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        return attachmentQuotas;
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        DomainEntity domain = apiUser.getDomain();
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domain.getAttachmentsStorageUsedCount())
+                .setUsedSize(domain.getAttachmentsStorageUsedSize())
+                //TODO quotas for domain level
+                .setQuotaCount(0L)
+                .setQuotaSize(0L);
+
+        return attachmentQuotas;
     }
 }
