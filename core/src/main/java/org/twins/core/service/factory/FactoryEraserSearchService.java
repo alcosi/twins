@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryEraserEntity;
 import org.twins.core.dao.factory.TwinFactoryEraserRepository;
 import org.twins.core.domain.search.FactoryEraserSearch;
+import org.twins.core.service.auth.AuthService;
 
 import java.util.Collections;
 import java.util.Set;
@@ -27,6 +28,7 @@ import static org.twins.core.dao.specifications.factory.FactoryEraserSpecificati
 @RequiredArgsConstructor
 public class FactoryEraserSearchService {
     private final TwinFactoryEraserRepository twinFactoryEraserRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryEraserEntity> findFactoryEraser(FactoryEraserSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryEraserEntity> spec = createFactoryEraserSearchSpecification(search);

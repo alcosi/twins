@@ -10,6 +10,7 @@ import org.springframework.data.repository.CrudRepository;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -26,6 +27,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public abstract CrudRepository<T, UUID> entityRepository();
     public abstract Function<T, UUID> entityGetIdFunction();
 
+    public Optional<T> findByKey(String key) throws ServiceException {
+        throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "Method findByKey is not implemented in service");
+    }
+
     public T findEntity(UUID entityId,
                         EntitySmartService.FindMode findMode,
                         EntitySmartService.ReadPermissionCheckMode permissionCheckMode) throws ServiceException {
@@ -38,6 +43,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
                         EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
                         EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         T entity = entitySmartService.findById(entityId, entityRepository(), findMode);
+        return checkResult(permissionCheckMode, entityValidateMode, entity);
+    }
+
+    @Override
+    public T findEntity(String entityKey,
+                        EntitySmartService.FindMode findMode,
+                        EntitySmartService.ReadPermissionCheckMode permissionCheckMode,
+                        EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
+        T entity = entitySmartService.checkOptional(findByKey(entityKey), entityKey, entityRepository(), findMode);
+        return checkResult(permissionCheckMode, entityValidateMode, entity);
+    }
+
+    private T checkResult(EntitySmartService.ReadPermissionCheckMode permissionCheckMode, EntitySmartService.EntityValidateMode entityValidateMode, T entity) throws ServiceException {
         if (entity == null || permissionCheckMode.equals(EntitySmartService.ReadPermissionCheckMode.none))
             return entity;
         if (isEntityReadDenied(entity, permissionCheckMode))
@@ -73,6 +91,13 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
 
     public T findEntitySafe(UUID entityId) throws ServiceException {
         return findEntity(entityId,
+                EntitySmartService.FindMode.ifEmptyThrows,
+                EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
+                EntitySmartService.EntityValidateMode.afterRead);
+    }
+
+    public T findEntitySafe(String entityKey) throws ServiceException {
+        return findEntity(entityKey,
                 EntitySmartService.FindMode.ifEmptyThrows,
                 EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows,
                 EntitySmartService.EntityValidateMode.afterRead);

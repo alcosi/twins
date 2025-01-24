@@ -14,7 +14,6 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -42,6 +41,7 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.featurer.twinclass.HeadHunterImpl;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
@@ -54,6 +54,7 @@ import org.twins.core.service.twinflow.TwinflowService;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -66,7 +67,7 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntity> {
+public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEntity> {
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
@@ -105,6 +106,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Override
     public Function<TwinClassEntity, UUID> entityGetIdFunction() {
         return TwinClassEntity::getId;
+    }
+
+    @Override
+    public BiFunction<UUID, String, Optional<TwinClassEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        return twinClassRepository::findByDomainIdAndKey;
     }
 
     @Override
@@ -184,10 +190,6 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdList(), false, false, TwinClassEntity.Fields.viewPermissionId))
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, true, TwinClassEntity.Fields.viewPermissionId))
         );
-    }
-
-    public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {
-        return twinClassRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), twinClassKey);
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {

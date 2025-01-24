@@ -26,10 +26,11 @@ public class PermissionSchemaSearchService {
     private final AuthService authService;
     private final PermissionSchemaRepository permissionSchemaRepository;
 
+
     public PaginationResult<PermissionSchemaEntity> findPermissionSchemasByDomain(PermissionSchemaSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionSchemaEntity> spec = createPermissionSchemaSearchSpecification(search)
-                .and(checkFieldUuid(domainId,PermissionSchemaEntity.Fields.domainId));
+                .and(checkFieldUuid(domainId, PermissionSchemaEntity.Fields.domainId));
         Page<PermissionSchemaEntity> ret = permissionSchemaRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }

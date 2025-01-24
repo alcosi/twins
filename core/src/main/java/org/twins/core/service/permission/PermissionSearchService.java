@@ -28,6 +28,7 @@ public class PermissionSearchService {
     private final AuthService authService;
     private final PermissionRepository permissionRepository;
 
+
     public PaginationResult<PermissionEntity> findPermissionForDomain(PermissionSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionEntity> spec = createPermissionSearchSpecification(search)

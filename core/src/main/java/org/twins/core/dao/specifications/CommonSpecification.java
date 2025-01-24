@@ -195,6 +195,20 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     }
 
     /**
+     * Creates a JPA specification to filter entities by checking if the string value of a specified field path
+     * matches a given pattern using a "like" comparison. The method dynamically generates joins as needed for the
+     * specified field path and applies the case-sensitive "like" operator on the target field.
+     *
+     * @param <T>       the type of the entity for which the specification is created
+     * @param fieldValue the string value to be matched against the target field; if null, no comparison is applied
+     * @param filedPath  the hierarchical path representing the fields to navigate and join, ending with the target field
+     * @return a JPA {@code Specification} for filtering entities where the target field matches the given string value;
+     *         if the parameters are invalid, returns a specification that imposes no filter conditions
+     */
+    public static <T> Specification<T> checkFieldStringLike(String fieldValue, String... filedPath) {
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.like(property, filedValue),JoinType.INNER, filedPath);
+    }
+    /**
      * Creates a JPA specification to filter entities by verifying if a specified UUID matches the field
      * specified by the provided entity field path. The method dynamically generates joins if required
      * by the field path and applies the equality condition on the target field.

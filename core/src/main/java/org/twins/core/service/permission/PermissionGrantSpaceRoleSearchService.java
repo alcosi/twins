@@ -38,7 +38,7 @@ public class PermissionGrantSpaceRoleSearchService {
 
     private Specification<PermissionGrantSpaceRoleEntity> createPermissionGrantSpaceRoleSearchSpecification(PermissionGrantSpaceRoleSearch search, UUID domainId) {
         return Specification.allOf(
-                checkFieldUuid(domainId,PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
+                checkFieldUuid(domainId, PermissionGrantSpaceRoleEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
                 checkUuidIn(search.getIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, PermissionGrantSpaceRoleEntity.Fields.id),
                 checkUuidIn(search.getPermissionSchemaIdList(), false, false, PermissionGrantSpaceRoleEntity.Fields.permissionSchemaId),

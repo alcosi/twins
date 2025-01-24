@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
@@ -28,4 +29,6 @@ public interface PermissionRepository extends CrudRepository<PermissionEntity, U
     boolean existsByIdAndPermissionGroup_DomainId(UUID permissionId, UUID domainId);
 
     List<PermissionEntity> findByIdIn(Collection<UUID> ids);
+
+    Optional<PermissionEntity> findByPermissionGroup_DomainIdAndKey(UUID uuid, String key);
 }

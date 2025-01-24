@@ -145,9 +145,15 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         return twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
     }
 
+    public TwinClassFieldEntity findByTwinClassKeyAndKey(String twinClassKey, String fieldKey) throws ServiceException {
+        TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClass_KeyAndKey(twinClassKey, fieldKey);
+        return checkEntityReadAllow(twinClassFieldEntity);
+    }
+
     public TwinClassFieldEntity findByTwinClassIdAndKeyIncludeParent(UUID twinClassId, String key) {
         TwinClassFieldEntity twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndKey(twinClassId, key);
         if (twinClassFieldEntity == null)
+            //todo go to more depth
             twinClassFieldEntity = twinClassFieldRepository.findByTwinClassIdAndParentKey(twinClassId, key);
         return twinClassFieldEntity;
     }

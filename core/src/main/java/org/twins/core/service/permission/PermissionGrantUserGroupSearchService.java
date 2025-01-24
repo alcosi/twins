@@ -28,6 +28,7 @@ public class PermissionGrantUserGroupSearchService {
     private final AuthService authService;
     private final PermissionGrantUserGroupRepository permissionGrantUserGroupRepository;
 
+
     public PaginationResult<PermissionGrantUserGroupEntity> findPermissionGrantUserGroups(PermissionGrantUserGroupSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGrantUserGroupEntity> spec = createPermissionGrantUserGroupSearchSpecification(search, domainId);

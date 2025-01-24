@@ -15,7 +15,6 @@ import org.cambium.common.util.StreamUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -33,9 +32,10 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.domain.TwinRole;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -43,13 +43,14 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
+public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
 
     private final PermissionRepository permissionRepository;
     private final PermissionSchemaRepository permissionSchemaRepository;
@@ -88,6 +89,12 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Override
     public Function<PermissionEntity, UUID> entityGetIdFunction() {
         return PermissionEntity::getId;
+    }
+
+    @Override
+    public BiFunction<UUID, String, Optional<PermissionEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        //todo that is not uniq safe! domain_id should be also added to permission entity
+        return permissionRepository::findByPermissionGroup_DomainIdAndKey;
     }
 
     @Override

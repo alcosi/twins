@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.domain.search.HistorySearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.history.HistorySpecification.*;
@@ -23,6 +24,7 @@ import static org.twins.core.dao.specifications.history.HistorySpecification.*;
 public class HistorySearchService {
 
     private final HistoryRepository historyRepository;
+    private final AuthService authService;
 
     public PaginationResult<HistoryEntity> findHistory(HistorySearch search, SimplePagination pagination) throws ServiceException {
         Specification<HistoryEntity> spec = createHisotrySearchSpecification(search);

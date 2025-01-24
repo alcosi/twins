@@ -21,8 +21,9 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
@@ -33,6 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class DataListOptionController extends ApiController {
     private final DataListService dataListService;
+    private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
 
     @ParametersApiUserHeaders
@@ -48,7 +50,7 @@ public class DataListOptionController extends ApiController {
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
         DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
         try {
-            DataListOptionEntity dataListOptionEntity = dataListService.findDataListOption(dataListOptionId);
+            DataListOptionEntity dataListOptionEntity = dataListOptionService.findEntitySafe(dataListOptionId);
             rs
                     .setDataListId(dataListOptionEntity.getDataListId())
                     .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
@@ -75,7 +77,7 @@ public class DataListOptionController extends ApiController {
         try {
             rs
                     .setDataListOptionMap(dataListOptionRestDTOMapper.convertMap(
-                            dataListService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(), mapperContext));
+                            dataListOptionService.findDataListOptionsByIds(request.dataListOptionIdSet()).getMap(), mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

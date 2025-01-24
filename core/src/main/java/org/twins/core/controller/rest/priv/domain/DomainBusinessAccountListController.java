@@ -1,6 +1,7 @@
 package org.twins.core.controller.rest.priv.domain;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -19,21 +20,26 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.domain.DomainBusinessAccountEntity;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRqDTOv1;
 import org.twins.core.dto.rest.domain.DomainBusinessAccountSearchRsDTOv1;
+import org.twins.core.dto.rest.domain.DomainBusinessAccountViewRsDTOv1;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountDTOMapper;
 import org.twins.core.mappers.rest.domain.DomainBusinessAccountSearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
+import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
+
+import java.util.UUID;
 
 @Tag(name = ApiTag.DOMAIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DomainBusinessAccountListController extends ApiController {
-
+    private final AuthService authService;
     private final DomainService domainService;
     private final DomainBusinessAccountDTOMapper domainBusinessAccountDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -58,6 +64,31 @@ public class DomainBusinessAccountListController extends ApiController {
             rs
                     .setBusinessAccounts(domainBusinessAccountDTOMapper.convertCollection(domainBusinessAccounts.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(domainBusinessAccounts))
+                    .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
+        } catch (ServiceException se) {
+            return createErrorRs(se, rs);
+        } catch (Exception e) {
+            return createErrorRs(e, rs);
+        }
+        return new ResponseEntity<>(rs, HttpStatus.OK);
+    }
+
+    @ParametersApiUserHeaders
+    @Operation(operationId = "domainBusinessAccountViewV1", summary = "Returns domain business account result")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Domain business account prepared", content = {
+                    @Content(mediaType = "application/json", schema =
+                    @Schema(implementation = DomainBusinessAccountViewRsDTOv1.class))}),
+            @ApiResponse(responseCode = "401", description = "Access is denied")})
+    @GetMapping(value = "/private/domain/business_account/{businessAccountId}/v1")
+    public ResponseEntity<?> domainBusinessAccountViewV1(
+            @MapperContextBinding(roots = DomainBusinessAccountDTOMapper.class, response = DomainBusinessAccountViewRsDTOv1.class) MapperContext mapperContext,
+            @Parameter(example = DTOExamples.BUSINESS_ACCOUNT_ID) @PathVariable("businessAccountId") UUID businessAccountId) {
+        DomainBusinessAccountViewRsDTOv1 rs = new DomainBusinessAccountViewRsDTOv1();
+        try {
+            DomainBusinessAccountEntity domainBusinessAccount = domainService.getDomainBusinessAccountEntitySafe(authService.getApiUser().getDomainId(), businessAccountId);
+            rs
+                    .setBusinessAccount(domainBusinessAccountDTOMapper.convert(domainBusinessAccount, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
