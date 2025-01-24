@@ -6,20 +6,96 @@ import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
+import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 public class CommonSpecification<T> extends AbstractSpecification<T> {
+    public static <T> Specification<T> checkClassId(final Collection<UUID> twinClassUuids, String... twinEntityFieldPath) {
+        return (root, query, cb) -> {
+            if (CollectionUtils.isEmpty(twinClassUuids)) {
+                return cb.conjunction();
+            }
+            From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            List<Predicate> predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
+            return getPredicate(cb, predicates, true);
+        };
+    }
 
+    /**
+     * Creates a JPA {@code Specification} to filter entities based on specified twin class UUIDs, API user permissions,
+     * and optional twin entity field paths. This method dynamically builds predicates for domain, ownership,
+     * and twin class associations to ensure proper filtering and access control.
+     *
+     * @param <T>                 the type of entity for which the specification is created
+     * @param twinClassUuids      a collection of UUIDs representing specific twin classes to filter by; may be empty
+     *                            or null to apply broader access control filtering
+     * @param apiUser             an instance of {@code ApiUser} containing user, domain, and business account
+     *                            details for permission evaluation
+     * @param twinEntityFieldPath an optional array of strings representing the field path to navigate and join
+     *                            related twin entity fields
+     * @return a JPA {@code Specification} that filters entities based on twin class, ownership, and other criteria
+     * derived from the provided API user and inputs
+     * @throws ServiceException if there is an error during specification creation or validation
+     */
+    public static <T> Specification<T> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser, String... twinEntityFieldPath) throws ServiceException {
+        UUID finalUserId = apiUser.isUserSpecified() ? apiUser.getUserId() : null;
+        UUID finalBusinessAccountId = apiUser.isBusinessAccountSpecified() ? apiUser.getBusinessAccountId() : null;
+        UUID finalDomainId = apiUser.getDomainId();
+
+        return (root, query, cb) -> {
+            From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
+            Join twinClass = fromTwin.join(TwinEntity.Fields.twinClass);
+            Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
+            if (!CollectionUtils.isEmpty(twinClassUuids)) {
+                List<Predicate> predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
+                Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
+                Predicate joinPredicateUserLevel = cb.or(
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+                );
+                Predicate joinPredicateBusinessLevel = cb.or(
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
+                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+                );
+
+                Predicate rootPredicateUser = cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId);
+                Predicate rootPredicateBusiness = cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
+
+                return cb.and(domain,
+                        getPredicate(cb, predicates, true),
+                        cb.or(
+                                cb.and(joinPredicateUserLevel, rootPredicateUser),
+                                cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
+                                //todo system level:  add Subquery to detect valid user and business account twins
+                        )
+                );
+            } else { // no class filter, so we have to add force filtering by owner
+                Predicate userOwnerPredicate = finalUserId == null ? cb.and(cb.isNull(fromTwin.get(TwinEntity.Fields.ownerUserId))) :
+                        cb.and(cb.or(
+                                cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId),
+                                cb.isNull(fromTwin.get(TwinEntity.Fields.ownerUserId)
+                                )));
+                Predicate buisnessAccountPredicate = finalBusinessAccountId == null ? cb.and(userOwnerPredicate, cb.isNull(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId))) :
+                        cb.and(userOwnerPredicate, cb.or(
+                                cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId),
+                                cb.isNull(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId)
+                                )));
+                return cb.and(domain, buisnessAccountPredicate);
+            }
+        };
+    }
 
     /**
      * Creates a JPA {@code Specification} to check user permissions based on a given domain, business account,
@@ -163,12 +239,11 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
 
-            ArrayList<Predicate> predicates = new ArrayList<>();
-            for (String name : search) {
+            List<Predicate> predicates = search.stream().map(name -> {
                 Predicate predicate = cb.like(cb.lower(getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
                 if (not) predicate = cb.not(predicate);
-                predicates.add(predicate);
-            }
+                return predicate;
+            }).toList();
             return getPredicate(cb, predicates, or);
         };
     }

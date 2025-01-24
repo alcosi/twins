@@ -15,12 +15,11 @@ import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 
 import java.util.*;
-import java.util.function.BiFunction;
 
 import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
-public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T>{
+public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
 
     public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
 
@@ -36,8 +35,6 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags);
         String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
-
-        var touchSearchFunction = checkTouchSearch(userId, touchFieldPath);
 
         var commonSpecifications = new Specification[]{
                 checkTwinLinks(twinSearch, twinsEntityFieldPath),
@@ -62,27 +59,28 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 checkUuidIn(twinSearch.getMarkerDataListOptionIdExcludeList(), true, true, markersFieldPath),
                 checkUuidIn(twinSearch.getHeadTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.headTwinClassId),
                 checkUuidIn(twinSearch.getExtendsTwinClassIdList(), false, false, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.extendsTwinClassId),
-                touchSearchFunction.apply(twinSearch.getTouchList(), false),
-                touchSearchFunction.apply(twinSearch.getTouchExcludeList(), true)
+                checkTouchSearch(userId,false,twinSearch.getTouchList(),touchFieldPath),
+                checkTouchSearch(userId,true,twinSearch.getTouchExcludeList(),touchFieldPath),
         };
 
-        return Specification.allOf(concatArray(commonSpecifications,getTwinSearchFieldsSpecifications(twinSearch.getFields())));
+        return Specification.allOf(concatArray(commonSpecifications, getTwinSearchFieldsSpecifications(twinSearch.getFields())));
     }
-    protected static <T> Specification<T> checkHierarchyContainsAny( final Set<UUID> hierarchyTreeContainsIdList,String... hierarchyFieldPath) {
+
+    protected static <T> Specification<T> checkHierarchyContainsAny(final Set<UUID> hierarchyTreeContainsIdList, String... hierarchyFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
-            List<Predicate> predicates = hierarchyTreeContainsIdList.stream().map(id->{
+            List<Predicate> predicates = hierarchyTreeContainsIdList.stream().map(id -> {
                 Path hierarchyTreeExpression = getFildPath(root, JoinType.INNER, hierarchyFieldPath);
-                return  cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(LTreeUtils.matchInTheMiddle(id))));
+                return cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(LTreeUtils.matchInTheMiddle(id))));
 
             }).toList();
             return getPredicate(cb, predicates, true);
         };
     }
 
-    protected static BiFunction<Collection<TwinTouchEntity.Touch>, Boolean, Specification> checkTouchSearch(UUID userId, String... touchFieldPath) {
-        return (touchCollection, exclude) -> (root, q, cb) -> {
-            if (touchCollection==null || touchCollection.isEmpty()){
+    protected static <T> Specification<T> checkTouchSearch(UUID userId, boolean exclude, Collection<TwinTouchEntity.Touch> touchCollection, String... touchFieldPath) {
+        return (root, q, cb) -> {
+            if (touchCollection == null || touchCollection.isEmpty()) {
                 return cb.conjunction();
             }
             Join touchJoin = (Join) getReducedRoot(root, JoinType.LEFT, touchFieldPath);
@@ -95,7 +93,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
     }
 
     protected static Specification[] getTwinSearchFieldsSpecifications(List<TwinFieldSearch> fields) {
-        if (fields == null || fields.isEmpty()){
+        if (fields == null || fields.isEmpty()) {
             return new Specification[0];
         }
         Specification[] twinSearchFieldsSpecifications = fields.stream().map(fieldSearch -> {
@@ -104,7 +102,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             } catch (ServiceException e) {
                 throw new RuntimeException(e);
             }
-        }).toArray( Specification[]::new);
+        }).toArray(Specification[]::new);
         return twinSearchFieldsSpecifications;
     }
 
@@ -159,7 +157,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
                 boolean anyExist = !predicatesAny.isEmpty();
                 boolean allExist = !predicatesAll.isEmpty();
                 boolean anyAndAllExist = anyExist && allExist;
-                return anyAndAllExist ?  builder.and(builder.or(any.toArray(new Predicate[0])), builder.and(all.toArray(new Predicate[0]))):
+                return anyAndAllExist ? builder.and(builder.or(any.toArray(new Predicate[0])), builder.and(all.toArray(new Predicate[0]))) :
                         anyExist ? builder.or(any.toArray(new Predicate[0])) :
                                 allExist ? builder.and(any.toArray(new Predicate[0])) :
                                         builder.conjunction();

@@ -9,18 +9,14 @@ import org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecificat
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldDataListEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleEntity;
-import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
-import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 @Slf4j
 public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecification<TwinEntity> {
@@ -65,97 +61,6 @@ public class TwinSpecification extends AbstractTwinEntityBasicSearchSpecificatio
             return cb.in(root.get(TwinEntity.Fields.id)).value(subquery);
         };
     }
-
-
-
-
-
-
-    public static Specification<TwinEntity> checkClassId(final Collection<UUID> twinClassUuids) {
-        return (twin, query, cb) -> {
-            if (!CollectionUtils.isEmpty(twinClassUuids)) {
-                List<Predicate> predicates = new ArrayList<>();
-                for (UUID twinClassId : twinClassUuids) {
-                    Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
-                    predicates.add(checkClassId);
-                }
-                return getPredicate(cb, predicates, true);
-            }
-            return cb.conjunction();
-        };
-    }
-
-    public static Specification<TwinEntity> checkClass(final Collection<UUID> twinClassUuids, final ApiUser apiUser) throws ServiceException {
-        UUID finalUserId;
-        UUID finalBusinessAccountId;
-        UUID finalDomainId = apiUser.getDomainId();
-        if (apiUser.isBusinessAccountSpecified())
-            finalBusinessAccountId = apiUser.getBusinessAccountId();
-        else
-            finalBusinessAccountId = null;
-
-        if (apiUser.isUserSpecified())
-            finalUserId = apiUser.getUserId();
-        else {
-            finalUserId = null;
-        }
-        return (twin, query, cb) -> {
-            Join<TwinClassEntity, TwinEntity> twinClass = twin.join(TwinEntity.Fields.twinClass);
-            Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
-            if (!CollectionUtils.isEmpty(twinClassUuids)) {
-                List<Predicate> predicates = new ArrayList<>();
-                for (UUID twinClassId : twinClassUuids) {
-                    Predicate checkClassId = cb.equal(twin.get(TwinEntity.Fields.twinClassId), twinClassId);
-                    predicates.add(checkClassId);
-                }
-                Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
-                Predicate joinPredicateUserLevel = cb.or(
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                );
-                Predicate joinPredicateBusinessLevel = cb.or(
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                );
-
-                Predicate rootPredicateUser = cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId);
-                Predicate rootPredicateBusiness = cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
-
-                return cb.and(domain,
-                        getPredicate(cb, predicates, true),
-                        cb.or(
-                                cb.and(joinPredicateUserLevel, rootPredicateUser),
-                                cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
-                                //todo system level:  add Subquery to detect valid user and business account twins
-                        )
-                );
-            } else { // no class filter, so we have to add force filtering by owner
-                Predicate predicate;
-                if (apiUser.isUserSpecified()) {
-                    predicate = cb.and(cb.or(
-                                    cb.equal(twin.get(TwinEntity.Fields.ownerUserId), finalUserId),
-                                    cb.isNull(twin.get(TwinEntity.Fields.ownerUserId)
-                                    )
-                            )
-                    );
-                } else predicate = cb.and(cb.isNull(twin.get(TwinEntity.Fields.ownerUserId)));
-
-                if (apiUser.isBusinessAccountSpecified()) {
-                    predicate = cb.and(predicate, cb.or(
-                                    cb.equal(twin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId),
-                                    cb.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)
-                                    )
-                            )
-                    );
-                } else cb.and(predicate, cb.isNull(twin.get(TwinEntity.Fields.ownerBusinessAccountId)));
-
-
-                return cb.and(domain, predicate);
-            }
-        };
-    }
-
 
 
     public static Specification<TwinEntity> checkFieldNumeric(final TwinFieldSearchNumeric search) throws ServiceException {
