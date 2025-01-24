@@ -109,7 +109,7 @@ public class TwinClassFieldListController extends ApiController {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
         try {
             TwinClassFieldEntity twinClassFieldsList = twinClassFieldService.findByTwinClassKeyAndKey(classKey, fieldKey);
-            rs.field(twinClassFieldRestDTOMapper.convert(twinClassFieldsList, mapperContext));
+            rs.field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldsList, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

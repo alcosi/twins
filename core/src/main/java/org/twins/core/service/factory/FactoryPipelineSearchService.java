@@ -8,20 +8,13 @@ import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.repository.query.FluentQuery;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
 import org.twins.core.domain.search.FactoryPipelineSearch;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.Optional;
-import java.util.UUID;
-
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecification.checkTernary;
 
@@ -32,17 +25,8 @@ import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecifica
 public class FactoryPipelineSearchService {
     private final TwinFactoryPipelineRepository twinFactoryPipelineRepository;
     private final AuthService authService;
-    @Transactional(readOnly = true)
-    public TwinFactoryPipelineEntity findFactoryConditionSetById(UUID id) throws ServiceException {
-        Optional<TwinFactoryPipelineEntity> entity = twinFactoryPipelineRepository.findBy(
-                Specification.allOf(
-                        checkFieldUuid(authService.getApiUser().getDomainId(), TwinFactoryPipelineEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId),
-                        checkFieldUuid(id, TwinFactoryPipelineEntity.Fields.id)
-                ), FluentQuery.FetchableFluentQuery::one
-        );
-        return entity.orElse(null);
-    }
-    public PaginationResult<TwinFactoryPipelineEntity> findFactoryConditionSets(FactoryPipelineSearch search, SimplePagination pagination) throws ServiceException {
+
+    public PaginationResult<TwinFactoryPipelineEntity> findFactoryPipelines(FactoryPipelineSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryPipelineEntity> spec = createFactoryPipelineSearchSpecification(search);
         Page<TwinFactoryPipelineEntity> ret = twinFactoryPipelineRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
