@@ -11,9 +11,11 @@ public class ArrayUtils {
         return result;
     }
 
-    public static <T> T[] concatArray(T element,T[] array) {
-        T[] result = Arrays.copyOf(array, array.length + 1);
-        result[array.length] = element;
+    public static <T> T[] concatArray(T element, T... elements) {
+        T[] result = (T[]) java.lang.reflect.Array.newInstance(element.getClass(), elements.length + 1);
+        System.arraycopy(elements, 0, result, 1, elements.length);
+        result[0] = element;
         return result;
     }
+
 }
