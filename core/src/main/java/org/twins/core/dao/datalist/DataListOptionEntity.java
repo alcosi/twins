@@ -37,9 +37,6 @@ public class DataListOptionEntity implements EasyLoggable {
     @Column(name = "icon")
     private String icon;
 
-    @Column(name = "disabled")
-    private boolean disabled;
-
     @Column(name = "data_list_option_status_id")
     @Convert(converter = DataListOptionStatusConverter.class)
     private Status status;
