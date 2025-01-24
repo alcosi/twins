@@ -31,7 +31,7 @@ public class FactoryPipelineStepSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryPipelineStepEntity> createFactoryPipelineStepSearchSpecification(FactoryPipelineStepSearch search) throws ServiceException {
+    private Specification<TwinFactoryPipelineStepEntity> createFactoryPipelineStepSearchSpecification(FactoryPipelineStepSearch search) {
         return Specification.where(
                 checkTernary(TwinFactoryPipelineStepEntity.Fields.optional, search.getOptional())
                         .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.id, search.getIdList(), false, false))
@@ -44,6 +44,8 @@ public class FactoryPipelineStepSearchService {
                         .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdList(), false))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdExcludeList(), true))
+                        .and(checkFactoryIdIn(search.getFactoryIdList(), false))
+                        .and(checkFactoryIdIn(search.getFactoryIdExcludeList(), true))
         );
     }
 }
