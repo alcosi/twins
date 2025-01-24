@@ -86,6 +86,7 @@ public class DataListPublicController extends ApiController {
             @Parameter(example = DTOExamples.DATA_LIST_KEY) @PathVariable String dataListKey) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();
         try {
+            authService.getApiUser().setAnonymous();
             rs
                     .setDataList(dataListRestDTOMapperV2.convert(
                             dataListService.findEntitySafe(dataListKey), mapperContext));
