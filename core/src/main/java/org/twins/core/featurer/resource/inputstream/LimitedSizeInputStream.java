@@ -1,13 +1,13 @@
 
-package org.twins.core.featurer.resource;
+package org.twins.core.featurer.resource.inputstream;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 public class LimitedSizeInputStream extends InputStream {
     public static class SizeExceededException extends RuntimeException {
-        final int limit;
-        final long bytesRead;
+        final public int limit;
+        final public long bytesRead;
 
         public SizeExceededException(String message, int limit, long bytesRead) {
             super(message);
