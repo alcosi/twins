@@ -109,12 +109,11 @@ execute procedure public.update_column_updated_at_trigger();
 
 insert into public.resource_storage(id, storage_featurer_id, storage_params, description)
 values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
-        hstore(
+        hstore(ARRAY[
                 'selfHostDomainBaseUri', 'http://127.0.0.1/test',
-                'fileSizeLimit', 1000000,
-                'supportedMimeTypes',
-                '*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
-                'baseLocalPath','/opt/resources/'
+                'fileSizeLimit', '1000000',
+                'supportedMimeTypes','*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
+                'baseLocalPath','/opt/resources/']
         ),
         'Domain icon/logo local storage resource');
 
