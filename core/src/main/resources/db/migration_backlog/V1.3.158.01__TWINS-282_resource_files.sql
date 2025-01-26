@@ -94,7 +94,7 @@ $$;
 create table if not exists public.resource_storage
 (
     id                  uuid      not null primary key default gen_random_uuid(),
-    storage_featurer_id uuid      not null references public.featurer (id),
+    storage_featurer_id uuid      not null references public.featurer (id) on delete cascade on update cascade ,
     storage_params      hstore    not null             default ''::hstore,
     description         varchar   not null,
     added_at            timestamp not null             default current_timestamp,
@@ -120,7 +120,7 @@ values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
 create table if not exists public.resource
 (
     id                  uuid      not null primary key default gen_random_uuid(),
-    domain_id           uuid references public.domain (id),
+    domain_id           uuid references public.domain (id) on delete cascade on update cascade,
     uploaded_by_user_id uuid references public."user" (id),
     original_file_name  varchar   not null             default '',
     size_in_bytes       bigint    not null             default 0,
@@ -131,17 +131,14 @@ create table if not exists public.resource
 
 COMMENT ON COLUMN public.resource.storage_file_key IS 'Represents key/path to resource. Like local storage path, S3 key or external URI';
 
+alter table public.domain
+add column icon_dark_resource_id uuid references public.resource on delete cascade on update cascade;
 
---domain table
+alter table public.domain
+    add column icon_light_resource_id uuid references public.resource on delete cascade on update cascade;
 
--- new icon_dark_resource_id - FK to resource
--- table
---     new
--- icon_light_resource_id - FK to resource
--- table
---     new
--- resources_storage_id - FK to storage
--- table
---     new
--- attachments_storage_id - FK to storage
--- table
+alter table public.domain
+    add column config_resources_storage_id uuid references public.resource_storage on delete cascade on update cascade;
+
+alter table public.domain
+    add column config_attachments_storage_id uuid references public.resource_storage on delete cascade on update cascade;
