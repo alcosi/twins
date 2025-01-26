@@ -24,7 +24,61 @@ INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, 
 VALUES (2901, false, 4, 'baseLocalPath', 'baseLocalPath', 'Base local path of directory where to save files', 'STRING')
 on conflict (featurer_id,key) do nothing;
 
+insert into public.featurer(id, featurer_type_id, class, name, description)
+values (2902, 29, 'org.twins.core.featurer.resource.ExternalUriStorageResourceService', 'ExternalUriStorageResourceService',
+        'Service to keep and work with external uri')
+on conflict (id) do nothing;
 
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2902, false, 1, 'selfHostDomainBaseUri', 'selfHostDomainBaseUri',
+        'external URI/domain of twins application to create resource links', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2902, false, 2, 'fileSizeLimit', 'fileSizeLimit', 'Limit of file size', 'INT')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2902, false, 3, 'supportedMimeTypes', 'supportedMimeTypes', 'List of supported mime types', 'WORD_LIST')
+on conflict (featurer_id,key) do nothing;
+
+insert into public.featurer(id, featurer_type_id, class, name, description)
+values (2903, 29, 'org.twins.core.featurer.resource.S3StorageResourceService', 'S3StorageResourceService',
+        'Service to save resources (files) to S3')
+on conflict (id) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 1, 'selfHostDomainBaseUri', 'selfHostDomainBaseUri',
+        'external URI/domain of twins application to create resource links', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 2, 'fileSizeLimit', 'fileSizeLimit', 'Limit of file size', 'INT')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 3, 'supportedMimeTypes', 'supportedMimeTypes', 'List of supported mime types', 'WORD_LIST')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 4, 's3Uri', 's3Uri', 'Uri to work with s3', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 5, 's3Region', 's3Region', 'Region config for s3', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 6, 's3Bucket', 's3Bucket', 'Bucket of s3', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 7, 's3AccessKey', 's3AccessKey', 'Access key for s3', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2903, false, 8, 's3SecretKey', 's3SecretKey', 'Secret key for s3', 'STRING')
+on conflict (featurer_id,key) do nothing;
 
 create or replace function public.update_column_updated_at_trigger() returns trigger
     language plpgsql
@@ -56,15 +110,14 @@ create table if not exists public.resource
 (
     id                  uuid        not null primary key default gen_random_uuid(),
     domain_id           uuid references public.domain (id),
-    business_account_id uuid references public.business_account (id),
     uploaded_by_user_id uuid references public."user" (id),
     original_file_name  varchar     not null             default '',
     size_in_bytes       bigint      not null             default 0,
-    md5_hash            varchar(32) not null,
     storage_file_key    varchar     not null,
     storage_id          uuid        not null references public.resource_storage (id),
     added_at            timestamp   not null             default current_timestamp
 );
+
 COMMENT ON COLUMN public.resource.storage_file_key IS 'Represents key/path to resource. Like local storage path, S3 key or external URI';
 
 
