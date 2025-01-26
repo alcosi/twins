@@ -1,6 +1,9 @@
 package org.twins.core.featurer.resource.inputstream;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.PushbackInputStream;
 
 public class CachedReadInputStream extends InputStream {
     protected final InputStream inputStream;
@@ -24,7 +27,9 @@ public class CachedReadInputStream extends InputStream {
         }
         return pushbackInputStream;
     }
-
+    public long getBytesRead() {
+        return readOutputStream.size();
+    }
     public byte[] flushAndGetBufferBytes() {
         try {
             readOutputStream.flush();

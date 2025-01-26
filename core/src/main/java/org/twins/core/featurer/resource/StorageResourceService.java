@@ -125,8 +125,8 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params         A map of additional parameters required for saving the resource (e.g., configuration details). Optional parameter, can be null.
      * @throws ServiceException If an error occurs during the process of saving the resource.
      */
-    protected void saveResource(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
-        saveResourceInternal(resourceKey, resourceStream, params);
+    protected Long saveResource(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
+        return saveResourceInternal(resourceKey, resourceStream, params);
     }
 
     /**
@@ -138,12 +138,12 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params      A map of string key-value pairs containing additional parameters for resource saving operations.
      * @throws ServiceException If the resource size exceeds the limit or if a service-related error occurs during the save operation.
      */
-    protected void saveResource(String resourceKey, byte[] resource, HashMap<String, String> params) throws ServiceException {
+    protected Long saveResource(String resourceKey, byte[] resource, HashMap<String, String> params) throws ServiceException {
         Integer fileSizeLimit = getFileSizeLimit(params);
         if (resource.length > fileSizeLimit) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource size limit " + fileSizeLimit + " exceeded (" + resource.length + ")");
         }
-        saveResource(resourceKey, new ByteArrayInputStream(resource), params);
+        return saveResource(resourceKey, new ByteArrayInputStream(resource), params);
     }
 
     /**
@@ -155,14 +155,12 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params         Additional parameters that may include constraints such as size limits or supported MIME types.
      * @throws ServiceException If the resource exceeds the size limit, has an unsupported MIME type, or other errors occur during the process.
      */
-    protected void saveResourceInternal(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
+    protected Long saveResourceInternal(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
         try {
-            Integer fileSizeLimit = getFileSizeLimit(params);
-            InputStream sizeLimitedStream = new LimitedSizeInputStream(resourceStream, fileSizeLimit);
             Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
             if (!supportedMimeTypes.isEmpty()) {
                 //Not to read IS twice, we have to cache already readen bytes by mime type resolving
-                CachedReadInputStream cachedReadInputStream = new CachedReadInputStream(sizeLimitedStream, false);
+                CachedReadInputStream cachedReadInputStream = new CachedReadInputStream(resourceStream, false);
                 String[] mimeTypeArray = tika.detect(cachedReadInputStream).toLowerCase().split("/");
                 String mimeType = mimeTypeArray[0];
                 String mimeSubType = mimeTypeArray.length > 1 ? mimeTypeArray[1] : "*";
@@ -177,9 +175,13 @@ public abstract class StorageResourceService extends FeaturerTwins {
                     }
                 }).findFirst().orElseThrow(() -> new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unsupported mime type " + mimeType + ". Supported types:" + String.join(";", supportedMimeTypes)));
                 //And then continue to read IS as usual
-                sizeLimitedStream = cachedReadInputStream.toUnreadPushbackInputStream();
+                resourceStream = cachedReadInputStream.toUnreadPushbackInputStream();
             }
+            //Wrap to count bytes and limit if needed
+            Integer fileSizeLimit = getFileSizeLimit(params);
+            LimitedSizeInputStream sizeLimitedStream = new LimitedSizeInputStream(resourceStream, fileSizeLimit);
             saveResource(resourceKey, sizeLimitedStream, params);
+            return sizeLimitedStream.getBytesRead();
         } catch (LimitedSizeInputStream.SizeExceededException ex) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource size limit " + ex.limit + " exceeded (" + ex.bytesRead + ")");
         } catch (Throwable t) {

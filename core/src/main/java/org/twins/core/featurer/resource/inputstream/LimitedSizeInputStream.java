@@ -1,6 +1,8 @@
 
 package org.twins.core.featurer.resource.inputstream;
 
+import lombok.Getter;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,20 +10,35 @@ import java.io.InputStream;
 public class LimitedSizeInputStream extends InputStream {
     protected final InputStream inputStream;
     protected final Integer sizeLimit;
-    protected long bytesRead = 0L;
+    @Getter
+    protected long bytesRead;
     protected int markPosition = 0;
 
     public LimitedSizeInputStream(InputStream inputStream, Integer sizeLimit) {
-        if (inputStream instanceof ByteArrayInputStream){
-            bytesRead=((ByteArrayInputStream)inputStream).available();
-            if (bytesRead > sizeLimit) {
+        this(inputStream, sizeLimit, 0L);
+    }
+
+    public LimitedSizeInputStream(InputStream inputStream, Integer sizeLimit, long bytesRead) {
+        boolean haveToCheckSize = sizeLimit != null && sizeLimit != -1 && sizeLimit != Integer.MAX_VALUE;
+        if (inputStream instanceof ByteArrayInputStream) {
+            this.bytesRead = ((ByteArrayInputStream) inputStream).available()+bytesRead;
+            if (haveToCheckSize &&  this.bytesRead > sizeLimit) {
+                this.sizeLimit = sizeLimit;
+                throwException();
+            } else {
+                this.sizeLimit = null;
+            }
+        } else {
+            this.bytesRead = bytesRead;
+            this.sizeLimit = sizeLimit;
+            if (haveToCheckSize && this.bytesRead > sizeLimit) {
                 throwException();
             }
-            sizeLimit=null;
         }
         this.inputStream = inputStream;
-        this.sizeLimit = sizeLimit;
+
     }
+
     public static class SizeExceededException extends RuntimeException {
         final public int limit;
         final public long bytesRead;
@@ -34,7 +51,6 @@ public class LimitedSizeInputStream extends InputStream {
     }
 
 
-
     protected boolean dontHaveToLimit() {
         return sizeLimit < 0 || sizeLimit == Integer.MAX_VALUE;
     }
@@ -42,7 +58,11 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public byte[] readAllBytes() throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.readAllBytes();
+            long readBefore = bytesRead;
+            byte[] bytes = inputStream.readAllBytes();
+            long uncountedBytesRead = bytes.length - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         Long bytesLeft = (sizeLimit.intValue() - bytesRead);
         byte[] tillLimit = readNBytes(bytesLeft.intValue());
@@ -53,10 +73,18 @@ public class LimitedSizeInputStream extends InputStream {
         int additionalByte = read();
         return tillLimit;
     }
+
     @Override
     public int readNBytes(byte[] b, int off, int len) throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.readNBytes(b, off, len);
+            long readBefore = bytesRead;
+            int bytes = inputStream.readNBytes(b, off, len);
+            if (bytes == -1) {
+                return bytes;
+            }
+            long uncountedBytesRead = bytes - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         long readBefore = bytesRead;
         int read = inputStream.readNBytes(b, off, len);
@@ -71,7 +99,10 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public void skipNBytes(long n) throws IOException {
         if (dontHaveToLimit()) {
+            long readBefore = bytesRead;
             inputStream.skipNBytes(n);
+            long uncountedBytesRead = n - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
             return;
         }
         long readBefore = bytesRead;
@@ -82,10 +113,15 @@ public class LimitedSizeInputStream extends InputStream {
             throwException();
         }
     }
+
     @Override
     public long skip(long n) throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.skip(n);
+            long readBefore = bytesRead;
+            long bytes = inputStream.skip(n);
+            long uncountedBytesRead = bytes - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         long readBefore = bytesRead;
         long skipped = inputStream.skip(n);
@@ -96,10 +132,18 @@ public class LimitedSizeInputStream extends InputStream {
         }
         return skipped;
     }
+
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.read(b, off, len);
+            long readBefore = bytesRead;
+            int bytes = inputStream.read(b, off, len);
+            if (bytes == -1) {
+                return bytes;
+            }
+            long uncountedBytesRead = bytes - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         long readBefore = bytesRead;
         int read = inputStream.read(b, off, len);
@@ -114,7 +158,14 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public int read(byte[] b) throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.read(b);
+            long readBefore = bytesRead;
+            int bytes = inputStream.read(b);
+            if (bytes == -1) {
+                return bytes;
+            }
+            long uncountedBytesRead = bytes - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         long readBefore = bytesRead;
         int read = inputStream.read(b);
@@ -129,7 +180,11 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public byte[] readNBytes(int count) throws IOException {
         if (dontHaveToLimit()) {
-            return inputStream.readNBytes(count);
+            long readBefore = bytesRead;
+            byte[] bytes = inputStream.readNBytes(count);
+            long uncountedBytesRead = bytes.length - (bytesRead - readBefore);
+            bytesRead += uncountedBytesRead;
+            return bytes;
         }
         long readBefore = bytesRead;
         byte[] bytes = inputStream.readNBytes(count);
@@ -149,12 +204,9 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public int read() throws IOException {
         int nextByte = inputStream.read();
-        if (dontHaveToLimit()) {
-            return nextByte;
-        }
         if (nextByte != -1) {
             bytesRead += 1;
-            if (bytesRead > sizeLimit) {
+            if (!dontHaveToLimit() && bytesRead > sizeLimit) {
                 throwException();
             }
         }
@@ -175,21 +227,41 @@ public class LimitedSizeInputStream extends InputStream {
     @Override
     public void mark(int readlimit) {
         inputStream.mark(readlimit);
-        if (!dontHaveToLimit()) {
-            markPosition = readlimit;
-        }
+        markPosition = readlimit;
     }
 
     @Override
     public void reset() throws IOException {
         inputStream.reset();
-        if (!dontHaveToLimit()) {
-            bytesRead = markPosition;
-        }
+        bytesRead = markPosition;
+
     }
 
     protected void throwException() {
         throw new SizeExceededException("File size limit " + sizeLimit + " exceeded (" + bytesRead + " bytes)", sizeLimit, bytesRead);
+    }
+
+    public static void main(String[] args) {
+        try {
+            byte[] data = "Example input stream data".getBytes();
+            InputStream inputStream = new ByteArrayInputStream(data);
+
+            // Set a size limit lower than the data length
+            int sizeLimit = 10;
+
+            // Instantiate LimitedSizeInputStream
+            LimitedSizeInputStream limitedStream = new LimitedSizeInputStream(inputStream, sizeLimit);
+
+            // Use the LimitedSizeInputStream to read data
+            try {
+                byte[] buffer = limitedStream.readAllBytes();
+                System.out.println(new String(buffer));
+            } catch (LimitedSizeInputStream.SizeExceededException e) {
+                System.err.println(e.getMessage());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
