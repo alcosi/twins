@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class ReflectionUtils {
-    public static List<Field> getAllFieldsIncludingParents(Class<?> featurerClass) {
+    public static List<Field> getAllDeclaredFieldsIncludingParents(Class<?> featurerClass) {
         List<Field> allFields = Arrays.stream(featurerClass.getFields()).distinct().collect(Collectors.toList());
         Class<?> superClass = featurerClass.getSuperclass();
         while (superClass != null) {

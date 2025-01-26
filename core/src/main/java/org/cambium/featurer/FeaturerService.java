@@ -33,7 +33,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.cambium.common.util.ReflectionUtils.getAllFieldsIncludingParents;
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
 import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
@@ -119,7 +118,7 @@ public class FeaturerService {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Set<String> featurerParamsKeySet = new HashSet<>();
 // Include fields from parent classes
-        for (Field field : getAllFieldsIncludingParents(featurerClass)) {
+        for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
                 if (featurerParamAnnotation != null) {
