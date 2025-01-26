@@ -97,7 +97,7 @@ create table if not exists public.resource_storage
     storage_featurer_id uuid      not null references public.featurer (id) on delete cascade on update cascade ,
     storage_params      hstore    not null             default ''::hstore,
     description         varchar   not null,
-    added_at            timestamp not null             default current_timestamp,
+    created_at            timestamp not null             default current_timestamp,
     updated_at          timestamp not null             default current_timestamp
 );
 
@@ -110,7 +110,7 @@ execute procedure public.update_column_updated_at_trigger();
 insert into public.resource_storage(id, storage_featurer_id, storage_params, description)
 values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
         hstore(ARRAY[
-                'selfHostDomainBaseUri', 'http://127.0.0.1/test',
+                'selfHostDomainBaseUri', './',
                 'fileSizeLimit', '1000000',
                 'supportedMimeTypes','*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
                 'baseLocalPath','/opt/resources/']
@@ -126,7 +126,7 @@ create table if not exists public.resource
     size_in_bytes       bigint    not null             default 0,
     storage_file_key    varchar   not null,
     storage_id          uuid      not null references public.resource_storage (id),
-    added_at            timestamp not null             default current_timestamp
+    created_at            timestamp not null             default current_timestamp
 );
 
 COMMENT ON COLUMN public.resource.storage_file_key IS 'Represents key/path to resource. Like local storage path, S3 key or external URI';
