@@ -1,10 +1,27 @@
 
 package org.twins.core.featurer.resource.inputstream;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 public class LimitedSizeInputStream extends InputStream {
+    protected final InputStream inputStream;
+    protected final Integer sizeLimit;
+    protected long bytesRead = 0L;
+    protected int markPosition = 0;
+
+    public LimitedSizeInputStream(InputStream inputStream, Integer sizeLimit) {
+        if (inputStream instanceof ByteArrayInputStream){
+            bytesRead=((ByteArrayInputStream)inputStream).available();
+            if (bytesRead > sizeLimit) {
+                throwException();
+            }
+            sizeLimit=null;
+        }
+        this.inputStream = inputStream;
+        this.sizeLimit = sizeLimit;
+    }
     public static class SizeExceededException extends RuntimeException {
         final public int limit;
         final public long bytesRead;
@@ -16,15 +33,7 @@ public class LimitedSizeInputStream extends InputStream {
         }
     }
 
-    protected final InputStream inputStream;
-    protected final Integer sizeLimit;
-    protected long bytesRead = 0L;
-    protected int markPosition = 0;
 
-    public LimitedSizeInputStream(InputStream inputStream, Integer sizeLimit) {
-        this.inputStream = inputStream;
-        this.sizeLimit = sizeLimit;
-    }
 
     protected boolean dontHaveToLimit() {
         return sizeLimit < 0 || sizeLimit == Integer.MAX_VALUE;

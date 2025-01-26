@@ -23,7 +23,7 @@ public class LocalStorageResourceService extends StorageResourceService  {
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
 
     @Override
-    InputStream getResourceAsStream(String resourceKey, HashMap<String, String> params) throws ServiceException {
+    protected InputStream getResourceAsStream(String resourceKey, HashMap<String, String> params) throws ServiceException {
         String resourcePath=getLocalPath(params)+resourceKey;
         try {
             return Files.newInputStream(Paths.get(resourcePath));
@@ -35,7 +35,7 @@ public class LocalStorageResourceService extends StorageResourceService  {
   
 
     @Override
-    void deleteResource(String resourceKey, HashMap<String, String> params) throws ServiceException {
+    protected void deleteResource(String resourceKey, HashMap<String, String> params) throws ServiceException {
         String resourcePath=getLocalPath(params)+resourceKey;
         try {
             if (Files.deleteIfExists(Paths.get(resourcePath))) {

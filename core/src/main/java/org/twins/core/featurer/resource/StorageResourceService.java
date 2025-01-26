@@ -44,10 +44,10 @@ public abstract class StorageResourceService extends FeaturerTwins {
     protected String getResourceControllerUri(HashMap<String, String> params) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
         String domain = selfHostDomainBaseUri.extract(properties);
-        if (!domain.endsWith("/")){
-            domain=domain+"/";
+        if (!domain.endsWith("/")) {
+            domain = domain + "/";
         }
-        return domain+"resource/";
+        return domain + "resource/";
     }
 
     /**
@@ -84,11 +84,11 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * and additional parameters.
      *
      * @param resourceKey the key identifying the requested resource
-     * @param params a map of parameters that may influence the resource retrieval process
+     * @param params      a map of parameters that may influence the resource retrieval process
      * @return an InputStream to access the resource, or null if the resource could not be found
      * @throws ServiceException if an error occurs during resource retrieval
      */
-    abstract InputStream getResourceAsStream(String resourceKey, HashMap<String, String> params) throws ServiceException;
+    protected abstract InputStream getResourceAsStream(String resourceKey, HashMap<String, String> params) throws ServiceException;
 
     /**
      * Retrieves the byte content of a resource based on its key and optional parameters.
@@ -99,7 +99,7 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @throws ServiceException if an I/O error occurs during reading the resource
      */
     @SneakyThrows
-    byte[] getResourceBytes(String resourceKey, HashMap<String, String> params) throws ServiceException {
+    protected byte[] getResourceBytes(String resourceKey, HashMap<String, String> params) throws ServiceException {
         try (InputStream stream = getResourceAsStream(resourceKey, params)) {
             return stream.readAllBytes();
         }
@@ -109,12 +109,12 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * Constructs and returns the URI for a resource based on the provided resource ID and parameters.
      *
      * @param resourceId the unique identifier of the resource
-     * @param params a map of parameters that may impact the construction of the resource URI
+     * @param params     a map of parameters that may impact the construction of the resource URI
      * @return the constructed URI for the resource
      * @throws ServiceException if an error occurs during URI construction
      */
-    public URI getResourceUri(UUID resourceId, HashMap<String, String> params) throws ServiceException {
-        return URI.create(getResourceControllerUri(params)+resourceId);
+    protected URI getResourceUri(UUID resourceId, HashMap<String, String> params) throws ServiceException {
+        return URI.create(getResourceControllerUri(params) + resourceId);
     }
 
     /**
@@ -125,7 +125,7 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params         A map of additional parameters required for saving the resource (e.g., configuration details). Optional parameter, can be null.
      * @throws ServiceException If an error occurs during the process of saving the resource.
      */
-    public void saveResource(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
+    protected void saveResource(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
         saveResourceInternal(resourceKey, resourceStream, params);
     }
 
@@ -138,7 +138,7 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params      A map of string key-value pairs containing additional parameters for resource saving operations.
      * @throws ServiceException If the resource size exceeds the limit or if a service-related error occurs during the save operation.
      */
-    public void saveResource(String resourceKey, byte[] resource, HashMap<String, String> params) throws ServiceException {
+    protected void saveResource(String resourceKey, byte[] resource, HashMap<String, String> params) throws ServiceException {
         Integer fileSizeLimit = getFileSizeLimit(params);
         if (resource.length > fileSizeLimit) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource size limit " + fileSizeLimit + " exceeded (" + resource.length + ")");
@@ -158,16 +158,24 @@ public abstract class StorageResourceService extends FeaturerTwins {
     protected void saveResourceInternal(String resourceKey, InputStream resourceStream, HashMap<String, String> params) throws ServiceException {
         try {
             Integer fileSizeLimit = getFileSizeLimit(params);
-            boolean shouldLimitFileSize = fileSizeLimit != null && fileSizeLimit > 0 && fileSizeLimit != Integer.MAX_VALUE;
-            InputStream sizeLimitedStream = shouldLimitFileSize ? new LimitedSizeInputStream(resourceStream, fileSizeLimit) : resourceStream;
+            InputStream sizeLimitedStream = new LimitedSizeInputStream(resourceStream, fileSizeLimit);
             Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
             if (!supportedMimeTypes.isEmpty()) {
                 //Not to read IS twice, we have to cache already readen bytes by mime type resolving
                 CachedReadInputStream cachedReadInputStream = new CachedReadInputStream(sizeLimitedStream, false);
-                String mimeType = tika.detect(cachedReadInputStream);
-                if (!supportedMimeTypes.contains(mimeType)) {
-                    throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unsupported mime type " + mimeType + ". Supported types:" + String.join(";", supportedMimeTypes));
-                }
+                String[] mimeTypeArray = tika.detect(cachedReadInputStream).toLowerCase().split("/");
+                String mimeType = mimeTypeArray[0];
+                String mimeSubType = mimeTypeArray.length > 1 ? mimeTypeArray[1] : "*";
+                supportedMimeTypes.stream().filter(t -> {
+                    if (t.contains("/")) {
+                        String[] tArray = t.split("/");
+                        boolean typeIsAccepted = tArray[0].equals("*") || tArray[0].isEmpty() || tArray[0].equals(mimeType);
+                        boolean subTypeIsAccepted = tArray[1].equals("*") || tArray[1].isEmpty() || tArray[1].equals(mimeSubType);
+                        return typeIsAccepted && subTypeIsAccepted;
+                    } else {
+                        return t.equals("*") || t.isEmpty() || t.equals(mimeType) || t.equals(mimeSubType);
+                    }
+                }).findFirst().orElseThrow(() -> new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unsupported mime type " + mimeType + ". Supported types:" + String.join(";", supportedMimeTypes)));
                 //And then continue to read IS as usual
                 sizeLimitedStream = cachedReadInputStream.toUnreadPushbackInputStream();
             }
@@ -186,5 +194,6 @@ public abstract class StorageResourceService extends FeaturerTwins {
      * @param params      a map of additional parameters required for the deletion process
      * @throws ServiceException if there is an error during the deletion process
      */
-    abstract void deleteResource(String resourceKey, HashMap<String, String> params) throws ServiceException;
+    protected abstract void deleteResource(String resourceKey, HashMap<String, String> params) throws ServiceException;
+
 }
