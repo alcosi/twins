@@ -25,7 +25,8 @@ VALUES (2901, false, 4, 'baseLocalPath', 'baseLocalPath', 'Base local path of di
 on conflict (featurer_id,key) do nothing;
 
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2902, 29, 'org.twins.core.featurer.resource.ExternalUriStorageResourceService', 'ExternalUriStorageResourceService',
+values (2902, 29, 'org.twins.core.featurer.resource.ExternalUriStorageResourceService',
+        'ExternalUriStorageResourceService',
         'Service to keep and work with external uri')
 on conflict (id) do nothing;
 
@@ -106,16 +107,26 @@ create or replace trigger update_column_updated_at_trigger
     for each row
 execute procedure public.update_column_updated_at_trigger();
 
+insert into public.resource_storage(id, storage_featurer_id, storage_params, description)
+values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
+        hstore(
+                'selfHostDomainBaseUri', 'http://127.0.0.1/test',
+                'fileSizeLimit', 1000000,
+                'supportedMimeTypes',
+                '*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless'
+        ),
+        'Domain icon/logo local storage resource');
+
 create table if not exists public.resource
 (
-    id                  uuid        not null primary key default gen_random_uuid(),
+    id                  uuid      not null primary key default gen_random_uuid(),
     domain_id           uuid references public.domain (id),
     uploaded_by_user_id uuid references public."user" (id),
-    original_file_name  varchar     not null             default '',
-    size_in_bytes       bigint      not null             default 0,
-    storage_file_key    varchar     not null,
-    storage_id          uuid        not null references public.resource_storage (id),
-    added_at            timestamp   not null             default current_timestamp
+    original_file_name  varchar   not null             default '',
+    size_in_bytes       bigint    not null             default 0,
+    storage_file_key    varchar   not null,
+    storage_id          uuid      not null references public.resource_storage (id),
+    added_at            timestamp not null             default current_timestamp
 );
 
 COMMENT ON COLUMN public.resource.storage_file_key IS 'Represents key/path to resource. Like local storage path, S3 key or external URI';
