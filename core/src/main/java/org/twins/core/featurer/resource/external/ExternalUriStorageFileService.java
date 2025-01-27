@@ -50,7 +50,7 @@ public class ExternalUriStorageFileService extends AbstractCheckedStorageFileSer
         try {
             HttpResponse<InputStream> response = getInputStreamHttpResponse(fileKey, params, context);
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file: HTTP Status " + response.statusCode());
+                throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Failed to retrieve the file: HTTP Status " + response.statusCode());
             }
             return response.body();
         } catch (Throwable t) {

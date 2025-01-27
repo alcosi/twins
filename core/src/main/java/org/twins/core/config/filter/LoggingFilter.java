@@ -24,6 +24,7 @@ import org.twins.core.controller.rest.annotation.Loggable;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.twins.core.service.HttpRequestService.*;
@@ -33,6 +34,8 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Autowired
     private List<HandlerMapping> handlerMappings;
     public static final String REQUEST_LOG_ID = "RequestLogId";
+    public static final String LOG_RS_BODY = "LogRsBody";
+
     public static final String CONTROLLER_METHOD = "ControllerMethod";
     public static final Random RANDOM = new Random();
 
@@ -95,7 +98,8 @@ public class LoggingFilter extends OncePerRequestFilter {
             logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), request.getRequestURI(), queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
             response.getHeaderNames().forEach(headerName ->
                     log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
-            byte[] content = response.getContentAsByteArray();
+            Boolean haveToLogBody = request.getAttribute(LOG_RS_BODY) != null ? (Boolean) request.getAttribute(LOG_RS_BODY) : true;
+            byte[] content =haveToLogBody? response.getContentAsByteArray():"<Not logging>".getBytes(StandardCharsets.UTF_8);
             Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
             logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId, loggable != null ? loggable.rsBodyThreshold() : 0);
         }

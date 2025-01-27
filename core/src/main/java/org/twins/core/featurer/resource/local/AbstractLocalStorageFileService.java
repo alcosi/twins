@@ -54,7 +54,7 @@ abstract class AbstractLocalStorageFileService extends AbstractCheckedStorageFil
             return Files.newInputStream(Paths.get(filePath));
         } catch (Exception e) {
             log.error("Error while retrieving file as stream: {}", filePath, e);
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to get resource");
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unable to get resource");
         }
     }
   

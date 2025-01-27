@@ -132,7 +132,7 @@ abstract class AbstractS3StorageFileService extends AbstractCheckedStorageFileSe
                             .key(fileKey));
             return s3ClientObject;
         } catch (Throwable t) {
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to get file from S3");
+            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Unable to get file from S3");
         }
     }
 

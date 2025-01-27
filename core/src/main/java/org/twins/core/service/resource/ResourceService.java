@@ -41,6 +41,9 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     @Transactional(readOnly = true)
     public DomainFile getResourceFile(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
+        if (resource == null) {
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource "+resourceId+" not found!");
+        }
         ResourceStorageEntity storage = resource.getStorage();
         StorageFileService fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), StorageFileService.class);
         var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStorageParams(), createContext(null, null, null));
