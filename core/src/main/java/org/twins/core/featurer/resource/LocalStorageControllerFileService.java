@@ -15,16 +15,16 @@ import java.util.HashMap;
 import java.util.Properties;
 
 @Featurer(id = FeaturerTwins.ID_2901,
-        name = "LocalStorageResourceService",
+        name = "LocalStorageControllerFileService",
         description = "Service to save resources (files) in local file system")
 @Slf4j
-public class LocalStorageResourceService extends StorageResourceService  {
+public class LocalStorageControllerFileService extends StorageFileService {
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
 
     @Override
-    protected InputStream getResourceAsStream(String resourceKey, HashMap<String, String> params) throws ServiceException {
-        String resourcePath=getLocalPath(params)+resourceKey;
+    public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
+        String resourcePath=getLocalPath(params)+ fileKey;
         try {
             return Files.newInputStream(Paths.get(resourcePath));
         } catch (Exception e) {
@@ -35,8 +35,8 @@ public class LocalStorageResourceService extends StorageResourceService  {
   
 
     @Override
-    protected void deleteResource(String resourceKey, HashMap<String, String> params) throws ServiceException {
-        String resourcePath=getLocalPath(params)+resourceKey;
+    public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
+        String resourcePath=getLocalPath(params)+ fileKey;
         try {
             if (Files.deleteIfExists(Paths.get(resourcePath))) {
                 log.info("Successfully deleted resource: {}", resourcePath);

@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -33,23 +34,23 @@ public class ResourceEntity implements EasyLoggable {
     private String storageFileKey;
     @Column(name = "storage_id")
     private UUID storageId;
+    @CreationTimestamp
     @Column(name = "created_at")
     private Timestamp createdAt;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
     @ManyToOne
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
-    private ResourceEntity storage;
+    private ResourceStorageEntity storage;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_user_id", insertable = false, updatable = false)
     private UserEntity uploadedByUser;
     @Override
     public String easyLog(Level level) {
         return switch (level) {
-            case SHORT ->
-                    "resource[id:" + id + ", domainId:" + domainId + "]";
+            case SHORT -> "resource[id:" + id + ", domainId:" + domainId + "]";
             case NORMAL,DETAILED -> "resource[id:" + id + ", domainId:"  + domainId + ", originalFileName:" + originalFileName + "]";
         };
     }

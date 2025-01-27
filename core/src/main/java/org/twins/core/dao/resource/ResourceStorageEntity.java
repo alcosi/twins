@@ -6,10 +6,13 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -32,17 +35,21 @@ public class ResourceStorageEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
-
+    @CreationTimestamp
     @Column(name = "created_at")
     private Timestamp createdAt;
+    @CreationTimestamp
+    @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updatedAt;
+
     @Override
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
                     "resourceStorage[id:" + id + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + "]";
-            case NORMAL,DETAILED -> "resourceStorage[id:" + id + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + ", params:" + storageParams.entrySet().stream().map(it -> it.getKey() + "=>" + it.getValue()).collect(Collectors.joining(",")) + "]";
+            case NORMAL, DETAILED ->
+                    "resourceStorage[id:" + id + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + ", params:" + storageParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
         };
     }
 }
