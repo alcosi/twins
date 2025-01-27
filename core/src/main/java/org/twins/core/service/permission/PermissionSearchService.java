@@ -40,15 +40,15 @@ public class PermissionSearchService {
     private Specification<PermissionEntity> createPermissionSearchSpecification(PermissionSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
-                checkFieldLikeContainsIn(PermissionEntity.Fields.key, search.getKeyLikeList(), false, true),
-                checkFieldLikeContainsIn(PermissionEntity.Fields.key, search.getKeyNotLikeList(), true, true),
-                checkUuidIn(PermissionEntity.Fields.id, search.getIdList(), false, true),
-                checkUuidIn(PermissionEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkFieldLikeContainsIn(search.getKeyLikeList(), false, true, PermissionEntity.Fields.key),
+                checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, PermissionEntity.Fields.key),
+                checkUuidIn(search.getIdList(), false, true, PermissionEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, PermissionEntity.Fields.id),
                 joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nLikeList(), locale, false, false),
                 joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nNotLikeList(), locale, true, true),
                 joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nLikeList(), locale, false, false),
                 joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nNotLikeList(), locale, true, true),
-                checkUuidIn(PermissionEntity.Fields.permissionGroupId, search.getGroupIdList(), false, true),
-                checkUuidIn(PermissionEntity.Fields.permissionGroupId, search.getGroupIdExcludeList(), true, true));
+                checkUuidIn(search.getGroupIdList(), false, true, PermissionEntity.Fields.permissionGroupId),
+                checkUuidIn(search.getGroupIdExcludeList(), true, true, PermissionEntity.Fields.permissionGroupId));
     }
 }

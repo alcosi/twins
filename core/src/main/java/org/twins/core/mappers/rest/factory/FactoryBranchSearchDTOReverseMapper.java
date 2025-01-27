@@ -24,6 +24,7 @@ public class FactoryBranchSearchDTOReverseMapper extends RestSimpleDTOMapper<Fac
                 .setNextFactoryIdExcludeList(src.getNextFactoryIdExcludeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
+                .setConditionInvert(src.getConditionInvert())
                 .setActive(src.getActive());
     }
 }

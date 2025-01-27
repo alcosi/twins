@@ -1,5 +1,6 @@
 package org.twins.core.dao.specifications.permission;
 
+import jakarta.persistence.criteria.JoinType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.permission.PermissionEntity;
@@ -16,7 +17,7 @@ public class PermissionGrantUserGroupSpecification extends CommonSpecification<P
     public static Specification<PermissionGrantUserGroupEntity> checkDomainId(UUID domainId) {
         Specification<PermissionGrantUserGroupEntity>  specification = Specification.allOf(
                 checkFieldUuid(domainId, PermissionGrantUserGroupEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
-                (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), PermissionGrantUserGroupEntity.Fields.permission, PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId)
+                (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, PermissionGrantUserGroupEntity.Fields.permission, PermissionEntity.Fields.permissionGroup, PermissionGroupEntity.Fields.domainId)
         );
         return specification;
     }

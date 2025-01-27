@@ -33,16 +33,16 @@ public class FactoryMultiplierSearchService {
     private Specification<TwinFactoryMultiplierEntity> createFactoryMultiplierSearchSpecification(FactoryMultiplierSearch search) throws ServiceException {
         return Specification.where(
                 checkTernary(TwinFactoryMultiplierEntity.Fields.active, search.getActive())
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.twinFactoryId, search.getFactoryIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.twinFactoryId, search.getFactoryIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, search.getInputTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, search.getInputTwinClassIdExcludeList(), true, false))
+                        .and(checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierEntity.Fields.id))
+                        .and(checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryMultiplierEntity.Fields.id))
+                        .and(checkUuidIn(search.getFactoryIdList(), false, false, TwinFactoryMultiplierEntity.Fields.twinFactoryId))
+                        .and(checkUuidIn(search.getFactoryIdExcludeList(), true, false, TwinFactoryMultiplierEntity.Fields.twinFactoryId))
+                        .and(checkUuidIn(search.getInputTwinClassIdList(), false, false, TwinFactoryMultiplierEntity.Fields.inputTwinClassId))
+                        .and(checkUuidIn(search.getInputTwinClassIdExcludeList(), true, false, TwinFactoryMultiplierEntity.Fields.inputTwinClassId))
                         .and(checkIntegerIn(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, search.getMultiplierFeaturerIdList(), false))
                         .and(checkIntegerIn(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, search.getMultiplierFeaturerIdExcludeList(), true))
-                        .and(checkFieldLikeIn(TwinFactoryMultiplierEntity.Fields.description, search.getDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinFactoryMultiplierEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                        .and(checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryMultiplierEntity.Fields.description))
+                        .and(checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryMultiplierEntity.Fields.description))
         );
     }
 }

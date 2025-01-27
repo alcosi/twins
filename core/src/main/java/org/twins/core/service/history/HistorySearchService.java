@@ -35,14 +35,14 @@ public class HistorySearchService {
     private Specification<HistoryEntity> createHisotrySearchSpecification(HistorySearch search) {
         return Specification.where(
                 checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdList(), search.isIncludeDirectChildren(), false)
-                        .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
-                        .and(checkUuidIn(HistoryEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(HistoryEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(HistoryEntity.Fields.actorUserId, search.getActorUseridList(), false, false))
-                        .and(checkUuidIn(HistoryEntity.Fields.actorUserId, search.getActorUserIdExcludeList(), true, false))
-                        .and(checkType(search.getTypeList(), false))
-                        .and(checkType(search.getTypeExcludeList(), true))
-                        .and(createdAtBetween(search.getCreatedAt()))
+                .and(checkByTwinIdIncludeFirstLevelChildren(search.getTwinIdExcludeList(), false, true))
+                .and(checkUuidIn(search.getIdList(), false, false, HistoryEntity.Fields.id))
+                .and(checkUuidIn(search.getIdExcludeList(), true, false, HistoryEntity.Fields.id))
+                .and(checkUuidIn(search.getActorUseridList(), false, false, HistoryEntity.Fields.actorUserId))
+                .and(checkUuidIn(search.getActorUserIdExcludeList(), true, false, HistoryEntity.Fields.actorUserId))
+                .and(checkType(search.getTypeList(), false))
+                .and(checkType(search.getTypeExcludeList(), true))
+                .and(createdAtBetween(search.getCreatedAt()))
         );
     }
 
