@@ -26,7 +26,6 @@ public interface RestRequestParam {
     String showHeadClassMode = "showHeadClassMode";
     String showExtendsClassMode = "showExtendsClassMode";
     String lazyRelation = "lazyRelation";
-    String childDepth = "childDepth";
     String fieldValue = "fieldValue";
     String sortDirection = "sortDirection";
     String paginationOffset = "offset";
