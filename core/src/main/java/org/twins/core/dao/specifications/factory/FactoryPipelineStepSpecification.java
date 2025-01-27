@@ -32,18 +32,18 @@ public class FactoryPipelineStepSpecification extends CommonSpecification<TwinFa
         };
     }
 
-    public static Specification<TwinFactoryPipelineStepEntity> checkIntegerIn(final String field, final Collection<Integer> ids, boolean not) {
+    public static Specification<TwinFactoryPipelineStepEntity> checkIntegerIn(final Collection<Integer> ids, boolean not, final String field) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids)) return cb.conjunction();
             return not ? cb.not(root.get(field).in(ids)) : root.get(field).in(ids);
         };
     }
 
-    public static Specification<TwinFactoryPipelineStepEntity> checkTernary(final String field, Ternary optional) {
+    public static Specification<TwinFactoryPipelineStepEntity> checkTernary(Ternary ternary, final String field) {
         return (root, query, cb) -> {
-            if (optional == null)
+            if (ternary == null)
                 return cb.conjunction();
-            return switch (optional) {
+            return switch (ternary) {
                 case ONLY -> cb.isTrue(root.get(field));
                 case ONLY_NOT -> cb.isFalse(root.get(field));
                 default -> cb.conjunction();
