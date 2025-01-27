@@ -21,11 +21,15 @@ import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Provides services for handling file uploads and resource management.
+ * Includes functionalities for saving, retrieving, and deleting files, as well as validating file size and MIME types.
+ */
 @FeaturerType(id = FeaturerTwins.TYPE_29,
         name = "StorageResourceService",
         description = "Services for resource(file) uploading")
 @Slf4j
-public abstract class StorageFileService extends FeaturerTwins {
+public abstract class AbstractStorageFileService extends FeaturerTwins {
     protected final Tika tika = new Tika();
 
     @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")
@@ -37,20 +41,14 @@ public abstract class StorageFileService extends FeaturerTwins {
 
 
     /**
-     * Retrieves the self-hosted base domain URI using the provided parameters.
+     * Constructs and returns the URI for the file controller based on the provided parameters and context.
      *
-     * @param params a HashMap containing parameters required for extracting properties and determining the domain URI
-     * @return a String representing the base domain URI for the self-hosted implementation
-     * @throws ServiceException if there is an error during the extraction of properties or the URI determination process
+     * @param params  a map of string key-value pairs containing file-specific parameters.
+     * @param context a map of string-object pairs containing additional contextual information.
+     * @return the URI of the file controller as a string.
+     * @throws ServiceException if an error occurs while constructing the URI.
      */
-    protected String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
-        String domain = selfHostDomainBaseUri.extract(properties);
-        if (!domain.endsWith("/")) {
-            domain = domain + "/";
-        }
-        return domain + "resource/";
-    }
+    protected abstract String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Retrieves the file size limit based on the provided parameters.
@@ -108,15 +106,18 @@ public abstract class StorageFileService extends FeaturerTwins {
     }
 
     /**
-     * Constructs and returns the URI for a resource based on the provided resource ID and parameters.
+     * Constructs a URI for the given resource based on a provided resource ID,
+     * parameters, and context.
      *
      * @param resourceId the unique identifier of the resource
-     * @param params     a map of parameters that may impact the construction of the resource URI
-     * @return the constructed URI for the resource
-     * @throws ServiceException if an error occurs during URI construction
+     * @param params a map of key-value pairs containing additional parameters
+     *               required to build the URI
+     * @param context a map providing contextual information for constructing the URI
+     * @return the constructed URI pointing to the specified resource
+     * @throws ServiceException if any error occurs during the URI construction process
      */
-    public URI getFileUri(UUID resourceId, HashMap<String, String> params) throws ServiceException {
-        return URI.create(getFileControllerUri(params) + resourceId);
+    public URI getFileUri(UUID resourceId, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+        return URI.create(getFileControllerUri(params,context) + resourceId);
     }
 
     /**
@@ -127,7 +128,7 @@ public abstract class StorageFileService extends FeaturerTwins {
      * @param params         A map of additional parameters required for saving the resource (e.g., configuration details). Optional parameter, can be null.
      * @throws ServiceException If an error occurs during the process of saving the resource.
      */
-    public Long saveFile(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    public Long addFile(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
         return saveResourceInternal(fileKey, fileStream, params);
     }
 
@@ -140,12 +141,12 @@ public abstract class StorageFileService extends FeaturerTwins {
      * @param params      A map of string key-value pairs containing additional parameters for file saving operations.
      * @throws ServiceException If the file size exceeds the limit or if a service-related error occurs during the save operation.
      */
-    public Long saveFile(String fileKey, byte[] file, HashMap<String, String> params) throws ServiceException {
+    public Long addFile(String fileKey, byte[] file, HashMap<String, String> params) throws ServiceException {
         Integer fileSizeLimit = getFileSizeLimit(params);
         if (file.length > fileSizeLimit) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + file.length + ")");
         }
-        return saveFile(fileKey, new ByteArrayInputStream(file), params);
+        return addFile(fileKey, new ByteArrayInputStream(file), params);
     }
     /**
      * Attempts to delete a file identified by the provided key and parameters.
@@ -195,7 +196,7 @@ public abstract class StorageFileService extends FeaturerTwins {
             //Wrap to count bytes and limit if needed
             Integer fileSizeLimit = getFileSizeLimit(params);
             CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit,0);
-            saveFile(fileKey, sizeLimitedStream, params);
+            addFile(fileKey, sizeLimitedStream, params);
             return sizeLimitedStream.bytesRead();
         } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
             tryDeleteFile(fileKey,params);

@@ -5,7 +5,7 @@ on conflict (id) do nothing;
 insert into public.featurer(id, featurer_type_id, class, name, description)
 values (2901, 29, 'org.twins.core.featurer.resource.LocalStorageControllerFileService',
         'LocalStorageControllerFileService',
-        'Service to save resources (files) in local file system and return them in controller after that')
+        'Service to save files in local file system and return them in controller after that')
 on conflict (id) do nothing;
 
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
@@ -24,10 +24,14 @@ on conflict (featurer_id,key) do nothing;
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
 VALUES (2901, false, 4, 'baseLocalPath', 'baseLocalPath', 'Base local path of directory where to save files', 'STRING')
 on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2901, false, 5, 'relativeFileUri', 'relativeFileUri', 'Relative uri of controller to provide files', 'STRING')
+on conflict (featurer_id,key) do nothing;
 --Local static resource
 insert into public.featurer(id, featurer_type_id, class, name, description)
 values (2902, 29, 'org.twins.core.featurer.resource.LocalStorageStaticFileService', 'LocalStorageStaticFileService',
-        'Service to save resources (files) in local file system and return them them as nginx static resource after that')
+        'Service to save files in local file system and return them them as nginx static resource after that')
 on conflict (id) do nothing;
 
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
@@ -68,7 +72,7 @@ on conflict (featurer_id,key) do nothing;
 --S3
 insert into public.featurer(id, featurer_type_id, class, name, description)
 values (2904, 29, 'org.twins.core.featurer.resource.S3StorageFileService', 'S3StorageFileService',
-        'Service to save resources (files) to S3')
+        'Service to save files to S3')
 on conflict (id) do nothing;
 
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
