@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -28,6 +29,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.domain.file.DomainFile;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -37,6 +39,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
@@ -71,7 +74,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     private final DomainUserRepository domainUserRepository;
     private final DomainBusinessAccountRepository domainBusinessAccountRepository;
     private final EntitySmartService entitySmartService;
-
+    private final ResourceService resourceService;
     @Lazy
     private final PermissionService permissionService;
 
@@ -96,6 +99,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+    public static final UUID DEFAULT_RESOURCE_STORAGE_ID =UUID.fromString("0194a1cd-fc94-7c0b-9884-e3d45d2bebf3");
 
     @Override
     public CrudRepository<DomainEntity, UUID> entityRepository() {
@@ -135,7 +139,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     @Transactional
-    public DomainEntity addDomain(DomainEntity domainEntity) throws ServiceException {
+    public DomainEntity addDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
@@ -147,7 +151,30 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        processIcons(domainEntity, lightIcon, darkIcon);
         return domainEntity;
+    }
+
+    protected void processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+        var lightIconEntity=saveIconResourceIfExist(domainEntity, lightIcon);
+        var darkIconEntity=saveIconResourceIfExist(domainEntity, darkIcon);
+        if (lightIconEntity!=null) {
+            domainEntity.setIconLightResourceId(lightIconEntity.getId());
+        }
+        if (darkIconEntity!=null) {
+            domainEntity.setIconDarkResourceId(darkIconEntity.getId());
+        }
+        if (darkIconEntity!=null || lightIconEntity!=null) {
+            domainRepository.save(domainEntity);
+        }
+    }
+
+    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content(), domainEntity.getResourcesStorageId(), domainEntity.getId());
+        } else {
+            return null;
+        }
     }
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
@@ -337,15 +364,15 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if(!apiUser.isBusinessAccountSpecified())
+        if (!apiUser.isBusinessAccountSpecified())
             throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-            AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
-            attachmentQuotas
-                    .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
-                    .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
-                    .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
-                    .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
         return attachmentQuotas;
     }
 

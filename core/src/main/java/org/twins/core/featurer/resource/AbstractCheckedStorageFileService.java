@@ -12,7 +12,6 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamWordList;
 import org.jetbrains.annotations.NotNull;
-import org.twins.core.featurer.FeaturerTwins;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * with additional checks on file properties such as size and MIME type.
  * This class implements {@link StorageFileService} and*/
 @Slf4j
-public abstract class AbstractCheckedStorageFileService extends FeaturerTwins implements StorageFileService {
+public abstract class AbstractCheckedStorageFileService extends StorageFileService {
     protected final Tika tika = new Tika();
 
     @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")

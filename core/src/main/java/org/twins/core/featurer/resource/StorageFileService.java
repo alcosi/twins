@@ -15,7 +15,7 @@ import java.util.UUID;
 @FeaturerType(id = FeaturerTwins.TYPE_29,
         name = "StorageResourceService",
         description = "Services for resource(file) uploading")
-public interface StorageFileService {
+abstract public class StorageFileService extends FeaturerTwins {
     public static final String CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT = "businessAccountId";
     public static final String CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN = "domainId";
     public static final String CONTEXT_ATTRIBUTE_FILE_URI = "fileUri";
@@ -28,7 +28,7 @@ public interface StorageFileService {
      * @return the URI of the file controller as a string.
      * @throws ServiceException if an error occurs while constructing the URI.
      */
-    String getFileControllerUri(HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public String getFileControllerUri(HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Provides a mechanism to retrieve a file as an InputStream using the given file key and parameters.
@@ -41,7 +41,7 @@ public interface StorageFileService {
      * @return An InputStream representing the file's content.
      * @throws ServiceException If there is an error while retrieving the file or if the file cannot be found.
      */
-    InputStream getFileAsStream(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public InputStream getFileAsStream(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Retrieves the content of a file as a byte array based on the provided file key,
@@ -57,7 +57,7 @@ public interface StorageFileService {
      * @throws ServiceException If there is an error fetching the file or if the file
      *                          cannot be found in the storage service.
      */
-    byte[] getFileBytes(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public byte[] getFileBytes(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Constructs and returns a URI for the specified file based on its identifier, key, parameters, and context.
@@ -69,7 +69,7 @@ public interface StorageFileService {
      * @return a {@code URI} representing the file's location.
      * @throws ServiceException if there is an error while constructing the URI.
      */
-    URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Adds a file to the storage service with the specified file identifier, file content, parameters, and context.
@@ -82,7 +82,7 @@ public interface StorageFileService {
      * @return an {@code AddedFileKey} object containing the unique file key and file size.
      * @throws ServiceException if there is an error during the file addition process.
      */
-    AddedFileKey addFile(UUID fileId, byte[] file, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public AddedFileKey addFile(UUID fileId, byte[] file, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Adds a file to the storage service with the specified file identifier, file stream, parameters, and context.
@@ -95,7 +95,7 @@ public interface StorageFileService {
      * @return an {@code AddedFileKey} object containing the unique file key and file size.
      * @throws ServiceException if there is an error during the file addition process.
      */
-    AddedFileKey addFile(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public AddedFileKey addFile(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Attempts to delete a file identified by the provided file key. This method is designed
@@ -108,7 +108,7 @@ public interface StorageFileService {
      * @param context A HashMap containing contextual information or metadata necessary
      *                for the delete operation.
      */
-    void tryDeleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context);
+    abstract public void tryDeleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context);
 
     /**
      * Deletes the specified file based on the provided file key, parameters, and context.
@@ -119,7 +119,7 @@ public interface StorageFileService {
      * @param context A HashMap containing additional context or metadata required for the operation.
      * @throws ServiceException If there is an issue during the deletion process.
      */
-    void deleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public void deleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Generates a unique file key based on the provided file identifier, parameters, and contextual data.
@@ -131,5 +131,5 @@ public interface StorageFileService {
      * @return a string representing the generated file key
      * @throws ServiceException if an error occurs during the key generation process
      */
-    String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
+    abstract public String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 }

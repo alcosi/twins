@@ -8,6 +8,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.http.HttpHeaders;
+import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.resource.AbstractCheckedStorageFileService;
 import org.twins.core.featurer.resource.AddedFileKey;
@@ -24,7 +25,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
-
+@Component
 @Featurer(id = FeaturerTwins.ID_2903,
         name = "ExternalUriStorageFileService",
         description = "Service to keep and work with external uri")

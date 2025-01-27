@@ -6,9 +6,12 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.twins.core.featurer.resource.AbstractCheckedStorageFileService;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -27,7 +30,7 @@ public class ResourceStorageEntity implements EasyLoggable {
     private UUID id;
 
     @Column(name = "storage_featurer_id")
-    private UUID storageFeaturerId;
+    private Long storageFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
     @Column(name = "storage_params", columnDefinition = "hstore")
@@ -38,10 +41,14 @@ public class ResourceStorageEntity implements EasyLoggable {
     @CreationTimestamp
     @Column(name = "created_at")
     private Timestamp createdAt;
-    @CreationTimestamp
     @UpdateTimestamp
     @Column(name = "updated_at")
     private Timestamp updatedAt;
+
+    @FeaturerList(type = AbstractCheckedStorageFileService.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "storage_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity storageFeaturer;
 
     @Override
     public String easyLog(Level level) {
