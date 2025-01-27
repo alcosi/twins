@@ -2,12 +2,14 @@ package org.twins.core.service.datalist;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.StringUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.common.kit.Kit;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +20,16 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dao.datalist.DataListOptionRepository;
-import org.twins.core.dao.datalist.DataListRepository;
-import org.twins.core.domain.datalist.DataListOptionCreate;
-import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.datalist.DataListOptionCreate;
+import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -74,36 +73,50 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
 
     @Transactional(rollbackFor = Throwable.class)
     public DataListOptionEntity createDataListOption(DataListOptionCreate dataListOptionCreate) throws ServiceException {
-        DataListEntity dbDataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
-        fillingDataListAttribute(dbDataList);
+        DataListEntity dataList = dataListService.findEntitySafe(dataListOptionCreate.getDataListId());
+        loadDataListAttributeAccessors(dataList);
         DataListOptionEntity dataListOption = new DataListOptionEntity()
                 .setDataListId(dataListOptionCreate.getDataListId())
                 .setIcon(dataListOptionCreate.getIcon())
                 .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListOptionCreate.getNameI18n()).getId())
                 .setStatus(DataListOptionEntity.Status.active);
-        checkAttributes(dbDataList.getAttributes(), dataListOptionCreate.getAttributes());
-        createAttributes(dbDataList, dataListOption, dataListOptionCreate.getAttributes());
+        createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
         validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
         return dataListOptionRepository.save(dataListOption);
     }
 
-    private void createAttributes(DataListEntity dbDataList, DataListOptionEntity dataListOption, Map<String, String> attributes) {
-        dataListOption.setAttribute1value(attributes.get(dbDataList.getAttribute1key()));
-        dataListOption.setAttribute2value(attributes.get(dbDataList.getAttribute2key()));
-        dataListOption.setAttribute3value(attributes.get(dbDataList.getAttribute3key()));
-        dataListOption.setAttribute4value(attributes.get(dbDataList.getAttribute4key()));
+    private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
+        if (emptyAttributes(dataList))
+            return;
+        String attributeValue;
+        for (var attributeAccessor : dataList.getAttributes().entrySet()) {
+            attributeValue = getAttributeValueSafe(attributes, dataList.getAttribute1key());
+            attributeAccessor.getValue().setter().accept(dataListOption, attributeValue);
+        }
+    }
+
+    private static String getAttributeValueSafe(Map<String, String> optionAttributes, String attributeKey) throws ServiceException {
+        if (StringUtils.isEmpty(attributeKey))
+            return null; //no attribute configured
+        if (MapUtils.isEmpty(optionAttributes) || !optionAttributes.containsKey(attributeKey))
+            throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute[" + attributeKey + "]");
+        return optionAttributes.get(attributeKey);
+    }
+
+    private boolean emptyAttributes(DataListEntity dataListEntity) {
+        loadDataListAttributeAccessors(dataListEntity);
+        return MapUtils.isEmpty(dataListEntity.getAttributes());
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public DataListOptionEntity updateDataListOption(DataListOptionUpdate optionUpdate) throws ServiceException {
         DataListOptionEntity dbOption = findEntitySafe(optionUpdate.getId());
         DataListEntity dbDataList = dbOption.getDataList();
-        fillingDataListAttribute(dbDataList);
+        loadDataListAttributeAccessors(dbDataList);
         ChangesHelper changesHelper = new ChangesHelper();
         updateDataListOptionIcon(optionUpdate, dbOption, changesHelper);
         updateDataListOptionName(optionUpdate.getNameI18n(), dbOption, changesHelper);
-        checkAttributes(dbDataList.getAttributes(), optionUpdate.getAttributes());
-        updateAttributes(dbDataList, dbOption, optionUpdate, changesHelper);
+        updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
         if (changesHelper.hasChanges()) {
             validateEntityAndThrow(dbOption, EntitySmartService.EntityValidateMode.beforeSave);
             entitySmartService.saveAndLogChanges(dbOption, dataListOptionRepository, changesHelper);
@@ -111,32 +124,29 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         return dbOption;
     }
 
-    private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, DataListOptionUpdate optionUpdate, ChangesHelper changesHelper) {
-        updateDataListOptionAttribute(getAttributeByKey(optionUpdate, dataList.getAttribute1key()), DataListEntity.Fields.attribute1key, option, DataListOptionEntity::getAttribute1value, DataListOptionEntity::setAttribute1value, changesHelper);
-        updateDataListOptionAttribute(getAttributeByKey(optionUpdate, dataList.getAttribute2key()), DataListEntity.Fields.attribute2key, option, DataListOptionEntity::getAttribute2value, DataListOptionEntity::setAttribute2value, changesHelper);
-        updateDataListOptionAttribute(getAttributeByKey(optionUpdate, dataList.getAttribute3key()), DataListEntity.Fields.attribute3key, option, DataListOptionEntity::getAttribute3value, DataListOptionEntity::setAttribute3value, changesHelper);
-        updateDataListOptionAttribute(getAttributeByKey(optionUpdate, dataList.getAttribute4key()), DataListEntity.Fields.attribute4key, option, DataListOptionEntity::getAttribute4value, DataListOptionEntity::setAttribute4value, changesHelper);
-    }
-
-    private String getAttributeByKey(DataListOptionUpdate dataListOptionUpdate, String key) {
-        return dataListOptionUpdate.getAttributes().get(key);
-    }
-
-    private void fillingDataListAttribute(DataListEntity dbDataList) {
-        dbDataList.setAttributes(Stream.of(
-                        dbDataList.getAttribute1key(),
-                        dbDataList.getAttribute2key(),
-                        dbDataList.getAttribute3key(),
-                        dbDataList.getAttribute4key())
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet()));
-    }
-
-    public void checkAttributes(Set<String> requiredAttrs, Map<String, String> attributes) throws ServiceException {
-        for (String attr : requiredAttrs) {
-            if (!attributes.containsKey(attr))
-                throw new ServiceException(ErrorCodeTwins.DATALIST_OPTION_INVALID_ATTRIBUTE, "Incorrect data list option attribute[" + attr + "]");
+    private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, Map<String, String> attributes, ChangesHelper changesHelper) throws ServiceException {
+        if (emptyAttributes(dataList))
+            return;
+        String attributeValue;
+        for (var attributeAccessor : dataList.getAttributes().entrySet()) {
+            attributeValue = getAttributeValueSafe(attributes, dataList.getAttribute1key());
+            updateDataListOptionAttribute(attributeValue, attributeAccessor.getKey(), option, attributeAccessor.getValue().getter(), attributeAccessor.getValue().setter(), changesHelper);
         }
+    }
+
+    private void loadDataListAttributeAccessors(DataListEntity dataListEntity) {
+        if (dataListEntity.getAttributes() != null)
+            return;
+        Map<String, DataListOptionEntity.AttributeAccessor> attributes = new HashMap<>();
+        if (StringUtils.isEmpty(dataListEntity.getAttribute1key()))
+            attributes.put(dataListEntity.getAttribute1key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute1value, DataListOptionEntity::setAttribute1value));
+        if (StringUtils.isEmpty(dataListEntity.getAttribute2key()))
+            attributes.put(dataListEntity.getAttribute2key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute2value, DataListOptionEntity::setAttribute2value));
+        if (StringUtils.isEmpty(dataListEntity.getAttribute3key()))
+            attributes.put(dataListEntity.getAttribute3key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute3value, DataListOptionEntity::setAttribute3value));
+        if (StringUtils.isEmpty(dataListEntity.getAttribute4key()))
+            attributes.put(dataListEntity.getAttribute4key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute4value, DataListOptionEntity::setAttribute4value));
+        dataListEntity.setAttributes(attributes);
     }
 
     private void updateDataListOptionIcon(DataListOptionUpdate optionUpdate, DataListOptionEntity dbEntity, ChangesHelper changesHelper) {

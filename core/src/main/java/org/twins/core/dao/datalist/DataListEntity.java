@@ -12,7 +12,7 @@ import org.cambium.i18n.dao.I18nEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -109,7 +109,7 @@ public class DataListEntity implements EasyLoggable {
     private Collection<DataListOptionEntity> dataListOptions;
 
     @Transient
-    private Set<String> attributes;
+    private Map<String, DataListOptionEntity.AttributeAccessor> attributes;
 
     public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";
