@@ -42,6 +42,7 @@ public class FactoryBranchSearchService {
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryBranchEntity.Fields.twinFactoryConditionSetId),
                 checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryBranchEntity.Fields.nextTwinFactoryId),
                 checkUuidIn(search.getNextFactoryIdExcludeList(), true, false, TwinFactoryBranchEntity.Fields.nextTwinFactoryId),
-                checkTernary(TwinFactoryBranchEntity.Fields.active, search.getActive()));
+                checkTernary(search.getConditionInvert(), TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert),
+                checkTernary(search.getActive(), TwinFactoryBranchEntity.Fields.active));
     }
 }
