@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource;
+package org.twins.core.featurer.resource.local;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;

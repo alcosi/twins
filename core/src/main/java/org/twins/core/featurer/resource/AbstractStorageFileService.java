@@ -81,43 +81,48 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
     }
 
     /**
-     * Retrieves a resource as an InputStream based on the provided file key
-     * and additional parameters.
+     * Provides a mechanism to retrieve a file as an InputStream using the given file key and parameters.
+     * This method allows fetching file content from respective storage or source
+     * based on the implementation of the service.
      *
-     * @param fileKey the key identifying the requested file
-     * @param params      a map of parameters that may influence the resource retrieval process
-     * @return an InputStream to access the resource, or null if the resource could not be found
-     * @throws ServiceException if an error occurs during resource retrieval
+     * @param fileKey The unique key or identifier corresponding to the file.
+     * @param params A map containing additional parameters required to locate or fetch the file.
+     * @param context A map containing contextual information for retrieving the file.
+     * @return An InputStream representing the file's content.
+     * @throws ServiceException If there is an error while retrieving the file or if the file cannot be found.
      */
-    public abstract InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException;
+    public abstract InputStream getFileAsStream(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
-     * Retrieves the byte content of a resource based on its key and optional parameters.
+     * Retrieves the contents of a file as a byte array.
      *
-     * @param fileKey the key identifying the file to be retrieved
-     * @param params      a map of additional parameters relevant to the resource retrieval
-     * @return a byte array representing the content of the resource
-     * @throws ServiceException if an I/O error occurs during reading the resource
+     * @param fileKey The unique key or identifier of the file to retrieve.
+     * @param params A set of key-value pair parameters used for file retrieval,
+     *               such as configurations or contextual information.
+     * @param context A map of additional context-specific objects that could assist
+     *                in retrieving the file, such as environment settings or metadata.
+     * @return A byte array representing the content of the requested file.
+     * @throws ServiceException If an error occurs while retrieving or processing the file.
      */
     @SneakyThrows
-    public byte[] getFileBytes(String fileKey, HashMap<String, String> params) throws ServiceException {
-        try (InputStream stream = getFileAsStream(fileKey, params)) {
+    public byte[] getFileBytes(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        try (InputStream stream = getFileAsStream(fileKey, params,context)) {
             return stream.readAllBytes();
         }
     }
 
     /**
-     * Constructs a URI for the given file based on a provided file ID,
-     * parameters, and context.
+     * Retrieves the URI of a file based on the provided file identifier, file key, parameters,
+     * and context. This method constructs a URI using the file controller's URI and the file identifier.
      *
      * @param fileId the unique identifier of the file
-     * @param params a map of key-value pairs containing additional parameters
-     *               required to build the URI
-     * @param context a map providing contextual information for constructing the URI
-     * @return the constructed URI pointing to the specified resource
-     * @throws ServiceException if any error occurs during the URI construction process
+     * @param fileKey the key associated with the file
+     * @param params a map of parameters used for file configuration and URI generation
+     * @param context a map of additional context information required for URI generation
+     * @return the URI of the file
+     * @throws ServiceException if any error occurs during the URI generation
      */
-    public URI getFileUri(UUID fileId, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+    public URI getFileUri(UUID fileId,String fileKey, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
         return URI.create(getFileControllerUri(params,context) + fileId);
     }
 
@@ -156,27 +161,31 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
     }
 
     /**
-     * Attempts to delete a file identified by the provided key and parameters.
-     * Logs any errors encountered during the deletion process.
+     * Attempts to delete a file using the provided file key, parameters, and context.
+     * If the deletion fails, logs the error with the file key and exception details.
      *
-     * @param fileKey the key that uniquely identifies the resource to be deleted
-     * @param params a map of additional parameters required for file deletion
+     * @param fileKey the unique identifier of the file to be deleted
+     * @param params a map containing parameters related to the file deletion
+     * @param context a map containing contextual information for file deletion
      */
-    public void tryDeleteFile(String fileKey, HashMap<String, String> params){
+    public void tryDeleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context){
         try {
-            deleteFile(fileKey, params);
+            deleteFile(fileKey, params,context);
         }catch (Throwable t){
             log.error("Error deleting file: {}",fileKey,t);
         }
     }
+
     /**
-     * Deletes a file identified by the given file key and optional parameters.
+     * Deletes the specified file based on the provided file key, parameters, and context.
+     * This method is intended to handle the deletion of a file in implementations of storage services.
      *
-     * @param fileKey the unique key identifying the file to be deleted
-     * @param params      a map of additional parameters required for the deletion process
-     * @throws ServiceException if there is an error during the deletion process
+     * @param fileKey A unique identifier for the file to be deleted.
+     * @param params A HashMap containing service-specific parameters required for file deletion.
+     * @param context A HashMap containing additional context or metadata required for the operation.
+     * @throws ServiceException If there is an issue during the deletion process.
      */
-    public abstract void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException;
+    public abstract void deleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Adds a file to the internal storage with specific parameters and context.
@@ -204,17 +213,29 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
             //Wrap to count bytes and limit if needed
             Integer fileSizeLimit = getFileSizeLimit(params);
             CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit,0);
-            addFile(fileKey, sizeLimitedStream, params,context);
+            addFileInternal(fileKey, sizeLimitedStream, params,context);
             return new AddedFileKey(fileKey,sizeLimitedStream.bytesRead());
         } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
-            tryDeleteFile(fileKey,params);
+            tryDeleteFile(fileKey,params,context);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + ex.getLimit() + " exceeded (" + ex.getBytesRead() + ")");
         } catch (Throwable t) {
-            tryDeleteFile(fileKey,params);
+            tryDeleteFile(fileKey,params,context);
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, t.getMessage());
         }
     }
 
+    /**
+     * Abstract method to handle the internal addition of a file to the storage system. Implementations are
+     * expected to define how the file input stream, along with associated parameters and context, are handled
+     * to store the file in a particular storage medium (e.g., local storage, external URI, etc.).
+     *
+     * @param fileKey the unique key used to identify the file in the storage system
+     * @param fileStream the input stream representing the file content to be stored
+     * @param params a map of additional parameters required for the storage operation
+     * @param context a map of contextual information required for the operation, which may include metadata or configuration data
+     * @throws ServiceException if any error occurs during the file addition process
+     */
+    protected abstract void addFileInternal( String fileKey, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException ;
     /**
      * Generates a unique file key based on the provided file identifier, parameters, and contextual data.
      * This method is abstract and must be implemented by subclasses to define specific key generation logic.
