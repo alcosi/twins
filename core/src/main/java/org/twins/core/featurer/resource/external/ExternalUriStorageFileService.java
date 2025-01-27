@@ -49,12 +49,16 @@ public class ExternalUriStorageFileService extends AbstractStorageFileService {
                     .GET()
                     .timeout(timeoutDuration)
                     .build();
-            HttpResponse<InputStream> response = HttpClient
+            HttpClient httpClient = HttpClient
                     .newBuilder()
                     .proxy(ProxySelector.getDefault())
                     .connectTimeout(timeoutDuration)
-                    .build()
+                    .build();
+            HttpResponse<InputStream> response = httpClient
                     .send(request, HttpResponse.BodyHandlers.ofInputStream());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Failed to retrieve the file: HTTP Status " + response.statusCode());
+            }
             return response.body();
         } catch (Throwable t){
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to get resource");
