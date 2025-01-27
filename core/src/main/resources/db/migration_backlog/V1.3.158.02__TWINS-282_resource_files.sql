@@ -32,7 +32,8 @@ values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
             'selfHostDomainBaseUri', '/',
             'fileSizeLimit', '1000000',
             'supportedMimeTypes','*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
-            'baseLocalPath','/opt/resources/']
+            'baseLocalPath','/opt/resource/',
+            'relativeFileUri','resource/']
         ),
         'Domain icon/logo local storage resource');
 
