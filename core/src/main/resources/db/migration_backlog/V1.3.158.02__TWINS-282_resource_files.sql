@@ -13,7 +13,7 @@ $$;
 create table if not exists public.resource_storage
 (
     id                  uuid      not null primary key default gen_random_uuid(),
-    storage_featurer_id uuid      not null references public.featurer (id) on delete cascade on update cascade,
+    storage_featurer_id bigint      not null references public.featurer (id) on delete cascade on update cascade,
     storage_params      hstore    not null             default ''::hstore,
     description         varchar   not null,
     created_at          timestamp not null             default current_timestamp,

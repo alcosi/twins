@@ -3,11 +3,12 @@ package org.twins.core.featurer.resource.local;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
 import java.util.Properties;
-
+@Component
 @Featurer(id = FeaturerTwins.ID_2901,
         name = "LocalStorageControllerFileService",
         description = "Service to save files in local file system")

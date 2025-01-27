@@ -21,7 +21,6 @@ public class ResourceEntity implements EasyLoggable {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
-
     @Column(name = "domain_id")
     private UUID domainId;
     @Column(name = "uploaded_by_user_id")
@@ -41,7 +40,7 @@ public class ResourceEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
     private ResourceStorageEntity storage;
     @ManyToOne(fetch = FetchType.LAZY)
