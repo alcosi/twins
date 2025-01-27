@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 
 @Slf4j
@@ -21,7 +22,14 @@ abstract class AbstractLocalStorageFileService extends AbstractStorageFileServic
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
     public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
-
+    @Override
+    public String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params, context);
+        String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
+        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey("domain")?context.get("domain").toString():"defaultDomain");
+        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey("businessAccount")?context.get("businessAccount").toString():"defaultBusinessAccount");
+        return baseLocalPathString+businessDomain+businessAccount+fileId;
+    }
     @Override
     protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         String filePath = getLocalPath(params) + fileKey;
