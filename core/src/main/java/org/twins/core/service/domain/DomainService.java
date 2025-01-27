@@ -324,14 +324,14 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
                         .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
         );
     }
 

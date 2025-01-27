@@ -80,16 +80,16 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     private Specification<TwinStatusEntity> createTwinStatusSearchSpecification(TwinStatusSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
         return Specification.allOf(
-                checkFieldLikeContainsIn(TwinStatusEntity.Fields.key, search.getKeyLikeList(), false, true),
-                checkFieldLikeContainsIn(TwinStatusEntity.Fields.key, search.getKeyNotLikeList(), true, true),
+                checkFieldLikeContainsIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
+                checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, true, false),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, true, false),
                 joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true),
-                checkUuidIn(TwinStatusEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinStatusEntity.Fields.id, search.getIdExcludeList(), true, true),
-                checkUuidIn(TwinStatusEntity.Fields.twinClassId, search.getTwinClassIdList(), false, true),
-                checkUuidIn(TwinStatusEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, true));
+                checkUuidIn(search.getIdList(), false, false, TwinStatusEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinStatusEntity.Fields.id),
+                checkUuidIn(search.getTwinClassIdList(), false, true, TwinStatusEntity.Fields.twinClassId),
+                checkUuidIn(search.getTwinClassIdExcludeList(), true, true, TwinStatusEntity.Fields.twinClassId));
 
     }
 

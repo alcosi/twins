@@ -25,6 +25,7 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -41,6 +42,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final DataListService dataListService;
+    final DataListOptionService dataListOptionService;
     final EntitySmartService entitySmartService;
     @Lazy
     final TwinClassService twinClassService;

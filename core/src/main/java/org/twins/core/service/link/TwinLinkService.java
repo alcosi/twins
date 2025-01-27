@@ -294,7 +294,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
                 Specification.where(checkStrength(strengthIds)
-                                .and(checkUuidIn(TwinLinkEntity.Fields.dstTwinId, twinIds, false, false))
+                                .and(checkUuidIn(twinIds, false, false, TwinLinkEntity.Fields.dstTwinId))
                 )
         );
         return filterDenied(twinLinkEntityList);

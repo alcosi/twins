@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.domain.search.FactoryPipelineStepSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.*;
@@ -22,6 +23,7 @@ import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpeci
 @RequiredArgsConstructor
 public class FactoryPipelineStepSearchService {
     private final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryPipelineStepEntity> findFactoryPipelineSteps(FactoryPipelineStepSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryPipelineStepEntity> spec = createFactoryPipelineStepSearchSpecification(search);
@@ -32,14 +34,14 @@ public class FactoryPipelineStepSearchService {
     private Specification<TwinFactoryPipelineStepEntity> createFactoryPipelineStepSearchSpecification(FactoryPipelineStepSearch search) {
         return Specification.where(
                 checkTernary(TwinFactoryPipelineStepEntity.Fields.optional, search.getOptional())
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getFactoryPipelineIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getFactoryPipelineIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionLikeList(), false, false))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
+                        .and(checkUuidIn(search.getIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.id))
+                        .and(checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryPipelineStepEntity.Fields.id))
+                        .and(checkUuidIn(search.getFactoryPipelineIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId))
+                        .and(checkUuidIn(search.getFactoryPipelineIdExcludeList(), true, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId))
+                        .and(checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId))
+                        .and(checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId))
+                        .and(checkFieldLikeIn(search.getDescriptionLikeList(), false, false, TwinFactoryPipelineStepEntity.Fields.description))
+                        .and(checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineStepEntity.Fields.description))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdList(), false))
                         .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdExcludeList(), true))
                         .and(checkFactoryIdIn(search.getFactoryIdList(), false))

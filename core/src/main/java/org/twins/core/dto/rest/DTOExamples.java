@@ -52,6 +52,7 @@ public interface DTOExamples {
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String PERMISSION_GRANT_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
+    String PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID = "a7485d77-16bc-440e-a88e-1a576954a839";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
@@ -88,6 +89,7 @@ public interface DTOExamples {
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String COLOR_HEX = "#ff00ff";
     String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_ERASER_ID = "47991b35-e9fb-454e-a9b1-d715b2e6c71e";
     String FACTORY_CONDITION_SET_ID = "69856a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_KEY = "taskReassign";
     String TRIGGER_ID = "9d956a15-6858-40ba-b0aa-b123c54e250d";
