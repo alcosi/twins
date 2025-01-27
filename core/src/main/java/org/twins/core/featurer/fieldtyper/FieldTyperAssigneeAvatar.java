@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1319,
-        name = "FieldTyperAssigneeAvatar",
+        name = "AssigneeAvatar",
         description = "Return the avatar field to the user")
 public class FieldTyperAssigneeAvatar extends FieldTyper<FieldDescriptorImmutable, FieldValueText, UserEntity, TwinFieldSearchNotImplemented> {
 

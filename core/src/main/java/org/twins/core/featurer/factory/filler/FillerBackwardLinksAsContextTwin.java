@@ -22,10 +22,10 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2308,
-        name = "FillerBackwardLinksAsContextTwin",
+        name = "BackwardLinksAsContextTwin",
         description = "")
 public class FillerBackwardLinksAsContextTwin extends FillerLinks {
-    @FeaturerParam(name = "uniqForSrcRelink", description = "If true, then OneToOne and ManyToOne links will be relinked to new twin (if some other twin was already linked)")
+    @FeaturerParam(name = "Uniq for src relink", description = "If true, then OneToOne and ManyToOne links will be relinked to new twin (if some other twin was already linked)", order = 1)
     public static final FeaturerParamBoolean uniqForSrcRelink = new FeaturerParamBoolean("uniqForSrcRelink");
 
     @Override

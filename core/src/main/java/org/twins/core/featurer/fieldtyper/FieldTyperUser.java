@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 @Component
 @Lazy
 @Featurer(id = FeaturerTwins.ID_1311,
-        name = "FieldTyperUser",
+        name = "User",
         description = "")
 public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUser, TwinFieldUserEntity, TwinFieldSearchNotImplemented> implements LongList {
     @Autowired
@@ -54,13 +54,13 @@ public class FieldTyperUser extends FieldTyper<FieldDescriptorUser, FieldValueUs
     @Autowired
     TwinFieldUserRepository twinFieldUserRepository;
 
-    @FeaturerParam(name = "userFilterUUID", description = "")
+    @FeaturerParam(name = "User filter UUID", description = "", order = 1)
     public static final FeaturerParamUUID userFilterUUID = new FeaturerParamUUID("userFilterUUID"); //todo change type
 
-    @FeaturerParam(name = "multiple", description = "If true, then multiple select available")
+    @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 2)
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
 
-    @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 3)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override

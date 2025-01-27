@@ -30,21 +30,21 @@ import static org.cambium.common.util.MathUtils.EXPONENTIAL_FORM_REGEXP;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1317,
-        name = "FieldTyperNumeric",
+        name = "Numeric",
         description = "Numeric field")
 public class FieldTyperNumeric extends FieldTyperSimple<FieldDescriptorNumeric, FieldValueText, TwinFieldSearchNumeric> {
 
-    @FeaturerParam(name = "min", description = "Min possible value")
+    @FeaturerParam(name = "Min", description = "Min possible value", order = 1)
     public static final FeaturerParamDouble min = new FeaturerParamDouble("min");
-    @FeaturerParam(name = "max", description = "Max possible value")
+    @FeaturerParam(name = "Max", description = "Max possible value", order = 2)
     public static final FeaturerParamDouble max = new FeaturerParamDouble("max");
-    @FeaturerParam(name = "step", description = "Step of value change")
+    @FeaturerParam(name = "Step", description = "Step of value change", order = 3)
     public static final FeaturerParamDouble step = new FeaturerParamDouble("step");
-    @FeaturerParam(name = "thousandSeparator", description = "Thousand separator. Must not be equal to decimal separator.")
+    @FeaturerParam(name = "Thousand separator", description = "Thousand separator. Must not be equal to decimal separator.", order = 4)
     public static final FeaturerParamString thousandSeparator = new FeaturerParamString("thousandSeparator");
-    @FeaturerParam(name = "decimalSeparator", description = "Decimal separator. Must not be equal to thousand separator.")
+    @FeaturerParam(name = "Decimal separator", description = "Decimal separator. Must not be equal to thousand separator.", order = 5)
     public static final FeaturerParamString decimalSeparator = new FeaturerParamString("decimalSeparator");
-    @FeaturerParam(name = "decimalPlaces", description = "Number of decimal places.")
+    @FeaturerParam(name = "Decimal places", description = "Number of decimal places.", order = 6)
     public static final FeaturerParamInt decimalPlaces = new FeaturerParamInt("decimalPlaces");
 
     @Override

@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2337,
-        name = "FillerFieldFromItemOutputHeadTwinLinkedTwinField",
+        name = "FieldFromItemOutputHeadTwinLinkedTwinField",
         description = "")
 @Slf4j
 public class FillerFieldFromItemOutputHeadTwinLinkedTwinField extends FillerFieldFromItemOutputLinked {

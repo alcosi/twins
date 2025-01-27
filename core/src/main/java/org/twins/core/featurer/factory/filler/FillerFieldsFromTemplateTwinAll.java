@@ -22,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2309,
-        name = "FillerFieldsFromTemplateTwinAll",
+        name = "FieldsFromTemplateTwinAll",
         description = "")
 @Slf4j
 public class FillerFieldsFromTemplateTwinAll extends Filler {
