@@ -1,5 +1,7 @@
 package org.twins.core.featurer.resource;
 
+import io.github.breninsul.io.service.stream.inputStream.CacheReadenInputStream;
+import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.tika.Tika;
@@ -11,8 +13,6 @@ import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamWordList;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.resource.inputstream.CachedReadInputStream;
-import org.twins.core.featurer.resource.inputstream.LimitedSizeInputStream;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -160,7 +160,7 @@ public abstract class StorageResourceService extends FeaturerTwins {
             Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
             if (!supportedMimeTypes.isEmpty()) {
                 //Not to read IS twice, we have to cache already readen bytes by mime type resolving
-                CachedReadInputStream cachedReadInputStream = new CachedReadInputStream(resourceStream, false);
+                CacheReadenInputStream cachedReadInputStream = new CacheReadenInputStream(resourceStream, false,Short.MAX_VALUE);
                 String[] mimeTypeArray = tika.detect(cachedReadInputStream).toLowerCase().split("/");
                 String mimeType = mimeTypeArray[0];
                 String mimeSubType = mimeTypeArray.length > 1 ? mimeTypeArray[1] : "*";
@@ -179,11 +179,11 @@ public abstract class StorageResourceService extends FeaturerTwins {
             }
             //Wrap to count bytes and limit if needed
             Integer fileSizeLimit = getFileSizeLimit(params);
-            LimitedSizeInputStream sizeLimitedStream = new LimitedSizeInputStream(resourceStream, fileSizeLimit);
+            CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(resourceStream, fileSizeLimit,0);
             saveResource(resourceKey, sizeLimitedStream, params);
-            return sizeLimitedStream.getBytesRead();
-        } catch (LimitedSizeInputStream.SizeExceededException ex) {
-            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource size limit " + ex.limit + " exceeded (" + ex.bytesRead + ")");
+            return sizeLimitedStream.bytesRead();
+        } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
+            throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Resource size limit " + ex.getLimit() + " exceeded (" + ex.getBytesRead() + ")");
         } catch (Throwable t) {
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, t.getMessage());
         }
