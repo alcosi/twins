@@ -22,5 +22,7 @@ public class FactoryPipelineStepSearch {
     private Set<String> descriptionNotLikeList;
     private Set<Integer> fillerFeaturerIdList;
     private Set<Integer> fillerFeaturerIdExcludeList;
+    private Ternary conditionInvert;
+    private Ternary active;
     private Ternary optional;
 }
