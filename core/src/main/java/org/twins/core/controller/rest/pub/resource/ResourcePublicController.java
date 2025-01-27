@@ -33,6 +33,7 @@ import static org.twins.core.config.filter.LoggingFilter.LOG_RS_BODY;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class ResourcePublicController extends ApiController {
+    public static final Duration HTTP_CACHE_LIFETIME = Duration.ofDays(7);
     private final AuthService authService;
     private final ResourceService resourceService;
 
@@ -56,7 +57,7 @@ public class ResourcePublicController extends ApiController {
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDisposition(ContentDisposition.attachment().filename(file.originalFileName()).build());
             headers.setContentLength(file.fileSize());
-            headers.setCacheControl(CacheControl.maxAge(Duration.ofDays(7)).cachePublic().immutable());
+            headers.setCacheControl(CacheControl.maxAge(HTTP_CACHE_LIFETIME).cachePublic().immutable());
             var resource = new InputStreamResource(file.content());
             return new ResponseEntity<>(resource,headers, HttpStatus.OK);
         } catch (ServiceException se) {
