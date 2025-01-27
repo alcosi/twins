@@ -57,44 +57,35 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             From fromTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
             Join twinClass = fromTwin.join(TwinEntity.Fields.twinClass);
             Predicate domain = cb.equal(twinClass.get(TwinClassEntity.Fields.domainId), finalDomainId);
-            if (!CollectionUtils.isEmpty(twinClassUuids)) {
-                List<Predicate> predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
-                Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
-                Predicate joinPredicateUserLevel = cb.or(
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                );
-                Predicate joinPredicateBusinessLevel = cb.or(
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
-                        cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
-                );
+            List<Predicate> predicates = List.of(cb.conjunction());
+            if (!CollectionUtils.isEmpty(twinClassUuids))
+                predicates = twinClassUuids.stream().map(twinClassId -> cb.equal(fromTwin.get(TwinEntity.Fields.twinClassId), twinClassId)).toList();
 
-                Predicate rootPredicateUser = cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId);
-                Predicate rootPredicateBusiness = cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
+            Predicate joinPredicateSystemLevel = cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), SYSTEM);
+            Predicate joinPredicateUserLevel = cb.or(
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), USER),
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_USER),
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+            );
+            Predicate joinPredicateBusinessLevel = cb.or(
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), BUSINESS_ACCOUNT),
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT),
+                    cb.equal(twinClass.get(TwinClassEntity.Fields.ownerType), DOMAIN_BUSINESS_ACCOUNT_USER)
+            );
 
-                return cb.and(domain,
-                        getPredicate(cb, predicates, true),
-                        cb.or(
-                                cb.and(joinPredicateUserLevel, rootPredicateUser),
-                                cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
-                                //todo system level:  add Subquery to detect valid user and business account twins
-                        )
-                );
-            } else { // no class filter, so we have to add force filtering by owner
-                Predicate userOwnerPredicate = finalUserId == null ? cb.and(cb.isNull(fromTwin.get(TwinEntity.Fields.ownerUserId))) :
-                        cb.and(cb.or(
-                                cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId),
-                                cb.isNull(fromTwin.get(TwinEntity.Fields.ownerUserId)
-                                )));
-                Predicate buisnessAccountPredicate = finalBusinessAccountId == null ? cb.and(userOwnerPredicate, cb.isNull(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId))) :
-                        cb.and(userOwnerPredicate, cb.or(
-                                cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId),
-                                cb.isNull(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId)
-                                )));
-                return cb.and(domain, buisnessAccountPredicate);
-            }
-        };
+            Predicate rootPredicateUser = cb.equal(fromTwin.get(TwinEntity.Fields.ownerUserId), finalUserId);
+            Predicate rootPredicateBusiness = cb.equal(fromTwin.get(TwinEntity.Fields.ownerBusinessAccountId), finalBusinessAccountId);
+
+            return cb.and(domain,
+                    getPredicate(cb, predicates, true),
+                    cb.or(
+                            cb.and(joinPredicateUserLevel, rootPredicateUser),
+                            cb.and(joinPredicateBusinessLevel, rootPredicateBusiness)
+                            //todo system level:  add Subquery to detect valid user and business account twins
+                    )
+            );
+        }
+                ;
     }
 
     /**
@@ -113,7 +104,9 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * based on the provided criteria
      * @throws ServiceException if there is an error during specification creation or permission validation
      */
-    public static <T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups, String... twinEntityFieldPath) throws ServiceException {
+    public static <
+            T> Specification<T> checkPermissions(UUID domainId, UUID businessAccountId, UUID userId, Set<UUID> userGroups, String...
+            twinEntityFieldPath) throws ServiceException {
         return (root, query, cb) -> {
             From joinTwin = getReducedRoot(root, JoinType.INNER, twinEntityFieldPath);
 
@@ -153,7 +146,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the field is between the
      * specified range, or an unconstrained {@code Specification} if {@code range} is null
      */
-    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRangeDTOv1 range, String... filedPath) {
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRangeDTOv1 range, String...
+            filedPath) {
         if (range == null) return (root, query, cb) -> cb.conjunction();
         else return checkFieldLocalDateTimeBetween(range.from, range.to, filedPath);
     }
@@ -169,7 +163,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the field is between the specified range,
      * or an unconstrained {@code Specification} if both {@code from} and {@code to} are null
      */
-    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final LocalDateTime from, final LocalDateTime to, String... filedPath) {
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final LocalDateTime from,
+                                                                      final LocalDateTime to, String... filedPath) {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
             if (from == null && to == null) return predicate;
@@ -185,7 +180,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not, boolean includeNullValues, final String... uuidFieldPath) {
+    public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
+                                                   boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
             Path<UUID> fildPath = getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
@@ -199,15 +195,16 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * matches a given pattern using a "like" comparison. The method dynamically generates joins as needed for the
      * specified field path and applies the case-sensitive "like" operator on the target field.
      *
-     * @param <T>       the type of the entity for which the specification is created
+     * @param <T>        the type of the entity for which the specification is created
      * @param fieldValue the string value to be matched against the target field; if null, no comparison is applied
      * @param filedPath  the hierarchical path representing the fields to navigate and join, ending with the target field
      * @return a JPA {@code Specification} for filtering entities where the target field matches the given string value;
-     *         if the parameters are invalid, returns a specification that imposes no filter conditions
+     * if the parameters are invalid, returns a specification that imposes no filter conditions
      */
     public static <T> Specification<T> checkFieldStringLike(String fieldValue, String... filedPath) {
-        return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.like(property, filedValue),JoinType.INNER, filedPath);
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, fieldValue, (property, criteriaBuilder, filedValue) -> criteriaBuilder.like(property, filedValue), JoinType.INNER, filedPath);
     }
+
     /**
      * Creates a JPA specification to filter entities by verifying if a specified UUID matches the field
      * specified by the provided entity field path. The method dynamically generates joins if required
@@ -227,11 +224,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     //    Use checkFieldLikeIn
     @Deprecated
-    public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search, final boolean not, final boolean or, final String... fieldPath) {
+    public static <T> Specification<T> checkFieldLikeContainsIn(final Collection<String> search,
+                                                                final boolean not, final boolean or, final String... fieldPath) {
         return checkFieldLikeIn(CollectionUtils.isEmpty(search) ? search : search.stream().map(it -> "%" + it + "%").collect(Collectors.toSet()), not, or, fieldPath);
     }
 
-    public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not, final boolean or, final String... fieldPath) {
+    public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,
+                                                        final boolean or, final String... fieldPath) {
         return checkFieldLikeIn(search, not, or, false, fieldPath);
     }
 
@@ -248,7 +247,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the field's value satisfies the "LIKE" condition for any
      * or all search terms, based on the logical combination specified by the parameters
      */
-    public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not, final boolean or, boolean includeNullValues, final String... fieldPath) {
+    public static <T> Specification<T> checkFieldLikeIn(final Collection<String> search, final boolean not,
+                                                        final boolean or, boolean includeNullValues, final String... fieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
