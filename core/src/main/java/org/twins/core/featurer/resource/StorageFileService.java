@@ -16,6 +16,10 @@ import java.util.UUID;
         name = "StorageResourceService",
         description = "Services for resource(file) uploading")
 public interface StorageFileService {
+    public static final String CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT = "businessAccountId";
+    public static final String CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN = "domainId";
+    public static final String CONTEXT_ATTRIBUTE_FILE_URI = "fileUri";
+
     /**
      * Constructs and returns the URI for the file controller based on the provided parameters and context.
      *

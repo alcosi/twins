@@ -33,7 +33,6 @@ public class ExternalUriStorageFileService extends AbstractCheckedStorageFileSer
 
     @FeaturerParam(name = "connectionTimeout", description = "Connection timeout when getting file")
     public static final FeaturerParamInt connectionTimeout = new FeaturerParamInt("connectionTimeout");
-    public static final String CONTEXT_ATTRIBUTE_FILE_URI = "fileUri";
 
     @Override
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {

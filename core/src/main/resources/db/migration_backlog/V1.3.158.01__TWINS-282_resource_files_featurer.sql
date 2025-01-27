@@ -74,8 +74,8 @@ VALUES (2903, false, 4, 'connectionTimeout', 'connectionTimeout', 'Connection ti
 on conflict (featurer_id,key) do nothing;
 --S3
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2904, 29, 'org.twins.core.featurer.resource.S3StorageFileService', 'S3StorageFileService',
-        'Service to save files to S3')
+values (2904, 29, 'org.twins.core.featurer.resource.S3StorageFileControllerService', 'S3StorageFileControllerService',
+        'Service to save files to S3 and serve in controller')
 on conflict (id) do nothing;
 
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
@@ -90,6 +90,7 @@ on conflict (featurer_id,key) do nothing;
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
 VALUES (2904, false, 3, 'supportedMimeTypes', 'supportedMimeTypes', 'List of supported mime types', 'WORD_LIST')
 on conflict (featurer_id,key) do nothing;
+
 
 INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
 VALUES (2904, false, 4, 's3Uri', 's3Uri', 'Uri to work with s3', 'STRING')
@@ -111,3 +112,10 @@ INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, 
 VALUES (2904, false, 8, 's3SecretKey', 's3SecretKey', 'Secret key for s3', 'STRING')
 on conflict (featurer_id,key) do nothing;
 
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2904, false, 9, 'basePath', 'basePath', 'Base path of directory(key) where to save files', 'STRING')
+on conflict (featurer_id,key) do nothing;
+
+INSERT INTO public.featurer_param (featurer_id, injectable, "order", key, name, description, featurer_param_type_id)
+VALUES (2904, false, 10, 'relativeFileUri', 'relativeFileUri', 'Relative uri of controller to provide files', 'STRING')
+on conflict (featurer_id,key) do nothing;

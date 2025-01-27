@@ -18,13 +18,11 @@ import java.util.UUID;
 
 @Slf4j
 abstract class AbstractLocalStorageFileService extends AbstractCheckedStorageFileService {
-    public static final String CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT = "businessAccountId";
-    public static final String CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN = "domainId";
+
 
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
-    @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
-    public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
+
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, context);

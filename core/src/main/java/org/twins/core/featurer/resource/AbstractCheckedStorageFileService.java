@@ -35,7 +35,8 @@ public abstract class AbstractCheckedStorageFileService extends FeaturerTwins im
     public static final FeaturerParamInt fileSizeLimit = new FeaturerParamInt("fileSizeLimit");
     @FeaturerParam(name = "supportedMimeTypes", description = "List of supported mime types")
     public static final FeaturerParamWordList supportedMimeTypes = new FeaturerParamWordList("supportedMimeTypes");
-
+    @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
+    public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
 
     /**
      * Retrieves the file size limit for a specific operation based on the provided parameters and context.
