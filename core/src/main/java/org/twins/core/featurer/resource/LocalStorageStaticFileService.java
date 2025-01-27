@@ -7,6 +7,7 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 @Featurer(id = FeaturerTwins.ID_2902,
         name = "LocalStorageStaticFileService",
@@ -21,5 +22,14 @@ public class LocalStorageStaticFileService extends AbstractLocalStorageFileServi
         String relativePath = addSlashAtTheEndIfNeeded(relativeFileUri.extract(properties));
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
         return urlDomain +businessDomain+businessAccount+ relativePath;
+    }
+
+    @Override
+    public String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params, context);
+        String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
+        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey("domain")?context.get("domain").toString():"defaultDomain");
+        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey("businessAccount")?context.get("businessAccount").toString():"defaultBusinessAccount");
+        return baseLocalPathString+businessDomain+businessAccount+fileId;
     }
 }

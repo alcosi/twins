@@ -12,6 +12,7 @@ import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamWordList;
+import org.jetbrains.annotations.NotNull;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.io.ByteArrayInputStream;
@@ -106,48 +107,54 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
     }
 
     /**
-     * Constructs a URI for the given resource based on a provided resource ID,
+     * Constructs a URI for the given file based on a provided file ID,
      * parameters, and context.
      *
-     * @param resourceId the unique identifier of the resource
+     * @param fileId the unique identifier of the file
      * @param params a map of key-value pairs containing additional parameters
      *               required to build the URI
      * @param context a map providing contextual information for constructing the URI
      * @return the constructed URI pointing to the specified resource
      * @throws ServiceException if any error occurs during the URI construction process
      */
-    public URI getFileUri(UUID resourceId, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
-        return URI.create(getFileControllerUri(params,context) + resourceId);
+    public URI getFileUri(UUID fileId, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+        return URI.create(getFileControllerUri(params,context) + fileId);
     }
 
     /**
-     * Saves a resource consisting of a resource key, an input stream, and additional parameters.
+     * Adds a file to the storage based on the provided file identifier, file content,
+     * parameters, and context. Validates if the file size does not exceed the limit
+     * specified within the parameters. If the file size exceeds the limit, a
+     * {@link ServiceException} is thrown.
      *
-     * @param fileKey    The unique key used to identify the file. Cannot be null or empty.
-     * @param fileStream The input stream containing the data of the file to be saved. Cannot be null.
-     * @param params         A map of additional parameters required for saving the resource (e.g., configuration details). Optional parameter, can be null.
-     * @throws ServiceException If an error occurs during the process of saving the resource.
+     * @param fileId Unique identifier for the file being added.
+     * @param file Byte array representing the content of the file.
+     * @param params A map of parameters that may include file-related metadata or configuration.
+     * @param context A map containing context-specific information for the file operation.
+     * @return An {@link AddedFileKey} object containing information about the stored file, such as its key and size.
+     * @throws ServiceException If the file size exceeds the allowed limit or if any storage operation fails.
      */
-    public Long addFile(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
-        return saveResourceInternal(fileKey, fileStream, params);
-    }
-
-    /**
-     * Saves a file into the storage system with specified parameters.
-     * Validates the file size against a defined limit and throws an exception if exceeded.
-     *
-     * @param fileKey A unique key identifying the file.
-     * @param file    The byte array representing the file content to be saved.
-     * @param params      A map of string key-value pairs containing additional parameters for file saving operations.
-     * @throws ServiceException If the file size exceeds the limit or if a service-related error occurs during the save operation.
-     */
-    public Long addFile(String fileKey, byte[] file, HashMap<String, String> params) throws ServiceException {
+    public AddedFileKey addFile(UUID fileId, byte[] file, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
         Integer fileSizeLimit = getFileSizeLimit(params);
         if (file.length > fileSizeLimit) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + file.length + ")");
         }
-        return addFile(fileKey, new ByteArrayInputStream(file), params);
+        return addFile(fileId, new ByteArrayInputStream(file), params,context);
     }
+    /**
+     * Adds a file to the storage system.
+     *
+     * @param fileId The unique identifier of the file to be uploaded.
+     * @param fileStream The input stream containing the file data.
+     * @param params A map of string parameters providing additional information or configuration for the file upload.
+     * @param context A map of contextual objects to provide extended information used during the file processing.
+     * @return An instance of {@code AddedFileKey} that contains information about the uploaded file, such as its key and size.
+     * @throws ServiceException If an error occurs while adding the file to the storage system.
+     */
+    public AddedFileKey addFile(UUID fileId, InputStream fileStream, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+        return addFileInternal(fileId, fileStream, params,context);
+    }
+
     /**
      * Attempts to delete a file identified by the provided key and parameters.
      * Logs any errors encountered during the deletion process.
@@ -170,20 +177,21 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @throws ServiceException if there is an error during the deletion process
      */
     public abstract void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException;
+
     /**
-     * Saves a resource internally after validating its MIME type and size constraints.
+     * Adds a file to the internal storage with specific parameters and context.
+     * The method validates the mime type of the file, ensures it conforms to size limits, and stores it properly.
+     * If an error occurs, it attempts to delete the file and throws an appropriate exception.
      *
-     * This method ensures the resource's MIME type is supported based on the provided parameters.
-     * It also limits the file size and throws exceptions if constraints are violated or in case of unexpected failures.
-     *
-     * @param fileKey The key associated with the resource to be saved.
-     * @param fileStream The input stream of the file content being saved.
-     * @param params Additional parameters for saving the resource, such as file size limits or supported MIME types.
-     * @return The number of bytes read from the resource stream during the save operation.
-     * @throws ServiceException If the resource's MIME type is unsupported, its size exceeds the allowed limit,
-     *                           or an unexpected error occurs during the save operation.
+     * @param fileId       The unique identifier of the file to be added.
+     * @param fileStream   The {@link InputStream} of the file to be processed for storage.
+     * @param params       The parameters for file handling, including additional configurations.
+     * @param context      The context map providing necessary contextual data for file handling.
+     * @return An {@link AddedFileKey} containing the file key and the size of the successfully added file.
+     * @throws ServiceException If any error occurs during file handling, such as exceeding size limits or unexpected issues.
      */
-    protected Long saveResourceInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
+    protected AddedFileKey addFileInternal(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        String fileKey=generateFileKey(fileId,params,context);
         try {
             Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
             if (!supportedMimeTypes.isEmpty()) {
@@ -196,8 +204,8 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
             //Wrap to count bytes and limit if needed
             Integer fileSizeLimit = getFileSizeLimit(params);
             CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit,0);
-            addFile(fileKey, sizeLimitedStream, params);
-            return sizeLimitedStream.bytesRead();
+            addFile(fileKey, sizeLimitedStream, params,context);
+            return new AddedFileKey(fileKey,sizeLimitedStream.bytesRead());
         } catch (CountedLimitedSizeInputStream.SizeExceededException ex) {
             tryDeleteFile(fileKey,params);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + ex.getLimit() + " exceeded (" + ex.getBytesRead() + ")");
@@ -207,6 +215,17 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
         }
     }
 
+    /**
+     * Generates a unique file key based on the provided file identifier, parameters, and contextual data.
+     * This method is abstract and must be implemented by subclasses to define specific key generation logic.
+     *
+     * @param fileId   the unique identifier of the file for which the key is being generated
+     * @param params   a map containing parameters required for generating the file key
+     * @param context  a map containing contextual information used in the key generation process
+     * @return a string representing the generated file key
+     * @throws ServiceException if an error occurs during the key generation process
+     */
+    public abstract String generateFileKey(UUID fileId,HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException;
     /**
      * Validates the MIME type of a file against a set of supported MIME types.
      * If the MIME type of the file detected from the input stream is not supported,
@@ -233,6 +252,12 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
         }).findFirst().orElseThrow(() -> new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unsupported mime type " + mimeType + ". Supported types:" + String.join(";", supportedMimeTypes)));
     }
 
-
+    @NotNull
+    protected String addSlashAtTheEndIfNeeded(String path) {
+        if (!path.endsWith("/")){
+            path = path +"/";
+        }
+        return path;
+    }
 
 }

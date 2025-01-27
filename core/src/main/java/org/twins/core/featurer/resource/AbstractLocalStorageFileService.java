@@ -5,7 +5,6 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -52,11 +51,5 @@ abstract class AbstractLocalStorageFileService extends AbstractStorageFileServic
         return addSlashAtTheEndIfNeeded(localPath);
     }
 
-    @NotNull
-    protected String addSlashAtTheEndIfNeeded(String path) {
-        if (!path.endsWith("/")){
-            path = path +"/";
-        }
-        return path;
-    }
+
 }
