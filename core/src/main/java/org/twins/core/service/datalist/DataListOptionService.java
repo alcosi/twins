@@ -90,7 +90,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             return;
         String attributeValue;
         for (var attributeAccessor : dataList.getAttributes().entrySet()) {
-            attributeValue = getAttributeValueSafe(attributes, dataList.getAttribute1key());
+            attributeValue = getAttributeValueSafe(attributes, attributeAccessor.getKey());
             attributeAccessor.getValue().setter().accept(dataListOption, attributeValue);
         }
     }
@@ -129,7 +129,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
             return;
         String attributeValue;
         for (var attributeAccessor : dataList.getAttributes().entrySet()) {
-            attributeValue = getAttributeValueSafe(attributes, dataList.getAttribute1key());
+            attributeValue = getAttributeValueSafe(attributes, attributeAccessor.getKey());
             updateDataListOptionAttribute(attributeValue, attributeAccessor.getKey(), option, attributeAccessor.getValue().getter(), attributeAccessor.getValue().setter(), changesHelper);
         }
     }
@@ -138,13 +138,13 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (dataListEntity.getAttributes() != null)
             return;
         Map<String, DataListOptionEntity.AttributeAccessor> attributes = new HashMap<>();
-        if (StringUtils.isEmpty(dataListEntity.getAttribute1key()))
+        if (StringUtils.isNotEmpty(dataListEntity.getAttribute1key()))
             attributes.put(dataListEntity.getAttribute1key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute1value, DataListOptionEntity::setAttribute1value));
-        if (StringUtils.isEmpty(dataListEntity.getAttribute2key()))
+        if (StringUtils.isNotEmpty(dataListEntity.getAttribute2key()))
             attributes.put(dataListEntity.getAttribute2key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute2value, DataListOptionEntity::setAttribute2value));
-        if (StringUtils.isEmpty(dataListEntity.getAttribute3key()))
+        if (StringUtils.isNotEmpty(dataListEntity.getAttribute3key()))
             attributes.put(dataListEntity.getAttribute3key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute3value, DataListOptionEntity::setAttribute3value));
-        if (StringUtils.isEmpty(dataListEntity.getAttribute4key()))
+        if (StringUtils.isNotEmpty(dataListEntity.getAttribute4key()))
             attributes.put(dataListEntity.getAttribute4key(), new DataListOptionEntity.AttributeAccessor(DataListOptionEntity::getAttribute4value, DataListOptionEntity::setAttribute4value));
         dataListEntity.setAttributes(attributes);
     }

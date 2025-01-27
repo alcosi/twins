@@ -109,7 +109,6 @@ public class DataListOptionEntity implements EasyLoggable {
 
     }
 
-    @Getter
     public record AttributeAccessor(Function<DataListOptionEntity, String> getter,
                                     BiConsumer<DataListOptionEntity, String> setter) {
     }
