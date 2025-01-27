@@ -5,7 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.twins.core.featurer.resource.AbstractStorageFileService;
+import org.twins.core.featurer.resource.AbstractCheckedStorageFileService;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,7 +17,10 @@ import java.util.UUID;
 
 
 @Slf4j
-abstract class AbstractLocalStorageFileService extends AbstractStorageFileService {
+abstract class AbstractLocalStorageFileService extends AbstractCheckedStorageFileService {
+    public static final String CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT = "businessAccountId";
+    public static final String CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN = "domainId";
+
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
@@ -26,8 +29,8 @@ abstract class AbstractLocalStorageFileService extends AbstractStorageFileServic
     public String generateFileKey(UUID fileId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, context);
         String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
-        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey("domain")?context.get("domain").toString():"defaultDomain");
-        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey("businessAccount")?context.get("businessAccount").toString():"defaultBusinessAccount");
+        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey(CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN)?context.get(CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN).toString():"defaultDomain");
+        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey(CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT)?context.get(CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT).toString():"defaultBusinessAccount");
         return baseLocalPathString+businessDomain+businessAccount+fileId;
     }
     @Override

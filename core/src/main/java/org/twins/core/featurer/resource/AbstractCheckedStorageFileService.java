@@ -8,7 +8,6 @@ import org.apache.tika.Tika;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
-import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.cambium.featurer.params.FeaturerParamWordList;
@@ -23,14 +22,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Provides services for handling file uploads and resource management.
- * Includes functionalities for saving, retrieving, and deleting files, as well as validating file size and MIME types.
- */
-@FeaturerType(id = FeaturerTwins.TYPE_29,
-        name = "StorageResourceService",
-        description = "Services for resource(file) uploading")
+ * Abstract class providing a foundational implementation for file storage services
+ * with additional checks on file properties such as size and MIME type.
+ * This class implements {@link StorageFileService} and*/
 @Slf4j
-public abstract class AbstractStorageFileService extends FeaturerTwins {
+public abstract class AbstractCheckedStorageFileService extends FeaturerTwins implements StorageFileService {
     protected final Tika tika = new Tika();
 
     @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")
@@ -42,56 +38,37 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
 
 
     /**
-     * Constructs and returns the URI for the file controller based on the provided parameters and context.
+     * Retrieves the file size limit for a specific operation based on the provided parameters and context.
+     * This method fetches properties and extracts the file size limit using the feature service logic.
      *
-     * @param params  a map of string key-value pairs containing file-specific parameters.
-     * @param context a map of string-object pairs containing additional contextual information.
-     * @return the URI of the file controller as a string.
-     * @throws ServiceException if an error occurs while constructing the URI.
+     * @param params  a map of string key-value pairs containing additional parameters required for fetching the file size limit.
+     * @param context a map of string-object pairs containing contextual information potentially influencing the file size limit.
+     * @return the file size limit as an Integer if defined; otherwise, a null value.
+     * @throws ServiceException if an error occurs during the extraction of properties or size limit computation.
      */
-    protected abstract String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException;
-
-    /**
-     * Retrieves the file size limit based on the provided parameters.
-     *
-     * @param params a map of parameters used to extract the configuration for file size limit
-     * @return the file size limit as an Integer
-     * @throws ServiceException if an error occurs while extracting the properties or calculating the file size limit
-     */
-    protected Integer getFileSizeLimit(HashMap<String, String> params) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
+    protected Integer getFileSizeLimit(HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params, context);
         return fileSizeLimit.extract(properties);
     }
 
     /**
-     * Retrieves the set of supported MIME types for the service based on the provided parameters.
+     * Retrieves a set of supported MIME types based on the provided parameters and context.
+     * This method processes the provided data to determine and return all valid MIME types
+     * in a normalized form.
      *
-     * @param params a HashMap containing the parameters required to extract the properties
-     *               and fetch the supported MIME types.
-     * @return a set of supported MIME types in lowercase. Returns an empty set if no MIME types are found.
-     * @throws ServiceException if an error occurs while extracting properties or determining supported MIME types.
+     * @param params  a map containing key-value pairs of parameters required for extracting MIME types.
+     * @param context a map containing additional contextual information or metadata associated with the operation.
+     * @return a set of supported MIME types in lowercase, which is empty if no valid MIME types are found.
+     * @throws ServiceException if an error occurs while extracting properties or processing MIME types.
      */
-    protected Set<String> getSupportedMimeTypes(HashMap<String, String> params) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
+    protected Set<String> getSupportedMimeTypes(HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        Properties properties = featurerService.extractProperties(this, params, context);
         List<String> list = supportedMimeTypes.extract(properties);
         if (list == null || list.isEmpty()) {
             return Collections.emptySet();
         }
         return list.stream().map(String::toLowerCase).collect(Collectors.toSet());
     }
-
-    /**
-     * Provides a mechanism to retrieve a file as an InputStream using the given file key and parameters.
-     * This method allows fetching file content from respective storage or source
-     * based on the implementation of the service.
-     *
-     * @param fileKey The unique key or identifier corresponding to the file.
-     * @param params A map containing additional parameters required to locate or fetch the file.
-     * @param context A map containing contextual information for retrieving the file.
-     * @return An InputStream representing the file's content.
-     * @throws ServiceException If there is an error while retrieving the file or if the file cannot be found.
-     */
-    public abstract InputStream getFileAsStream(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
 
     /**
      * Retrieves the contents of a file as a byte array.
@@ -105,6 +82,7 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @throws ServiceException If an error occurs while retrieving or processing the file.
      */
     @SneakyThrows
+    @Override
     public byte[] getFileBytes(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         try (InputStream stream = getFileAsStream(fileKey, params,context)) {
             return stream.readAllBytes();
@@ -122,7 +100,8 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @return the URI of the file
      * @throws ServiceException if any error occurs during the URI generation
      */
-    public URI getFileUri(UUID fileId,String fileKey, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+    @Override
+    public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         return URI.create(getFileControllerUri(params,context) + fileId);
     }
 
@@ -139,8 +118,9 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @return An {@link AddedFileKey} object containing information about the stored file, such as its key and size.
      * @throws ServiceException If the file size exceeds the allowed limit or if any storage operation fails.
      */
-    public AddedFileKey addFile(UUID fileId, byte[] file, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
-        Integer fileSizeLimit = getFileSizeLimit(params);
+    @Override
+    public AddedFileKey addFile(UUID fileId, byte[] file, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        Integer fileSizeLimit = getFileSizeLimit(params,context);
         if (file.length > fileSizeLimit) {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + file.length + ")");
         }
@@ -156,8 +136,9 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @return An instance of {@code AddedFileKey} that contains information about the uploaded file, such as its key and size.
      * @throws ServiceException If an error occurs while adding the file to the storage system.
      */
-    public AddedFileKey addFile(UUID fileId, InputStream fileStream, HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
-        return addFileInternal(fileId, fileStream, params,context);
+    @Override
+    public AddedFileKey addFile(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+        return checkAndAddFileInternal(fileId, fileStream, params,context);
     }
 
     /**
@@ -177,17 +158,6 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
     }
 
     /**
-     * Deletes the specified file based on the provided file key, parameters, and context.
-     * This method is intended to handle the deletion of a file in implementations of storage services.
-     *
-     * @param fileKey A unique identifier for the file to be deleted.
-     * @param params A HashMap containing service-specific parameters required for file deletion.
-     * @param context A HashMap containing additional context or metadata required for the operation.
-     * @throws ServiceException If there is an issue during the deletion process.
-     */
-    public abstract void deleteFile(String fileKey, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException;
-
-    /**
      * Adds a file to the internal storage with specific parameters and context.
      * The method validates the mime type of the file, ensures it conforms to size limits, and stores it properly.
      * If an error occurs, it attempts to delete the file and throws an appropriate exception.
@@ -199,19 +169,12 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @return An {@link AddedFileKey} containing the file key and the size of the successfully added file.
      * @throws ServiceException If any error occurs during file handling, such as exceeding size limits or unexpected issues.
      */
-    protected AddedFileKey addFileInternal(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+    protected AddedFileKey checkAndAddFileInternal(UUID fileId, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
         String fileKey=generateFileKey(fileId,params,context);
         try {
-            Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
-            if (!supportedMimeTypes.isEmpty()) {
-                //Not to read IS twice, we have to cache already readen bytes by mime type resolving
-                CacheReadenInputStream cachedReadInputStream = new CacheReadenInputStream(fileStream, false,Short.MAX_VALUE);
-                checkFileMimeType(cachedReadInputStream, supportedMimeTypes);
-                //And then continue to read IS as usual
-                fileStream = cachedReadInputStream.toUnreadPushbackInputStream();
-            }
+            fileStream = checkMimeTypeAndCacheStream(fileStream,params,context);
             //Wrap to count bytes and limit if needed
-            Integer fileSizeLimit = getFileSizeLimit(params);
+            Integer fileSizeLimit = getFileSizeLimit(params,context);
             CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit,0);
             addFileInternal(fileKey, sizeLimitedStream, params,context);
             return new AddedFileKey(fileKey,sizeLimitedStream.bytesRead());
@@ -222,6 +185,18 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
             tryDeleteFile(fileKey,params,context);
             throw new ServiceException(ErrorCodeCommon.UNEXPECTED_SERVER_EXCEPTION, t.getMessage());
         }
+    }
+
+    protected InputStream checkMimeTypeAndCacheStream(InputStream fileStream,  HashMap<String, String> params, HashMap<String, Object> context) throws IOException, ServiceException {
+        Set<String> supportedMimeTypes = getSupportedMimeTypes(params, context);
+        if (!supportedMimeTypes.isEmpty()) {
+            //Not to read IS twice, we have to cache already readen bytes by mime type resolving
+            CacheReadenInputStream cachedReadInputStream = new CacheReadenInputStream(fileStream, false,Short.MAX_VALUE);
+            checkFileMimeType(cachedReadInputStream, supportedMimeTypes);
+            //And then continue to read IS as usual
+            fileStream = cachedReadInputStream.toUnreadPushbackInputStream();
+        }
+        return fileStream;
     }
 
     /**
@@ -236,19 +211,9 @@ public abstract class AbstractStorageFileService extends FeaturerTwins {
      * @throws ServiceException if any error occurs during the file addition process
      */
     protected abstract void addFileInternal( String fileKey, InputStream fileStream, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException ;
+
     /**
-     * Generates a unique file key based on the provided file identifier, parameters, and contextual data.
-     * This method is abstract and must be implemented by subclasses to define specific key generation logic.
-     *
-     * @param fileId   the unique identifier of the file for which the key is being generated
-     * @param params   a map containing parameters required for generating the file key
-     * @param context  a map containing contextual information used in the key generation process
-     * @return a string representing the generated file key
-     * @throws ServiceException if an error occurs during the key generation process
-     */
-    public abstract String generateFileKey(UUID fileId,HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException;
-    /**
-     * Validates the MIME type of a file against a set of supported MIME types.
+     * Validates the MIME type of file against a set of supported MIME types.
      * If the MIME type of the file detected from the input stream is not supported,
      * a ServiceException will be thrown.
      *

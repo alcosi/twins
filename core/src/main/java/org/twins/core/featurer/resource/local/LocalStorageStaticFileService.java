@@ -13,10 +13,12 @@ import java.util.Properties;
         description = "Service to save files in local file system and return them them as nginx static resource after that")
 @Slf4j
 public class LocalStorageStaticFileService extends AbstractLocalStorageFileService {
+
+
     @Override
-    protected String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
-        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey("businessAccount")?context.get("businessAccount").toString():"defaultBusinessAccount");
-        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey("domain")?context.get("domain").toString():"defaultDomain");
+    public String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+        String businessAccount=addSlashAtTheEndIfNeeded(context.containsKey(CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT)?context.get(CONTEXT_ATTRIBUTE_BUSINESS_ACCOUNT).toString():"defaultBusinessAccount");
+        String businessDomain=addSlashAtTheEndIfNeeded(context.containsKey(CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN)?context.get(CONTEXT_ATTRIBUTE_BUSINESS_DOMAIN).toString():"defaultDomain");
         Properties properties = featurerService.extractProperties(this, params, context);
         String relativePath = addSlashAtTheEndIfNeeded(relativeFileUri.extract(properties));
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));

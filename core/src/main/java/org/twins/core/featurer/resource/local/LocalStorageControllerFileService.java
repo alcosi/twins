@@ -14,7 +14,7 @@ import java.util.Properties;
 @Slf4j
 public class LocalStorageControllerFileService extends AbstractLocalStorageFileService {
     @Override
-    protected String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
+    public String getFileControllerUri(HashMap<String, String> params,HashMap<String, Object> context) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, context);
         String relativePath = addSlashAtTheEndIfNeeded(relativeFileUri.extract(properties));
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
