@@ -110,6 +110,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(12202, "business_account user already exists"),
     BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists"),
     TIER_NOT_ALLOWED(12301, "tier is not allowed"),
+    TIER_NOT_CONFIGURED_FOR_DOMAIN(12302, "tier is not configured for domain"),
     LINK_DIRECTION_CLASS_NULL(12401, "Src or dst class of link cannot be null. Dont send nullify marker"),
     LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
     TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
