@@ -22,14 +22,13 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
-import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -170,11 +169,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainUserTemplateTwinId() != null) {
-            TwinEntity duplicateTwin = twinService.duplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
-            duplicateTwin.setHeadTwinId(user.getId());
-            TwinUpdate twinUpdate = new TwinUpdate().setDbTwinEntity(duplicateTwin);
-            twinUpdate.setTwinEntity(duplicateTwin.setHeadTwinId(userId));
-            twinService.updateTwin(twinUpdate);
+            TwinDuplicate duplicateTwin = twinService.createDuplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
+            duplicateTwin.getDuplicate().setHeadTwinId(userId);
+            twinService.saveDuplicateTwin(duplicateTwin);
         }
     }
 
@@ -210,7 +207,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
+            domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);

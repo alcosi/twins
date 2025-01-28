@@ -53,8 +53,8 @@ public class DomainInitiatorB2B extends DomainInitiator {
     protected void postInit(Properties properties, DomainEntity domainEntity) throws ServiceException {
         super.postInit(properties, domainEntity);
         domainEntity
-                .setBusinessAccountInitiatorFeaturerId(1103)
-                .setBusinessAccountInitiatorParams(null) // 1103 does not need params
+                .setBusinessAccountInitiatorFeaturerId(1101)
+                .setBusinessAccountInitiatorParams(null) // 1101 does not need params
                 .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity));
     }
 
