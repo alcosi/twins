@@ -1,7 +1,7 @@
 package org.twins.core.dto.rest;
 
 public interface DTOExamples {
-    String TERNARY = "ONLY";
+    String TERNARY = "ANY";
     String BOOLEAN_TRUE = "true";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
