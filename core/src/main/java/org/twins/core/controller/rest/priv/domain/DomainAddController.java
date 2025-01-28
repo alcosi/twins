@@ -19,6 +19,7 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.ParametersApiUserNoDomainHeaders;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.domain.apiuser.BusinessAccountResolverNotSpecified;
+import org.twins.core.domain.apiuser.DomainResolverNotSpecified;
 import org.twins.core.domain.apiuser.LocaleResolverGivenOrSystemDefault;
 import org.twins.core.domain.apiuser.UserResolverAuthToken;
 import org.twins.core.dto.rest.domain.DomainAddRqDTOv1;
@@ -53,6 +54,7 @@ public class DomainAddController extends ApiController {
         try {
             authService.getApiUser()
                     .setUserResolver(userResolverAuthToken)
+                    .setDomainResolver(new DomainResolverNotSpecified())
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.defaultLocale))
                     .setCheckMembershipMode(false);
