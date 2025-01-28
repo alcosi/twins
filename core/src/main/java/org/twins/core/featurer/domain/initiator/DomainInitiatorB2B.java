@@ -9,6 +9,7 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -55,7 +56,24 @@ public class DomainInitiatorB2B extends DomainInitiator {
         domainEntity
                 .setBusinessAccountInitiatorFeaturerId(1101)
                 .setBusinessAccountInitiatorParams(null) // 1101 does not need params
-                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity));
+                .setBusinessAccountTemplateTwinId(createBusinessAccountTemplateTwin(domainEntity))
+                .setDefaultTierId(createDefaultTier(domainEntity));
+    }
+
+    private UUID createDefaultTier(DomainEntity domainEntity) throws ServiceException {
+        TierEntity tier = new TierEntity();
+        tier
+                .setDomainId(domainEntity.getId())
+                .setName("Free")
+                .setDescription("Default tier for [" + domainEntity.getKey() + "] domain.")
+                .setCustom(false)
+                .setPermissionSchemaId(domainEntity.getPermissionSchemaId())
+                .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
+                .setTwinClassSchemaId(domainEntity.getTwinClassSchemaId())
+                .setAttachmentsStorageQuotaCount(0)
+                .setAttachmentsStorageQuotaSize(0L)
+                .setUserCountQuota(0);
+        return entitySmartService.save(tier, tierRepository,  EntitySmartService.SaveMode.saveAndThrowOnException).getId();
     }
 
     protected UUID createBusinessAccountTemplateTwin(DomainEntity domainEntity) throws ServiceException {

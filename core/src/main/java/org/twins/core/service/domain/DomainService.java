@@ -207,7 +207,10 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-            domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
+        if(domainBusinessAccountEntity.getTierId() == null)
+            throw new ServiceException(ErrorCodeTwins.TIER_NOT_CONFIGURED_FOR_DOMAIN, "Tier not configured for " + domain.logNormal());
+
+        domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
         businessAccountInitiator.init(domain.getBusinessAccountInitiatorParams(), domainBusinessAccountEntity);
@@ -334,15 +337,15 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if(!apiUser.isBusinessAccountSpecified())
+        if (!apiUser.isBusinessAccountSpecified())
             throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
-            DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
-            AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
-            attachmentQuotas
-                    .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
-                    .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
-                    .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
-                    .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
         return attachmentQuotas;
     }
 

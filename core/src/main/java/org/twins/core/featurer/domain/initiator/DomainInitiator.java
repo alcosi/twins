@@ -120,26 +120,9 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setTwinClassSchemaId(createDefaultTwinClassSchema(domainEntity))
                 .setPermissionSchemaId(createDefaultPermissionsSchema(domainEntity))
                 .setDomainUserTemplateTwinId(createDomainUserTemplateTwin(domainEntity));
-
-        domainEntity
-                .setDefaultTierId(createDefaultTier(domainEntity));
     }
 
-    private UUID createDefaultTier(DomainEntity domainEntity) throws ServiceException {
-        TierEntity tier = new TierEntity();
-        tier
-                .setDomainId(domainEntity.getId())
-                .setName("Free")
-                .setDescription("Default tier for [" + domainEntity.getKey() + "] domain.")
-                .setCustom(false)
-                .setPermissionSchemaId(domainEntity.getPermissionSchemaId())
-                .setTwinflowSchemaId(domainEntity.getTwinflowSchemaId())
-                .setTwinClassSchemaId(domainEntity.getTwinClassSchemaId())
-                .setAttachmentsStorageQuotaCount(0)
-                .setAttachmentsStorageQuotaSize(0L)
-                .setUserCountQuota(0);
-        return entitySmartService.save(tier, tierRepository,  EntitySmartService.SaveMode.saveAndThrowOnException).getId();
-    }
+
 
     protected UUID createDomainUserTemplateTwin(DomainEntity domainEntity) throws ServiceException {
         TwinClassEntity twinClassEntity = new TwinClassEntity()
