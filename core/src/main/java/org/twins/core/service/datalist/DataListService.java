@@ -103,16 +103,25 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     @Transactional(rollbackFor = Throwable.class)
     public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
+                .setKey(dataListSave.getKey())
                 .setDomainId(authService.getApiUser().getDomainId())
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
-                .setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId())
-                .setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId())
-                .setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId())
-                .setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        setAttributes(dataListEntity, dataListSave);
         validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return dataListRepository.save(dataListEntity);
+    }
+
+    private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
+        if (dataListSave.getAttribute1() != null)
+            dataList.setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute2() != null)
+            dataList.setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute3() != null)
+            dataList.setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute4() != null)
+            dataList.setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId());
     }
 
     @Transactional(rollbackFor = Throwable.class)
