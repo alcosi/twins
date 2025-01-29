@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
@@ -79,7 +80,12 @@ public abstract class Storager extends FeaturerTwins {
      * @return the URI of the file controller as a string.
      * @throws ServiceException if an error occurs while constructing the URI.
      */
-    abstract public String getFileControllerUri(HashMap<String, String> params) throws ServiceException;
+    public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        String relativePath = relativeFileUri.extract(properties);
+        String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
+        return urlDomain + relativePath;
+    }
 
     /**
      * Provides a mechanism to retrieve a file as an InputStream using the given file key and parameters.
@@ -120,7 +126,13 @@ public abstract class Storager extends FeaturerTwins {
      * @throws ServiceException if any error occurs during the URI generation
      */
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
-        return URI.create(getFileControllerUri(params).replace("{id}", fileId.toString()));
+        String domainId = getDomainId().map(UUID::toString).orElse("defaultDomain");
+        String businessAccountId = getBusinessAccountId().map(UUID::toString).orElse("defaultDomain");
+        return URI.create(getFileControllerUri(params)
+                .replace("{id}", fileId.toString())
+                .replace("{key}", fileKey)
+                .replace("{domainId}", domainId)
+                .replace("{businessAccountId}", businessAccountId));
     }
 
     /**
@@ -228,5 +240,13 @@ public abstract class Storager extends FeaturerTwins {
         HttpResponse<InputStream> response = httpClient
                 .send(request, HttpResponse.BodyHandlers.ofInputStream());
         return response;
+    }
+
+    @NotNull
+    protected String addSlashAtTheEndIfNeeded(String path) {
+        if (!path.endsWith("/")) {
+            path = path + "/";
+        }
+        return path;
     }
 }

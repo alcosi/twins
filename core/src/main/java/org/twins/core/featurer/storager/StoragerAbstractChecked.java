@@ -9,7 +9,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamWordList;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -180,12 +179,5 @@ public abstract class StoragerAbstractChecked extends Storager {
         }).findFirst().orElseThrow(() -> new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unsupported mime type " + mimeType + ". Supported types:" + String.join(";", supportedMimeTypes)));
     }
 
-    @NotNull
-    protected String addSlashAtTheEndIfNeeded(String path) {
-        if (!path.endsWith("/")) {
-            path = path + "/";
-        }
-        return path;
-    }
 
 }

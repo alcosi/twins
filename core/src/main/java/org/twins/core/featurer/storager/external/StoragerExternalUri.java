@@ -16,7 +16,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
-import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -72,29 +72,35 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
 
     protected AddedFileKey checkAndAddUriInternal(UUID fileId, String externalUri, HashMap<String, String> params) throws ServiceException {
         try {
+            Integer fileSizeLimit = getFileSizeLimit(params);
+            Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
+            boolean haveToCheckSize = fileSizeLimit != null && fileSizeLimit > -1;
+            boolean haveToCheckMimeType = supportedMimeTypes != null && !supportedMimeTypes.isEmpty();
+            if (!haveToCheckSize && !haveToCheckMimeType) {
+                return new AddedFileKey(externalUri, -1);
+            }
+            //Have to make request
             HttpResponse<InputStream> response = getInputStreamHttpResponse(URI.create(externalUri), params);
             InputStream fileStream = response.body();
-            Integer fileSizeLimit = getFileSizeLimit(params);
-            Optional<Long> contentLengthHeader = response.headers().firstValue(HttpHeaders.CONTENT_LENGTH).map(Long::valueOf);
-            //Chunked response, have to check content length by downloading file =(
-            if (contentLengthHeader.isEmpty() || contentLengthHeader.get() < 0) {
-                CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(fileStream, fileSizeLimit, 0);
-                if (sizeLimitedStream != null) {
-                    int byteBufferSize = Short.MAX_VALUE;
-                    //Read all bytes by chunks till the end
-                    while (sizeLimitedStream.read() > -1) {
-                        sizeLimitedStream.readNBytes(byteBufferSize);
-                    }
+            Long contentLengthHeader = response.headers().firstValue(HttpHeaders.CONTENT_LENGTH).map(Long::valueOf).orElse(-1L);
+            if (haveToCheckSize && contentLengthHeader > fileSizeLimit) {
+                fileStream.close();
+                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader + ")");
+            }
+            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params)) {
+                if (contentLengthHeader > -1) {
+                    return new AddedFileKey(externalUri, contentLengthHeader);
+                }
+                //Chunked response, have to check content length by downloading file =(
+                CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(is, fileSizeLimit, 0);
+                int byteBufferSize = Short.MAX_VALUE;
+                //Read all bytes by chunks till the end
+                while (sizeLimitedStream.read() > -1) {
+                    sizeLimitedStream.readNBytes(byteBufferSize);
                 }
                 return new AddedFileKey(externalUri, sizeLimitedStream.bytesRead());
             }
-            if (fileSizeLimit != null && fileSizeLimit > -1 && contentLengthHeader.get() > fileSizeLimit) {
-                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "File size limit " + fileSizeLimit + " exceeded (" + contentLengthHeader.get() + ")");
 
-            }
-            try (InputStream is = checkMimeTypeAndCacheStream(fileStream, params)) {
-                return new AddedFileKey(externalUri, contentLengthHeader.get());
-            }
         } catch (ServiceException e) {
             throw e;
         } catch (Throwable t) {
