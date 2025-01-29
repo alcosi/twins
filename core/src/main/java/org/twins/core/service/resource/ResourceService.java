@@ -185,14 +185,16 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         return ResourceEntity::getId;
     }
 
+    /**
+     * Always returns true, becouse it's "public" resources, that will be downloaded by UUID without domain check
+     *
+     * @param entity                  the resource entity to be checked for read permissions
+     * @param readPermissionCheckMode the mode used for checking read permissions
+     * @return true if read access to the entity is denied, false otherwise
+     * @throws ServiceException if an error occurs during the permission check
+     */
     @Override
     public boolean isEntityReadDenied(ResourceEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-//        DomainEntity domain = authService.getApiUser().getDomain();
-//        boolean readDenied = !entity.getDomainId().equals(domain.getId());
-//        if (readDenied) {
-//            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-//        }
-//        return readDenied;
         return false;
     }
 
