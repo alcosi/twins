@@ -8,15 +8,18 @@
 package org.twins.core.config;
 
 
-import com.google.common.cache.CacheBuilder;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.Cache;
+
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +38,7 @@ import org.twins.core.config.filter.LoggingFilter;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
+
 
 @Slf4j
 @Configuration
@@ -77,20 +81,54 @@ public class ApplicationConfig {
         return new LoggingFilter();
     }
 
+    /**
+     * Configures a MeterRegistry with common tags applied to all metrics.
+     * This method customizes the MeterRegistry by adding a common tag
+     * "application" with the value "TWINS".
+     * These common tags are applied
+     * to every metric created in the application, allowing for consistent
+     * tagging and easier identification of metrics.
+     *
+     * @return a customizer for MeterRegistry that applies common tags.
+     */
     @Bean
+    public MeterRegistryCustomizer<MeterRegistry> meterRegistry() {
+        return (registry) -> registry.config().commonTags("application", "TWINS");}
+
+     /**
+      * Configures and provides a CacheManager bean using Caffeine as the caching provider.
+      * The CacheManager is set with an initial capacity of 1000 entries and an expiration
+      * policy of 5 minutes after a write operation.
+      * Null cache entries are allowed.
+      *
+      * @return a configured instance of CaffeineCacheManager with the specified settings
+      */
+     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager() {
-            @Override
-            protected Cache createConcurrentMapCache(String name) {
-                return new ConcurrentMapCache(
-                        name,
-                        CacheBuilder.newBuilder()
-                                .expireAfterWrite(5, TimeUnit.MINUTES)
-                                .build().asMap(),
-                        true);
-            }
-        };
+        Caffeine caffeine = Caffeine.newBuilder()
+                 .initialCapacity(1000)
+            //    .refreshAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(5, TimeUnit.MINUTES);
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(caffeine);
+        caffeineCacheManager.setAllowNullValues(true);
+        return caffeineCacheManager;
     }
+
+//    @Bean
+//    public CacheManager cacheManager() {
+//        return new ConcurrentMapCacheManager() {
+//            @Override
+//            protected Cache createConcurrentMapCache(String name) {
+//                return new ConcurrentMapCache(
+//                        name,
+//                        CacheBuilder.newBuilder()
+//                                .expireAfterWrite(5, TimeUnit.MINUTES)
+//                                .build().asMap(),
+//                        true);
+//            }
+//        };
+//    }
 
     @Bean
     public EntitySmartService entitySmartService() {
