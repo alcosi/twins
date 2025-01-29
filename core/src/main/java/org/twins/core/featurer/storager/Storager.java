@@ -127,7 +127,7 @@ public abstract class Storager extends FeaturerTwins {
      */
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
         String domainId = getDomainId().map(UUID::toString).orElse("defaultDomain");
-        String businessAccountId = getBusinessAccountId().map(UUID::toString).orElse("defaultDomain");
+        String businessAccountId = getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount");
         return URI.create(getFileControllerUri(params)
                 .replace("{id}", fileId.toString())
                 .replace("{key}", fileKey)

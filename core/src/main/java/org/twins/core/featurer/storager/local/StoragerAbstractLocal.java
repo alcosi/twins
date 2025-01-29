@@ -25,8 +25,8 @@ public abstract class StoragerAbstractLocal extends StoragerAbstractChecked {
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
         String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
-        String businessDomain = getDomainId().map(UUID::toString).orElse("defaultDomain");
-        String businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultDomain");
+        String businessDomain = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
+        String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
         return baseLocalPathString + businessDomain + businessAccount + fileId;
     }
 

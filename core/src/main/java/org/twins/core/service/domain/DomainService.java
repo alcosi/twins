@@ -165,7 +165,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
         if (darkIconEntity != null) {
             domainEntity.setIconDarkResourceId(darkIconEntity.getId());
-            domainEntity.setIconDarkResource(lightIconEntity);
+            domainEntity.setIconDarkResource(darkIconEntity);
         }
         if (darkIconEntity != null || lightIconEntity != null) {
             domainRepository.save(domainEntity);

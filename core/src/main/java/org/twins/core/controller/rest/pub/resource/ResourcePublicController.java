@@ -10,7 +10,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.IOUtils;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
@@ -62,24 +61,27 @@ public class ResourcePublicController extends ApiController {
             var file = resourceService.getResourceFile(resourceId);
             serverRs.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
             serverRs.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(file.originalFileName()).build().toString());
-            serverRs.setHeader(HttpHeaders.CONTENT_LENGTH, file.fileSize() + "");
+            if (file.fileSize() > 0) {
+                serverRs.setHeader(HttpHeaders.CONTENT_LENGTH, file.fileSize() + "");
+            }
             serverRs.setHeader(HttpHeaders.CACHE_CONTROL, CacheControl.maxAge(httpCacheLifetime).cachePublic().immutable().getHeaderValue());
             serverRs.setStatus(HttpServletResponse.SC_OK);
             try (InputStream content = file.content()) {
                 try (OutputStream out = serverRs.getOutputStream()) {
-                    IOUtils.copy(content, out);
+                    content.transferTo(out);
                     out.flush();
                     serverRs.flushBuffer();
                 }
             }
             return null;
         } catch (ServiceException se) {
+            log.error("Error downloading resource {}", resourceId, se);
             return createErrorRs(se, new Response());
         } catch (Exception e) {
+            log.error("Error downloading resource {}", resourceId, e);
             return createErrorRs(e, new Response());
         } finally {
             log.info("Ended resource " + resourceId + " download. Took " + (System.currentTimeMillis() - time) + " ms");
-
         }
     }
 }

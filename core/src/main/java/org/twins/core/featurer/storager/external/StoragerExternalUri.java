@@ -93,7 +93,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
                 }
                 //Chunked response, have to check content length by downloading file =(
                 CountedLimitedSizeInputStream sizeLimitedStream = new CountedLimitedSizeInputStream(is, fileSizeLimit, 0);
-                int byteBufferSize = Short.MAX_VALUE;
+                int byteBufferSize = 16384;
                 //Read all bytes by chunks till the end
                 while (sizeLimitedStream.read() > -1) {
                     sizeLimitedStream.readNBytes(byteBufferSize);
