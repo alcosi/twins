@@ -25,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.domain.DomainType;
+import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeEntity;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
@@ -730,8 +732,8 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return entity.getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
     }
 
-    public List<TwinClassOwnerTypeEntity> findDomainClassOwnerType() throws ServiceException {
-        UUID domainId = authService.getApiUser().getDomainId();
-        return domainTypeTwinClassOwnerTypeRepository.findTwinClassOwnerTypesByDomainId(domainId);
+    public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {
+        DomainType domainType = authService.getApiUser().getDomain().getDomainType();
+        return domainTypeTwinClassOwnerTypeRepository.findAllByDomainTypeId(domainType).stream().map(DomainTypeTwinClassOwnerTypeEntity::getTwinClassOwnerType).collect(Collectors.toSet());
     }
 }

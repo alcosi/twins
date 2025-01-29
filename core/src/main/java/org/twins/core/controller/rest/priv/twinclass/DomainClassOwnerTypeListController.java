@@ -21,7 +21,7 @@ import org.twins.core.dto.rest.twinclass.DomainClassOwnerTypeListRsDTOv1;
 import org.twins.core.mappers.rest.twinclass.TwinClassOwnerTypeRestDTOMapper;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.List;
+import java.util.Set;
 
 @Tag(name = ApiTag.DOMAIN)
 @RestController
@@ -33,18 +33,18 @@ public class DomainClassOwnerTypeListController extends ApiController {
     private final TwinClassOwnerTypeRestDTOMapper twinClassOwnerTypeRestDTOMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "domainClassOwnerTypeListV1", summary = "Returns the owner type of the domain class")
+    @Operation(operationId = "twinClassOwnerTypeListV1", summary = "Returns the owner type of the domain class")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = DomainClassOwnerTypeListRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/domain_class_owner_type/v1")
-    public ResponseEntity<?> domainClassOwnerTypeListV1() {
+    @GetMapping(value = "/private/domain/class_owner_type/list/v1")
+    public ResponseEntity<?> twinClassOwnerTypeListV1() {
         DomainClassOwnerTypeListRsDTOv1 rs = new DomainClassOwnerTypeListRsDTOv1();
         try {
-            List<TwinClassOwnerTypeEntity> domainClassOwnerTypeList = twinClassService.findDomainClassOwnerType();
-            rs.setTwinClassOwnerTypes(twinClassOwnerTypeRestDTOMapper.convertCollection(domainClassOwnerTypeList));
+            Set<TwinClassOwnerTypeEntity> twinClassOwnerType = twinClassService.findTwinClassOwnerType();
+            rs.setTwinClassOwnerTypes(twinClassOwnerTypeRestDTOMapper.convertCollection(twinClassOwnerType));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
