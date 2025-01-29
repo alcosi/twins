@@ -8,15 +8,16 @@
 package org.twins.core.config;
 
 
-import com.google.common.cache.CacheBuilder;
+
+import com.github.benmanes.caffeine.cache.Caffeine;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.cache.Cache;
+
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
+
+import org.springframework.cache.caffeine.CaffeineCacheManager;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,6 +36,7 @@ import org.twins.core.config.filter.LoggingFilter;
 
 import javax.sql.DataSource;
 import java.util.concurrent.TimeUnit;
+
 
 @Slf4j
 @Configuration
@@ -77,20 +79,40 @@ public class ApplicationConfig {
         return new LoggingFilter();
     }
 
-    @Bean
+     /**
+      * Configures and provides a CacheManager bean using Caffeine as the caching provider.
+      * The CacheManager is set with an initial capacity of 1000 entries and an expiration
+      * policy of 5 minutes after a write operation.
+      * Null cache entries are allowed.
+      *
+      * @return a configured instance of CaffeineCacheManager with the specified settings
+      */
+     @Bean
     public CacheManager cacheManager() {
-        return new ConcurrentMapCacheManager() {
-            @Override
-            protected Cache createConcurrentMapCache(String name) {
-                return new ConcurrentMapCache(
-                        name,
-                        CacheBuilder.newBuilder()
-                                .expireAfterWrite(5, TimeUnit.MINUTES)
-                                .build().asMap(),
-                        true);
-            }
-        };
+        Caffeine caffeine = Caffeine.newBuilder()
+                 .initialCapacity(1000)
+            //    .refreshAfterWrite(5, TimeUnit.MINUTES)
+                .expireAfterWrite(5, TimeUnit.MINUTES);
+        CaffeineCacheManager caffeineCacheManager = new CaffeineCacheManager();
+        caffeineCacheManager.setCaffeine(caffeine);
+        caffeineCacheManager.setAllowNullValues(true);
+        return caffeineCacheManager;
     }
+
+//    @Bean
+//    public CacheManager cacheManager() {
+//        return new ConcurrentMapCacheManager() {
+//            @Override
+//            protected Cache createConcurrentMapCache(String name) {
+//                return new ConcurrentMapCache(
+//                        name,
+//                        CacheBuilder.newBuilder()
+//                                .expireAfterWrite(5, TimeUnit.MINUTES)
+//                                .build().asMap(),
+//                        true);
+//            }
+//        };
+//    }
 
     @Bean
     public EntitySmartService entitySmartService() {
