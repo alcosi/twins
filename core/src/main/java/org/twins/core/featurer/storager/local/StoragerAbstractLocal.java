@@ -38,7 +38,9 @@ public abstract class StoragerAbstractLocal extends StoragerAbstractChecked {
             if (path.getParent() != null) {
                 Files.createDirectories(path.getParent()); // Ensure parent directories exist
             }
-            Files.copy(fileStream, path); // Write the content to the file
+            try (InputStream is = fileStream) {
+                Files.copy(is, path);
+            } // Write the content to the file
             log.info("Successfully created and saved file at: {}", filePath);
         } catch (Exception e) {
             log.error("Error while creating and saving file: {}", filePath, e);

@@ -57,21 +57,23 @@ public abstract class StoragerAbstractS3 extends StoragerAbstractChecked {
     @Override
     protected void addFileInternal(String fileKey, InputStream fileStream, HashMap<String, String> params) throws ServiceException {
         try {
-            MinioClient s3Client = getS3MinioClient(params);
-            Properties properties = extractProperties(params, false);
-            String bucket = s3Bucket.extract(properties);
-            if (!bucketExists(s3Client, bucket)) {
-                try {
-                    s3Client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
-                } catch (Throwable t) {
-                    log.error("Error trying to create bucket {}: {}", bucket, t.getMessage(), t);
+            try (InputStream is = fileStream) {
+                MinioClient s3Client = getS3MinioClient(params);
+                Properties properties = extractProperties(params, false);
+                String bucket = s3Bucket.extract(properties);
+                if (!bucketExists(s3Client, bucket)) {
+                    try {
+                        s3Client.makeBucket(MakeBucketArgs.builder().bucket(bucket).build());
+                    } catch (Throwable t) {
+                        log.error("Error trying to create bucket {}: {}", bucket, t.getMessage(), t);
+                    }
                 }
+                var response = s3Client.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(fileKey)
+                                .stream(is, -1L, DEFAULT_PART_SIZE).build());
             }
-            var response = s3Client.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(fileKey)
-                            .stream(fileStream, -1L, DEFAULT_PART_SIZE).build());
         } catch (Throwable t) {
             log.error("Error trying to save file to S3: {}", t.getMessage(), t);
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to create or save file to S3");
