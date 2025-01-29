@@ -13,8 +13,8 @@ import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.file.DomainFile;
-import org.twins.core.featurer.resource.AddedFileKey;
-import org.twins.core.featurer.resource.Storager;
+import org.twins.core.featurer.storager.AddedFileKey;
+import org.twins.core.featurer.storager.Storager;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.storage.StorageService;
 

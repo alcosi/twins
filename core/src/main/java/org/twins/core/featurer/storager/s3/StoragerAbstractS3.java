@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource.s3;
+package org.twins.core.featurer.storager.s3;
 
 import io.minio.*;
 import lombok.SneakyThrows;
@@ -7,7 +7,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.twins.core.featurer.resource.StoragerAbstractChecked;
+import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -22,14 +22,19 @@ public abstract class StoragerAbstractS3 extends StoragerAbstractChecked {
 
     @FeaturerParam(name = "s3Uri", description = "Uri to work with s3")
     public static final FeaturerParamString s3Uri = new FeaturerParamString("s3Uri");
+
     @FeaturerParam(name = "s3Region", description = "Region config for s3")
     public static final FeaturerParamString s3Region = new FeaturerParamString("s3Region");
+
     @FeaturerParam(name = "s3Bucket", description = "Bucket of s3")
     public static final FeaturerParamString s3Bucket = new FeaturerParamString("s3Bucket");
+
     @FeaturerParam(name = "s3AccessKey", description = "Access key for s3")
     public static final FeaturerParamString s3AccessKey = new FeaturerParamString("s3AccessKey");
+
     @FeaturerParam(name = "s3SecretKey", description = "Secret key for s3")
     public static final FeaturerParamString s3SecretKey = new FeaturerParamString("s3SecretKey");
+
     @FeaturerParam(name = "basePath", description = "Base path of directory(key) where to save files")
     public static final FeaturerParamString basePath = new FeaturerParamString("basePath");
 

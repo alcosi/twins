@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource;
+package org.twins.core.featurer.storager;
 
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -31,16 +31,19 @@ import java.util.UUID;
  * Includes functionalities for saving, retrieving, and deleting files, as well as validating file size and MIME types.
  */
 @FeaturerType(id = FeaturerTwins.TYPE_29,
-        name = "StoragerResourceService",
-        description = "Services for resource(file) uploading")
+        name = "Storager",
+        description = "Services for file uploading")
 @Slf4j
 public abstract class Storager extends FeaturerTwins {
     @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
+
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
     public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
+
     @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "Connection timeout when getting file")
     public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
+
     @Autowired
     protected AuthService authService;
 
