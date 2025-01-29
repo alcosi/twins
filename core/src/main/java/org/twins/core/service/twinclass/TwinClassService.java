@@ -734,6 +734,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {
         DomainType domainType = authService.getApiUser().getDomain().getDomainType();
-        return domainTypeTwinClassOwnerTypeRepository.findAllByDomainTypeId(domainType).stream().map(DomainTypeTwinClassOwnerTypeEntity::getTwinClassOwnerType).collect(Collectors.toSet());
+        return domainTypeTwinClassOwnerTypeRepository.findAllTwinClassOwnerTypesByDomainTypeId(domainType);
     }
 }
