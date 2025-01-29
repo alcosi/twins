@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource.s3;
+package org.twins.core.featurer.resource.local;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -8,20 +8,24 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2904,
-        name = "StoragerS3FileControllerService",
-        description = "Service to save files to S3 and serve in controller")
+@Featurer(id = FeaturerTwins.ID_2902,
+        name = "StoragerLocalStaticFileService",
+        description = "Service to save files in local file system and return them them as nginx static resource after that")
 @Slf4j
-public class StoragerS3FileControllerService extends StoragerAbstractS3FileService {
+public class StoragerLocalStatic extends StoragerAbstractLocal {
 
     @Override
     public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
+        String businessDomain = getDomainId().map(UUID::toString).orElse("defaultDomain");
+        String businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultDomain");
         Properties properties = extractProperties(params, false);
         String relativePath = relativeFileUri.extract(properties);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + relativePath;
+        return urlDomain + businessDomain + businessAccount + relativePath;
     }
+
 
 }

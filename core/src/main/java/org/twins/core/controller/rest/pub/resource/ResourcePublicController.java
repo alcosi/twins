@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -59,7 +58,7 @@ public class ResourcePublicController extends ApiController {
         Long time = System.currentTimeMillis();
         log.info("Started resource " + resourceId + " download");
         try {
-            var file = resourceService.getResourceFile(resourceId, EntitySmartService.ReadPermissionCheckMode.none);
+            var file = resourceService.getResourceFile(resourceId);
             serverRs.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
             serverRs.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(file.originalFileName()).build().toString());
             serverRs.setHeader(HttpHeaders.CONTENT_LENGTH, file.fileSize() + "");

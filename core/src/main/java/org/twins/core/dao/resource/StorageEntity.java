@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.featurer.resource.StoragerAbstractCheckedFileService;
+import org.twins.core.featurer.resource.StoragerAbstractChecked;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -33,12 +33,12 @@ public class StorageEntity implements EasyLoggable {
     @Column(name = "domain_id")
     private UUID domainId;
 
-    @Column(name = "storage_featurer_id")
+    @Column(name = "storager_featurer_id")
     private Long storageFeaturerId;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "storage_params", columnDefinition = "hstore")
-    private HashMap<String, String> storageParams;
+    @Column(name = "storager_params", columnDefinition = "hstore")
+    private HashMap<String, String> storagerParams;
 
     @Column(name = "description")
     private String description;
@@ -51,9 +51,9 @@ public class StorageEntity implements EasyLoggable {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @FeaturerList(type = StoragerAbstractCheckedFileService.class)
+    @FeaturerList(type = StoragerAbstractChecked.class)
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "storage_featurer_id", insertable = false, updatable = false)
+    @JoinColumn(name = "storager_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity storageFeaturer;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -64,9 +64,11 @@ public class StorageEntity implements EasyLoggable {
     public String easyLog(Level level) {
         return switch (level) {
             case SHORT ->
+                    "resourceStorage[id:" + id + "]";
+            case NORMAL ->
                     "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + "]";
-            case NORMAL, DETAILED ->
-                    "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + ", params:" + storageParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
+            case DETAILED ->
+                    "resourceStorage[id:" + id + ", domain:" + domain + ", description:" + description + ", storageFeaturerId:" + storageFeaturerId + ", params:" + storagerParams.entrySet().stream().filter(it -> it.getValue() != null).map(Map.Entry::getKey).collect(Collectors.joining(",")) + "]";
         };
     }
 }

@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
@@ -42,8 +43,8 @@ import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.resource.ResourceService;
-import org.twins.core.service.resource.StorageService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
@@ -174,7 +175,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
         if (icon != null) {
-            return resourceService.addResource(icon.originalFileName(), icon.content(), domainEntity.getResourcesStorageId(), domainEntity.getId());
+            return resourceService.addResource(icon.originalFileName(), icon.content());
         } else {
             return null;
         }
@@ -394,18 +395,23 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return attachmentQuotas;
     }
 
-    public void loadResources(Collection<DomainEntity> domains) throws ServiceException {
+    public void loadIconResources(DomainEntity domain) throws ServiceException {
+        loadIconResources(Collections.singletonList(domain));
+    }
+
+    public void loadIconResources(Collection<DomainEntity> domains) throws ServiceException {
         if (CollectionUtils.isEmpty(domains))
             return;
-        Collection<UUID> resourceIdList = Streams.concat(
-                        domains.stream().map(DomainEntity::getIconDarkResourceId),
-                        domains.stream().map(DomainEntity::getIconLightResourceId))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-        Map<UUID, ResourceEntity> resources = resourceService
-                .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
-                .stream()
-                .collect(Collectors.toMap(ResourceEntity::getId, e -> e));
+        Set<UUID> neadLoad = new HashSet<>();
+        for (var domain : domains) {
+            if (domain.getIconDarkResource() == null && domain.getIconDarkResourceId() != null)
+                neadLoad.add(domain.getIconDarkResourceId());
+            if (domain.getIconLightResource() == null && domain.getIconLightResourceId() != null)
+                neadLoad.add(domain.getIconLightResourceId());
+        }
+        if (CollectionUtils.isEmpty(neadLoad))
+            return;
+        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad));
         domains.forEach(domain -> {
             domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
             domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));

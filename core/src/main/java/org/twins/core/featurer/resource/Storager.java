@@ -34,7 +34,7 @@ import java.util.UUID;
         name = "StoragerResourceService",
         description = "Services for resource(file) uploading")
 @Slf4j
-public abstract class StoragerFileService extends FeaturerTwins {
+public abstract class Storager extends FeaturerTwins {
     @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
     @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")

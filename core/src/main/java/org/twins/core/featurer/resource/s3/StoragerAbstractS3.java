@@ -7,7 +7,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.twins.core.featurer.resource.StoragerAbstractCheckedFileService;
+import org.twins.core.featurer.resource.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 
 @Slf4j
-public abstract class StoragerAbstractS3FileService extends StoragerAbstractCheckedFileService {
+public abstract class StoragerAbstractS3 extends StoragerAbstractChecked {
     protected final Long DEFAULT_PART_SIZE = 10485760L;
 
     @FeaturerParam(name = "s3Uri", description = "Uri to work with s3")

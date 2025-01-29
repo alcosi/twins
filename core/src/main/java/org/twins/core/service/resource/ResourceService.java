@@ -2,7 +2,6 @@ package org.twins.core.service.resource;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.EasyLoggable;
-import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -17,8 +16,9 @@ import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.file.DomainFile;
 import org.twins.core.featurer.resource.AddedFileKey;
-import org.twins.core.featurer.resource.StoragerFileService;
+import org.twins.core.featurer.resource.Storager;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.storage.StorageService;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -37,23 +37,15 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      * Retrieves a resource file from storage based on the specified resource ID and access permissions.
      *
      * @param resourceId the unique identifier of the resource to retrieve
-     * @param checkMode  the access control mode that determines how entity permissions are validated
      * @return a {@code DomainFile} object containing the file's data, original file name, and size information
      * @throws ServiceException if the resource with the specified {@code resourceId} is not found or any error occurs during file retrieval
      */
     @Transactional(readOnly = true)
-    public DomainFile getResourceFile(UUID resourceId, EntitySmartService.ReadPermissionCheckMode checkMode) throws ServiceException {
-        var resource = switch (checkMode) {
-            case none -> repository.findById(resourceId, ResourceEntity.class);
-            default ->
-                    findEntity(resourceId, EntitySmartService.FindMode.ifEmptyNull, checkMode, EntitySmartService.EntityValidateMode.none);
-        };
-        if (resource == null) {
-            throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, "Resource " + resourceId + " not found!");
-        }
+    public DomainFile getResourceFile(UUID resourceId) throws ServiceException {
+        var resource = findEntitySafe(resourceId);
         StorageEntity storage = resource.getStorage();
-        StoragerFileService fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), StoragerFileService.class);
-        var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStorageParams());
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        var stream = fileService.getFileAsStream(resource.getStorageFileKey(), storage.getStoragerParams());
         return new DomainFile(stream, resource.getOriginalFileName(), resource.getSizeInBytes());
     }
 
@@ -64,19 +56,16 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      *
      * @param originalFileName    The original name of the file to be associated with the resource.
      * @param externalResourceUri The URI of the external resource to be linked or downloaded (depends on storager type) with the storage.
-     * @param storagerId          The unique identifier of the storage entity where the resource will be stored.
-     * @param domainId            The unique identifier of the domain to which the resource belongs.
      * @return A newly created {@code ResourceEntity} representing the
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public ResourceEntity addResource(String originalFileName, String externalResourceUri, UUID storagerId, UUID domainId) throws ServiceException {
+    public ResourceEntity addResource(String originalFileName, String externalResourceUri) throws ServiceException {
         UUID resourceId = UUID.randomUUID();
-        ApiUser apiUser = null;
-        UUID userId = apiUser == null ? null : apiUser.isUserSpecified() ? apiUser.getUserId() : null;
-        StorageEntity storage = storageService.findEntity(storagerId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
-        StoragerFileService fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), StoragerFileService.class);
-        AddedFileKey addedFileKey = fileService.addExternalUrlFile(resourceId, externalResourceUri, storage.getStorageParams());
-        return createResource(originalFileName, storagerId, domainId, resourceId, userId, addedFileKey, storage);
+        ApiUser apiUser = authService.getApiUser();
+        StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        AddedFileKey addedFileKey = fileService.addExternalUrlFile(resourceId, externalResourceUri, storage.getStoragerParams());
+        return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
 
     /**
@@ -84,14 +73,12 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      *
      * @param originalFileName the original name of the file to be stored
      * @param bytes            the content of the file as a byte array
-     * @param storagerId       the unique identifier for the storage location
-     * @param domainId         the unique identifier for the domain associated with the resource
      * @return the newly created ResourceEntity object
      * @throws ServiceException if an error occurs while adding the resource
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public ResourceEntity addResource(String originalFileName, byte[] bytes, UUID storagerId, UUID domainId) throws ServiceException {
-        return addResource(originalFileName, new ByteArrayInputStream(bytes), storagerId, domainId);
+    public ResourceEntity addResource(String originalFileName, byte[] bytes) throws ServiceException {
+        return addResource(originalFileName, new ByteArrayInputStream(bytes));
     }
 
     /**
@@ -99,36 +86,32 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
      *
      * @param originalFileName The original name of the file being uploaded.
      * @param inputStream      The InputStream of the file to be uploaded.
-     * @param storagerId       The UUID of the storage entity where the file will be stored.
-     * @param domainId         The UUID of the domain associated with this resource.
      * @return A {@link ResourceEntity} representing the newly created resource.
      * @throws ServiceException If an error occurs during the resource addition process.
      */
     @Transactional(readOnly = false, rollbackFor = Throwable.class)
-    public ResourceEntity addResource(String originalFileName, InputStream inputStream, UUID storagerId, UUID domainId) throws ServiceException {
+    public ResourceEntity addResource(String originalFileName, InputStream inputStream) throws ServiceException {
         UUID resourceId = UUID.randomUUID();
-        ApiUser apiUser = null;
-        UUID userId = apiUser == null ? null : apiUser.isUserSpecified() ? apiUser.getUserId() : null;
-        StorageEntity storage = storageService.findEntity(storagerId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none);
-
-        StoragerFileService fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), StoragerFileService.class);
-        AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStorageParams());
-        return createResource(originalFileName, storagerId, domainId, resourceId, userId, addedFileKey, storage);
+        ApiUser apiUser = authService.getApiUser();
+        StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
+        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStoragerParams());
+        return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
 
-    protected ResourceEntity createResource(String originalFileName, UUID storagerId, UUID domainId, UUID resourceId, UUID userId, AddedFileKey addedFileKey, StorageEntity storage) throws ServiceException {
-        ResourceEntity resource = new ResourceEntity();
-        resource.setId(resourceId);
-        resource.setStorageId(storagerId);
-        resource.setDomainId(domainId);
-        resource.setOriginalFileName(originalFileName);
-        resource.setUploadedByUserId(userId);
-        resource.setSizeInBytes(addedFileKey.fileSize());
-        resource.setStorageFileKey(addedFileKey.fileKey());
-        isEntityReadDenied(resource, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        ResourceEntity saved = repository.save(resource);
-        saved.setStorage(storage);
-        return saved;
+    protected ResourceEntity createResource(StorageEntity storage, String originalFileName, UUID resourceId, AddedFileKey addedFileKey) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        ResourceEntity resource = new ResourceEntity()
+                .setId(resourceId)
+                .setStorageId(storage.getId())
+                .setStorage(storage)
+                .setDomainId(apiUser.getDomainId())
+                .setOriginalFileName(originalFileName)
+                .setUploadedByUserId(apiUser.getUserId())
+                .setSizeInBytes(addedFileKey.fileSize())
+                .setStorageFileKey(addedFileKey.fileKey());
+        validateEntity(resource, EntitySmartService.EntityValidateMode.beforeSave);
+        return repository.save(resource);
     }
 
     /**
@@ -143,10 +126,9 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     public void deleteResource(UUID resourceId) throws ServiceException {
         var resource = findEntitySafe(resourceId);
         StorageEntity storage = resource.getStorage();
-        StoragerFileService fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), StoragerFileService.class);
-        fileService.tryDeleteFile(resource.getStorageFileKey(), storage.getStorageParams());
+        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        storager.tryDeleteFile(resource.getStorageFileKey(), storage.getStoragerParams());
         repository.delete(resource);
-
     }
 
     /**
@@ -162,26 +144,36 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         UUID newResourceId = UUID.randomUUID();
 
         var resource = findEntitySafe(resourceId);
+        if (resource.getStorageId().equals(newStorageId))
+            return resource;
         StorageEntity oldStorage = resource.getStorage();
         StorageEntity newStorage = storageService.findEntitySafe(newStorageId);
 
-        StoragerFileService oldFileService = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), StoragerFileService.class);
-        StoragerFileService newFileService = featurerService.getFeaturer(newStorage.getStorageFeaturer(), StoragerFileService.class);
-        InputStream fileStream = oldFileService.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStorageParams());
-        AddedFileKey addedFileKey = newFileService.addFile(newResourceId, fileStream, newStorage.getStorageParams());
-        ResourceEntity newResource = new ResourceEntity();
-        newResource.setId(resourceId);
-        newResource.setStorageId(newStorageId);
-        newResource.setDomainId(resource.getDomainId());
-        newResource.setOriginalFileName(resource.getOriginalFileName());
-        newResource.setUploadedByUserId(resource.getUploadedByUserId());
-        newResource.setSizeInBytes(addedFileKey.fileSize());
-        newResource.setStorageFileKey(addedFileKey.fileKey());
-        isEntityReadDenied(resource, EntitySmartService.ReadPermissionCheckMode.ifDeniedThrows);
-        ResourceEntity saved = repository.save(resource);
-        oldFileService.tryDeleteFile(resource.getStorageFileKey(), oldStorage.getStorageParams());
+        Storager oldStorager = featurerService.getFeaturer(oldStorage.getStorageFeaturer(), Storager.class);
+        Storager newStorager = featurerService.getFeaturer(newStorage.getStorageFeaturer(), Storager.class);
+        InputStream fileStream = oldStorager.getFileAsStream(resource.getStorageFileKey(), oldStorage.getStoragerParams());
+        AddedFileKey addedFileKey = newStorager.addFile(newResourceId, fileStream, newStorage.getStoragerParams());
+        ResourceEntity newResource = new ResourceEntity()
+                .setId(resourceId)
+                .setStorageId(newStorageId)
+                .setDomainId(resource.getDomainId())
+                .setOriginalFileName(resource.getOriginalFileName())
+                .setUploadedByUserId(resource.getUploadedByUserId())
+                .setSizeInBytes(addedFileKey.fileSize())
+                .setStorageFileKey(addedFileKey.fileKey());
+        validateEntity(newResource, EntitySmartService.EntityValidateMode.beforeSave);
+        newResource = repository.save(newResource);
+        oldStorager.tryDeleteFile(resource.getStorageFileKey(), oldStorage.getStoragerParams());
         repository.delete(resource);
-        return saved;
+        return newResource;
+    }
+
+    public String getResourceUri(ResourceEntity resourceEntity) throws ServiceException {
+        if (resourceEntity != null) {
+            var featurer = featurerService.getFeaturer(resourceEntity.getStorage().getStorageFeaturer(), Storager.class);
+            return featurer.getFileUri(resourceEntity.getId(), resourceEntity.getStorageFileKey(), resourceEntity.getStorage().getStoragerParams()).toString();
+        }
+        return null;
     }
 
 

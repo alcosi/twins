@@ -1,5 +1,5 @@
 INSERT INTO public.featurer_type (id, name, description)
-VALUES (29, 'StoragerFileService', 'Services for resource(file) uploading')
+VALUES (29, 'Storager', 'Services for resource(file) uploading')
 on conflict (id) do update set name=excluded.name,
                                description=excluded.description;
 

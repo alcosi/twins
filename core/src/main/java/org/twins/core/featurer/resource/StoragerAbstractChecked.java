@@ -19,10 +19,10 @@ import java.util.stream.Collectors;
 /**
  * Abstract class providing a foundational implementation for file storage services
  * with additional checks on file properties such as size and MIME type.
- * This class implements {@link StoragerFileService} and
+ * This class implements {@link Storager} and
  */
 @Slf4j
-public abstract class StoragerAbstractCheckedFileService extends StoragerFileService {
+public abstract class StoragerAbstractChecked extends Storager {
     protected final Tika tika = new Tika();
 
 

@@ -10,7 +10,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.resource.AddedFileKey;
-import org.twins.core.featurer.resource.StoragerAbstractCheckedFileService;
+import org.twins.core.featurer.resource.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -24,7 +24,7 @@ import java.util.UUID;
         name = "StoragerExternalUriFileService",
         description = "Service to keep and work with external uri")
 @Slf4j
-public class StoragerExternalUriFileService extends StoragerAbstractCheckedFileService {
+public class StoragerExternalUri extends StoragerAbstractChecked {
 
     @Override
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {

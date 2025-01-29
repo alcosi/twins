@@ -5,7 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.twins.core.featurer.resource.StoragerAbstractCheckedFileService;
+import org.twins.core.featurer.resource.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 
 @Slf4j
-public abstract class StoragerAbstractLocalFileService extends StoragerAbstractCheckedFileService {
+public abstract class StoragerAbstractLocal extends StoragerAbstractChecked {
 
 
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")

@@ -1,4 +1,4 @@
-package org.twins.core.service.resource;
+package org.twins.core.service.storage;
 
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
@@ -33,7 +33,7 @@ public class StorageService extends EntitySecureFindServiceImpl<StorageEntity> {
     @Override
     public boolean isEntityReadDenied(StorageEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = entity.getDomainId() != null && entity.getDomainId() != domain.getId();
+        boolean readDenied = entity.getDomainId() != null && !entity.getDomainId().equals(domain.getId());
         if (readDenied) {
             EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.logNormal() + " is not allowed in" + domain.logShort());
         }
