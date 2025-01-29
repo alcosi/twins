@@ -1,7 +1,6 @@
 package org.twins.core.service.resource;
 
 import lombok.RequiredArgsConstructor;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
@@ -9,7 +8,6 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.ResourceRepository;
 import org.twins.core.dao.resource.StorageEntity;
@@ -189,12 +187,13 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
     @Override
     public boolean isEntityReadDenied(ResourceEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        DomainEntity domain = authService.getApiUser().getDomain();
-        boolean readDenied = !entity.getDomainId().equals(domain.getId());
-        if (readDenied) {
-            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
-        }
-        return readDenied;
+//        DomainEntity domain = authService.getApiUser().getDomain();
+//        boolean readDenied = !entity.getDomainId().equals(domain.getId());
+//        if (readDenied) {
+//            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
+//        }
+//        return readDenied;
+        return false;
     }
 
     @Override

@@ -411,7 +411,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
         if (CollectionUtils.isEmpty(neadLoad))
             return;
-        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad));
+        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad);
         domains.forEach(domain -> {
             domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
             domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));

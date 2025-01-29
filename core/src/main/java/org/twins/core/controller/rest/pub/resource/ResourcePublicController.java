@@ -58,6 +58,7 @@ public class ResourcePublicController extends ApiController {
         Long time = System.currentTimeMillis();
         log.info("Started resource " + resourceId + " download");
         try {
+            authService.getApiUser().setAnonymousWithDefaultLocale();
             var file = resourceService.getResourceFile(resourceId);
             serverRs.setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE);
             serverRs.setHeader(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(file.originalFileName()).build().toString());
