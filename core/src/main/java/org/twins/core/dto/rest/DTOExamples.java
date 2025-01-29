@@ -6,6 +6,8 @@ public interface DTOExamples {
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
     String COUNT = "3";
+    String UUID_COLLECTION = "[\"11a4c3f8-c780-4421-9aee-9e7eec20c67d\", \"83050c4b-ef17-4d7d-8792-6e5a86557ab9\"]";
+    String STRING_COLLECTION = "[\"String 1\", \"String 2\"]";
     String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
