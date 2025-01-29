@@ -93,8 +93,13 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         ApiUser apiUser = authService.getApiUser();
         switch (entityValidateMode) {
             case beforeSave -> {
-                if (dataListRepository.existsByDomainIdAndKey(apiUser.getDomainId(), entity.getKey()))
-                    throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                if (entity.getId() == null) {
+                    if (dataListRepository.existsByDomainIdAndKey(apiUser.getDomainId(), entity.getKey()))
+                        throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                } else {
+                    if (dataListRepository.existsByDomainIdAndKeyAndIdNot(apiUser.getDomainId(), entity.getKey(), entity.getId()))
+                        throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                }
             }
         }
         return true;
@@ -272,7 +277,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(UUID listId, UUID twinClassFieldId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(UUID listId, UUID twinClassFieldId, UUID businessAccountId) {
@@ -280,13 +285,14 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
     //Method for reloading options if dataList is not present in entity;
     public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
         List<UUID> idsForReload = new ArrayList<>();
-        for(var option : options) if(null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+        for (var option : options)
+            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
         if (!idsForReload.isEmpty()) {
             options.removeIf(o -> idsForReload.contains(o.getId()));
             options.addAll(dataListOptionRepository.findByIdIn(idsForReload));
