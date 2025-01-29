@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.featurer.resource.StoragerAbstractChecked;
+import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.sql.Timestamp;
 import java.util.HashMap;

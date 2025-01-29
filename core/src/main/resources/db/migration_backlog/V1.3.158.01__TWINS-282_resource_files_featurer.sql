@@ -5,7 +5,7 @@ on conflict (id) do update set name=excluded.name,
 
 --Local controller
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2901, 29, 'org.twins.core.featurer.resource.StoragerLocalControllerFileService',
+values (2901, 29, 'org.twins.core.featurer.storager.StoragerLocalControllerFileService',
         'StoragerLocalControllerFileService',
         'Service to save files in local file system and return them in controller after that')
 on conflict (id) do update set name=excluded.name,
@@ -14,7 +14,7 @@ on conflict (id) do update set name=excluded.name,
 
 --Local static resource
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2902, 29, 'org.twins.core.featurer.resource.StoragerLocalStaticFileService', 'StoragerLocalStaticFileService',
+values (2902, 29, 'org.twins.core.featurer.storager.StoragerLocalStaticFileService', 'StoragerLocalStaticFileService',
         'Service to save files in local file system and return them them as nginx static resource after that')
 on conflict (id) do update set name=excluded.name,
                                description=excluded.description;
@@ -22,7 +22,7 @@ on conflict (id) do update set name=excluded.name,
 
 --External Uri
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2903, 29, 'org.twins.core.featurer.resource.StoragerExternalUriFileService',
+values (2903, 29, 'org.twins.core.featurer.storager.StoragerExternalUriFileService',
         'StoragerExternalUriFileService',
         'Service to keep and work with external uri')
 on conflict (id) do update set name=excluded.name,
@@ -31,7 +31,7 @@ on conflict (id) do update set name=excluded.name,
 
 --S3
 insert into public.featurer(id, featurer_type_id, class, name, description)
-values (2904, 29, 'org.twins.core.featurer.resource.StoragerS3FileControllerService', 'StoragerS3FileControllerService',
+values (2904, 29, 'org.twins.core.featurer.storager.StoragerS3FileControllerService', 'StoragerS3FileControllerService',
         'Service to save files to S3 and serve in controller')
 on conflict (id) do update set name=excluded.name,
                                description=excluded.description;

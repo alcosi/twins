@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource.local;
+package org.twins.core.featurer.storager.local;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
@@ -8,24 +8,18 @@ import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
 import java.util.Properties;
-import java.util.UUID;
 
 @Component
-@Featurer(id = FeaturerTwins.ID_2902,
-        name = "StoragerLocalStaticFileService",
-        description = "Service to save files in local file system and return them them as nginx static resource after that")
+@Featurer(id = FeaturerTwins.ID_2901,
+        name = "StoragerLocalController",
+        description = "Service to save files in local file system")
 @Slf4j
-public class StoragerLocalStatic extends StoragerAbstractLocal {
-
+public class StoragerLocalController extends StoragerAbstractLocal {
     @Override
     public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
-        String businessDomain = getDomainId().map(UUID::toString).orElse("defaultDomain");
-        String businessAccount = getBusinessAccountId().map(UUID::toString).orElse("defaultDomain");
         Properties properties = extractProperties(params, false);
         String relativePath = relativeFileUri.extract(properties);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + businessDomain + businessAccount + relativePath;
+        return urlDomain + relativePath;
     }
-
-
 }

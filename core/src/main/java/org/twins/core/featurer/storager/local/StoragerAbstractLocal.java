@@ -1,11 +1,11 @@
-package org.twins.core.featurer.resource.local;
+package org.twins.core.featurer.storager.local;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamString;
-import org.twins.core.featurer.resource.StoragerAbstractChecked;
+import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -18,8 +18,6 @@ import java.util.UUID;
 
 @Slf4j
 public abstract class StoragerAbstractLocal extends StoragerAbstractChecked {
-
-
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
 

@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource;
+package org.twins.core.featurer.storager;
 
 import io.github.breninsul.io.service.stream.inputStream.CacheReadenInputStream;
 import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
@@ -25,9 +25,9 @@ import java.util.stream.Collectors;
 public abstract class StoragerAbstractChecked extends Storager {
     protected final Tika tika = new Tika();
 
-
     @FeaturerParam(name = "fileSizeLimit", description = "Limit of file size")
     public static final FeaturerParamInt fileSizeLimit = new FeaturerParamInt("fileSizeLimit");
+
     @FeaturerParam(name = "supportedMimeTypes", description = "List of supported mime types")
     public static final FeaturerParamWordList supportedMimeTypes = new FeaturerParamWordList("supportedMimeTypes");
 

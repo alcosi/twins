@@ -1,4 +1,4 @@
-package org.twins.core.featurer.resource.external;
+package org.twins.core.featurer.storager.external;
 
 import io.github.breninsul.io.service.stream.inputStream.CountedLimitedSizeInputStream;
 import lombok.SneakyThrows;
@@ -9,8 +9,8 @@ import org.cambium.featurer.annotations.Featurer;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.resource.AddedFileKey;
-import org.twins.core.featurer.resource.StoragerAbstractChecked;
+import org.twins.core.featurer.storager.AddedFileKey;
+import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2903,
-        name = "StoragerExternalUriFileService",
+        name = "StoragerExternalUri",
         description = "Service to keep and work with external uri")
 @Slf4j
 public class StoragerExternalUri extends StoragerAbstractChecked {
@@ -53,7 +53,6 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
             throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Unable to get file");
         }
     }
-
 
     @Override
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
