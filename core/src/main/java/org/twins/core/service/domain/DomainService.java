@@ -1,5 +1,6 @@
 package org.twins.core.service.domain;
 
+import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
@@ -7,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
@@ -21,12 +23,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.domain.file.DomainFile;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
 import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -36,6 +41,8 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.resource.ResourceService;
+import org.twins.core.service.resource.StorageService;
 import org.twins.core.service.space.SpaceRoleService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
@@ -46,10 +53,7 @@ import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -70,7 +74,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     private final DomainUserRepository domainUserRepository;
     private final DomainBusinessAccountRepository domainBusinessAccountRepository;
     private final EntitySmartService entitySmartService;
-
+    private final ResourceService resourceService;
+    private final StorageService storageService;
     @Lazy
     private final PermissionService permissionService;
 
@@ -95,6 +100,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+    public static final UUID DEFAULT_RESOURCE_STORAGE_ID = UUID.fromString("0194a1cd-fc94-7c0b-9884-e3d45d2bebf3");
 
     @Override
     public CrudRepository<DomainEntity, UUID> entityRepository() {
@@ -133,8 +139,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }
 
-    @Transactional
-    public DomainEntity addDomain(DomainEntity domainEntity) throws ServiceException {
+    @Transactional(readOnly = false, rollbackFor = Throwable.class)
+    public DomainEntity addDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
@@ -146,7 +152,32 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        return processIcons(domainEntity, lightIcon, darkIcon);
+    }
+
+    protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(domainEntity, darkIcon);
+        if (lightIconEntity != null) {
+            domainEntity.setIconLightResourceId(lightIconEntity.getId());
+            domainEntity.setIconLightResource(lightIconEntity);
+        }
+        if (darkIconEntity != null) {
+            domainEntity.setIconDarkResourceId(darkIconEntity.getId());
+            domainEntity.setIconDarkResource(lightIconEntity);
+        }
+        if (darkIconEntity != null || lightIconEntity != null) {
+            domainRepository.save(domainEntity);
+        }
         return domainEntity;
+    }
+
+    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content(), domainEntity.getResourcesStorageId(), domainEntity.getId());
+        } else {
+            return null;
+        }
     }
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
@@ -207,7 +238,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
-        if(domainBusinessAccountEntity.getTierId() == null)
+        if (domainBusinessAccountEntity.getTierId() == null)
             throw new ServiceException(ErrorCodeTwins.TIER_NOT_CONFIGURED_FOR_DOMAIN, "Tier not configured for " + domain.logNormal());
 
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
@@ -361,5 +392,41 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setQuotaSize(0L);
 
         return attachmentQuotas;
+    }
+
+    public void loadResources(Collection<DomainEntity> domains) throws ServiceException {
+        if (CollectionUtils.isEmpty(domains))
+            return;
+        Collection<UUID> resourceIdList = Streams.concat(
+                        domains.stream().map(DomainEntity::getIconDarkResourceId),
+                        domains.stream().map(DomainEntity::getIconLightResourceId))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<UUID, ResourceEntity> resources = resourceService
+                .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .stream()
+                .collect(Collectors.toMap(ResourceEntity::getId, e -> e));
+        domains.forEach(domain -> {
+            domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
+            domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));
+        });
+    }
+
+    public void loadStorages(Collection<DomainEntity> domains) throws ServiceException {
+        if (CollectionUtils.isEmpty(domains))
+            return;
+        Collection<UUID> resourceIdList = Streams.concat(
+                        domains.stream().map(DomainEntity::getResourcesStorageId),
+                        domains.stream().map(DomainEntity::getAttachmentsStorageId))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<UUID, StorageEntity> storages = storageService
+                .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .stream()
+                .collect(Collectors.toMap(StorageEntity::getId, e -> e));
+        domains.forEach(domain -> {
+            domain.setResourcesStorage(storages.get(domain.getResourcesStorageId()));
+            domain.setAttachmentsStorage(storages.get(domain.getAttachmentsStorageId()));
+        });
     }
 }

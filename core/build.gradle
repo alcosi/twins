@@ -112,6 +112,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.apache.tika:tika-core:3.0.0'
+    implementation 'io.github.breninsul:io-stream-commons:1.0.0'
+    implementation 'io.minio:minio:8.5.12'
 }
 
 configurations {
