@@ -93,7 +93,8 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
         Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
-        AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStoragerParams());
+//        AddedFileKey addedFileKey = fileService.addFile(resourceId, inputStream, storage.getStoragerParams());
+        AddedFileKey addedFileKey = fileService.addExternalUrlFile(resourceId, "https://www.gstatic.com/webp/gallery3/1_webp_ll.sm.png", storage.getStoragerParams());
         return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
 
