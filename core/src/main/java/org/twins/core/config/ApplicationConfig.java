@@ -10,9 +10,11 @@ package org.twins.core.config;
 
 
 import com.github.benmanes.caffeine.cache.Caffeine;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.autoconfigure.metrics.MeterRegistryCustomizer;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 import org.springframework.cache.CacheManager;
@@ -78,6 +80,20 @@ public class ApplicationConfig {
     public LoggingFilter loggingFilter() {
         return new LoggingFilter();
     }
+
+    /**
+     * Configures a MeterRegistry with common tags applied to all metrics.
+     * This method customizes the MeterRegistry by adding a common tag
+     * "application" with the value "TWINS".
+     * These common tags are applied
+     * to every metric created in the application, allowing for consistent
+     * tagging and easier identification of metrics.
+     *
+     * @return a customizer for MeterRegistry that applies common tags.
+     */
+    @Bean
+    public MeterRegistryCustomizer<MeterRegistry> meterRegistry() {
+        return (registry) -> registry.config().commonTags("application", "TWINS");}
 
      /**
       * Configures and provides a CacheManager bean using Caffeine as the caching provider.
