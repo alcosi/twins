@@ -186,7 +186,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
     }
 
     /**
-     * Always returns true, becouse it's "public" resources, that will be downloaded by UUID without domain check
+     * Always returns true, because it's "public" resources, that will be downloaded by UUID without domain check
      *
      * @param entity                  the resource entity to be checked for read permissions
      * @param readPermissionCheckMode the mode used for checking read permissions

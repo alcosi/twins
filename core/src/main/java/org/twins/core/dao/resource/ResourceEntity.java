@@ -19,20 +19,26 @@ import java.util.UUID;
 @Table(name = "resource")
 public class ResourceEntity implements EasyLoggable {
     @Id
-    @GeneratedValue(generator = "uuid")
     private UUID id;
+
     @Column(name = "domain_id")
     private UUID domainId;
+
     @Column(name = "uploaded_by_user_id")
     private UUID uploadedByUserId;
+
     @Column(name = "original_file_name")
     private String originalFileName;
+
     @Column(name = "size_in_bytes")
     private Long sizeInBytes;
+
     @Column(name = "storage_file_key")
     private String storageFileKey;
+
     @Column(name = "storage_id")
     private UUID storageId;
+
     @CreationTimestamp
     @Column(name = "created_at")
     private Timestamp createdAt;
@@ -40,9 +46,11 @@ public class ResourceEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "domain_id", insertable = false, updatable = false)
     private DomainEntity domain;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storage_id", insertable = false, updatable = false)
     private StorageEntity storage;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploaded_by_user_id", insertable = false, updatable = false)
     private UserEntity uploadedByUser;
