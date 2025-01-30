@@ -45,7 +45,7 @@ on conflict (id) do update set name=excluded.name,
 
 
 insert into public.storage(id, storager_featurer_id, storager_params, description)
-values ('00000000-0000-0000-0000-e3d45d2bebf3', 2901,
+values ('00000000-0000-0000-0007-000000000001', 2901,
         hstore(ARRAY [
             'selfHostDomainBaseUri', '/',
             'fileSizeLimit', '1000000',
