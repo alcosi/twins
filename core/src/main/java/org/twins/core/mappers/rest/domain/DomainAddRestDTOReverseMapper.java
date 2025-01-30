@@ -15,9 +15,9 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class DomainAddRestDTOReverseMapper extends RestSimpleDTOMapper<DomainCreateRqDTOv1, DomainEntity> {
-    @Value(("${domain.resource.storage.default:0194a1cd-fc94-7c0b-9884-e3d45d2bebf3}"))
+    @Value(("${domain.resource.storage.default:00000000-0000-0000-0000-e3d45d2bebf3}"))
     private UUID defaultResourceStorageId;
-    @Value(("${domain.attachment.storage.default:0194a1cd-fc94-7c0b-9884-e3d45d2bebf3}"))
+    @Value(("${domain.attachment.storage.default:00000000-0000-0000-0000-e3d45d2bebf3}"))
     private UUID defaultAttachmentStorageId;
     private final I18nService i18nService;
 

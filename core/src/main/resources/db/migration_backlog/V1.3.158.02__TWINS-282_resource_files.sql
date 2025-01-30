@@ -40,11 +40,11 @@ COMMENT ON COLUMN public.domain.attachments_storage_id IS 'Storage params that a
 
 
 update public.domain
-set attachments_storage_id='0194a1cd-fc94-7c0b-9884-e3d45d2bebf3'::uuid
+set attachments_storage_id='00000000-0000-0000-0000-e3d45d2bebf3'::uuid
 where attachments_storage_id is null;
 
 update public.domain
-set resources_storage_id='0194a1cd-fc94-7c0b-9884-e3d45d2bebf3'::uuid
+set resources_storage_id='00000000-0000-0000-0000-e3d45d2bebf3'::uuid
 where resources_storage_id is null;
 
 
