@@ -381,26 +381,31 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         if (autoCreatePermissions) {
-            Map<String, PermissionEntity> newPermissions = permissionService.createDefaultPermissionsForNewInDomainClass(twinClassEntity);
+            Map<PermissionService.DefaultClassPermissionsPrefix, PermissionEntity> newPermissions = permissionService.createDefaultPermissionsForNewInDomainClass(twinClassEntity);
+            boolean classPrermissionsChanged = false;
             if (twinClassEntity.getViewPermissionId() == null) {
-                twinClassEntity.setViewPermissionId(newPermissions.get("VIEW").getId());
-                twinClassEntity.setViewPermission(newPermissions.get("VIEW"));
+                twinClassEntity.setViewPermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW).getId());
+                twinClassEntity.setViewPermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW));
+                classPrermissionsChanged = true;
             }
             if (twinClassEntity.getEditPermissionId() == null) {
-                twinClassEntity.setEditPermissionId(newPermissions.get("EDIT").getId());
-                twinClassEntity.setEditPermission(newPermissions.get("EDIT"));
+                twinClassEntity.setEditPermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT).getId());
+                twinClassEntity.setEditPermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT));
+                classPrermissionsChanged = true;
             }
             if (twinClassEntity.getCreatePermissionId() == null) {
-                twinClassEntity.setCreatePermissionId(newPermissions.get("CREATE").getId());
-                twinClassEntity.setCreatePermission(newPermissions.get("CREATE"));
+                twinClassEntity.setCreatePermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE).getId());
+                twinClassEntity.setCreatePermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE));
+                classPrermissionsChanged = true;
             }
             if (twinClassEntity.getDeletePermissionId() == null) {
-                twinClassEntity.setDeletePermissionId(newPermissions.get("DELETE").getId());
-                twinClassEntity.setDeletePermission(newPermissions.get("DELETE"));
+                twinClassEntity.setDeletePermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE).getId());
+                twinClassEntity.setDeletePermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE));
+                classPrermissionsChanged = true;
             }
+            if(classPrermissionsChanged)
+                twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         }
-        //TODO ???? permissionGroup collision
-        twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         refreshExtendsHierarchyTree(twinClassEntity);
         refreshHeadHierarchyTree(twinClassEntity);

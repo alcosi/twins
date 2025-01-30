@@ -216,23 +216,21 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         return permissionRepository.save(createEntity);
     }
 
-    public Map<String, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
+    public Map<DefaultClassPermissionsPrefix, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
         List<PermissionEntity> permissionsForSave = new ArrayList<>();
         PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
-        String[] permissionsPrefixes = {"CREATE", "EDIT", "DELETE", "VIEW"};
-        Map<String, PermissionEntity> newPermissions = new HashMap<>();
-        for (String permissionPrefix : permissionsPrefixes) {
-
+        Map<DefaultClassPermissionsPrefix, PermissionEntity> newPermissions = new HashMap<>();
+        for (DefaultClassPermissionsPrefix permissionPrefix : DefaultClassPermissionsPrefix.values()) {
             I18nEntity nameI18n = new I18nEntity().addTranslation(
                     new I18nTranslationEntity()
                             .setLocale(Locale.ENGLISH)
-                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.toLowerCase() + " permission")
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
             );
 
             I18nEntity descriptionI18n = new I18nEntity().addTranslation(
                     new I18nTranslationEntity()
                             .setLocale(Locale.ENGLISH)
-                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.toLowerCase() + " permission")
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
             );
 
             PermissionEntity permissionEntity = new PermissionEntity()
@@ -498,6 +496,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
         List<UUID> schemasToDelete = permissionSchemaRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(schemasToDelete, permissionSchemaRepository);
+    }
+
+    public enum DefaultClassPermissionsPrefix {
+        VIEW, EDIT, CREATE, DELETE
     }
 
 }

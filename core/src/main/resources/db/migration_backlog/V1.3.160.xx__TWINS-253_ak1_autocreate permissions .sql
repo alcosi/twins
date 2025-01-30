@@ -126,8 +126,21 @@ EXECUTE FUNCTION permissions_autoupdate_on_twin_class_update();
 CREATE OR REPLACE FUNCTION permission_on_delete_i18n_and_translations_delete() RETURNS TRIGGER AS
 $$
 BEGIN
-    DELETE FROM i18n_translation WHERE i18n_id = OLD.name_i18n_id OR i18n_id = OLD.description_i18n_id;
-    DELETE FROM i18n WHERE id = OLD.name_i18n_id OR id = OLD.description_i18n_id;
+    BEGIN
+        DELETE FROM i18n WHERE id = OLD.name_i18n_id;
+        DELETE FROM i18n_translation WHERE i18n_id = OLD.name_i18n_id;
+    EXCEPTION
+        WHEN others THEN
+            RAISE NOTICE 'error: %', SQLERRM;
+    END;
+
+    BEGIN
+        DELETE FROM i18n WHERE id = OLD.description_i18n_id;
+        DELETE FROM i18n_translation where i18n_id = OLD.description_i18n_id;
+    EXCEPTION
+        WHEN others THEN
+            RAISE NOTICE 'error: %', SQLERRM;
+    END;
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
@@ -141,8 +154,21 @@ EXECUTE FUNCTION permission_on_delete_i18n_and_translations_delete();
 CREATE OR REPLACE FUNCTION twin_class_on_delete_i18n_and_translations_delete() RETURNS TRIGGER AS
 $$
 BEGIN
-    DELETE FROM i18n_translation WHERE i18n_id = OLD.name_i18n_id OR i18n_id = OLD.description_i18n_id;
-    DELETE FROM i18n WHERE id = OLD.name_i18n_id OR id = OLD.description_i18n_id;
+    BEGIN
+        DELETE FROM i18n WHERE id = OLD.name_i18n_id;
+        DELETE FROM i18n_translation WHERE i18n_id = OLD.name_i18n_id;
+    EXCEPTION
+        WHEN others THEN
+            RAISE NOTICE 'error: %', SQLERRM;
+    END;
+
+    BEGIN
+        DELETE FROM i18n WHERE id = OLD.description_i18n_id;
+        DELETE FROM i18n_translation where i18n_id = OLD.description_i18n_id;
+    EXCEPTION
+        WHEN others THEN
+            RAISE NOTICE 'error: %', SQLERRM;
+    END;
     RETURN OLD;
 END;
 $$ LANGUAGE plpgsql;
