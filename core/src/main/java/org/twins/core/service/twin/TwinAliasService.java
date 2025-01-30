@@ -69,6 +69,7 @@ public class TwinAliasService {
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
                 addAliasIfNotNull(aliases, createAlias(twin, _D));
+                addAliasIfNotNull(aliases, createAlias(twin, _C));
                 addAliasIfNotNull(aliases, createAlias(twin, _B));
                 addAliasIfNotNull(aliases, createAlias(twin, _K));
                 break;
