@@ -16,6 +16,7 @@ public class FeaturerParamRestDTOMapper extends RestSimpleDTOMapper<FeaturerPara
                 .setKey(src.getKey())
                 .setName(src.getName())
                 .setDescription(src.getDescription())
-                .setType(src.getFeaturerParamTypeId());
+                .setType(src.getFeaturerParamTypeId())
+                .setOrder(src.getOrder());
     }
 }
