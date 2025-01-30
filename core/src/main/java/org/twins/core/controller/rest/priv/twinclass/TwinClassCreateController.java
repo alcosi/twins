@@ -56,7 +56,7 @@ public class TwinClassCreateController extends ApiController {
             TwinClassEntity twinClassEntity = twinClassCreateRestDTOReverseMapper.convert(request);
             I18nEntity nameI18n = i18nRestDTOReverseMapper.convert(request.getNameI18n());
             I18nEntity descriptionsI18n = i18nRestDTOReverseMapper.convert(request.getDescriptionI18n());
-            twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, nameI18n, descriptionsI18n);
+            twinClassEntity = twinClassService.createInDomainClass(twinClassEntity, nameI18n, descriptionsI18n, request.getAutoCreatePermissions());
             rs
                     .setTwinClass(twinClassRestDTOMapper.convert(twinClassEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

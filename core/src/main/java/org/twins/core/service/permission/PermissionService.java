@@ -13,6 +13,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.StreamUtils;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySmartService;
@@ -213,6 +214,39 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
         validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return permissionRepository.save(createEntity);
+    }
+
+    public Map<String, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        List<PermissionEntity> permissionsForSave = new ArrayList<>();
+        PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
+        String[] permissionsPrefixes = {"CREATE", "EDIT", "DELETE", "VIEW"};
+        Map<String, PermissionEntity> newPermissions = new HashMap<>();
+        for (String permissionPrefix : permissionsPrefixes) {
+
+            I18nEntity nameI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.toLowerCase() + " permission")
+            );
+
+            I18nEntity descriptionI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.toLowerCase() + " permission")
+            );
+
+            PermissionEntity permissionEntity = new PermissionEntity()
+                    .setKey(twinClassEntity.getKey() + "_" + permissionPrefix)
+                    .setPermissionGroupId(permissionGroup.getId())
+                    .setPermissionGroup(permissionGroup)
+                    .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                    .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+            validateEntityAndThrow(permissionEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            permissionsForSave.add(permissionEntity);
+            newPermissions.put(permissionPrefix, permissionEntity);
+        }
+        entitySmartService.saveAllAndLog(permissionsForSave, permissionRepository);
+        return newPermissions;
     }
 
     @Transactional(rollbackFor = Throwable.class)
