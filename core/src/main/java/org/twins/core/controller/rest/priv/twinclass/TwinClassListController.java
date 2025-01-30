@@ -34,7 +34,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassListController extends ApiController {
-    private final AuthService authService;
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
