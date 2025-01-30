@@ -6,10 +6,11 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dto.rest.permission.FactoryPipelineStepDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.featurer.FeaturerRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryConditionSetMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineMode;
-import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 
 @Component
 @RequiredArgsConstructor
@@ -23,6 +24,9 @@ public class FactoryPipelineStepRestDTOMapperV2 extends RestSimpleDTOMapper<Twin
     @MapperModePointerBinding(modes = FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.class)
     private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FeaturerMode.FactoryPipelineStep2FeaturerMode.class)
+    private final FeaturerRestDTOMapper featurerRestDTOMapper;
+
     @Override
     public void map(TwinFactoryPipelineStepEntity src, FactoryPipelineStepDTOv2 dst, MapperContext mapperContext) throws Exception {
         factoryPipelineStepRestDTOMapper.map(src, dst, mapperContext);
@@ -34,5 +38,9 @@ public class FactoryPipelineStepRestDTOMapperV2 extends RestSimpleDTOMapper<Twin
             dst
                     .setFactoryConditionSet(factoryConditionSetRestDTOMapper.convertOrPostpone(src.getTwinFactoryConditionSet(), mapperContext.forkOnPoint(FactoryConditionSetMode.FactoryPipelineStep2FactoryConditionSetMode.SHORT)))
                     .setFactoryConditionSetId(src.getTwinFactoryConditionSetId());
+        if (mapperContext.hasModeButNot(FeaturerMode.FactoryPipelineStep2FeaturerMode.HIDE))
+            dst
+                    .setFillerFeaturer(featurerRestDTOMapper.convertOrPostpone(src.getFillerFeaturer(), mapperContext.forkOnPoint(FeaturerMode.FactoryPipelineStep2FeaturerMode.SHORT)))
+                    .setFillerFeaturerId(src.getFillerFeaturerId());
     }
 }

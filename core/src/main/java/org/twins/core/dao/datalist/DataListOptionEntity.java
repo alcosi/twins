@@ -10,7 +10,11 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nEntity;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 @Entity
 @Data
@@ -36,9 +40,6 @@ public class DataListOptionEntity implements EasyLoggable {
 
     @Column(name = "icon")
     private String icon;
-
-    @Column(name = "disabled")
-    private boolean disabled;
 
     @Column(name = "data_list_option_status_id")
     @Convert(converter = DataListOptionStatusConverter.class)
@@ -106,5 +107,9 @@ public class DataListOptionEntity implements EasyLoggable {
             default -> "option[id:" + id + ", dataListId:" + dataListId + ", option:" + option + "]";
         };
 
+    }
+
+    public record AttributeAccessor(Function<DataListOptionEntity, String> getter,
+                                    BiConsumer<DataListOptionEntity, String> setter) {
     }
 }

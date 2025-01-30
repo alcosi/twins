@@ -33,6 +33,7 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
 import org.twins.core.domain.twinoperation.TwinCreate;
+import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
@@ -757,6 +758,32 @@ public class TwinService extends EntitySecureFindServiceImpl<TwinEntity> {
         cloneTwinFieldListAndSave(srcTwin, duplicateEntity);
         twinflowService.runTwinStatusTransitionTriggers(duplicateEntity, null, duplicateEntity.getTwinStatus());
         return duplicateEntity;
+    }
+
+    public TwinDuplicate createDuplicateTwin(UUID srcTwinId, UUID newTwinId) throws ServiceException {
+        return createDuplicateTwin(
+                findEntity(srcTwinId, EntitySmartService.FindMode.ifEmptyThrows, EntitySmartService.ReadPermissionCheckMode.none),
+                newTwinId);
+    }
+
+    public TwinDuplicate createDuplicateTwin(TwinEntity srcTwin, UUID newTwinId) throws ServiceException {
+        TwinDuplicate twinDuplicate = new TwinDuplicate();
+        TwinChangesCollector twinChangesCollector = new TwinChangesCollector();
+        TwinEntity duplicateEntity = srcTwin.clone();
+        fillOwner(duplicateEntity);
+        duplicateEntity
+                .setId(newTwinId)
+                .setCreatedByUserId(authService.getApiUser().getUserId());
+        createTwin(duplicateEntity, twinChangesCollector);
+        cloneTwinFields(srcTwin, duplicateEntity, twinChangesCollector);
+        twinDuplicate.setDuplicate(duplicateEntity);
+        twinDuplicate.setChangesCollector(twinChangesCollector);
+        return twinDuplicate;
+    }
+
+    public void saveDuplicateTwin(TwinDuplicate twinDuplicate) throws ServiceException {
+        twinChangesService.applyChanges(twinDuplicate.getChangesCollector());
+        twinflowService.runTwinStatusTransitionTriggers(twinDuplicate.getDuplicate(), null, twinDuplicate.getDuplicate().getTwinStatus());
     }
 
     public UserEntity getTwinAssignee(UUID twinId) {

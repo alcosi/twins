@@ -23,6 +23,7 @@ public class FactoryPipelineStepRestDTOMapper extends RestSimpleDTOMapper<TwinFa
                         .setFactoryPipelineId(src.getTwinFactoryPipelineId())
                         .setOrder(src.getOrder())
                         .setFactoryConditionSetId(src.getTwinFactoryConditionSetId())
+                        .setFactoryConditionInvert(src.isTwinFactoryConditionInvert())
                         .setActive(src.isActive())
                         .setOptional(src.isOptional())
                         .setFillerFeaturerId(src.getFillerFeaturerId())

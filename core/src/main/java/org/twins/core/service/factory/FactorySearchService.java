@@ -26,6 +26,7 @@ public class FactorySearchService {
     private final AuthService authService;
     private final TwinFactoryRepository twinFactoryRepository;
 
+
     public PaginationResult<TwinFactoryEntity> findFactoriesInDomain(FactorySearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryEntity> spec = createFactorySearchSpecification(search);
         Page<TwinFactoryEntity> ret = twinFactoryRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
@@ -36,10 +37,10 @@ public class FactorySearchService {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), TwinFactoryEntity.Fields.domainId),
-                checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinFactoryEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyLikeList(), false, false),
-                checkFieldLikeIn(TwinFactoryEntity.Fields.key, search.getKeyNotLikeList(), true, true),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryEntity.Fields.id),
+                checkFieldLikeIn(search.getKeyLikeList(), false, false, TwinFactoryEntity.Fields.key),
+                checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinFactoryEntity.Fields.key),
                 joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(TwinFactoryEntity.Fields.nameI18n, search.getNameNotLikeList(), apiUser.getLocale(), true, true),
                 joinAndSearchByI18NField(TwinFactoryEntity.Fields.descriptionI18n, search.getDescriptionLikeList(), apiUser.getLocale(), true, false),

@@ -2,15 +2,15 @@ package org.twins.core.dao.attachment;
 
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
 
 @Data
 public class AttachmentCUDValidateResult {
-    public Set<AttachmentProblem> twinAttachmentProblems;
-    public Map<UUID, Set<AttachmentProblem>> twinFieldAttachmentProblems;
-    public Map<UUID, Set<AttachmentProblem>> twinCommentAttachmentProblems;
-    public List<TwinAttachmentEntity> attachmentsForUpdateDeleteOperations;
+    public AttachmentCUDProblems cudProblems = new AttachmentCUDProblems();
+    public List<TwinAttachmentEntity> attachmentsForUD = new ArrayList<>();
+
+    public boolean hasProblems() {
+        return getCudProblems().hasProblems();
+    }
 }

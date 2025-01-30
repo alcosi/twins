@@ -28,6 +28,8 @@ public class PermissionGrantUserSearchService {
     private final AuthService authService;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
 
+
+
     public PaginationResult<PermissionGrantUserEntity> findPermissionGrantUsersByDomain(PermissionGrantUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<PermissionGrantUserEntity> spec = createPermissionGrantUserSearchSpecification(search, domainId);
@@ -39,15 +41,15 @@ public class PermissionGrantUserSearchService {
 
         return Specification.allOf(
                 checkFieldUuid(domainId, PermissionGrantUserEntity.Fields.permissionSchema, PermissionSchemaEntity.Fields.domainId),
-                checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdList(), false, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.id, search.getIdExcludeList(), true, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdList(), false, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.permissionSchemaId, search.getPermissionSchemaIdExcludeList(), true, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.permissionId, search.getPermissionIdList(), false, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.permissionId, search.getPermissionIdExcludeList(), true, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.userId, search.getUserIdList(), false, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.userId, search.getUserIdExcludeList(), true, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.grantedByUserId, search.getGrantedByUserIdList(), false, true),
-                checkUuidIn(PermissionGrantUserEntity.Fields.grantedByUserId, search.getGrantedByUserIdExcludeList(), true, true));
+                checkUuidIn(search.getIdList(), false, true, PermissionGrantUserEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.id),
+                checkUuidIn(search.getPermissionSchemaIdList(), false, true, PermissionGrantUserEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionSchemaIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.permissionSchemaId),
+                checkUuidIn(search.getPermissionIdList(), false, true, PermissionGrantUserEntity.Fields.permissionId),
+                checkUuidIn(search.getPermissionIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.permissionId),
+                checkUuidIn(search.getUserIdList(), false, true, PermissionGrantUserEntity.Fields.userId),
+                checkUuidIn(search.getUserIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.userId),
+                checkUuidIn(search.getGrantedByUserIdList(), false, true, PermissionGrantUserEntity.Fields.grantedByUserId),
+                checkUuidIn(search.getGrantedByUserIdExcludeList(), true, true, PermissionGrantUserEntity.Fields.grantedByUserId));
     }
 }

@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjectionInterfaceBased;
+import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
@@ -52,18 +52,17 @@ public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValu
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        BasicSearch search = new BasicSearch();
-        search
-                .addHeaderTwinId(factoryItem.getOutput().getTwinEntity().getId())
-                .setTwinIdExcludeList(factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()))
-                .addStatusId(statusIds.extract(properties), false);
         FieldValue greaterValue = fieldLookupers.getFromItemOutputUncommitedFields().lookupFieldValue(factoryItem, greaterTwinClassField.extract(properties));
         double comparison, greater;
-        List<TwinFieldSimpleNoRelationsProjectionInterfaceBased> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldsSimple(search);
-        for(TwinFieldSimpleNoRelationsProjectionInterfaceBased field : twinFieldSimpleValues) {
-            if (field.getTwinClassFieldId().equals(comparisonTwinClassField.extract(properties))) {
+        List<TwinFieldSimpleNoRelationsProjection> twinFieldSimpleValues = twinFieldSimpleSearchService.findTwinFieldsSimple(
+                List.of(factoryItem.getOutput().getTwinEntity().getId()),
+                factoryItem.getFactoryContext().getInputTwinList().stream().map(TwinEntity::getId).collect(Collectors.toSet()),
+                statusIds.extract(properties)
+        );
+        for(TwinFieldSimpleNoRelationsProjection field : twinFieldSimpleValues) {
+            if (field.twinClassFieldId().equals(comparisonTwinClassField.extract(properties))) {
                 try {
-                    Number greaterNumber = NumberUtils.createNumber(field.getValue());
+                    Number greaterNumber = NumberUtils.createNumber(field.value());
                     comparison = greaterNumber.doubleValue();
                 } catch (Exception e) {
                     throw new ServiceException(ErrorCodeTwins.FACTORY_MULTIPLIER_ERROR, "greaterTwinClassField[" + greaterTwinClassField + "] can not be converted to number");

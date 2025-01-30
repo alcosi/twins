@@ -9,11 +9,10 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.twins.core.dao.twin.TwinTagEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -108,6 +107,9 @@ public class DataListEntity implements EasyLoggable {
     @OneToMany(mappedBy = "dataList")
     @EqualsAndHashCode.Exclude
     private Collection<DataListOptionEntity> dataListOptions;
+
+    @Transient
+    private Map<String, DataListOptionEntity.AttributeAccessor> attributes;
 
     public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";

@@ -13,9 +13,9 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.StreamUtils;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.repository.CrudRepository;
@@ -33,9 +33,10 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.domain.TwinRole;
+import org.twins.core.domain.permission.PermissionCheckForTwinOverviewResult;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.space.SpaceUserRoleService;
@@ -43,13 +44,14 @@ import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionService extends EntitySecureFindServiceImpl<PermissionEntity> {
+public class PermissionService extends TwinsEntitySecureFindService<PermissionEntity> {
 
     private final PermissionRepository permissionRepository;
     private final PermissionSchemaRepository permissionSchemaRepository;
@@ -88,6 +90,12 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
     @Override
     public Function<PermissionEntity, UUID> entityGetIdFunction() {
         return PermissionEntity::getId;
+    }
+
+    @Override
+    public BiFunction<UUID, String, Optional<PermissionEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        //todo that is not uniq safe! domain_id should be also added to permission entity
+        return permissionRepository::findByPermissionGroup_DomainIdAndKey;
     }
 
     @Override
@@ -206,6 +214,37 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
         validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return permissionRepository.save(createEntity);
+    }
+
+    public Map<DefaultClassPermissionsPrefix, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        List<PermissionEntity> permissionsForSave = new ArrayList<>();
+        PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
+        Map<DefaultClassPermissionsPrefix, PermissionEntity> newPermissions = new HashMap<>();
+        for (DefaultClassPermissionsPrefix permissionPrefix : DefaultClassPermissionsPrefix.values()) {
+            I18nEntity nameI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
+            );
+
+            I18nEntity descriptionI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
+            );
+
+            PermissionEntity permissionEntity = new PermissionEntity()
+                    .setKey(twinClassEntity.getKey() + "_" + permissionPrefix)
+                    .setPermissionGroupId(permissionGroup.getId())
+                    .setPermissionGroup(permissionGroup)
+                    .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                    .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+            validateEntityAndThrow(permissionEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            permissionsForSave.add(permissionEntity);
+            newPermissions.put(permissionPrefix, permissionEntity);
+        }
+        entitySmartService.saveAllAndLog(permissionsForSave, permissionRepository);
+        return newPermissions;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -457,6 +496,10 @@ public class PermissionService extends EntitySecureFindServiceImpl<PermissionEnt
 
         List<UUID> schemasToDelete = permissionSchemaRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(schemasToDelete, permissionSchemaRepository);
+    }
+
+    public enum DefaultClassPermissionsPrefix {
+        VIEW, EDIT, CREATE, DELETE
     }
 
 }

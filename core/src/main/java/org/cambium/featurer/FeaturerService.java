@@ -7,6 +7,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
@@ -14,6 +16,7 @@ import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
+import org.cambium.featurer.dao.specifications.FeaturerSpecification;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,19 +25,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import org.cambium.featurer.dao.specifications.FeaturerSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FeaturerSearch;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
+import static org.springframework.data.jpa.domain.Specification.allOf;
 import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
 
 @Component
@@ -117,6 +117,7 @@ public class FeaturerService {
     private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Set<String> featurerParamsKeySet = new HashSet<>();
+// Include fields from parent classes
         for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
@@ -145,6 +146,7 @@ public class FeaturerService {
         }
         featurerParamsMap.put(featurerAnnotation.id(), featurerParamsKeySet);
     }
+
 
     private static Set<FeaturerParamType> syncedFeaturerParamTypes = new HashSet<>();
 
@@ -291,7 +293,7 @@ public class FeaturerService {
         return allOf(
                 checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false),
                 checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false),
-                checkFieldLikeIn(FeaturerEntity.Fields.name, featurerSearch.getNameLikeList(), false,true));
+                checkFieldLikeIn(featurerSearch.getNameLikeList(), false, true, FeaturerEntity.Fields.name));
     }
 
     public FeaturerEntity checkValid(Integer featurerId, HashMap<String, String> featurerParams, Class<? extends Featurer> expectedFeaturerClass) throws ServiceException {
