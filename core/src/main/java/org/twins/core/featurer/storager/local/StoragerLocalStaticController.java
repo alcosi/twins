@@ -41,7 +41,7 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
 
     @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where files should be saved.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.",
             optional = true,
-            defaultValue = "/opt/resource/",
+            defaultValue = "/opt/resources/{domainId}/{businessAccountId}",
             exampleValues = {"/opt/resource/", "/opt/resources/{domainId}/{businessAccountId}"}
     )
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
