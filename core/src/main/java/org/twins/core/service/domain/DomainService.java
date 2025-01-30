@@ -101,7 +101,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
-    public static final UUID DEFAULT_RESOURCE_STORAGE_ID = UUID.fromString("0194a1cd-fc94-7c0b-9884-e3d45d2bebf3");
+
 
     @Override
     public CrudRepository<DomainEntity, UUID> entityRepository() {
