@@ -15,8 +15,10 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class DomainAddRestDTOReverseMapper extends RestSimpleDTOMapper<DomainCreateRqDTOv1, DomainEntity> {
-    @Value(("${domain.resource-storage.default:0194a1cd-fc94-7c0b-9884-e3d45d2bebf3}"))
+    @Value(("${domain.resource.storage.default:0194a1cd-fc94-7c0b-9884-e3d45d2bebf3}"))
     private UUID defaultResourceStorageId;
+    @Value(("${domain.attachment.storage.default:0194a1cd-fc94-7c0b-9884-e3d45d2bebf3}"))
+    private UUID defaultAttachmentStorageId;
     private final I18nService i18nService;
 
     @Override
@@ -26,7 +28,7 @@ public class DomainAddRestDTOReverseMapper extends RestSimpleDTOMapper<DomainCre
                 .setDescription(src.description())
                 .setDomainType(src.type)
                 .setResourcesStorageId(src.resourceStorageId == null ? defaultResourceStorageId : src.resourceStorageId)
-                .setAttachmentsStorageId(src.attachmentStorageId == null ? defaultResourceStorageId : src.attachmentStorageId)
+                .setAttachmentsStorageId(src.attachmentStorageId == null ? defaultAttachmentStorageId : src.attachmentStorageId)
                 .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.defaultLocale));
     }
 }

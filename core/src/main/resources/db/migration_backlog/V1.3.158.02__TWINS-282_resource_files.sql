@@ -9,19 +9,7 @@ create table if not exists public.storage
     updated_at          timestamp not null             default current_timestamp
 );
 
-insert into public.storage(id, storager_featurer_id, storager_params, description)
-values ('0194a1cd-fc94-7c0b-9884-e3d45d2bebf3', 2901,
-        hstore(ARRAY [
-            'selfHostDomainBaseUri', '/',
-            'fileSizeLimit', '1000000',
-            'supportedMimeTypes','*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
-            'baseLocalPath','/opt/resource/',
-            'relativeFileUri','public/resource/{id}/v1',
-            'downloadExternalFileConnectionTimeout','60000'
-            ]
-        ),
-        'Domain icon/logo local storage resource')
-on conflict (id) do update set storager_params=excluded.storager_params;
+
 
 create table if not exists public.resource
 (

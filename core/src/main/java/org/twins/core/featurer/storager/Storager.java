@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerType;
-import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +23,6 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.UUID;
 
 /**
@@ -36,18 +34,13 @@ import java.util.UUID;
         description = "Services for file uploading")
 @Slf4j
 public abstract class Storager extends FeaturerTwins {
-    @FeaturerParam(name = "selfHostDomainBaseUri", description = "external URI/domain of twins application to create resource links")
+    @FeaturerParam(name = "selfHostDomainBaseUri", description = "URI where TWINS app is hosted and can be accessed externally. Can be relative '/' for most cases")
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
-
-    @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
-    public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
-
-    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "Connection timeout when getting file")
-    public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
     @Autowired
     protected AuthService authService;
 
+    protected abstract Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException;
 
     protected Optional<UUID> getDomainId() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -80,12 +73,7 @@ public abstract class Storager extends FeaturerTwins {
      * @return the URI of the file controller as a string.
      * @throws ServiceException if an error occurs while constructing the URI.
      */
-    public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
-        Properties properties = extractProperties(params, false);
-        String relativePath = relativeFileUri.extract(properties);
-        String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + relativePath;
-    }
+    abstract public String getFileControllerUri(HashMap<String, String> params) throws ServiceException;
 
     /**
      * Provides a mechanism to retrieve a file as an InputStream using the given file key and parameters.
@@ -224,9 +212,7 @@ public abstract class Storager extends FeaturerTwins {
      * @throws InterruptedException if the operation is interrupted during execution
      */
     protected HttpResponse<InputStream> getInputStreamHttpResponse(URI uri, HashMap<String, String> params) throws ServiceException, IOException, InterruptedException {
-        Properties properties = extractProperties(params, false);
-        Integer timeout = downloadExternalFileConnectionTimeout.extract(properties);
-        Duration timeoutDuration = Duration.ofMillis(timeout == null ? 60000 : timeout);
+        Duration timeoutDuration = getDownloadExternalFileConnectionTimeout(params);
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
                 .GET()

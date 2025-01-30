@@ -7,6 +7,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
@@ -14,6 +15,7 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 
 import java.io.InputStream;
 import java.net.URI;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -22,30 +24,45 @@ import java.util.UUID;
 @Component
 @Featurer(id = FeaturerTwins.ID_2904,
         name = "StoragerS3",
-        description = "Service to save files to S3 and serve in controller")
+        description = "Service to save files to S3 and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
-public class StoragerS3 extends StoragerAbstractChecked {
+public class StoragerS3StaticController extends StoragerAbstractChecked {
     protected final Long DEFAULT_PART_SIZE = 10485760L;
 
-    @FeaturerParam(name = "s3Uri", description = "Uri to work with s3")
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\nSet 0 to use default value")
+    public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
+
+    @FeaturerParam(name = "s3Uri", description = "URI of s3 server")
     public static final FeaturerParamString s3Uri = new FeaturerParamString("s3Uri");
 
-    @FeaturerParam(name = "s3Region", description = "Region config for s3")
+    @FeaturerParam(name = "s3Region", description = "Region config for s3.\n Can be 'aws-global' for S3 comparable storages lice MinIO")
     public static final FeaturerParamString s3Region = new FeaturerParamString("s3Region");
 
-    @FeaturerParam(name = "s3Bucket", description = "Bucket of s3")
+    @FeaturerParam(name = "s3Bucket", description = "S3 bucket")
     public static final FeaturerParamString s3Bucket = new FeaturerParamString("s3Bucket");
 
-    @FeaturerParam(name = "s3AccessKey", description = "Access key for s3")
+    @FeaturerParam(name = "s3AccessKey", description = "Access key (username) for S3")
     public static final FeaturerParamString s3AccessKey = new FeaturerParamString("s3AccessKey");
 
-    @FeaturerParam(name = "s3SecretKey", description = "Secret key for s3")
+    @FeaturerParam(name = "s3SecretKey", description = "Secret key (password) for S3")
     public static final FeaturerParamString s3SecretKey = new FeaturerParamString("s3SecretKey");
 
-    @FeaturerParam(name = "basePath", description = "Base path of directory(key) where to save files")
+    @FeaturerParam(name = "basePath", description = "Prefix for file keys.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.\n Example:'/twins-resources/{domainId}/{businessAccountId}'")
     public static final FeaturerParamString basePath = new FeaturerParamString("basePath");
 
+    @Override
+    protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        Integer extracted = downloadExternalFileConnectionTimeout.extract(properties);
+        return Duration.ofMillis(extracted == null || extracted < 1 ? 60000 : extracted.longValue());
+    }
 
+    @Override
+    public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
+        return urlDomain + "public/resource/{id}/v1";
+    }
     @SneakyThrows
     protected MinioClient getS3MinioClient(HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
@@ -97,7 +114,6 @@ public class StoragerS3 extends StoragerAbstractChecked {
         }
     }
 
-
     @Override
     public InputStream getFileAsStream(String fileKey, HashMap<String, String> params) throws ServiceException {
         try {
@@ -125,9 +141,9 @@ public class StoragerS3 extends StoragerAbstractChecked {
     @Override
     public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
-        String baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
-        String businessDomain = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
+        String domainId = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
         String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
-        return baseLocalPathString + businessDomain + businessAccount + fileId;
+        String baseLocalPathString = addSlashAtTheEndIfNeeded(basePath.extract(properties));
+        return baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + addSlashAtTheEndIfNeeded(fileId.toString());
     }
 }

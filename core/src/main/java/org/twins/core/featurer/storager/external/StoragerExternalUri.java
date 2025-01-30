@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
@@ -15,7 +17,9 @@ import org.twins.core.featurer.storager.StoragerAbstractChecked;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.util.HashMap;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,7 +29,15 @@ import java.util.UUID;
         description = "Service to keep and work with external uri")
 @Slf4j
 public class StoragerExternalUri extends StoragerAbstractChecked {
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "When file is added as external URI, basically there is no need to download it.\n But if Mime-Type or Size limit check is set, file should be partly downloaded to perform check..\n Set 0 to use default value")
+    public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
+    @Override
+    protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        Integer extracted = downloadExternalFileConnectionTimeout.extract(properties);
+        return Duration.ofMillis(extracted == null || extracted < 1 ? 60000 : extracted.longValue());
+    }
     @Override
     public URI getFileUri(UUID fileId, String fileKey, HashMap<String, String> params) throws ServiceException {
         return URI.create(fileKey);
@@ -74,7 +86,7 @@ public class StoragerExternalUri extends StoragerAbstractChecked {
         try {
             Integer fileSizeLimit = getFileSizeLimit(params);
             Set<String> supportedMimeTypes = getSupportedMimeTypes(params);
-            boolean haveToCheckSize = fileSizeLimit != null && fileSizeLimit > -1;
+            boolean haveToCheckSize = fileSizeLimit != null && fileSizeLimit > -1 && fileSizeLimit < Integer.MAX_VALUE;
             boolean haveToCheckMimeType = supportedMimeTypes != null && !supportedMimeTypes.isEmpty();
             if (!haveToCheckSize && !haveToCheckMimeType) {
                 return new AddedFileKey(externalUri, -1);

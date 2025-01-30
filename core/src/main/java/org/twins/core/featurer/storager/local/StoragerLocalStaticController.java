@@ -5,6 +5,7 @@ import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
+import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
@@ -14,6 +15,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -21,20 +23,28 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2901,
-        name = "StoragerLocalController",
-        description = "Service to save files in local file system")
+        name = "StoragerLocalStaticController",
+        description = "Service to save files in local file system and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
-public class StoragerLocal extends StoragerAbstractChecked {
-    @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where to save files")
+public class StoragerLocalStaticController extends StoragerAbstractChecked {
+
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\nSet 0 to use default value")
+    public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
+
+    @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where files should be saved.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.\n Example:'/opt/resources/{domainId}/{businessAccountId}'")
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
+    @Override
+    protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        Integer extracted = downloadExternalFileConnectionTimeout.extract(properties);
+        return Duration.ofMillis(extracted == null || extracted < 1 ? 60000 : extracted.longValue());
+    }
 
     @Override
-    public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
+    public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
-        String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
-        String businessDomain = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
-        String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
-        return baseLocalPathString + businessDomain + businessAccount + fileId;
+        String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
+        return urlDomain + "public/resource/{id}/v1";
     }
 
     @Override
@@ -88,5 +98,12 @@ public class StoragerLocal extends StoragerAbstractChecked {
         return addSlashAtTheEndIfNeeded(localPath);
     }
 
-
+    @Override
+    public String generateFileKey(UUID fileId, HashMap<String, String> params) throws ServiceException {
+        Properties properties = extractProperties(params, false);
+        String domainId = addSlashAtTheEndIfNeeded(getDomainId().map(UUID::toString).orElse("defaultDomain"));
+        String businessAccount = addSlashAtTheEndIfNeeded(getBusinessAccountId().map(UUID::toString).orElse("defaultBusinessAccount"));
+        String baseLocalPathString = addSlashAtTheEndIfNeeded(baseLocalPath.extract(properties));
+        return baseLocalPathString.replace("{domainId}", domainId).replace("{businessAccountId}", businessAccount) + addSlashAtTheEndIfNeeded(fileId.toString());
+    }
 }
