@@ -27,7 +27,7 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity> {
     protected final FeaturerService featurerService;
-    protected final ResourceRepository repository;
+    protected final ResourceRepository resourceRepository;
     protected final StorageService storageService;
     protected final AuthService authService;
 
@@ -61,8 +61,8 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         UUID resourceId = UUID.randomUUID();
         ApiUser apiUser = authService.getApiUser();
         StorageEntity storage = storageService.findEntitySafe(apiUser.getDomain().getResourcesStorageId());
-        Storager fileService = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
-        AddedFileKey addedFileKey = fileService.addExternalUrlFile(resourceId, externalResourceUri, storage.getStoragerParams());
+        Storager storager = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
+        AddedFileKey addedFileKey = storager.addExternalUrlFile(resourceId, externalResourceUri, storage.getStoragerParams());
         return createResource(storage, originalFileName, resourceId, addedFileKey);
     }
 
@@ -109,7 +109,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
                 .setSizeInBytes(addedFileKey.fileSize())
                 .setStorageFileKey(addedFileKey.fileKey());
         validateEntity(resource, EntitySmartService.EntityValidateMode.beforeSave);
-        return repository.save(resource);
+        return resourceRepository.save(resource);
     }
 
     /**
@@ -126,7 +126,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
         StorageEntity storage = resource.getStorage();
         Storager storager = featurerService.getFeaturer(storage.getStorageFeaturer(), Storager.class);
         storager.tryDeleteFile(resource.getStorageFileKey(), storage.getStoragerParams());
-        repository.delete(resource);
+        entitySmartService.deleteAndLog(resource.getId(), resourceRepository);
     }
 
     /**
@@ -160,9 +160,9 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
                 .setSizeInBytes(addedFileKey.fileSize())
                 .setStorageFileKey(addedFileKey.fileKey());
         validateEntity(newResource, EntitySmartService.EntityValidateMode.beforeSave);
-        newResource = repository.save(newResource);
+        newResource = resourceRepository.save(newResource);
         oldStorager.tryDeleteFile(resource.getStorageFileKey(), oldStorage.getStoragerParams());
-        repository.delete(resource);
+        resourceRepository.delete(resource);
         return newResource;
     }
 
@@ -177,7 +177,7 @@ public class ResourceService extends EntitySecureFindServiceImpl<ResourceEntity>
 
     @Override
     public CrudRepository<ResourceEntity, UUID> entityRepository() {
-        return repository;
+        return resourceRepository;
     }
 
     @Override
