@@ -25,17 +25,17 @@ create table if not exists public.resource
 COMMENT ON COLUMN public.resource.storage_file_key IS 'Represents key/path to resource. Like local storage path, S3 key or external URI';
 
 alter table public.domain
-    add column icon_dark_resource_id uuid references public.resource on update cascade;
+    add column if not exists icon_dark_resource_id uuid references public.resource on update cascade;
 
 alter table public.domain
-    add column icon_light_resource_id uuid references public.resource on update cascade;
+    add column if not exists icon_light_resource_id uuid references public.resource on update cascade;
 
 alter table public.domain
-    add column resources_storage_id uuid references public.storage on update cascade;
+    add column if not exists resources_storage_id uuid references public.storage on update cascade;
 COMMENT ON COLUMN public.domain.resources_storage_id IS 'Storage params that are used to create new resources';
 
 alter table public.domain
-    add column attachments_storage_id uuid references public.storage on update cascade;
+    add column if not exists attachments_storage_id uuid references public.storage on update cascade;
 COMMENT ON COLUMN public.domain.attachments_storage_id IS 'Storage params that are used to create new attachments';
 
 
