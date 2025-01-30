@@ -33,6 +33,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Autowired
     private List<HandlerMapping> handlerMappings;
     public static final String REQUEST_LOG_ID = "RequestLogId";
+
     public static final String CONTROLLER_METHOD = "ControllerMethod";
     public static final Random RANDOM = new Random();
 
@@ -58,7 +59,8 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logRequest(ContentCachingRequestWrapper request, String rqId) {
             logHeaders(request, List.of(HEADER_DOMAIN_ID, HEADER_CHANNEL, HEADER_BUSINESS_ACCOUNT_ID, HEADER_LOCALE));
             Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
-            logContent(request.getContentAsByteArray(), request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
+            byte[] content = request.getContentAsByteArray();
+            logContent(content, request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
         }
 
         private void logHeaders(ContentCachingRequestWrapper request, List<String> headerNameList) {
