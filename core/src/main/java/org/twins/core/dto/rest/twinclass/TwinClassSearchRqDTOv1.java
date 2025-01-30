@@ -10,11 +10,12 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinClassListRqV1")
 public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id list")
@@ -55,6 +56,18 @@ public class TwinClassSearchRqDTOv1 extends Request {
 
     @Schema(description = "owner type exclude list")
     public List<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+
+    @Schema(description = "marker data list id list")
+    public Set<UUID> markerDatalistIdList;
+
+    @Schema(description = "marker data list id exclude list")
+    public Set<UUID> markerDatalistIdExcludeList;
+
+    @Schema(description = "tag data list id list")
+    public Set<UUID> tagDatalistIdList;
+
+    @Schema(description = "tag data list id exclude list")
+    public Set<UUID> tagDatalistIdExcludeList;
 
     @Schema(description = "twin class is abstract", example = DTOExamples.TERNARY)
     public Ternary abstractt;

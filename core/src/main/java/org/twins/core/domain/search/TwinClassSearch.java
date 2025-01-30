@@ -26,6 +26,10 @@ public class TwinClassSearch {
     Set<UUID> extendsTwinClassIdExcludeList;
     Set<TwinClassEntity.OwnerType> ownerTypeList;
     Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    private Set<UUID> markerDatalistIdList;
+    private Set<UUID> markerDatalistIdExcludeList;
+    private Set<UUID> tagDatalistIdList;
+    private Set<UUID> tagDatalistIdExcludeList;
     Ternary abstractt;
     Ternary twinflowSchemaSpace;
     Ternary twinClassSchemaSpace;
