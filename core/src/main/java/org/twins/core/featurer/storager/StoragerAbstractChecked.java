@@ -24,10 +24,17 @@ import java.util.stream.Collectors;
 public abstract class StoragerAbstractChecked extends Storager {
     protected final Tika tika = new Tika();
 
-    @FeaturerParam(name = "fileSizeLimit", description = "Maximum file size to save.\nSet -1 or to prevent check.\n Example:'10000000'")
+    @FeaturerParam(name = "fileSizeLimit", description = "Maximum file size to save.\nSet -1 or to prevent check.",
+            optional = true,
+            defaultValue = "-1",
+            exampleValues = {"-1", "5242880", "1000000"}
+    )
     public static final FeaturerParamInt fileSizeLimit = new FeaturerParamInt("fileSizeLimit");
 
-    @FeaturerParam(name = "supportedMimeTypes", description = "List of supported mime types.\nSet empty list to prevent check.\n Example:'image/*' or 'image/png,image/webp'")
+    @FeaturerParam(name = "supportedMimeTypes", description = "List of supported mime types.\nSet empty list to prevent check.",
+            optional = true,
+            defaultValue = "*",
+            exampleValues = {"image/*", "image/png,image/webp", "*/png", "*/webp", "*", "*/*"})
     public static final FeaturerParamWordList supportedMimeTypes = new FeaturerParamWordList("supportedMimeTypes");
 
 
@@ -57,6 +64,10 @@ public abstract class StoragerAbstractChecked extends Storager {
         Properties properties = extractProperties(params, false);
         List<String> list = supportedMimeTypes.extract(properties);
         if (list == null || list.isEmpty()) {
+            return Collections.emptySet();
+        }
+        Set<String> allMediaTypes = Set.of("*", "*/*");
+        if (list.stream().anyMatch(allMediaTypes::contains)) {
             return Collections.emptySet();
         }
         return list.stream().map(String::toLowerCase).collect(Collectors.toSet());

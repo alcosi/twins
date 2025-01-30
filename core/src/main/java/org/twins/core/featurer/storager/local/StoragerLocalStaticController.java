@@ -7,6 +7,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
@@ -27,12 +28,24 @@ import java.util.UUID;
         description = "Service to save files in local file system and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
 public class StoragerLocalStaticController extends StoragerAbstractChecked {
+    @Value("${server.servlet.context-path:}")
+    protected String contextPath;
 
-    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\nSet 0 to use default value")
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
+            description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
+            optional = true,
+            defaultValue = "60000",
+            exampleValues = {"60000", "1000"}
+    )
     public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
-    @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where files should be saved.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.\n Example:'/opt/resources/{domainId}/{businessAccountId}'")
+    @FeaturerParam(name = "baseLocalPath", description = "Base local path of directory where files should be saved.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.",
+            optional = true,
+            defaultValue = "/opt/resource/",
+            exampleValues = {"/opt/resource/", "/opt/resources/{domainId}/{businessAccountId}"}
+    )
     public static final FeaturerParamString baseLocalPath = new FeaturerParamString("baseLocalPath");
+
     @Override
     protected Duration getDownloadExternalFileConnectionTimeout(HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);
@@ -42,9 +55,10 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
 
     @Override
     public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
+        String controllerPath = "public/resource/{id}/v1";
         Properties properties = extractProperties(params, false);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + "public/resource/{id}/v1";
+        return removeDoubleSlashes(urlDomain + addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(controllerPath));
     }
 
     @Override
@@ -79,7 +93,7 @@ public class StoragerLocalStaticController extends StoragerAbstractChecked {
 
     @Override
     public void deleteFile(String fileKey, HashMap<String, String> params) throws ServiceException {
-        String resourcePath = getLocalPath(params) + fileKey;
+        String resourcePath = fileKey;
         try {
             if (Files.deleteIfExists(Paths.get(resourcePath))) {
                 log.info("Successfully deleted resource: {}", resourcePath);
