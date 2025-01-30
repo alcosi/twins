@@ -39,6 +39,22 @@ alter table public.domain
 COMMENT ON COLUMN public.domain.attachments_storage_id IS 'Storage params that are used to create new attachments';
 
 
+
+
+
+insert into public.storage(id, storager_featurer_id, storager_params, description)
+values ('00000000-0000-0000-0007-000000000001', 2901,
+        hstore(ARRAY [
+            'selfHostDomainBaseUri', '/',
+            'fileSizeLimit', '1000000',
+            'supportedMimeTypes','*/ico,*/icns,*/ico,*/svg,*/svg+xml,*/webp,*/png,*/gif,*/jpeg,*/jpg,*/jpeg-lossless',
+            'baseLocalPath','/opt/resource/{domainId}/{businessAccountId}',
+            'downloadExternalFileConnectionTimeout','60000'
+            ]
+        ),
+        'Domain icon/logo local storage resource')
+on conflict (id) do update set storager_params=excluded.storager_params;
+
 update public.domain
 set attachments_storage_id='00000000-0000-0000-0007-000000000001'::uuid
 where attachments_storage_id is null;
@@ -46,5 +62,3 @@ where attachments_storage_id is null;
 update public.domain
 set resources_storage_id='00000000-0000-0000-0007-000000000001'::uuid
 where resources_storage_id is null;
-
-
