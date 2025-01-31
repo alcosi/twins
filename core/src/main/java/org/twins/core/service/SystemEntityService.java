@@ -45,7 +45,8 @@ public class SystemEntityService {
     public void postConstruct() throws ServiceException {
         UserEntity systemUser = new UserEntity()
                 .setId(USER_SYSTEM)
-                .setName("SYSTEM");
+                .setName("SYSTEM")
+                .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(USER_SYSTEM, systemUser, userRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinClassEntity twinClassEntity;
@@ -53,13 +54,15 @@ public class SystemEntityService {
                 .setId(TWIN_CLASS_USER)
                 .setKey("USER")
                 .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
-                .setCreatedByUserId(USER_SYSTEM);
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
         twinClassEntity = new TwinClassEntity()
                 .setId(TWIN_CLASS_BUSINESS_ACCOUNT)
                 .setKey("BUSINESS_ACCOUNT")
                 .setOwnerType(TwinClassEntity.OwnerType.SYSTEM)
-                .setCreatedByUserId(USER_SYSTEM);
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         entitySmartService.save(twinClassEntity.getId(), twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.ifNotPresentCreate);
 
         TwinStatusEntity twinStatusEntity;
@@ -118,7 +121,8 @@ public class SystemEntityService {
                 .setDomainId(domainId)
                 .setKey("DOMAIN_BUSINESS_ACCOUNT")
                 .setOwnerType(TwinClassEntity.OwnerType.DOMAIN_BUSINESS_ACCOUNT)
-                .setCreatedByUserId(USER_SYSTEM);
+                .setCreatedByUserId(USER_SYSTEM)
+                .setCreatedAt(Timestamp.from(Instant.now()));
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         TwinStatusEntity twinStatusEntity = new TwinStatusEntity()
                 .setTwinClassId(twinClassEntity.getId());

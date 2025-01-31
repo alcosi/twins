@@ -24,6 +24,9 @@ public class FactoryPipelineStepDTOv1 {
     @Schema(description = "factory condition set id", example = DTOExamples.FACTORY_CONDITION_SET_ID)
     public UUID factoryConditionSetId;
 
+    @Schema(description = "factory condition invert", example = DTOExamples.BOOLEAN_TRUE)
+    public Boolean factoryConditionInvert;
+
     @Schema(description = "is active", example = DTOExamples.BOOLEAN_TRUE)
     public Boolean active;
 

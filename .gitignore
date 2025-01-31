@@ -44,7 +44,11 @@ out/
 *.iml
 *.ipr
 *.iws
-
+/core/build
+/core/.idea
+/logs
+/core/gradle
+gradle
 ##############################
 ## Eclipse
 ##############################
@@ -83,3 +87,7 @@ nb-configuration.xml
 ## OS X
 ##############################
 .DS_Store
+/gradlew.bat
+/gradlew
+/dev/
+/core/src/main/resources/application-devlocal.properties

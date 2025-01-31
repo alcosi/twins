@@ -12,7 +12,8 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 public enum DataListMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
-    @FieldNameConstants.Include DETAILED(2);
+    @FieldNameConstants.Include DETAILED(2),
+    @FieldNameConstants.Include MANAGED(3);
 
     final int priority;
 
@@ -22,7 +23,8 @@ public enum DataListMode implements MapperMode {
     public enum DataListOption2DataListMode implements MapperModePointer<DataListMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
-        @FieldNameConstants.Include DETAILED(2);
+        @FieldNameConstants.Include DETAILED(2),
+        @FieldNameConstants.Include MANAGED(3);
 
         final int priority;
 
@@ -32,6 +34,7 @@ public enum DataListMode implements MapperMode {
                 case HIDE -> DataListMode.HIDE;
                 case SHORT -> DataListMode.SHORT;
                 case DETAILED -> DataListMode.DETAILED;
+                case MANAGED -> DataListMode.MANAGED;
             };
         }
     }

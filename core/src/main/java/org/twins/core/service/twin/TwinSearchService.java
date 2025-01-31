@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.FeaturerService;
@@ -24,14 +26,11 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.domain.search.SearchByAlias;
-import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.search.criteriabuilder.SearchCriteriaBuilder;
 import org.twins.core.featurer.search.detector.SearchDetector;
 import org.twins.core.service.auth.AuthService;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.user.UserGroupService;
@@ -44,6 +43,9 @@ import static org.cambium.common.util.MapUtils.narrowMapOfSets;
 import static org.cambium.common.util.PaginationUtils.sortType;
 import static org.cambium.common.util.SetUtils.narrowSet;
 import static org.springframework.data.jpa.domain.Specification.where;
+import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.createTwinEntityBasicSearchSpecification;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
+import static org.twins.core.dao.specifications.CommonSpecification.checkPermissions;
 import static org.twins.core.dao.specifications.twin.TwinSpecification.*;
 
 @Service
@@ -63,40 +65,6 @@ public class TwinSearchService {
     private final AuthService authService;
     private final EntitySmartService entitySmartService;
 
-    private Specification<TwinEntity> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch) throws ServiceException {
-        Specification<TwinEntity> spec = where(
-                checkTwinLinks(twinSearch.getLinksAnyOfList(), twinSearch.getLinksNoAnyOfList(), twinSearch.getLinksAllOfList(), twinSearch.getLinksNoAllOfList())
-                        .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdList(), false, false))
-                        .and(checkUuidIn(TwinEntity.Fields.id, twinSearch.getTwinIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinEntity.Fields.name, twinSearch.getTwinNameLikeList(),  false, true))
-                        .and(checkFieldLikeIn(TwinEntity.Fields.name, twinSearch.getTwinNameNotLikeList(), true, true))
-                        .and(checkFieldLikeIn(TwinEntity.Fields.description, twinSearch.getTwinDescriptionLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinEntity.Fields.description, twinSearch.getTwinDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, twinSearch.getAssigneeUserIdList(), false, false))
-                        .and(checkUuidIn(TwinEntity.Fields.assignerUserId, twinSearch.getAssigneeUserIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, twinSearch.getCreatedByUserIdList(), false, false))
-                        .and(checkUuidIn(TwinEntity.Fields.createdByUserId, twinSearch.getCreatedByUserIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, twinSearch.getStatusIdList(), false, false))
-                        .and(checkUuidIn(TwinEntity.Fields.headTwinId, twinSearch.getHeaderTwinIdList(), false, false))
-                        .and(checkHierarchyContainsAny(TwinEntity.Fields.hierarchyTree, twinSearch.getHierarchyTreeContainsIdList()))
-                        .and(checkUuidIn(TwinEntity.Fields.twinStatusId, twinSearch.getStatusIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinEntity.Fields.twinClassId, twinSearch.getTwinClassIdExcludeList(), true, false))
-                        .and(checkTagIds(twinSearch.getTagDataListOptionIdList(), false))
-                        .and(checkTagIds(twinSearch.getTagDataListOptionIdExcludeList(), true))
-                        .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdList(), false))
-                        .and(checkMarkerIds(twinSearch.getMarkerDataListOptionIdExcludeList(), true))
-                        .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.headTwinClassId, twinSearch.getHeadTwinClassIdList()))
-                        .and(checkTwinClassUuidFieldIn(TwinClassEntity.Fields.extendsTwinClassId, twinSearch.getExtendsTwinClassIdList()))
-                        .and(checkTouchIds(twinSearch.getTouchList(), authService.getApiUser().getUserId(), false))
-                        .and(checkTouchIds(twinSearch.getTouchExcludeList(), authService.getApiUser().getUserId(), true))
-        );
-        if (CollectionUtils.isNotEmpty(twinSearch.getFields()))
-            for (TwinFieldSearch fieldSearch : twinSearch.getFields())
-                spec = spec.and(fieldSearch.getFieldTyper().searchBy(fieldSearch));
-
-
-        return spec;
-    }
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
@@ -106,7 +74,7 @@ public class TwinSearchService {
         UUID userId = apiUser.getUser().getId();
         Set<UUID> userGroups = apiUser.getUserGroups();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
-        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch));
+        Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
 
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             specification = specification
@@ -114,7 +82,7 @@ public class TwinSearchService {
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         } else {
             specification = specification
-                    .and(checkDomainId(apiUser.getDomainId()))
+                    .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
         }
 
@@ -122,14 +90,14 @@ public class TwinSearchService {
         //HEAD TWIN CHECK
         if (null != basicSearch.getHeadSearch()) specification = specification.and(
                 checkHeadTwin(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch()),
+                        createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(),userId),
                         basicSearch.getHeadSearch()
                 ));
 
         //CHILDREN TWINS CHECK
         if (null != basicSearch.getChildrenSearch()) specification = specification.and(
                 checkChildrenTwins(
-                        createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch()),
+                        createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
                         basicSearch.getChildrenSearch()
                 ));
 

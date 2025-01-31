@@ -1,3 +1,4 @@
+drop view if exists public.permission_schema_user_group_lazy;
 ALTER TABLE user_group
     DROP COLUMN IF EXISTS name,
     DROP COLUMN IF EXISTS description;

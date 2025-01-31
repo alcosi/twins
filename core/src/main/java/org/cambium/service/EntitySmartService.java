@@ -139,10 +139,6 @@ public class EntitySmartService {
     }
 
     private <T> Class<T> getRepositoryEntityClass(CrudRepository<T, UUID> repository) {
-//        Type t = repository.getClass().getGenericSuperclass();
-//        ParameterizedType pt = (ParameterizedType) t;
-//        return (Class<T>) pt.getActualTypeArguments()[0];
-
         Type[] interfaces = repository.getClass().getInterfaces();
 
         for (Type t : interfaces) {
@@ -184,18 +180,23 @@ public class EntitySmartService {
 
     public <T> T findById(UUID uuid, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
         Optional<T> optional = repository.findById(uuid);
+        return checkOptional(optional, uuid, repository, mode);
+    }
+
+    public <T> T checkOptional(Optional<T> optional, Object keyObj, CrudRepository<T, UUID> repository, FindMode mode) throws ServiceException {
+        String key = (keyObj instanceof UUID ? "id[" : "key[") + keyObj + "]";
         switch (mode) {
             case ifEmptyNull:
                 return optional.orElse(null);
             case ifEmptyLogAndNull:
                 if (optional.isEmpty()) {
-                    log.error(entityShortName(repository) + " can not find entity with id[" + uuid + "]");
+                    log.error(entityShortName(repository) + " can not find entity with " + key + "]");
                     return null;
                 } else
                     return optional.get();
             case ifEmptyThrows:
                 if (optional.isEmpty())
-                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + "[" + uuid + "]");
+                    throw new ServiceException(ErrorCodeCommon.UUID_UNKNOWN, " unknown " + entityShortName(repository) + " " + key);
                 return optional.get();
         }
         return null;

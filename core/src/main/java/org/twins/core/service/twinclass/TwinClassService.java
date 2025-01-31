@@ -14,7 +14,6 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
@@ -26,6 +25,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.datalist.DataListRepository;
+import org.twins.core.dao.domain.DomainType;
+import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
 import org.twins.core.dao.specifications.twinclass.TwinClassSpecification;
@@ -42,16 +43,21 @@ import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.twinclass.HeadHunter;
 import org.twins.core.featurer.twinclass.HeadHunterImpl;
 import org.twins.core.service.SystemEntityService;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.domain.DomainService;
+import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.twin.TwinMarkerService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twin.TwinStatusService;
 import org.twins.core.service.twin.TwinTagService;
 import org.twins.core.service.twinflow.TwinflowService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -64,7 +70,7 @@ import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification
 @Service
 @Lazy
 @RequiredArgsConstructor
-public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntity> {
+public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEntity> {
     private final TwinRepository twinRepository;
     private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
@@ -74,6 +80,9 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     private final I18nService i18nService;
     private final DataListRepository dataListRepository;
     private final PermissionRepository permissionRepository;
+    private final DomainTypeTwinClassOwnerTypeRepository domainTypeTwinClassOwnerTypeRepository;
+    @Lazy
+    private final PermissionService permissionService;
     @Lazy
     private final TwinStatusService twinStatusService;
     @Lazy
@@ -103,6 +112,11 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     @Override
     public Function<TwinClassEntity, UUID> entityGetIdFunction() {
         return TwinClassEntity::getId;
+    }
+
+    @Override
+    public BiFunction<UUID, String, Optional<TwinClassEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        return twinClassRepository::findByDomainIdAndKey;
     }
 
     @Override
@@ -139,6 +153,15 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 if (entity.getViewPermissionId() != null
                         && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getViewPermissionId(), apiUser.getDomainId()))
                     throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id[" + entity.getViewPermissionId() + "]");
+                if (entity.getEditPermissionId() != null
+                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getEditPermissionId(), apiUser.getDomainId()))
+                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id[" + entity.getEditPermissionId() + "]");
+                if (entity.getCreatePermissionId() != null
+                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getCreatePermissionId(), apiUser.getDomainId()))
+                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown create permission id[" + entity.getCreatePermissionId() + "]");
+                if (entity.getDeletePermissionId() != null
+                        && !permissionRepository.existsByIdAndPermissionGroup_DomainId(entity.getDeletePermissionId(), apiUser.getDomainId()))
+                    throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown delete permission id[" + entity.getDeletePermissionId() + "]");
                 break;
             default:
         }
@@ -163,29 +186,35 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.id, twinClassSearch.getTwinClassIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinClassEntity.Fields.key, twinClassSearch.getTwinClassKeyLikeList(), true))
+                        .and(checkUuidIn(twinClassSearch.getTwinClassIdList(), false, false, TwinClassEntity.Fields.id))
+                        .and(checkUuidIn(twinClassSearch.getTwinClassIdExcludeList(), true, false, TwinClassEntity.Fields.id))
+                        .and(checkFieldLikeIn(twinClassSearch.getTwinClassKeyLikeList(), false, true, TwinClassEntity.Fields.key))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.headTwinClassId, twinClassSearch.getHeadTwinClassIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.extendsTwinClassId, twinClassSearch.getExtendsTwinClassIdExcludeList(), true, true))
+                        .and(checkUuidIn(twinClassSearch.getHeadTwinClassIdList(), false, false, TwinClassEntity.Fields.headTwinClassId))
+                        .and(checkUuidIn(twinClassSearch.getHeadTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.headTwinClassId))
+                        .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdList(), false, false, TwinClassEntity.Fields.extendsTwinClassId))
+                        .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.extendsTwinClassId))
+                        .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdList(), false, false, TwinClassEntity.Fields.markerDataListId))
+                        .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
+                        .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
+                        .and(checkUuidIn(twinClassSearch.getTagDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
-                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdList(), false, false))
-                        .and(checkUuidIn(TwinClassEntity.Fields.viewPermissionId, twinClassSearch.getViewPermissionIdExcludeList(), true, true))
+                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdList(), false, false, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdList(), false, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
         );
-    }
-
-    public TwinClassEntity findTwinClassByKey(ApiUser apiUser, String twinClassKey) throws ServiceException {
-        return twinClassRepository.findByDomainIdAndKey(apiUser.getDomain().getId(), twinClassKey);
     }
 
     public UUID checkTwinClassSchemaAllowed(UUID domainId, UUID twinClassSchemaId) throws ServiceException {
@@ -218,6 +247,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setExtendsTwinClassId(srcTwinClassEntity.getExtendsTwinClassId())
                 .setHeadTwinClassId(srcTwinClassEntity.getHeadTwinClassId())
                 .setLogo(srcTwinClassEntity.getLogo())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setDomainId(srcTwinClassEntity.getDomainId())
                 .setOwnerType(srcTwinClassEntity.getOwnerType());
         I18nEntity i18nDuplicate;
@@ -315,7 +345,7 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+    public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, Boolean autoCreatePermissions) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         if (StringUtils.isBlank(twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
@@ -351,9 +381,42 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
+
+
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
+
+
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+
+        if (autoCreatePermissions) {
+            Map<PermissionService.DefaultClassPermissionsPrefix, PermissionEntity> newPermissions = permissionService.createDefaultPermissionsForNewInDomainClass(twinClassEntity);
+            boolean classPrermissionsChanged = false;
+            if (twinClassEntity.getViewPermissionId() == null) {
+                twinClassEntity.setViewPermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW).getId());
+                twinClassEntity.setViewPermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.VIEW));
+                classPrermissionsChanged = true;
+            }
+            if (twinClassEntity.getEditPermissionId() == null) {
+                twinClassEntity.setEditPermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT).getId());
+                twinClassEntity.setEditPermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.EDIT));
+                classPrermissionsChanged = true;
+            }
+            if (twinClassEntity.getCreatePermissionId() == null) {
+                twinClassEntity.setCreatePermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE).getId());
+                twinClassEntity.setCreatePermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.CREATE));
+                classPrermissionsChanged = true;
+            }
+            if (twinClassEntity.getDeletePermissionId() == null) {
+                twinClassEntity.setDeletePermissionId(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE).getId());
+                twinClassEntity.setDeletePermission(newPermissions.get(PermissionService.DefaultClassPermissionsPrefix.DELETE));
+                classPrermissionsChanged = true;
+            }
+            if(classPrermissionsChanged)
+                twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        }
+
         refreshExtendsHierarchyTree(twinClassEntity);
         refreshHeadHierarchyTree(twinClassEntity);
         TwinStatusEntity twinStatusEntity = twinStatusService.createStatus(twinClassEntity, "init", "Initial status");
@@ -423,6 +486,9 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
         updateTwinClassAliasSpaceFlag(dbTwinClassEntity, twinClassUpdate.getAliasSpace(), changesHelper);
         updateTwinClassPermissionSchemaSpaceFlag(dbTwinClassEntity, twinClassUpdate.getPermissionSchemaSpace(), changesHelper);
         updateTwinClassViewPermission(dbTwinClassEntity, twinClassUpdate.getViewPermissionId(), changesHelper);
+        updateTwinClassEditPermission(dbTwinClassEntity, twinClassUpdate.getEditPermissionId(), changesHelper);
+        updateTwinClassCreatePermission(dbTwinClassEntity, twinClassUpdate.getCreatePermissionId(), changesHelper);
+        updateTwinClassDeletePermission(dbTwinClassEntity, twinClassUpdate.getDeletePermissionId(), changesHelper);
         updateTwinClassKey(dbTwinClassEntity, twinClassUpdate.getKey(), changesHelper);
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
@@ -490,6 +556,27 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
             return;
         dbTwinClassEntity
                 .setViewPermissionId(UuidUtils.nullifyIfNecessary(newViewPermissionId));
+    }
+
+    public void updateTwinClassEditPermission(TwinClassEntity dbTwinClassEntity, UUID newEditPermissionId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.editPermissionId, dbTwinClassEntity.getEditPermissionId(), newEditPermissionId))
+            return;
+        dbTwinClassEntity
+                .setEditPermissionId(UuidUtils.nullifyIfNecessary(newEditPermissionId));
+    }
+
+    public void updateTwinClassCreatePermission(TwinClassEntity dbTwinClassEntity, UUID newCreatePermissionId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.createPermissionId, dbTwinClassEntity.getCreatePermissionId(), newCreatePermissionId))
+            return;
+        dbTwinClassEntity
+                .setCreatePermissionId(UuidUtils.nullifyIfNecessary(newCreatePermissionId));
+    }
+
+    public void updateTwinClassDeletePermission(TwinClassEntity dbTwinClassEntity, UUID newDeletePermissionId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinClassEntity.Fields.deletePermissionId, dbTwinClassEntity.getDeletePermissionId(), newDeletePermissionId))
+            return;
+        dbTwinClassEntity
+                .setDeletePermissionId(UuidUtils.nullifyIfNecessary(newDeletePermissionId));
     }
 
     public void updateTwinClassPermissionSchemaSpaceFlag(TwinClassEntity dbTwinClassEntity, Boolean newTwinClassPermissionSchemaSpaceFlag, ChangesHelper changesHelper) {
@@ -721,5 +808,9 @@ public class TwinClassService extends EntitySecureFindServiceImpl<TwinClassEntit
     public boolean isOwnerSystemType(TwinClassEntity entity) {
         return entity.getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM);
     }
-}
 
+    public Set<TwinClassOwnerTypeEntity> findTwinClassOwnerType() throws ServiceException {
+        DomainType domainType = authService.getApiUser().getDomain().getDomainType();
+        return domainTypeTwinClassOwnerTypeRepository.findAllTwinClassOwnerTypesByDomainTypeId(domainType);
+    }
+}

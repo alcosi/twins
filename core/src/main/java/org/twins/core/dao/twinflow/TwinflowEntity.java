@@ -9,7 +9,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
-import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.eraseflow.EraseflowEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -47,8 +46,6 @@ public class TwinflowEntity implements EasyLoggable {
     @Column(name = "eraseflow_id")
     private UUID eraseflowId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

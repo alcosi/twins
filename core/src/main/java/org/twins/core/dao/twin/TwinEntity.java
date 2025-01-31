@@ -8,7 +8,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
@@ -245,7 +244,13 @@ public class TwinEntity implements Cloneable, EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Kit<TwinAliasEntity, UUID> twinAliases;
+    private Kit<TwinAliasEntity, TwinAliasType> twinAliases;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    // we use kitGrouped, because during moving twin to other space or even during class change a new alias will be created,
+    // but old aliases also should be accessible for correct url processing
+    private KitGrouped<TwinAliasEntity, UUID, TwinAliasType> twinAliasesArchive;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -254,6 +259,10 @@ public class TwinEntity implements Cloneable, EasyLoggable {
     @Transient
     @EqualsAndHashCode.Exclude
     private TwinAttachmentsCount twinAttachmentsCount;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassEntity, UUID> creatableChildTwinClasses;
 
     @Override
     public String toString() {

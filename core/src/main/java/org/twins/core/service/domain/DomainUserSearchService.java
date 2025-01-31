@@ -9,6 +9,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.domain.DomainUserEntity;
 import org.twins.core.dao.domain.DomainUserRepository;
 import org.twins.core.dao.user.UserEntity;
@@ -16,7 +17,6 @@ import org.twins.core.domain.search.DomainUserSearch;
 import org.twins.core.service.auth.AuthService;
 
 import java.util.UUID;
-
 
 import static org.twins.core.dao.specifications.domain.DomainUserSpecification.*;
 
@@ -30,24 +30,23 @@ public class DomainUserSearchService {
     public PaginationResult<DomainUserEntity> findDomainUser(DomainUserSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<DomainUserEntity> spec = createDomainUserSearchSpecification(search)
-                .and(checkDomainId(domainId));
+                .and(checkFieldUuid(domainId, DomainUserEntity.Fields.domain, DomainEntity.Fields.id));
         Page<DomainUserEntity> ret = domainUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     private Specification<DomainUserEntity> createDomainUserSearchSpecification(DomainUserSearch search) {
-        return Specification.where(
-                checkBusinessAccountIn(search.getBusinessAccountIdList(), false)
-                        .and(checkBusinessAccountIn(search.getBusinessAccountIdExcludeList(), true))
-                        .and(checkFieldLikeIn(UserEntity.Fields.name, search.getNameLikeList(), true))
-                        .and(checkFieldNotLikeIn(UserEntity.Fields.name, search.getNameNotLikeList(), true))
-                        .and(checkFieldLikeIn(UserEntity.Fields.email, search.getEmailLikeList(), true))
-                        .and(checkFieldNotLikeIn(UserEntity.Fields.email, search.getEmailNotLikeList(), true))
-                        .and(checkUserStatusIn(search.getStatusIdList(), false))
-                        .and(checkUserStatusIn(search.getStatusIdExcludeList(), true))
-                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdList(), false, false))
-                        .and(checkUuidIn(DomainUserEntity.Fields.userId, search.getUserIdExcludeList(), true, false))
-        );
+        return Specification.allOf(
+                checkBusinessAccountIn(search.getBusinessAccountIdList(), false),
+                checkBusinessAccountIn(search.getBusinessAccountIdExcludeList(), true),
+                checkDomainUserFieldLikeIn(UserEntity.Fields.name, search.getNameLikeList(), true),
+                checkDomainUserFieldNotLikeIn(UserEntity.Fields.name, search.getNameNotLikeList(), true),
+                checkDomainUserFieldLikeIn(UserEntity.Fields.email, search.getEmailLikeList(), true),
+                checkDomainUserFieldNotLikeIn(UserEntity.Fields.email, search.getEmailNotLikeList(), true),
+                checkUserStatusIn(search.getStatusIdList(), false),
+                checkUserStatusIn(search.getStatusIdExcludeList(), true),
+                checkUuidIn(search.getUserIdList(), false, false, DomainUserEntity.Fields.userId),
+                checkUuidIn(search.getUserIdExcludeList(), true, false, DomainUserEntity.Fields.userId));
     }
 
 }

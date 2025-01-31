@@ -46,6 +46,9 @@ public class FactoryBranchSearchRqDTOv1 extends Request {
     @Schema(description = "description not like list")
     public Set<String> descriptionNotLikeList;
 
+    @Schema(description = "condition invert", example = DTOExamples.TERNARY)
+    public Ternary conditionInvert;
+
     @Schema(description = "active", example = DTOExamples.TERNARY)
     public Ternary active;
 }

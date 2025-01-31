@@ -4,22 +4,25 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.permission.PermissionGroupRepository;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PermissionGroupService extends EntitySecureFindServiceImpl<PermissionGroupEntity> {
+public class PermissionGroupService extends TwinsEntitySecureFindService<PermissionGroupEntity> {
     final PermissionGroupRepository permissionGroupRepository;
     final AuthService authService;
 
@@ -51,6 +54,23 @@ public class PermissionGroupService extends EntitySecureFindServiceImpl<Permissi
                     return logErrorAndReturnFalse(entity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect domainId");
         }
         return true;
+    }
+
+    @Override
+    public BiFunction<UUID, String, Optional<PermissionGroupEntity>> findByDomainIdAndKeyFunction() throws ServiceException {
+        return permissionGroupRepository::findByDomainIdAndKey;
+    }
+
+    public PermissionGroupEntity createDefaultPermissionGroupForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        PermissionGroupEntity permissionGroup = new PermissionGroupEntity()
+                .setDomainId(twinClassEntity.getDomainId())
+                .setTwinClassId(twinClassEntity.getId())
+                .setTwinClass(twinClassEntity)
+                .setKey(twinClassEntity.getKey() + "_PERMISSIONS")
+                .setName(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " permissions")
+                .setDescription(null);
+        validateEntityAndThrow(permissionGroup, EntitySmartService.EntityValidateMode.beforeSave);
+        return entitySmartService.save(permissionGroup, permissionGroupRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
     }
 
     //todo когда аннотация Lazy у поля permissionGroup, не работают как пологается методы loadPermissionGroup

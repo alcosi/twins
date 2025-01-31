@@ -12,6 +12,7 @@ public enum ErrorCodeTwins implements ErrorCode {
     UUID_ALREADY_EXIST(10001, "uuid is already exist"),
     ENTITY_INVALID(10002, "entity invalid"),
     ENTITY_ALREADY_EXIST(10003, "entity is already exist in db. Please check unique keys"),
+    UUID_NOT_BE_NULLIFY_MARKER(10004, "uuid not be ffffffff-ffff-ffff-ffff-ffffffffffff"),
     USER_UNKNOWN(10101, "unknown user"),
     USER_LOCALE_UNKNOWN(10102, "unknown locale"),
     DOMAIN_UNKNOWN(10201, "unknown domain"),
@@ -61,6 +62,8 @@ public enum ErrorCodeTwins implements ErrorCode {
     DATALIST_OPTION_IS_NOT_VALID_FOR_LIST(10601, "data list option is not valid for current data list"),
     DATALIST_OPTION_IS_NOT_VALID_FOR_BUSINESS_ACCOUNT(10602, "data list option is not valid for current business account"),
     DATALIST_LIST_UNKNOWN(10603, "data list is unknown"),
+    DATALIST_NAME_IS_NOT_UNIQUE(10604, "data list with this key is not unique"),
+    DATALIST_OPTION_INVALID_ATTRIBUTE(10605, "invalid attribute"),
     SPACE_TWIN_ID_INCORRECT(10701, "given twin id is not a space twin"),
     HEAD_TWIN_ID_NOT_ALLOWED(10702, "given twin is not allowed for given class"),
     HEAD_TWIN_NOT_SPECIFIED(10703, "space twin must be specified"),
@@ -107,8 +110,12 @@ public enum ErrorCodeTwins implements ErrorCode {
     BUSINESS_ACCOUNT_USER_ALREADY_EXISTS(12202, "business_account user already exists"),
     BUSINESS_ACCOUNT_USER_NOT_EXISTS(12203, "business_account user not exists"),
     TIER_NOT_ALLOWED(12301, "tier is not allowed"),
+    TIER_NOT_CONFIGURED_FOR_DOMAIN(12302, "tier is not configured for domain"),
     LINK_DIRECTION_CLASS_NULL(12401, "Src or dst class of link cannot be null. Dont send nullify marker"),
-    LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),;
+    LINK_UPDATE_RESTRICTED(12402, "link can not be updated"),
+    TIER_SIZE_QUOTA_REACHED(12501, "common attachments size exceeds tier quota"),
+    TIER_COUNT_QUOTA_REACHED(12502, "common attachments count exceeds tier quota"),
+    ATTACHMENTS_NOT_VALID(12503, "attachment not valid");
 
 
     private final int code;

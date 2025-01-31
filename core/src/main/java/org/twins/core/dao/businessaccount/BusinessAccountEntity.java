@@ -5,9 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicUpdate;
-import org.twins.core.dao.user.UserGroupEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -28,8 +26,6 @@ public class BusinessAccountEntity implements EasyLoggable {
     @Column(name = "owner_user_group_id")
     private UUID ownerUserGroupId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

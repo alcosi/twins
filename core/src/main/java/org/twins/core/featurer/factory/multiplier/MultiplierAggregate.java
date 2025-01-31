@@ -36,6 +36,7 @@ public class MultiplierAggregate extends Multiplier {
                 .setName("")
                 .setTwinClass(outputTwinClassEntity)
                 .setTwinClassId(outputTwinClassEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setCreatedByUser(apiUser.getUser());
         TwinCreate twinCreate = new TwinCreate();

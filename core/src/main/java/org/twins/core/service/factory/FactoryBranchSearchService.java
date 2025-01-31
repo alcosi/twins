@@ -9,8 +9,10 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.factory.*;
+import org.twins.core.dao.factory.TwinFactoryBranchEntity;
+import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.domain.search.FactoryBranchSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryBranchSpecification.*;
@@ -21,6 +23,7 @@ import static org.twins.core.dao.specifications.factory.FactoryBranchSpecificati
 @RequiredArgsConstructor
 public class FactoryBranchSearchService {
     private final TwinFactoryBranchRepository twinFactoryBranchRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryBranchEntity> findFactoryBranches(FactoryBranchSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryBranchEntity> spec = createFactoryBranchSearchSpecification(search);
@@ -28,19 +31,20 @@ public class FactoryBranchSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryBranchEntity> createFactoryBranchSearchSpecification(FactoryBranchSearch search) {
-        return Specification.where(
-                checkFieldLikeIn(TwinFactoryBranchEntity.Fields.description, search.getDescriptionLikeList(), false, true)
-                        .and(checkFieldLikeIn(TwinFactoryBranchEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.twinFactoryId, search.getFactoryIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.twinFactoryId, search.getFactoryIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.nextTwinFactoryId, search.getNextFactoryIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryBranchEntity.Fields.nextTwinFactoryId, search.getNextFactoryIdExcludeList(), true, false))
-                        .and(checkTernary(TwinFactoryBranchEntity.Fields.active, search.getActive()))
-        );
+    private Specification<TwinFactoryBranchEntity> createFactoryBranchSearchSpecification(FactoryBranchSearch search) throws ServiceException {
+        return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
+                checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryBranchEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryBranchEntity.Fields.description),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryBranchEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryBranchEntity.Fields.id),
+                checkUuidIn(search.getFactoryIdList(), false, false, TwinFactoryBranchEntity.Fields.twinFactoryId),
+                checkUuidIn(search.getFactoryIdExcludeList(), true, false, TwinFactoryBranchEntity.Fields.twinFactoryId),
+                checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryBranchEntity.Fields.twinFactoryConditionSetId),
+                checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryBranchEntity.Fields.twinFactoryConditionSetId),
+                checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryBranchEntity.Fields.nextTwinFactoryId),
+                checkUuidIn(search.getNextFactoryIdExcludeList(), true, false, TwinFactoryBranchEntity.Fields.nextTwinFactoryId),
+                checkTernary(search.getConditionInvert(), TwinFactoryBranchEntity.Fields.twinFactoryConditionInvert),
+                checkTernary(search.getActive(), TwinFactoryBranchEntity.Fields.active));
     }
 }
