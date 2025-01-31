@@ -6,53 +6,38 @@ import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 
-import java.util.Collection;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 public class TwinClassSearch {
-    Set<UUID> twinClassIdList;
-    Set<UUID> twinClassIdExcludeList;
-    Set<String> twinClassKeyLikeList;
-    Set<String> nameI18nLikeList;
-    Set<String> nameI18nNotLikeList;
-    Set<String> descriptionI18nLikeList;
-    Set<String> descriptionI18nNotLikeList;
-    Set<UUID> headTwinClassIdList;
-    Set<UUID> headTwinClassIdExcludeList;
-    Set<UUID> extendsTwinClassIdList;
-    Set<UUID> extendsTwinClassIdExcludeList;
-    Set<TwinClassEntity.OwnerType> ownerTypeList;
-    Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
-    Ternary abstractt;
-    Ternary twinflowSchemaSpace;
-    Ternary twinClassSchemaSpace;
-    Ternary permissionSchemaSpace;
-    Ternary aliasSpace;
-    Set<UUID> viewPermissionIdList;
-    Set<UUID> viewPermissionIdExcludeList;
-
-    public TwinClassSearch addTwinClassId(Collection<UUID> twinClassIdSet) {
-        twinClassIdList = CollectionUtils.safeAdd(twinClassIdList, twinClassIdSet);
-        return this;
-    }
-
-    public TwinClassSearch addTwinNameLike(Collection<String> twinNameLikeSet) {
-        twinClassKeyLikeList = CollectionUtils.safeAdd(twinClassKeyLikeList, twinNameLikeSet);
-        return this;
-    }
-
-    public TwinClassSearch addHeadTwinClassId(Collection<UUID> twinClassIdSet) {
-        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, twinClassIdSet);
-        return this;
-    }
-
-    public TwinClassSearch addExtendsTwinClassId(Collection<UUID> twinClassIdSet) {
-        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, twinClassIdSet);
-        return this;
-    }
+    private Set<UUID> twinClassIdList;
+    private Set<UUID> twinClassIdExcludeList;
+    private Set<String> twinClassKeyLikeList;
+    private Set<String> nameI18nLikeList;
+    private Set<String> nameI18nNotLikeList;
+    private Set<String> descriptionI18nLikeList;
+    private Set<String> descriptionI18nNotLikeList;
+    private Set<UUID> headTwinClassIdList;
+    private Set<UUID> headTwinClassIdExcludeList;
+    private Set<UUID> extendsTwinClassIdList;
+    private Set<UUID> extendsTwinClassIdExcludeList;
+    private Set<TwinClassEntity.OwnerType> ownerTypeList;
+    private Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    private Ternary abstractt;
+    private Ternary twinflowSchemaSpace;
+    private Ternary twinClassSchemaSpace;
+    private Ternary permissionSchemaSpace;
+    private Ternary aliasSpace;
+    private Set<UUID> viewPermissionIdList;
+    private Set<UUID> viewPermissionIdExcludeList;
+    private Set<UUID> createPermissionIdList;
+    private Set<UUID> createPermissionIdExcludeList;
+    private Set<UUID> editPermissionIdList;
+    private Set<UUID> editPermissionIdExcludeList;
+    private Set<UUID> deletePermissionIdList;
+    private Set<UUID> deletePermissionIdExcludeList;
 
     public TwinClassSearch addOwnerTypeExclude() {
         ownerTypeExcludeList = CollectionUtils.safeAdd(ownerTypeExcludeList, TwinClassEntity.OwnerType.SYSTEM);

@@ -203,7 +203,13 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdList(), false, false, TwinClassEntity.Fields.viewPermissionId))
-                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, true, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdList(), false, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
         );
     }
 
