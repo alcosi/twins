@@ -18,7 +18,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1315,
-        name = "FieldTyperCountChildrenTwinsV2",
+        name = "Count children twins",
         description = "Save count of child-twin by child-status(exl/inc) on serializeValue, and return saved total from database")
 public class FieldTyperCountChildrenTwinsV2 extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchNotImplemented> implements FieldTyperCountChildrenTwins {
     public static final Integer ID = 1315;
