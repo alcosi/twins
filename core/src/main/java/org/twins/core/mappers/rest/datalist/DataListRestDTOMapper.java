@@ -30,7 +30,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setName(i18nService.translateToLocale(src.getNameI18nId()))
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
-                        .setUpdatedAt(src.getUpdatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setUpdatedAt(src.getUpdatedAt() == null ? null : src.getUpdatedAt().toLocalDateTime());
                 if (StringUtils.isNotBlank(src.getAttribute1key()))
                     dst.setAttribute1(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute1key(), src.getAttribute1nameI18nId())));
                 if (StringUtils.isNotBlank(src.getAttribute2key()))
@@ -46,7 +47,8 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setName(i18nService.translateToLocale(src.getNameI18nId()))
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
-                        .setUpdatedAt(src.getUpdatedAt().toLocalDateTime());
+                        .setCreatedAt(src.getCreatedAt().toLocalDateTime())
+                        .setUpdatedAt(src.getUpdatedAt() == null ? null : src.getUpdatedAt().toLocalDateTime());
             case SHORT ->
                 dst
                         .setId(src.getId())
