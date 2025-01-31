@@ -31,13 +31,13 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
                         .setUpdatedAt(src.getUpdatedAt().toLocalDateTime());
-                if (StringUtils.isNotEmpty(src.getAttribute1key()))
+                if (StringUtils.isNotBlank(src.getAttribute1key()))
                     dst.setAttribute1(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute1key(), src.getAttribute1nameI18nId())));
                 if (StringUtils.isNotBlank(src.getAttribute2key()))
                     dst.setAttribute2(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute2key(), src.getAttribute2nameI18nId())));
                 if (StringUtils.isNotBlank(src.getAttribute3key()))
                     dst.setAttribute3(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute3key(), src.getAttribute3nameI18nId())));
-                if (StringUtils.isNoneEmpty(src.getAttribute4key()))
+                if (StringUtils.isNotBlank(src.getAttribute4key()))
                     dst.setAttribute4(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute4key(), src.getAttribute4nameI18nId())));
             }
             case DETAILED ->
