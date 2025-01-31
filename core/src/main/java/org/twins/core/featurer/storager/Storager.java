@@ -34,7 +34,12 @@ import java.util.UUID;
         description = "Services for file uploading")
 @Slf4j
 public abstract class Storager extends FeaturerTwins {
-    @FeaturerParam(name = "selfHostDomainBaseUri", description = "URI where TWINS app is hosted and can be accessed externally. Can be relative '/' for most cases")
+    @FeaturerParam(name = "selfHostDomainBaseUri",
+            description = "URI where TWINS app is hosted and can be accessed externally. Can be relative '/' for most cases",
+            optional = true,
+            defaultValue = "/",
+            exampleValues = {"/", "https://twins.app/api", "/proxied-api"}
+    )
     public static final FeaturerParamString selfHostDomainBaseUri = new FeaturerParamString("selfHostDomainBaseUri");
 
     @Autowired
@@ -231,8 +236,21 @@ public abstract class Storager extends FeaturerTwins {
     @NotNull
     protected String addSlashAtTheEndIfNeeded(String path) {
         if (!path.endsWith("/")) {
-            path = path + "/";
+            return path + "/";
         }
         return path;
+    }
+
+    @NotNull
+    protected String addSlashAtStartIfNeeded(String path) {
+        if (!path.startsWith("/")) {
+            return "/" + path;
+        }
+        return path;
+    }
+
+    @NotNull
+    protected String removeDoubleSlashes(String path) {
+        return path.replaceAll("/{2,}", "/");
     }
 }

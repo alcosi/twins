@@ -2,6 +2,8 @@ package org.cambium.featurer.dao;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.io.Serializable;
 
@@ -45,6 +47,18 @@ public class FeaturerParamEntity {
     @Column(name = "description")
     @Basic
     private String description;
+
+    @Column(name = "is_optional")
+    @Basic
+    public Boolean optional;
+
+    @Column(name = "default_value")
+    @Basic
+    public String defaultValue;
+
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "example_values", columnDefinition = "varchar[]")
+    public String[] exampleValues;
 
     @Data
     protected static class PK implements Serializable {

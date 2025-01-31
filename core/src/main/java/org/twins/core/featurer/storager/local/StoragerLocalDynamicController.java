@@ -19,7 +19,11 @@ import java.util.Properties;
 )
 @Slf4j
 public class StoragerLocalDynamicController extends StoragerLocalStaticController {
-    @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files")
+    @FeaturerParam(name = "relativeFileUri", description = "Relative uri of controller to provide files",
+            optional = true,
+            defaultValue = "/public/static-resource/{id}/v1",
+            exampleValues = {"/public/static-resource/{id}/v1", "/public/resource/{id}/v2"}
+    )
     public static final FeaturerParamString relativeFileUri = new FeaturerParamString("relativeFileUri");
 
 
@@ -28,7 +32,7 @@ public class StoragerLocalDynamicController extends StoragerLocalStaticControlle
         Properties properties = extractProperties(params, false);
         String relativePath = relativeFileUri.extract(properties);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + relativePath;
+        return removeDoubleSlashes(urlDomain + addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(relativePath));
     }
 
 }

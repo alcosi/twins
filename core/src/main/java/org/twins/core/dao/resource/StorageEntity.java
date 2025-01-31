@@ -12,7 +12,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.twins.core.dao.domain.DomainEntity;
-import org.twins.core.featurer.storager.StoragerAbstractChecked;
+import org.twins.core.featurer.storager.Storager;
 
 import java.sql.Timestamp;
 import java.util.HashMap;
@@ -51,7 +51,7 @@ public class StorageEntity implements EasyLoggable {
     @Column(name = "updated_at")
     private Timestamp updatedAt;
 
-    @FeaturerList(type = StoragerAbstractChecked.class)
+    @FeaturerList(type = Storager.class)
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "storager_featurer_id", insertable = false, updatable = false)
     private FeaturerEntity storageFeaturer;
