@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2102,
-        name = "SingleGroup",
+        name = "Single group",
         description = "")
 @RequiredArgsConstructor
 public class UserGroupManagerSingleGroup extends UserGroupManager {

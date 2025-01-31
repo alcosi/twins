@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2324,
-        name = "BasicsAssigneeFromContext",
+        name = "Basics assignee from context",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContext extends Filler {

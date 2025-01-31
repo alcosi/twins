@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1404,
-        name = "DenyForKeys",
+        name = "Deny for keys",
         description = "")
 public class WidgetAccessorDenyForKeys extends WidgetAccessor {
     @FeaturerParam(name = "Twin class id list", description = "", order = 1)

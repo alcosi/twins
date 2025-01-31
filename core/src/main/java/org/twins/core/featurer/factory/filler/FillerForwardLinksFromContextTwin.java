@@ -18,7 +18,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2305,
-        name = "ForwardLinksFromContextTwin",
+        name = "Forward links from context twin",
         description = "")
 public class FillerForwardLinksFromContextTwin extends FillerLinks {
     @FeaturerParam(name = "Links ids", description = "", order = 1)

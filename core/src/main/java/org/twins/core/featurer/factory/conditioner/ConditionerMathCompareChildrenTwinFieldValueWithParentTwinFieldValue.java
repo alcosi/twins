@@ -14,7 +14,6 @@ import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinFieldSimpleNoRelationsProjection;
 import org.twins.core.domain.factory.FactoryItem;
-import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
@@ -29,7 +28,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2429,
-        name = "MathCompareChildrenTwinFieldValueWithParentTwinFieldValue",
+        name = "Math compare children twin field value with parent twin field value",
         description = "Is there NOT at least one twin in statuses that satisfies the condition? children-comparison, parent-greater.")
 @Slf4j
 public class ConditionerMathCompareChildrenTwinFieldValueWithParentTwinFieldValue extends Conditioner {

@@ -27,7 +27,7 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2705,
-        name = "ParamLinkDst",
+        name = "Param link dst",
         description = "")
 public class SearchCriteriaBuilderParamLinkDst extends SearchCriteriaBuilder {
 

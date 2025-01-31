@@ -16,7 +16,7 @@ import java.util.Set;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2327,
-        name = "TwinBasicFieldsFromContextBasics",
+        name = "Twin basic fields from context basics",
         description = "")
 @Slf4j
 public class FillerTwinBasicFieldsFromContextBasics extends Filler {

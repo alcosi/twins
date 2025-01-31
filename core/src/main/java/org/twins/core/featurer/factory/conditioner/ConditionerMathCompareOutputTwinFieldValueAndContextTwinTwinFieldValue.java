@@ -19,7 +19,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2428,
-        name = "MathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue",
+        name = "Math compare output twin field value and context twin field value",
         description = "")
 @Slf4j
 public class ConditionerMathCompareOutputTwinFieldValueAndContextTwinTwinFieldValue extends Conditioner {

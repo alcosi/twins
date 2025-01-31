@@ -31,7 +31,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2208,
-        name = "IsolatedByLink",
+        name = "Isolated by link",
         description = "Output list of twin relatives for each input. Output twin list will be loaded by link and filtered by statusIds")
 public class MultiplierIsolatedByLink extends Multiplier {
 

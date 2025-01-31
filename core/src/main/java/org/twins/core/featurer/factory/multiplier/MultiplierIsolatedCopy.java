@@ -20,7 +20,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2207,
-        name = "IsolatedCopy",
+        name = "Isolated copy",
         description = "New output twin for each input. Output class will be taken from input twin.")
 public class MultiplierIsolatedCopy extends Multiplier {
     @FeaturerParam(name = "Copy head", description = "", order = 1)

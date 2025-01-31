@@ -9,7 +9,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1403,
-        name = "AllowForSpace",
+        name = "Allow for space",
         description = "")
 public class WidgetAccessorAllowForSpace extends WidgetAccessor {
     @Override

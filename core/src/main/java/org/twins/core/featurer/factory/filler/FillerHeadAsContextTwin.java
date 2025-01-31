@@ -11,7 +11,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2301,
-        name = "HeadAsContextTwin",
+        name = "Head as context twin",
         description = "")
 public class FillerHeadAsContextTwin extends Filler {
     @Override

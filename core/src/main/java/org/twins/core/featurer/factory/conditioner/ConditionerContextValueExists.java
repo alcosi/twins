@@ -15,7 +15,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2418,
-        name = "ValueExists",
+        name = "Value exists",
         description = "")
 @Slf4j
 public class ConditionerContextValueExists extends Conditioner {

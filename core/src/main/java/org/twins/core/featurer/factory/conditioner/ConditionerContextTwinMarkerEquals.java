@@ -18,7 +18,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2405,
-        name = "TwinMarkerEquals",
+        name = "Twin marker equals",
         description = "")
 @Slf4j
 public class ConditionerContextTwinMarkerEquals extends Conditioner {

@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2323,
-        name = "FieldFromContext",
+        name = "Field from context",
         description = "")
 @Slf4j
 public class FillerFieldFromContext extends Filler {

@@ -24,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1605,
-        name = "TwinAllChildrenInStatuses",
+        name = "Twin all children in statuses",
         description = "")
 public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 

@@ -26,7 +26,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2206,
-        name = "IsolatedOnContextFieldList",
+        name = "Isolated on context field list",
         description = "New output twin for each input. Output class is selected by checking if fields in context (in loop). Order is important." +
                 "If field is present then output twin class will be selected from this field class, otherwise loop will continue")
 public class MultiplierIsolatedOnContextFieldList extends Multiplier {

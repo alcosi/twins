@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2332,
-        name = "FieldFromContextTwinHeadField",
+        name = "Field from context twin head field",
         description = "")
 @Slf4j
 public class FillerFieldFromContextTwinHeadField extends Filler {

@@ -22,7 +22,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1309,
-        name = "SharedSelectInHead",
+        name = "Select (shared in head)",
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInHead extends FieldTyperList {

@@ -24,7 +24,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2333,
-        name = "FieldUserFromContextTwinBasicField",
+        name = "Field user from context twin basic field",
         description = "Fill the user field with assignee-or-creator of context twin")
 @Slf4j
 public class FillerFieldUserFromContextTwinBasicField extends Filler {

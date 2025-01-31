@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1607,
-        name = "ApiUserIsMemberOfGroup",
+        name = "Current user is member of group",
         description = "")
 @Slf4j
 public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {

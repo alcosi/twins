@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2319,
-        name = "MarkerDelete",
+        name = "Marker delete",
         description = "")
 @Slf4j
 public class FillerMarkerDelete extends Filler {

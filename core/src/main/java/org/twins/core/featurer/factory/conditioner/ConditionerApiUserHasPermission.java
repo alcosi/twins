@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2403,
-        name = "HasPermission",
+        name = "Current user has permission",
         description = "")
 @Slf4j
 public class ConditionerApiUserHasPermission extends Conditioner {

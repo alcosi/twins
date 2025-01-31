@@ -16,7 +16,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1602,
-        name = "TwinCreatedByCurrentUser",
+        name = "Twin created by current user",
         description = "")
 public class TwinValidatorTwinCreatedByCurrentUser extends TwinValidator {
     @Lazy

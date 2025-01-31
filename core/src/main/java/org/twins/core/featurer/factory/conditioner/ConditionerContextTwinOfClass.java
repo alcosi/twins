@@ -11,7 +11,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2412,
-        name = "TwinOfClass",
+        name = "Twin of class",
         description = "")
 @Slf4j
 public class ConditionerContextTwinOfClass extends ConditionerContextTwinOfClassDeep {

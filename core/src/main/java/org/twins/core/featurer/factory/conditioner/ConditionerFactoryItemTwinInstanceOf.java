@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2413,
-        name = "FactoryItemTwinInstanceOf",
+        name = "Factory item twin instance of",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinInstanceOf extends Conditioner {

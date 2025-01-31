@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2407,
-        name = "FactoryItemTwinHasChildren",
+        name = "Factory item twin has children",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinHasChildren extends Conditioner {

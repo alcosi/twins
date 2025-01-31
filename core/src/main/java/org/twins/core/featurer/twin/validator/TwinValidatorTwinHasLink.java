@@ -19,7 +19,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1606,
-        name = "TwinHasLink",
+        name = "Twin has link",
         description = "")
 public class TwinValidatorTwinHasLink extends TwinValidator {
     @FeaturerParam(name = "Link id", description = "", order = 1)

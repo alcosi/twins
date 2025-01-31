@@ -31,7 +31,7 @@ import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2321,
-        name = "FieldMathDifferenceFromContextField",
+        name = "Field math difference from context field",
         description = "")
 @Slf4j
 public class FillerFieldMathDifferenceFromContextField extends Filler {

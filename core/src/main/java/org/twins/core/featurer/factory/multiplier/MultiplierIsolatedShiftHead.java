@@ -20,7 +20,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2204,
-        name = "IsolatedShiftHead",
+        name = "Isolated shift head",
         description = "Output twin for each input. Output twin will be loaded from head")
 public class MultiplierIsolatedShiftHead extends Multiplier {
     @Lazy

@@ -24,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2002,
-        name = "DomainScopeBusinessAccountManage",
+        name = "Domain scope / business account manage",
         description = "")
 public class SluggerDomainScopeBusinessAccountManage extends Slugger {
 

@@ -18,7 +18,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1609,
-        name = "TwinInStatuses",
+        name = "Twin in statuses",
         description = "Validator for checking the statuses of a twin")
 public class TwinValidatorTwinInStatuses extends TwinValidator {
     @FeaturerParam(name = "Status ids", description = "", order = 1)

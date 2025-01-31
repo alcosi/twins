@@ -20,7 +20,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2304,
-        name = "BackwardLinksFromContextTwinAll",
+        name = "Backward links from context twin all",
         description = "")
 public class FillerBackwardLinksFromContextTwinAll extends FillerLinks {
     @FeaturerParam(name = "Uniq for src relink", description = "If true, then XToOne links will be relinked to new twin", order = 1)

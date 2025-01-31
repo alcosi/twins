@@ -27,7 +27,7 @@ import java.util.Properties;
 @Component
 @Slf4j
 @Featurer(id = FeaturerTwins.ID_1302,
-        name = "DateScroll",
+        name = "Date",
         description = "")
 public class FieldTyperDateScroll extends FieldTyperSimple<FieldDescriptorDate, FieldValueDate, TwinFieldSearchDate> {
     @FeaturerParam(name = "Pattern", description = "pattern for date value")

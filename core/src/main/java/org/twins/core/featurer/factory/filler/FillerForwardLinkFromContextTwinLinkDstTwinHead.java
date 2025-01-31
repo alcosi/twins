@@ -22,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2325,
-        name = "ForwardLinkFromContextTwinLinkDstTwinHead",
+        name = "Forward link from context twin link dst twin head",
         description = "Finds link in context twin. " +
                 "Get dst twin for this link. " +
                 "Get head of this dst twin. " +

@@ -13,12 +13,12 @@ import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.twin.TwinSearchService;
 
-import java.util.*;
+import java.util.Properties;
 
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1608,
-        name = "CountOfTwinsSameTwinClassGTEValue",
+        name = "Count of twins same twin class GTE value",
         description = "Count twins with twin-class same to input twin and compare with GTEvalue(great or equals)")
 public class TwinValidatorCountOfTwinsSameTwinClassGTEValue extends TwinValidator {
 

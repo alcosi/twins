@@ -3,7 +3,6 @@ package org.twins.core.featurer.factory.multiplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
@@ -22,13 +21,16 @@ import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
 import org.twins.core.service.twin.TwinSearchService;
 import org.twins.core.service.twin.TwinService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Properties;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2209,
-        name = "IsolatedChildrenInStatuses",
+        name = "Isolated children in statuses",
         description = "Output list of twin relatives for each input. Output twin will be loaded by head and filtered by statusIds")
 public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
 

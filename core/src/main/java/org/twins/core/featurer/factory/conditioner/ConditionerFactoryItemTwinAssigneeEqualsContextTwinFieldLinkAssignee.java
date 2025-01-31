@@ -22,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2425,
-        name = "FactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee",
+        name = "Factory item twin assignee equals context twin field link assignee",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee extends Conditioner {

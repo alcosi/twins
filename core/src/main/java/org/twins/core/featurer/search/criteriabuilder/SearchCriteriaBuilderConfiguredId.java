@@ -16,7 +16,7 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2701,
-        name = "ConfiguredId",
+        name = "Configured id",
         description = "")
 public class SearchCriteriaBuilderConfiguredId extends SearchCriteriaBuilderSingleUUID {
     @FeaturerParam(name = "Entity id", description = "", order = 1)

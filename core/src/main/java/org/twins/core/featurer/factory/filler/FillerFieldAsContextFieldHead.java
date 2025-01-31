@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2334,
-        name = "FieldAsContextFieldHead",
+        name = "Field as context field head",
         description = "Get head for twin from src field(link). Set this head to dst field(link)")
 @Slf4j
 public class FillerFieldAsContextFieldHead extends Filler {

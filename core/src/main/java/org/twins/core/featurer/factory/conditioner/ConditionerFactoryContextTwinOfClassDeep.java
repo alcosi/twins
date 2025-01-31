@@ -14,7 +14,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2419,
-        name = "FactoryContextTwinOfClassDeep",
+        name = "Factory context twin of class (deep)",
         description = "")
 @Slf4j
 public class ConditionerFactoryContextTwinOfClassDeep extends Conditioner {

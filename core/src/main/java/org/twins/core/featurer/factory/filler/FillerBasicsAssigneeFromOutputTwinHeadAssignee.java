@@ -10,14 +10,13 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.service.factory.TwinFactoryService;
 import org.twins.core.service.twin.TwinService;
 
 import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2329,
-        name = "BasicsAssigneeFromHeadTwinAssignee",
+        name = "Basics assignee from head twin assignee",
         description = "Fill the assignee from own head twin assignee")
 @Slf4j
 public class FillerBasicsAssigneeFromOutputTwinHeadAssignee extends Filler {

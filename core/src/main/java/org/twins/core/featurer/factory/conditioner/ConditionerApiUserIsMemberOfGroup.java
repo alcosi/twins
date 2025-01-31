@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2423,
-        name = "ApiUserIsMemberOfGroup",
+        name = "Is member of group",
         description = "")
 @Slf4j
 public class ConditionerApiUserIsMemberOfGroup extends Conditioner {

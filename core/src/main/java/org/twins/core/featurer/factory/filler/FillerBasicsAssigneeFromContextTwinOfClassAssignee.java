@@ -20,7 +20,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2326,
-        name = "BasicsAssigneeFromContextTwinOfClassAssignee",
+        name = "Basics assignee from context twin of class assignee",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinOfClassAssignee extends Filler {

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @Deprecated
 @Component
 @Featurer(id = FeaturerTwins.ID_2408,
-        name = "HasChildrenButNotFromFactoryInput",
+        name = "Has children but not from factory input",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinHasChildrenButNotFromFactoryInput extends Conditioner {

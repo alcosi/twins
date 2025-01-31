@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2331,
-        name = "FieldCleaner",
+        name = "Field cleaner",
         description = "")
 @Slf4j
 public class FillerFieldCleaner extends Filler {

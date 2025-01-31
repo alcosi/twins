@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_1310,
-        name = "Link",
+        name = "Linked twin",
         description = "")
 public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity, TwinFieldSearchNotImplemented> {
     public static final Integer ID = 1310;

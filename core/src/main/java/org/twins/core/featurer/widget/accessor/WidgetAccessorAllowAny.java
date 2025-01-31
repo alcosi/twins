@@ -9,7 +9,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1401,
-        name = "AllowAny",
+        name = "Allow any",
         description = "")
 public class WidgetAccessorAllowAny extends WidgetAccessor {
     @Override
