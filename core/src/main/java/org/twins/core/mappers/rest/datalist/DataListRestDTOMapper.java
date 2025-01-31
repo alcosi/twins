@@ -1,6 +1,7 @@
 package org.twins.core.mappers.rest.datalist;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.i18n.service.I18nService;
 import org.springframework.stereotype.Component;
@@ -23,17 +24,22 @@ public class DataListRestDTOMapper extends RestSimpleDTOMapper<DataListEntity, D
     @Override
     public void map(DataListEntity src, DataListDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(DataListMode.DETAILED)) {
-            case MANAGED ->
+            case MANAGED -> {
                 dst
                         .setId(src.getId())
                         .setName(i18nService.translateToLocale(src.getNameI18nId()))
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setKey(src.getKey())
-                        .setAttribute1(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute1key(), src.getAttribute1nameI18nId())))
-                        .setAttribute2(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute2key(), src.getAttribute2nameI18nId())))
-                        .setAttribute3(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute3key(), src.getAttribute3nameI18nId())))
-                        .setAttribute4(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute4key(), src.getAttribute4nameI18nId())))
                         .setUpdatedAt(src.getUpdatedAt().toLocalDateTime());
+                if (StringUtils.isNotEmpty(src.getAttribute1key()))
+                    dst.setAttribute1(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute1key(), src.getAttribute1nameI18nId())));
+                if (StringUtils.isNotBlank(src.getAttribute2key()))
+                    dst.setAttribute2(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute2key(), src.getAttribute2nameI18nId())));
+                if (StringUtils.isNotBlank(src.getAttribute3key()))
+                    dst.setAttribute3(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute3key(), src.getAttribute3nameI18nId())));
+                if (StringUtils.isNoneEmpty(src.getAttribute4key()))
+                    dst.setAttribute4(dataListAttributeRestDTOMapper.convert(new ImmutablePair<>(src.getAttribute4key(), src.getAttribute4nameI18nId())));
+            }
             case DETAILED ->
                 dst
                         .setId(src.getId())
