@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -266,15 +267,54 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return duplicateTwinClassEntity;
     }
 
-    public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getChildClassIdSet() != null)
-            return twinClassEntity.getChildClassIdSet();
+    public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadExtendsHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
 
-        Set<UUID> childClassIdSet = twinClassRepository.findAll(
-                        TwinClassSpecification.checkHierarchyIsChild(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
-                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
-        twinClassEntity.setChildClassIdSet(childClassIdSet);
-        return childClassIdSet;
+    public void loadExtendsHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getExtendsHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setExtendsHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndExtendsHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getExtendedClassIdSet().contains(twinClass.getId()))
+                    twinClass.getExtendsHierarchyChildClassKit().add(childClass);
+            }
+        }
+    }
+
+    public void loadHeadHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadHeadHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadHeadHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getHeadHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setHeadHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
+                    twinClass.getHeadHierarchyChildClassKit().add(childClass);
+            }
+        }
     }
 
     public void loadPermissions(TwinClassEntity twinClassEntity) {
@@ -383,11 +423,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-
-
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
-
-
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         if (autoCreatePermissions) {
