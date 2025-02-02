@@ -11,7 +11,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1101,
-        name = "BusinessAccountInitiatorImpl",
+        name = "Default",
         description = "")
 @RequiredArgsConstructor
 public class BusinessAccountInitiatorImpl extends BusinessAccountInitiator {

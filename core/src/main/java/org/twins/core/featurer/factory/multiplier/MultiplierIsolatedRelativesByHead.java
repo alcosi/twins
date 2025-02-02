@@ -26,10 +26,10 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2205,
-        name = "MultiplierIsolatedRelativesByHead",
+        name = "Isolated relatives by head",
         description = "Output list of twin relatives for each input. Output twin list will be loaded by head and filtered by statusIds")
 public class MultiplierIsolatedRelativesByHead extends Multiplier {
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
     @Lazy
     @Autowired

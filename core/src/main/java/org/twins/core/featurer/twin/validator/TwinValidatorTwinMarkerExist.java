@@ -19,10 +19,10 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1603,
-        name = "TransitionValidatorTwinMarkerExist",
+        name = "Twin marker exist",
         description = "")
 public class TwinValidatorTwinMarkerExist extends TwinValidator {
-    @FeaturerParam(name = "markerId", description = "")
+    @FeaturerParam(name = "Marker id", description = "", order = 1)
     public static final FeaturerParamUUID markerId = new FeaturerParamUUIDTwinsMarkerId("markerId");
 
     @Lazy

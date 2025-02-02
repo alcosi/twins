@@ -17,11 +17,11 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2403,
-        name = "ConditionerApiUserHasPermission",
+        name = "Current user has permission",
         description = "")
 @Slf4j
 public class ConditionerApiUserHasPermission extends Conditioner {
-    @FeaturerParam(name = "permissionId", description = "")
+    @FeaturerParam(name = "Permission id", description = "", order = 1)
     public static final FeaturerParamUUID permissionId = new FeaturerParamUUIDTwinsPermissionId("permissionId");
 
     @Lazy

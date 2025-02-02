@@ -16,7 +16,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2307,
-        name = "FillerForwardLinksFromTemplateTwinAll",
+        name = "Forward links from template twin all",
         description = "")
 public class FillerForwardLinksFromTemplateTwinAll extends FillerLinks {
     @Override

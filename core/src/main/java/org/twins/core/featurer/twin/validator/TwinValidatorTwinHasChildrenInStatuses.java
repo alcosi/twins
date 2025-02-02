@@ -20,10 +20,10 @@ import java.util.*;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1604,
-        name = "TransitionValidatorTwinHasChildrenInStatuses",
+        name = "Twin has children in statuses",
         description = "")
 public class TwinValidatorTwinHasChildrenInStatuses extends TwinValidator {
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Lazy
