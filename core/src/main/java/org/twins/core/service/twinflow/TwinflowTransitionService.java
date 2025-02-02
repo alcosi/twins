@@ -179,27 +179,6 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         return twinflowTransitionEntity.getCreatedByUser();
     }
 
-    public Kit<TwinflowTransitionEntity, UUID> loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getValidTransitionsKit() != null)
-            return twinEntity.getValidTransitionsKit();
-        ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
-        twinflowService.loadTwinflow(twinEntity);
-        List<TwinflowTransitionEntity> twinflowTransitionEntityList = twinflowTransitionRepository.findValidTransitions(
-                twinEntity.getTwinflow().getId(),
-                twinEntity.getTwinStatusId(),
-                apiUser.getDomainId(),
-                TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
-                TypedParameterTwins.uuidNullable(twinEntity.getPermissionSchemaSpaceId()),
-                apiUser.getUser().getId(),
-                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
-                TypedParameterTwins.uuidNullable(twinEntity.getTwinClassId()),
-                TwinService.isAssignee(twinEntity, apiUser),
-                TwinService.isCreator(twinEntity, apiUser));
-        filterTransitions(twinEntity, twinflowTransitionEntityList);
-        return twinEntity.getValidTransitionsKit();
-    }
-
     public PaginationResult<TwinflowTransitionEntity> search(TransitionSearch transitionSearch, SimplePagination pagination) throws ServiceException {
         return twinflowTransitionSearchService.findTransitions(transitionSearch, pagination);
     }
@@ -227,15 +206,22 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         twinEntity.setValidTransitionsKit(new Kit<>(alreadyAdded.values().stream().toList(), TwinflowTransitionEntity::getId));
     }
 
+    public void loadValidTransitions(TwinEntity twinEntity) throws ServiceException {
+        loadValidTransitions(Collections.singleton(twinEntity));
+    }
+
     public void loadValidTransitions(Collection<TwinEntity> twinEntityList) throws ServiceException {
         Map<UUID, TwinEntity> needLoad = new HashMap<>();
         for (TwinEntity twinEntity : twinEntityList) {
+            if (twinEntity.getTwinClass().getOwnerType().equals(TwinClassEntity.OwnerType.SYSTEM)) //no transitions available for such twins, because they are cross-domain
+                continue;
             if (twinEntity.getValidTransitionsKit() != null)
                 continue;
             needLoad.put(twinEntity.getId(), twinEntity);
         }
         if (MapUtils.isEmpty(needLoad))
             return;
+        userGroupService.loadGroups(authService.getApiUser());
         twinflowService.loadTwinflow(needLoad.values());
         Map<TransitionDetectKey, List<TwinEntity>> detectKeyMap = convertToDetectKeys(needLoad.values());
         ApiUser apiUser = authService.getApiUser();
