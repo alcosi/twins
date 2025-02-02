@@ -65,6 +65,7 @@ public class FeaturerService {
     }
 
     private void syncFeaturers() {
+        log.info("syncFeaturers: started");
         List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
         List<FeaturerEntity> featurerEntityList = new ArrayList<>();
         List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
@@ -100,6 +101,7 @@ public class FeaturerService {
         //truncating old params
         featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityList.stream().map(FeaturerEntity::getId).toList());
         featurerParamRepository.saveAll(featurerParamEntityList);
+        log.info("syncFeaturers: ended");
     }
 
     private static Set<FeaturerType> syncedFeaturerTypes = new HashSet<>();
