@@ -305,10 +305,11 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
                     .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
                     .setFieldTyperFeaturer(newFieldTyperFeaturer);
         }
-        if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams))
+        if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams) && MapUtils.isNotEmpty(newFeaturerParams)) {
             changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
-        dbTwinClassFieldEntity
-                .setFieldTyperParams(newFeaturerParams);
+            dbTwinClassFieldEntity
+                    .setFieldTyperParams(newFeaturerParams);
+        }
     }
 
     public void updateTwinClassFieldName(TwinClassFieldEntity dbTwinClassFieldEntity, I18nEntity nameI18n, ChangesHelper changesHelper) throws ServiceException {
