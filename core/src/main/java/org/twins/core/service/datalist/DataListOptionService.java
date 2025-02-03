@@ -124,12 +124,16 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         return dbOption;
     }
 
-    private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, Map<String, String> attributes, ChangesHelper changesHelper) throws ServiceException {
-        if (emptyAttributes(dataList))
+    private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, Map<String, String> attributes, ChangesHelper changesHelper) {
+        if (emptyAttributes(dataList) || MapUtils.isEmpty(attributes))
             return;
         String attributeValue;
         for (var attributeAccessor : dataList.getAttributes().entrySet()) {
-            attributeValue = getAttributeValueSafe(attributes, attributeAccessor.getKey());
+            if (StringUtils.isEmpty(attributeAccessor.getKey()))
+                continue;
+            if (MapUtils.isEmpty(attributes) || !attributes.containsKey(attributeAccessor.getKey()))
+                continue;
+            attributeValue = attributes.get(attributeAccessor.getKey());
             updateDataListOptionAttribute(attributeValue, attributeAccessor.getKey(), option, attributeAccessor.getValue().getter(), attributeAccessor.getValue().setter(), changesHelper);
         }
     }
