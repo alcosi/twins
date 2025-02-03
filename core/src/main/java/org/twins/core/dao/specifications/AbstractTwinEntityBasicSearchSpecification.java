@@ -9,6 +9,7 @@ import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
+import org.twins.core.dao.twin.TwinMarkerEntity;
 import org.twins.core.dao.twin.TwinTouchEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.TwinFieldSearch;
@@ -33,7 +34,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
         String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags);
-        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers);
+        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
         var commonSpecifications = new Specification[]{
