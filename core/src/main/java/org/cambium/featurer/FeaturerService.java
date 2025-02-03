@@ -166,15 +166,21 @@ public class FeaturerService {
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
-        Featurer featurer = featurerMap.get(featurerEntity.getId());
+        return getFeaturer(featurerEntity.getId(), featurerType);
+    }
+
+    public <T extends Featurer> T getFeaturer(Integer featurerId, Class<T> featurerType) throws ServiceException {
+        if (featurerId == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
+        Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerId);
         if (!featurerType.isInstance(featurer)) {
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerEntity.getId(), featurerType.getSimpleName()));
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerId, featurerType.getSimpleName()));
         }
         org.cambium.featurer.annotations.Featurer annotation = ClassUtils.getUserClass(featurer.getClass()).getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        if (annotation.id() != featurerEntity.getId())
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Incorrect featurer component id " + featurerEntity.getId());
+        if (annotation.id() != featurerId)
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Incorrect featurer component id " + featurerId);
         return (T) featurer;
     }
 
@@ -305,6 +311,10 @@ public class FeaturerService {
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
         extractProperties(featurer, featurerParams, new HashMap<>());
+        return featurerRepository.getById(featurerId);
+    }
+
+    public FeaturerEntity getFeaturerEntity(Integer featurerId) {
         return featurerRepository.getById(featurerId);
     }
 

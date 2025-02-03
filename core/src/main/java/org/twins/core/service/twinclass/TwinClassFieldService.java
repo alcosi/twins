@@ -298,19 +298,18 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         FeaturerEntity newFieldTyperFeaturer = null;
+        newFeaturerId = newFeaturerId != 0 ? newFeaturerId : dbTwinClassFieldEntity.getFieldTyperFeaturerId();
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams)) {
-            int featurerId = newFeaturerId != 0 ? newFeaturerId : dbTwinClassFieldEntity.getFieldTyperFeaturerId();
-            newFieldTyperFeaturer = featurerService.checkValid(featurerId, newFeaturerParams, FieldTyper.class);
+            newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
             changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
             dbTwinClassFieldEntity
                     .setFieldTyperParams(newFeaturerParams);
         }
         if (changesHelper.isChanged(TwinClassFieldEntity.Fields.fieldTyperFeaturerId, dbTwinClassFieldEntity.getFieldTyperFeaturerId(), newFeaturerId)) {
-            if(newFieldTyperFeaturer == null)
-                newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
-
             if (twinService.areFieldsOfTwinClassFieldExists(dbTwinClassFieldEntity))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_UPDATE_RESTRICTED, "class field can not change fieldtyper featurer, because some twins with fields of given class are already exist");
+            if (newFieldTyperFeaturer == null)
+                newFieldTyperFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
             dbTwinClassFieldEntity
                     .setFieldTyperFeaturerId(newFieldTyperFeaturer.getId())
                     .setFieldTyperFeaturer(newFieldTyperFeaturer);
