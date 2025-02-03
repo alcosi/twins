@@ -12,12 +12,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2315,
-        name = "FillerBasicsAssigneeFromContextField",
+        name = "Basics assignee from context field",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContextField extends FillerBasicsAssigneeFromContext {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFields);
+        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFields());
     }
 }

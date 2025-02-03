@@ -24,7 +24,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2002,
-        name = "SluggerDomainScopeBusinessAccountManage",
+        name = "Domain scope / business account manage",
         description = "")
 public class SluggerDomainScopeBusinessAccountManage extends Slugger {
 
@@ -72,7 +72,8 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger {
                 .setBusinessAccountId(apiUser.getBusinessAccountId())
                 .setBusinessAccount(apiUser.getBusinessAccount())
                 .setAddedByUserId(apiUser.getUser().getId())
-                .setAddedByUser(apiUser.getUser());
+                .setAddedByUser(apiUser.getUser())
+                .setAddedAt(Timestamp.from(Instant.now()));
     }
 
     @Override

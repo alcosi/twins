@@ -23,15 +23,15 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2334,
-        name = "FillerFieldAsContextFieldHead",
+        name = "Field as context field head",
         description = "Get head for twin from src field(link). Set this head to dst field(link)")
 @Slf4j
 public class FillerFieldAsContextFieldHead extends Filler {
 
-    @FeaturerParam(name = "srcTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
 
-    @FeaturerParam(name = "dstTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Dst twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Lazy
@@ -41,7 +41,7 @@ public class FillerFieldAsContextFieldHead extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID extractedSrcTwinClassFieldId = srcTwinClassFieldId.extract(properties);
-        FieldValue srcFieldValue = factoryService.lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId,  FieldLookupMode.fromContextFields);
+        FieldValue srcFieldValue = fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, extractedSrcTwinClassFieldId);
 
         UUID detectedHeadId = null;
         if (srcFieldValue instanceof FieldValueLink fieldValueLink) {

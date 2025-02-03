@@ -17,7 +17,7 @@ import java.util.*;
 
 public class DomainUserSpecification extends CommonSpecification<DomainUserEntity> {
 
-    public static Specification<DomainUserEntity> checkFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainUserEntity> checkDomainUserFieldLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             ArrayList<Predicate> predicates = new ArrayList<>();
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
@@ -31,7 +31,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
         };
     }
 
-    public static Specification<DomainUserEntity> checkFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
+    public static Specification<DomainUserEntity> checkDomainUserFieldNotLikeIn(final String field, final Collection<String> search, final boolean or) {
         return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             Join<DomainUserEntity, UserEntity> userJoin = root.join(DomainUserEntity.Fields.user, JoinType.INNER);
@@ -53,7 +53,7 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
             List<Predicate> predicates = new ArrayList<>();
             for (UserStatus status : statuses) {
                 Predicate predicate = cb.equal(userJoin.get(UserEntity.Fields.userStatusId), status);
-                predicates.add(not ? predicate.not() : predicate);
+                predicates.add(not ? cb.not(predicate) : predicate);
             }
             return getPredicate(cb, predicates, false);
         };
@@ -79,11 +79,4 @@ public class DomainUserSpecification extends CommonSpecification<DomainUserEntit
         };
     }
 
-    public static Specification<DomainUserEntity> checkDomainId(UUID domainId) {
-        return (root, query, cb) -> {
-            if (domainId == null)
-                return cb.conjunction();
-            return cb.equal(root.get(DomainUserEntity.Fields.domain).get(DomainEntity.Fields.id), domainId);
-        };
-    }
 }

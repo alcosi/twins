@@ -9,6 +9,7 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldRepository;
 import org.twins.core.domain.ApiUser;
@@ -34,25 +35,24 @@ public class TwinClassFieldSearchService {
 
     private Specification<TwinClassFieldEntity> createTwinClassFieldSearchSpecification(TwinClassFieldSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return Specification.where(
-                checkDomainId(apiUser.getDomainId())
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.twinClassId, search.getTwinClassIdList(), false, false))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, false))
-                        .and(checkFieldLikeIn(TwinClassFieldEntity.Fields.key, search.getKeyLikeList(), false, true))
-                        .and(checkFieldLikeIn(TwinClassFieldEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                        .and(joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), apiUser.getLocale(), true, false))
-                        .and(joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true))
-                        .and(checkFieldTyperIdIn(search.getFieldTyperIdList(), false, false))
-                        .and(checkFieldTyperIdIn(search.getFieldTyperIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.viewPermissionId, search.getViewPermissionIdList(), false, false))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.viewPermissionId, search.getViewPermissionIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.editPermissionId, search.getViewPermissionIdList(), false, false))
-                        .and(checkUuidIn(TwinClassFieldEntity.Fields.editPermissionId, search.getViewPermissionIdExcludeList(), true, true))
-                        .and(checkRequired(search.getRequired())
-        ));
+        return Specification.allOf(
+                checkFieldUuid(apiUser.getDomainId(), TwinClassFieldEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                checkUuidIn(search.getIdList(), false, false, TwinClassFieldEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinClassFieldEntity.Fields.id),
+                checkUuidIn(search.getTwinClassIdList(), false, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkUuidIn(search.getTwinClassIdExcludeList(), true, false, TwinClassFieldEntity.Fields.twinClassId),
+                checkFieldLikeIn(search.getKeyLikeList(), false, true, TwinClassFieldEntity.Fields.key),
+                checkFieldLikeIn(search.getKeyNotLikeList(), true, true, TwinClassFieldEntity.Fields.key),
+                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
+                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), apiUser.getLocale(), true, false),
+                joinAndSearchByI18NField(TwinClassFieldEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), apiUser.getLocale(), true, true),
+                checkFieldTyperIdIn(search.getFieldTyperIdList(), false, false),
+                checkFieldTyperIdIn(search.getFieldTyperIdExcludeList(), true, true),
+                checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.viewPermissionId),
+                checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.viewPermissionId),
+                checkUuidIn(search.getViewPermissionIdList(), false, false, TwinClassFieldEntity.Fields.editPermissionId),
+                checkUuidIn(search.getViewPermissionIdExcludeList(), true, true, TwinClassFieldEntity.Fields.editPermissionId),
+                checkRequired(search.getRequired()));
     }
 }

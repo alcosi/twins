@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1901,
-        name = "TokenHandlerStub",
+        name = "Stub",
         description = "")
 @RequiredArgsConstructor
 public class TokenHandlerStub extends TokenHandler {

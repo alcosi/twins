@@ -21,7 +21,6 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.twinclass.TwinClassEntity;
-import org.twins.core.domain.ApiUser;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TwinClassRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -80,8 +79,7 @@ public class TwinClassViewController extends ApiController {
             @Parameter(example = DTOExamples.TWIN_CLASS_KEY) @PathVariable String twinClassKey) {
         TwinClassRsDTOv1 rs = new TwinClassRsDTOv1();
         try {
-            ApiUser apiUser = authService.getApiUser();
-            TwinClassEntity twinClassEntity = twinClassService.findTwinClassByKey(apiUser, twinClassKey);
+            TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassKey);
             rs
                     .setTwinClass(twinClassRestDTOMapper.convert(twinClassEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));

@@ -74,6 +74,15 @@ public class TwinClassBaseDTOv1 {
     @Schema(description = "view permission id")
     public UUID viewPermissionId;
 
+    @Schema(description = "create permission id")
+    public UUID createPermissionId;
+
+    @Schema(description = "edit permission id")
+    public UUID editPermissionId;
+
+    @Schema(description = "delete permission id")
+    public UUID deletePermissionId;
+
     @Schema(description = "uuid of name in I18n table")
     public UUID nameI18nId;
 

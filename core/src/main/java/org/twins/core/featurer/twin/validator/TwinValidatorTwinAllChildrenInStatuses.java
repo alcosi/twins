@@ -24,14 +24,14 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1605,
-        name = "TransitionValidatorTwinAllChildrenInStatuses",
+        name = "Twin all children in statuses",
         description = "")
 public class TwinValidatorTwinAllChildrenInStatuses extends TwinValidator {
 
-    @FeaturerParam(name = "childrenTwinClassId", description = "")
+    @FeaturerParam(name = "Children twin class id", description = "", order = 1)
     public static final FeaturerParamUUID childrenTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("childrenTwinClassId");
 
-    @FeaturerParam(name = "childrenTwinStatusId", description = "")
+    @FeaturerParam(name = "Children twin status id", description = "", order = 2)
     public static final FeaturerParamUUID childrenTwinStatusId = new FeaturerParamUUIDTwinsTwinStatusId("childrenTwinStatusId");
 
     @Lazy

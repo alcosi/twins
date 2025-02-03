@@ -13,23 +13,24 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.featurer.annotations.FeaturerList;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
-import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
 import org.twins.core.dao.LtreeUserType;
 import org.twins.core.dao.action.TwinAction;
 import org.twins.core.dao.action.TwinActionPermissionEntity;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dao.attachment.TwinAttachmentActionAlienPermissionEntity;
-import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
-import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
-import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
-import org.twins.core.dao.comment.*;
+import org.twins.core.dao.comment.TwinCommentAction;
+import org.twins.core.dao.comment.TwinCommentActionAlienPermissionEntity;
+import org.twins.core.dao.comment.TwinCommentActionSelfEntity;
 import org.twins.core.dao.datalist.DataListEntity;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinflow.TwinflowEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
+import org.twins.core.dao.validator.TwinActionValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinAttachmentActionAlienValidatorRuleEntity;
+import org.twins.core.dao.validator.TwinAttachmentActionSelfValidatorRuleEntity;
 import org.twins.core.dao.validator.TwinCommentActionAlienValidatorRuleEntity;
 import org.twins.core.featurer.twinclass.HeadHunter;
 
@@ -73,6 +74,15 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "view_permission_id")
     private UUID viewPermissionId;
 
+    @Column(name = "create_permission_id")
+    private UUID createPermissionId;
+
+    @Column(name = "edit_permission_id")
+    private UUID editPermissionId;
+
+    @Column(name = "delete_permission_id")
+    private UUID deletePermissionId;
+
     @Column(name = "abstract")
     private boolean abstractt;
 
@@ -85,8 +95,6 @@ public class TwinClassEntity implements EasyLoggable {
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 
@@ -162,7 +170,11 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
-    private Set<UUID> childClassIdSet;
+    private Kit<TwinClassEntity, UUID> headHierarchyChildClassKit;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private Kit<TwinClassEntity, UUID> extendsHierarchyChildClassKit;
 
     @Transient
     @EqualsAndHashCode.Exclude
@@ -223,6 +235,18 @@ public class TwinClassEntity implements EasyLoggable {
 
     @Transient
     @EqualsAndHashCode.Exclude
+    private PermissionEntity createPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity editPermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
+    private PermissionEntity deletePermission;
+
+    @Transient
+    @EqualsAndHashCode.Exclude
     private TwinClassEntity headTwinClass;
 
     @Transient
@@ -239,7 +263,7 @@ public class TwinClassEntity implements EasyLoggable {
 
 
     public Set<UUID> getExtendedClassIdSet() {
-        if (null == extendedClassIdSet) {
+        if (null == extendedClassIdSet && null != getExtendsHierarchyTree()) {
             extendedClassIdSet = new HashSet<>();
             for (String hierarchyItem : convertUuidFromLtreeFormat(getExtendsHierarchyTree()).split("\\."))
                 extendedClassIdSet.add(UUID.fromString(hierarchyItem));
@@ -248,7 +272,7 @@ public class TwinClassEntity implements EasyLoggable {
     }
 
     public Set<UUID> getHeadHierarchyClassIdSet() {
-        if (null == headHierarchyClassIdSet) {
+        if (null == headHierarchyClassIdSet && null != getHeadHierarchyTree()) {
             headHierarchyClassIdSet = new HashSet<>();
             for (String hierarchyItem : convertUuidFromLtreeFormat(getHeadHierarchyTree()).split("\\."))
                 headHierarchyClassIdSet.add(UUID.fromString(hierarchyItem));

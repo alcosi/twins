@@ -1,6 +1,4 @@
 package org.twins.core.dto.rest.twinstatus;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
@@ -33,6 +31,6 @@ public class TwinStatusDTOv1 {
     @Schema(description = "font color hex", example = DTOExamples.COLOR_HEX)
     public String fontColor;
 
-    @JsonIgnore
+    @Schema(description = "twin class", example = DTOExamples.TWIN_CLASS_ID)
     public UUID twinClassId;
 }

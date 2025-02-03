@@ -16,15 +16,16 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.*;
+import java.util.Properties;
+import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2331,
-        name = "FillerFieldCleaner",
+        name = "Field cleaner",
         description = "")
 @Slf4j
 public class FillerFieldCleaner extends Filler {
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Lazy
@@ -38,7 +39,7 @@ public class FillerFieldCleaner extends Filler {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID twinClassFieldIdExtracted = twinClassFieldId.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, twinClassFieldIdExtracted, FieldLookupMode.fromItemOutputDbFields);
+        FieldValue fieldValue = fieldLookupers.getFromItemOutputDbFields().lookupFieldValue(factoryItem, twinClassFieldIdExtracted);
         if(null != fieldValue) {
             fieldValue.nullify();
             factoryItem.getOutput().addField(fieldValue);

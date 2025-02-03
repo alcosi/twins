@@ -3,14 +3,16 @@ package org.twins.core.dao.factory;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
+@Data
+@Accessors(chain = true)
+@FieldNameConstants
 @Entity
 @Table(name = "twin_factory_branch")
-@Accessors(chain = true)
-@Data
 public class TwinFactoryBranchEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
@@ -33,6 +35,18 @@ public class TwinFactoryBranchEntity implements EasyLoggable {
 
     @Column(name = "description")
     private String description;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity factory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "twin_factory_condition_set_id", insertable = false, updatable = false)
+    private TwinFactoryConditionSetEntity conditionSet;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "next_twin_factory_id", insertable = false, updatable = false, nullable = false)
+    private TwinFactoryEntity nextFactory;
 
     public String easyLog(Level level) {
         return switch (level) {

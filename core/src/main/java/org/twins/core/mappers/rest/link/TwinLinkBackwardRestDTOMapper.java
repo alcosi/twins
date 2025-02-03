@@ -30,8 +30,7 @@ public class TwinLinkBackwardRestDTOMapper extends RestSimpleDTOMapper<TwinLinkE
                 .setDstTwinId(src.getSrcTwinId());
         if (mapperContext.hasModeButNot(RelationTwinMode.TwinByLinkMode.WHITE))
             dst
-                    .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getSrcTwin(), mapperContext
-                            .forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN)));
+                    .setDstTwin(twinBaseV2RestDTOMapper.convertOrPostpone(src.getSrcTwin(), mapperContext.forkOnPoint(RelationTwinMode.TwinByLinkMode.GREEN)));
         if (mapperContext.hasModeButNot(LinkMode.TwinLink2LinkMode.HIDE))
             dst
                     .setLink(linkBackwardRestDTOMapper.convertOrPostpone(src.getLink(), mapperContext

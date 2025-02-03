@@ -4,10 +4,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.common.util.LoggerUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nType;
+import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -16,19 +20,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.draft.DraftEntity;
 import org.twins.core.dao.factory.*;
+import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinflow.TwinflowTransitionRepository;
+import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.factory.*;
 import org.twins.core.domain.twinoperation.TwinCreate;
 import org.twins.core.domain.twinoperation.TwinDelete;
-import org.twins.core.domain.twinoperation.TwinSave;
 import org.twins.core.domain.twinoperation.TwinUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.conditioner.Conditioner;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.factory.filler.Filler;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
-import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.draft.DraftCommitService;
 import org.twins.core.service.draft.DraftService;
@@ -36,6 +39,8 @@ import org.twins.core.service.twin.TwinEraserService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -63,6 +68,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     final DraftService draftService;
     final DraftCommitService draftCommitService;
     private final TwinflowTransitionRepository twinflowTransitionRepository;
+    private final I18nService i18nService;
 
     @Override
     public CrudRepository<TwinFactoryEntity, UUID> entityRepository() {
@@ -82,6 +88,60 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
     @Override
     public boolean validateEntity(TwinFactoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return true;
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinFactoryEntity createFactory(TwinFactoryEntity factory, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        factory
+                .setDomainId(apiUser.getDomainId())
+                .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId())
+                .setCreatedByUserId(apiUser.getUserId())
+                .setCreatedByUser(apiUser.getUser())
+                .setCreatedAt(Timestamp.from(Instant.now()));
+        validateEntityAndThrow(factory, EntitySmartService.EntityValidateMode.beforeSave);
+        return twinFactoryRepository.save(factory);
+    }
+
+    @Transactional(rollbackFor = Throwable.class)
+    public TwinFactoryEntity updateFactory(TwinFactoryEntity factoryEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
+        TwinFactoryEntity dbEntity = findEntitySafe(factoryEntity.getId());
+        ChangesHelper changesHelper = new ChangesHelper();
+        updateFactoryKey(factoryEntity, dbEntity, changesHelper);
+        updateFactoryName(nameI18n, dbEntity, changesHelper);
+        updateFactoryDescription(descriptionI18n, dbEntity, changesHelper);
+        if (changesHelper.hasChanges()) {
+            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            entitySmartService.saveAndLogChanges(dbEntity, twinFactoryRepository, changesHelper);
+        }
+        return dbEntity;
+    }
+
+    private void updateFactoryKey(TwinFactoryEntity factoryEntity, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TwinFactoryEntity.Fields.key, dbEntity.getKey(), factoryEntity.getKey()))
+            return;
+        dbEntity.setKey(factoryEntity.getKey());
+    }
+
+    private void updateFactoryName(I18nEntity nameI18n, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (nameI18n == null)
+            return;
+        if (dbEntity.getNameI18NId() != null)
+            nameI18n.setId(dbEntity.getNameI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_FACTORY_NAME, nameI18n);
+        if (changesHelper.isChanged(TwinFactoryEntity.Fields.nameI18NId, dbEntity.getNameI18NId(), nameI18n.getId()))
+            dbEntity.setNameI18NId(nameI18n.getId());
+    }
+
+    private void updateFactoryDescription(I18nEntity descriptionI18n, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        if (descriptionI18n == null)
+            return;
+        if (dbEntity.getDescriptionI18NId() != null)
+            descriptionI18n.setId(dbEntity.getDescriptionI18NId());
+        i18nService.saveTranslations(I18nType.TWIN_FACTORY_DESCRIPTION, descriptionI18n);
+        if (changesHelper.isChanged(PermissionEntity.Fields.descriptionI18NId, dbEntity.getDescriptionI18NId(), descriptionI18n.getId()))
+            dbEntity.setDescriptionI18NId(descriptionI18n.getId());
     }
 
     public FactoryResultUncommited runFactoryAndCollectResult(UUID factoryId, FactoryContext factoryContext) throws ServiceException {
@@ -136,7 +196,11 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         Map<UUID, List<FactoryItem>> factoryInputTwins = groupItemsByClass(factoryContext);
         LoggerUtils.traceTreeLevelDown();
         for (TwinFactoryMultiplierEntity factoryMultiplierEntity : factoryMultiplierEntityList) {
-            log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getComment() + "**");
+            log.info("Checking input for " + factoryMultiplierEntity.logNormal() + " **" + factoryMultiplierEntity.getDescription() + "**");
+            if (!factoryMultiplierEntity.getActive()) {
+                log.info("Skipping: not active[" + factoryMultiplierEntity.getId() + "]");
+                continue;
+            }
             List<FactoryItem> multiplierInput = factoryInputTwins.get(factoryMultiplierEntity.getInputTwinClassId());
             if (CollectionUtils.isEmpty(multiplierInput)) {
                 log.info("Skipping: no input of twinClass[" + factoryMultiplierEntity.getInputTwinClassId() + "]");
@@ -155,7 +219,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
                 for (FactoryItem factoryItem : multiplierOutput) {
                     boolean allowed = false;
                     for (TwinFactoryMultiplierFilterEntity filter : multiplierFilters) {
-                        if(!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
+                        if (!filter.getInputTwinClassId().equals(factoryItem.getOutput().getTwinEntity().getTwinClassId()))
                             continue;
                         if (filter.isActive()) {
                             allowed = checkCondition(filter.getTwinFactoryConditionSetId(), filter.isTwinFactoryConditionInvert(), factoryItem);
@@ -377,7 +441,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return true;
     }
 
-
     public TwinEntity lookupTwinOfClass(FactoryItem factoryItem, UUID twinClassId, int depth) {
         if (factoryItem == null || twinClassId == null || depth > 5) return null;
 
@@ -395,80 +458,6 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         return null;
     }
 
-    public FieldValue lookupFieldValue(FactoryItem factoryItem, UUID twinClassFieldId, FieldLookupMode fieldLookupMode) throws ServiceException {
-        FieldValue fieldValue = null;
-        TwinEntity contextTwin, outputTwin;
-        FactoryItem contextItem;
-        TwinSave twinSave;
-        switch (fieldLookupMode) {
-            case fromContextFields:
-                fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields");
-                break;
-            case fromContextTwinUncommitedFields:
-                contextItem = factoryItem.checkSingleContextItem();
-                fieldValue = contextItem.getOutput().getField(twinClassFieldId);
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin uncommited fields");
-                break;
-            case fromItemOutputUncommitedFields:
-                twinSave = factoryItem.getOutput();
-                fieldValue = twinSave.getField(twinClassFieldId);
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in output twin uncommited fields");
-                break;
-            case fromContextTwinDbFields:
-                contextTwin = factoryItem.checkSingleContextTwin();
-                fieldValue = twinService.getTwinFieldValue(twinService.wrapField(contextTwin, twinClassFieldId));
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context twin db fields");
-                break;
-            case fromContextFieldsAndContextTwinDbFields:
-                fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
-                if (TwinService.isFilled(fieldValue))
-                    break;
-                // we will look inside context twin
-                contextTwin = factoryItem.checkSingleContextTwin();
-                fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
-                if (TwinService.isFilled(fieldValue))
-                    break;
-                // we will try to look deeper
-                contextTwin = factoryItem.checkSingleContextItem().checkSingleContextTwin();
-                fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
-                if (!TwinService.isFilled(fieldValue))
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
-                break;
-            case fromContextDbTwinFieldsAndContextFields:
-                contextTwin = factoryItem.checkSingleContextTwin();
-                fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
-                if (TwinService.isFilled(fieldValue))
-                    break;
-                // we will try to look deeper
-                contextTwin = factoryItem.checkSingleContextItem().checkSingleContextTwin();
-                fieldValue = twinService.getTwinFieldValue(contextTwin, twinClassFieldId);
-                if (TwinService.isFilled(fieldValue))
-                    break;
-                // we will look inside context fields
-                fieldValue = factoryItem.getFactoryContext().getFields().get(twinClassFieldId);
-                if (!TwinService.isFilled(fieldValue))
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in context fields and in context twins");
-                break;
-            case fromContextTwinHeadTwinDbFields:
-                twinService.loadHeadForTwin(factoryItem.getTwin());
-                fieldValue = twinService.getTwinFieldValue(factoryItem.getTwin().getHeadTwin(), twinClassFieldId);
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in head twin fields");
-                break;
-            case fromItemOutputDbFields:
-                outputTwin = factoryItem.getOutput().getTwinEntity();
-                fieldValue = twinService.getTwinFieldValue(outputTwin, twinClassFieldId);
-                if (fieldValue == null)
-                    throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "TwinClassField[" + twinClassFieldId + "] is not present in output twin fields twinclass[" + outputTwin.getTwinClassId() + "]");
-                break;
-        }
-        return fieldValue;
-    }
 
     public void countFactoryUsages(TwinFactoryEntity twinFactory) {
         countFactoryUsages(Collections.singletonList(twinFactory));
@@ -663,6 +652,23 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
         Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
+    }
+
+    public void countFactoryMultiplierFilters(TwinFactoryMultiplierEntity multiplier) {
+        countFactoryMultiplierFilters(Collections.singletonList(multiplier));
+    }
+
+    public void countFactoryMultiplierFilters(Collection<TwinFactoryMultiplierEntity> multiplierList) {
+        Kit<TwinFactoryMultiplierEntity, UUID> needLoad = new Kit<>(TwinFactoryMultiplierEntity::getId);
+        for (TwinFactoryMultiplierEntity multiplier : multiplierList) {
+            if (multiplier.getFactoryMultiplierFiltersCount() == null)
+                needLoad.add(multiplier);
+        }
+        if (KitUtils.isEmpty(needLoad))
+            return;
+
+        Map<UUID, Integer> mulitplierFilterMap = convertToMap(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
+        needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
     }
 
     private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {

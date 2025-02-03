@@ -2,6 +2,8 @@ package org.twins.core.featurer.twinclass;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
@@ -10,8 +12,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
@@ -19,7 +19,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2601,
-        name = "HeadHunterImpl",
+        name = "Impl",
         description = "")
 public class HeadHunterImpl extends HeadHunter {
     @Lazy
@@ -32,5 +32,10 @@ public class HeadHunterImpl extends HeadHunter {
         search
                 .addTwinClassId(twinClassEntity.getId(), false);
         return twinSearchService.findTwins(search, pagination);
+    }
+
+    @Override
+    protected boolean isCreatableChildClass(Properties properties, TwinEntity twinEntity, TwinClassEntity twinClassEntity) throws ServiceException {
+        return true;
     }
 }

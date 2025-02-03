@@ -68,7 +68,7 @@ public class TwinFactoryPipelineEntity implements EasyLoggable {
     private TwinFactoryConditionSetEntity conditionSet;
 
     @ManyToOne
-    @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false, nullable = false)
+    @JoinColumn(name = "output_twin_status_id", insertable = false, updatable = false)
     private TwinStatusEntity outputTwinStatus;
 
     @ManyToOne

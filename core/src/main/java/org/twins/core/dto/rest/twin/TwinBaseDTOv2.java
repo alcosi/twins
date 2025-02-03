@@ -8,7 +8,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
 
-import java.util.List;
+import java.util.Set;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
@@ -31,5 +31,5 @@ public class TwinBaseDTOv2 extends TwinBaseDTOv1 {
     public TwinBaseDTOv2 headTwin;
 
     @Schema(description = "aliases")
-    public List<TwinAliasDTOv1> aliases;
+    public Set<String> aliases;
 }

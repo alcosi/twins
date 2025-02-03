@@ -17,7 +17,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1318,
-        name = "FieldTyperAssigneeEmail",
+        name = "Assignee email",
         description = "Return the mail field to the user")
 public class FieldTyperAssigneeEmail extends FieldTyper<FieldDescriptorImmutable, FieldValueText, UserEntity, TwinFieldSearchNotImplemented> {
 

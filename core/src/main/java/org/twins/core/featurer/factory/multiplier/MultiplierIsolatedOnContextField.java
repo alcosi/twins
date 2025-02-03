@@ -26,13 +26,14 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2203,
-        name = "MultiplierIsolatedOnContextField",
+        name = "Isolated on context field",
         description = "New output twin for each input. Output class is selected by checking if given twinClassField is present in context")
 public class MultiplierIsolatedOnContextField extends Multiplier {
-    @FeaturerParam(name = "outputTwinClassIdFromContextField", description = "")
+    @FeaturerParam(name = "Output twin class id from context field", description = "", order = 1)
     public static final FeaturerParamUUID outputTwinClassIdFromContextField = new FeaturerParamUUIDTwinsTwinClassFieldId("outputTwinClassIdFromContextField");
-    @FeaturerParam(name = "elseOutputTwinClassId", description = "")
+    @FeaturerParam(name = "Else output twin class id", description = "", order = 2)
     public static final FeaturerParamUUID elseOutputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("elseOutputTwinClassId");
+
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         FieldValue fieldValue = MapUtils.getObject(factoryContext.getFields(), outputTwinClassIdFromContextField.extract(properties));
@@ -49,6 +50,7 @@ public class MultiplierIsolatedOnContextField extends Multiplier {
                     .setName("")
                     .setTwinClass(outputTwinClassEntity)
                     .setTwinClassId(outputTwinClassEntity.getId())
+                    .setCreatedAt(Timestamp.from(Instant.now()))
                     .setCreatedByUserId(apiUser.getUser().getId())
                     .setCreatedByUser(apiUser.getUser());
             TwinCreate twinCreate = new TwinCreate();

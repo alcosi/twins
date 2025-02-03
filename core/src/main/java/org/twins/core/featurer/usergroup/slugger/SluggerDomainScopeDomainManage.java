@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2001,
-        name = "SluggerDomainScopeDomainManage",
+        name = "Domain scope / domain manage",
         description = "")
 @Slf4j
 public class SluggerDomainScopeDomainManage extends Slugger {
@@ -45,7 +45,8 @@ public class SluggerDomainScopeDomainManage extends Slugger {
                 .setUserGroup(userGroup)
                 .setUserId(userId)
                 .setAddedByUserId(apiUser.getUser().getId())
-                .setAddedByUser(apiUser.getUser());
+                .setAddedByUser(apiUser.getUser())
+                .setAddedAt(Timestamp.from(Instant.now()));
     }
 
     @Override

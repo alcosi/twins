@@ -27,7 +27,6 @@ import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twin.TwinStatusRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassRepository;
-import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 import org.twins.core.domain.search.TwinStatusSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
@@ -38,8 +37,9 @@ import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.twinstatus.TwinStatusSpecification.*;
+import static org.twins.core.dao.specifications.twinstatus.TwinStatusSpecification.checkFieldLikeContainsIn;
 
 @Lazy
 @Slf4j
@@ -72,25 +72,25 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
     public PaginationResult<TwinStatusEntity> findTwinStatusesForDomain(TwinStatusSearch search, SimplePagination pagination) throws ServiceException {
         UUID domainId = authService.getApiUser().getDomainId();
         Specification<TwinStatusEntity> spec = createTwinStatusSearchSpecification(search)
-                .and(checkDomainId(domainId));
+                .and(checkFieldUuid(domainId,TwinStatusEntity.Fields.twinClass,TwinClassEntity.Fields.domainId));
         Page<TwinStatusEntity> ret = twinStatusRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
     private Specification<TwinStatusEntity> createTwinStatusSearchSpecification(TwinStatusSearch search) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
-        return Specification.where(
-                checkFieldLikeIn(TwinStatusEntity.Fields.key, search.getKeyLikeList(), false, true)
-                        .and(checkFieldLikeIn(TwinStatusEntity.Fields.key, search.getKeyNotLikeList(), true, true))
-                        .and(joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, true, false))
-                        .and(joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true))
-                        .and(joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, true, false))
-                        .and(joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true))
-                        .and(checkUuidIn(TwinStatusEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinStatusEntity.Fields.id, search.getIdExcludeList(), true, true))
-                        .and(checkUuidIn(TwinStatusEntity.Fields.twinClassId, search.getTwinClassIdList(), false, true))
-                        .and(checkUuidIn(TwinStatusEntity.Fields.twinClassId, search.getTwinClassIdExcludeList(), true, true))
-        );
+        return Specification.allOf(
+                checkFieldLikeContainsIn(search.getKeyLikeList(), false, true, TwinStatusEntity.Fields.key),
+                checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, TwinStatusEntity.Fields.key),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, true, false),
+                joinAndSearchByI18NField(TwinStatusEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true),
+                checkUuidIn(search.getIdList(), false, false, TwinStatusEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinStatusEntity.Fields.id),
+                checkUuidIn(search.getTwinClassIdList(), false, true, TwinStatusEntity.Fields.twinClassId),
+                checkUuidIn(search.getTwinClassIdExcludeList(), true, true, TwinStatusEntity.Fields.twinClassId));
+
     }
 
     @Override
@@ -191,7 +191,7 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             dbEntity.setFontColor(updateEntity.getFontColor());
         if (changesHelper.isChanged(TwinStatusEntity.Fields.logo, dbEntity.getLogo(), updateEntity.getLogo()))
             dbEntity.setLogo(updateEntity.getLogo());
-        if (nameI18n != null ) {
+        if (nameI18n != null) {
             if (dbEntity.getNameI18nId() != null)
                 nameI18n.setId(dbEntity.getNameI18nId());
             i18nService.saveTranslations(I18nType.TWIN_STATUS_NAME, nameI18n);

@@ -14,14 +14,14 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2328,
-        name = "FillerBasicsAssigneeFromContextTwinFieldTwinAssignee",
+        name = "Basics assignee from context twin field twin assignee",
         description = "If value of context twin field is an id of other twin (link) we will get assignee from that twin")
 @Slf4j
 public class FillerBasicsAssigneeFromContextTwinFieldTwinAssignee extends FillerBasicsAssigneeFromContextFieldTwinAssignee {
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID assigneeFieldId = linkField.extract(properties);
-        FieldValue assigneeField = factoryService.lookupFieldValue(factoryItem, assigneeFieldId, FieldLookupMode.fromContextTwinDbFields);
+        FieldValue assigneeField = fieldLookupers.getFromContextTwinDbFields().lookupFieldValue(factoryItem, assigneeFieldId);
         fill(properties, factoryItem, templateTwin, assigneeField, assigneeFieldId);
     }
 }

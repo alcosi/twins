@@ -8,7 +8,6 @@ import org.twins.core.dto.rest.factory.FactoryPipelineDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
-import org.twins.core.mappers.rest.permission.FactoryConditionSetRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinClassBaseRestDTOMapper;
 import org.twins.core.mappers.rest.twinstatus.TwinStatusRestDTOMapper;
 
@@ -21,7 +20,7 @@ public class FactoryPipelineRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFact
     private final FactoryPipelineRestDTOMapper factoryPipelineRestDTOMapper;
 
     @MapperModePointerBinding(modes = {
-            FactoryMode.FactoryPipelineTwinFactory2FactoryMode.class,
+            FactoryMode.FactoryPipeline2FactoryMode.class,
             FactoryMode.FactoryPipelineNextTwinFactory2FactoryMode.class})
     private final FactoryRestDTOMapper factoryRestDTOMapper;
 
@@ -37,9 +36,9 @@ public class FactoryPipelineRestDTOMapperV2 extends RestSimpleDTOMapper<TwinFact
     @Override
     public void map(TwinFactoryPipelineEntity src, FactoryPipelineDTOv2 dst, MapperContext mapperContext) throws Exception {
         factoryPipelineRestDTOMapper.map(src, dst, mapperContext);
-        if (mapperContext.hasModeButNot(FactoryMode.FactoryPipelineTwinFactory2FactoryMode.HIDE))
+        if (mapperContext.hasModeButNot(FactoryMode.FactoryPipeline2FactoryMode.HIDE))
             dst
-                    .setFactory(factoryRestDTOMapper.convertOrPostpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryPipelineTwinFactory2FactoryMode.SHORT)))
+                    .setFactory(factoryRestDTOMapper.convertOrPostpone(src.getTwinFactory(), mapperContext.forkOnPoint(FactoryMode.FactoryPipeline2FactoryMode.SHORT)))
                     .setFactoryId(src.getTwinFactoryId());
         if (mapperContext.hasModeButNot(TwinClassMode.FactoryPipeline2TwinClassMode.HIDE))
             dst

@@ -20,7 +20,7 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2003,
-        name = "SluggerBusinessAccountScopeBusinessAccountManage",
+        name = "Business account scope / business account manage",
         description = "")
 @RequiredArgsConstructor
 public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
@@ -53,7 +53,8 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
                 .setUserGroup(userGroup)
                 .setUserId(userId)
                 .setAddedByUserId(apiUser.getUser().getId())
-                .setAddedByUser(apiUser.getUser());
+                .setAddedByUser(apiUser.getUser())
+                .setAddedAt(Timestamp.from(Instant.now()));
     }
 
     @Override

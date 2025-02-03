@@ -12,6 +12,7 @@ import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.factory.lookuper.FieldLookuperNearest;
 import org.twins.core.featurer.fieldtyper.value.FieldValue;
 import org.twins.core.featurer.fieldtyper.value.FieldValueUser;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
@@ -21,23 +22,23 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2324,
-        name = "FillerBasicsAssigneeFromContext",
+        name = "Basics assignee from context",
         description = "")
 @Slf4j
 public class FillerBasicsAssigneeFromContext extends Filler {
-    @FeaturerParam(name = "assigneeField", description = "")
+    @FeaturerParam(name = "Assignee field", description = "", order = 1)
     public static final FeaturerParamUUID assigneeField = new FeaturerParamUUIDTwinsTwinClassFieldId("assigneeField");
 
     @Override
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
-        fill(properties, factoryItem, templateTwin, FieldLookupMode.fromContextFieldsAndContextTwinDbFields);
+        fill(properties, factoryItem, templateTwin, fieldLookupers.getFromContextFieldsAndContextTwinDbFields());
     }
 
-    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookupMode fieldLookupMode) throws ServiceException {
+    public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin, FieldLookuperNearest fieldLookuperNearest) throws ServiceException {
         TwinEntity outputTwinEntity = factoryItem.getOutput().getTwinEntity();
         TwinEntity contextTwin = factoryItem.checkSingleContextTwin();
         UUID assigneeFieldId = assigneeField.extract(properties);
-        FieldValue fieldValue = factoryService.lookupFieldValue(factoryItem, assigneeFieldId, fieldLookupMode);
+        FieldValue fieldValue = fieldLookuperNearest.lookupFieldValue(factoryItem, assigneeFieldId);
         if (fieldValue instanceof FieldValueUser fieldValueUser) {
             if (CollectionUtils.isEmpty(fieldValueUser.getUsers()))
                 throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_VALUE_REQUIRED, fieldValue.getTwinClassField().logShort() + " is not filled");

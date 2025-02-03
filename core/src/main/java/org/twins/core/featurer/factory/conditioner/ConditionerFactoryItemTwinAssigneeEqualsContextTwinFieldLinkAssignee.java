@@ -12,7 +12,6 @@ import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.domain.factory.FactoryItem;
 import org.twins.core.featurer.FeaturerTwins;
-import org.twins.core.featurer.factory.filler.FieldLookupMode;
 import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.auth.AuthService;
@@ -23,12 +22,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2425,
-        name = "ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee",
+        name = "Factory item twin assignee equals context twin field link assignee",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssignee extends Conditioner {
 
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Lazy
@@ -45,7 +44,7 @@ public class ConditionerFactoryItemTwinAssigneeEqualsContextTwinFieldLinkAssigne
 
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
-        FieldValueLink fieldValue = (FieldValueLink) factoryService.lookupFieldValue(factoryItem, twinClassFieldId.extract(properties), FieldLookupMode.fromContextFields);
+        FieldValueLink fieldValue = (FieldValueLink) fieldLookupers.getFromContextFields().lookupFieldValue(factoryItem, twinClassFieldId.extract(properties));
         TwinLinkEntity twinLinkEntity = fieldValue.getTwinLinks().get(0);
         TwinEntity dstTwin = twinLinkEntity.getDstTwin();
         if (dstTwin == null) {

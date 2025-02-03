@@ -31,15 +31,15 @@ import static org.cambium.common.util.StringUtils.fmt;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2321,
-        name = "FillerFieldMathDifferenceFromContextField",
+        name = "Field math difference from context field",
         description = "")
 @Slf4j
 public class FillerFieldMathDifferenceFromContextField extends Filler {
-    @FeaturerParam(name = "minuendTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Minuend twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID minuendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("minuendTwinClassFieldId");
-    @FeaturerParam(name = "subtrahendTwinClassFieldId", description = "Value from this field will be ")
+    @FeaturerParam(name = "Subtrahend twin class field id", description = "Value from this field will be ", order = 2)
     public static final FeaturerParamUUID subtrahendTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("subtrahendTwinClassFieldId");
-    @FeaturerParam(name = "allowNegativeResult", description = "")
+    @FeaturerParam(name = "Allow negative result", description = "", order = 3)
     public static final FeaturerParamBoolean allowNegativeResult = new FeaturerParamBoolean("allowNegativeResult");
     @Lazy
     @Autowired
@@ -57,7 +57,7 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
     public void fill(Properties properties, FactoryItem factoryItem, TwinEntity templateTwin) throws ServiceException {
         UUID paramSubtrahendTwinClassFieldId = subtrahendTwinClassFieldId.extract(properties);
         UUID paramMinuendTwinClassFieldId = minuendTwinClassFieldId.extract(properties);
-        FieldValue subtrahendFieldValue = factoryService.lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId, FieldLookupMode.fromContextFieldsAndContextTwinDbFields);
+        FieldValue subtrahendFieldValue = fieldLookupers.getFromContextFieldsAndContextTwinDbFields().lookupFieldValue(factoryItem, paramSubtrahendTwinClassFieldId);
         if (!(subtrahendFieldValue instanceof FieldValueText))
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "subtrahendTwinClassField[" + paramSubtrahendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         Number subtrahendNumber = NumberUtils.createNumber(((FieldValueText) subtrahendFieldValue).getValue());

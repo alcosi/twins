@@ -29,7 +29,7 @@ public class DataListOptionRestDTOMapper extends RestSimpleDTOMapper<DataListOpt
                         .setName(src.getOptionI18NId() != null ? i18nService.translateToLocale(src.getOptionI18NId()) : src.getOption())
                         .setIcon(src.getIcon())
                         .setAttributes(getAttributes(src))
-                        .setDisabled(src.isDisabled());
+                        .setStatus(src.getStatus());
                 break;
             case SHORT:
                 dst

@@ -15,6 +15,7 @@ import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Page;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,18 +24,26 @@ import org.twins.core.dao.attachment.TwinAttachmentRepository;
 import org.twins.core.dao.comment.TwinCommentAction;
 import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dao.comment.TwinCommentRepository;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityCUD;
+import org.twins.core.domain.search.CommentSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
+
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
+import static org.twins.core.dao.specifications.comment.CommentSpecification.*;
+
 
 @Service
 @Slf4j
@@ -45,10 +54,11 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final EntitySmartService entitySmartService;
     final AttachmentService attachmentService;
     final TwinService twinService;
-    final TwinRepository twinRepository;
+    final PermissionService permissionService;
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
-    private final CommentActionService commentActionService;
+    final CommentActionService commentActionService;
+
 
     @Transactional
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -56,8 +66,10 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             throw new ServiceException(ErrorCodeTwins.TWIN_COMMENT_FIELD_TEXT_IS_NULL);
         ApiUser apiUser = authService.getApiUser();
         UUID userId = apiUser.getUser().getId();
-        comment.setCreatedByUserId(userId);
-        comment.setCreatedByUser(apiUser.getUser());
+        comment
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setCreatedByUserId(userId)
+                .setCreatedByUser(apiUser.getUser());
         TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
         entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
         if (CollectionUtils.isEmpty(attachmentList))
@@ -73,8 +85,11 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
         ChangesHelper changesHelper = new ChangesHelper();
-        if (changesHelper.isChanged("text", currentComment.getText(), commentText))
-            currentComment.setText(commentText);
+        if (changesHelper.isChanged("text", currentComment.getText(), commentText)) {
+            currentComment
+                    .setText(commentText)
+                    .setChangedAt(Timestamp.from(Instant.now()));
+        }
         if (attachmentCUD != null) {
             addCommentIdInAttachments(commentId, attachmentCUD.getCreateList());
             addCommentIdInAttachments(commentId, attachmentCUD.getUpdateList());
@@ -164,4 +179,35 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
         return true;
     }
 
+    @Transactional(readOnly = true)
+    public PaginationResult<TwinCommentEntity> findComments(CommentSearch search, SimplePagination pagination) throws ServiceException {
+        Specification<TwinCommentEntity> spec = createCommentSearchSpecification(search);
+        Page<TwinCommentEntity> ret = commentRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));
+        return PaginationUtils.convertInPaginationResult(ret, pagination);
+    }
+
+    private Specification<TwinCommentEntity> createCommentSearchSpecification(CommentSearch search) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        Specification<TwinCommentEntity> specification = Specification.allOf(
+                checkUuidIn(search.getIdList(), false, false, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getTwinIdList(), false, false, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getTwinIdExcludeList(), true, true, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinCommentEntity.Fields.createdByUserId),
+                checkUuidIn(search.getCreatedByUserIdExcludeList(), true, true, TwinCommentEntity.Fields.createdByUserId),
+                checkFieldLikeIn(search.getTextLikeList(), false, false, TwinCommentEntity.Fields.text),
+                checkFieldLikeIn(search.getTextNotLikeList(), true, false, TwinCommentEntity.Fields.text),
+                checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
+                checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
+        );
+        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
+            specification = specification
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUserGroups(),TwinCommentEntity.Fields.twin))
+                    .and(checkClass(List.of(),apiUser));
+        } else {
+            specification = specification
+                    .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));
+        }
+        return specification;
+    }
 }

@@ -6,7 +6,6 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
-import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
@@ -36,8 +35,6 @@ public class TwinLinkEntity implements PublicCloneable<TwinLinkEntity>, TwinFiel
     @Column(name = "created_by_user_id")
     private UUID createdByUserId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

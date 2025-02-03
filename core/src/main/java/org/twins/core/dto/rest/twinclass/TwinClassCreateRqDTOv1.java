@@ -27,4 +27,7 @@ public class TwinClassCreateRqDTOv1 extends TwinClassSaveRqDTOv1 {
             "And the list of markers is configured only by the domain manager. Use ffffffff-ffff-ffff-ffff-ffffffffffff for nullify value", example = "")
     public UUID tagDataListId;
 
+    @Schema(description = "[optional] if true - permissions will be created and assign to class (if not specified another permission ids in this dto)")
+    public Boolean autoCreatePermissions = false;
+
 }

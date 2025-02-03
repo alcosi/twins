@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2409,
-        name = "ConditionerTwinCreateOperation",
+        name = "Twin create operation",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinCreateOperation extends Conditioner {

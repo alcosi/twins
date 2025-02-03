@@ -9,7 +9,6 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.LocaleConverter;
-import org.hibernate.annotations.CreationTimestamp;
 import org.twins.core.dao.businessaccount.BusinessAccountUserEntity;
 import org.twins.core.dao.user.UserEntity;
 
@@ -33,8 +32,6 @@ public class DomainUserEntity implements EasyLoggable {
     @Column(name = "user_id")
     private UUID userId;
 
-    @CreationTimestamp
-    @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "created_at")
     private Timestamp createdAt;
 

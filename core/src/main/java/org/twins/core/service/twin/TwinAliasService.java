@@ -8,7 +8,10 @@ import org.cambium.common.kit.KitGrouped;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.twin.*;
+import org.twins.core.dao.twin.TwinAliasEntity;
+import org.twins.core.dao.twin.TwinAliasRepository;
+import org.twins.core.dao.twin.TwinAliasType;
+import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
@@ -37,12 +40,11 @@ public class TwinAliasService {
         return twinAliasEntity;
     }
 
-    public Kit<TwinAliasEntity, UUID> loadAliases(TwinEntity twinEntity) {
+    public void loadAliases(TwinEntity twinEntity) {
         if (twinEntity.getTwinAliases() != null)
-            return twinEntity.getTwinAliases();
-        List<TwinAliasEntity> aliases = twinAliasRepository.findAllByTwinId(twinEntity.getId());
-        twinEntity.setTwinAliases(new Kit<>(aliases, TwinAliasEntity::getId));
-        return twinEntity.getTwinAliases();
+            return;
+        List<TwinAliasEntity> aliases = twinAliasRepository.findAllByTwinIdAndArchivedFalse(twinEntity.getId());
+        twinEntity.setTwinAliases(new Kit<>(aliases, TwinAliasEntity::getAliasTypeId));
     }
 
     public void loadAliases(Collection<TwinEntity> twinEntities) {
@@ -52,9 +54,9 @@ public class TwinAliasService {
                 needLoad.put(twinEntity.getId(), twinEntity);
         if (needLoad.isEmpty()) return;
         KitGrouped<TwinAliasEntity, UUID, UUID> aliasKit = new KitGrouped<>(
-                twinAliasRepository.findAllByTwinIdIn(needLoad.keySet()), TwinAliasEntity::getId, TwinAliasEntity::getTwinId);
+                twinAliasRepository.findAllByTwinIdInAndArchivedFalse(needLoad.keySet()), TwinAliasEntity::getId, TwinAliasEntity::getTwinId);
         for (Map.Entry<UUID, TwinEntity> entry : needLoad.entrySet())
-            entry.getValue().setTwinAliases(new Kit<>(aliasKit.getGrouped(entry.getKey()), TwinAliasEntity::getId));
+            entry.getValue().setTwinAliases(new Kit<>(aliasKit.getGrouped(entry.getKey()), TwinAliasEntity::getAliasTypeId));
     }
 
     public List<TwinAliasEntity> createAliases(TwinEntity twin) throws ServiceException {
@@ -67,6 +69,7 @@ public class TwinAliasService {
                 break;
             case DOMAIN_BUSINESS_ACCOUNT:
                 addAliasIfNotNull(aliases, createAlias(twin, _D));
+                addAliasIfNotNull(aliases, createAlias(twin, _C));
                 addAliasIfNotNull(aliases, createAlias(twin, _B));
                 addAliasIfNotNull(aliases, createAlias(twin, _K));
                 break;

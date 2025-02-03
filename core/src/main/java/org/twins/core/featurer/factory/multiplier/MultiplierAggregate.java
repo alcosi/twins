@@ -21,12 +21,13 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2201,
-        name = "MultiplierAggregate",
+        name = "Aggregate",
         description = "Only one output twin, even for multiple input.  Output class from params")
 public class MultiplierAggregate extends Multiplier {
 
-    @FeaturerParam(name = "outputTwinClassId", description = "")
+    @FeaturerParam(name = "Output twin class id", description = "", order = 1)
     public static final FeaturerParamUUID outputTwinClassId = new FeaturerParamUUIDTwinsTwinClassId("outputTwinClassId");
+
     @Override
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         TwinClassEntity outputTwinClassEntity = twinClassService.findEntitySafe(outputTwinClassId.extract(properties));
@@ -35,6 +36,7 @@ public class MultiplierAggregate extends Multiplier {
                 .setName("")
                 .setTwinClass(outputTwinClassEntity)
                 .setTwinClassId(outputTwinClassEntity.getId())
+                .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUser().getId())
                 .setCreatedByUser(apiUser.getUser());
         TwinCreate twinCreate = new TwinCreate();

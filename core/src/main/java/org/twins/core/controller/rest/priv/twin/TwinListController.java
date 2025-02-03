@@ -152,12 +152,12 @@ public class TwinListController extends ApiController {
     @Loggable(rsBodyThreshold = 2000)
     public ResponseEntity<?> twinSearchByAliasV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,  //todo not use
+            @Parameter(example = DTOExamples.SEARCH_ALIAS) @PathVariable String searchAlias,
             @SimplePaginationParams(sortAsc = false, sortField = TwinEntity.Fields.createdAt) SimplePagination pagination,
             @RequestBody TwinSearchByAliasRqDTOv1 request) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
-            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request), pagination);
+            PaginationResult<TwinEntity> twins = twinSearchService.findTwins(twinSearchByAliasDTOReverseMapper.convert(request).setAlias(searchAlias), pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(twins.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(twins))
