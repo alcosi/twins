@@ -49,7 +49,7 @@ public class TwinClassValidLinkedTwinController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/twin_class/{twinClassId}/link/{linkId}/valid_twins/v1")
+    @PostMapping(value = "/private/twin_class/{twinClassId}/link/{linkId}/valid_twins/v1")
     public ResponseEntity<?> validLinkedTwinV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,

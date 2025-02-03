@@ -316,7 +316,9 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public PaginationResult<TwinEntity> findValidDstTwins(UUID twinClassId, UUID linkId, UUID headTwinId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkId);
         TwinClassEntity srcTwinClassEntity = twinClassService.findEntitySafe(twinClassId);
-        TwinEntity headTwinEntity = twinService.findEntitySafe(headTwinId);
+        TwinEntity headTwinEntity = null;
+        if (headTwinId != null)
+            headTwinEntity = twinService.findEntitySafe(headTwinId);
         addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
         if (linkEntity.getLinkerFeaturerId() != null) {
             Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);

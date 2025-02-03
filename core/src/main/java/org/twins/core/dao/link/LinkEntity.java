@@ -99,7 +99,7 @@ public class LinkEntity implements EasyLoggable {
     private FeaturerEntity linkerFeaturer;
 
     @Type(PostgreSQLHStoreType.class)
-    @Column(name = "linker_featurer_params", columnDefinition = "hstore")
+    @Column(name = "linker_params", columnDefinition = "hstore")
     private HashMap<String, String> linkerParams;
 
     public String easyLog(Level level) {
