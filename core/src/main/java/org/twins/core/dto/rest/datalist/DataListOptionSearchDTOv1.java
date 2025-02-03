@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
@@ -46,4 +47,8 @@ public class DataListOptionSearchDTOv1 extends Request {
     public Set<String> dataListSubsetKeyList;
     @Schema(description = "data list class subset key exclude list")
     public Set<String> dataListSubsetKeyExcludeList;
+    @Schema(description = "data list option status id list")
+    public Set<DataListOptionEntity.Status> statusIdList;
+    @Schema(description = "data list option status id exclude list")
+    public Set<DataListOptionEntity.Status> statusIdExcludeList;
 }
