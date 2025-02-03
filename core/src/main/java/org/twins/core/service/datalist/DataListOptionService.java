@@ -115,6 +115,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         loadDataListAttributeAccessors(dbDataList);
         ChangesHelper changesHelper = new ChangesHelper();
         updateDataListOptionIcon(optionUpdate, dbOption, changesHelper);
+        updateDataListOptionStatus(optionUpdate.getStatus(), dbOption, changesHelper);
         updateDataListOptionName(optionUpdate.getNameI18n(), dbOption, changesHelper);
         updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
         if (changesHelper.hasChanges()) {
@@ -157,6 +158,11 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         if (!changesHelper.isChanged(DataListOptionEntity.Fields.icon, dbEntity.getIcon(), optionUpdate.getIcon()))
             return;
         dbEntity.setIcon(optionUpdate.getIcon());
+    }
+
+    private void updateDataListOptionStatus(DataListOptionEntity.Status status, DataListOptionEntity dbEntity, ChangesHelper changesHelper) {
+        if (changesHelper.isChanged(DataListOptionEntity.Fields.status, dbEntity.getStatus(), status))
+            dbEntity.setStatus(status);
     }
 
     private void updateDataListOptionName(I18nEntity nameI18n, DataListOptionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
