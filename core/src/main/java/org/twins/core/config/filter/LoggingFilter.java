@@ -33,6 +33,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     @Autowired
     private List<HandlerMapping> handlerMappings;
     public static final String REQUEST_LOG_ID = "RequestLogId";
+
     public static final String CONTROLLER_METHOD = "ControllerMethod";
     public static final Random RANDOM = new Random();
 
@@ -58,7 +59,8 @@ public class LoggingFilter extends OncePerRequestFilter {
         private void logRequest(ContentCachingRequestWrapper request, String rqId) {
             logHeaders(request, List.of(HEADER_DOMAIN_ID, HEADER_CHANNEL, HEADER_BUSINESS_ACCOUNT_ID, HEADER_LOCALE));
             Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
-            logContent(request.getContentAsByteArray(), request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
+            byte[] content = request.getContentAsByteArray();
+            logContent(content, request.getContentType(), request.getCharacterEncoding(), "RQ", rqId, loggable != null ? loggable.rqBodyThreshold() : 0);
         }
 
         private void logHeaders(ContentCachingRequestWrapper request, List<String> headerNameList) {
@@ -68,7 +70,7 @@ public class LoggingFilter extends OncePerRequestFilter {
                 if (headerValue != null)
                     logHeaders.add(headerName + ":[" + headerValue + "]");
             }
-            if (logHeaders.size() > 0)
+            if (!logHeaders.isEmpty())
                 logInfoBoth("RQ_HEADERS: {}", String.join(", ", logHeaders));
         }
 
@@ -90,14 +92,18 @@ public class LoggingFilter extends OncePerRequestFilter {
         }
 
         private void logResponse(ContentCachingRequestWrapper request, ContentCachingResponseWrapper response, String rqId, Long time) {
+            String requestUri = StringUtils.defaultIfBlank(request.getRequestURI(), "");
+            if (!requestUri.contains("/actuator/prometheus")) {
             int status = response.getStatus();
             String queryString = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-            logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), request.getRequestURI(), queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
+            logInfoBoth("RS_URL {}:{}{} STATUS:{} {} | {} ms", request.getMethod(), requestUri, queryString, status, HttpStatus.valueOf(status).getReasonPhrase(), System.currentTimeMillis() - time);
             response.getHeaderNames().forEach(headerName ->
                     log.debug("RS_HEADER {}: {}", headerName, response.getHeader(headerName)));
             byte[] content = response.getContentAsByteArray();
             Loggable loggable = LoggingFilter.getLoggableMethodAnnotation(request);
-            logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId, loggable != null ? loggable.rsBodyThreshold() : 0);
+
+                logContent(content, response.getContentType(), response.getCharacterEncoding(), "RS", rqId, loggable != null ? loggable.rsBodyThreshold() : 0);
+            }
         }
     }
 
@@ -179,7 +185,7 @@ public class LoggingFilter extends OncePerRequestFilter {
     }
 
     private void logSessionId(HttpServletRequest request) {
-        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(a -> a.toUpperCase()).orElseGet(() -> UUID.randomUUID().toString().replace("-", "").toUpperCase());
+        String sessionid = Optional.ofNullable(request.getHeader("Authorization")).map(String::toUpperCase).orElseGet(() -> UUID.randomUUID().toString().replace("-", "").toUpperCase());
         RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
         if (attrs != null) {
             attrs.setAttribute("SESSION_ID", sessionid, RequestAttributes.SCOPE_REQUEST);

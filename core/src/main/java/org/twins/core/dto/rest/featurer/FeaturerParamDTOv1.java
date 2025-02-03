@@ -20,4 +20,7 @@ public class FeaturerParamDTOv1 {
 
     @Schema(description = "type")
     public String type;
+
+    @Schema(description = "order")
+    public Integer order;
 }

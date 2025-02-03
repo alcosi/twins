@@ -1,11 +1,13 @@
 package org.twins.core.dto.rest;
 
 public interface DTOExamples {
-    String TERNARY = "ONLY";
+    String TERNARY = "ANY";
     String BOOLEAN_TRUE = "true";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
     String COUNT = "3";
+    String UUID_COLLECTION = "[\"11a4c3f8-c780-4421-9aee-9e7eec20c67d\", \"83050c4b-ef17-4d7d-8792-6e5a86557ab9\"]";
+    String STRING_COLLECTION = "[\"String 1\", \"String 2\"]";
     String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
@@ -100,4 +102,10 @@ public interface DTOExamples {
     String MULTIPLIER_ID = "66956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_BRANCH_ID = "99956a15-6858-40ba-b0aa-b123c54e250d";
     String ERASER_ACTION = "NOT_SPECIFIED";
+    String SIMPLE_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII";
+    String RESOURCE_STORAGE_ID = "00000000-0000-0000-0007-000000000001";
+    String RESOURCE_ID = "09cd9a50-dcbe-4c73-b39e-65d2000a8e85";
+
+
+
 }

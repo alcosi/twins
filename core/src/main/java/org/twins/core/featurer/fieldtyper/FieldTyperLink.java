@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_1310,
-        name = "FieldTyperLink",
+        name = "Linked twin",
         description = "")
 public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity, TwinFieldSearchNotImplemented> {
     public static final Integer ID = 1310;
@@ -56,10 +56,10 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     @Autowired
     TwinLinkRepository twinLinkRepository;
 
-    @FeaturerParam(name = "linkUUID", description = "")
+    @FeaturerParam(name = "Link UUID", description = "", order = 1)
     public static final FeaturerParamUUIDTwinsLinkId linkUUID = new FeaturerParamUUIDTwinsLinkId("linkUUID");
 
-    @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 2)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override

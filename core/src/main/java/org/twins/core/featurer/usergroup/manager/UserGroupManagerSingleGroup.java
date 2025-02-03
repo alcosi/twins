@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2102,
-        name = "UserGroupManagerSingleGroup",
+        name = "Single group",
         description = "")
 @RequiredArgsConstructor
 public class UserGroupManagerSingleGroup extends UserGroupManager {
@@ -34,7 +34,7 @@ public class UserGroupManagerSingleGroup extends UserGroupManager {
     @Lazy
     final FeaturerService featurerService;
 
-    @FeaturerParam(name = "allowEmpty", description = "If true, then user can be out of any group")
+    @FeaturerParam(name = "Allow empty", description = "If true, then user can be out of any group", order = 1)
     public static final FeaturerParamBoolean allowEmpty = new FeaturerParamBoolean("allowEmpty");
 
     @Override

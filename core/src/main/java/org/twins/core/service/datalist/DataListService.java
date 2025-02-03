@@ -93,8 +93,13 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         ApiUser apiUser = authService.getApiUser();
         switch (entityValidateMode) {
             case beforeSave -> {
-                if (dataListRepository.existsByDomainIdAndKey(apiUser.getDomainId(), entity.getKey()))
-                    throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                if (entity.getId() == null) {
+                    if (dataListRepository.existsByDomainIdAndKey(apiUser.getDomainId(), entity.getKey()))
+                        throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                } else {
+                    if (dataListRepository.existsByDomainIdAndKeyAndIdNot(apiUser.getDomainId(), entity.getKey(), entity.getId()))
+                        throw new ServiceException(ErrorCodeTwins.DATALIST_NAME_IS_NOT_UNIQUE, "data list with key[" + entity.getKey() + "] already exists in domain[" + apiUser.getDomainId() + "]");
+                }
             }
         }
         return true;
@@ -103,16 +108,25 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     @Transactional(rollbackFor = Throwable.class)
     public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
+                .setKey(dataListSave.getKey())
                 .setDomainId(authService.getApiUser().getDomainId())
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
-                .setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId())
-                .setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId())
-                .setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId())
-                .setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        setAttributes(dataListEntity, dataListSave);
         validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return dataListRepository.save(dataListEntity);
+    }
+
+    private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
+        if (dataListSave.getAttribute1() != null)
+            dataList.setAttribute1nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute1().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute2() != null)
+            dataList.setAttribute2nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute2().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute3() != null)
+            dataList.setAttribute3nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute3().getAttributeI18n()).getId());
+        if (dataListSave.getAttribute4() != null)
+            dataList.setAttribute4nameI18nId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE, dataListSave.getAttribute4().getAttributeI18n()).getId());
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -263,7 +277,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInDomain(UUID listId, UUID twinClassFieldId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInDomain(listId, twinClassFieldId);
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInBusinessAccount(UUID listId, UUID twinClassFieldId, UUID businessAccountId) {
@@ -271,13 +285,14 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     }
 
     public List<DataListOptionEntity> findByDataListIdAndNotUsedInHead(UUID listId, UUID twinClassFieldId, UUID headTwinId) {
-       return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
+        return dataListOptionRepository.findByDataListIdAndNotUsedInHead(listId, twinClassFieldId, headTwinId);
     }
 
     //Method for reloading options if dataList is not present in entity;
     public List<DataListOptionEntity> reloadOptionsOnDataListAbsent(List<DataListOptionEntity> options) {
         List<UUID> idsForReload = new ArrayList<>();
-        for(var option : options) if(null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
+        for (var option : options)
+            if (null == option.getDataList() || null == option.getDataListId()) idsForReload.add(option.getId());
         if (!idsForReload.isEmpty()) {
             options.removeIf(o -> idsForReload.contains(o.getId()));
             options.addAll(dataListOptionRepository.findByIdIn(idsForReload));

@@ -21,8 +21,11 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     @Override
     @Cacheable(value = CACHE_TWIN_CLASS_BY_ID, key = "#uuid")
     Optional<TwinClassEntity> findById(UUID uuid);
+
     Page<TwinClassEntity> findByDomainId(UUID domainId, Pageable pageable);
+
     Page<TwinClassEntity> findByDomainIdAndIdIn(UUID domainId, List<UUID> ids, Pageable pageable);
+
     TwinClassEntity findByDomainIdAndId(UUID domainId, UUID id);
 
     @Query(value = "select extendsTwinClassId from TwinClassEntity where id = :twinClassId")
@@ -36,6 +39,12 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
 
     @Query(value = "select extendsHierarchyTree from TwinClassEntity where id = :twinClassId")
     String getExtendsHierarchyTree(@Param("twinClassId") UUID twinClassId);
+
+    @Query(value = "SELECT * FROM twin_class_extends_hierarchy_any_of(:domainId, string_to_array(:twinClassIdsLQueryArray, ','))", nativeQuery = true)
+    List<TwinClassEntity> findByDomainIdAndExtendsHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIdsLQueryArray") String twinClassIdsLQueryArray);
+
+    @Query(value = "SELECT * FROM twin_class_head_hierarchy_any_of(:domainId, string_to_array(:twinClassIdsLQueryArray, ','))", nativeQuery = true)
+    List<TwinClassEntity> findByDomainIdAndHeadHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIdsLQueryArray") String twinClassIdsLQueryArray);
 
     boolean existsByDomainIdAndId(UUID domainId, UUID twinClassId);
 

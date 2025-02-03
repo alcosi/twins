@@ -19,10 +19,7 @@ import org.twins.core.mappers.rest.twinclass.TwinClassRestDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinTransitionRestDTOMapper;
 import org.twins.core.service.attachment.AttachmentService;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinActionService;
-import org.twins.core.service.twin.TwinMarkerService;
-import org.twins.core.service.twin.TwinService;
-import org.twins.core.service.twin.TwinTagService;
+import org.twins.core.service.twin.*;
 import org.twins.core.service.twinflow.TwinflowTransitionService;
 
 import java.util.Collection;
@@ -62,6 +59,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     final TwinTagService twinTagService;
     final TwinflowTransitionService twinflowTransitionService;
     final TwinService twinService;
+    final TwinHeadService twinHeadService;
 
     @Override
     public void map(TwinEntity src, TwinBaseDTOv3 dst, MapperContext mapperContext) throws Exception {
@@ -99,7 +97,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             dst.setActions(src.getActions());
         }
         if (showCreatableChildTwinClasses(mapperContext)) {
-            twinService.loadCreatableChildTwinClasses(src);
+            twinHeadService.loadCreatableChildTwinClasses(src);
             convertOrPostpone(src.getCreatableChildTwinClasses(), dst, twinClassRestDTOMapper, mapperContext.forkOnPoint(TwinClassMode.TwinCreatableChild2TwinClassMode.HIDE), TwinBaseDTOv3::setCreatableChildTwinClasses, TwinBaseDTOv3::setCreatableChildTwinClassIds);
         }
     }
@@ -152,9 +150,10 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
             twinLinkService.loadTwinLinks(srcCollection);
         if (showTransitions(mapperContext))
             twinflowTransitionService.loadValidTransitions(srcCollection);
-        if (showTwinAttachmentsCount(mapperContext)) {
+        if (showTwinAttachmentsCount(mapperContext))
             twinAttachmentsCounterRestDTOMapper.beforeCollectionConversion(srcCollection, mapperContext);
-        }
+        if (showCreatableChildTwinClasses(mapperContext))
+            twinHeadService.loadCreatableChildTwinClasses(srcCollection);
     }
 
     @Override

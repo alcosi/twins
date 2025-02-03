@@ -28,6 +28,6 @@ public class FactoryPipelineStepSearchDTOReverseMapper extends RestSimpleDTOMapp
                 .setFillerFeaturerIdExcludeList(src.getFillerFeaturerIdExcludeList())
                 .setConditionInvert(src.getConditionInvert())
                 .setActive(src.getActive())
-                .setOptional(src.getConditionInvert());
+                .setOptional(src.getOptional());
     }
 }

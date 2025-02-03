@@ -11,7 +11,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2402,
-        name = "ConditionerContextFieldValueEquals",
+        name = "Field value equals",
         description = "")
 @Slf4j
 public class ConditionerContextFieldValueEquals extends ConditionerContextValueEquals {

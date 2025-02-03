@@ -56,6 +56,8 @@ public class ApiUser {
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
         this.domainResolver = domainResolver;
+        if (NOT_SPECIFIED.equals(this.domainId))
+            this.domainId = null;
         return this;
     }
 

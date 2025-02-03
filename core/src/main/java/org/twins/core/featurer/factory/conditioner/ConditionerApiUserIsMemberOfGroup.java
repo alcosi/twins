@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2423,
-        name = "ConditionerApiUserIsMemberOfGroup",
+        name = "Is member of group",
         description = "")
 @Slf4j
 public class ConditionerApiUserIsMemberOfGroup extends Conditioner {
@@ -33,7 +33,7 @@ public class ConditionerApiUserIsMemberOfGroup extends Conditioner {
     @Autowired
     private UserGroupService userGroupService;
 
-    @FeaturerParam(name = "userGroupIds", description = "")
+    @FeaturerParam(name = "User group ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet userGroupIds = new FeaturerParamUUIDSetTwinsUserGroupId("userGroupIds");
 
     @Override
