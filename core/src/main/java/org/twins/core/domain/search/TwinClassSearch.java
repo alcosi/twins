@@ -20,8 +20,8 @@ public class TwinClassSearch {
     Set<String> nameI18nNotLikeList;
     Set<String> descriptionI18nLikeList;
     Set<String> descriptionI18nNotLikeList;
-    Set<UUID> headTwinClassIdList;
-    Set<UUID> headTwinClassIdExcludeList;
+    //    Set<UUID> headTwinClassIdList;
+//    Set<UUID> headTwinClassIdExcludeList;
     Set<UUID> extendsTwinClassIdList;
     Set<UUID> extendsTwinClassIdExcludeList;
     Set<TwinClassEntity.OwnerType> ownerTypeList;
@@ -44,10 +44,6 @@ public class TwinClassSearch {
         return this;
     }
 
-    public TwinClassSearch addHeadTwinClassId(Collection<UUID> twinClassIdSet) {
-        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, twinClassIdSet);
-        return this;
-    }
 
     public TwinClassSearch addExtendsTwinClassId(Collection<UUID> twinClassIdSet) {
         extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, twinClassIdSet);
