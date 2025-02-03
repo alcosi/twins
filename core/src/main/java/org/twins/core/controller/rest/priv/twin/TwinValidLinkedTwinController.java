@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.twinclass;
+package org.twins.core.controller.rest.priv.twin;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,37 +28,38 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twin.TwinRestDTOMapperV2;
 import org.twins.core.mappers.rest.twin.TwinSearchSimpleDTOReverseMapper;
-import org.twins.core.service.twin.TwinHeadService;
+import org.twins.core.service.link.TwinLinkService;
 
 import java.util.UUID;
 
-@Tag(description = "", name = ApiTag.TWIN_CLASS)
+@Tag(description = "", name = ApiTag.TWIN)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
-public class TwinClassValidHeadController extends ApiController {
-    private final TwinHeadService twinHeadService;
+public class TwinValidLinkedTwinController extends ApiController {
+    private final TwinLinkService twinLinkService;
     private final TwinSearchSimpleDTOReverseMapper twinSearchSimpleDTOReverseMapper;
     private final TwinRestDTOMapperV2 twinRestDTOMapperV2;
     private final PaginationMapper paginationMapper;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "validHeadV1", summary = "Get valid heads of given class")
+    @Operation(operationId = "validLinkedTwinsV1", summary = "Get valid twins list for link of new (not created) twin")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Twin class data", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = TwinSearchRsDTOv2.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @GetMapping(value = "/private/twin_class/{twinClassId}/valid_heads/v1")
-    public ResponseEntity<?> validHeadV1(
+    @GetMapping(value = "/private/twin/{twinId}/link/{linkId}/valid_twins/v1")
+    public ResponseEntity<?> validLinkedTwinsV1(
             @MapperContextBinding(roots = TwinRestDTOMapperV2.class, response = TwinSearchRsDTOv2.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
+            @Parameter(example = DTOExamples.TWIN_ID) @PathVariable UUID twinId,
+            @Parameter(example = DTOExamples.LINK_ID) @PathVariable UUID linkId,
             @RequestBody TwinSearchSimpleDTOv1 search,
             @SimplePaginationParams SimplePagination pagination) {
         TwinSearchRsDTOv2 rs = new TwinSearchRsDTOv2();
         try {
             BasicSearch basicSearch = twinSearchSimpleDTOReverseMapper.convert(search);
-            PaginationResult<TwinEntity> validHeads = twinHeadService.findValidHeadsByClass(twinClassId, basicSearch, pagination);
+            PaginationResult<TwinEntity> validHeads = twinLinkService.findValidDstTwins(twinId, linkId, basicSearch, pagination);
             rs
                     .setTwinList(twinRestDTOMapperV2.convertCollection(validHeads.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(validHeads));
