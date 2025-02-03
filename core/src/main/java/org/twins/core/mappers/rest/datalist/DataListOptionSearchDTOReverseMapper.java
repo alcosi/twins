@@ -1,10 +1,16 @@
 package org.twins.core.mappers.rest.datalist;
 
+import org.cambium.common.util.CollectionUtils;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.datalist.DataListOptionSearchDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<DataListOptionSearchDTOv1, DataListOptionSearch> {
@@ -27,6 +33,17 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setDataListSubsetIdList(src.getDataListSubsetIdList())
                 .setDataListSubsetIdExcludeList(src.getDataListSubsetIdExcludeList())
                 .setDataListSubsetKeyList(src.getDataListSubsetKeyList())
-                .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList());
+                .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList())
+                .setStatusIdList(convertStatusToString(src.getStatusIdList()))
+                .setStatusIdExcludeList(convertStatusToString(src.getStatusIdExcludeList()))
+        ;
+    }
+
+    private Set<String> convertStatusToString(Set<DataListOptionEntity.Status> statusSet) {
+        return CollectionUtils.isEmpty(statusSet)
+                ? new HashSet<>()
+                : statusSet.stream()
+                .map(DataListOptionEntity.Status::getId)
+                .collect(Collectors.toSet());
     }
 }
