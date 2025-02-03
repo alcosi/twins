@@ -19,9 +19,8 @@ import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.domain.datalist.DataListOptionUpdate;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.dto.rest.datalist.DataListOptionUpdateRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListRsDTOv1;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.datalist.DataListOptionUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -46,14 +45,14 @@ public class DataListOptionUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Updated data list option data", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListRsDTOv1.class))}),
+                    @Schema(implementation = DataListOptionRsDTOv3.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionUpdateV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId,
             @RequestBody DataListOptionUpdateRqDTOv1 request) {
-        DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
+        DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionUpdate dataListOptionUpdate = dataListOptionUpdateDTOReverseMapper.convert(request);
             DataListOptionEntity dataListOption = dataListOptionService.updateDataListOption(dataListOptionUpdate.setId(dataListOptionId));

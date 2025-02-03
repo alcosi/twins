@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.datalist.DataListOptionCreateRqDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionCreateDTOReverseMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -44,13 +44,13 @@ public class DataListOptionCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "The data list option was created successfully", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListOptionRsDTOv1.class))}),
+                    @Schema(implementation = DataListOptionRsDTOv3.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/data_list_option/v1")
     public ResponseEntity<?> dataListOptionCreateV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) MapperContext mapperContext,
             @RequestBody DataListOptionCreateRqDTOv1 request) {
-        DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
+        DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionEntity dataListOptionEntity = dataListOptionService.createDataListOption(dataListOptionCreateDTOReverseMapper.convert(request));
             rs
