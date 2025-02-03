@@ -7,9 +7,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
-import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinTouchEntity;
+import org.twins.core.dao.twin.*;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.TwinFieldSearch;
 import org.twins.core.domain.search.TwinSearch;
@@ -32,8 +30,8 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         String[] headTwinIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.headTwinId);
         String[] hierarchyTreeFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.hierarchyTree);
         String[] twinClassIdFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.twinClassId);
-        String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags);
-        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers);
+        String[] tagsFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.tags, TwinTagEntity.Fields.tagDataListOptionId);
+        String[] markersFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.markers, TwinMarkerEntity.Fields.markerDataListOptionId);
         String[] touchFieldPath = concatArray(twinsEntityFieldPath, TwinEntity.Fields.touches);
 
         var commonSpecifications = new Specification[]{
