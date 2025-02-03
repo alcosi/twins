@@ -34,16 +34,8 @@ public class DataListOptionSearchDTOReverseMapper extends RestSimpleDTOMapper<Da
                 .setDataListSubsetIdExcludeList(src.getDataListSubsetIdExcludeList())
                 .setDataListSubsetKeyList(src.getDataListSubsetKeyList())
                 .setDataListSubsetKeyExcludeList(src.getDataListSubsetKeyExcludeList())
-                .setStatusIdList(convertStatusToString(src.getStatusIdList()))
-                .setStatusIdExcludeList(convertStatusToString(src.getStatusIdExcludeList()))
+                .setStatusIdList(src.getStatusIdList())
+                .setStatusIdExcludeList(src.getStatusIdExcludeList())
         ;
-    }
-
-    private Set<String> convertStatusToString(Set<DataListOptionEntity.Status> statusSet) {
-        return CollectionUtils.isEmpty(statusSet)
-                ? new HashSet<>()
-                : statusSet.stream()
-                .map(DataListOptionEntity.Status::getId)
-                .collect(Collectors.toSet());
     }
 }
