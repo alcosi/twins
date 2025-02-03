@@ -17,17 +17,18 @@ import java.util.function.Function;
 @FieldNameConstants
 public class TwinSearch {
     Set<UUID> twinIdList;
+    Set<UUID> twinIdExcludeList;
     Set<String> twinNameLikeList;
     Set<String> twinNameNotLikeList;
     Set<String> twinDescriptionLikeList;
     Set<String> twinDescriptionNotLikeList;
-    Set<UUID> twinIdExcludeList;
     Set<UUID> twinClassIdList;
     Set<UUID> twinClassIdExcludeList;
     Set<UUID> headTwinClassIdList;
     Set<UUID> extendsTwinClassIdList;
     Set<UUID> headerTwinIdList;
     Set<UUID> statusIdList;
+    Set<UUID> statusIdExcludeList;
     Set<UUID> assigneeUserIdList;
     Set<UUID> assigneeUserIdExcludeList;
     Set<UUID> createdByUserIdList;
@@ -39,7 +40,6 @@ public class TwinSearch {
     Map<UUID, Set<UUID>> linksAllOfList;
     Map<UUID, Set<UUID>> linksNoAllOfList;
     Set<UUID> hierarchyTreeContainsIdList;
-    Set<UUID> statusIdExcludeList;
     Set<UUID> tagDataListOptionIdList;
     Set<UUID> tagDataListOptionIdExcludeList;
     Set<UUID> markerDataListOptionIdList;
