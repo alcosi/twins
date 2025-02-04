@@ -30,7 +30,6 @@ import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.specifications.twinclass.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -41,8 +40,8 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.twinclass.HeadHunter;
-import org.twins.core.featurer.twinclass.HeadHunterImpl;
+import org.twins.core.featurer.headhunter.HeadHunter;
+import org.twins.core.featurer.headhunter.HeadHunterImpl;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
@@ -60,7 +59,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -283,7 +281,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         if (CollectionUtils.isEmpty(needLoad))
             return;
-        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndExtendsHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndExtendsHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
         for (TwinClassEntity twinClass : needLoad) {
             for (TwinClassEntity childClass : childClasses) {
                 if (childClass.getExtendedClassIdSet().contains(twinClass.getId()))
@@ -308,7 +306,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         }
         if (CollectionUtils.isEmpty(needLoad))
             return;
-        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), classLTree);
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
         for (TwinClassEntity twinClass : needLoad) {
             for (TwinClassEntity childClass : childClasses) {
                 if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))

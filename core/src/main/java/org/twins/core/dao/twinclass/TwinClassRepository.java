@@ -40,13 +40,11 @@ public interface TwinClassRepository extends CrudRepository<TwinClassEntity, UUI
     @Query(value = "select extendsHierarchyTree from TwinClassEntity where id = :twinClassId")
     String getExtendsHierarchyTree(@Param("twinClassId") UUID twinClassId);
 
-    @Query(value = "SELECT * FROM twin_class WHERE domain_id = :domainId and extends_hierarchy_tree ~ ANY (:twinClassIds::ltree[])",
-            nativeQuery = true)
-    List<TwinClassEntity> findByDomainIdAndExtendsHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIds") List<String> values);
+    @Query(value = "SELECT * FROM twin_class_extends_hierarchy_any_of(:domainId, string_to_array(:twinClassIdsLQueryArray, ','))", nativeQuery = true)
+    List<TwinClassEntity> findByDomainIdAndExtendsHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIdsLQueryArray") String twinClassIdsLQueryArray);
 
-    @Query(value = "SELECT * FROM twin_class WHERE domain_id = :domainId and twin_class.head_hierarchy_tree ~ ANY (:twinClassIds::ltree[])",
-            nativeQuery = true)
-    List<TwinClassEntity> findByDomainIdAndHeadHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIds") List<String> values);
+    @Query(value = "SELECT * FROM twin_class_head_hierarchy_any_of(:domainId, string_to_array(:twinClassIdsLQueryArray, ','))", nativeQuery = true)
+    List<TwinClassEntity> findByDomainIdAndHeadHierarchyContains(@Param("domainId") UUID domainId, @Param("twinClassIdsLQueryArray") String twinClassIdsLQueryArray);
 
     boolean existsByDomainIdAndId(UUID domainId, UUID twinClassId);
 

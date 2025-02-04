@@ -183,8 +183,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
                                                    boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
-            Path<UUID> fildPath = getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
+            Path<UUID> fildPath = getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             Predicate predicate = not ? fildPath.in(uuids).not() : fildPath.in(uuids);
             return includeNullValues ? cb.or(predicate, fildPath.isNull()) : cb.and(predicate, fildPath.isNotNull());
         };

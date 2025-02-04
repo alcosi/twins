@@ -21,32 +21,39 @@ import org.twins.core.dao.twin.TwinHeadRepository;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.twinclass.HeadHunter;
+import org.twins.core.featurer.headhunter.HeadHunter;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.UUID;
 
 @Service
 @Slf4j
 @Lazy
 @RequiredArgsConstructor
 public class TwinHeadService {
-    final EntitySmartService entitySmartService;
-    final TwinRepository twinRepository;
-    final TwinHeadRepository twinHeadRepository;
+    private final EntitySmartService entitySmartService;
+    private final TwinRepository twinRepository;
+    private final TwinHeadRepository twinHeadRepository;
     @Lazy
-    final TwinClassService twinClassService;
-    final AuthService authService;
-    final FeaturerService featurerService;
+    private final TwinClassService twinClassService;
+    @Lazy
+    private final TwinService twinService;
+    private final AuthService authService;
+    private final FeaturerService featurerService;
+    private final TwinSearchService twinSearchService;
 
-    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
+    public PaginationResult<TwinEntity> findValidHeads(TwinClassEntity twinClassEntity, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
         if (twinClassEntity.getHeadTwinClassId() == null)
             return PaginationUtils.convertInPaginationResult(pagination);
         TwinClassEntity headTwinClassEntity = twinClassService.findEntitySafe(twinClassEntity.getHeadTwinClassId());
         if (headTwinClassEntity.getOwnerType().isSystemLevel()) {// out-of-domain head class. Valid twins list must be limited
+            //todo apply filters from basic search
             if (SystemEntityService.isTwinClassForUser(headTwinClassEntity.getId())) {// twin.id = user.id
                 Page<TwinEntity> validUserTwinList = getValidUserTwinListByTwinClass(twinClassEntity, pagination);
                 return PaginationUtils.convertInPaginationResult(validUserTwinList, pagination);
@@ -54,25 +61,27 @@ public class TwinHeadService {
                 Page<TwinEntity> validBusinessAccountTwinList = getValidBusinessAccountTwinListByTwinClass(twinClassEntity, pagination);
                 return PaginationUtils.convertInPaginationResult(validBusinessAccountTwinList, pagination);
             }
-            log.warn(headTwinClassEntity.logShort() + " unknown system twin class for head");
-        }
-        if (twinClassEntity.getHeadHunterFeaturer() == null) //headhunter should not be empty if head twin is specified and head class is not USER and BA
+            log.warn("{} unknown system twin class for head", headTwinClassEntity.logShort());
             return PaginationUtils.convertInPaginationResult(pagination);
-        HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
-        return headHunter.findValidHead(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, pagination);
+        }
+        //head can be configured as parent class
+        twinClassService.loadExtendsHierarchyChildClasses(headTwinClassEntity);
+        basicSearch.addTwinClassId(headTwinClassEntity.getExtendsHierarchyChildClassKit().getIdSet(), false);
+        if (twinClassEntity.getHeadHunterFeaturer() != null) {//headhunter should not be empty if head twin is specified and head class is not USER and BA
+            HeadHunter headHunter = featurerService.getFeaturer(twinClassEntity.getHeadHunterFeaturer(), HeadHunter.class);
+            headHunter.expandValidHeadSearch(headTwinClassEntity.getHeadHunterParams(), headTwinClassEntity, basicSearch);
+        }
+        return twinSearchService.findTwins(basicSearch, pagination);
     }
 
-    public PaginationResult<TwinEntity> findValidHeads(UUID twinClassId, SimplePagination simplePagination) throws ServiceException {
+    public PaginationResult<TwinEntity> findValidHeadsByClass(UUID twinClassId, BasicSearch basicSearch, SimplePagination simplePagination) throws ServiceException {
         TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
-        if (twinClassEntity == null)
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN, "unknown head twin class id");
-        return findValidHeads(twinClassEntity, simplePagination);
+        return findValidHeads(twinClassEntity, basicSearch, simplePagination);
     }
 
-    //todo cache it
-    public Map<UUID, TwinEntity> findValidHeadsAsMap(TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
-        List<TwinEntity> validHeads = findValidHeads(twinClassEntity, pagination).getList();
-        return EntitySmartService.convertToMap(validHeads, TwinEntity::getId);
+    public PaginationResult<TwinEntity> findValidHeadsByTwin(UUID twinId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
+        return findValidHeads(twinEntity.getTwinClass(), basicSearch, pagination);
     }
 
     @Transactional
