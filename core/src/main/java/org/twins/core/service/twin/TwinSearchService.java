@@ -88,14 +88,16 @@ public class TwinSearchService {
 
 
         //HEAD TWIN CHECK
-        if (null != basicSearch.getHeadSearch()) specification = specification.and(
+        if (null != basicSearch.getHeadSearch() && !basicSearch.getHeadSearch().isEmpty())
+            specification = specification.and(
                 checkHeadTwin(
                         createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(),userId),
                         basicSearch.getHeadSearch()
                 ));
 
         //CHILDREN TWINS CHECK
-        if (null != basicSearch.getChildrenSearch()) specification = specification.and(
+        if (null != basicSearch.getChildrenSearch() && !basicSearch.getChildrenSearch().isEmpty())
+            specification = specification.and(
                 checkChildrenTwins(
                         createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
                         basicSearch.getChildrenSearch()

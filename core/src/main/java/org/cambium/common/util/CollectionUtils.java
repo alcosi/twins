@@ -81,4 +81,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         return new HashSet<>(collection);
     }
 
+    public static boolean isEmpty(Map coll) {
+        return coll == null ||
+                coll.isEmpty();
+    }
 }
