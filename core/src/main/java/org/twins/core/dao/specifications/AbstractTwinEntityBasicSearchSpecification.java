@@ -152,13 +152,18 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             }
 
             TriFunction<CriteriaBuilder, List<Predicate>, List<Predicate>, Predicate> getIncludeExcludePredicateFunction = (builder, any, all) -> {
-                boolean anyExist = !predicatesAny.isEmpty();
-                boolean allExist = !predicatesAll.isEmpty();
+                boolean anyExist = !any.isEmpty();
+                boolean allExist = !all.isEmpty();
                 boolean anyAndAllExist = anyExist && allExist;
-                return anyAndAllExist ? builder.and(builder.or(any.toArray(new Predicate[0])), builder.and(all.toArray(new Predicate[0]))) :
-                        anyExist ? builder.or(any.toArray(new Predicate[0])) :
-                                allExist ? builder.and(any.toArray(new Predicate[0])) :
-                                        builder.conjunction();
+                if (anyAndAllExist) {
+                    return builder.and(builder.or(any.toArray(new Predicate[0])), builder.and(all.toArray(new Predicate[0])));
+                } else if (anyExist) {
+                    return builder.or(any.toArray(new Predicate[0]));
+                } else if (allExist) {
+                    return builder.and(any.toArray(new Predicate[0]));
+                } else {
+                    return builder.conjunction();
+                }
             };
             Predicate include = getIncludeExcludePredicateFunction.apply(cb, predicatesAny, predicatesAll);
             Predicate exclude = getIncludeExcludePredicateFunction.apply(cb, excludePredicatesAny, excludePredicatesAll);
