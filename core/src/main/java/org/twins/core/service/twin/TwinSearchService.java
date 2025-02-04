@@ -96,7 +96,8 @@ public class TwinSearchService {
                 ));
 
         //CHILDREN TWINS CHECK
-        if (null != basicSearch.getChildrenSearch()) specification = specification.and(
+        if (null != basicSearch.getChildrenSearch() && !basicSearch.getChildrenSearch().isEmpty())
+            specification = specification.and(
                 checkChildrenTwins(
                         createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
                         basicSearch.getChildrenSearch()
