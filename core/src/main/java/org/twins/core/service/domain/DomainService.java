@@ -49,6 +49,7 @@ import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroup;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -153,6 +154,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 
