@@ -184,9 +184,19 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                                                    boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            Path<UUID> fildPath = getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
-            Predicate predicate = not ? fildPath.in(uuids).not() : fildPath.in(uuids);
-            return includeNullValues ? cb.or(predicate, fildPath.isNull()) : cb.and(predicate, fildPath.isNotNull());
+            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
+            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+        };
+    }
+
+    public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
+                                                   boolean includeNullValues, final String... uuidFieldPath) {
+        return (root, query, cb) -> {
+            if (uuid == null) return cb.conjunction();
+            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
+            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 
@@ -254,7 +264,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return cb.conjunction();
 
             List<Predicate> predicates = search.stream().map(name -> {
-                Predicate predicate = cb.like(cb.lower(getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
                 if (not) predicate = cb.not(predicate);
                 return predicate;
             }).toList();

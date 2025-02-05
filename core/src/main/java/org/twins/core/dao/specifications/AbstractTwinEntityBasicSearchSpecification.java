@@ -68,7 +68,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(hierarchyTreeContainsIdList)) return cb.conjunction();
             List<Predicate> predicates = hierarchyTreeContainsIdList.stream().map(id -> {
-                Path hierarchyTreeExpression = getFildPath(root, JoinType.INNER, hierarchyFieldPath);
+                Path hierarchyTreeExpression = getFieldPath(root, JoinType.INNER, hierarchyFieldPath);
                 return cb.isTrue(cb.function("hierarchy_check_lquery", Boolean.class, hierarchyTreeExpression, cb.literal(LTreeUtils.matchInTheMiddle(id))));
 
             }).toList();

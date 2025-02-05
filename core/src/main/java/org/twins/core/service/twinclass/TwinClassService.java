@@ -184,6 +184,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
+                        .and(checkUuid(authService.getApiUser().getDomainId(), false, false, TwinClassEntity.Fields.domainId))
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdList(), false, false, TwinClassEntity.Fields.id))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdExcludeList(), true, false, TwinClassEntity.Fields.id))
