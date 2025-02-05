@@ -141,7 +141,7 @@ create table if not exists permission_grant_global
 );
 
 create unique index if not exists permission_grant_global_uniq1
-    on permission_grant_user_group (permission_id, user_group_id);
+    on permission_grant_global (permission_id, user_group_id);
 
 INSERT INTO permission_grant_global
     (id, permission_id, user_group_id, granted_by_user_id, granted_at)
@@ -158,7 +158,7 @@ on conflict (id) do nothing;
 INSERT INTO permission_grant_global
     (id, permission_id, user_group_id, granted_by_user_id, granted_at)
 VALUES ('00000000-0000-0000-0007-000000000003',
-        '00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0006-000000000001',
+        '00000000-0000-0000-0004-000000000004', '00000000-0000-0000-0006-000000000001',
         '00000000-0000-0000-0000-000000000000', '2024-03-05 14:01:12.000000')
 on conflict (id) do nothing;
 INSERT INTO permission_grant_global
