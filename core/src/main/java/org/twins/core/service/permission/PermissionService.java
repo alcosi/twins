@@ -140,7 +140,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         return hasPermission(
                 new PermissionDetectKey(
                         twinEntity.getTwinClassId(),
@@ -152,14 +152,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean hasPermission(PermissionDetectKey permissionDetectKey, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
                 apiUser.getUser().getId(),
-                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getTwinClassId()),
                 permissionDetectKey.isAssignee,
                 permissionDetectKey.isCreator);
@@ -327,7 +327,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         result.setGrantedByUser(grantedForUser);
 
         //group permissions
-        Kit<UserGroupEntity, UUID> groupsForUserKit = new Kit<>(userGroupService.findGroupsForUser(userId), UserGroupEntity::getId);
+        Kit<UserGroupEntity, UUID> groupsForUserKit = userGroupService.findGroupsForUser(userId);
         List<UserGroupEntity> grantedForGroups = new ArrayList<>();
         final List<PermissionGrantUserGroupEntity> grantedPermissions = permissionGrantUserGroupRepository.findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(permissionSchema.getId(), permissionId, groupsForUserKit.getIdSet());
         for (PermissionGrantUserGroupEntity grantedPermission : grantedPermissions)
@@ -417,7 +417,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                                 }).toList()) // filter bad configured permissions
                 .setPermissionByUserGroup(permissionGrantUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
                                 permissionSchemaId,
-                                userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
+                                userGroupService.findGroupsForUser(userId).getIdSetSafe().stream().toList())
                         .stream().filter(p -> {
                                     UUID permissionDomainId = p.getPermission().getPermissionGroup().getDomainId();
                                     return permissionDomainId == null // for permission group[Twins global permissions]
@@ -453,12 +453,12 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         if (apiUser.getPermissions() != null)
             return;
         UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         List<UUID> permissionList = permissionGrantUserRepository
                 .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, apiUser.getUser().getId());
         Set<UUID> permissionSet = new HashSet<>(permissionList);
         permissionList = permissionGrantUserGroupRepository
-                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, apiUser.getUserGroups());
+                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, apiUser.getUser().getUserGroups().getIdSetSafe());
         permissionSet.addAll(permissionList);
         apiUser.setPermissions(permissionSet);
     }

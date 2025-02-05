@@ -46,10 +46,6 @@ public class ApiUser {
 
     @Getter
     @Setter
-    private Set<UUID> userGroups;
-
-    @Getter
-    @Setter
     private boolean checkMembershipMode = true;
 
     final ApiUserResolverService apiUserResolverService;

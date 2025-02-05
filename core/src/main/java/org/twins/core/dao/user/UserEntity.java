@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.kit.Kit;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
@@ -43,6 +44,9 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
     @Column(name = "user_status_id")
     @Enumerated(EnumType.STRING)
     private UserStatus userStatusId;
+
+    @Transient
+    private Kit<UserGroupEntity, UUID> userGroups;
 
     public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";

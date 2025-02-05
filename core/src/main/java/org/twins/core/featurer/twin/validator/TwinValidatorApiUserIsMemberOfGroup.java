@@ -2,6 +2,7 @@ package org.twins.core.featurer.twin.validator;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -39,9 +40,9 @@ public class TwinValidatorApiUserIsMemberOfGroup extends TwinValidator {
     @Override
     protected ValidationResult isValid(Properties properties, TwinEntity twinEntity, boolean invert) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
-        boolean isValid = apiUser.getUserGroups() != null && apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
+        boolean isValid = KitUtils.isNotEmpty(apiUser.getUser().getUserGroups()) && apiUser.getUser().getUserGroups().getIdSet().stream().anyMatch(propertiesUuids::contains);
         return buildResult(
                 isValid,
                 invert,
