@@ -86,8 +86,8 @@ create unique index if not exists user_group_map_type3_user_id_business_account_
 insert into user_group_map_type2
 select *
 from user_group_map
-where business_account_id is not null on conflict (id) do nothing;
-
+where business_account_id is not null
+on conflict do nothing;
 
 insert into featurer(id, featurer_type_id, class, name, description)
 values (2005, 20, '', '', '')
@@ -106,14 +106,67 @@ VALUES ('00000000-0000-0001-0006-000000000002', 'user_group[domain_admin]', null
 on conflict (id) do nothing;
 
 INSERT INTO i18n_translation (i18n_id, locale, translation, usage_counter)
-VALUES ('00000000-0000-0001-0006-000000000001', 'en', 'Domain admin', 2) on conflict (i18n_id, locale) do nothing;
+VALUES ('00000000-0000-0001-0006-000000000001', 'en', 'Domain admin', 2)
+on conflict (i18n_id, locale) do nothing;
 INSERT INTO i18n_translation (i18n_id, locale, translation, usage_counter)
-VALUES ('00000000-0000-0001-0006-000000000002', 'en', '', 2) on conflict (i18n_id, locale) do nothing;
+VALUES ('00000000-0000-0001-0006-000000000002', 'en', '', 2)
+on conflict (i18n_id, locale) do nothing;
 
 INSERT INTO user_group (id, domain_id, business_account_id, user_group_type_id, name_i18n_id, description_i18n_id)
 VALUES ('00000000-0000-0000-0006-000000000001', null, null,
         'systemScopeDomainManage', '00000000-0000-0001-0006-000000000001',
-        '00000000-0000-0001-0006-000000000002') on conflict (id) do nothing;
+        '00000000-0000-0001-0006-000000000002')
+on conflict (id) do nothing;
+
+
+
+create table if not exists permission_grant_global
+(
+    id                 uuid not null
+        constraint permission_grant_global_pk
+            primary key,
+    permission_id      uuid not null
+        constraint permission_grant_global_permission_id_fk
+            references permission
+            on update cascade on delete cascade,
+    user_group_id      uuid not null
+        constraint permission_grant_global_user_group_id_fk
+            references user_group
+            on update cascade,
+    granted_by_user_id uuid not null
+        constraint permission_grant_global_user_id_fk
+            references "user"
+            on update cascade,
+    granted_at         timestamp default CURRENT_TIMESTAMP
+);
+
+create unique index if not exists permission_grant_global_uniq1
+    on permission_grant_user_group (permission_id, user_group_id);
+
+INSERT INTO permission_grant_global
+    (id, permission_id, user_group_id, granted_by_user_id, granted_at)
+VALUES ('00000000-0000-0000-0007-000000000001',
+        '00000000-0000-0000-0004-000000000002', '00000000-0000-0000-0006-000000000001',
+        '00000000-0000-0000-0000-000000000000', '2024-03-05 14:01:12.000000')
+on conflict (id) do nothing;
+INSERT INTO permission_grant_global
+    (id, permission_id, user_group_id, granted_by_user_id, granted_at)
+VALUES ('00000000-0000-0000-0007-000000000002',
+        '00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0006-000000000001',
+        '00000000-0000-0000-0000-000000000000', '2024-03-05 14:01:12.000000')
+on conflict (id) do nothing;
+INSERT INTO permission_grant_global
+    (id, permission_id, user_group_id, granted_by_user_id, granted_at)
+VALUES ('00000000-0000-0000-0007-000000000003',
+        '00000000-0000-0000-0004-000000000003', '00000000-0000-0000-0006-000000000001',
+        '00000000-0000-0000-0000-000000000000', '2024-03-05 14:01:12.000000')
+on conflict (id) do nothing;
+INSERT INTO permission_grant_global
+    (id, permission_id, user_group_id, granted_by_user_id, granted_at)
+VALUES ('00000000-0000-0000-0007-000000000004',
+        '00000000-0000-0000-0004-000000000005', '00000000-0000-0000-0006-000000000001',
+        '00000000-0000-0000-0000-000000000000', '2024-03-05 14:01:12.000000')
+on conflict (id) do nothing;
 
 
 

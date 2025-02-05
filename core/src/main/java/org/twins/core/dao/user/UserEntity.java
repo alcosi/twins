@@ -9,6 +9,7 @@ import org.cambium.common.kit.Kit;
 import org.twins.core.featurer.fieldtyper.storage.TwinFieldStorage;
 
 import java.sql.Timestamp;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.twins.core.service.user.UserService.maskEmail;
@@ -47,6 +48,9 @@ public class UserEntity implements EasyLoggable, TwinFieldStorage {
 
     @Transient
     private Kit<UserGroupEntity, UUID> userGroups;
+
+    @Transient
+    private Set<UUID> permissions;
 
     public String easyLog(Level level) {
         return "user[id:" + id + ", email:" + maskEmail(email) + "]";
