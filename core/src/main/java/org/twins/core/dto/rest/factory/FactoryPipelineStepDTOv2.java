@@ -1,11 +1,9 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.factory.FactoryConditionSetDTOv1;
-import org.twins.core.dto.rest.factory.FactoryPipelineDTOv2;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 
 @Data
