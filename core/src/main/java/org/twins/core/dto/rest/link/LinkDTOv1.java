@@ -11,7 +11,7 @@ import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
 import java.util.UUID;
 
 @Data
-@Accessors(fluent = true)
+@Accessors(chain = true)
 @Schema(name =  "LinkV1")
 public class LinkDTOv1 {
     @Schema(description = "id", example = DTOExamples.LINK_ID)
