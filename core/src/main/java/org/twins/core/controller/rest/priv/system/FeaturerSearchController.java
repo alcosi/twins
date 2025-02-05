@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
+import org.cambium.featurer.Featurer;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.http.HttpStatus;
@@ -50,7 +51,7 @@ public class FeaturerSearchController extends ApiController {
     @PostMapping(value = "/private/featurer/search/v1")
     public ResponseEntity<?> featurerSearchV1(
             @MapperContextBinding(roots = FeaturerRestDTOMapper.class, response = FeaturerSearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = FeaturerEntity.Fields.name) SimplePagination pagination,
             @RequestBody FeaturerSearchRqDTOv1 request) {
         FeaturerSearchRsDTOv1 rs = new FeaturerSearchRsDTOv1();
         try {
