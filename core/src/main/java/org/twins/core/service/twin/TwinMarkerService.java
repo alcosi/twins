@@ -186,15 +186,20 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                     .setMarkerDataList(null);
             return;
         }
+
         //we will try to replace markers with new provided values
+        DataListEntity newMarkerDataList = null;
         Set<UUID> existedTwinMarkerIds = findExistedTwinMarkersForTwinsOfClass(twinClassEntity.getId());
+        twinClassEntity
+                .setMarkerDataList(newMarkerDataList)
+                .setMarkerDataListId(entityRelinkOperation.getNewId());
         if (CollectionUtils.isEmpty(existedTwinMarkerIds))
             return; // nice :) we have nothing to do
 
         if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap for markers: " + org.cambium.common.util.StringUtils.join(existedTwinMarkerIds));
-        DataListEntity newMarkerDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
+        newMarkerDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
         dataListService.loadDataListOptions(newMarkerDataList);
         Set<UUID> markersForDeletion = new HashSet<>();
         for (UUID markerForReplace : existedTwinMarkerIds) {
@@ -218,8 +223,5 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
         if (CollectionUtils.isNotEmpty(markersForDeletion)) {
             twinMarkerRepository.deleteByTwin_TwinClassIdAndMarkerDataListOptionIdIn(twinClassEntity.getId(), markersForDeletion);
         }
-        twinClassEntity
-                .setMarkerDataList(newMarkerDataList)
-                .setMarkerDataListId(newMarkerDataList.getId());
     }
 }
