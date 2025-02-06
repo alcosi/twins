@@ -368,9 +368,9 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             size += create.getSize();
             count++;
         }
-        if (size > tierQuotas.getQuotaSize())
+        if (tierQuotas.getQuotaSize() > 0 && size > tierQuotas.getQuotaSize())
             throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED);
-        if (count > tierQuotas.getQuotaCount())
+        if (tierQuotas.getQuotaCount() > 0 && count > tierQuotas.getQuotaCount())
             throw new ServiceException(ErrorCodeTwins.TIER_COUNT_QUOTA_REACHED);
         return result;
     }
