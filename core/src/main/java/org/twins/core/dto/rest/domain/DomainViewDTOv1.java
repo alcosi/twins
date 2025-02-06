@@ -45,4 +45,9 @@ public class DomainViewDTOv1 {
 
     @Schema(description = "default locale")
     public String defaultLocale;
+    @Schema(description = "Icon dark uri. Might be relative")
+    public String iconDark;
+    @Schema(description = "Icon light uri. Might be relative")
+    public String iconLight;
+
 }

@@ -50,7 +50,7 @@ public class DataListUpdateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/data_list/{dataListId}/v1")
     public ResponseEntity<?> dataListUpdateV1(
-            @MapperContextBinding(roots = FactoryBranchRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListRestDTOMapperV2.class, response = DataListRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_ID) @PathVariable UUID dataListId,
             @RequestBody DataListUpdateRqDTOv1 request) {
         DataListRsDTOv1 rs = new DataListRsDTOv1();

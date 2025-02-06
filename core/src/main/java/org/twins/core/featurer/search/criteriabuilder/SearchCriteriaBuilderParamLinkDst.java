@@ -27,20 +27,20 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2705,
-        name = "SearchCriteriaBuilderParamLinkDst",
+        name = "Param link dst",
         description = "")
 public class SearchCriteriaBuilderParamLinkDst extends SearchCriteriaBuilder {
 
-    @FeaturerParam(name = "paramKey", description = "")
+    @FeaturerParam(name = "Param key", description = "", order = 2)
     public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
-    @FeaturerParam(name = "linkId", description = "")
+    @FeaturerParam(name = "Link id", description = "", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "required", description = "")
+    @FeaturerParam(name = "Required", description = "", order = 3)
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
-    @FeaturerParam(name = "anyOfList", description = "")
+    @FeaturerParam(name = "Any of list", description = "", order = 4)
     public static final FeaturerParamBoolean anyOfList = new FeaturerParamBoolean("anyOfList");
 
     @Override

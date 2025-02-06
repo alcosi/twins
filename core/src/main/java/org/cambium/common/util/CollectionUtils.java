@@ -22,56 +22,62 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
     }
 
     public static <T> List<T> safeAdd(List<T> list, T element) {
-        if (element == null)
+        if (element == null && list == null)
             return null;
         if (list == null)
             list = new ArrayList<>();
-        list.add(element);
+        if (element != null)
+            list.add(element);
         return list;
     }
 
     public static <T> List<T> safeAdd(List<T> list, Collection<T> elements) {
-        if (isEmpty(elements))
+        if (isEmpty(elements) && list == null)
             return null;
         if (list == null)
             list = new ArrayList<>();
-        list.addAll(elements);
+        if (elements != null)
+            list.addAll(elements);
         return list;
     }
 
     public static <T> Set<T> safeAdd(Set<T> set, T element) {
-        if (element == null)
+        if (element == null && set == null)
             return null;
         if (set == null)
             set = new HashSet<>();
-        set.add(element);
+        if (element != null)
+            set.add(element);
         return set;
     }
 
     public static <T> Set<T> safeAdd(Set<T> set, Collection<T> elements) {
-        if (isEmpty(elements))
+        if (isEmpty(elements) && set == null)
             return null;
         if (set == null)
             set = new HashSet<>();
-        set.addAll(elements);
+        if (elements != null)
+            set.addAll(elements);
         return set;
     }
 
     public static <T> Collection<T> safeAdd(Collection<T> list, T element) {
-        if (element == null)
+        if (element == null && list == null)
             return null;
         if (list == null)
             list = new ArrayList<>();
-        list.add(element);
+        if (element != null)
+            list.add(element);
         return list;
     }
 
     public static <T> Collection<T> safeAdd(Collection<T> list, Collection<T> elements) {
-        if (isEmpty(elements))
+        if (isEmpty(elements) && list == null)
             return null;
         if (list == null)
             list = new ArrayList<>();
-        list.addAll(elements);
+        if (elements != null)
+            list.addAll(elements);
         return list;
     }
 
@@ -81,4 +87,8 @@ public class CollectionUtils extends org.apache.commons.collections.CollectionUt
         return new HashSet<>(collection);
     }
 
+    public static boolean isEmpty(Map coll) {
+        return coll == null ||
+                coll.isEmpty();
+    }
 }

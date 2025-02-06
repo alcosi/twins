@@ -17,6 +17,8 @@ public class LinkSaveRestDTOReverseMapper extends RestSimpleDTOMapper<LinkSaveDT
     public void map(LinkSaveDTOv1 src, LinkEntity dst, MapperContext mapperContext) throws Exception {
         dst
                 .setType(src.getType())
-                .setLinkStrengthId(src.getLinkStrength());
+                .setLinkStrengthId(src.getLinkStrength())
+                .setLinkerFeaturerId(src.getLinkerFeaturerId())
+                .setLinkerParams(src.getLinkerParams());
     }
 }

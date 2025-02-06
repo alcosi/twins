@@ -27,6 +27,10 @@ public class DataListDTOv1 {
     public String key;
 
     @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
+
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
     @Schema(description = "updated at", example = DTOExamples.INSTANT)
     public LocalDateTime updatedAt;
 

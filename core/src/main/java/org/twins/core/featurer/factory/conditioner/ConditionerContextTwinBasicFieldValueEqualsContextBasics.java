@@ -17,12 +17,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2422,
-        name = "ConditionerContextTwinBasicFieldValueEqualsContextBasics",
+        name = "Twin basic field value equals context basics",
         description = "")
 @Slf4j
 public class ConditionerContextTwinBasicFieldValueEqualsContextBasics extends Conditioner {
 
-    @FeaturerParam(name = "field", description = "Basic field to check")
+    @FeaturerParam(name = "Field", description = "Basic field to check", order = 1)
     public static final FeaturerParamBasicsTwinBasicField field = new FeaturerParamBasicsTwinBasicField("field");
 
     @Override

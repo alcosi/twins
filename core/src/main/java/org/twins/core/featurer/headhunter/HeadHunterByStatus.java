@@ -1,48 +1,36 @@
-package org.twins.core.featurer.twinclass;
+package org.twins.core.featurer.headhunter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.params.FeaturerParamUUIDSetTwinsStatusId;
-import org.twins.core.service.twin.TwinSearchService;
 
 import java.util.Properties;
 
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2602,
-        name = "HeadHunterByStatus",
+        name = "By status",
         description = "")
 public class HeadHunterByStatus extends HeadHunter {
-    @Lazy
-    @Autowired
-    TwinSearchService twinSearchService;
-
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "excludeStatusInput", description = "")
+    @FeaturerParam(name = "Exclude status input", description = "")
     public static final FeaturerParamBoolean excludeStatusInput = new FeaturerParamBoolean("excludeStatusInput");
 
     @Override
-    protected PaginationResult<TwinEntity> findValidHead(Properties properties, TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
-        BasicSearch search = new BasicSearch();
-        search
-                .addTwinClassId(twinClassEntity.getId(), false)
+    protected void expandValidHeadSearch(Properties properties, TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
+        basicSearch
                 .addStatusId(statusIds.extract(properties), excludeStatusInput.extract(properties));
-        return twinSearchService.findTwins(search, pagination);
     }
 
     @Override

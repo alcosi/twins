@@ -1,5 +1,6 @@
 package org.twins.core.dao.link;
 
+import io.hypersistence.utils.hibernate.type.basic.PostgreSQLHStoreType;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,12 +8,17 @@ import lombok.Getter;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.cambium.featurer.annotations.FeaturerList;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Type;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
+import org.twins.core.featurer.linker.Linker;
 
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.UUID;
 
 @Data
@@ -83,6 +89,18 @@ public class LinkEntity implements EasyLoggable {
     @JoinColumn(name = "backward_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
     private I18nEntity backwardNameI18n;
+
+    @Column(name = "linker_featurer_id")
+    private Integer linkerFeaturerId;
+
+    @FeaturerList(type = Linker.class)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "linker_featurer_id", insertable = false, updatable = false)
+    private FeaturerEntity linkerFeaturer;
+
+    @Type(PostgreSQLHStoreType.class)
+    @Column(name = "linker_params", columnDefinition = "hstore")
+    private HashMap<String, String> linkerParams;
 
     public String easyLog(Level level) {
         return switch (level) {

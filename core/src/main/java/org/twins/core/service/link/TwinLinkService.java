@@ -7,8 +7,13 @@ import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
+import org.cambium.common.pagination.PaginationResult;
+import org.cambium.common.pagination.SimplePagination;
+import org.cambium.featurer.FeaturerService;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -27,6 +32,7 @@ import org.twins.core.domain.EntityCUD;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.TwinChangesService;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.history.HistoryService;
@@ -57,6 +63,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     private final EntitySmartService entitySmartService;
     private final HistoryService historyService;
     private final TwinChangesService twinChangesService;
+    private final FeaturerService featurerService;
 
     @Override
     public CrudRepository<TwinLinkEntity, UUID> entityRepository() {
@@ -201,8 +208,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 forward = true;
                 dbTwinLinkEntity
                         .setDstTwinId(updateTwinLinkEntity.getDstTwinId());
-            }
-            else if (dbTwinLinkEntity.getDstTwinId().equals(twinEntity.getId())) { //backward link
+            } else if (dbTwinLinkEntity.getDstTwinId().equals(twinEntity.getId())) { //backward link
                 unlinkedTwinEntity = dbTwinLinkEntity.getSrcTwin();
                 forward = false;
                 dbTwinLinkEntity
@@ -218,45 +224,24 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         entitySmartService.saveAllAndLog(updatedTwinLinkEntityList, twinLinkRepository);
     }
 
-    public FindTwinLinksResult findTwinLinks(UUID twinId) throws ServiceException {
-        List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findBySrcTwinIdOrDstTwinId(twinId, twinId);
-        FindTwinLinksResult linksResult = new FindTwinLinksResult();
-        for (TwinLinkEntity twinLinkEntity : twinLinkEntityList) {
-            if (twinLinkEntity.getSrcTwinId().equals(twinId)) {
-                if (twinService.isEntityReadDenied(twinLinkEntity.getDstTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
-                    continue;
-                linksResult.forwardLinks.add(twinLinkEntity);
-            } else if (twinLinkEntity.getDstTwinId().equals(twinId)) {
-                if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
-                    continue;
-                linksResult.backwardLinks.add(twinLinkEntity);
-            } else
-                log.warn(twinLinkEntity.logShort() + " is incorrect");
-        }
-        return linksResult;
-    }
-
-    public FindTwinLinksResult loadTwinLinks(TwinEntity twinEntity) throws ServiceException {
-        if (twinEntity.getTwinLinks() != null)
-            return twinEntity.getTwinLinks();
-        twinEntity.setTwinLinks(findTwinLinks(twinEntity.getId()));
-        return twinEntity.getTwinLinks();
+    public void loadTwinLinks(TwinEntity twinEntity) throws ServiceException {
+        loadTwinLinks(Collections.singletonList(twinEntity));
     }
 
     public void loadTwinLinks(Collection<TwinEntity> twinEntityList) throws ServiceException {
-        Map<UUID, TwinEntity> needLoad = new HashMap<>();
+        Kit<TwinEntity, UUID> needLoad = new Kit<>(TwinEntity::getId);
         for (TwinEntity twinEntity : twinEntityList)
             if (twinEntity.getTwinLinks() == null) {
                 // it's important to create it here, because this will indicate in future that links are already loaded
                 // (even if there are no links in db, we should not try to load them no more time)
                 twinEntity.setTwinLinks(new FindTwinLinksResult());
-                needLoad.put(twinEntity.getId(), twinEntity);
+                needLoad.add(twinEntity);
             }
         if (needLoad.isEmpty())
             return;
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository
 //                .findBySrcTwinIdInOrDstTwinIdIn(needLoad.keySet(), needLoad.keySet()); //backward links loading is disabled because of huge data
-                .findBySrcTwinIdIn(needLoad.keySet());
+                .findBySrcTwinIdIn(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(twinLinkEntityList))
             return;
         TwinEntity twinEntity = null;
@@ -267,12 +252,12 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
                 twinEntity = needLoad.get(twinLinkEntity.getSrcTwinId());
                 twinEntity.getTwinLinks().forwardLinks.add(twinLinkEntity);
             }
-            if (needLoad.get(twinLinkEntity.getDstTwinId()) != null) {
-                if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
-                    continue;
-                twinEntity = needLoad.get(twinLinkEntity.getDstTwinId());
-                twinEntity.getTwinLinks().backwardLinks.add(twinLinkEntity);
-            }
+//            if (needLoad.get(twinLinkEntity.getDstTwinId()) != null) {
+//                if (twinService.isEntityReadDenied(twinLinkEntity.getSrcTwin(), EntitySmartService.ReadPermissionCheckMode.ifDeniedLog))
+//                    continue;
+//                twinEntity = needLoad.get(twinLinkEntity.getDstTwinId());
+//                twinEntity.getTwinLinks().backwardLinks.add(twinLinkEntity);
+//            }
         }
     }
 
@@ -294,7 +279,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public List<TwinLinkEntity> findTwinBackwardLinksAndLinkStrengthIds(Collection<UUID> twinIds, List<LinkStrength> strengthIds) throws ServiceException {
         List<TwinLinkEntity> twinLinkEntityList = twinLinkRepository.findAll(
                 Specification.where(checkStrength(strengthIds)
-                                .and(checkUuidIn(twinIds, false, false, TwinLinkEntity.Fields.dstTwinId))
+                        .and(checkUuidIn(twinIds, false, false, TwinLinkEntity.Fields.dstTwinId))
                 )
         );
         return filterDenied(twinLinkEntityList);
@@ -328,30 +313,40 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
         }
     }
 
-    public List<TwinEntity> findValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
-        if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
-            return twinSearchService.findTwins(search);
-        } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
-            return twinSearchService.findTwins(search);
-        } else
-            return null;
+    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinClassId, UUID linkId, UUID headTwinId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
+        TwinClassEntity srcTwinClassEntity = twinClassService.findEntitySafe(twinClassId);
+        TwinEntity headTwinEntity = null;
+        if (headTwinId != null)
+            headTwinEntity = twinService.findEntitySafe(headTwinId);
+        addClassCheckToValidTwinsForLinkSearch(linkEntity, srcTwinClassEntity, basicSearch);
+        if (linkEntity.getLinkerFeaturerId() != null) {
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), srcTwinClassEntity, headTwinEntity, basicSearch);
+        }
+        return twinSearchService.findTwins(basicSearch, pagination);
     }
 
-    public Long countValidDstTwins(LinkEntity linkEntity, TwinClassEntity srcTwinClass) throws ServiceException {
+    public PaginationResult<TwinEntity> findValidDstTwins(UUID twinId, UUID linkId, BasicSearch basicSearch, SimplePagination pagination) throws ServiceException {
+        LinkEntity linkEntity = linkService.findEntitySafe(linkId);
+        TwinEntity twinEntity = twinService.findEntitySafe(twinId);
+        addClassCheckToValidTwinsForLinkSearch(linkEntity, twinEntity.getTwinClass(), basicSearch);
+        if (linkEntity.getLinkerFeaturerId() != null) {
+            Linker linker = featurerService.getFeaturer(linkEntity.getLinkerFeaturer(), Linker.class);
+            linker.expandValidLinkedTwinSearch(linkEntity.getLinkerParams(), twinEntity, basicSearch);
+        }
+        return twinSearchService.findTwins(basicSearch, pagination);
+    }
+
+    private void addClassCheckToValidTwinsForLinkSearch(LinkEntity linkEntity, TwinClassEntity srcTwinClass, BasicSearch search) throws ServiceException {
         if (linkService.isForwardLink(linkEntity, srcTwinClass)) {// forward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(linkEntity.getDstTwinClass()), false);
-            return twinSearchService.count(search);
+            twinClassService.loadExtendsHierarchyChildClasses(linkEntity.getDstTwinClass());
+            search.addTwinClassId(linkEntity.getDstTwinClass().getExtendsHierarchyChildClassKit().getIdSet(), false);
         } else if (linkService.isBackwardLink(linkEntity, srcTwinClass)) {// backward link
-            BasicSearch search = new BasicSearch();
-            search.addTwinClassId(twinClassService.loadChildClasses(srcTwinClass), false);
-            return twinSearchService.count(search);
+            twinClassService.loadExtendsHierarchyChildClasses(srcTwinClass);
+            search.addTwinClassId(srcTwinClass.getExtendsHierarchyChildClassKit().getIdSet(), false);
         } else
-            return 0L;
+            throw new ServiceException(ErrorCodeCommon.NOT_IMPLEMENTED, "unknown link type");
     }
 
     public Collection<TwinLinkEntity> findTwinLinks(LinkEntity linkEntity, TwinEntity twinEntity, LinkService.LinkDirection linkDirection) throws ServiceException {
@@ -384,6 +379,7 @@ public class TwinLinkService extends EntitySecureFindServiceImpl<TwinLinkEntity>
     public static class FindTwinLinksResult {
         UUID twinId;
         KitGrouped<TwinLinkEntity, UUID, UUID> forwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId);
+        @Deprecated //backwardLinks should be taken from API with pagination support
         KitGrouped<TwinLinkEntity, UUID, UUID> backwardLinks = new KitGrouped<>(TwinLinkEntity::getId, TwinLinkEntity::getLinkId); //todo delete me, I can cause large memory usage
     }
 

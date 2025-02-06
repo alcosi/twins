@@ -11,9 +11,9 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.featurer.fieldtyper.descriptor.FieldDescriptor;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinClassFieldMode;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 
@@ -31,10 +31,14 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
 
     @Override
     public void map(TwinClassFieldEntity src, TwinClassFieldDTOv1 dst, MapperContext mapperContext) throws Exception {
+        FieldTyper fieldTyper;
+        FieldDescriptor fieldDescriptor;
         switch (mapperContext.getModeOrUse(TwinClassFieldMode.DETAILED)) {
             case MANAGED:
                 if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + TwinClassFieldMode.MANAGED + "] is not allowed for current user");
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
@@ -47,12 +51,12 @@ public class TwinClassFieldRestDTOMapper extends RestSimpleDTOMapper<TwinClassFi
                         .setFieldTyperFeaturerId(src.getFieldTyperFeaturerId())
                         .setFieldTyperParams(src.getFieldTyperParams())
                         .setViewPermissionId(src.getViewPermissionId())
-                        .setEditPermissionId(src.getEditPermissionId());
-
+                        .setEditPermissionId(src.getEditPermissionId())
+                        .setDescriptor(twinClassFieldDescriptorRestDTOMapper.convert(fieldDescriptor, mapperContext));
                 break;
             case DETAILED:
-                FieldTyper fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
-                FieldDescriptor fieldDescriptor = fieldTyper.getFieldDescriptor(src);
+                fieldTyper = featurerService.getFeaturer(src.getFieldTyperFeaturer(), FieldTyper.class);
+                fieldDescriptor = fieldTyper.getFieldDescriptor(src);
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())

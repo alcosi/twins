@@ -1,18 +1,17 @@
 package org.twins.core.service.permission;
 
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.experimental.Accessors;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.ChangesHelper;
-import org.cambium.common.util.StreamUtils;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySmartService;
@@ -30,6 +29,7 @@ import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.TwinRole;
@@ -41,11 +41,11 @@ import org.twins.core.service.domain.DomainService;
 import org.twins.core.service.space.SpaceUserRoleService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.user.UserGroupService;
+import org.twins.core.service.user.UserService;
 
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -56,6 +56,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final PermissionSchemaRepository permissionSchemaRepository;
     private final PermissionGrantUserRepository permissionGrantUserRepository;
     private final PermissionGrantUserGroupRepository permissionGrantUserGroupRepository;
+    private final PermissionGrantGlobalRepository permissionGrantGlobalRepository;
     private final PermissionGrantTwinRoleRepository permissionGrantTwinRoleRepository;
     private final PermissionGrantSpaceRoleRepository permissionGrantSpaceRoleRepository;
     private final PermissionGrantAssigneePropagationRepository permissionGrantAssigneePropagationRepository;
@@ -73,8 +74,11 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private final DomainService domainService;
     private final UserGroupService userGroupService;
     @Lazy
+    private final UserService userService;
+    @Lazy
     private final EntitySmartService entitySmartService;
     private final PermissionGroupService permissionGroupService;
+    private final ApiUser apiUser;
 
     @Override
     public CrudRepository<PermissionEntity, UUID> entityRepository() {
@@ -139,7 +143,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean hasPermission(TwinEntity twinEntity, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         return hasPermission(
                 new PermissionDetectKey(
                         twinEntity.getTwinClassId(),
@@ -151,14 +155,14 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean hasPermission(PermissionDetectKey permissionDetectKey, UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         return twinRepository.hasPermission(
                 permissionId,
                 apiUser.getDomainId(),
                 TypedParameterTwins.uuidNullable(apiUser.getBusinessAccountId()),
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getPermissionSchemaSpaceId()),
                 apiUser.getUser().getId(),
-                TypedParameterTwins.uuidArray(apiUser.getUserGroups()),
+                TypedParameterTwins.uuidArray(apiUser.getUser().getUserGroups().getIdSetSafe()),
                 TypedParameterTwins.uuidNullable(permissionDetectKey.getTwinClassId()),
                 permissionDetectKey.isAssignee,
                 permissionDetectKey.isCreator);
@@ -213,6 +217,37 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
         validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
         return permissionRepository.save(createEntity);
+    }
+
+    public Map<DefaultClassPermissionsPrefix, PermissionEntity> createDefaultPermissionsForNewInDomainClass(TwinClassEntity twinClassEntity) throws ServiceException {
+        List<PermissionEntity> permissionsForSave = new ArrayList<>();
+        PermissionGroupEntity permissionGroup = permissionGroupService.createDefaultPermissionGroupForNewInDomainClass(twinClassEntity);
+        Map<DefaultClassPermissionsPrefix, PermissionEntity> newPermissions = new HashMap<>();
+        for (DefaultClassPermissionsPrefix permissionPrefix : DefaultClassPermissionsPrefix.values()) {
+            I18nEntity nameI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
+            );
+
+            I18nEntity descriptionI18n = new I18nEntity().addTranslation(
+                    new I18nTranslationEntity()
+                            .setLocale(Locale.ENGLISH)
+                            .setTranslation(twinClassEntity.getKey().toLowerCase().replace("_", " ") + " " + permissionPrefix.name().toLowerCase() + " permission")
+            );
+
+            PermissionEntity permissionEntity = new PermissionEntity()
+                    .setKey(twinClassEntity.getKey() + "_" + permissionPrefix)
+                    .setPermissionGroupId(permissionGroup.getId())
+                    .setPermissionGroup(permissionGroup)
+                    .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
+                    .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
+            validateEntityAndThrow(permissionEntity, EntitySmartService.EntityValidateMode.beforeSave);
+            permissionsForSave.add(permissionEntity);
+            newPermissions.put(permissionPrefix, permissionEntity);
+        }
+        entitySmartService.saveAllAndLog(permissionsForSave, permissionRepository);
+        return newPermissions;
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -295,7 +330,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         result.setGrantedByUser(grantedForUser);
 
         //group permissions
-        Kit<UserGroupEntity, UUID> groupsForUserKit = new Kit<>(userGroupService.findGroupsForUser(userId), UserGroupEntity::getId);
+        Kit<UserGroupEntity, UUID> groupsForUserKit = userGroupService.findGroupsForUser(userId);
         List<UserGroupEntity> grantedForGroups = new ArrayList<>();
         final List<PermissionGrantUserGroupEntity> grantedPermissions = permissionGrantUserGroupRepository.findByPermissionSchemaIdAndPermissionIdAndUserGroupIdIn(permissionSchema.getId(), permissionId, groupsForUserKit.getIdSet());
         for (PermissionGrantUserGroupEntity grantedPermission : grantedPermissions)
@@ -371,26 +406,18 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     }
 
-    public FindUserPermissionsResult findPermissionsForUser(UUID userId) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        UUID domainId = apiUser.getDomain().getId();
-        UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
-        return new FindUserPermissionsResult()
-                .setPermissionsByUser(permissionGrantUserRepository.findByPermissionSchemaIdAndUserId(
-                                permissionSchemaId, userId)
-                        .stream().filter(p -> {
-                                    UUID permissionDomainId = p.getPermission().getPermissionGroup().getDomainId();
-                                    return permissionDomainId == null // for permission group[Twins global permissions]
-                                            || StreamUtils.andLogFilteredOutValues(permissionDomainId.equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]");
-                                }).toList()) // filter bad configured permissions
-                .setPermissionByUserGroup(permissionGrantUserGroupRepository.findByPermissionSchemaIdAndUserGroupIdIn(
-                                permissionSchemaId,
-                                userGroupService.findGroupsForUser(userId).stream().map(UserGroupEntity::getId).collect(Collectors.toList()))
-                        .stream().filter(p -> {
-                                    UUID permissionDomainId = p.getPermission().getPermissionGroup().getDomainId();
-                                    return permissionDomainId == null // for permission group[Twins global permissions]
-                                            || StreamUtils.andLogFilteredOutValues(permissionDomainId.equals(domainId), p.getPermission().easyLog(EasyLoggable.Level.NORMAL) + " is not allowed for domain[" + domainId + "]");
-                        }).toList()); // filter bad configured permissions;
+    public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForUser(UUID userId) throws ServiceException {
+        return findPermissionsForUser(userService.findEntitySafe(userId));
+    }
+
+    public KitGroupedObj<PermissionEntity, UUID, UUID, PermissionGroupEntity> findPermissionsForUser(UserEntity user) throws ServiceException {
+        loadUserPermissions(user);
+        var ret = new KitGroupedObj<>(PermissionEntity::getId, PermissionEntity::getPermissionGroupId, PermissionEntity::getPermissionGroup);
+        if (CollectionUtils.isEmpty(user.getPermissions()))
+            return ret;
+        Kit<PermissionEntity, UUID> list = findEntitiesSafe(user.getPermissions());
+        ret.addAll(list.getList());
+        return ret;
     }
 
     private UUID detectPermissionSchemaId(ApiUser apiUser) throws ServiceException {
@@ -407,55 +434,39 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
     public boolean currentUserHasPermission(UUID permissionId) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        loadUserPermissions(apiUser);
-        return apiUser.getPermissions().contains(permissionId);
+        if (!apiUser.isUserSpecified())
+            return false;
+        loadUserPermissions(apiUser.getUser());
+        return apiUser.getUser().getPermissions().contains(permissionId);
     }
 
     public boolean currentUserHasPermission(Permissions permission) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
-        loadUserPermissions(apiUser);
-        return apiUser.getPermissions().contains(permission.getId());
+        return currentUserHasPermission(permission.getId());
     }
 
-    public void loadUserPermissions(ApiUser apiUser) throws ServiceException {
-        if (apiUser.getPermissions() != null)
+    public void loadCurrentUserPermissions() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!apiUser.isUserSpecified())
             return;
-        UUID permissionSchemaId = detectPermissionSchemaId(apiUser);
-        userGroupService.loadGroups(apiUser);
+        loadUserPermissions(apiUser.getUser());
+    }
+
+    //todo create load for collection
+    public void loadUserPermissions(UserEntity user) throws ServiceException {
+        if (user.getPermissions() != null)
+            return;
+        UUID permissionSchemaId = detectPermissionSchemaId(authService.getApiUser());
+        userGroupService.loadGroups(user);
         List<UUID> permissionList = permissionGrantUserRepository
-                .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, apiUser.getUser().getId());
+                .findPermissionIdByPermissionSchemaIdAndUserId(permissionSchemaId, user.getId());
         Set<UUID> permissionSet = new HashSet<>(permissionList);
         permissionList = permissionGrantUserGroupRepository
-                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, apiUser.getUserGroups());
+                .findPermissionIdByPermissionSchemaIdAndUserGroupIdIn(permissionSchemaId, user.getUserGroups().getIdSetSafe());
         permissionSet.addAll(permissionList);
-        apiUser.setPermissions(permissionSet);
-    }
-
-    @Data
-    @Accessors(chain = true)
-    public static class FindUserPermissionsResult {
-        private UUID userId;
-        private List<PermissionGrantUserEntity> permissionsByUser;
-        private List<PermissionGrantUserGroupEntity> permissionByUserGroup;
-
-        public List<PermissionEntity> collectPermissions() {
-            List<PermissionEntity> ret = new ArrayList<>();
-            if (permissionsByUser != null)
-                ret.addAll(permissionsByUser.stream().map(PermissionGrantUserEntity::getPermission).toList());
-            if (permissionByUserGroup != null)
-                ret.addAll(permissionByUserGroup.stream().map(PermissionGrantUserGroupEntity::getPermission).toList());
-            return ret.stream().filter(StreamUtils.distinctByKey(PermissionEntity::getId)).toList();
-        }
-
-        public List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>> collectPermissionGroups() {
-            List<PermissionEntity> distinctPermissions = collectPermissions();
-            List<ImmutablePair<PermissionGroupEntity, List<PermissionEntity>>> ret = new ArrayList<>();
-            Map<UUID, List<PermissionEntity>> mapGrouped = distinctPermissions.stream().collect(Collectors.groupingBy(PermissionEntity::getPermissionGroupId));
-            for (Map.Entry<UUID, List<PermissionEntity>> entry : mapGrouped.entrySet()) {
-                ret.add(new ImmutablePair<>(entry.getValue().get(0).getPermissionGroup(), entry.getValue()));
-            }
-            return ret;
-        }
+        permissionList = permissionGrantGlobalRepository
+                .findPermissionIdByUserGroupIdIn(user.getUserGroups().getIdSetSafe());
+        permissionSet.addAll(permissionList);
+        user.setPermissions(permissionSet);
     }
 
     public void forceDeleteSchemas(UUID businessAccountId) throws ServiceException {
@@ -464,6 +475,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
 
         List<UUID> schemasToDelete = permissionSchemaRepository.findAllByBusinessAccountIdAndDomainId(businessAccountId, domainId);
         entitySmartService.deleteAllAndLog(schemasToDelete, permissionSchemaRepository);
+    }
+
+    public enum DefaultClassPermissionsPrefix {
+        VIEW, EDIT, CREATE, DELETE
     }
 
 }

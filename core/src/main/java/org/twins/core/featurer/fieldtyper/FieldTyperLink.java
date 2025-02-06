@@ -8,14 +8,12 @@ import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
-import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
-import org.twins.core.dao.twin.TwinLinkRepository;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
@@ -27,7 +25,6 @@ import org.twins.core.featurer.fieldtyper.value.FieldValueLink;
 import org.twins.core.featurer.params.FeaturerParamUUIDTwinsLinkId;
 import org.twins.core.service.link.LinkService;
 import org.twins.core.service.link.TwinLinkService;
-import org.twins.core.service.twin.TwinService;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,44 +34,40 @@ import java.util.stream.Collectors;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_1310,
-        name = "FieldTyperLink",
+        name = "Linked twin",
         description = "")
 public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLink, TwinLinkEntity, TwinFieldSearchNotImplemented> {
     public static final Integer ID = 1310;
 
-    @Autowired
-    EntitySmartService entitySmartService;
     @Lazy
     @Autowired
     LinkService linkService;
     @Lazy
     @Autowired
     TwinLinkService twinLinkService;
-    @Lazy
-    @Autowired
-    TwinService twinService;
-    @Autowired
-    TwinLinkRepository twinLinkRepository;
 
-    @FeaturerParam(name = "linkUUID", description = "")
+    @FeaturerParam(name = "Link", description = "", order = 1)
     public static final FeaturerParamUUIDTwinsLinkId linkUUID = new FeaturerParamUUIDTwinsLinkId("linkUUID");
 
-    @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 2)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override
     protected FieldDescriptorLink getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) throws ServiceException {
         LinkEntity linkEntity = linkService.findEntitySafe(linkUUID.extract(properties));
-        long listSize = twinLinkService.countValidDstTwins(linkEntity, twinClassFieldEntity.getTwinClass());
         FieldDescriptorLink fieldDescriptorLink = new FieldDescriptorLink()
-                .multiple(allowMultiply(linkEntity, twinClassFieldEntity));
-        if (listSize > longListThreshold.extract(properties))
-            fieldDescriptorLink.linkId(linkEntity.getId());
-        else {
-            fieldDescriptorLink.dstTwins(twinLinkService.findValidDstTwins(linkEntity, twinClassFieldEntity.getTwinClass()));
-            if(listSize != fieldDescriptorLink.dstTwins().size())
-                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_HIERARCHY_ERROR, twinClassFieldEntity.getTwinClass().getId() + " / " + listSize + " / " + fieldDescriptorLink.dstTwins().size());
-        }
+                .multiple(allowMultiply(linkEntity, twinClassFieldEntity))
+                .linkId(linkEntity.getId());
+// todo now only long list supported, because of pagination problems
+
+//        long listSize = twinLinkService.countValidDstTwins(linkEntity, twinClassFieldEntity.getTwinClass());
+//        if (listSize > longListThreshold.extract(properties))
+//            fieldDescriptorLink.linkId(linkEntity.getId());
+//        else {
+//            fieldDescriptorLink.dstTwins(twinLinkService.findValidDstTwins(linkEntity, twinClassFieldEntity.getTwinClass()));
+//            if(listSize != fieldDescriptorLink.dstTwins().size())
+//                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_HIERARCHY_ERROR, twinClassFieldEntity.getTwinClass().getId() + " / " + listSize + " / " + fieldDescriptorLink.dstTwins().size());
+//        }
         return fieldDescriptorLink;
     }
 
