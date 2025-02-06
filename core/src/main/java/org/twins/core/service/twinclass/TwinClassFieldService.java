@@ -298,7 +298,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
 
     public void updateTwinClassField_FieldTyperFeaturerId(TwinClassFieldEntity dbTwinClassFieldEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
         FeaturerEntity newFieldTyperFeaturer = null;
-        newFeaturerId = newFeaturerId != 0 ? newFeaturerId : dbTwinClassFieldEntity.getFieldTyperFeaturerId();
+        newFeaturerId = newFeaturerId != null && newFeaturerId != 0 ? newFeaturerId : dbTwinClassFieldEntity.getFieldTyperFeaturerId();
         if (!MapUtils.areEqual(dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams)) {
             newFieldTyperFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, FieldTyper.class);
             changesHelper.add(TwinClassFieldEntity.Fields.fieldTyperParams, dbTwinClassFieldEntity.getFieldTyperParams(), newFeaturerParams);
