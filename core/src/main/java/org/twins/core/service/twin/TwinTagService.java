@@ -211,18 +211,16 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         }
 
         //we will try to replace tags with new provided values
-        DataListEntity newTagsDataList = null;
         Set<UUID> existedTwinTagIds = findExistedTwinTagsForTwinsOfClass(twinClassEntity.getId());
-        twinClassEntity
-                .setTagDataList(newTagsDataList)
-                .setTagDataListId(entityRelinkOperation.getNewId());
-        if (CollectionUtils.isEmpty(existedTwinTagIds))
+        if (CollectionUtils.isEmpty(existedTwinTagIds)) {
+            twinClassEntity.setTagDataListId(entityRelinkOperation.getNewId());
             return;
+        }
 
         if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide tagsReplaceMap for tags: " + org.cambium.common.util.StringUtils.join(existedTwinTagIds));
-        newTagsDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
+        DataListEntity newTagsDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
         dataListService.loadDataListOptions(newTagsDataList);
         Set<UUID> tagsForDeletion = new HashSet<>();
         for (UUID tagForReplace : existedTwinTagIds) {
