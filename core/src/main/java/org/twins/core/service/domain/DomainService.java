@@ -151,6 +151,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         loadDomainType(domainEntity);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
         domainEntity = domainInitiator.init(domainEntity);
+        domainEntity.setDomainStatusId("ACTIVE");
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
