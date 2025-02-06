@@ -149,9 +149,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         if (domainRepository.existsByKey(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
         loadDomainType(domainEntity);
+        domainEntity.setDomainStatusId(DomainStatus.ACTIVE);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
         domainEntity = domainInitiator.init(domainEntity);
-        domainEntity.setDomainStatusId(DomainStatus.ACTIVE);
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
