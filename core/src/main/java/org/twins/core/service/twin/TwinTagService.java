@@ -214,8 +214,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
         Set<UUID> existedTwinTagIds = findExistedTwinTagsForTwinsOfClass(twinClassEntity.getId());
         if (CollectionUtils.isEmpty(existedTwinTagIds)) {
             twinClassEntity
-                    .setMarkerDataList(newTagsDataList)
-                    .setMarkerDataListId(newTagsDataList.getId());
+                    .setTagDataList(newTagsDataList)
+                    .setTagDataListId(newTagsDataList.getId());
             return;
         }
         if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
@@ -246,8 +246,8 @@ public class TwinTagService extends EntitySecureFindServiceImpl<TwinTagEntity> {
             twinTagRepository.deleteByTwin_TwinClassIdAndTagDataListOptionIdIn(twinClassEntity.getId(), tagsForDeletion);
         }
         twinClassEntity
-                .setMarkerDataList(newTagsDataList)
-                .setMarkerDataListId(newTagsDataList.getId());
+                .setTagDataList(newTagsDataList)
+                .setTagDataListId(newTagsDataList.getId());
     }
 
     private Set<UUID> findExistedTwinTagsForTwinsOfClass(UUID twinClassId) {
