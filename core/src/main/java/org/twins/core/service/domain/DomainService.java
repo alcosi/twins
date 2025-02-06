@@ -184,7 +184,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
-        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllActiveDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainEntityList, pagination);
     }
 
