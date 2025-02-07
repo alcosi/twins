@@ -49,7 +49,7 @@ public class FeaturerService {
     final FeaturerSpecification featurerSpecification;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
-    Hashtable<Integer, Set<String>> featurerParamsMap = new Hashtable<>();
+    Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
     @Autowired //lazy loading because of circular dependency
     public void setFeaturerList(List<Featurer> featurerList) {
@@ -118,8 +118,8 @@ public class FeaturerService {
 
     private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        Set<String> featurerParamsKeySet = new HashSet<>();
-// Include fields from parent classes
+        Map<String, org.cambium.featurer.params.FeaturerParam<?>> featurerParamsMap = new HashMap<>();
+        // Include fields from parent classes
         for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
@@ -133,20 +133,21 @@ public class FeaturerService {
                     FeaturerParamEntity featurerParamEntity = new FeaturerParamEntity();
                     featurerParamEntity.setFeaturerId(featurerAnnotation.id());
                     //для доступа к key, важно чтобы поле было public static final
-                    String key = ((org.cambium.featurer.params.FeaturerParam) field.get(null)).getKey();
+                    var instance = (org.cambium.featurer.params.FeaturerParam) field.get(null);
+                    String key = instance.getKey();
                     featurerParamEntity.setKey(key);
                     featurerParamEntity.setName(featurerParamAnnotation.name());
                     featurerParamEntity.setDescription(featurerParamAnnotation.description());
                     featurerParamEntity.setOrder(featurerParamAnnotation.order());
                     featurerParamEntity.setFeaturerParamTypeId(featurerParamTypeAnnotation.id());
                     featurerParamEntityList.add(featurerParamEntity);
-                    featurerParamsKeySet.add(key);
+                    featurerParamsMap.put(key, instance);
                 }
             } catch (IllegalAccessException e) {
                 log.error("Exception: ", e);
             }
         }
-        featurerParamsMap.put(featurerAnnotation.id(), featurerParamsKeySet);
+        this.featurerParamsMap.put(featurerAnnotation.id(), featurerParamsMap);
     }
 
 
@@ -239,26 +240,30 @@ public class FeaturerService {
         }
     }
 
-    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         return extractProperties(featurerEntity.getId(), params, context);
     }
 
-    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
-        org.cambium.featurer.annotations.Featurer annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        return extractProperties(annotation.id(), params, context);
+    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
+        return extractProperties(getFeaturerId(featurer), params, context);
     }
 
-    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+    private int getFeaturerId(Featurer featurer) {
+        var annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
+        return annotation.id();
+    }
+
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
-        Set<String> keySet = featurerParamsMap.get(featurerId);
+        var paramsMap = featurerParamsMap.get(featurerId);
         int paramsCount = params != null ? params.size() : 0;
-        if (paramsCount != keySet.size())
+        if (paramsCount != paramsMap.size())
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
-                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, keySet.size(), paramsCount));
+                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsMap.size(), paramsCount));
         if (paramsCount == 0)
             return ret;//no params
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            if (!featurerParamsMap.get(featurerId).contains(entry.getKey()))
+            if (!featurerParamsMap.get(featurerId).containsKey(entry.getKey()))
                 throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
                         String.format("Unknown params key[%s] for featurer[%s]", entry.getKey(), featurerId));
             if (entry.getValue().contains("injection@")) {
@@ -282,7 +287,7 @@ public class FeaturerService {
      *                    ..._params, а подставляются исходя из условий injections_conditions из других таблиц
      * @return значение параметра, которое было получено через инъекцию
      */
-    public String extractInjectedProperties(UUID injectionId, HashMap<String, Object> context) throws Exception {
+    public String extractInjectedProperties(UUID injectionId, Map<String, Object> context) throws Exception {
         FeaturerInjectionEntity injection = injectionRepository.findById(injectionId).orElseThrow(NullPointerException::new);
         return getInjector(injection.getInjectorFeaturer()).doInject(injection, context);
     }
@@ -297,7 +302,7 @@ public class FeaturerService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch){
+    public Specification<FeaturerEntity> createFeaturerSearchSpecification(FeaturerSearch featurerSearch) {
         return allOf(
                 checkIntegerIn(FeaturerEntity.Fields.id, featurerSearch.getIdList(), false),
                 checkIntegerIn(FeaturerEntity.Fields.featurerTypeId, featurerSearch.getTypeIdList(), false),
@@ -310,8 +315,17 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
-        extractProperties(featurer, featurerParams, new HashMap<>());
+        Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
+        basicParamsValidation(featurerId, properties);
+        featurer.extraParamsValidation(properties);
         return featurerRepository.getById(featurerId);
+    }
+
+    public void basicParamsValidation(Integer featurerId, Properties properties) throws ServiceException {
+        var paramsMap = featurerParamsMap.get(featurerId);
+        for (var entry : paramsMap.entrySet()) {
+            entry.getValue().validate(properties.getProperty(entry.getKey()));
+        }
     }
 
     public FeaturerEntity getFeaturerEntity(Integer featurerId) {
@@ -326,7 +340,7 @@ public class FeaturerService {
         Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
         for (TwinClassEntity twinClass : twinClassCollection) {
             if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
-                needLoad.put(twinClass.getHeadHunterFeaturerId() ,twinClass);
+                needLoad.put(twinClass.getHeadHunterFeaturerId(), twinClass);
         }
         if (MapUtils.isEmpty(needLoad))
             return;

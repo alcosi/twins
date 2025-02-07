@@ -6,8 +6,6 @@ import org.apache.commons.lang3.text.StrSubstitutor;
 import java.util.Map;
 
 public class StringUtils extends org.apache.commons.lang3.StringUtils {
-
-
     public static String replaceVariables(String str, Map<String, String> map) {
         return replaceVariables(str, StrLookup.mapLookup(map));
     }

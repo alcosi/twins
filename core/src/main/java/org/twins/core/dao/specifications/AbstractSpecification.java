@@ -27,7 +27,7 @@ abstract class AbstractSpecification<T> {
         if (filedValue == null || filedPath == null || filedPath.length == 0) {
             return criteriaBuilder.disjunction();
         }
-        Path propertyPath = getFildPath(srcRoot,joinType, filedPath);
+        Path propertyPath = getFieldPath(srcRoot,joinType, filedPath);
         //Perform cooperation based on compareFunction
         return compareFunction.apply(propertyPath, criteriaBuilder, filedValue);
     }
@@ -42,7 +42,7 @@ abstract class AbstractSpecification<T> {
      * @param filedPath the hierarchical path of field names leading to the target property
      * @return the path representing the specified property within the entity structure
      */
-    protected static <T> Path<T> getFildPath(From srcRoot,JoinType joinType , String... filedPath) {
+    protected static <T> Path<T> getFieldPath(From srcRoot, JoinType joinType , String... filedPath) {
         List<String> filedPathList = Arrays.stream(filedPath).collect(Collectors.toList());
         //Get real filedValue property name
         String filed = filedPathList.remove(filedPathList.size() - 1);

@@ -30,10 +30,10 @@ public class LinkForwardRestDTOV2Mapper extends RestSimpleDTOMapper<LinkEntity, 
             if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                 throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
             dst
-                    .srcTwinClassId(src.getSrcTwinClassId())
-                    .backwardName(i18nService.translateToLocale(src.getBackwardNameI18NId()))
-                    .createdByUserId(src.getCreatedByUserId())
-                    .createdAt(src.getCreatedAt().toLocalDateTime());
+                    .setSrcTwinClassId(src.getSrcTwinClassId())
+                    .setBackwardName(i18nService.translateToLocale(src.getBackwardNameI18NId()))
+                    .setCreatedByUserId(src.getCreatedByUserId())
+                    .setCreatedAt(src.getCreatedAt().toLocalDateTime());
         }
     }
 }

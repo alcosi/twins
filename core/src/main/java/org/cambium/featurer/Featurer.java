@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -20,9 +21,13 @@ public abstract class Featurer {
     }
 
     protected Properties extractProperties(HashMap<String, String> paramsMap, boolean logParams) throws ServiceException {
-        Properties properties = featurerService.extractProperties(this, paramsMap, new HashMap<>());
+        Properties properties = featurerService.extractProperties(this, paramsMap, Collections.emptyMap());
         if (logParams)
             log.info("Running featurer[{}] with params: {}", this.getClass().getSimpleName(), properties.toString());
         return properties;
     }
+
+    public void extraParamsValidation(Properties properties) throws ServiceException {
+    }
+
 }

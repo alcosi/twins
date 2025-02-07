@@ -9,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.service.EntitySmartService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -52,7 +51,7 @@ public class UserGroupListController extends ApiController {
         UserGroupListRsDTOv1 rs = new UserGroupListRsDTOv1();
         try {
             rs.userGroupList = userGroupDTOMapper.convertCollection(
-                    userGroupService.findGroupsForUser(userService.checkId(userId, EntitySmartService.CheckMode.NOT_EMPTY_AND_DB_EXISTS)), mapperContext);
+                    userGroupService.findGroupsForUser(userId), mapperContext);
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
