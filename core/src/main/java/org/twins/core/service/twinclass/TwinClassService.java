@@ -386,9 +386,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, Boolean autoCreatePermissions) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (StringUtils.isBlank(twinClassEntity.getKey()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
-        twinClassEntity.setKey(twinClassEntity.getKey().trim().toUpperCase().replaceAll("\\s", "_"));
+        twinClassEntity.setKey(KeyUtils.upperCaseNullFriendly(twinClassEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT));
         if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
 
@@ -415,7 +413,6 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
         }
         twinClassEntity
-                .setKey(twinClassEntity.getKey().toUpperCase())
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
@@ -575,6 +572,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassKey(TwinClassEntity dbTwinClassEntity, String newKey, ChangesHelper changesHelper) throws ServiceException {
+        newKey = KeyUtils.upperCaseNullFriendly(newKey, ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
         if (!changesHelper.isChanged(TwinClassEntity.Fields.key, dbTwinClassEntity.getKey(), newKey))
             return;
         if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), newKey))

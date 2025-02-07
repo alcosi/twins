@@ -10,6 +10,7 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGroupedObj;
 import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.KeyUtils;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
@@ -213,6 +214,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     @Transactional(rollbackFor = Throwable.class)
     public PermissionEntity createPermission(PermissionEntity createEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         createEntity
+                .setKey(KeyUtils.upperCaseNullSafe(createEntity.getKey(), ErrorCodeTwins.PERMISSION_KEY_INCORRECT))
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, descriptionI18n).getId());
         validateEntityAndThrow(createEntity, EntitySmartService.EntityValidateMode.beforeSave);
@@ -293,10 +295,11 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
     }
 
-    private void updatePermissionKey(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), updateEntity.getKey()))
+    private void updatePermissionKey(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        String newKey = KeyUtils.upperCaseNullFriendly(updateEntity.getKey(), ErrorCodeTwins.PERMISSION_KEY_INCORRECT);
+        if (!changesHelper.isChanged(PermissionEntity.Fields.key, dbEntity.getKey(), newKey))
             return;
-        dbEntity.setKey(updateEntity.getKey());
+        dbEntity.setKey(newKey);
     }
 
     /**
