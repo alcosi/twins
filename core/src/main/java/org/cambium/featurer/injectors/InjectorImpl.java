@@ -4,7 +4,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.dao.FeaturerInjectionEntity;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 @Component
@@ -12,7 +12,7 @@ import java.util.Properties;
         name = "InjectorImpl",
         description = "")
 public class InjectorImpl extends Injector {
-    public String inject(FeaturerInjectionEntity injection, Properties properties, HashMap<String, Object> context) throws Exception {
+    public String inject(FeaturerInjectionEntity injection, Properties properties, Map<String, Object> context) throws Exception {
         return "";
     }
 }

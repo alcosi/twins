@@ -19,6 +19,9 @@ public interface DomainUserRepository extends CrudRepository<DomainUserEntity, U
     @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId")
     Page<DomainEntity> findAllDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
 
+    @Query(value = "select du.domain from DomainUserEntity du where du.userId = :userId and du.domain.domainStatusId = 'ACTIVE'")
+    Page<DomainEntity> findAllActiveDomainByUserId(@Param("userId") UUID userId, Pageable pageable);
+
     DomainUserEntity findByDomainIdAndUserId(UUID uuid, UUID userId);
 
     @Modifying

@@ -5,6 +5,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.user.UserGroupService;
@@ -23,10 +24,10 @@ public abstract class UserGroupManager extends FeaturerTwins {
     @Lazy
     @Autowired
     protected UserGroupService userGroupService;
-    public void manageForUser(HashMap<String, String> params, UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
+    public void manageForUser(HashMap<String, String> params, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, params, new HashMap<>());
-        manageForUser(properties, userId, userGroupEnterList, userGroupExitList, apiUser);
+        manageForUser(properties, user, userGroupEnterList, userGroupExitList, apiUser);
     }
 
-    public abstract void manageForUser(Properties properties, UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException;
+    public abstract void manageForUser(Properties properties, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException;
 }

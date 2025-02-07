@@ -1,6 +1,7 @@
 package org.cambium.featurer.params;
 
 import lombok.Data;
+import org.cambium.common.exception.ServiceException;
 
 import java.util.Properties;
 
@@ -13,4 +14,6 @@ public abstract class FeaturerParam<T> {
     }
 
     public abstract T extract(Properties properties);
+
+    public void validate(String value) throws ServiceException {}
 }

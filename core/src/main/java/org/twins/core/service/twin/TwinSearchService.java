@@ -68,17 +68,16 @@ public class TwinSearchService {
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         UUID domainId = apiUser.getDomainId();
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
-        Set<UUID> userGroups = apiUser.getUserGroups();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
         Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
 
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
             specification = specification
-                    .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
                     .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         } else {
             specification = specification

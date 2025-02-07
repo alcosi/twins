@@ -53,6 +53,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
 
     @Override
     public boolean isEntityReadDenied(UserEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        //todo denied if user is not registered in current domain
         return false;
     }
 
