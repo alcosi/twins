@@ -12,10 +12,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1404,
-        name = "WidgetAccessorDenyForKeys",
+        name = "Deny for keys",
         description = "")
 public class WidgetAccessorDenyForKeys extends WidgetAccessor {
-    @FeaturerParam(name = "twinClassIdList", description = "")
+    @FeaturerParam(name = "Twin class id list", description = "", order = 1)
     public static final FeaturerParamUUIDSet twinClassIdList = new FeaturerParamUUIDSetTwinsClassId("twinClassIdList");
 
     @Override

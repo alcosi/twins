@@ -48,6 +48,40 @@ public class TwinSearch {
     Set<TwinTouchEntity.Touch> touchExcludeList;
     List<TwinFieldSearch> fields;
 
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(twinIdList) &&
+                CollectionUtils.isEmpty(twinNameLikeList) &&
+                CollectionUtils.isEmpty(twinNameNotLikeList) &&
+                CollectionUtils.isEmpty(twinDescriptionLikeList) &&
+                CollectionUtils.isEmpty(twinDescriptionNotLikeList) &&
+                CollectionUtils.isEmpty(twinIdExcludeList) &&
+                CollectionUtils.isEmpty(twinClassIdList) &&
+                CollectionUtils.isEmpty(twinClassIdExcludeList) &&
+                CollectionUtils.isEmpty(headTwinClassIdList) &&
+                CollectionUtils.isEmpty(extendsTwinClassIdList) &&
+                CollectionUtils.isEmpty(headerTwinIdList) &&
+                CollectionUtils.isEmpty(statusIdList) &&
+                CollectionUtils.isEmpty(assigneeUserIdList) &&
+                CollectionUtils.isEmpty(assigneeUserIdExcludeList) &&
+                CollectionUtils.isEmpty(createdByUserIdList) &&
+                CollectionUtils.isEmpty(createdByUserIdExcludeList) &&
+                CollectionUtils.isEmpty(ownerUserIdList) &&
+                CollectionUtils.isEmpty(ownerBusinessAccountIdList) &&
+                CollectionUtils.isEmpty(linksAnyOfList) &&
+                CollectionUtils.isEmpty(linksNoAnyOfList) &&
+                CollectionUtils.isEmpty(linksAllOfList) &&
+                CollectionUtils.isEmpty(linksNoAllOfList) &&
+                CollectionUtils.isEmpty(hierarchyTreeContainsIdList) &&
+                CollectionUtils.isEmpty(statusIdExcludeList) &&
+                CollectionUtils.isEmpty(tagDataListOptionIdList) &&
+                CollectionUtils.isEmpty(tagDataListOptionIdExcludeList) &&
+                CollectionUtils.isEmpty(markerDataListOptionIdList) &&
+                CollectionUtils.isEmpty(markerDataListOptionIdExcludeList) &&
+                CollectionUtils.isEmpty(touchList) &&
+                CollectionUtils.isEmpty(touchExcludeList) &&
+                CollectionUtils.isEmpty(fields);
+    }
+
     public TwinSearch addTwinId(UUID twinId, boolean exclude) {
         if (exclude)
             twinIdExcludeList = CollectionUtils.safeAdd(twinIdExcludeList, twinId);
@@ -142,7 +176,7 @@ public class TwinSearch {
     public TwinSearch addLinkDstTwinsId(UUID linkId, Collection<UUID> dstTwinIdList, boolean exclude, boolean or) {
         Map<UUID, Set<UUID>> map = null;
         if (exclude) {
-            if(or) {
+            if (or) {
                 if (linksNoAnyOfList == null) linksNoAnyOfList = new HashMap<>();
                 map = linksNoAnyOfList;
             } else {
@@ -150,7 +184,7 @@ public class TwinSearch {
                 map = linksNoAllOfList;
             }
         } else {
-            if(or) {
+            if (or) {
                 if (linksAnyOfList == null) linksAnyOfList = new HashMap<>();
                 map = linksAnyOfList;
             } else {

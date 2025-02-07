@@ -24,13 +24,13 @@ import java.util.UUID;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2704,
-        name = "SearchCriteriaBuilderParam",
+        name = "Param",
         description = "")
 public class SearchCriteriaBuilderParam extends SearchCriteriaBuilderSingleUUID {
-    @FeaturerParam(name = "paramKey", description = "")
+    @FeaturerParam(name = "Param key", description = "", order = 1)
     public static final FeaturerParamString paramKey = new FeaturerParamString("paramKey");
 
-    @FeaturerParam(name = "required", description = "")
+    @FeaturerParam(name = "Required", description = "", order = 2)
     public static final FeaturerParamBoolean required = new FeaturerParamBoolean("required");
 
     @Override

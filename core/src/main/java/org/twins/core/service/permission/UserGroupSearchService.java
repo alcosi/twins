@@ -36,13 +36,13 @@ public class UserGroupSearchService {
         ApiUser apiUser = authService.getApiUser();
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(), UserGroupEntity.Fields.domainId),
-                checkUuidIn(UserGroupEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(UserGroupEntity.Fields.id, search.getIdExcludeList(), true, false),
+                checkUuidIn(search.getIdList(), false, false, UserGroupEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, UserGroupEntity.Fields.id),
                 joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18NLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(UserGroupEntity.Fields.nameI18N, search.getNameI18nNotLikeList(), apiUser.getLocale(), true, true),
                 joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(UserGroupEntity.Fields.descriptionI18N, search.getDescriptionI18NNotLikeList(), apiUser.getLocale(), true, true),
-                checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeList(), false, true),
-                checkFieldLikeIn(UserGroupEntity.Fields.userGroupTypeId, search.getTypeExcludeList(), true, true));
+                checkFieldLikeIn(search.getTypeList(), false, true, UserGroupEntity.Fields.userGroupTypeId),
+                checkFieldLikeIn(search.getTypeExcludeList(), true, true, UserGroupEntity.Fields.userGroupTypeId));
     }
 }

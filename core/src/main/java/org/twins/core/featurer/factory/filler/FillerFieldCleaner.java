@@ -21,11 +21,11 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2331,
-        name = "FillerFieldCleaner",
+        name = "Field cleaner",
         description = "")
 @Slf4j
 public class FillerFieldCleaner extends Filler {
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Lazy

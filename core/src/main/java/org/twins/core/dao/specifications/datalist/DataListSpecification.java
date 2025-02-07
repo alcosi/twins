@@ -24,6 +24,10 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
             if (CollectionUtils.isEmpty(uuids))
                 return cb.conjunction();
 
+            // it needs to be here because after selecting records from the database
+            // the query takes the number of required ones and then returns only the unique ones
+            query.distinct(true);
+
             Join<DataListEntity, ?> joinDataListOption = getOrCreateJoin(root);
 
             return not ?
@@ -39,6 +43,10 @@ public class DataListSpecification extends CommonSpecification<DataListEntity> {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(search))
                 return cb.conjunction();
+
+            // it needs to be here because after selecting records from the database
+            // the query takes the number of required ones and then returns only the unique ones
+            query.distinct(true);
 
             List<Predicate> predicates = new ArrayList<>();
             for (String value : search) {

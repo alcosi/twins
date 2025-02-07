@@ -16,6 +16,8 @@ import org.twins.core.service.comment.CommentActionService;
 
 import java.util.Collection;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {CommentMode.class, TwinCommentActionMode.class})
@@ -43,7 +45,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
                         .setId(src.getId())
                         .setAuthorUserId(src.getCreatedByUserId())
                         .setAuthorUser(userRestDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext))
-                        .setCreatedAt(src.getCreatedAt().toLocalDateTime() != null ? src.getCreatedAt().toLocalDateTime() : null)
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()))
                         .setText(src.getText());
                 break;
         }

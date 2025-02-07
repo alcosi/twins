@@ -41,11 +41,15 @@ public class LinkForwardRestDTOV3Mapper extends RestSimpleDTOMapper<LinkEntity, 
             if (!permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                 throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
             if (mapperContext.hasModeButNot(TwinClassMode.LinkSrc2TwinClassMode.HIDE) && src.getSrcTwinClassId() != null)
-                dst.srcTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT)));
+                dst
+                        .setSrcTwinClass(twinClassBaseRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext.forkOnPoint(TwinClassMode.LinkSrc2TwinClassMode.SHORT)))
+                        .setSrcTwinClassId(src.getSrcTwinClassId());
             if (mapperContext.hasModeButNot(UserMode.Link2UserMode.HIDE) && src.getCreatedByUserId() != null) {
                 if (null == src.getCreatedByUser())
                     src.setCreatedByUser(userService.findEntitySafe(src.getCreatedByUserId()));
-                dst.createdByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Link2UserMode.SHORT))));
+                dst
+                        .setCreatedByUser(userDTOMapper.convertOrPostpone(src.getCreatedByUser(), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Link2UserMode.SHORT))))
+                        .setCreatedByUserId(src.getCreatedByUserId());
             }
         }
     }

@@ -18,11 +18,11 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2405,
-        name = "ConditionerContextTwinMarkerEquals",
+        name = "Twin marker equals",
         description = "")
 @Slf4j
 public class ConditionerContextTwinMarkerEquals extends Conditioner {
-    @FeaturerParam(name = "markerId", description = "")
+    @FeaturerParam(name = "Marker id", description = "", order = 1)
     public static final FeaturerParamUUID markerId = new FeaturerParamUUIDTwinsMarkerId("markerId");
 
     @Lazy

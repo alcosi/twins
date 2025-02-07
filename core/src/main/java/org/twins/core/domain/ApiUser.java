@@ -14,6 +14,7 @@ import org.twins.core.domain.apiuser.*;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.ApiUserResolverService;
 
+import java.util.Collections;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -40,13 +41,12 @@ public class ApiUser {
     @Getter
     private final UUID requestId = UUID.randomUUID();
 
-    @Getter
-    @Setter
-    private Set<UUID> permissions;
-
-    @Getter
-    @Setter
-    private Set<UUID> userGroups;
+    public Set<UUID> getPermissions() {
+        if (user != null && user.getPermissions() != null)
+            return user.getPermissions();
+        else
+            return Collections.EMPTY_SET;
+    }
 
     @Getter
     @Setter
@@ -56,6 +56,8 @@ public class ApiUser {
 
     public ApiUser setDomainResolver(DomainResolver domainResolver) {
         this.domainResolver = domainResolver;
+        if (NOT_SPECIFIED.equals(this.domainId))
+            this.domainId = null;
         return this;
     }
 

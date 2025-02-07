@@ -3,6 +3,7 @@ package org.twins.core.dto.rest.datalist;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 
 import java.util.Map;
@@ -21,9 +22,9 @@ public class DataListOptionDTOv1 {
     @Schema(description = "icon", example = "Icon path")
     public String icon;
 
-    @Schema(description = "description", defaultValue = "false", example = "Option is currently in active")
-    public Boolean disabled;
+    @Schema(description = "status", example = DTOExamples.DATA_LIST_OPTION_STATUS)
+    public DataListOptionEntity.Status status;
 
-    @Schema(description = "attributes")
+    @Schema(description = "map attributes (key : value)")
     public Map<String, String> attributes;
 }

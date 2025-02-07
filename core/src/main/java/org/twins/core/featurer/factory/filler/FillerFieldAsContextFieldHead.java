@@ -23,15 +23,15 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2334,
-        name = "FillerFieldAsContextFieldHead",
+        name = "Field as context field head",
         description = "Get head for twin from src field(link). Set this head to dst field(link)")
 @Slf4j
 public class FillerFieldAsContextFieldHead extends Filler {
 
-    @FeaturerParam(name = "srcTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Src twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID srcTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("srcTwinClassFieldId");
 
-    @FeaturerParam(name = "dstTwinClassFieldId", description = "")
+    @FeaturerParam(name = "Dst twin class field id", description = "", order = 2)
     public static final FeaturerParamUUID dstTwinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("dstTwinClassFieldId");
 
     @Lazy

@@ -19,7 +19,9 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.attachment.AttachmentCUDValidateResult;
-import org.twins.core.dto.rest.attachment.*;
+import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRqDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentCUDValidateRsDTOv1;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.AttachmentCUDValidateRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -42,14 +44,17 @@ public class AttachmentCUDValidateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentCUDValidateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(value = "/private/attachment/quotas/validate_cud/v1")
+    @PostMapping(value = "/private/attachment/validate_cud/v1")
     public ResponseEntity<?> attachmentValidateV1(
             @MapperContextBinding(roots = AttachmentCUDValidateRestDTOMapper.class, response = AttachmentCUDValidateRsDTOv1.class) MapperContext mapperContext,
             @RequestBody AttachmentCUDValidateRqDTOv1 request) {
-            AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
+        AttachmentCUDValidateRsDTOv1 rs = new AttachmentCUDValidateRsDTOv1();
         try {
-            AttachmentCUDValidateResult validateResult = attachmentService.validateCUD(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
-            rs = attachmentCUDValidateRestDTOMapper.convert(validateResult, mapperContext);
+            AttachmentCUDValidateResult result = attachmentService.validateCUD(request.getTwinId(), attachmentCUDValidateRestDTOReverseMapper.convert(request, mapperContext));
+            rs = attachmentCUDValidateRestDTOMapper.convert(result, mapperContext);
+            if (result.hasProblems())
+                throw new ServiceException(ErrorCodeTwins.ATTACHMENTS_NOT_VALID);
+
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

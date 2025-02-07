@@ -91,6 +91,8 @@ dependencies {
         exclude module: "tomcat-embed-el"
         exclude group: "org.apache.tomcat"
     }
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation('com.github.ben-manes.caffeine:caffeine')
     implementation('org.springframework.boot:spring-boot-starter-undertow')
     implementation("org.springframework.amqp:spring-rabbit")
     implementation("org.springframework.amqp:spring-amqp")
@@ -112,6 +114,9 @@ dependencies {
 
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'io.micrometer:micrometer-registry-prometheus'
+    implementation 'org.apache.tika:tika-core:3.0.0'
+    implementation 'io.github.breninsul:io-stream-commons:1.0.2'
+    implementation 'io.minio:minio:8.5.12'
 }
 
 configurations {

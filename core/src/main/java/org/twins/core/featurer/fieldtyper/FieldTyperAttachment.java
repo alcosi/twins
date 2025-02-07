@@ -23,22 +23,20 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1316,
-        name = "FieldTyperAttachment",
+        name = "Attachment",
         description = "Allow the field to have an attachment")
 public class FieldTyperAttachment extends FieldTyper<FieldDescriptorAttachment, FieldValueInvisible, TwinAttachmentEntity, TwinFieldSearchNotImplemented> {
 
-    @FeaturerParam(name = "minCount", description = "Min count of attachments to field")
+    @FeaturerParam(name = "Min count", description = "Min count of attachments to field", order = 1)
     public static final FeaturerParamInt minCount = new FeaturerParamInt("minCount");
-    @FeaturerParam(name = "maxCount", description = "Max count of attachments to field")
+    @FeaturerParam(name = "Max count", description = "Max count of attachments to field", order = 2)
     public static final FeaturerParamInt maxCount = new FeaturerParamInt("maxCount");
-    @FeaturerParam(name = "fileSizeMbLimit", description = "Max size per file for attachment")
+    @FeaturerParam(name = "File size MB limit", description = "Max size per file for attachment", order = 3)
     public static final FeaturerParamInt fileSizeMbLimit = new FeaturerParamInt("fileSizeMbLimit");
-    @FeaturerParam(name = "fileExtensionList", description = "Allowed extensions for attachment(ex: jpg,jpeg,png)")
+    @FeaturerParam(name = "File extension list", description = "Allowed extensions for attachment(ex: jpg,jpeg,png)", order = 4)
     public static final FeaturerParamString fileExtensionList = new FeaturerParamString("fileExtensionList");
-    @FeaturerParam(name = "fileNameRegexp", description = "File name must match this pattern")
+    @FeaturerParam(name = "File name regexp", description = "File name must match this pattern", order = 5)
     public static final FeaturerParamString fileNameRegexp = new FeaturerParamString("fileNameRegexp");
-
-
 
     @Override
     public FieldDescriptorAttachment getFieldDescriptor(TwinClassFieldEntity twinClassFieldEntity, Properties properties) {

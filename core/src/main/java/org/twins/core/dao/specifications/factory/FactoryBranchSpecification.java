@@ -1,28 +1,37 @@
 package org.twins.core.dao.specifications.factory;
 
-import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
-import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
-import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.permission.PermissionEntity;
+import org.twins.core.dao.permission.PermissionGroupEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.UUID;
-
-import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
 public class FactoryBranchSpecification extends CommonSpecification<TwinFactoryBranchEntity> {
 
+    public static Specification<TwinFactoryBranchEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> {
+            var factoryPredicate = createPredicateWithJoins(
+                    root, cb, domainId,
+                    (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue),
+                    JoinType.INNER, TwinFactoryBranchEntity.Fields.factory, TwinFactoryEntity.Fields.domainId
+            );
+            var nextFactoryPredicate = createPredicateWithJoins(
+                    root, cb, domainId,
+                    (property, criteriaBuilder, filedValue) -> criteriaBuilder.equal(property, filedValue),
+                    JoinType.INNER, TwinFactoryBranchEntity.Fields.nextFactory, TwinFactoryEntity.Fields.domainId
+            );
+            return cb.and(factoryPredicate, nextFactoryPredicate);
+        };
+    }
 
-    public static Specification<TwinFactoryBranchEntity> checkTernary(final String field, Ternary ternary) {
+    public static Specification<TwinFactoryBranchEntity> checkTernary(Ternary ternary, final String field) {
         return (root, query, cb) -> {
             if (ternary == null)
                 return cb.conjunction();

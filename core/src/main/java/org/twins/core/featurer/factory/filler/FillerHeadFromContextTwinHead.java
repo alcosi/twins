@@ -13,7 +13,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2302,
-        name = "FillerHeadFromContextTwinHead",
+        name = "Head from context twin head",
         description = "")
 public class FillerHeadFromContextTwinHead extends Filler {
     @Override

@@ -1,12 +1,15 @@
 package org.twins.core.service.domain;
 
+import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.featurer.FeaturerService;
@@ -21,15 +24,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
+import org.twins.core.dao.resource.ResourceEntity;
+import org.twins.core.dao.resource.StorageEntity;
 import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
-import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.apiuser.DomainResolverGivenId;
 import org.twins.core.domain.attachment.AttachmentQuotas;
+import org.twins.core.domain.file.DomainFile;
 import org.twins.core.domain.search.DomainBusinessAccountSearch;
-import org.twins.core.domain.twinoperation.TwinUpdate;
+import org.twins.core.domain.twinoperation.TwinDuplicate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.businessaccount.initiator.BusinessAccountInitiator;
 import org.twins.core.featurer.domain.initiator.DomainInitiator;
@@ -37,20 +42,20 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.businessaccount.BusinessAccountService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.permission.PermissionService;
+import org.twins.core.service.resource.ResourceService;
 import org.twins.core.service.space.SpaceRoleService;
+import org.twins.core.service.storage.StorageService;
 import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroup;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,7 +76,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     private final DomainUserRepository domainUserRepository;
     private final DomainBusinessAccountRepository domainBusinessAccountRepository;
     private final EntitySmartService entitySmartService;
-
+    private final ResourceService resourceService;
+    private final StorageService storageService;
     @Lazy
     private final PermissionService permissionService;
 
@@ -80,7 +86,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     private final TwinClassService twinClassService;
     private final TwinflowService twinflowService;
-    private final TierService domainBusinessAccountTierService;
     private final I18nLocaleRepository i18nLocaleRepository;
     private final DomainLocaleRepository domainLocaleRepository;
     @Lazy
@@ -97,6 +102,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+
 
     @Override
     public CrudRepository<DomainEntity, UUID> entityRepository() {
@@ -135,24 +141,51 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         return domainUserRepository.findByDomainIdAndUserId(domainId, userId, clazz);
     }
 
-    @Transactional
-    public DomainEntity addDomain(DomainEntity domainEntity) throws ServiceException {
+    @Transactional(readOnly = false, rollbackFor = Throwable.class)
+    public DomainEntity addDomain(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
         if (StringUtils.isBlank(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_INCORRECT, "New domain key can not be blank");
         domainEntity.setKey(domainEntity.getKey().trim().replaceAll("\\s", "_").toLowerCase()); //todo replace all unsupported chars
         if (domainRepository.existsByKey(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
         loadDomainType(domainEntity);
+        domainEntity.setDomainStatusId(DomainStatus.ACTIVE);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
         domainEntity = domainInitiator.init(domainEntity);
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
+        return processIcons(domainEntity, lightIcon, darkIcon);
+    }
+
+    protected DomainEntity processIcons(DomainEntity domainEntity, DomainFile lightIcon, DomainFile darkIcon) throws ServiceException {
+        var lightIconEntity = saveIconResourceIfExist(domainEntity, lightIcon);
+        var darkIconEntity = saveIconResourceIfExist(domainEntity, darkIcon);
+        if (lightIconEntity != null) {
+            domainEntity.setIconLightResourceId(lightIconEntity.getId());
+            domainEntity.setIconLightResource(lightIconEntity);
+        }
+        if (darkIconEntity != null) {
+            domainEntity.setIconDarkResourceId(darkIconEntity.getId());
+            domainEntity.setIconDarkResource(darkIconEntity);
+        }
+        if (darkIconEntity != null || lightIconEntity != null) {
+            domainRepository.save(domainEntity);
+        }
         return domainEntity;
     }
 
+    private ResourceEntity saveIconResourceIfExist(DomainEntity domainEntity, DomainFile icon) throws ServiceException {
+        if (icon != null) {
+            return resourceService.addResource(icon.originalFileName(), icon.content());
+        } else {
+            return null;
+        }
+    }
+
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
-        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllActiveDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainEntityList, pagination);
     }
 
@@ -171,11 +204,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainUserTemplateTwinId() != null) {
-            TwinEntity duplicateTwin = twinService.duplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
-            duplicateTwin.setHeadTwinId(user.getId());
-            TwinUpdate twinUpdate = new TwinUpdate().setDbTwinEntity(duplicateTwin);
-            twinUpdate.setTwinEntity(duplicateTwin.setHeadTwinId(userId));
-            twinService.updateTwin(twinUpdate);
+            TwinDuplicate duplicateTwin = twinService.createDuplicateTwin(domain.getDomainUserTemplateTwinId(), domainUserEntity.getId());
+            duplicateTwin.getDuplicate().setHeadTwinId(userId);
+            twinService.saveDuplicateTwin(duplicateTwin);
         }
     }
 
@@ -211,6 +242,9 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 .setBusinessAccount(businessAccountEntity)
                 .setTierId(null == tierId ? domain.getDefaultTierId() : tierId)
                 .setCreatedAt(Timestamp.from(Instant.now()));
+        if (domainBusinessAccountEntity.getTierId() == null)
+            throw new ServiceException(ErrorCodeTwins.TIER_NOT_CONFIGURED_FOR_DOMAIN, "Tier not configured for " + domain.logNormal());
+
         domainBusinessAccountEntity.setTier(tierService.findEntitySafe(domainBusinessAccountEntity.getTierId()));
 
         BusinessAccountInitiator businessAccountInitiator = featurerService.getFeaturer(domain.getBusinessAccountInitiatorFeaturer(), BusinessAccountInitiator.class);
@@ -231,7 +265,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
         if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
-            dbEntity.setTierId(domainBusinessAccountTierService.checkTierAllowed(updateEntity.getTierId()));
+            dbEntity.setTierId(tierService.checkTierAllowed(updateEntity.getTierId()));
         }
         if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
             dbEntity.getBusinessAccount().setName(name);
@@ -325,24 +359,83 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 checkUuid(DomainBusinessAccountEntity.Fields.domainId, domainId)
                         .and(checkBusinessAccountFieldLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameLikeList(), false))
                         .and(checkBusinessAccountFieldNotLikeIn(BusinessAccountEntity.Fields.name, domainBusinessAccountSearch.getBusinessAccountNameNotLikeList(), true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.permissionSchemaId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinflowSchemaId, domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.twinClassSchemaId, domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdList(), false, false))
-                        .and(checkUuidIn(DomainBusinessAccountEntity.Fields.businessAccountId, domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getPermissionSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.permissionSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinflowSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinflowSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdList(), false, false, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getTwinClassSchemaIdExcludeList(), true, true, DomainBusinessAccountEntity.Fields.twinClassSchemaId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdList(), false, false, DomainBusinessAccountEntity.Fields.businessAccountId))
+                        .and(checkUuidIn(domainBusinessAccountSearch.getBusinessAccountIdExcludeList(), true, false, DomainBusinessAccountEntity.Fields.businessAccountId))
         );
     }
 
-    public AttachmentQuotas getDomainBusinessAccountQuotas() throws ServiceException {
+    public AttachmentQuotas getTierQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        if (!apiUser.isBusinessAccountSpecified())
+            throw new ServiceException(ErrorCodeTwins.BUSINESS_ACCOUNT_UNKNOWN, "Business account not specified for " + apiUser.getUserId());
+        DomainBusinessAccountEntity domainBusinessAccountEntity = domainBusinessAccountRepository.findByDomainIdAndBusinessAccountId(apiUser.getDomainId(), apiUser.getBusinessAccountId());
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domainBusinessAccountEntity.getAttachmentsStorageUsedCount())
+                .setUsedSize(domainBusinessAccountEntity.getAttachmentsStorageUsedSize())
+                .setQuotaCount(Long.valueOf(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaCount()))
+                .setQuotaSize(domainBusinessAccountEntity.getTier().getAttachmentsStorageQuotaSize());
+        return attachmentQuotas;
     }
 
     public AttachmentQuotas getDomainQuotas() throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return new AttachmentQuotas();
+        DomainEntity domain = apiUser.getDomain();
+        AttachmentQuotas attachmentQuotas = new AttachmentQuotas();
+        attachmentQuotas
+                .setUsedCount(domain.getAttachmentsStorageUsedCount())
+                .setUsedSize(domain.getAttachmentsStorageUsedSize())
+                //TODO quotas for domain level
+                .setQuotaCount(0L)
+                .setQuotaSize(0L);
+
+        return attachmentQuotas;
+    }
+
+    public void loadIconResources(DomainEntity domain) throws ServiceException {
+        loadIconResources(Collections.singletonList(domain));
+    }
+
+    public void loadIconResources(Collection<DomainEntity> domains) throws ServiceException {
+        if (CollectionUtils.isEmpty(domains))
+            return;
+        Set<UUID> neadLoad = new HashSet<>();
+        for (var domain : domains) {
+            if (domain.getIconDarkResource() == null && domain.getIconDarkResourceId() != null)
+                neadLoad.add(domain.getIconDarkResourceId());
+            if (domain.getIconLightResource() == null && domain.getIconLightResourceId() != null)
+                neadLoad.add(domain.getIconLightResourceId());
+        }
+        if (CollectionUtils.isEmpty(neadLoad))
+            return;
+        Kit<ResourceEntity, UUID> resources = resourceService.findEntitiesSafe(neadLoad);
+        domains.forEach(domain -> {
+            domain.setIconDarkResource(resources.get(domain.getIconDarkResourceId()));
+            domain.setIconLightResource(resources.get(domain.getIconLightResourceId()));
+        });
+    }
+
+    public void loadStorages(Collection<DomainEntity> domains) throws ServiceException {
+        if (CollectionUtils.isEmpty(domains))
+            return;
+        Collection<UUID> resourceIdList = Streams.concat(
+                        domains.stream().map(DomainEntity::getResourcesStorageId),
+                        domains.stream().map(DomainEntity::getAttachmentsStorageId))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+        Map<UUID, StorageEntity> storages = storageService
+                .findEntities(resourceIdList, EntitySmartService.ListFindMode.ifMissedThrows, EntitySmartService.ReadPermissionCheckMode.none, EntitySmartService.EntityValidateMode.none)
+                .stream()
+                .collect(Collectors.toMap(StorageEntity::getId, e -> e));
+        domains.forEach(domain -> {
+            domain.setResourcesStorage(storages.get(domain.getResourcesStorageId()));
+            domain.setAttachmentsStorage(storages.get(domain.getAttachmentsStorageId()));
+        });
     }
 }
