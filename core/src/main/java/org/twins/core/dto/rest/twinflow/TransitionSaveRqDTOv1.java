@@ -27,8 +27,6 @@ public class TransitionSaveRqDTOv1 extends Request {
     @Schema(description = "dst status is required", example = DTOExamples.TWIN_STATUS_ID)
     public UUID dstStatusId;
 
-    @Schema(description = "[optional] name", example = DTOExamples.TWIN_STATUS_NAME)
-    public String name;
 
     @Schema(description = "[optional] uniq alias inside twinflow", example = DTOExamples.TWINFLOW_TRANSITION_ALIAS)
     public String alias;
