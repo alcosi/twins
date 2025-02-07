@@ -43,7 +43,8 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
+import static org.cambium.service.EntitySmartService.convertUsagesCountToMap;
 
 @Service
 @Slf4j
@@ -472,9 +473,9 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> twinflowTransitionCounts = convertToMap(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryBranchCounts = convertToMap(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
-        Map<UUID, Integer> twinFactoryPipelineCounts = convertToMap(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinflowTransitionCounts = convertUsagesCountToMap(twinflowTransitionRepository.countByInbuiltTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryBranchCounts = convertUsagesCountToMap(twinFactoryBranchRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> twinFactoryPipelineCounts = convertUsagesCountToMap(twinFactoryPipelineRepository.countByNextTwinFactoryIds(needLoad.getIdSet()));
 
         needLoad.getCollection().forEach(twinFactory -> {
             int twinflowTransitionCount = twinflowTransitionCounts.getOrDefault(twinFactory.getId(), 0);
@@ -497,7 +498,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryPipelines = convertToMap(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryPipelines = convertUsagesCountToMap(twinFactoryPipelineRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryPipelinesCount(factoryPipelines.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -514,7 +515,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryPipelineSteps = convertToMap(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryPipelineSteps = convertUsagesCountToMap(twinFactoryPipelineStepRepository.countByFactoryPipelineIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactoryPipeline -> twinFactoryPipeline.setPipelineStepsCount(factoryPipelineSteps.getOrDefault(twinFactoryPipeline.getId(), 0)));
     }
 
@@ -531,7 +532,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryMultipliers = convertToMap(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryMultipliers = convertUsagesCountToMap(twinFactoryMultiplierRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryMultipliersCount(factoryMultipliers.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -548,7 +549,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryBranches = convertToMap(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryBranches = convertUsagesCountToMap(twinFactoryBranchRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryBranchesCount(factoryBranches.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -565,7 +566,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> factoryErasers = convertToMap(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
+        Map<UUID, Integer> factoryErasers = convertUsagesCountToMap(twinFactoryEraserRepository.countByTwinFactoryIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(twinFactory -> twinFactory.setFactoryErasersCount(factoryErasers.getOrDefault(twinFactory.getId(), 0)));
     }
 
@@ -582,7 +583,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = convertUsagesCountToMap(twinFactoryPipelineRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -599,7 +600,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = convertUsagesCountToMap(twinFactoryPipelineStepRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryPipelineStepUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -616,7 +617,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = convertUsagesCountToMap(twinFactoryMultiplierFilterRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryMultiplierFilterUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -633,7 +634,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = convertUsagesCountToMap(twinFactoryBranchRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryBranchUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -650,7 +651,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> conditionSetMap = convertToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
+        Map<UUID, Integer> conditionSetMap = convertUsagesCountToMap(twinFactoryEraserRepository.countByConditionSetIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(conditionSet -> conditionSet.setInFactoryEraserUsagesCount(conditionSetMap.getOrDefault(conditionSet.getId(), 0)));
     }
 
@@ -667,14 +668,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> mulitplierFilterMap = convertToMap(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
+        Map<UUID, Integer> mulitplierFilterMap = convertUsagesCountToMap(twinFactoryMultiplierFilterRepository.countByMultiplierIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(multiplierFilter -> multiplierFilter.setFactoryMultiplierFiltersCount(mulitplierFilterMap.getOrDefault(multiplierFilter.getId(), 0)));
-    }
-
-    private Map<UUID, Integer> convertToMap(List<Object[]> resultList) {
-        return resultList.stream().collect(Collectors.toMap(
-                row -> (UUID) row[0],
-                row -> ((Long) row[1]).intValue()
-        ));
     }
 }
