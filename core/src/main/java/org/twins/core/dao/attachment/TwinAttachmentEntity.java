@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
+import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.PublicCloneable;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@FieldNameConstants
 @Accessors(chain = true)
 @Table(name = "twin_attachment")
 public class TwinAttachmentEntity implements PublicCloneable<TwinAttachmentEntity>, TwinFieldStorage, EasyLoggable {

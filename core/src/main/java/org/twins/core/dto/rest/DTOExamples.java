@@ -29,7 +29,7 @@ public interface DTOExamples {
     String TWIN_CLASS_OWNER_TYPE = "SYSTEM";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
-    String TWIN_COMMENT = "be44e826-ce24-4881-a227-f3f72d915a20";
+    String TWIN_COMMENT_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
     String TWIN_HISTORY_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
     String TWIN_NAME = "Oak";
     String TWIN_ALIAS = "LESNAYA9-2";

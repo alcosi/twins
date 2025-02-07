@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
 
 import java.util.UUID;
 
@@ -19,5 +19,5 @@ public class HistoryContextAttachmentDTOv1 implements HistoryContextDTO {
     public UUID attachmentId;
 
     @Schema(description = "Attachment")
-    public AttachmentViewDTOv1 attachment;
+    public AttachmentDTOv1 attachment;
 }
