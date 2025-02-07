@@ -8,8 +8,8 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.MapUtils;
-import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.dao.FeaturerEntity;
@@ -172,7 +172,7 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     public void duplicateField(TwinClassFieldEntity srcFieldEntity, UUID duplicateTwinClassId) throws ServiceException {
         log.info(srcFieldEntity.logShort() + " will be duplicated for class[" + duplicateTwinClassId + "]");
         TwinClassFieldEntity duplicateFieldEntity = new TwinClassFieldEntity()
-                .setKey(srcFieldEntity.getKey())
+                .setKey(KeyUtils.lowerCaseNullSafe(srcFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT))
                 .setTwinClassId(duplicateTwinClassId)
                 .setTwinClass(srcFieldEntity.getTwinClass())
                 .setFieldTyperFeaturer(srcFieldEntity.getFieldTyperFeaturer())
@@ -212,11 +212,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassFieldEntity createField(TwinClassFieldEntity twinClassFieldEntity, I18nEntity nameI18n, I18nEntity descriptionI18n) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (StringUtils.isBlank(twinClassFieldEntity.getKey()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT);
+        twinClassFieldEntity.setKey(KeyUtils.lowerCaseNullSafe(twinClassFieldEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT));
         if (twinClassFieldRepository.existsByKeyAndTwinClassId(twinClassFieldEntity.getKey(), twinClassFieldEntity.getTwinClassId()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_FIELD_KEY_INCORRECT, "Twin class field with key[" + twinClassFieldEntity.getKey() + "] already exists for twin class: " + twinClassFieldEntity.getTwinClassId());
-        twinClassFieldEntity.setKey(twinClassFieldEntity.getKey().trim().replaceAll("\\s", ""));
+
         if (twinClassFieldEntity.getTwinClassId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
         if (twinClassFieldEntity.getViewPermissionId() != null
