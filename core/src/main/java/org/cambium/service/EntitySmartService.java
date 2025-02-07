@@ -354,13 +354,6 @@ public class EntitySmartService {
         return ret;
     }
 
-    public static Map<UUID, Integer> convertUsagesCountToMap(List<Object[]> list) {
-        return list.stream().collect(Collectors.toMap(
-                row -> (UUID) row[0],
-                row -> ((Long) row[1]).intValue()
-        ));
-    }
-
     public enum CheckMode {
         NOT_EMPTY,
         NOT_EMPTY_AND_DB_EXISTS,

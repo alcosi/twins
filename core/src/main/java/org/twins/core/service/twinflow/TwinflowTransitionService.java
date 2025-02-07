@@ -66,7 +66,7 @@ import java.util.*;
 import java.util.function.Function;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
-import static org.cambium.service.EntitySmartService.convertUsagesCountToMap;
+import static org.cambium.common.util.RowUtils.mapUuidInt;
 import static org.twins.core.dao.specifications.twinflow.TransitionAliasSpecification.*;
 
 
@@ -957,7 +957,7 @@ public class TwinflowTransitionService extends EntitySecureFindServiceImpl<Twinf
         if (KitUtils.isEmpty(needLoad))
             return;
 
-        Map<UUID, Integer> transitionAliasMap = convertUsagesCountToMap(twinflowTransitionRepository.countByTransitionAliasIds(needLoad.getIdSet()));
+        Map<UUID, Integer> transitionAliasMap = mapUuidInt(twinflowTransitionRepository.countByTransitionAliasIds(needLoad.getIdSet()));
         needLoad.getCollection().forEach(transitionAlias -> transitionAlias.setInTwinflowTransitionUsagesCount(transitionAliasMap.getOrDefault(transitionAlias.getId(), 0)));
     }
 }
