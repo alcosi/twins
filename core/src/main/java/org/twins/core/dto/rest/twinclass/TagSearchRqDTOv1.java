@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.twinclass;
 
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Transient;
 import lombok.Data;
@@ -36,6 +35,5 @@ public class TagSearchRqDTOv1 {
 
     @Transient
     @Schema(description = "twin class id")
-    @Parameter
     public UUID twinClassId;
 }
