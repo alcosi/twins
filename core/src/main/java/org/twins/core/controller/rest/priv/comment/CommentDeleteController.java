@@ -40,7 +40,7 @@ public class CommentDeleteController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @DeleteMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentDeleteV1(
-            @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId) {
+            @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId) {
         Response rs = new Response();
         try {
             commentService.deleteComment(commentId);

@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Response;
 @Schema(name =  "AttachmentViewRsV1")
 public class AttachmentViewRsDTOv1 extends Response {
     @Schema(description = "attachment details")
-    public AttachmentViewDTOv2 attachment;
+    public AttachmentDTOv2 attachment;
 }

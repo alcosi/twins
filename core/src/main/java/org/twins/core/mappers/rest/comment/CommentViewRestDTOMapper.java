@@ -8,7 +8,7 @@ import org.twins.core.dao.comment.TwinCommentEntity;
 import org.twins.core.dto.rest.comment.CommentViewDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.user.UserRestDTOMapper;
 import org.twins.core.service.comment.CommentService;
@@ -27,7 +27,7 @@ public class CommentViewRestDTOMapper extends RestSimpleDTOMapper<TwinCommentEnt
     private final UserRestDTOMapper userRestDTOMapper;
 
     @MapperModePointerBinding(modes = AttachmentMode.Comment2AttachmentMode.class)
-    private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
     private final CommentService commentService;
     private final CommentActionService commentActionService;

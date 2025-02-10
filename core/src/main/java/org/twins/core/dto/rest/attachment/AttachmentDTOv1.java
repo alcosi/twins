@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dao.attachment.TwinAttachmentAction;
 import org.twins.core.dto.rest.DTOConfig;
+import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.comment.CommentBaseDTOv2;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv1;
@@ -17,22 +18,30 @@ import java.util.Set;
 import java.util.UUID;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @Accessors(chain = true)
-@Schema(name =  "AttachmentViewV1")
-public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
-    @Schema(description = "id")
+@EqualsAndHashCode(callSuper = true)
+@Schema(name =  "AttachmentV1")
+public class AttachmentDTOv1 extends AttachmentBaseDTOv1 {
+    @Schema(description = "id", example = DTOExamples.ATTACHMENT_ID)
     public UUID id;
 
-    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
-    @Schema(description = "created at", example = "1549632759")
-    public LocalDateTime createdAt;
-
-    @Schema(description = "author id")
+    @Schema(description = "author id", example = DTOExamples.USER_ID)
     public UUID authorUserId;
 
     @Schema(description = "author")
     public UserDTOv1 authorUser;
+
+    @Schema(description = "comment id", example = DTOExamples.TWIN_COMMENT_ID)
+    public UUID commentId;
+
+    @Schema(description = "comment")
+    public CommentBaseDTOv2 comment;
+
+    @Schema(description = "twin class field id", example = DTOExamples.TWIN_CLASS_FIELD_ID)
+    public UUID twinClassFieldId;
+
+    @Schema(description = "twin class field")
+    public TwinClassFieldDTOv1 twinClassField;
 
     @Schema(description = "twinflow transition id")
     public UUID twinflowTransitionId;
@@ -40,11 +49,9 @@ public class AttachmentViewDTOv1 extends AttachmentAddDTOv1 {
     @Schema(description = "twinflow transition")
     public TwinflowTransitionBaseDTOv1 twinflowTransition;
 
-    @Schema(description = "comment")
-    public CommentBaseDTOv2 comment;
-
-    @Schema(description = "field")
-    public TwinClassFieldDTOv1 twinClassField;
+    @JsonFormat(pattern = DTOConfig.DATE_FORMAT)
+    @Schema(description = "created at", example = DTOExamples.INSTANT)
+    public LocalDateTime createdAt;
 
     @Schema(description = "attachment action list")
     public Set<TwinAttachmentAction> attachmentActions;
