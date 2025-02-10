@@ -18,5 +18,5 @@ public class AttachmentCUDValidateRsDTOv1 extends Response {
     public AttachmentCUDProblemsDTOv1 cudProblems;
 
     @Schema(description = "Attachment entities for update and delete operations")
-    public List<AttachmentViewDTOv2> attachmentsForUD;
+    public List<AttachmentDTOv2> attachmentsForUD;
 }

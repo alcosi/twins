@@ -1,6 +1,5 @@
 package org.twins.core.dto.rest.attachment;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -12,9 +11,11 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
-@Schema(name =  "AttachmentBaseV1")
-public class AttachmentBaseDTOv1 extends Request {
+@EqualsAndHashCode(callSuper = false)
+@Schema(name = "AttachmentBaseV1")
+public class AttachmentBaseDTOv1 {
+    @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
+    public UUID twinId;
 
     @Schema(description = "External storage link", example = DTOExamples.ATTACHMENT_STORAGE_LINK)
     public String storageLink;
@@ -30,8 +31,4 @@ public class AttachmentBaseDTOv1 extends Request {
 
     @Schema(description = "File size in bytes")
     public Long size;
-
-    @JsonIgnore
-    public UUID twinId;
-
 }

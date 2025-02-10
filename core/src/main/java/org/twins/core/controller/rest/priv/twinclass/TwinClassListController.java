@@ -50,7 +50,7 @@ public class TwinClassListController extends ApiController {
     @PostMapping(value = "/private/twin_class/search/v1")
     public ResponseEntity<?> twinClassSearchV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = TwinClassEntity.Fields.key) SimplePagination pagination,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {

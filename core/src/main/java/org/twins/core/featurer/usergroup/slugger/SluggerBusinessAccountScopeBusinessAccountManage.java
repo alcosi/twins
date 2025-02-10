@@ -2,18 +2,16 @@ package org.twins.core.featurer.usergroup.slugger;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.user.UserGroupMapEntity;
-import org.twins.core.dao.user.UserGroupTypeEntity;
-import org.twins.core.domain.ApiUser;
+import org.twins.core.dao.user.*;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.List;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -23,38 +21,47 @@ import java.util.UUID;
         name = "Business account scope / business account manage",
         description = "")
 @RequiredArgsConstructor
-public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger {
+public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger<UserGroupMapType1Entity> {
+    @Autowired
+    UserGroupMapType1Repository userGroupMapType1Repository;
+
     @Override
-    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
-        checkUserGroupMapBusinessAccountEmpty(userGroupMapEntity);
-        checkUserGroupDomainEmpty(userGroupMapEntity.getUserGroup());
-        ApiUser apiUser = authService.getApiUser();
-        if (userGroupMapEntity.getUserGroup().getBusinessAccountId() == null) {
-            log.warn(userGroupMapEntity.getUserGroup().easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group");
-            return null;
-        } else if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(userGroupMapEntity.getBusinessAccountId())) {
-            return null;
-        } else
-            return userGroupMapEntity.getUserGroup();
+    protected boolean checkConfig(Properties properties, UserGroupMapType1Entity userGroupMapEntity) throws ServiceException {
+        return check(userGroupMapEntity.getUserGroup(), false, true);
     }
 
     @Override
-    protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (!checkBusinessAccountCompatability(apiUser, userGroup)) {
-            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
+    protected List<? extends UserGroupMap> getGroups(Properties properties, UUID userId) throws ServiceException {
+        return userGroupMapType1Repository.findByUserIdAndUserGroup_BusinessAccountId(userId, authService.getApiUser().getBusinessAccountId());
+    }
+
+    @Override
+    protected UserGroupMap enterGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
+        if (!checkBusinessAccountCompatability(userGroup.getBusinessAccountId())) {
             return null;
         }
-        if (userGroupMapRepository.existsByUserIdAndUserGroupId(userId, userGroup.getId())) {
-            log.warn("userGroupMapEntity for user[" +userId + "] and group[" + userGroup.getId() + "] is already exists");
-            return null;
-        }
-        return new UserGroupMapEntity()
+        var apiUser = authService.getApiUser();
+        var ret = new UserGroupMapType1Entity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
-                .setUserId(userId)
+                .setUserId(user.getId())
+                .setUser(user)
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
+        userGroupMapType1Repository.save(ret);
+        return ret;
+    }
+
+    @Override
+    protected boolean exitGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
+        //todo no need for select, cause data is already loaded in user
+        UserGroupMapType1Entity entityToDelete = userGroupMapType1Repository
+                .findByUserIdAndUserGroupIdAndUserGroup_BusinessAccountId(user.getId(), userGroup.getId(), authService.getApiUser().getBusinessAccountId());
+        if (entityToDelete == null)
+            return false;
+        entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapType1Repository);
+        return true;
     }
 
     @Override

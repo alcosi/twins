@@ -24,6 +24,9 @@ public class TwinflowTransitionAliasEntity implements EasyLoggable {
     @Column(name = "alias")
     private String alias;
 
+    @Transient
+    private Integer inTwinflowTransitionUsagesCount;
+
     @Override
     public String easyLog(Level level) {
         switch (level) {

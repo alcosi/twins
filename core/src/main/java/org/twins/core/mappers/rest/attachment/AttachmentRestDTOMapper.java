@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.attachment.TwinAttachmentEntity;
-import org.twins.core.dto.rest.attachment.AttachmentViewDTOv1;
+import org.twins.core.dto.rest.attachment.AttachmentDTOv1;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
         AttachmentCollectionMode.class,
         TwinAttachmentActionMode.class
 })
-public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentViewDTOv1> {
+public class AttachmentRestDTOMapper extends RestSimpleDTOMapper<TwinAttachmentEntity, AttachmentDTOv1> {
 
     private final AttachmentService attachmentService;
     private final AttachmentActionService attachmentActionService;
@@ -37,7 +37,7 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     private final TransitionBaseV1RestDTOMapper transitionRestDTOMapper;
 
     @Override
-    public void map(TwinAttachmentEntity src, AttachmentViewDTOv1 dst, MapperContext mapperContext) throws Exception {
+    public void map(TwinAttachmentEntity src, AttachmentDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(AttachmentMode.DETAILED)) {
             case DETAILED:
                 dst
@@ -67,24 +67,19 @@ public class AttachmentViewRestDTOMapper extends RestSimpleDTOMapper<TwinAttachm
     }
 
     @Override
-    public List<AttachmentViewDTOv1> convertCollection(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
+    public List<AttachmentDTOv1> convertCollection(Collection<TwinAttachmentEntity> srcList, MapperContext mapperContext) throws Exception {
         Collection<TwinAttachmentEntity> newList = new ArrayList<>();
         switch (mapperContext.getModeOrUse(AttachmentCollectionMode.ALL)) {
-            case DIRECT:
+            case DIRECT ->
                 newList = srcList.stream().filter(attachmentService::checkOnDirect).collect(Collectors.toList());
-                break;
-            case FROM_TRANSITIONS:
+            case FROM_TRANSITIONS ->
                 newList = srcList.stream().filter(el -> el.getTwinflowTransitionId() != null).collect(Collectors.toList());
-                break;
-            case FROM_COMMENTS:
+            case FROM_COMMENTS ->
                 newList = srcList.stream().filter(el -> el.getTwinCommentId() != null).collect(Collectors.toList());
-                break;
-            case FROM_FIELDS:
+            case FROM_FIELDS ->
                 newList = srcList.stream().filter(el -> el.getTwinClassFieldId() != null).collect(Collectors.toList());
-                break;
-            case ALL:
+            case ALL ->
                 newList = srcList;
-                break;
         }
         return super.convertCollection(newList, mapperContext);
     }

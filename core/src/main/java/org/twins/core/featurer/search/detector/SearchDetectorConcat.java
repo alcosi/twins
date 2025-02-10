@@ -22,7 +22,7 @@ public class SearchDetectorConcat extends SearchDetector {
     @Override
     public List<SearchEntity> detect(Properties properties, List<SearchEntity> allAliasSearches) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        permissionService.loadUserPermissions(apiUser);
+        permissionService.loadCurrentUserPermissions();
         List<SearchEntity> ret = new ArrayList<>();
         for (SearchEntity searchByAliasEntity : allAliasSearches) { //many searches can be linked to one alias
             if (searchByAliasEntity.getPermissionId() == null || apiUser.getPermissions().contains(searchByAliasEntity.getPermissionId())) {
