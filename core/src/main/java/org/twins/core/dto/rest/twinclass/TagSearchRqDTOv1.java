@@ -1,5 +1,7 @@
 package org.twins.core.dto.rest.twinclass;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.Transient;
 import lombok.Data;
@@ -33,7 +35,6 @@ public class TagSearchRqDTOv1 {
     @Schema(description = "option i18n not like list")
     public Set<String> optionI18nNotLikeList;
 
-    @Transient
-    @Schema(description = "twin class id")
+    @JsonIgnore
     public UUID twinClassId;
 }

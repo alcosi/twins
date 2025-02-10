@@ -9,7 +9,9 @@ import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collections;
 import java.util.Set;
+import java.util.UUID;
 
 
 @Component
@@ -20,6 +22,7 @@ public class TagSearchDTOReverseMapper extends RestSimpleDTOMapper<TagSearchRqDT
     @Override
     public void map(TagSearchRqDTOv1 src, DataListOptionSearch dst, MapperContext mapperContext) throws Exception {
         TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(src.getTwinClassId());
+
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
@@ -27,7 +30,8 @@ public class TagSearchDTOReverseMapper extends RestSimpleDTOMapper<TagSearchRqDT
                 .setOptionNotLikeList(src.getOptionNotLikeList())
                 .setOptionI18nLikeList(src.getOptionI18nLikeList())
                 .setOptionI18nNotLikeList(src.getOptionI18nNotLikeList())
-                .setDataListIdList(Set.of(twinClassEntity.getTagDataListId()))
-        ;
+                .setDataListIdList(twinClassEntity.getTagDataListId() != null
+                        ? Set.of(twinClassEntity.getTagDataListId())
+                        : Collections.emptySet());
     }
 }
