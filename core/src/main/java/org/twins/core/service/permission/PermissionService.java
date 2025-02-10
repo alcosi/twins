@@ -290,7 +290,10 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
             return;
-        validateEntityAndThrow(updateEntity, EntitySmartService.EntityValidateMode.beforeSave);
+        if (updateEntity.getPermissionGroup() == null)
+            updateEntity.setPermissionGroup(permissionGroupService.findEntitySafe(dbEntity.getPermissionGroupId()));
+        if (updateEntity.getPermissionGroup().getDomainId() == null)
+            throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN);
         permissionGroupService.validateEntityAndThrow(updateEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
         dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
     }
