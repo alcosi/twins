@@ -3,17 +3,17 @@ package org.twins.core.config.openapi;
 import io.swagger.v3.oas.models.ExternalDocumentation;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
+import lombok.RequiredArgsConstructor;
 import org.springdoc.core.models.GroupedOpenApi;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.twins.core.service.MapperModesResolveService;
 
 @Configuration
+@RequiredArgsConstructor
 public class OpenApiConfig {
 
-    @Autowired
-    private MapperModesResolveService mapperParameterService;
+    private final MapperModesResolveService mapperParameterService;
 
     @Bean
     public OpenAPI openApi() {
