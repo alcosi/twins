@@ -43,14 +43,14 @@ public class AttachmentSearchController extends ApiController {
     private final AttachmentSearchService attachmentSearchService;
 
     @ParametersApiUserHeaders
-    @Operation(operationId = "attachmentSearchListV1", summary = "Search data list of attachments")
+    @Operation(operationId = "attachmentSearchV1", summary = "Search data list of attachments")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List of attachments", content = {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = AttachmentSearchRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/attachment/search/v1")
-    public ResponseEntity<?> attachmentSearchListV1(
+    public ResponseEntity<?> attachmentSearchV1(
             @MapperContextBinding(roots = AttachmentRestDTOMapperV2.class, response = AttachmentSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody AttachmentSearchRqDTOv1 request) {

@@ -2,16 +2,19 @@ package org.twins.core.dto.rest.attachment;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Accessors(chain = true)
 @Schema(name = "AttachmentSearchRqV1")
-public class AttachmentSearchRqDTOv1 {
+public class AttachmentSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
     @Schema(description = "id exclude list")

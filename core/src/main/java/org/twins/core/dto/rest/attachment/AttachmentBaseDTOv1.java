@@ -13,7 +13,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "AttachmentBaseV1")
-public class AttachmentBaseDTOv1 extends Request {
+public class AttachmentBaseDTOv1 {
     @Schema(description = "twin id", example = DTOExamples.TWIN_ID)
     public UUID twinId;
 
