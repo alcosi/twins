@@ -32,8 +32,9 @@ public class FactoryMultiplierFilterSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) {
+    private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) throws ServiceException {
         return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.id),
