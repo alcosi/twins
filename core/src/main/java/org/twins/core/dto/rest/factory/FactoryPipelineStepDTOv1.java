@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.permission;
+package org.twins.core.dto.rest.factory;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

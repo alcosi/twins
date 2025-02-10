@@ -9,7 +9,10 @@ import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.transaction.annotation.Transactional;
-import org.twins.core.dao.domain.*;
+import org.twins.core.dao.domain.DomainEntity;
+import org.twins.core.dao.domain.DomainRepository;
+import org.twins.core.dao.domain.DomainTypeEntity;
+import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.permission.PermissionSchemaRepository;
 import org.twins.core.dao.twin.TwinEntity;
@@ -94,6 +97,7 @@ public abstract class DomainInitiator extends FeaturerTwins {
                 .setTokenHandlerFeaturerId(domainTypeEntity.getDefaultTokenHandlerFeaturer().getId())
                 .setTokenHandlerParams(domainTypeEntity.getDefaultTokenHandlerParams())
                 .setUserGroupManagerFeaturerId(domainTypeEntity.getDefaultUserGroupManagerFeaturer().getId())
+                .setUserGroupManagerFeaturer(domainTypeEntity.getDefaultUserGroupManagerFeaturer())
                 .setUserGroupManagerParams(domainTypeEntity.getDefaultUserGroupManagerParams())
                 .setAttachmentsStorageUsedSize(0L)
                 .setAttachmentsStorageUsedCount(0L);

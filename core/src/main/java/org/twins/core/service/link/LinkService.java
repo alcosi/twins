@@ -220,7 +220,8 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         if (!CollectionUtils.isEmpty(existedSrcTwinIds)) {
             if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedSrcTwinIds));
-            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
+            Set<UUID> newValidTwinIds = MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()) ?
+                    Collections.emptySet() : twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
             Set<UUID> srcTwinIdsTwinLinksForDeletion = new HashSet<>();
             for (UUID srcTwinIdForReplace : existedSrcTwinIds) {
                 UUID replacement = linkSrcClassChangeOperation.getReplaceMap().get(srcTwinIdForReplace);

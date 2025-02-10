@@ -2,6 +2,7 @@ package org.twins.core.featurer.factory.conditioner;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamUUIDSet;
@@ -39,8 +40,8 @@ public class ConditionerApiUserIsMemberOfGroup extends Conditioner {
     @Override
     public boolean check(Properties properties, FactoryItem factoryItem) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         Set<UUID> propertiesUuids = userGroupIds.extract(properties);
-        return apiUser.getUserGroups() != null && apiUser.getUserGroups().stream().anyMatch(propertiesUuids::contains);
+        return KitUtils.isNotEmpty(apiUser.getUser().getUserGroups()) && apiUser.getUser().getUserGroups().getIdSet().stream().anyMatch(propertiesUuids::contains);
     }
 }

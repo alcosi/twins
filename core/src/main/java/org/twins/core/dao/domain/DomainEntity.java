@@ -40,6 +40,10 @@ public class DomainEntity implements EasyLoggable {
     @Column(name = "key")
     private String key;
 
+    @Column(name = "domain_status_id")
+    @Enumerated(EnumType.STRING)
+    private DomainStatus domainStatusId;
+
     @Column(name = "description")
     private String description;
 

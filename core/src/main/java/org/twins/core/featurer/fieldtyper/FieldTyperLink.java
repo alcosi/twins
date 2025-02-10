@@ -46,7 +46,7 @@ public class FieldTyperLink extends FieldTyper<FieldDescriptorLink, FieldValueLi
     @Autowired
     TwinLinkService twinLinkService;
 
-    @FeaturerParam(name = "Link UUID", description = "", order = 1)
+    @FeaturerParam(name = "Link", description = "", order = 1)
     public static final FeaturerParamUUIDTwinsLinkId linkUUID = new FeaturerParamUUIDTwinsLinkId("linkUUID");
 
     @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 2)

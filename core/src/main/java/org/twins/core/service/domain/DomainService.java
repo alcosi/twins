@@ -49,6 +49,7 @@ import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroup;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -148,11 +149,13 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         if (domainRepository.existsByKey(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
         loadDomainType(domainEntity);
+        domainEntity.setDomainStatusId(DomainStatus.ACTIVE);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
         domainEntity = domainInitiator.init(domainEntity);
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 
@@ -182,7 +185,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
-        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllActiveDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainEntityList, pagination);
     }
 

@@ -6,9 +6,19 @@ services:
   twins:
     image: dockerhub.esas.by/twins:0.1.0-SNAPSHOT
     container_name: twins-core
+    hostname: twins-core
     environment:
-      - JAVA_OPTS="-Djdk.internal.httpclient.debug=true"
-      - JAVA_TOOL_OPTIONS="-Xrunjdwp:transport=dt_socket,address=*:5006,server=y,suspend=n"
+      JAVA_TOOL_OPTIONS: "
+      -XX:+UseZGC 
+      -XX:+ZGenerational
+      -Xrunjdwp:transport=dt_socket
+      -address=*:5006 
+      -server=y
+      -suspend=n
+       "
+      JAVA_OPTS: "
+      -Djdk.internal.httpclient.debug=true
+      "
     volumes:
       - ./logs:/opt/twins/logs
     ports:
