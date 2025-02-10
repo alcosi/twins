@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Slf4j
@@ -29,7 +30,7 @@ class RestTemplateConfig {
             return response;
         }
 
-        private void traceRequest(UUID id, HttpRequest request, byte[] body) throws IOException {
+        private void traceRequest(UUID id, HttpRequest request, byte[] body) {
             StringBuilder sb = new StringBuilder();
             sb.append("===========================request begin================================================\n").
                     append("=ID         : {}\n").
@@ -38,12 +39,12 @@ class RestTemplateConfig {
                     append("=Headers     : {}\n").
                     append("=Request body: {}\n").
                     append("==========================request end================================================");
-            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), new String(body, "UTF-8"));
+            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), request.getHeaders(), new String(body, StandardCharsets.UTF_8));
         }
 
         private void traceResponse(UUID id, ClientHttpResponse response, HttpRequest request) throws IOException {
             StringBuilder inputStringBuilder = new StringBuilder();
-            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(response.getBody(), "UTF-8"));
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(response.getBody(), StandardCharsets.UTF_8));
             String line = bufferedReader.readLine();
             while (line != null) {
                 inputStringBuilder.append(line);
@@ -61,10 +62,8 @@ class RestTemplateConfig {
                     append("=Headers      : {}\n").
                     append("=Response body: {}\n").
                     append("=======================response end=================================================");
-            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), response.getStatusCode(), response.getStatusText(), response.getHeaders(), inputStringBuilder.toString());
+            log.info(sb.toString(), id.toString(), request.getURI(), request.getMethod(), response.getStatusCode(), response.getStatusText(), response.getHeaders(), inputStringBuilder);
 
         }
     }
-
-
 }
