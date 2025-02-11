@@ -5,6 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.cambium.common.util.Ternary;
+import org.twins.core.dto.rest.LongRangeDTOv1;
 import org.twins.core.dto.rest.Request;
 
 import java.util.Set;

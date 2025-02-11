@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)
@@ -13,4 +16,7 @@ import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
 public class ResponseRelatedObjectsDTOv1 extends Response {
     @Schema(description = "results - related objects, if lazeRelation is false")
     public RelatedObjectsDTOv1 relatedObjects;
+
+    @Schema(description = "twin class schemaDTOs")
+    public Set<TwinClassSchemaDTOv1> twinClassSchemas;
 }
