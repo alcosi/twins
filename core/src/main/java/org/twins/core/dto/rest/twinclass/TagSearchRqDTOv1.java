@@ -14,7 +14,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TagSearchRqDTOv1")
+@Schema(name = "TagSearchRqV1")
 public class TagSearchRqDTOv1 {
 
     @Schema(description = "id list")

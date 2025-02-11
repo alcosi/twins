@@ -13,7 +13,7 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TagSearchRsDTOv1")
+@Schema(name = "TagSearchRsV1")
 public class TagSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination data")
