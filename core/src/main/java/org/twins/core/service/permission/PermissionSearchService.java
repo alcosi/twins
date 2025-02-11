@@ -44,10 +44,10 @@ public class PermissionSearchService {
                 checkFieldLikeContainsIn(search.getKeyNotLikeList(), true, true, PermissionEntity.Fields.key),
                 checkUuidIn(search.getIdList(), false, true, PermissionEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, PermissionEntity.Fields.id),
-                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nLikeList(), locale, false, false),
-                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18NId, search.getNameI18nNotLikeList(), locale, true, true),
-                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nLikeList(), locale, false, false),
-                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18NId, search.getDescriptionI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18n, search.getNameI18nLikeList(), locale, false, false),
+                joinAndSearchByI18NField(PermissionEntity.Fields.nameI18n, search.getNameI18nNotLikeList(), locale, true, true),
+                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18n, search.getDescriptionI18nLikeList(), locale, false, false),
+                joinAndSearchByI18NField(PermissionEntity.Fields.descriptionI18n, search.getDescriptionI18nNotLikeList(), locale, true, true),
                 checkUuidIn(search.getGroupIdList(), false, true, PermissionEntity.Fields.permissionGroupId),
                 checkUuidIn(search.getGroupIdExcludeList(), true, true, PermissionEntity.Fields.permissionGroupId));
     }
