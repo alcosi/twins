@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -20,6 +21,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.controller.rest.annotation.SimplePaginationParams;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TagSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TagSearchRsDTOv1;
@@ -29,7 +32,10 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.twinclass.TagSearchDTOReverseMapper;
 import org.twins.core.service.datalist.DataListOptionSearchService;
+import org.twins.core.service.twinclass.TwinClassService;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.UUID;
 
 @RestController
@@ -42,6 +48,7 @@ public class TagSearchController extends ApiController {
     private final TagSearchDTOReverseMapper tagSearchDTOReverseMapper;
     private final DataListOptionSearchService dataListOptionSearchService;
     private final PaginationMapper paginationMapper;
+    private final TwinClassService twinClassService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "tagSearchV1", summary = "Tag search")
@@ -62,8 +69,19 @@ public class TagSearchController extends ApiController {
 
         TagSearchRsDTOv1 rs = new TagSearchRsDTOv1();
         try {
+            DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
+
+            TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
+
+            if (twinClassEntity.getTagDataListId() != null) {
+                dataListOptionSearch.setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
+            } else {
+                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Twin class is not suitable for search");
+            }
+
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
-                    .findDataListOptionForDomain(tagSearchDTOReverseMapper.convert(request.setTwinClassId(twinClassId)), pagination);
+                    .findDataListOptionForDomain(dataListOptionSearch, pagination);
+
             rs.setOptions(dataListOptionRestDTOMapperV3.convertCollection(tags.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(tags));
         } catch (ServiceException se) {
