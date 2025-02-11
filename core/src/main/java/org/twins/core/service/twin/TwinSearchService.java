@@ -75,14 +75,14 @@ public class TwinSearchService {
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
         Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
 
-        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
-            specification = specification
-                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
-                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
-        } else {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
                     .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
+        } else {
+            specification = specification
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         }
 
 

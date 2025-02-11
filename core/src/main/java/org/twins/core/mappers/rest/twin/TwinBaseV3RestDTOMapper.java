@@ -9,7 +9,7 @@ import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dto.rest.twin.TwinBaseDTOv3;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
-import org.twins.core.mappers.rest.attachment.AttachmentViewRestDTOMapper;
+import org.twins.core.mappers.rest.attachment.AttachmentRestDTOMapper;
 import org.twins.core.mappers.rest.attachment.TwinAttachmentsCounterRestDTOMapper;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
 import org.twins.core.mappers.rest.link.TwinLinkListRestDTOMapper;
@@ -33,7 +33,7 @@ public class TwinBaseV3RestDTOMapper extends RestSimpleDTOMapper<TwinEntity, Twi
     private final TwinBaseV2RestDTOMapper twinBaseV2RestDTOMapper;
 
     @MapperModePointerBinding(modes = {AttachmentMode.Twin2AttachmentMode.class, AttachmentCollectionMode.Twin2AttachmentCollectionMode.class})
-    private final AttachmentViewRestDTOMapper attachmentRestDTOMapper;
+    private final AttachmentRestDTOMapper attachmentRestDTOMapper;
 
     @MapperModePointerBinding(modes = {TwinLinkMode.Twin2TwinLinkMode.class})
     private final TwinLinkListRestDTOMapper twinLinkListRestDTOMapper;

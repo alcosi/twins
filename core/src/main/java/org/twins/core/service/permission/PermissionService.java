@@ -290,8 +290,6 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
     private void updatePermissionGroupId(PermissionEntity updateEntity, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
         if (!changesHelper.isChanged(PermissionEntity.Fields.permissionGroupId, dbEntity.getPermissionGroupId(), updateEntity.getPermissionGroupId()))
             return;
-        validateEntityAndThrow(updateEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        permissionGroupService.validateEntityAndThrow(updateEntity.getPermissionGroup(), EntitySmartService.EntityValidateMode.beforeSave);
         dbEntity.setPermissionGroupId(updateEntity.getPermissionGroupId());
     }
 
