@@ -26,6 +26,7 @@ import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.twinclass.TagSearchRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TagSearchRsDTOv1;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.datalist.DataListRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
@@ -34,7 +35,6 @@ import org.twins.core.mappers.rest.twinclass.TagSearchDTOReverseMapper;
 import org.twins.core.service.datalist.DataListOptionSearchService;
 import org.twins.core.service.twinclass.TwinClassService;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
 
@@ -42,7 +42,7 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 @Tag(name = ApiTag.TWIN_CLASS)
-public class TagSearchController extends ApiController {
+public class TwinClassTagSearchController extends ApiController {
 
     private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
     private final TagSearchDTOReverseMapper tagSearchDTOReverseMapper;
@@ -69,15 +69,14 @@ public class TagSearchController extends ApiController {
 
         TagSearchRsDTOv1 rs = new TagSearchRsDTOv1();
         try {
-            DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
-
             TwinClassEntity twinClassEntity = twinClassService.findEntitySafe(twinClassId);
 
-            if (twinClassEntity.getTagDataListId() != null) {
-                dataListOptionSearch.setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
-            } else {
-                throw new ServiceException(ErrorCodeCommon.ENTITY_INVALID, "Twin class is not suitable for search");
+            if (twinClassEntity.getTagDataListId() == null) {
+                throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_TAGS_NOT_ALLOWED, "Twin class is not suitable for search");
             }
+
+            DataListOptionSearch dataListOptionSearch = tagSearchDTOReverseMapper.convert(request);
+            dataListOptionSearch.setDataListIdList(Set.of(twinClassEntity.getTagDataListId()));
 
             PaginationResult<DataListOptionEntity> tags = dataListOptionSearchService
                     .findDataListOptionForDomain(dataListOptionSearch, pagination);
