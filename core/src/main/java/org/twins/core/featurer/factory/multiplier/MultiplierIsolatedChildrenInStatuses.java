@@ -52,7 +52,7 @@ public class MultiplierIsolatedChildrenInStatuses extends Multiplier {
     public List<FactoryItem> multiply(Properties properties, List<FactoryItem> inputFactoryItemList, FactoryContext factoryContext) throws ServiceException {
         List<FactoryItem> ret = new ArrayList<>();
         List<UUID> inputTwinIds = inputFactoryItemList.stream().map(inputItem -> inputItem.getTwin().getId()).toList();
-        BasicSearch search = new BasicSearch();
+        BasicSearch search = new BasicSearch().setCheckViewPermission(false);
         if (exclude.extract(properties))
             //TODO
             search
