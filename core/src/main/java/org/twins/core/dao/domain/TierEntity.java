@@ -6,6 +6,8 @@ import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.permission.PermissionSchemaEntity;
+import org.twins.core.dao.twinclass.TwinClassSchemaEntity;
+import org.twins.core.dao.twinflow.TwinflowSchemaEntity;
 
 import java.util.UUID;
 
@@ -54,6 +56,14 @@ public class TierEntity implements EasyLoggable {
     @ManyToOne
     @JoinColumn(name = "permission_schema_id", insertable = false, updatable = false)
     private PermissionSchemaEntity permissionSchema;
+
+    @ManyToOne
+    @JoinColumn(name = "twinflow_schema_id", insertable = false, updatable = false)
+    private TwinflowSchemaEntity twinflowSchema;
+
+    @ManyToOne
+    @JoinColumn(name = "twin_class_schema_id", insertable = false, updatable = false)
+    private TwinClassSchemaEntity twinClassSchema;
 
     @Override
     public String easyLog(Level level) {

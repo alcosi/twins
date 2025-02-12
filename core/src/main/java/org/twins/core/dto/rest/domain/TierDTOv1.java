@@ -3,10 +3,12 @@ package org.twins.core.dto.rest.domain;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.Accessors;
 
 import java.util.UUID;
 
 @Data
+@Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TierDTOv1")
 public class TierDTOv1 {
@@ -39,5 +41,5 @@ public class TierDTOv1 {
     private Long attachmentsStorageQuotaSize;
 
     @Schema(description = "user count quota")
-    private Long userCountQuota;
+    private Integer userCountQuota;
 }

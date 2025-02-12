@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 
 @Data
@@ -21,5 +22,5 @@ public class TierDTOv2 extends TierDTOv1 {
     public TwinflowSchemaDTOv1 twinflowSchema;
 
     @Schema(description = "twinclass schema")
-    public TwinClassDTOv1 twinclassSchema;
+    public TwinClassSchemaDTOv1 twinclassSchema;
 }
