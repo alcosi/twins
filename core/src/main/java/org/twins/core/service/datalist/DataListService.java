@@ -3,6 +3,7 @@ package org.twins.core.service.datalist;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
@@ -12,6 +13,7 @@ import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
+import org.cambium.i18n.dao.I18nTranslationEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
 import org.cambium.service.EntitySmartService;
@@ -316,7 +318,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return null;
     }
 
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) {
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, List<DataListOptionEntity> options, UUID businessAccountId) throws ServiceException {
         Set<String> optionsForProcessing = options.stream().filter(option -> ObjectUtils.isEmpty(option.getId())).map(DataListOptionEntity::getOption).collect(Collectors.toSet());
         options.removeIf(o -> optionsForProcessing.contains(o.getOption()));
         List<DataListOptionEntity> processedOptions = processNewOptions(dataListId, optionsForProcessing, businessAccountId);
@@ -324,7 +326,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return options;
     }
 
-    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) {
+    public List<DataListOptionEntity> processNewOptions(UUID dataListId, Set<String> newOptions, UUID businessAccountId) throws ServiceException {
         List<DataListOptionEntity> optionsExists = new ArrayList<>();
         List<DataListOptionEntity> optionsForSave = new ArrayList<>();
         for (String optionName : newOptions) {
@@ -332,10 +334,17 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
             if (null != foundedOption) optionsExists.add(foundedOption);
             else {
                 DataListOptionEntity newOption = new DataListOptionEntity();
-                newOption.setOption(optionName);
-                newOption.setBusinessAccountId(businessAccountId);
-                newOption.setStatus(DataListOptionEntity.Status.active);
-                newOption.setDataListId(dataListId);
+                newOption
+                        .setOption(optionName)
+                        .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.DATA_LIST_OPTION_VALUE,
+                                new I18nEntity().addTranslation(
+                                        new I18nTranslationEntity()
+                                                .setTranslation(optionName)
+                                                .setLocale(authService.getApiUser().getLocale()))
+                        ).getId())
+                        .setBusinessAccountId(businessAccountId)
+                        .setStatus(DataListOptionEntity.Status.active)
+                        .setDataListId(dataListId);
                 optionsForSave.add(newOption);
             }
         }
