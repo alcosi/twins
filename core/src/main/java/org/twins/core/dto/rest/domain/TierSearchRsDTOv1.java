@@ -16,8 +16,8 @@ import java.util.List;
 public class TierSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination")
-    private PaginationDTOv1 pagination;
+    public PaginationDTOv1 pagination;
 
     @Schema(description = "tiers")
-    private List<TierDTOv2> tiers;
+    public List<TierDTOv2> tiers;
 }

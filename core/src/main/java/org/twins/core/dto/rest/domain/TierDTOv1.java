@@ -14,32 +14,32 @@ import java.util.UUID;
 public class TierDTOv1 {
 
     @Schema(description = "id")
-    private UUID id;
+    public UUID id;
 
     @Schema(description = "permission schema id")
-    private UUID permissionSchemaId;
+    public UUID permissionSchemaId;
 
     @Schema(description = "twinflow schema id")
-    private UUID twinflowSchemaId;
+    public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
-    private UUID twinclassSchemaId;
+    public UUID twinclassSchemaId;
 
     @Schema(description = "name")
-    private String name;
+    public String name;
 
     @Schema(description = "description")
-    private String description;
+    public String description;
 
     @Schema(description = "custom")
-    private Boolean custom;
+    public Boolean custom;
 
     @Schema(description = "attachments storage quota count")
-    private Long attachmentsStorageQuotaCount;
+    public Long attachmentsStorageQuotaCount;
 
     @Schema(description = "attachments storage quota size")
-    private Long attachmentsStorageQuotaSize;
+    public Long attachmentsStorageQuotaSize;
 
     @Schema(description = "user count quota")
-    private Integer userCountQuota;
+    public Integer userCountQuota;
 }
