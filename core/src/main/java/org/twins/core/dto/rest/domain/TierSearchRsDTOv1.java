@@ -12,12 +12,12 @@ import java.util.List;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TagSearchRsDTOv1")
+@Schema(name = "TagSearchRsV1")
 public class TierSearchRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
 
     @Schema(description = "pagination")
     private PaginationDTOv1 pagination;
 
-    @Schema(description = "comments")
-    private List<TierDTOv1> comments;
+    @Schema(description = "tiers")
+    private List<TierDTOv2> tiers;
 }
