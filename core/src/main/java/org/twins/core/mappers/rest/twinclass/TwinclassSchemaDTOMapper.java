@@ -24,8 +24,8 @@ public class TwinclassSchemaDTOMapper extends RestSimpleDTOMapper<TwinClassSchem
                 ;
                 break;
             case SHORT:
-                dst.
-                        setId(src.getId())
+                dst
+                        .setId(src.getId())
                         .setDomainId(src.getDomainId())
                 ;
         }
