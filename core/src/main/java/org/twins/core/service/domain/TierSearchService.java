@@ -46,9 +46,9 @@ public class TierSearchService {
                 checkFieldLikeIn(search.getNameNotLikeList(), true, true, TierEntity.Fields.name),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TierEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TierEntity.Fields.description),
-                checkAttachmentsStorageQuotaCountRange(search.getAttachmentsStorageQuotaSizeRange()),
-                checkAttachmentsStorageQuotaSizeRange(search.getAttachmentsStorageQuotaSizeRange()),
-                checkUserCountQuotaRange(search.getUserCountQuotaRange()),
+                checkFieldLongRange(search.getAttachmentsStorageQuotaCountRange(), TierEntity.Fields.attachmentsStorageQuotaCount),
+                checkFieldLongRange(search.getAttachmentsStorageQuotaSizeRange(), TierEntity.Fields.attachmentsStorageQuotaSize),
+                checkFieldLongRange(search.getUserCountQuotaRange(), TierEntity.Fields.userCountQuota),
                 checkTernary(TierEntity.Fields.custom, search.getCustom())
         );
     }

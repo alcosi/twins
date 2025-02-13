@@ -35,7 +35,7 @@ public class TierDTOv1 {
     public Boolean custom;
 
     @Schema(description = "attachments storage quota count")
-    public Long attachmentsStorageQuotaCount;
+    public Integer attachmentsStorageQuotaCount;
 
     @Schema(description = "attachments storage quota size")
     public Long attachmentsStorageQuotaSize;

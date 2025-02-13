@@ -21,62 +21,6 @@ public class TierSpecification extends CommonSpecification<TierEntity> {
         return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TierEntity.Fields.domainId);
     }
 
-    public static Specification<TierEntity> checkAttachmentsStorageQuotaCountRange(LongRange range) {
-        return (root, query, cb) -> {
-            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
-                return cb.conjunction();
-            }
-
-            List<Predicate> predicates = new ArrayList<>();
-            if (range.getFrom() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get(TierEntity.Fields.attachmentsStorageQuotaCount), range.getFrom()));
-            }
-            if (range.getTo() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get(TierEntity.Fields.attachmentsStorageQuotaCount), range.getTo()));
-            }
-
-            return cb.and(predicates.toArray(Predicate[]::new));
-        };
-    }
-
-
-    public static Specification<TierEntity> checkAttachmentsStorageQuotaSizeRange(LongRange range) {
-        return (root, query, cb) -> {
-            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
-                return cb.conjunction();
-            }
-
-            List<Predicate> predicates = new ArrayList<>();
-            if (range.getFrom() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get(TierEntity.Fields.attachmentsStorageQuotaSize), range.getFrom()));
-            }
-            if (range.getTo() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get(TierEntity.Fields.attachmentsStorageQuotaSize), range.getTo()));
-            }
-
-            return cb.and(predicates.toArray(Predicate[]::new));
-        };
-    }
-
-
-    public static Specification<TierEntity> checkUserCountQuotaRange(LongRange range) {
-        return (root, query, cb) -> {
-            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
-                return cb.conjunction();
-            }
-
-            List<Predicate> predicates = new ArrayList<>();
-            if (range.getFrom() != null) {
-                predicates.add(cb.greaterThanOrEqualTo(root.get(TierEntity.Fields.userCountQuota), range.getFrom()));
-            }
-            if (range.getTo() != null) {
-                predicates.add(cb.lessThanOrEqualTo(root.get(TierEntity.Fields.userCountQuota), range.getTo()));
-            }
-
-            return cb.and(predicates.toArray(Predicate[]::new));
-        };
-    }
-
     public static Specification<TierEntity> checkTernary(final String field, Ternary ternary) {
         return (root, query, cb) -> {
             if (ternary == null)

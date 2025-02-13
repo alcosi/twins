@@ -17,27 +17,21 @@ public class TierSearchDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTO
     @Override
     public void map(TierEntity src, TierDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TierMode.DETAILED)) {
-            case DETAILED:
-                dst
-                        .setId(src.getId())
-                        .setPermissionSchemaId(src.getPermissionSchemaId())
-                        .setTwinflowSchemaId(src.getTwinflowSchemaId())
-                        .setTwinclassSchemaId(src.getTwinClassSchemaId())
-                        .setName(src.getName())
-                        .setDescription(src.getDescription())
-                        .setCustom(src.isCustom())
-                        .setAttachmentsStorageQuotaCount(src.getAttachmentsStorageQuotaSize())
-                        .setAttachmentsStorageQuotaSize(src.getAttachmentsStorageQuotaSize())
-                        .setUserCountQuota(src.getUserCountQuota())
-                ;
+            case DETAILED -> dst
+                    .setId(src.getId())
+                    .setPermissionSchemaId(src.getPermissionSchemaId())
+                    .setTwinflowSchemaId(src.getTwinflowSchemaId())
+                    .setTwinclassSchemaId(src.getTwinClassSchemaId())
+                    .setName(src.getName())
+                    .setDescription(src.getDescription())
+                    .setCustom(src.isCustom())
+                    .setAttachmentsStorageQuotaCount(src.getAttachmentsStorageQuotaCount())
+                    .setAttachmentsStorageQuotaSize(src.getAttachmentsStorageQuotaSize())
+                    .setUserCountQuota(src.getUserCountQuota());
 
-                break;
-            case SHORT:
-                dst
-                        .setId(src.getId())
-                        .setName(src.getName())
-                ;
-                break;
+            case SHORT -> dst
+                    .setId(src.getId())
+                    .setName(src.getName());
         }
     }
 }

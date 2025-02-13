@@ -16,7 +16,4 @@ import java.util.Set;
 public class ResponseRelatedObjectsDTOv1 extends Response {
     @Schema(description = "results - related objects, if lazeRelation is false")
     public RelatedObjectsDTOv1 relatedObjects;
-
-    @Schema(description = "twin class schemaDTOs")
-    public Set<TwinClassSchemaDTOv1> twinClassSchemas;
 }

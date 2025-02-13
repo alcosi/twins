@@ -8,13 +8,13 @@ import org.twins.core.dto.rest.datalist.DataListOptionDTOv1;
 import org.twins.core.dto.rest.businessaccount.BusinessAccountDTOv1;
 import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.factory.FactoryPipelineDTOv1;
-import org.twins.core.dto.rest.factory.FactoryPipelineDTOv2;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGroupDTOv1;
 import org.twins.core.dto.rest.permission.PermissionSchemaDTOv2;
 import org.twins.core.dto.rest.space.SpaceRoleDTOv1;
 import org.twins.core.dto.rest.twin.TwinDTOv2;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
 import org.twins.core.dto.rest.twinflow.TwinflowBaseDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassDTOv1;
@@ -27,7 +27,7 @@ import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@Schema(name =  "RelatedObjectsV1")
+@Schema(name = "RelatedObjectsV1")
 public class RelatedObjectsDTOv1 {
     @Schema(description = "related statuses map", example = "{twin map}")
     public Map<UUID, TwinDTOv2> twinMap;
@@ -76,6 +76,9 @@ public class RelatedObjectsDTOv1 {
 
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
     public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
+
+    @Schema(description = "related twinclass schema map", example = "{twin class schema}")
+    public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemas;
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;

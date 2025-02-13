@@ -7,13 +7,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.LongRange;
 import org.twins.core.dto.rest.DataTimeRangeDTOv1;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
@@ -272,5 +270,25 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldLongRange(
+            final LongRange range,
+            final String fieldPath) {
+        return (root, query, cb) -> {
+            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
+                return cb.conjunction();
+            }
 
+            List<Predicate> predicates = new ArrayList<>();
+            Path<Long> field = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            if (range.getFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(field, range.getFrom()));
+            }
+            if (range.getTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(field, range.getTo()));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
 }
