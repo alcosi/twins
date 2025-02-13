@@ -29,7 +29,7 @@ import org.twins.core.mappers.rest.pagination.PaginationMapper;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
 import org.twins.core.service.domain.TierSearchService;
 
-@Tag(name = ApiTag.DOMAIN)
+@Tag(name = ApiTag.TIER)
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
