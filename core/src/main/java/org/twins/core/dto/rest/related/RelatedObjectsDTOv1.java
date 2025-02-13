@@ -77,8 +77,8 @@ public class RelatedObjectsDTOv1 {
     @Schema(description = "related factory pipeline map", example = "{factory pipeline map}")
     public Map<UUID, FactoryPipelineDTOv1> factoryPipelineMap;
 
-    @Schema(description = "related twinclass schema map", example = "{twin class schema}")
-    public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemas;
+    @Schema(description = "related twinclass schema map", example = "{twin class schema map}")
+    public Map<UUID, TwinClassSchemaDTOv1> twinClassSchemaMap;
 
     @Schema(description = "related featurer map", example = "{featurer map}")
     public Map<Integer, FeaturerDTOv1> featurerMap;
