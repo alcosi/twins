@@ -18,7 +18,6 @@ import org.twins.core.featurer.usergroup.manager.UserGroupManager;
 import org.twins.core.featurer.usergroup.slugger.Slugger;
 import org.twins.core.service.auth.AuthService;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -71,7 +70,7 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
     }
 
     public void loadGroups(List<UserEntity> userEntityList) throws ServiceException {
-        List<UserEntity> needLoad = new ArrayList<>();
+        Kit<UserEntity, UUID> needLoad = new Kit<>(UserEntity::getId);
         for (UserEntity userEntity : userEntityList) {
             if (userEntity.getUserGroups() == null) {
                 userEntity.setUserGroups(new Kit<>(UserGroupEntity::getId));
@@ -86,16 +85,14 @@ public class UserGroupService extends EntitySecureFindServiceImpl<UserGroupEntit
         if (CollectionUtils.isEmpty(userGroupTypes))
             return;
         List<? extends UserGroupMap> userGroups;
-        for (UserEntity userEntity : needLoad) { //todo need collection load optimization
-            for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
-                Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
-                userGroups = slugger.getGroups(userGroupTypeEntity.getSluggerParams(), userEntity.getId());
-                if (CollectionUtils.isNotEmpty(userGroups))
-                    for (var userGroupMap : userGroups) {
-                        if (slugger.checkConfig(userGroupMap))
-                            userEntity.getUserGroups().add(userGroupMap.getUserGroup());
-                    }
-            }
+        for (UserGroupTypeEntity userGroupTypeEntity : userGroupTypes) {
+            Slugger<UserGroupMap> slugger = featurerService.getFeaturer(userGroupTypeEntity.getSluggerFeaturer(), Slugger.class);
+            userGroups = slugger.getGroups(userGroupTypeEntity.getSluggerParams(), needLoad.getIdSet());
+            if (CollectionUtils.isNotEmpty(userGroups))
+                for (var userGroupMap : userGroups) {
+                    if (slugger.checkConfig(userGroupMap))
+                        needLoad.get(userGroupMap.getUserId()).getUserGroups().add(userGroupMap.getUserGroup());
+                }
         }
     }
 

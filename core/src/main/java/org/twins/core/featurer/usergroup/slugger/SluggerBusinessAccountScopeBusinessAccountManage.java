@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -31,8 +32,8 @@ public class SluggerBusinessAccountScopeBusinessAccountManage extends Slugger<Us
     }
 
     @Override
-    protected List<? extends UserGroupMap> getGroups(Properties properties, UUID userId) throws ServiceException {
-        return userGroupMapType1Repository.findByUserIdAndUserGroup_BusinessAccountId(userId, authService.getApiUser().getBusinessAccountId());
+    protected List<? extends UserGroupMap> getGroups(Properties properties, Set<UUID> userIds) throws ServiceException {
+        return userGroupMapType1Repository.findByUserIdInAndUserGroup_BusinessAccountId(userIds, authService.getApiUser().getBusinessAccountId());
     }
 
     @Override
