@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
 import java.util.UUID;
@@ -13,14 +13,14 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 public class HistorySearch {
-    Set<UUID> idList;
-    Set<UUID> idExcludeList;
-    Set<UUID> twinIdList;
-    Set<UUID> twinIdExcludeList;
-    boolean includeDirectChildren = false;
-    Set<UUID> actorUseridList;
-    Set<UUID> actorUserIdExcludeList;
-    Set<HistoryType> typeList;
-    Set<HistoryType> typeExcludeList;
-    DataTimeRangeDTOv1 createdAt;
+    private Set<UUID> idList;
+    private Set<UUID> idExcludeList;
+    private Set<UUID> twinIdList;
+    private Set<UUID> twinIdExcludeList;
+    private boolean includeDirectChildren = false;
+    private Set<UUID> actorUseridList;
+    private Set<UUID> actorUserIdExcludeList;
+    private Set<HistoryType> typeList;
+    private Set<HistoryType> typeExcludeList;
+    private DataTimeRange createdAt;
 }
