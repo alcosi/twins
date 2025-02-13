@@ -219,10 +219,10 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         if (twinClassFieldEntity.getTwinClassId() == null)
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_ID_UNKNOWN);
         if (twinClassFieldEntity.getViewPermissionId() != null
-                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getViewPermissionId(), apiUser.getDomainId()))
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getViewPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown view permission id");
         if (twinClassFieldEntity.getEditPermissionId() != null
-                && permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
+                && !permissionRepository.existsByIdAndPermissionGroup_DomainId(twinClassFieldEntity.getEditPermissionId(), apiUser.getDomainId()))
             throw new ServiceException(ErrorCodeTwins.PERMISSION_ID_UNKNOWN, "unknown edit permission id");
 
         FeaturerEntity fieldTyper;
