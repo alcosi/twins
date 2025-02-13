@@ -7,9 +7,7 @@ import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dto.rest.domain.TierDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinclassSchemaMode;
-import org.twins.core.mappers.rest.mappercontext.modes.TwinflowSchemaMode;
+import org.twins.core.mappers.rest.mappercontext.modes.*;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinclassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
@@ -17,6 +15,7 @@ import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 @Component
 @RequiredArgsConstructor
 public class TierSearchDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTOv2> {
+    @MapperModePointerBinding(modes = TierMode.class)
     private final TierSearchDTOMapper tierSearchDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionSchemaMode.Tier2PermissionSchemaMode.class)

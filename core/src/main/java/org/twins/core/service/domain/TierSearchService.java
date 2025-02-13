@@ -9,7 +9,6 @@ import org.cambium.common.util.PaginationUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.search.TierSearch;
@@ -32,8 +31,9 @@ public class TierSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TierEntity> createTierSearchSpecification(TierSearch search) {
+    private Specification<TierEntity> createTierSearchSpecification(TierSearch search) throws ServiceException {
         return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
                 checkUuidIn(search.getIdList(), false, false, TierEntity.Fields.id),
                 checkUuidIn(search.getIdExcludeList(), true, false, TierEntity.Fields.id),
                 checkUuidIn(search.getPermissionSchemaIdList(), false, false, TierEntity.Fields.permissionSchemaId),

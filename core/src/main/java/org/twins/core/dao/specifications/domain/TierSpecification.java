@@ -1,23 +1,27 @@
 package org.twins.core.dao.specifications.domain;
 
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.domain.TierEntity;
+import org.twins.core.dao.factory.TwinFactoryEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
+import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
-import org.twins.core.dto.rest.LongRangeDTOv1;
+import org.twins.core.domain.LongRange;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class TierSpecification extends CommonSpecification<TierEntity> {
 
-    public static Specification<TierEntity> empty() {
-        return (root, query, cb) -> cb.conjunction();
+    public static Specification<TierEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TierEntity.Fields.domainId);
     }
 
-
-    public static Specification<TierEntity> checkAttachmentsStorageQuotaCountRange(LongRangeDTOv1 range) {
+    public static Specification<TierEntity> checkAttachmentsStorageQuotaCountRange(LongRange range) {
         return (root, query, cb) -> {
             if (range == null || (range.getFrom() == null && range.getTo() == null)) {
                 return cb.conjunction();
@@ -36,7 +40,7 @@ public class TierSpecification extends CommonSpecification<TierEntity> {
     }
 
 
-    public static Specification<TierEntity> checkAttachmentsStorageQuotaSizeRange(LongRangeDTOv1 range) {
+    public static Specification<TierEntity> checkAttachmentsStorageQuotaSizeRange(LongRange range) {
         return (root, query, cb) -> {
             if (range == null || (range.getFrom() == null && range.getTo() == null)) {
                 return cb.conjunction();
@@ -55,7 +59,7 @@ public class TierSpecification extends CommonSpecification<TierEntity> {
     }
 
 
-    public static Specification<TierEntity> checkUserCountQuotaRange(LongRangeDTOv1 range) {
+    public static Specification<TierEntity> checkUserCountQuotaRange(LongRange range) {
         return (root, query, cb) -> {
             if (range == null || (range.getFrom() == null && range.getTo() == null)) {
                 return cb.conjunction();

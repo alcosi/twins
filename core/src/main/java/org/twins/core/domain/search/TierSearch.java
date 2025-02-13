@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.util.Ternary;
-import org.twins.core.dto.rest.LongRangeDTOv1;
+import org.twins.core.domain.LongRange;
 
 import java.util.Set;
 import java.util.UUID;
@@ -25,8 +25,8 @@ public class TierSearch {
     private Set<String> nameNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
-    private LongRangeDTOv1 attachmentsStorageQuotaCountRange;
-    private LongRangeDTOv1 attachmentsStorageQuotaSizeRange;
-    private LongRangeDTOv1 userCountQuotaRange;
+    private LongRange attachmentsStorageQuotaCountRange;
+    private LongRange attachmentsStorageQuotaSizeRange;
+    private LongRange userCountQuotaRange;
     private Ternary custom;
 }
