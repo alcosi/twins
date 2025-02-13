@@ -18,7 +18,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1307,
-        name = "FieldTyperSharedSelectInDomain",
+        name = "Select (shared in domain)",
         description = "")
 @Slf4j
 public class FieldTyperSharedSelectInDomain extends FieldTyperList {

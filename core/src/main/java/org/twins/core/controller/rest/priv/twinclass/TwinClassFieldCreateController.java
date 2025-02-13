@@ -23,8 +23,8 @@ import org.twins.core.dto.rest.twinclass.TwinClassFieldCreateRqDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassFieldRsDTOv1;
 import org.twins.core.mappers.rest.i18n.I18nRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
+import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapperV2;
 import org.twins.core.mappers.rest.twinclass.TwinClassFieldSaveRestDTOReverseMapper;
-import org.twins.core.mappers.rest.twinclass.TwinClassFieldRestDTOMapper;
 import org.twins.core.service.twinclass.TwinClassFieldService;
 
 import java.util.UUID;
@@ -35,7 +35,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class TwinClassFieldCreateController extends ApiController {
     private final TwinClassFieldService twinClassFieldService;
-    private final TwinClassFieldRestDTOMapper twinClassFieldRestDTOMapper;
+    private final TwinClassFieldRestDTOMapperV2 twinClassFieldRestDTOMapperV2;
     private final TwinClassFieldSaveRestDTOReverseMapper twinClassFieldSaveRestDTOReverseMapper;
     private final I18nRestDTOReverseMapper i18nRestDTOReverseMapper;
 
@@ -48,7 +48,7 @@ public class TwinClassFieldCreateController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/twin_class/{twinClassId}/field/v1")
     public ResponseEntity<?> twinClassFieldCreateV1(
-            @MapperContextBinding(roots = TwinClassFieldRestDTOMapper.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = TwinClassFieldRestDTOMapperV2.class, response = TwinClassFieldRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.TWIN_CLASS_ID) @PathVariable UUID twinClassId,
             @RequestBody TwinClassFieldCreateRqDTOv1 request) {
         TwinClassFieldRsDTOv1 rs = new TwinClassFieldRsDTOv1();
@@ -59,7 +59,7 @@ public class TwinClassFieldCreateController extends ApiController {
 
             twinClassFieldEntity = twinClassFieldService.createField(twinClassFieldEntity, nameI18n, descriptionsI18n);
             rs
-                    .field(twinClassFieldRestDTOMapper.convert(twinClassFieldEntity, mapperContext));
+                    .field(twinClassFieldRestDTOMapperV2.convert(twinClassFieldEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

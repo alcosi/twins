@@ -25,6 +25,7 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.datalist.DataListOptionService;
 import org.twins.core.service.datalist.DataListService;
 import org.twins.core.service.twinclass.TwinClassService;
 
@@ -41,6 +42,7 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
     final TwinMarkerRepository twinMarkerRepository;
     final TwinService twinService;
     final DataListService dataListService;
+    final DataListOptionService dataListOptionService;
     final EntitySmartService entitySmartService;
     @Lazy
     final TwinClassService twinClassService;
@@ -184,15 +186,20 @@ public class TwinMarkerService extends EntitySecureFindServiceImpl<TwinMarkerEnt
                     .setMarkerDataList(null);
             return;
         }
+        DataListEntity newMarkerDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
         //we will try to replace markers with new provided values
         Set<UUID> existedTwinMarkerIds = findExistedTwinMarkersForTwinsOfClass(twinClassEntity.getId());
-        if (CollectionUtils.isEmpty(existedTwinMarkerIds))
+        if (CollectionUtils.isEmpty(existedTwinMarkerIds)) {
+            twinClassEntity
+                    .setMarkerDataList(newMarkerDataList)
+                    .setMarkerDataListId(newMarkerDataList.getId());
             return; // nice :) we have nothing to do
+        }
 
         if (entityRelinkOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict
                 && MapUtils.isEmpty(entityRelinkOperation.getReplaceMap()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_UPDATE_RESTRICTED, "please provide markersReplaceMap for markers: " + org.cambium.common.util.StringUtils.join(existedTwinMarkerIds));
-        DataListEntity newMarkerDataList = dataListService.findEntitySafe(entityRelinkOperation.getNewId());
+
         dataListService.loadDataListOptions(newMarkerDataList);
         Set<UUID> markersForDeletion = new HashSet<>();
         for (UUID markerForReplace : existedTwinMarkerIds) {

@@ -35,6 +35,7 @@ import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionService;
 import org.twins.core.service.permission.Permissions;
 import org.twins.core.service.twin.TwinService;
+import org.twins.core.service.user.UserGroupService;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -58,7 +59,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     final TwinCommentRepository commentRepository;
     final TwinAttachmentRepository attachmentRepository;
     final CommentActionService commentActionService;
-
+    final UserGroupService userGroupService;
 
     @Transactional
     public TwinCommentEntity createComment(TwinCommentEntity comment, List<TwinAttachmentEntity> attachmentList) throws ServiceException {
@@ -189,21 +190,22 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
     private Specification<TwinCommentEntity> createCommentSearchSpecification(CommentSearch search) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
         Specification<TwinCommentEntity> specification = Specification.allOf(
-                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.id, search.getIdExcludeList(), true, true),
-                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.twinId, search.getTwinIdExcludeList(), true, true),
-                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdList(), false, false),
-                checkUuidIn(TwinCommentEntity.Fields.createdByUserId, search.getCreatedByUserIdExcludeList(), true, true),
-                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextLikeList(), false, false),
-                checkFieldLikeIn(TwinCommentEntity.Fields.text, search.getTextNotLikeList(), true, false),
+                checkUuidIn(search.getIdList(), false, false, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, true, TwinCommentEntity.Fields.id),
+                checkUuidIn(search.getTwinIdList(), false, false, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getTwinIdExcludeList(), true, true, TwinCommentEntity.Fields.twinId),
+                checkUuidIn(search.getCreatedByUserIdList(), false, false, TwinCommentEntity.Fields.createdByUserId),
+                checkUuidIn(search.getCreatedByUserIdExcludeList(), true, true, TwinCommentEntity.Fields.createdByUserId),
+                checkFieldLikeIn(search.getTextLikeList(), false, false, TwinCommentEntity.Fields.text),
+                checkFieldLikeIn(search.getTextNotLikeList(), true, false, TwinCommentEntity.Fields.text),
                 checkFieldLocalDateTimeBetween(search.getCreatedAt(), TwinCommentEntity.Fields.createdAt),
                 checkFieldLocalDateTimeBetween(search.getUpdatedAt(), TwinCommentEntity.Fields.changedAt)
         );
         if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
+            userGroupService.loadGroupsForCurrentUser();
             specification = specification
-                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUserGroups()))
-                    .and(checkClass(apiUser));
+                    .and(checkPermissions(apiUser.getDomainId(), apiUser.getBusinessAccountId(), apiUser.getUserId(), apiUser.getUser().getUserGroups().getIdSetSafe(),TwinCommentEntity.Fields.twin))
+                    .and(checkClass(List.of(),apiUser));
         } else {
             specification = specification
                     .and(checkFieldUuid(apiUser.getDomainId(), TwinCommentEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId));

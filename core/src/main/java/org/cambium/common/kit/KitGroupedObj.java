@@ -1,5 +1,6 @@
 package org.cambium.common.kit;
 
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.MapUtils;
 
@@ -44,6 +45,15 @@ public class KitGroupedObj<E, K, GK, GE> extends KitGrouped<E, K, GK> {
             groupingObjectMap.put(groupingId, groupingObject);
         }
         return groupingObjectMap;
+    }
+
+    public List<ImmutablePair<GE, List<E>>> getGroupedList() {
+        //todo cache result in variable
+        var ret = new ArrayList<ImmutablePair<GE, List<E>>>();
+        for (var entry : getGroupedMap().entrySet()) {
+            ret.add(new ImmutablePair<>(getGroupingObject(entry.getKey()), entry.getValue()));
+        }
+        return ret;
     }
 
     public GE getGroupingObject(GK key) {

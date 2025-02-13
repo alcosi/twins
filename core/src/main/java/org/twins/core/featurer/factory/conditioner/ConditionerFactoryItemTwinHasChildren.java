@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2407,
-        name = "ConditionerFactoryItemTwinHasChildren",
+        name = "Factory item twin has children",
         description = "")
 @Slf4j
 public class ConditionerFactoryItemTwinHasChildren extends Conditioner {
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
-    @FeaturerParam(name = "excludeFactoryInput", description = "")
+    @FeaturerParam(name = "Exclude factory input", description = "", order = 2)
     public static final FeaturerParamBoolean excludeFactoryInput = new FeaturerParamBoolean("excludeFactoryInput");
 
     @Lazy

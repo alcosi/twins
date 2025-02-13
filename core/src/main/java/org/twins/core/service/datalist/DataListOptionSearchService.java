@@ -16,7 +16,12 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.search.DataListOptionSearch;
 import org.twins.core.service.auth.AuthService;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.datalist.DataListOptionSpecification.*;
 
 
@@ -38,14 +43,16 @@ public class DataListOptionSearchService {
         return Specification.allOf(
                 checkFieldUuid(apiUser.getDomainId(),DataListOptionEntity.Fields.dataList,DataListEntity.Fields.domainId),
                 createBusinessAccountSpecification(apiUser, search),
-                checkUuidIn(DataListOptionEntity.Fields.id, search.getIdList(), false, false),
-                checkUuidIn(DataListOptionEntity.Fields.id, search.getIdExcludeList(), true, false),
-                checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdList(), false, false),
-                checkUuidIn(DataListOptionEntity.Fields.dataListId, search.getDataListIdExcludeList(), true, true),
-                checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionLikeList(), false, true),
-                checkFieldLikeIn(DataListOptionEntity.Fields.option, search.getOptionNotLikeList(), true, true),
+                checkUuidIn(search.getIdList(), false, false, DataListOptionEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, DataListOptionEntity.Fields.id),
+                checkUuidIn(search.getDataListIdList(), false, false, DataListOptionEntity.Fields.dataListId),
+                checkUuidIn(search.getDataListIdExcludeList(), true, true, DataListOptionEntity.Fields.dataListId),
+                checkFieldLikeIn(search.getOptionLikeList(), false, true, DataListOptionEntity.Fields.option),
+                checkFieldLikeIn(search.getOptionNotLikeList(), true, true, DataListOptionEntity.Fields.option),
                 checkDataListKeyLikeIn(search.getDataListKeyList(), false, true),
                 checkDataListKeyLikeIn(search.getDataListKeyExcludeList(), true, true),
+                checkStatusLikeIn(safeConvert(search.getStatusIdList()), false, true),
+                checkStatusLikeIn(safeConvert(search.getStatusIdExcludeList()), true, true),
                 joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nLikeList(), apiUser.getLocale(), true, false),
                 joinAndSearchByI18NField(DataListOptionEntity.Fields.optionI18n, search.getOptionI18nNotLikeList(), apiUser.getLocale(), true, true),
                 checkDataListSubset(search.getDataListSubsetIdList(), false),
@@ -59,8 +66,12 @@ public class DataListOptionSearchService {
             return Specification.where((root, query, cb) -> root.get(DataListOptionEntity.Fields.businessAccountId).isNull());
         else {
             return Specification.where(empty())
-                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdList(), false, false))
-                    .and(checkUuidIn(DataListOptionEntity.Fields.businessAccountId, search.getBusinessAccountIdExcludeList(), true, true));
+                    .and(checkUuidIn(search.getBusinessAccountIdList(), false, false, DataListOptionEntity.Fields.businessAccountId))
+                    .and(checkUuidIn(search.getBusinessAccountIdExcludeList(), true, true, DataListOptionEntity.Fields.businessAccountId));
         }
+    }
+
+    private Set<String> safeConvert(Set<DataListOptionEntity.Status> collection) {
+        return collection == null ? Collections.emptySet() : collection.stream().map(Enum::name).collect(Collectors.toSet());
     }
 }

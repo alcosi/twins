@@ -20,6 +20,9 @@ public class TwinClassUpdate {
     private Boolean twinClassSchemaSpace;
     private Boolean aliasSpace;
     private UUID viewPermissionId;
+    private UUID editPermissionId;
+    private UUID createPermissionId;
+    private UUID deletePermissionId;
     private Boolean abstractt;
     private String logo;
     private Integer headHunterFeaturerId;

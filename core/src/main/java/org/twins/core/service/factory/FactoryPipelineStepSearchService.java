@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.domain.search.FactoryPipelineStepSearch;
+import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.*;
@@ -22,6 +23,7 @@ import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpeci
 @RequiredArgsConstructor
 public class FactoryPipelineStepSearchService {
     private final TwinFactoryPipelineStepRepository twinFactoryPipelineStepRepository;
+    private final AuthService authService;
 
     public PaginationResult<TwinFactoryPipelineStepEntity> findFactoryPipelineSteps(FactoryPipelineStepSearch search, SimplePagination pagination) throws ServiceException {
         Specification<TwinFactoryPipelineStepEntity> spec = createFactoryPipelineStepSearchSpecification(search);
@@ -30,18 +32,23 @@ public class FactoryPipelineStepSearchService {
     }
 
     private Specification<TwinFactoryPipelineStepEntity> createFactoryPipelineStepSearchSpecification(FactoryPipelineStepSearch search) throws ServiceException {
-        return Specification.where(
-                checkTernary(TwinFactoryPipelineStepEntity.Fields.optional, search.getOptional())
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.id, search.getIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.id, search.getIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getFactoryPipelineIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId, search.getFactoryPipelineIdExcludeList(), true, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdList(), false, false))
-                        .and(checkUuidIn(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId, search.getFactoryConditionSetIdExcludeList(), true, true))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionLikeList(), false, false))
-                        .and(checkFieldLikeIn(TwinFactoryPipelineStepEntity.Fields.description, search.getDescriptionNotLikeList(), true, true))
-                        .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdList(), false))
-                        .and(checkIntegerIn(TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId, search.getFillerFeaturerIdExcludeList(), true))
+        return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
+                checkFactoryIdIn(search.getFactoryIdList(), false),
+                checkFactoryIdIn(search.getFactoryIdExcludeList(), true),
+                checkUuidIn(search.getIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.id),
+                checkUuidIn(search.getIdExcludeList(), true, false, TwinFactoryPipelineStepEntity.Fields.id),
+                checkUuidIn(search.getFactoryPipelineIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId),
+                checkUuidIn(search.getFactoryPipelineIdExcludeList(), true, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryPipelineId),
+                checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId),
+                checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionSetId),
+                checkFieldLikeIn(search.getDescriptionLikeList(), false, false, TwinFactoryPipelineStepEntity.Fields.description),
+                checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineStepEntity.Fields.description),
+                checkIntegerIn(search.getFillerFeaturerIdList(), false, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId),
+                checkIntegerIn(search.getFillerFeaturerIdExcludeList(), true, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId),
+                checkTernary(search.getConditionInvert(), TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert),
+                checkTernary(search.getOptional(), TwinFactoryPipelineStepEntity.Fields.optional),
+                checkTernary(search.getActive(), TwinFactoryPipelineStepEntity.Fields.active)
         );
     }
 }

@@ -20,7 +20,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1303,
-        name = "FieldTyperUrl",
+        name = "Url",
         description = "")
 public class FieldTyperUrl extends FieldTyperSimple<FieldDescriptorUrl, FieldValueText, TwinFieldSearchNotImplemented> {
     @Override

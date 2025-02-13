@@ -14,8 +14,6 @@ import org.twins.core.dao.twin.TwinFieldSimpleEntity;
 import org.twins.core.dao.twinclass.TwinClassFieldEntity;
 import org.twins.core.domain.TwinChangesCollector;
 import org.twins.core.domain.TwinField;
-import org.twins.core.domain.search.TwinFieldSearch;
-import org.twins.core.domain.search.TwinFieldSearchNumeric;
 import org.twins.core.domain.search.TwinFieldSearchText;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.FeaturerTwins;
@@ -26,10 +24,10 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1301,
-        name = "FieldTyperTextField",
+        name = "Text",
         description = "")
 public class FieldTyperTextField extends FieldTyperSimple<FieldDescriptorText, FieldValueText, TwinFieldSearchText> {
-    @FeaturerParam(name = "regexp", description = "")
+    @FeaturerParam(name = "Regexp", description = "", order = 2)
     public static final FeaturerParamString regexp = new FeaturerParamString("regexp");
 
     @Override

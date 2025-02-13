@@ -34,7 +34,6 @@ import org.twins.core.service.twinclass.TwinClassService;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class TwinClassListController extends ApiController {
-    private final AuthService authService;
     private final TwinClassService twinClassService;
     private final TwinClassRestDTOMapper twinClassRestDTOMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
@@ -51,7 +50,7 @@ public class TwinClassListController extends ApiController {
     @PostMapping(value = "/private/twin_class/search/v1")
     public ResponseEntity<?> twinClassSearchV1(
             @MapperContextBinding(roots = TwinClassRestDTOMapper.class, response = TwinClassSearchRsDTOv1.class) MapperContext mapperContext,
-            @SimplePaginationParams SimplePagination pagination,
+            @SimplePaginationParams(sortField = TwinClassEntity.Fields.key) SimplePagination pagination,
             @RequestBody TwinClassSearchRqDTOv1 request) {
         TwinClassSearchRsDTOv1 rs = new TwinClassSearchRsDTOv1();
         try {

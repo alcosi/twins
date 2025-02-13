@@ -9,7 +9,7 @@ import org.twins.core.dao.link.LinkEntity;
 import org.twins.core.dao.link.LinkStrength;
 import org.twins.core.dto.rest.Request;
 
-import java.util.UUID;
+import java.util.HashMap;
 
 @Data
 @Accessors(chain = true)
@@ -28,5 +28,11 @@ public class LinkSaveDTOv1 extends Request {
 
     @Schema(description = "Link strength (MANDATORY, OPTIONAL, OPTIONAL_BUT_DELETE_CASCADE)")
     public LinkStrength linkStrength;
+
+    @Schema(description = "[optional] an id of linker featurer", example = "")
+    public Integer linkerFeaturerId;
+
+    @Schema(description = "[optional] linker featurer params", example = "")
+    public HashMap<String, String> linkerParams;
 
 }

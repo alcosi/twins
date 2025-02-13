@@ -9,11 +9,10 @@ import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.twins.core.dao.twin.TwinTagEntity;
 
 import java.sql.Timestamp;
 import java.util.Collection;
+import java.util.Map;
 import java.util.UUID;
 
 @Entity
@@ -71,31 +70,37 @@ public class DataListEntity implements EasyLoggable {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity descriptionI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_1_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity attribute1nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_2_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity attribute2nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_3_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity attribute3nameI18n;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "attribute_4_name_i18n_id", insertable = false, updatable = false)
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private I18nEntity attribute4nameI18n;
 
     @Transient
@@ -107,7 +112,11 @@ public class DataListEntity implements EasyLoggable {
     @Deprecated
     @OneToMany(mappedBy = "dataList")
     @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Collection<DataListOptionEntity> dataListOptions;
+
+    @Transient
+    private Map<String, DataListOptionEntity.AttributeAccessor> attributes;
 
     public String easyLog(Level level) {
         return "dataList[id:" + id + ", key:" + key + "]";

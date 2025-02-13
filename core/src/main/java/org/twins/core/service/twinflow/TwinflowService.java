@@ -268,18 +268,18 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         Locale locale = authService.getApiUser().getLocale();
         return where(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdList(), true, false)
                 .and(checkSchemas(TwinflowEntity.Fields.schemaMappings, twinflowSearch.getTwinflowSchemaIdExcludeList(), true, true))
-                .and(checkUuidIn(TwinflowEntity.Fields.id, twinflowSearch.getIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.id, twinflowSearch.getIdExcludeList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.twinClassId, twinflowSearch.getTwinClassIdExcludeList(), true, false))
+                .and(checkUuidIn(twinflowSearch.getIdList(), false, false, TwinflowEntity.Fields.id))
+                .and(checkUuidIn(twinflowSearch.getIdExcludeList(), false, false, TwinflowEntity.Fields.id))
+                .and(checkUuidIn(twinflowSearch.getTwinClassIdList(), false, false, TwinflowEntity.Fields.twinClassId))
+                .and(checkUuidIn(twinflowSearch.getTwinClassIdExcludeList(), true, false, TwinflowEntity.Fields.twinClassId))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nLikeList(), locale, false, false))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinflowSearch.getNameI18nNotLikeList(), locale, true, true))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nLikeList(), locale, false, false))
                 .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinflowSearch.getDescriptionI18nNotLikeList(), locale, false, true))
-                .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.initialTwinStatusId, twinflowSearch.getInitialStatusIdExcludeList(), true, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.createdByUserId, twinflowSearch.getCreatedByUserIdList(), false, false))
-                .and(checkUuidIn(TwinflowEntity.Fields.createdByUserId, twinflowSearch.getCreatedByUserIdExcludeList(), true, true))
+                .and(checkUuidIn(twinflowSearch.getInitialStatusIdList(), false, false, TwinflowEntity.Fields.initialTwinStatusId))
+                .and(checkUuidIn(twinflowSearch.getInitialStatusIdExcludeList(), true, false, TwinflowEntity.Fields.initialTwinStatusId))
+                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdList(), false, false, TwinflowEntity.Fields.createdByUserId))
+                .and(checkUuidIn(twinflowSearch.getCreatedByUserIdExcludeList(), true, true, TwinflowEntity.Fields.createdByUserId))
 
         );
     }

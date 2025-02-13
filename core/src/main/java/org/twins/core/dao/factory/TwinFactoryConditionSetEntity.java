@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.cambium.common.EasyLoggable;
 
 import java.util.UUID;
 
@@ -12,7 +13,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "twin_factory_condition_set")
-public class TwinFactoryConditionSetEntity {
+public class TwinFactoryConditionSetEntity implements EasyLoggable {
     @GeneratedValue(generator = "uuid")
     @Id
     private UUID id;
@@ -40,4 +41,12 @@ public class TwinFactoryConditionSetEntity {
 
     @Transient
     private Integer inFactoryEraserUsagesCount;
+
+    @Override
+    public String easyLog(Level level) {
+        return switch (level) {
+            case SHORT -> "twinFactoryConditionSet[" + id + "]";
+            default -> "twinFactoryConditionSet[id:" + id + ", domainId:" + domainId + "]";
+        };
+    }
 }

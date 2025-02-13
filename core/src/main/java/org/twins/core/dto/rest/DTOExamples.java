@@ -1,11 +1,13 @@
 package org.twins.core.dto.rest;
 
 public interface DTOExamples {
-    String TERNARY = "ONLY";
+    String TERNARY = "ANY";
     String BOOLEAN_TRUE = "true";
     String NAME = "Some name";
     String DESCRIPTION = "Some description";
     String COUNT = "3";
+    String UUID_COLLECTION = "[\"11a4c3f8-c780-4421-9aee-9e7eec20c67d\", \"83050c4b-ef17-4d7d-8792-6e5a86557ab9\"]";
+    String STRING_COLLECTION = "[\"String 1\", \"String 2\"]";
     String TRANSLATION = "translation";
     String TRANSLATION_MAP = "{\"en\":\"translation\",\n\"pl\":\"tłumaczenie\",\n\"ru\":\"перевод\"}";
     String TWIN_CLASS_ID = "458c6d7d-99c8-4d87-89c6-2f72d0f5d673";
@@ -27,7 +29,7 @@ public interface DTOExamples {
     String TWIN_CLASS_OWNER_TYPE = "SYSTEM";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
-    String TWIN_COMMENT = "be44e826-ce24-4881-a227-f3f72d915a20";
+    String TWIN_COMMENT_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
     String TWIN_HISTORY_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
     String TWIN_NAME = "Oak";
     String TWIN_ALIAS = "LESNAYA9-2";
@@ -38,6 +40,7 @@ public interface DTOExamples {
     String DATA_LIST_ID = "e844a4e5-1c09-474e-816f-05cdb1f093ed";
     String DATA_LIST_KEY = "country";
     String DATA_LIST_OPTION_ID = "7de977d4-df6d-4250-9cb2-088363d139a1";
+    String DATA_LIST_OPTION_STATUS = "active";
     String DATA_LIST_ATTRIBUTE_KEY = "color";
     String USER_ID = "608c6d7d-99c8-4d87-89c6-2f72d0f5d673";
     String USER_GROUP_ID = "e155e05b-f353-49ff-9869-da1e62aab1793";
@@ -52,12 +55,14 @@ public interface DTOExamples {
     String AUTH_TOKEN = USER_ID + "," + BUSINESS_ACCOUNT_ID;
     String PERMISSION_SCHEMA_ID = "af143656-9899-4e1f-8683-48795cdefeac";
     String PERMISSION_GRANT_USER_ID = "9e8641f2-dda1-4a43-9a23-8786124cdb6b";
+    String PERMISSION_GRANT_ASSIGNEE_PROPAGATION_ID = "a7485d77-16bc-440e-a88e-1a576954a839";
     String TWINFLOW_SCHEMA_ID = "2c618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String DRAFT_ID = "34618b09-e8dc-4712-a433-2e18915ee70d";
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
     String TWINFLOW_TRANSITION_ALIAS = "start";
+    String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
     String CHANNEL = "WEB";
     String ATTACHMENT_STORAGE_LINK = "https://test.filestorage.by/JFUjEFWksfqwf";
@@ -88,6 +93,7 @@ public interface DTOExamples {
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
     String COLOR_HEX = "#ff00ff";
     String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
+    String FACTORY_ERASER_ID = "47991b35-e9fb-454e-a9b1-d715b2e6c71e";
     String FACTORY_CONDITION_SET_ID = "69856a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_KEY = "taskReassign";
     String TRIGGER_ID = "9d956a15-6858-40ba-b0aa-b123c54e250d";
@@ -97,4 +103,10 @@ public interface DTOExamples {
     String MULTIPLIER_ID = "66956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_BRANCH_ID = "99956a15-6858-40ba-b0aa-b123c54e250d";
     String ERASER_ACTION = "NOT_SPECIFIED";
+    String SIMPLE_PNG_BASE64 = "iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII";
+    String RESOURCE_STORAGE_ID = "00000000-0000-0000-0007-000000000001";
+    String RESOURCE_ID = "09cd9a50-dcbe-4c73-b39e-65d2000a8e85";
+
+
+
 }

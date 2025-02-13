@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.twins.core.dao.space.SpaceRoleUserEntity;
 import org.twins.core.dao.space.SpaceRoleUserRepository;
 import org.twins.core.dao.twin.TwinEntity;
+import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.space.SpaceRoleUserSearch;
@@ -54,13 +55,28 @@ public class SpaceUserRoleService {
         return createUserRoleMap(spaceRoleUserEntities, pagination);
     }
 
+    public UserRefSpaceRole getUsersRefRolesMapById(UUID spaceId,UUID userId) throws ServiceException {
+        TwinEntity twinEntity = twinService.findEntitySafe(spaceId);
+
+        List<SpaceRoleUserEntity> list = spaceRoleUserRepository.findAll(
+                Specification.allOf(
+                        checkFieldUuid( twinEntity.getId(), SpaceRoleUserEntity.Fields.twinId),
+                        checkFieldUuid(authService.getApiUser().getDomainId(), SpaceRoleUserEntity.Fields.twin, TwinEntity.Fields.twinClass, TwinClassEntity.Fields.domainId),
+                        checkFieldUuid(userId, SpaceRoleUserEntity.Fields.id)
+                )
+        );
+        UserRefSpaceRole userRefSpaceRole = new UserRefSpaceRole();
+        userRefSpaceRole.setRoles(list);
+        userRefSpaceRole.setUser(userService.findEntitySafe(userId));
+        return userRefSpaceRole;
+    }
 
     public PaginationResult<UserRefSpaceRole> getUsersRefRolesMap(SpaceRoleUserSearch search, UUID twinId, SimplePagination pagination) throws ServiceException {
         TwinEntity twinEntity = twinService.findEntitySafe(twinId);
         Specification<SpaceRoleUserEntity> spec = where(
                 checkUuid(SpaceRoleUserEntity.Fields.twinId, twinEntity.getId(), false)
                         .and(checkUserNameLikeWithPattern(search.getUserNameLike()))
-                        .and(checkUuidIn(SpaceRoleUserEntity.Fields.spaceRoleId, search.getSpaceRolesIdList(), false, false))
+                        .and(checkUuidIn(search.getSpaceRolesIdList(), false, false, SpaceRoleUserEntity.Fields.spaceRoleId))
                         .and(checkUserInGroups(search.getUserGroupIdList(), false))
         );
         Page<SpaceRoleUserEntity> spaceRoleUserEntities = spaceRoleUserRepository.findAll(spec, PaginationUtils.pageableOffset(pagination));

@@ -2,6 +2,7 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
 import org.twins.core.dao.domain.DomainEntity;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Entity
 @Data
 @FieldNameConstants
+@Accessors(chain = true)
 @Table(name = "permission_group")
 public class PermissionGroupEntity implements EasyLoggable {
     @Id

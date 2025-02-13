@@ -24,16 +24,16 @@ import java.util.Properties;
 @Lazy
 @Component
 @Featurer(id = FeaturerTwins.ID_2703,
-        name = "SearchCriteriaBuilderLink",
+        name = "Link",
         description = "")
 public class SearchCriteriaBuilderLink extends SearchCriteriaBuilder {
-    @FeaturerParam(name = "linkId", description = "")
+    @FeaturerParam(name = "Link id", description = "", order = 1)
     public static final FeaturerParamUUID linkId = new FeaturerParamUUIDTwinsLinkId("linkId");
 
-    @FeaturerParam(name = "dstTwinId", description = "")
+    @FeaturerParam(name = "Dst twin id", description = "", order = 2)
     public static final FeaturerParamUUIDSet dstTwinId = new FeaturerParamUUIDSetTwinsTwinId("dstTwinId");
 
-    @FeaturerParam(name = "anyOfList", description = "")
+    @FeaturerParam(name = "Any of list", description = "", order = 3)
     public static final FeaturerParamBoolean anyOfList = new FeaturerParamBoolean("anyOfList");
 
     @Override

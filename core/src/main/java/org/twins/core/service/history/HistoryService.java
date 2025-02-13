@@ -6,6 +6,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
+import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -19,7 +20,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Service;
 import org.twins.core.dao.action.TwinAction;
+import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.datalist.DataListOptionEntity;
+import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryRepository;
 import org.twins.core.dao.history.HistoryType;
@@ -27,7 +30,6 @@ import org.twins.core.dao.history.HistoryTypeDomainTemplateRepository;
 import org.twins.core.dao.history.context.*;
 import org.twins.core.dao.history.context.snapshot.FieldSnapshot;
 import org.twins.core.dao.link.LinkEntity;
-import org.twins.core.dao.attachment.TwinAttachmentEntity;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twin.TwinLinkEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
@@ -70,12 +72,17 @@ public class HistoryService extends EntitySecureFindServiceImpl<HistoryEntity> {
 
     @Override
     public boolean isEntityReadDenied(HistoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        DomainEntity domain = authService.getApiUser().getDomain();
+        boolean readDenied=!entity.getTwin().getTwinClass().getDomainId().equals(domain.getId());
+        if (readDenied) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, domain.easyLog(EasyLoggable.Level.NORMAL) + " is not allowed in domain[" + domain.easyLog(EasyLoggable.Level.NORMAL));
+        }
+        return readDenied;
     }
 
     @Override
     public boolean validateEntity(HistoryEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return true;
+        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
     }
 
     public PaginationResult<HistoryEntity> findHistory(UUID twinId, boolean includeDirectChildren, SimplePagination pagination) throws ServiceException {

@@ -20,5 +20,6 @@ public class FactoryBranchSearch {
     private Set<UUID> nextFactoryIdExcludeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
+    private Ternary conditionInvert;
     private Ternary active;
 }
