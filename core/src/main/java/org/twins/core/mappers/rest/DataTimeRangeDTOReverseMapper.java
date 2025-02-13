@@ -1,0 +1,18 @@
+package org.twins.core.mappers.rest;
+
+import org.springframework.stereotype.Component;
+import org.twins.core.domain.DataTimeRange;
+import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
+
+import java.sql.Timestamp;
+
+@Component
+public class DataTimeRangeDTOReverseMapper extends RestSimpleDTOMapper<DataTimeRangeDTOv1, DataTimeRange> {
+    @Override
+    public void map(DataTimeRangeDTOv1 src, DataTimeRange dst, MapperContext mapperContext) {
+        dst
+                .setFrom(Timestamp.valueOf(src.getFrom()))
+                .setTo(Timestamp.valueOf(src.getTo()));
+    }
+}
