@@ -46,9 +46,9 @@ public class FactoryPipelineStepSearchService {
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineStepEntity.Fields.description),
                 checkIntegerIn(search.getFillerFeaturerIdList(), false, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId),
                 checkIntegerIn(search.getFillerFeaturerIdExcludeList(), true, TwinFactoryPipelineStepEntity.Fields.fillerFeaturerId),
-                checkTernary(search.getConditionInvert(), TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert),
-                checkTernary(search.getOptional(), TwinFactoryPipelineStepEntity.Fields.optional),
-                checkTernary(search.getActive(), TwinFactoryPipelineStepEntity.Fields.active)
+                checkTernary(TwinFactoryPipelineStepEntity.Fields.twinFactoryConditionInvert, search.getConditionInvert()),
+                checkTernary(TwinFactoryPipelineStepEntity.Fields.optional, search.getOptional()),
+                checkTernary(TwinFactoryPipelineStepEntity.Fields.active, search.getActive())
         );
     }
 }

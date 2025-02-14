@@ -3,6 +3,7 @@ package org.twins.core.dao.specifications;
 import jakarta.persistence.criteria.*;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -289,6 +290,18 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
             }
 
             return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public static <T> Specification<T> checkTernary(final String field, Ternary ternary) {
+        return (root, query, cb) -> {
+            if (ternary == null)
+                return cb.conjunction();
+            return switch (ternary) {
+                case ONLY -> cb.isTrue(root.get(field));
+                case ONLY_NOT -> cb.isFalse(root.get(field));
+                default -> cb.conjunction();
+            };
         };
     }
 }
