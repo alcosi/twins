@@ -43,8 +43,7 @@ task createDockerfile(type: Dockerfile) {
     destFile.set(project.file("$dockerBuildDir/Dockerfile"))
 
     from("bellsoft/liberica-openjre-alpine:21.0.5")
-    runCommand("mkdir -p $dockerWorkingDir")
-    runCommand("mkdir $dockerWorkingDir/logs")
+    runCommand("mkdir -p $dockerWorkingDir/logs")
     workingDir(".$dockerWorkingDir")
     addFile("$jarName", "$dockerWorkingDir/twins.jar")
     entryPoint("java")

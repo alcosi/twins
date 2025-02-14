@@ -34,4 +34,7 @@ public class FeaturerParamDTOv1 {
 
     @Schema(description = "exampleValues", example = "[\"" + FEATURER_PARAM_VALUE_LIST + "\"," + FEATURER_PARAM_VALUE_INT + "]")
     public List<String> exampleValues;
+
+    @Schema(description = "order")
+    public Integer order;
 }

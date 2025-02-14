@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.featurer.annotations.Featurer;
 import org.springframework.stereotype.Component;
+import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.user.UserGroupMapEntity;
 import org.twins.core.dao.user.UserGroupRepository;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
@@ -19,38 +20,43 @@ import java.util.*;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2101,
-        name = "UserGroupManagerImpl",
+        name = "Impl",
         description = "")
 @RequiredArgsConstructor
 public class UserGroupManagerImpl extends UserGroupManager {
     final UserGroupRepository userGroupRepository;
     final FeaturerService featurerService;
     @Override
-    public void manageForUser(Properties properties, UUID userId, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
-        List<UserGroupMapEntity> userGroupMapEntityList = new ArrayList<>();
+    public void manageForUser(Properties properties, UserEntity user, List<UUID> userGroupEnterList, List<UUID> userGroupExitList, ApiUser apiUser) throws ServiceException {
+        Set<UUID> groupsToLoad = new HashSet<>();
+        if (CollectionUtils.isNotEmpty(userGroupEnterList))
+            groupsToLoad.addAll(userGroupEnterList);
+        if (CollectionUtils.isNotEmpty(userGroupExitList))
+            groupsToLoad.addAll(userGroupExitList);
+        if (CollectionUtils.isEmpty(groupsToLoad))
+            return;
+        Kit<UserGroupEntity, UUID> userGroupsKit = new Kit<>(userGroupRepository.findByIdIn(groupsToLoad), UserGroupEntity::getId);
         if (CollectionUtils.isNotEmpty(userGroupEnterList)) {
             for (UUID enterUserGroupId : userGroupEnterList) {
-                Optional<UserGroupEntity> optionalUserGroup = userGroupRepository.findById(enterUserGroupId);
-                if (optionalUserGroup.isEmpty()) {
+                UserGroupEntity userGroup = userGroupsKit.get(enterUserGroupId);
+                if (userGroup == null) {
                     log.warn("Incorrect enterUserGroupId[" + enterUserGroupId + "]");
                     continue;
                 }
-                UserGroupEntity userGroup = optionalUserGroup.get();
                 Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
-                slugger.enterGroup(userGroup, userId);
+                slugger.enterGroup(userGroup, user);
             }
         }
 
         if (CollectionUtils.isNotEmpty(userGroupExitList)) {
             for (UUID exitUserGroupId : userGroupExitList) {
-                Optional<UserGroupEntity> optionalUserGroup = userGroupRepository.findById(exitUserGroupId);
-                if (optionalUserGroup.isEmpty()) {
+                UserGroupEntity userGroup = userGroupsKit.get(exitUserGroupId);
+                if (userGroup == null) {
                     log.warn("Incorrect exitUserGroupId[" + exitUserGroupId + "]");
                     continue;
                 }
-                UserGroupEntity userGroup = optionalUserGroup.get();
                 Slugger slugger = featurerService.getFeaturer(userGroup.getUserGroupType().getSluggerFeaturer(), Slugger.class);
-                slugger.exitGroup(userGroup, userId);
+                slugger.exitGroup(userGroup, user);
             }
         }
     }

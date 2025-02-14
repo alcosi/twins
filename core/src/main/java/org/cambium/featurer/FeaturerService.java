@@ -51,8 +51,7 @@ public class FeaturerService {
     final FeaturerSpecification featurerSpecification;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
-    Hashtable<Integer, Map<String, FeaturerParamInfo>> featurerParamsMap = new Hashtable<>();
-    Hashtable<Integer, Set<String>> featurerParamsKeyMap = new Hashtable<>();
+    Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
     @Autowired //lazy loading because of circular dependency
     public void setFeaturerList(List<Featurer> featurerList) {
@@ -68,6 +67,7 @@ public class FeaturerService {
     }
 
     private void syncFeaturers() {
+        log.info("syncFeaturers: started");
         List<FeaturerTypeEntity> featurerTypeEntityList = new ArrayList<>();
         List<FeaturerEntity> featurerEntityList = new ArrayList<>();
         List<FeaturerParamEntity> featurerParamEntityList = new ArrayList<>();
@@ -103,6 +103,7 @@ public class FeaturerService {
         //truncating old params
         featurerParamRepository.deleteAllByFeaturerIdIn(featurerEntityList.stream().map(FeaturerEntity::getId).toList());
         featurerParamRepository.saveAll(featurerParamEntityList);
+        log.info("syncFeaturers: ended");
     }
 
     private static Set<FeaturerType> syncedFeaturerTypes = new HashSet<>();
@@ -119,8 +120,7 @@ public class FeaturerService {
 
     private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        Set<FeaturerParamInfo> featurerParamsSet = new HashSet<>();
-// Include fields from parent classes
+        Map<String, org.cambium.featurer.params.FeaturerParam<?>> featurerParamsMap = new HashMap<>();
         for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
@@ -134,7 +134,8 @@ public class FeaturerService {
                     FeaturerParamEntity featurerParamEntity = new FeaturerParamEntity();
                     featurerParamEntity.setFeaturerId(featurerAnnotation.id());
                     //для доступа к key, важно чтобы поле было public static final
-                    String key = ((org.cambium.featurer.params.FeaturerParam) field.get(null)).getKey();
+                    var instance = (org.cambium.featurer.params.FeaturerParam) field.get(null);
+                    String key = instance.getKey();
                     featurerParamEntity.setKey(key);
                     featurerParamEntity.setName(featurerParamAnnotation.name());
                     featurerParamEntity.setDescription(featurerParamAnnotation.description());
@@ -144,14 +145,13 @@ public class FeaturerService {
                     featurerParamEntity.setDefaultValue(!Objects.equals(featurerParamAnnotation.defaultValue(), FeaturerParam.DEFAULT_VALUE_NOT_SET) ? featurerParamAnnotation.defaultValue() : null);
                     featurerParamEntity.setExampleValues(featurerParamAnnotation.exampleValues().length > 0 ? featurerParamAnnotation.exampleValues() : null);
                     featurerParamEntityList.add(featurerParamEntity);
-                    featurerParamsSet.add(new FeaturerParamInfo(featurerParamEntity.getKey(), featurerParamEntity.getName(), featurerParamEntity.getDescription(), featurerParamEntity.getFeaturerParamTypeId(), featurerParamEntity.getOptional(), featurerParamEntity.getDefaultValue(), featurerParamEntity.getExampleValues() == null ? null : Arrays.stream(featurerParamEntity.getExampleValues()).collect(Collectors.toList())));
+                    featurerParamsMap.put(key, instance);
                 }
             } catch (IllegalAccessException e) {
                 log.error("Exception: ", e);
             }
         }
-        featurerParamsMap.put(featurerAnnotation.id(), featurerParamsSet.stream().collect(Collectors.toMap(FeaturerParamInfo::key, Function.identity())));
-        featurerParamsKeyMap.put(featurerAnnotation.id(), featurerParamsSet.stream().map(FeaturerParamInfo::key).collect(Collectors.toSet()));
+        this.featurerParamsMap.put(featurerAnnotation.id(), featurerParamsMap);
     }
 
 
@@ -171,15 +171,21 @@ public class FeaturerService {
     public <T extends Featurer> T getFeaturer(FeaturerEntity featurerEntity, Class<T> featurerType) throws ServiceException {
         if (featurerEntity == null)
             throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
-        Featurer featurer = featurerMap.get(featurerEntity.getId());
+        return getFeaturer(featurerEntity.getId(), featurerType);
+    }
+
+    public <T extends Featurer> T getFeaturer(Integer featurerId, Class<T> featurerType) throws ServiceException {
+        if (featurerId == null)
+            throw new ServiceException(ErrorCodeCommon.FEATURER_IS_NULL);
+        Featurer featurer = featurerMap.get(featurerId);
         if (featurer == null)
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerEntity.getId());
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Can not load feature with id " + featurerId);
         if (!featurerType.isInstance(featurer)) {
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerEntity.getId(), featurerType.getSimpleName()));
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Feature %s can not be loaded as %s", featurerId, featurerType.getSimpleName()));
         }
         org.cambium.featurer.annotations.Featurer annotation = ClassUtils.getUserClass(featurer.getClass()).getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        if (annotation.id() != featurerEntity.getId())
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Incorrect featurer component id " + featurerEntity.getId());
+        if (annotation.id() != featurerId)
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, "Incorrect featurer component id " + featurerId);
         return (T) featurer;
     }
 
@@ -238,54 +244,52 @@ public class FeaturerService {
         }
     }
 
-    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
+    public Properties extractProperties(FeaturerEntity featurerEntity, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         return extractProperties(featurerEntity.getId(), params, context);
     }
 
-    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
-        org.cambium.featurer.annotations.Featurer annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
-        return extractProperties(annotation.id(), params, context);
+    public Properties extractProperties(Featurer featurer, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
+        return extractProperties(getFeaturerId(featurer), params, context);
     }
 
-    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, HashMap<String, Object> context) throws ServiceException {
-        Properties ret = new Properties();
-        Map<String, FeaturerParamInfo> paramInfoMap = featurerParamsMap.get(featurerId);
-        Set<String> keySet = featurerParamsKeyMap.get(featurerId);
-        int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
-        int notOptionalParamsCountSetting = (int) paramInfoMap.values().stream().filter(it -> !it.optional()).count();
-        int totalParamsCountSetting = paramInfoMap.values().size();
+    private int getFeaturerId(Featurer featurer) {
+        var annotation = featurer.getClass().getAnnotation(org.cambium.featurer.annotations.Featurer.class);
+        return annotation.id();
+    }
 
-        if (paramsCount < notOptionalParamsCountSetting || paramsCount > totalParamsCountSetting) {
+    public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
+        Properties ret = new Properties();
+        var paramsMap = featurerParamsMap.get(featurerId);
+        int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
+        int notOptionalParamsCountSetting = (int) paramsMap.values().stream().filter(it -> !it.optional()).count();
+        int totalParamsCountSetting = paramsMap.values().size();
+        if (paramsCount != paramsMap.size())
+            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
+                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsMap.size(), paramsCount));
+        if (paramsCount < notOptionalParamsCountSetting) {
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect params count for featurer[%s]. Expected (%s,%s), got %s", featurerId, notOptionalParamsCountSetting, totalParamsCountSetting, paramsCount));
         }
         if (paramsCount == 0)
             return ret;//no params
-        Set<String> extraParams = params.keySet().stream().filter(s -> !keySet.contains(s)).collect(Collectors.toSet());
-        if (!extraParams.isEmpty()) {
-            throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
-                    String.format("Unknown params keys[%s] for featurer[%s]", String.join(",", extraParams), featurerId));
-        }
-        for (String key : featurerParamsKeyMap.get(featurerId)) {
-            FeaturerParamInfo info = paramInfoMap.get(key);
-            String value = params.get(key) != null ? params.get(key) :
-                    info.optional() ? info.defaultValue() : null;
-            if (!info.optional() && value == null) {
+        for (var entry : paramsMap.entrySet()) {
+            String value = params.get(entry.getKey()) != null ? params.get(entry.getKey()) :
+                    entry.getValue().optional() ? entry.getValue().defaultValue() : null;
+            if (!entry.getValue().optional() && value == null) {
                 throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect non-optional param[%s] value[null] for featurer[%s].", key, featurerId));
             }
-            if (value != null && value.contains("injection@")) {
+            if (value.contains("injection@")) {
                 try {
-                    ret.put(key, extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(value, "@")), context));
+                    ret.put(entry.getKey(), extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(entry.getValue(), "@")), context));
                 } catch (Exception e) {
-                    log.error("error getting value[" + value + "] injected by key[" + value + "]", e);
-                    ret.put(key, value);
+                    log.error("error getting value[" + entry.getValue() + "] injected by key[" + entry.getKey() + "]", e);
+                    ret.put(entry.getKey(), entry.getValue());
                 }
             } else {
-                ret.put(key, value);
+                ret.put(entry.getKey(), entry.getValue());
             }
         }
         return ret;
     }
-
 
     /**
      * @param injectionId - идентификатор инъекции
@@ -294,7 +298,7 @@ public class FeaturerService {
      *                    ..._params, а подставляются исходя из условий injections_conditions из других таблиц
      * @return значение параметра, которое было получено через инъекцию
      */
-    public String extractInjectedProperties(UUID injectionId, HashMap<String, Object> context) throws Exception {
+    public String extractInjectedProperties(UUID injectionId, Map<String, Object> context) throws Exception {
         FeaturerInjectionEntity injection = injectionRepository.findById(injectionId).orElseThrow(NullPointerException::new);
         return getInjector(injection.getInjectorFeaturer()).doInject(injection, context);
     }
@@ -322,7 +326,20 @@ public class FeaturerService {
             throw new ServiceException(ErrorCodeCommon.FEATURER_ID_UNKNOWN, "unknown featurer id[" + featurerId + "]");
         if (!expectedFeaturerClass.isInstance(featurer))
             throw new ServiceException(ErrorCodeCommon.FEATURER_INCORRECT_TYPE, "featurer of id[" + featurerId + "] is not of expected type[" + expectedFeaturerClass.getSimpleName() + "]");
-        extractProperties(featurer, featurerParams, new HashMap<>());
+        Properties properties = extractProperties(featurer, featurerParams, new HashMap<>());
+        basicParamsValidation(featurerId, properties);
+        featurer.extraParamsValidation(properties);
+        return featurerRepository.getById(featurerId);
+    }
+
+    public void basicParamsValidation(Integer featurerId, Properties properties) throws ServiceException {
+        var paramsMap = featurerParamsMap.get(featurerId);
+        for (var entry : paramsMap.entrySet()) {
+            entry.getValue().validate(properties.getProperty(entry.getKey()));
+        }
+    }
+
+    public FeaturerEntity getFeaturerEntity(Integer featurerId) {
         return featurerRepository.getById(featurerId);
     }
 

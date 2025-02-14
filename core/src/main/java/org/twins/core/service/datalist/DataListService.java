@@ -8,6 +8,7 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.KeyUtils;
 import org.cambium.common.util.KitUtils;
 import org.cambium.featurer.FeaturerService;
 import org.cambium.i18n.dao.I18nEntity;
@@ -108,7 +109,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
     @Transactional(rollbackFor = Throwable.class)
     public DataListEntity createDataList(DataListSave dataListSave) throws ServiceException {
         DataListEntity dataListEntity = new DataListEntity()
-                .setKey(dataListSave.getKey())
+                .setKey(KeyUtils.lowerCaseNullSafe(dataListSave.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT))
                 .setDomainId(authService.getApiUser().getDomainId())
                 .setNameI18nId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListSave.getNameI18n()).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
@@ -152,7 +153,8 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         return dbDataListEntity;
     }
 
-    private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) {
+    private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {
+        dataListSave.setKey(KeyUtils.lowerCaseNullFriendly(dataListSave.getKey(), ErrorCodeTwins.DATALIST_KEY_INCORRECT));
         if (!changesHelper.isChanged(DataListEntity.Fields.key, dbEntity.getKey(), dataListSave.getKey()))
             return;
         dbEntity.setKey(dataListSave.getKey());

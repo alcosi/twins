@@ -3,6 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
+import org.twins.core.dao.datalist.DataListOptionEntity;
 
 import java.util.Set;
 import java.util.UUID;
@@ -27,4 +28,6 @@ public class DataListOptionSearch {
     private Set<UUID> dataListSubsetIdExcludeList;
     private Set<String> dataListSubsetKeyList;
     private Set<String> dataListSubsetKeyExcludeList;
+    private Set<DataListOptionEntity.Status> statusIdList;
+    private Set<DataListOptionEntity.Status> statusIdExcludeList;
 }

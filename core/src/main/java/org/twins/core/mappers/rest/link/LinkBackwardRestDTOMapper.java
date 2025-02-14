@@ -41,22 +41,22 @@ public class LinkBackwardRestDTOMapper extends RestSimpleDTOMapper<LinkEntity, L
                 if (mapperContext.hasMode(LinkMode.MANAGED) && !permissionService.currentUserHasPermission(Permissions.TWIN_CLASS_MANAGE))
                     throw new ServiceException(ErrorCodeTwins.SHOW_MODE_ACCESS_DENIED, "Show Mode[" + LinkMode.MANAGED + "] is not allowed for current user");
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getBackwardNameI18NId()))
-                        .dstTwinClassId(src.getSrcTwinClassId())
-                        .linkStrengthId(src.getLinkStrengthId())
-                        .type(src.getType());
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getBackwardNameI18NId()))
+                        .setDstTwinClassId(src.getSrcTwinClassId())
+                        .setLinkStrengthId(src.getLinkStrengthId())
+                        .setType(src.getType());
                 break;
             case SHORT:
                 dst
-                        .id(src.getId())
-                        .name(i18nService.translateToLocale(src.getBackwardNameI18NId()));
+                        .setId(src.getId())
+                        .setName(i18nService.translateToLocale(src.getBackwardNameI18NId()));
         }
 
         if (mapperContext.hasModeButNot(TwinClassMode.LinkDst2TwinClassMode.HIDE))
             dst
-                    .dstTwinClassId(src.getSrcTwinClassId())
-                    .dstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
+                    .setDstTwinClassId(src.getSrcTwinClassId())
+                    .setDstTwinClass(twinClassRestDTOMapper.convertOrPostpone(src.getSrcTwinClass(), mapperContext
                             .forkOnPoint(TwinClassMode.LinkDst2TwinClassMode.SHORT)));
     }
 

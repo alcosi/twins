@@ -22,7 +22,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2325,
-        name = "FillerForwardLinkFromContextTwinLinkDstTwinHead",
+        name = "Forward link from context twin link dst twin head",
         description = "Finds link in context twin. " +
                 "Get dst twin for this link. " +
                 "Get head of this dst twin. " +
@@ -33,10 +33,10 @@ public class FillerForwardLinkFromContextTwinLinkDstTwinHead extends FillerLinks
     @Autowired
     TwinService twinService;
 
-    @FeaturerParam(name = "headHunterLink", description = "")
+    @FeaturerParam(name = "Head hunter link", description = "", order = 2)
     public static final FeaturerParamUUID headHunterLink = new FeaturerParamUUIDTwinsLinkId("headHunterLink");
 
-    @FeaturerParam(name = "newLinksId", description = "")
+    @FeaturerParam(name = "New links id", description = "", order = 1)
     public static final FeaturerParamUUID newLinksId = new FeaturerParamUUIDTwinsLinkId("newLinksId");
 
     @Override

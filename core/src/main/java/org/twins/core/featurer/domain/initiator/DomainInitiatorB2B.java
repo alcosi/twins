@@ -25,7 +25,7 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2502,
-        name = "DomainInitiatorB2B",
+        name = "B2B",
         description = "")
 @RequiredArgsConstructor
 @Slf4j

@@ -4,7 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dao.factory.TwinFactoryPipelineStepEntity;
-import org.twins.core.dto.rest.permission.FactoryPipelineStepDTOv1;
+import org.twins.core.dto.rest.factory.FactoryPipelineStepDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FactoryPipelineStepMode;

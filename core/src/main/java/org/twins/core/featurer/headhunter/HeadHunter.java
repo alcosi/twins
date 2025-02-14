@@ -1,12 +1,11 @@
-package org.twins.core.featurer.twinclass;
+package org.twins.core.featurer.headhunter;
 
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
-import org.cambium.common.pagination.PaginationResult;
-import org.cambium.common.pagination.SimplePagination;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
+import org.twins.core.domain.search.BasicSearch;
 import org.twins.core.featurer.FeaturerTwins;
 
 import java.util.HashMap;
@@ -17,13 +16,13 @@ import java.util.Properties;
         description = "Getting valid head twin class by some class")
 @Slf4j
 public abstract class HeadHunter extends FeaturerTwins {
-    public PaginationResult<TwinEntity> findValidHead(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException {
+    public void expandValidHeadSearch(HashMap<String, String> headHunterParams, TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, headHunterParams, new HashMap<>());
-        log.info("Running featurer[" + this.getClass().getSimpleName() + "].findValidHead with params: " + properties.toString());
-        return findValidHead(properties, twinClassEntity, pagination);
+        log.info("Running featurer[" + this.getClass().getSimpleName() + "].expandValidHeadSearch with params: " + properties.toString());
+        expandValidHeadSearch(properties, twinClassEntity, basicSearch);
     }
 
-    protected abstract PaginationResult<TwinEntity> findValidHead(Properties properties, TwinClassEntity twinClassEntity, SimplePagination pagination) throws ServiceException;
+    protected abstract void expandValidHeadSearch(Properties properties, TwinClassEntity twinClassEntity, BasicSearch basicSearch) throws ServiceException;
 
     /**
      * Method to check if some new twin of given class can be created as child for given twin.

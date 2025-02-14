@@ -48,7 +48,7 @@ public class CommentEditController extends ApiController {
     @PutMapping(value = "/private/comment/{commentId}/v1")
     public ResponseEntity<?> twinCommentUpdateV1(
             @MapperContextBinding(roots = CommentViewRestDTOMapper.class, response = CommentViewRsDTOv1.class) MapperContext mapperContext,
-            @Parameter(example = DTOExamples.TWIN_COMMENT) @PathVariable UUID commentId,
+            @Parameter(example = DTOExamples.TWIN_COMMENT_ID) @PathVariable UUID commentId,
             @RequestBody CommentUpdateRqDTOv1 request) {
         CommentViewRsDTOv1 rs = new CommentViewRsDTOv1();
         try {

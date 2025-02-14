@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
-import org.twins.core.dao.businessaccount.BusinessAccountEntity;
+import org.twins.core.dao.domain.DomainEntity;
 
 import java.sql.Timestamp;
 import java.util.UUID;
@@ -13,9 +13,9 @@ import java.util.UUID;
 @Entity
 @Data
 @Accessors(chain = true)
-@Table(name = "user_group_map")
+@Table(name = "user_group_map_type3")
 @FieldNameConstants
-public class UserGroupMapEntity implements EasyLoggable {
+public class UserGroupMapType3Entity implements EasyLoggable, UserGroupMap {
     @Id
     @GeneratedValue(generator = "uuid")
     private UUID id;
@@ -23,8 +23,8 @@ public class UserGroupMapEntity implements EasyLoggable {
     @Column(name = "user_group_id")
     private UUID userGroupId;
 
-    @Column(name = "business_account_id")
-    private UUID businessAccountId;
+    @Column(name = "domain_id")
+    private UUID domainId;
 
     @Column(name = "user_id")
     private UUID userId;
@@ -48,10 +48,13 @@ public class UserGroupMapEntity implements EasyLoggable {
     private UserEntity addedByUser;
 
     @ManyToOne
-    @JoinColumn(name = "business_account_id", insertable = false, updatable = false)
-    private BusinessAccountEntity businessAccount;
+    @JoinColumn(name = "domain_id", insertable = false, updatable = false)
+    private DomainEntity domain;
 
     public String easyLog(Level level)  {
-        return "userGroupMap[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + "]";
+        return switch (level) {
+            case SHORT -> "userGroupMapType3[id:" + id + "]";
+            default ->  "userGroupMapType3[id:" + id + ", userGroupId:" + userGroupId + ", userId:" + userId + ", domainId:" + domainId + "]";
+        };
     }
 }

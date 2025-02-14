@@ -64,15 +64,15 @@ public class DomainAddController extends ApiController {
     }
 
     @ParametersApiUserNoDomainHeaders
-    @Operation(operationId = "domainAddV1", summary = "Add new domain with icons")
+    @Operation(operationId = "domainAddV2", summary = "Add new domain with icons")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Domain was added", content = {
                     @Content(mediaType = "application/json", schema = @Schema(implementation = DomainViewRsDTOv1.class))
             }),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PostMapping(path = "/private/domain/v1", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+    @PostMapping(path = "/private/domain/v2", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     @Loggable(value = false, rqBodyThreshold = 0)
-    public ResponseEntity<?> domainAddV1(
+    public ResponseEntity<?> domainAddV2(
             @Schema(implementation = DomainCreateRqDTOv1.class, requiredMode = Schema.RequiredMode.REQUIRED, description = "request json")
             @RequestPart("request") byte[] requestBytes,
             @Schema(implementation = MultipartFile.class, requiredMode = Schema.RequiredMode.NOT_REQUIRED, description = "Dark icon")

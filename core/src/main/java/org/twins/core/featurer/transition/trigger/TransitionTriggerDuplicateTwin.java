@@ -21,7 +21,7 @@ import java.util.Properties;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1501,
-        name = "TransitionTriggerDuplicateTwin",
+        name = "DuplicateTwin",
         description = "")
 @RequiredArgsConstructor
 public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
@@ -30,7 +30,7 @@ public class TransitionTriggerDuplicateTwin extends TransitionTrigger {
     @Lazy
     final AuthService authService;
 
-    @FeaturerParam(name = "twinId", description = "")
+    @FeaturerParam(name = "Twin id", description = "", order = 1)
     public static final FeaturerParamUUID twinId = new FeaturerParamUUIDTwinsTwinId("twinId");
 
     @Override

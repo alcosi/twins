@@ -22,6 +22,7 @@ public class FeaturerParamRestDTOMapper extends RestSimpleDTOMapper<FeaturerPara
                 .setType(src.getFeaturerParamTypeId())
                 .setDefaultValue(src.getDefaultValue())
                 .setOptional(src.optional)
-                .setExampleValues(src.exampleValues == null ? null : Arrays.stream(src.exampleValues).collect(Collectors.toList()));
+                .setExampleValues(src.exampleValues == null ? null : Arrays.stream(src.exampleValues).collect(Collectors.toList()))
+                .setOrder(src.getOrder());
     }
 }

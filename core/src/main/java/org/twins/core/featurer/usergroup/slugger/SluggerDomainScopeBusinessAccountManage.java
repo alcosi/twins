@@ -4,14 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.featurer.annotations.Featurer;
-import org.cambium.service.EntitySmartService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-import org.twins.core.dao.user.UserGroupEntity;
-import org.twins.core.dao.user.UserGroupMapEntity;
-import org.twins.core.dao.user.UserGroupRepository;
-import org.twins.core.dao.user.UserGroupTypeEntity;
+import org.twins.core.dao.user.*;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.featurer.FeaturerTwins;
 
@@ -19,68 +14,69 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_2002,
-        name = "SluggerDomainScopeBusinessAccountManage",
+        name = "Domain scope / business account manage",
         description = "")
-public class SluggerDomainScopeBusinessAccountManage extends Slugger {
-
-    private final String type = "";
-
-    @Lazy
+public class SluggerDomainScopeBusinessAccountManage extends Slugger<UserGroupMapType2Entity> {
     @Autowired
-    EntitySmartService entitySmartService;
-
-    @Lazy
-    @Autowired
-    UserGroupRepository userGroupRepository;
+    UserGroupMapType2Repository userGroupMapType2Repository;
 
     @Override
-    protected UserGroupEntity checkConfigAndGetGroup(Properties properties, UserGroupMapEntity userGroupMapEntity) throws ServiceException {
-        checkUserGroupBusinessAccountEmpty(userGroupMapEntity.getUserGroup());
-        ApiUser apiUser = authService.getApiUser();
-        if (userGroupMapEntity.getBusinessAccountId() == null) {
-            log.warn(userGroupMapEntity.easyLog(EasyLoggable.Level.NORMAL) + " incorrect config. Group is " + userGroupMapEntity.getUserGroup().getUserGroupTypeId() + ". Missing business_account in user_group_map");
-            return null;
-        } else if (apiUser.isBusinessAccountSpecified() && !apiUser.getBusinessAccountId().equals(userGroupMapEntity.getBusinessAccountId())) {
-            return null;
-        } else
-            return userGroupMapEntity.getUserGroup();
+    protected boolean checkConfig(Properties properties, UserGroupMapType2Entity userGroupMapEntity) throws ServiceException {
+        return check(userGroupMapEntity.getUserGroup(), null, userGroupMapEntity.getBusinessAccountId(), true, false, false, true);
     }
 
     @Override
-    protected UserGroupMapEntity enterGroup(Properties properties, UserGroupEntity userGroup, UUID userId, ApiUser apiUser) throws ServiceException {
-        if (!apiUser.isBusinessAccountSpecified()) {
-            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]. Business account is unknown");
-            return null;
-        } else if (!checkDomainCompatability(apiUser, userGroup)) {
-            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + userId + "]");
-            return null;
-        }
+    protected List<? extends UserGroupMap> getGroups(Properties properties, Set<UUID> userIds) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        return userGroupMapType2Repository.findByUserIdInAndBusinessAccountId(
+                userIds,
+                apiUser.getBusinessAccountId());
+    }
 
-        if (userGroupMapRepository.existsByUserIdAndUserGroupIdAndBusinessAccountId(userId, userGroup.getId(), apiUser.getBusinessAccountId())) {
-            log.warn("userGroupMapEntity for user[" +userId + "] and group[" + userGroup.getId() + "] and BA[" + userGroup.getBusinessAccountId() + "] is already exists");
+    @Override
+    protected UserGroupMap enterGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
+        var apiUser = authService.getApiUser();
+        if (!apiUser.isBusinessAccountSpecified()) {
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + user + "]. Business account is unknown");
+            return null;
+        } else if (!checkDomainCompatability(userGroup.getDomainId())) {
+            log.warn(userGroup.easyLog(EasyLoggable.Level.NORMAL) + " can not be entered by userId[" + user + "]");
             return null;
         }
-        return new UserGroupMapEntity()
+        var ret = new UserGroupMapType2Entity()
                 .setUserGroupId(userGroup.getId())
                 .setUserGroup(userGroup)
-                .setUserId(userId)
+                .setUserId(user.getId())
+                .setUser(user)
                 .setBusinessAccountId(apiUser.getBusinessAccountId())
                 .setBusinessAccount(apiUser.getBusinessAccount())
                 .setAddedByUserId(apiUser.getUser().getId())
                 .setAddedByUser(apiUser.getUser())
                 .setAddedAt(Timestamp.from(Instant.now()));
+        userGroupMapType2Repository.save(ret);
+        return ret;
+    }
+
+    @Override
+    protected boolean exitGroup(Properties properties, UserEntity user, UserGroupEntity userGroup) throws ServiceException {
+        UserGroupMapType2Entity entityToDelete =  userGroupMapType2Repository.findByUserIdAndUserGroupIdAndBusinessAccountId(user.getId(), userGroup.getId(), authService.getApiUser().getBusinessAccountId());
+        if (entityToDelete == null)
+            return false;
+        entitySmartService.deleteAndLog(entityToDelete.getId(), userGroupMapType2Repository);
+        return true;
     }
 
     @Override
     protected void processDomainBusinessAccountDeletion(Properties properties, UUID businessAccountId, UserGroupTypeEntity userGroupTypeEntity) throws ServiceException {
         //we should delete only members from groups of given type, which where linked to given BA. But group should not be deleted, because it will include users from other BAs
-        List<UUID> usersToDelete = userGroupMapRepository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
-        entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapRepository);
+        List<UUID> usersToDelete = userGroupMapType2Repository.findAllByBusinessAccountIdAndDomainIdAndType(businessAccountId, authService.getApiUser().getDomainId(), userGroupTypeEntity.getId());
+        entitySmartService.deleteAllAndLog(usersToDelete, userGroupMapType2Repository);
     }
 
     @Override

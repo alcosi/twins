@@ -68,34 +68,35 @@ public class TwinSearchService {
 
     private Specification<TwinEntity> createTwinEntitySearchSpecification(BasicSearch basicSearch) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        userGroupService.loadGroups(apiUser);
+        userGroupService.loadGroupsForCurrentUser();
         UUID domainId = apiUser.getDomainId();
         UUID businessAccountId = apiUser.getBusinessAccountId();
         UUID userId = apiUser.getUser().getId();
-        Set<UUID> userGroups = apiUser.getUserGroups();
         //todo create filter by basicSearch.getExtendsTwinClassIdList()
         Specification<TwinEntity> specification = where(createTwinEntityBasicSearchSpecification(basicSearch,userId));
 
-        if (!permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL)) {
-            specification = specification
-                    .and(checkPermissions(domainId, businessAccountId, userId, userGroups))
-                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
-        } else {
+        if (permissionService.currentUserHasPermission(Permissions.DOMAIN_TWINS_VIEW_ALL) || !basicSearch.isCheckViewPermission()) {
             specification = specification
                     .and(checkFieldUuid(apiUser.getDomainId(),TwinEntity.Fields.twinClass,TwinClassEntity.Fields.domainId))
                     .and(checkClassId(basicSearch.getTwinClassIdList()));
+        } else {
+            specification = specification
+                    .and(checkPermissions(domainId, businessAccountId, userId, apiUser.getUser().getUserGroups().getIdSetSafe()))
+                    .and(checkClass(basicSearch.getTwinClassIdList(), apiUser));
         }
 
 
         //HEAD TWIN CHECK
-        if (null != basicSearch.getHeadSearch()) specification = specification.and(
+        if (null != basicSearch.getHeadSearch() && !basicSearch.getHeadSearch().isEmpty())
+            specification = specification.and(
                 checkHeadTwin(
                         createTwinEntityBasicSearchSpecification(basicSearch.getHeadSearch(),userId),
                         basicSearch.getHeadSearch()
                 ));
 
         //CHILDREN TWINS CHECK
-        if (null != basicSearch.getChildrenSearch()) specification = specification.and(
+        if (null != basicSearch.getChildrenSearch() && !basicSearch.getChildrenSearch().isEmpty())
+            specification = specification.and(
                 checkChildrenTwins(
                         createTwinEntityBasicSearchSpecification(basicSearch.getChildrenSearch(),userId),
                         basicSearch.getChildrenSearch()

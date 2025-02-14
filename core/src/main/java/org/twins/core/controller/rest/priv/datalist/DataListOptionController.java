@@ -20,11 +20,11 @@ import org.twins.core.dao.datalist.DataListOptionEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRqDTOv1;
 import org.twins.core.dto.rest.datalist.DataListOptionMapRsDTOv1;
-import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv1;
+import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
 import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapper;
+import org.twins.core.mappers.rest.datalist.DataListOptionRestDTOMapperV3;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.datalist.DataListOptionService;
-import org.twins.core.service.datalist.DataListService;
 
 import java.util.UUID;
 
@@ -33,27 +33,26 @@ import java.util.UUID;
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RequiredArgsConstructor
 public class DataListOptionController extends ApiController {
-    private final DataListService dataListService;
     private final DataListOptionService dataListOptionService;
     private final DataListOptionRestDTOMapper dataListOptionRestDTOMapper;
+    private final DataListOptionRestDTOMapperV3 dataListOptionRestDTOMapperV3;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "dataListOptionViewV1", summary = "Returns list data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "List details prepared", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = DataListOptionRsDTOv1.class))}),
+                    @Schema(implementation = DataListOptionRsDTOv3.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @GetMapping(value = "/private/data_list_option/{dataListOptionId}/v1")
     public ResponseEntity<?> dataListOptionV1(
-            @MapperContextBinding(roots = DataListOptionRestDTOMapper.class, response = DataListOptionRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = DataListOptionRestDTOMapperV3.class, response = DataListOptionRsDTOv3.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.DATA_LIST_OPTION_ID) @PathVariable UUID dataListOptionId) {
-        DataListOptionRsDTOv1 rs = new DataListOptionRsDTOv1();
+        DataListOptionRsDTOv3 rs = new DataListOptionRsDTOv3();
         try {
             DataListOptionEntity dataListOptionEntity = dataListOptionService.findEntitySafe(dataListOptionId);
             rs
-                    .setDataListId(dataListOptionEntity.getDataListId())
-                    .setOption(dataListOptionRestDTOMapper.convert(dataListOptionEntity, mapperContext));
+                    .setOption(dataListOptionRestDTOMapperV3.convert(dataListOptionEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {

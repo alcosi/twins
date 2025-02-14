@@ -22,12 +22,12 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2330,
-        name = "FillerFieldUserFromOutputTwinHeadAssignee",
+        name = "Field user from output twin head assignee",
         description = "Fill the user field with assignee own head twin assignee")
 @Slf4j
 public class FillerFieldUserFromOutputTwinHeadAssignee extends Filler {
 
-    @FeaturerParam(name = "twinClassFieldId", description = "")
+    @FeaturerParam(name = "Twin class field id", description = "", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
     @Lazy

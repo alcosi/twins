@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.kit.Kit;
 import org.cambium.common.kit.KitGrouped;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
@@ -29,7 +30,6 @@ import org.twins.core.dao.domain.DomainType;
 import org.twins.core.dao.domain.DomainTypeTwinClassOwnerTypeRepository;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.permission.PermissionRepository;
-import org.twins.core.dao.specifications.twinclass.TwinClassSpecification;
 import org.twins.core.dao.twin.TwinRepository;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.*;
@@ -40,8 +40,8 @@ import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinClassUpdate;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
-import org.twins.core.featurer.twinclass.HeadHunter;
-import org.twins.core.featurer.twinclass.HeadHunterImpl;
+import org.twins.core.featurer.headhunter.HeadHunter;
+import org.twins.core.featurer.headhunter.HeadHunterImpl;
 import org.twins.core.service.SystemEntityService;
 import org.twins.core.service.TwinsEntitySecureFindService;
 import org.twins.core.service.auth.AuthService;
@@ -59,7 +59,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
@@ -185,6 +184,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         Locale locale = authService.getApiUser().getLocale();
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
+                        .and(checkUuid(authService.getApiUser().getDomainId(), false, false, TwinClassEntity.Fields.domainId))
                         .and(checkOwnerTypeIn(twinClassSearch.getOwnerTypeExcludeList(), true))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdList(), false, false, TwinClassEntity.Fields.id))
                         .and(checkUuidIn(twinClassSearch.getTwinClassIdExcludeList(), true, false, TwinClassEntity.Fields.id))
@@ -197,13 +197,23 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                         .and(checkUuidIn(twinClassSearch.getHeadTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.headTwinClassId))
                         .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdList(), false, false, TwinClassEntity.Fields.extendsTwinClassId))
                         .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.extendsTwinClassId))
+                        .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdList(), false, false, TwinClassEntity.Fields.markerDataListId))
+                        .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
+                        .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
+                        .and(checkUuidIn(twinClassSearch.getTagDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.tagDataListId))
                         .and(checkTernary(TwinClassEntity.Fields.abstractt, twinClassSearch.getAbstractt()))
                         .and(checkTernary(TwinClassEntity.Fields.permissionSchemaSpace, twinClassSearch.getPermissionSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinflowSchemaSpace, twinClassSearch.getTwinflowSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.twinClassSchemaSpace, twinClassSearch.getTwinClassSchemaSpace()))
                         .and(checkTernary(TwinClassEntity.Fields.aliasSpace, twinClassSearch.getAliasSpace()))
                         .and(checkUuidIn(twinClassSearch.getViewPermissionIdList(), false, false, TwinClassEntity.Fields.viewPermissionId))
-                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, true, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getViewPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.viewPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdList(), false, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getCreatePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.createPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdList(), false, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getEditPermissionIdExcludeList(), true, false, TwinClassEntity.Fields.editPermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdList(), false, false, TwinClassEntity.Fields.deletePermissionId))
+                        .and(checkUuidIn(twinClassSearch.getDeletePermissionIdExcludeList(), true, false, TwinClassEntity.Fields.deletePermissionId))
         );
     }
 
@@ -256,15 +266,54 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         return duplicateTwinClassEntity;
     }
 
-    public Set<UUID> loadChildClasses(TwinClassEntity twinClassEntity) {
-        if (twinClassEntity.getChildClassIdSet() != null)
-            return twinClassEntity.getChildClassIdSet();
+    public void loadExtendsHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadExtendsHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
 
-        Set<UUID> childClassIdSet = twinClassRepository.findAll(
-                        TwinClassSpecification.checkHierarchyIsChild(TwinClassEntity.Fields.extendsHierarchyTree, twinClassEntity.getId()))
-                .stream().map(TwinClassEntity::getId).collect(Collectors.toSet());
-        twinClassEntity.setChildClassIdSet(childClassIdSet);
-        return childClassIdSet;
+    public void loadExtendsHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getExtendsHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setExtendsHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndExtendsHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getExtendedClassIdSet().contains(twinClass.getId()))
+                    twinClass.getExtendsHierarchyChildClassKit().add(childClass);
+            }
+        }
+    }
+
+    public void loadHeadHierarchyChildClasses(TwinClassEntity twinClassEntity) throws ServiceException {
+        loadHeadHierarchyChildClasses(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadHeadHierarchyChildClasses(Collection<TwinClassEntity> twinClassEntityList) throws ServiceException {
+        List<TwinClassEntity> needLoad = new ArrayList<>();
+        List<String> classLTree = new ArrayList<>();
+        for (TwinClassEntity twinClass : twinClassEntityList) {
+            if (twinClass.getHeadHierarchyChildClassKit() != null)
+                continue;
+            twinClass.setHeadHierarchyChildClassKit(new Kit<>(TwinClassEntity::getId));
+            needLoad.add(twinClass);
+            classLTree.add(LTreeUtils.matchInTheMiddle(twinClass.getId()));
+        }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
+        List<TwinClassEntity> childClasses = twinClassRepository.findByDomainIdAndHeadHierarchyContains(authService.getApiUser().getDomainId(), String.join(",", classLTree));
+        for (TwinClassEntity twinClass : needLoad) {
+            for (TwinClassEntity childClass : childClasses) {
+                if (childClass.getHeadHierarchyClassIdSet().contains(twinClass.getId()))
+                    twinClass.getHeadHierarchyChildClassKit().add(childClass);
+            }
+        }
     }
 
     public void loadPermissions(TwinClassEntity twinClassEntity) {
@@ -337,9 +386,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     @Transactional(rollbackFor = Throwable.class)
     public TwinClassEntity createInDomainClass(TwinClassEntity twinClassEntity, I18nEntity nameI18n, I18nEntity descriptionI18n, Boolean autoCreatePermissions) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (StringUtils.isBlank(twinClassEntity.getKey()))
-            throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
-        twinClassEntity.setKey(twinClassEntity.getKey().trim().toUpperCase().replaceAll("\\s", "_"));
+        twinClassEntity.setKey(KeyUtils.upperCaseNullFriendly(twinClassEntity.getKey(), ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT));
         if (twinClassRepository.existsByDomainIdAndKey(apiUser.getDomainId(), twinClassEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.TWIN_CLASS_KEY_ALREADY_IN_USE);
 
@@ -366,18 +413,13 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
             twinClassEntity.setExtendsTwinClassId(apiUser.getDomain().getAncestorTwinClassId());
         }
         twinClassEntity
-                .setKey(twinClassEntity.getKey().toUpperCase())
                 .setNameI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_NAME, nameI18n).getId())
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWIN_CLASS_DESCRIPTION, descriptionI18n).getId())
                 .setDomainId(apiUser.getDomainId())
                 .setOwnerType(domainService.checkDomainSupportedTwinClassOwnerType(apiUser.getDomain(), twinClassEntity.getOwnerType()))
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-
-
         validateEntityAndThrow(twinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
-
-
         twinClassEntity = entitySmartService.save(twinClassEntity, twinClassRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
 
         if (autoCreatePermissions) {
@@ -530,6 +572,7 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
     }
 
     public void updateTwinClassKey(TwinClassEntity dbTwinClassEntity, String newKey, ChangesHelper changesHelper) throws ServiceException {
+        newKey = KeyUtils.upperCaseNullFriendly(newKey, ErrorCodeTwins.TWIN_CLASS_KEY_INCORRECT);
         if (!changesHelper.isChanged(TwinClassEntity.Fields.key, dbTwinClassEntity.getKey(), newKey))
             return;
         if (twinClassRepository.existsByDomainIdAndKey(authService.getApiUser().getDomainId(), newKey))
