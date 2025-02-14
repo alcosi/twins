@@ -10,13 +10,11 @@ import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
 import org.cambium.common.pagination.SimplePagination;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.PaginationUtils;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.annotations.FeaturerParamType;
 import org.cambium.featurer.annotations.FeaturerType;
 import org.cambium.featurer.dao.*;
-import org.cambium.featurer.dao.specifications.FeaturerSpecification;
 import org.cambium.featurer.exception.ErrorCodeFeaturer;
 import org.cambium.featurer.injectors.Injector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,14 +23,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ClassUtils;
-import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.search.FeaturerSearch;
-import org.twins.core.featurer.domain.dto.FeaturerParamInfo;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static org.cambium.featurer.dao.specifications.FeaturerSpecification.checkIntegerIn;
@@ -48,9 +43,9 @@ public class FeaturerService {
     final FeaturerParamRepository featurerParamRepository;
     final FeaturerParamTypeRepository featurerParamTypeRepository;
     final FeaturerInjectionRepository injectionRepository;
-    final FeaturerSpecification featurerSpecification;
     List<Featurer> featurerList;
     Hashtable<Integer, Featurer> featurerMap = new Hashtable<>();
+    Hashtable<Integer, Map<String, FeaturerParam>> featurerParamsAnnotationsMap = new Hashtable<>();
     Hashtable<Integer, Map<String, org.cambium.featurer.params.FeaturerParam<?>>> featurerParamsMap = new Hashtable<>();
 
     @Autowired //lazy loading because of circular dependency
@@ -121,6 +116,7 @@ public class FeaturerService {
     private void syncFeaturersParams(Class<Featurer> featurerClass, List<FeaturerParamEntity> featurerParamEntityList) {
         org.cambium.featurer.annotations.Featurer featurerAnnotation = featurerClass.getAnnotation(org.cambium.featurer.annotations.Featurer.class);
         Map<String, org.cambium.featurer.params.FeaturerParam<?>> featurerParamsMap = new HashMap<>();
+        Map<String, FeaturerParam> featurerParamsAnnotationMap = new HashMap<>();
         for (Field field : featurerClass.getFields()) {
             try {
                 FeaturerParam featurerParamAnnotation = field.getAnnotation(FeaturerParam.class);
@@ -146,6 +142,7 @@ public class FeaturerService {
                     featurerParamEntity.setExampleValues(featurerParamAnnotation.exampleValues().length > 0 ? featurerParamAnnotation.exampleValues() : null);
                     featurerParamEntityList.add(featurerParamEntity);
                     featurerParamsMap.put(key, instance);
+                    featurerParamsAnnotationMap.put(key, featurerParamAnnotation);
                 }
             } catch (IllegalAccessException e) {
                 log.error("Exception: ", e);
@@ -259,27 +256,27 @@ public class FeaturerService {
 
     public Properties extractProperties(Integer featurerId, HashMap<String, String> params, Map<String, Object> context) throws ServiceException {
         Properties ret = new Properties();
-        var paramsMap = featurerParamsMap.get(featurerId);
+        var paramsAnnotationsMap = featurerParamsAnnotationsMap.get(featurerId);
         int paramsCount = params != null ? (int) params.values().stream().filter(Objects::nonNull).count() : 0;
-        int notOptionalParamsCountSetting = (int) paramsMap.values().stream().filter(it -> !it.optional()).count();
-        int totalParamsCountSetting = paramsMap.values().size();
-        if (paramsCount != paramsMap.size())
+        int notOptionalParamsCountSetting = (int) paramsAnnotationsMap.values().stream().filter(it -> !it.optional()).count();
+        int totalParamsCountSetting = paramsAnnotationsMap.values().size();
+        if (paramsCount != paramsAnnotationsMap.size())
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION,
-                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsMap.size(), paramsCount));
+                    String.format("Incorrect params count for featurer[%s]. Expected %s, got %s", featurerId, paramsAnnotationsMap.size(), paramsCount));
         if (paramsCount < notOptionalParamsCountSetting) {
             throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect params count for featurer[%s]. Expected (%s,%s), got %s", featurerId, notOptionalParamsCountSetting, totalParamsCountSetting, paramsCount));
         }
         if (paramsCount == 0)
             return ret;//no params
-        for (var entry : paramsMap.entrySet()) {
+        for (var entry : paramsAnnotationsMap.entrySet()) {
             String value = params.get(entry.getKey()) != null ? params.get(entry.getKey()) :
                     entry.getValue().optional() ? entry.getValue().defaultValue() : null;
             if (!entry.getValue().optional() && value == null) {
-                throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect non-optional param[%s] value[null] for featurer[%s].", key, featurerId));
+                throw new ServiceException(ErrorCodeFeaturer.INCORRECT_CONFIGURATION, String.format("Incorrect non-optional param[%s] value[null] for featurer[%s].", entry.getKey(), featurerId));
             }
             if (value.contains("injection@")) {
                 try {
-                    ret.put(entry.getKey(), extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(entry.getValue(), "@")), context));
+                    ret.put(entry.getKey(), extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(value, "@")), context));
                 } catch (Exception e) {
                     log.error("error getting value[" + entry.getValue() + "] injected by key[" + entry.getKey() + "]", e);
                     ret.put(entry.getKey(), entry.getValue());
@@ -343,21 +340,7 @@ public class FeaturerService {
         return featurerRepository.getById(featurerId);
     }
 
-    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
-        loadHeadHunter(Collections.singletonList(twinClassEntity));
-    }
-
-    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
-        Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
-        for (TwinClassEntity twinClass : twinClassCollection) {
-            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
-                needLoad.put(twinClass.getHeadHunterFeaturerId(), twinClass);
-        }
-        if (MapUtils.isEmpty(needLoad))
-            return;
-        List<FeaturerEntity> featurerList = featurerRepository.findByIdIn(needLoad.keySet());
-        for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
-            map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
-        }
+    public List<FeaturerEntity> findByIdIn(Set<Integer> ids) {
+        return featurerRepository.findByIdIn(ids);
     }
 }
