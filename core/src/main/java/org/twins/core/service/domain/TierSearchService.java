@@ -47,7 +47,7 @@ public class TierSearchService {
                 checkFieldLongRange(search.getAttachmentsStorageQuotaCountRange(), TierEntity.Fields.attachmentsStorageQuotaCount),
                 checkFieldLongRange(search.getAttachmentsStorageQuotaSizeRange(), TierEntity.Fields.attachmentsStorageQuotaSize),
                 checkFieldLongRange(search.getUserCountQuotaRange(), TierEntity.Fields.userCountQuota),
-                checkTernary(TierEntity.Fields.custom, search.getCustom())
+                checkTernary(search.getCustom(), TierEntity.Fields.custom)
         );
     }
 }

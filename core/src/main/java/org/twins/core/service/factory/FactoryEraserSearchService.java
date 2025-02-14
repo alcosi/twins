@@ -49,7 +49,7 @@ public class FactoryEraserSearchService {
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, false, TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId),
                 checkFieldLikeIn(safeConvert(search.getEraseActionLikeList()), false, true, TwinFactoryEraserEntity.Fields.eraserAction),
                 checkFieldLikeIn(safeConvert(search.getEraseActionNotLikeList()), true, true, TwinFactoryEraserEntity.Fields.eraserAction),
-                checkTernary(TwinFactoryEraserEntity.Fields.active, search.getActive()));
+                checkTernary(search.getActive(), TwinFactoryEraserEntity.Fields.active));
     }
 
     private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {

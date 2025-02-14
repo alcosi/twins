@@ -47,7 +47,7 @@ public class FactoryPipelineSearchService {
                 checkUuidIn(search.getOutputTwinStatusIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.outputTwinStatusId),
                 checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
                 checkUuidIn(search.getNextFactoryIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
-                checkTernary(TwinFactoryPipelineEntity.Fields.active, search.getActive()),
-                checkTernary(TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope, search.getNextFactoryLimitScope()));
+                checkTernary(search.getActive(), TwinFactoryPipelineEntity.Fields.active),
+                checkTernary(search.getNextFactoryLimitScope(), TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope));
     }
 }

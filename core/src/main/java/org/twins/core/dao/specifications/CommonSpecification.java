@@ -297,13 +297,13 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
-    public static <T> Specification<T> checkTernary(final String field, Ternary ternary) {
+    public static <T> Specification<T> checkTernary(Ternary ternary, final String... fieldPath) {
         return (root, query, cb) -> {
             if (ternary == null)
                 return cb.conjunction();
             return switch (ternary) {
-                case ONLY -> cb.isTrue(root.get(field));
-                case ONLY_NOT -> cb.isFalse(root.get(field));
+                case ONLY -> cb.isTrue(getFieldPath(root, JoinType.INNER, fieldPath));
+                case ONLY_NOT -> cb.isFalse(getFieldPath(root, JoinType.INNER, fieldPath));
                 default -> cb.conjunction();
             };
         };
