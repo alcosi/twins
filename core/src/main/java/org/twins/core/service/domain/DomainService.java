@@ -300,8 +300,6 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
 
-//    public void createDomainUser
-
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
         if (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
