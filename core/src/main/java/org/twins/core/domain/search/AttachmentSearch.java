@@ -3,7 +3,7 @@ package org.twins.core.domain.search;
 import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.domain.DataTimeRange;
 
 import java.util.Set;
 import java.util.UUID;
@@ -34,5 +34,5 @@ public class AttachmentSearch {
     private Set<String> titleNotLikeList;
     private Set<String> descriptionLikeList;
     private Set<String> descriptionNotLikeList;
-    private DataTimeRangeDTOv1 createdAt;
+    private DataTimeRange createdAt;
 }

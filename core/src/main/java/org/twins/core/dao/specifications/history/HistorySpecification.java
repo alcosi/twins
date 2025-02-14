@@ -4,17 +4,13 @@ import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.util.CollectionUtils;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.history.HistoryEntity;
 import org.twins.core.dao.history.HistoryType;
-import org.twins.core.dao.permission.PermissionGrantSpaceRoleEntity;
-import org.twins.core.dao.permission.PermissionSchemaEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twin.TwinEntity;
-import org.twins.core.dao.twin.TwinTouchEntity;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.domain.DataTimeRange;
 
 import java.util.Collection;
 import java.util.UUID;
@@ -51,7 +47,7 @@ public class HistorySpecification extends CommonSpecification<HistoryEntity> {
         };
     }
 
-    public static Specification<HistoryEntity> createdAtBetween(final DataTimeRangeDTOv1 createdAt) {
+    public static Specification<HistoryEntity> createdAtBetween(final DataTimeRange createdAt) {
         return (root, query, cb) -> {
             if (createdAt == null || (createdAt.getFrom() == null && createdAt.getTo() == null)) return cb.conjunction();
 

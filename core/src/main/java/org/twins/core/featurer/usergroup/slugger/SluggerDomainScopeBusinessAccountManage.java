@@ -14,6 +14,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Properties;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -31,10 +32,10 @@ public class SluggerDomainScopeBusinessAccountManage extends Slugger<UserGroupMa
     }
 
     @Override
-    protected List<? extends UserGroupMap> getGroups(Properties properties, UUID userId) throws ServiceException {
+    protected List<? extends UserGroupMap> getGroups(Properties properties, Set<UUID> userIds) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        return userGroupMapType2Repository.findByUserIdAndBusinessAccountId(
-                userId,
+        return userGroupMapType2Repository.findByUserIdInAndBusinessAccountId(
+                userIds,
                 apiUser.getBusinessAccountId());
     }
 
