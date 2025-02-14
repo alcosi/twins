@@ -200,7 +200,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
                 .setUserId(userId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setI18nLocaleId(authService.getApiUser().getLocale());
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainUserTemplateTwinId() != null) {
@@ -298,6 +299,8 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
         entitySmartService.deleteAndLog(domainBusinessAccountEntity.getId(), domainBusinessAccountRepository);
     }
+
+//    public void createDomainUser
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
