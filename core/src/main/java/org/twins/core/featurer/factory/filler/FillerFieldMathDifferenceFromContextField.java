@@ -3,6 +3,7 @@ package org.twins.core.featurer.factory.filler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.BigDecimalUtil;
 import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamBoolean;
@@ -22,7 +23,6 @@ import org.twins.core.featurer.params.FeaturerParamUUIDTwinsTwinClassFieldId;
 import org.twins.core.service.twin.TwinService;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Properties;
 import java.util.UUID;
 
@@ -92,29 +92,10 @@ public class FillerFieldMathDifferenceFromContextField extends Filler {
                 log.warn("Negative result detected, skipping difference");
                 throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "negative difference result");
             }
-            factoryItem.getOutput().addField(minuedFieldValueText.setValue(getProcessedString(difference)));
+            factoryItem.getOutput().addField(minuedFieldValueText.setValue(BigDecimalUtil.getProcessedString(difference)));
         } else {
             log.warn("Incorrect result detected, skipping difference");
             throw new ServiceException(ErrorCodeTwins.FACTORY_PIPELINE_STEP_ERROR, "minuendTwinClassField[" + paramMinuendTwinClassFieldId + "] is not instance of text field and can not be converted to number");
         }
-    }
-
-    /**
-     * Converts a BigDecimal value into a string representation based on its scale.
-     * If the value has no fractional part after rounding to the nearest integer,
-     * it is represented without decimal places.
-     * Otherwise, the original value's string representation is returned.
-     *
-     * @param difference the BigDecimal value to be converted to a string.
-     * @return the string representation of the BigDecimal value, scaled appropriately.
-     */
-    private String getProcessedString(BigDecimal difference) {
-        BigDecimal scaled = difference.setScale(0, RoundingMode.HALF_UP);
-        if (difference.compareTo(scaled) == 0) {
-            log.trace("Return scaled difference = {}", scaled);
-           return scaled.toString();
-        }
-        log.trace("Return not scaled difference = {}", difference);
-        return difference.toString();
     }
 }
