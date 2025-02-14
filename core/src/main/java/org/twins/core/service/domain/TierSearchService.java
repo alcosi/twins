@@ -15,8 +15,7 @@ import org.twins.core.domain.search.TierSearch;
 import org.twins.core.service.auth.AuthService;
 
 import static org.twins.core.dao.specifications.CommonSpecification.*;
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.domain.TierSpecification.*;
+import static org.twins.core.dao.specifications.domain.TierSpecification.checkDomainId;
 
 @Slf4j
 @Service

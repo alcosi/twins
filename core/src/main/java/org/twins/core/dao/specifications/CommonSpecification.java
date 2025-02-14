@@ -277,7 +277,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
 
     public static <T> Specification<T> checkFieldLongRange(
             final LongRange range,
-            final String fieldPath) {
+            final String... fieldPath) {
         return (root, query, cb) -> {
             if (range == null || (range.getFrom() == null && range.getTo() == null)) {
                 return cb.conjunction();

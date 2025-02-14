@@ -14,8 +14,10 @@ import org.twins.core.dao.factory.TwinFactoryPipelineStepRepository;
 import org.twins.core.domain.search.FactoryPipelineStepSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.checkDomainId;
+import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.checkFactoryIdIn;
+import static org.twins.core.dao.specifications.factory.FactoryPipelineStepSpecification.checkIntegerIn;
 
 
 @Slf4j
