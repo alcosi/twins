@@ -5,7 +5,6 @@ import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
-import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.specifications.CommonSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
