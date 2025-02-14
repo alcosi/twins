@@ -3,12 +3,15 @@ package org.twins.core.dao.specifications;
 import jakarta.persistence.criteria.*;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
+import org.twins.core.domain.LongRange;
 import org.twins.core.domain.DataTimeRange;
 
+import java.util.*;
 import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
@@ -272,5 +275,37 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldLongRange(
+            final LongRange range,
+            final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
+                return cb.conjunction();
+            }
 
+            List<Predicate> predicates = new ArrayList<>();
+            Path<Long> field = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            if (range.getFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(field, range.getFrom()));
+            }
+            if (range.getTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(field, range.getTo()));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public static <T> Specification<T> checkTernary(Ternary ternary, final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (ternary == null)
+                return cb.conjunction();
+            return switch (ternary) {
+                case ONLY -> cb.isTrue(getFieldPath(root, JoinType.INNER, fieldPath));
+                case ONLY_NOT -> cb.isFalse(getFieldPath(root, JoinType.INNER, fieldPath));
+                default -> cb.conjunction();
+            };
+        };
+    }
 }

@@ -43,7 +43,7 @@ public class FactoryMultiplierSearchService {
                 checkIntegerIn(search.getMultiplierFeaturerIdExcludeList(), true, TwinFactoryMultiplierEntity.Fields.inputTwinClassId),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryMultiplierEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryMultiplierEntity.Fields.description),
-                checkTernary(TwinFactoryMultiplierEntity.Fields.active, search.getActive())
+                checkTernary(search.getActive(), TwinFactoryMultiplierEntity.Fields.active)
         );
     }
 }

@@ -14,8 +14,6 @@ import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
 import org.twins.core.domain.search.FactoryPipelineSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecification.*;
 
 
@@ -49,7 +47,7 @@ public class FactoryPipelineSearchService {
                 checkUuidIn(search.getOutputTwinStatusIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.outputTwinStatusId),
                 checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
                 checkUuidIn(search.getNextFactoryIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
-                checkTernary(TwinFactoryPipelineEntity.Fields.active, search.getActive()),
-                checkTernary(TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope, search.getNextFactoryLimitScope()));
+                checkTernary(search.getActive(), TwinFactoryPipelineEntity.Fields.active),
+                checkTernary(search.getNextFactoryLimitScope(), TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope));
     }
 }
