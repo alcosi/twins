@@ -1,15 +1,20 @@
 package org.twins.core.mappers.rest.attachment;
 
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.AttachmentSearch;
 import org.twins.core.dto.rest.attachment.AttachmentSearchRqDTOv1;
+import org.twins.core.mappers.rest.DataTimeRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
 @Component
+@AllArgsConstructor
 public class AttachmentSearchDTOReverseMapper extends RestSimpleDTOMapper<AttachmentSearchRqDTOv1, AttachmentSearch> {
+    private final DataTimeRangeDTOReverseMapper dataTimeRangeDTOReverseMapper;
+
     @Override
-    public void map(AttachmentSearchRqDTOv1 src, AttachmentSearch dst, MapperContext mapperContext) {
+    public void map(AttachmentSearchRqDTOv1 src, AttachmentSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setIdList(src.getIdList())
                 .setIdExcludeList(src.getIdExcludeList())
@@ -33,6 +38,6 @@ public class AttachmentSearchDTOReverseMapper extends RestSimpleDTOMapper<Attach
                 .setTitleNotLikeList(src.getTitleNotLikeList())
                 .setDescriptionLikeList(src.getDescriptionLikeList())
                 .setDescriptionNotLikeList(src.getDescriptionNotLikeList())
-                .setCreatedAt(src.getCreatedAt());
+                .setCreatedAt(dataTimeRangeDTOReverseMapper.convert(src.getCreatedAt()));
     }
 }

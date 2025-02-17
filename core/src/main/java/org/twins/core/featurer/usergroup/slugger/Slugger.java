@@ -15,10 +15,7 @@ import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.user.UserGroupService;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 
 
 @FeaturerType(id = FeaturerTwins.TYPE_20,
@@ -155,12 +152,12 @@ public abstract class Slugger<T extends UserGroupMap> extends FeaturerTwins {
         return false;
     }
 
-    public List<? extends UserGroupMap> getGroups(HashMap<String, String> sluggerParams, UUID userId) throws ServiceException {
+    public List<? extends UserGroupMap> getGroups(HashMap<String, String> sluggerParams, Set<UUID> userIds) throws ServiceException {
         Properties properties = featurerService.extractProperties(this, sluggerParams, new HashMap<>());
-        return getGroups(properties, userId);
+        return getGroups(properties, userIds);
     }
 
-    protected abstract List<? extends UserGroupMap> getGroups(Properties properties, UUID userId) throws ServiceException;
+    protected abstract List<? extends UserGroupMap> getGroups(Properties properties, Set<UUID> userIds) throws ServiceException;
 
 
     public void enterGroup(UserGroupEntity userGroup, UserEntity user) throws ServiceException {

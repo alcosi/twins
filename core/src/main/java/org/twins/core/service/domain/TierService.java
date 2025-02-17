@@ -58,6 +58,5 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
             throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown domainTierId[" + domainTierId + "]");
         validateEntityAndThrow(domainBusinessAccountTierEntity.get(), EntitySmartService.EntityValidateMode.beforeSave);
         return domainTierId;
-
     }
 }

@@ -7,19 +7,19 @@ public class KeyUtils {
     public static final String KEY_REGEXP = "^[a-zA-Zа-яА-Я0-9_\\\\s]+$";
 
     public static String upperCaseNullFriendly(String key, ErrorCode errorCode) throws ServiceException {
-        return formatKey(key, 1, 3, true, false, errorCode);
+        return formatKey(key, 3, 20, true, false, errorCode);
     }
 
     public static String upperCaseNullSafe(String key, ErrorCode errorCode) throws ServiceException {
-        return formatKey(key, 1, 3, true, true, errorCode);
+        return formatKey(key, 3, 20, true, true, errorCode);
     }
 
     public static String lowerCaseNullFriendly(String key, ErrorCode errorCode) throws ServiceException {
-        return formatKey(key, 1, 3, false, false, errorCode);
+        return formatKey(key, 3, 20, false, false, errorCode);
     }
 
     public static String lowerCaseNullSafe(String key, ErrorCode errorCode) throws ServiceException {
-        return formatKey(key, 1, 3, false, true, errorCode);
+        return formatKey(key, 3, 20, false, true, errorCode);
     }
 
     public static String formatKey(String key, int minLength, int maxLength, boolean upperCaseElseLower, boolean exceptionOnNull, ErrorCode errorCode) throws ServiceException {
