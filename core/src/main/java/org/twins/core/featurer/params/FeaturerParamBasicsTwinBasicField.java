@@ -7,7 +7,7 @@ import org.twins.core.domain.TwinBasicFields;
 import java.util.Properties;
 
 @FeaturerParamType(
-        id = "STRING:TWINS_TWIN_BASIC_FIELD",
+        id = "STRING:TWINS:TWIN_BASIC_FIELD",
         description = "",
         regexp = ".*",
         example = "name")

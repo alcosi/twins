@@ -26,7 +26,6 @@ import org.twins.core.dao.businessaccount.BusinessAccountEntity;
 import org.twins.core.dao.domain.*;
 import org.twins.core.dao.resource.ResourceEntity;
 import org.twins.core.dao.resource.StorageEntity;
-import org.twins.core.dao.specifications.locale.I18nLocaleSpecification;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.domain.ApiUser;
@@ -49,6 +48,7 @@ import org.twins.core.service.twin.TwinAliasService;
 import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.twinflow.TwinflowService;
+import org.twins.core.service.user.UserGroup;
 import org.twins.core.service.user.UserGroupService;
 import org.twins.core.service.user.UserService;
 
@@ -148,11 +148,13 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         if (domainRepository.existsByKey(domainEntity.getKey()))
             throw new ServiceException(ErrorCodeTwins.DOMAIN_KEY_UNAVAILABLE);
         loadDomainType(domainEntity);
+        domainEntity.setDomainStatusId(DomainStatus.ACTIVE);
         DomainInitiator domainInitiator = featurerService.getFeaturer(domainEntity.getDomainTypeEntity().getDomainInitiatorFeaturer(), DomainInitiator.class);
         domainEntity = domainInitiator.init(domainEntity);
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
+        userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
     }
 
@@ -182,22 +184,26 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     }
 
     public PaginationResult<DomainEntity> findDomainListByUser(SimplePagination pagination) throws ServiceException {
-        Page<DomainEntity> domainEntityList = domainUserRepository.findAllDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
+        Page<DomainEntity> domainEntityList = domainUserRepository.findAllActiveDomainByUserId(authService.getApiUser().getUserId(), PaginationUtils.pageableOffset(pagination));
         return PaginationUtils.convertInPaginationResult(domainEntityList, pagination);
     }
 
     public void addUser(UUID domainId, UUID userId, EntitySmartService.SaveMode userCreateMode, boolean ignoreAlreadyExists) throws ServiceException {
         UserEntity user = userService.addUser(userId, userCreateMode);
         DomainUserNoRelationProjection existed = getDomainUserNoRelationProjection(domainId, userId, DomainUserNoRelationProjection.class);
-        if (existed != null)
+        if (existed != null) {
             if (ignoreAlreadyExists)
                 return;
             else
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
+        }
+        Locale locale = authService.getApiUser().getLocale();
+        checkLocaleActiveInDomain(locale);
         DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
                 .setUserId(userId)
-                .setCreatedAt(Timestamp.from(Instant.now()));
+                .setCreatedAt(Timestamp.from(Instant.now()))
+                .setI18nLocaleId(locale);
         domainUserEntity = entitySmartService.save(domainUserEntity, domainUserRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         DomainEntity domain = authService.getApiUser().getDomain();
         if (domain.getDomainUserTemplateTwinId() != null) {
@@ -298,10 +304,10 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
 
     @Transactional
     public void updateLocaleByDomainUser(String localeName) throws ServiceException {
-        if (!i18nLocaleRepository.exists(I18nLocaleSpecification.checkLocale(localeName)))
-            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN, "unknown locale [" + localeName + "]");
+        Locale locale = Locale.forLanguageTag(localeName);
+        checkLocaleActiveInDomain(locale);
         ApiUser apiUser = authService.getApiUser();
-        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), Locale.forLanguageTag(localeName));
+        domainUserRepository.updateLocale(apiUser.getDomainId(), apiUser.getUserId(), locale);
     }
 
     public List<DomainLocaleEntity> getLocaleList() throws ServiceException {
@@ -314,6 +320,19 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                     return el;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void checkLocaleActiveInDomain(Locale locale) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        DomainLocaleEntity ret = domainLocaleRepository
+                .findByDomainIdAndLocale(apiUser.getDomainId(), locale);
+        if (ret == null) {
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_UNKNOWN);
+        } else if (!ret.isActive()) {
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_INACTIVE, "locale is inactive in domain");
+        } else if (!ret.getI18nLocale().isActive()) {
+            throw new ServiceException(ErrorCodeTwins.DOMAIN_LOCALE_INACTIVE, "locale is inactive in system");
+        }
     }
 
     public DomainTypeEntity loadDomainType(DomainEntity domainEntity) throws ServiceException {

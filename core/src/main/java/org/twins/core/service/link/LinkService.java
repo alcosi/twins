@@ -12,6 +12,8 @@ import org.cambium.common.util.ChangesHelper;
 import org.cambium.common.util.MapUtils;
 import org.cambium.common.util.StringUtils;
 import org.cambium.common.util.UuidUtils;
+import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.i18n.dao.I18nEntity;
 import org.cambium.i18n.dao.I18nType;
 import org.cambium.i18n.service.I18nService;
@@ -31,12 +33,12 @@ import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.LinkUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
+import org.twins.core.featurer.FeaturerTwins;
+import org.twins.core.featurer.linker.Linker;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.twinclass.TwinClassService;
 import org.twins.core.service.user.UserService;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 
@@ -57,6 +59,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
     private final TwinRepository twinRepository;
     @Lazy
     private final AuthService authService;
+    private final FeaturerService featurerService;
     private final TwinLinkRepository twinLinkRepository;
 
     @Override
@@ -107,6 +110,12 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
                 .setForwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_FORWARD_NAME, forwardNameI18n).getId())
                 .setBackwardNameI18NId(i18nService.createI18nAndTranslations(I18nType.LINK_BACKWARD_NAME, backwardNameI18n).getId())
                 .setCreatedByUserId(apiUser.getUserId());
+        if (linkEntity.getLinkerFeaturerId() == null) {
+            linkEntity
+                    .setLinkerFeaturerId(FeaturerTwins.ID_3001)
+                    .setLinkerParams(null);
+        }
+        //todo validate linker params
         validateEntityAndThrow(linkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         linkEntity = entitySmartService.save(linkEntity, linkRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
         linkEntity.getDstTwinClass().setLinksKit(null);
@@ -127,6 +136,7 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         updateLinkDstTwinClassId(dbLinkEntity, linkUpdate.getDstTwinClassUpdate(), changesHelper);
         updateLinkType(dbLinkEntity, linkUpdate.getType(), changesHelper);
         updateLinkStrength(dbLinkEntity, linkUpdate.getLinkStrengthId(), changesHelper);
+        updateLinkerFeaturer(dbLinkEntity, linkUpdate.getLinkerFeaturerId(), linkUpdate.getLinkerParams(), changesHelper);
         validateEntity(dbLinkEntity, EntitySmartService.EntityValidateMode.beforeSave);
         if (changesHelper.hasChanges()) {
             dbLinkEntity = entitySmartService.saveAndLogChanges(dbLinkEntity, linkRepository, changesHelper);
@@ -210,7 +220,8 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         if (!CollectionUtils.isEmpty(existedSrcTwinIds)) {
             if (linkSrcClassChangeOperation.getStrategy() == EntityRelinkOperation.Strategy.restrict && MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()))
                 throw new ServiceException(ErrorCodeTwins.LINK_UPDATE_RESTRICTED, "please provide replaceMap for twin-links: " + StringUtils.join(existedSrcTwinIds));
-            Set<UUID> newValidTwinIds = twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
+            Set<UUID> newValidTwinIds = MapUtils.isEmpty(linkSrcClassChangeOperation.getReplaceMap()) ?
+                    Collections.emptySet() : twinRepository.findIdByTwinClassIdAndIdIn(newSrcTwinClassEntity.getId(), linkSrcClassChangeOperation.getReplaceMap().values());
             Set<UUID> srcTwinIdsTwinLinksForDeletion = new HashSet<>();
             for (UUID srcTwinIdForReplace : existedSrcTwinIds) {
                 UUID replacement = linkSrcClassChangeOperation.getReplaceMap().get(srcTwinIdForReplace);
@@ -247,6 +258,20 @@ public class LinkService extends EntitySecureFindServiceImpl<LinkEntity> {
         if (type == null || !changesHelper.isChanged(LinkEntity.Fields.type, dbLinkEntity.getType(), type))
             return;
         dbLinkEntity.setType(type);
+    }
+
+    public void updateLinkerFeaturer(LinkEntity dbLinkEntity, Integer newHeadhunterFeaturerId, HashMap<String, String> linkerParams, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.isChanged(LinkEntity.Fields.linkerFeaturerId, dbLinkEntity.getLinkerFeaturerId(), newHeadhunterFeaturerId)) {
+            FeaturerEntity newLinkerFeaturer = featurerService.checkValid(newHeadhunterFeaturerId, linkerParams, Linker.class);
+            dbLinkEntity
+                    .setLinkerFeaturerId(newLinkerFeaturer.getId())
+                    .setLinkerFeaturer(newLinkerFeaturer);
+        }
+        if (!MapUtils.areEqual(dbLinkEntity.getLinkerParams(), linkerParams)) {
+            changesHelper.add(TwinClassEntity.Fields.headHunterParams, dbLinkEntity.getLinkerParams(), linkerParams);
+            dbLinkEntity
+                    .setLinkerParams(linkerParams);
+        }
     }
 
     public FindTwinClassLinksResult findLinks(UUID twinClassId) throws ServiceException {

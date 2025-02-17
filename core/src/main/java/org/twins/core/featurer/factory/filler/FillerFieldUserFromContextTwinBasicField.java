@@ -24,16 +24,16 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2333,
-        name = "FillerFieldUserFromContextTwinBasicField",
+        name = "Field user from context twin basic field",
         description = "Fill the user field with assignee-or-creator of context twin")
 @Slf4j
 public class FillerFieldUserFromContextTwinBasicField extends Filler {
 
-    @FeaturerParam(name = "twinClassFieldId", description = "TwinClassFieldId for filling")
+    @FeaturerParam(name = "Twin class field id", description = "TwinClassFieldId for filling", order = 1)
     public static final FeaturerParamUUID twinClassFieldId = new FeaturerParamUUIDTwinsTwinClassFieldId("twinClassFieldId");
 
 
-    @FeaturerParam(name = "field", description = "Basic field to check")
+    @FeaturerParam(name = "Field", description = "Basic field to check", order = 2)
     public static final FeaturerParamBasicsTwinBasicField field = new FeaturerParamBasicsTwinBasicField("field");
 
     @Lazy

@@ -29,7 +29,7 @@ public interface DTOExamples {
     String TWIN_CLASS_OWNER_TYPE = "SYSTEM";
     String WIDGET_ID = "4245e338-3c09-4390-8a03-435d1da4e311";
     String TWIN_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
-    String TWIN_COMMENT = "be44e826-ce24-4881-a227-f3f72d915a20";
+    String TWIN_COMMENT_ID = "be44e826-ce24-4881-a227-f3f72d915a20";
     String TWIN_HISTORY_ID = "1b2091e3-971a-41bc-b343-1f980227d02f";
     String TWIN_NAME = "Oak";
     String TWIN_ALIAS = "LESNAYA9-2";
@@ -62,6 +62,7 @@ public interface DTOExamples {
     String TWINFLOW_NAME = "Default twinflow";
     String TWINFLOW_TRANSITION_ID = "f6606fa2-c047-4ba9-a92c-84051df681ab";
     String TWINFLOW_TRANSITION_ALIAS = "start";
+    String TWINFLOW_TRANSITION_ALIAS_ID = "da755c8a-248f-4e4f-978a-6474e41c8dca";
     String TWIN_CLASS_SCHEMA_ID = "8b9ea6ad-2b9b-4a4a-8ea9-1b17da4d603b";
     String CHANNEL = "WEB";
     String ATTACHMENT_STORAGE_LINK = "https://test.filestorage.by/JFUjEFWksfqwf";
@@ -90,6 +91,9 @@ public interface DTOExamples {
     String FEATURER_NAME = "InjectorImpl";
     String FEATURER_PARAM_NAME = "listUUID";
     String FEATURER_PARAM = "{\"linkId\"=>\"6e42ef74-3015-4400-946e-1326bcb4cf48\",\n\"GTEvalue\"=>\"2\"}";
+    String FEATURER_PARAM_VALUE_LIST = "GREEN,RED,BLUE";
+    String FEATURER_PARAM_VALUE_INT = "6000";
+
     String COLOR_HEX = "#ff00ff";
     String FACTORY_ID = "5d956a15-6858-40ba-b0aa-b123c54e250d";
     String FACTORY_ERASER_ID = "47991b35-e9fb-454e-a9b1-d715b2e6c71e";

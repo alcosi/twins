@@ -86,6 +86,11 @@ public class Kit<E, K> implements Collection<E> {
         return map.keySet();
     }
 
+    public Set<K> getIdSetSafe() {
+        Set<K> ret = getIdSet();
+        return ret == null ? Collections.EMPTY_SET : ret;
+    }
+
     @Override
     public String toString() {
         return "size = " + (collection != null ? CollectionUtils.size(collection) : "0");

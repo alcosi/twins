@@ -5,21 +5,21 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.util.CollectionUtils;
-import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierFilterEntity;
 import org.twins.core.dao.specifications.CommonSpecification;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.UUID;
-
-import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 @Slf4j
 public class FactoryMultiplierFilterSpecification extends CommonSpecification<TwinFactoryMultiplierFilterEntity> {
 
+    public static Specification<TwinFactoryMultiplierFilterEntity> checkDomainId(UUID domainId) {
+        return (root, query, cb) -> createPredicateWithJoins(root, cb, domainId, (property, criteriaBuilder, filedValue) -> criteriaBuilder.or(criteriaBuilder.isNull(property), criteriaBuilder.equal(property, filedValue)), JoinType.INNER, TwinFactoryMultiplierFilterEntity.Fields.multiplier, TwinFactoryMultiplierEntity.Fields.twinFactory, TwinFactoryEntity.Fields.domainId);
+    }
 
     public static Specification<TwinFactoryMultiplierFilterEntity> checkFactoryIdIn(Collection<UUID> search, boolean not) {
         return (root, query, cb) -> {
@@ -35,17 +35,4 @@ public class FactoryMultiplierFilterSpecification extends CommonSpecification<Tw
             return predicate;
         };
     }
-
-    public static Specification<TwinFactoryMultiplierFilterEntity> checkTernary(final String field, Ternary ternary) {
-        return (root, query, cb) -> {
-            if (ternary == null)
-                return cb.conjunction();
-            return switch (ternary) {
-                case ONLY -> cb.isTrue(root.get(field));
-                case ONLY_NOT -> cb.isFalse(root.get(field));
-                default -> cb.conjunction();
-            };
-        };
-    }
-
 }

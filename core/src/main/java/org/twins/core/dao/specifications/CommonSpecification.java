@@ -3,13 +3,16 @@ package org.twins.core.dao.specifications;
 import jakarta.persistence.criteria.*;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.Ternary;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.dto.rest.DataTimeRangeDTOv1;
+import org.twins.core.domain.LongRange;
+import org.twins.core.domain.DataTimeRange;
 
-import java.time.LocalDateTime;
+import java.util.*;
+import java.sql.Timestamp;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -136,7 +139,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     /**
      * Creates a JPA specification to filter entities based on a LocalDateTime field being between
      * a specified range. Dynamically generates joins as needed for the provided field path and
-     * applies the filter conditions using a DataTimeRangeDTOv1 object.
+     * applies the filter conditions using a DataTimeRange object.
      *
      * @param <T>       the type of the entity for which the specification is created
      * @param range     an object containing the starting and ending LocalDateTime values defining
@@ -146,10 +149,10 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the field is between the
      * specified range, or an unconstrained {@code Specification} if {@code range} is null
      */
-    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRangeDTOv1 range, String...
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final DataTimeRange range, String...
             filedPath) {
         if (range == null) return (root, query, cb) -> cb.conjunction();
-        else return checkFieldLocalDateTimeBetween(range.from, range.to, filedPath);
+        else return checkFieldLocalDateTimeBetween(range.getFrom(), range.getTo(), filedPath);
     }
 
     /**
@@ -163,8 +166,8 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
      * @return a JPA {@code Specification} matching entities where the field is between the specified range,
      * or an unconstrained {@code Specification} if both {@code from} and {@code to} are null
      */
-    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final LocalDateTime from,
-                                                                      final LocalDateTime to, String... filedPath) {
+    public static <T> Specification<T> checkFieldLocalDateTimeBetween(final Timestamp from,
+                                                                      final Timestamp to, String... filedPath) {
         return (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
             if (from == null && to == null) return predicate;
@@ -183,10 +186,20 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     public static <T> Specification<T> checkUuidIn(final Collection<UUID> uuids, boolean not,
                                                    boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
-            Path<UUID> fildPath = getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
             if (CollectionUtils.isEmpty(uuids)) return cb.conjunction();
-            Predicate predicate = not ? fildPath.in(uuids).not() : fildPath.in(uuids);
-            return includeNullValues ? cb.or(predicate, fildPath.isNull()) : cb.and(predicate, fildPath.isNotNull());
+            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Predicate predicate = not ? fieldPath.in(uuids).not() : fieldPath.in(uuids);
+            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
+        };
+    }
+
+    public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
+                                                   boolean includeNullValues, final String... uuidFieldPath) {
+        return (root, query, cb) -> {
+            if (uuid == null) return cb.conjunction();
+            Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
+            Predicate predicate = not ? cb.equal(fieldPath, uuid).not() : cb.equal(fieldPath, uuid);
+            return includeNullValues ? cb.or(predicate, fieldPath.isNull()) : cb.and(predicate, fieldPath.isNotNull());
         };
     }
 
@@ -254,7 +267,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
                 return cb.conjunction();
 
             List<Predicate> predicates = search.stream().map(name -> {
-                Predicate predicate = cb.like(cb.lower(getFildPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
+                Predicate predicate = cb.like(cb.lower(getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, fieldPath)), name.toLowerCase());
                 if (not) predicate = cb.not(predicate);
                 return predicate;
             }).toList();
@@ -262,5 +275,37 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
         };
     }
 
+    public static <T> Specification<T> checkFieldLongRange(
+            final LongRange range,
+            final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (range == null || (range.getFrom() == null && range.getTo() == null)) {
+                return cb.conjunction();
+            }
 
+            List<Predicate> predicates = new ArrayList<>();
+            Path<Long> field = getFieldPath(root, JoinType.INNER, fieldPath);
+
+            if (range.getFrom() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(field, range.getFrom()));
+            }
+            if (range.getTo() != null) {
+                predicates.add(cb.lessThanOrEqualTo(field, range.getTo()));
+            }
+
+            return cb.and(predicates.toArray(Predicate[]::new));
+        };
+    }
+
+    public static <T> Specification<T> checkTernary(Ternary ternary, final String... fieldPath) {
+        return (root, query, cb) -> {
+            if (ternary == null)
+                return cb.conjunction();
+            return switch (ternary) {
+                case ONLY -> cb.isTrue(getFieldPath(root, JoinType.INNER, fieldPath));
+                case ONLY_NOT -> cb.isFalse(getFieldPath(root, JoinType.INNER, fieldPath));
+                default -> cb.conjunction();
+            };
+        };
+    }
 }

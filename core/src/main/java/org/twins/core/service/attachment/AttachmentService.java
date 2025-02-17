@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static org.cambium.common.util.InformationVolumeUtils.convertToGb;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -368,13 +370,14 @@ public class AttachmentService extends EntitySecureFindServiceImpl<TwinAttachmen
             size += create.getSize();
             count++;
         }
-        if (size > tierQuotas.getQuotaSize())
-            throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED);
-        if (count > tierQuotas.getQuotaCount())
+        if (tierQuotas.getQuotaSize() > 0 && size > tierQuotas.getQuotaSize())
+            throw new ServiceException(ErrorCodeTwins.TIER_SIZE_QUOTA_REACHED)
+                    .addContext("size", convertToGb(size))
+                    .addContext("quotaSize", convertToGb(tierQuotas.getQuotaSize()));
+        if (tierQuotas.getQuotaCount() > 0 && count > tierQuotas.getQuotaCount())
             throw new ServiceException(ErrorCodeTwins.TIER_COUNT_QUOTA_REACHED);
         return result;
     }
-
 
     public enum CommentRelinkMode {
         denied,

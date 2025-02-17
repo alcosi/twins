@@ -12,7 +12,7 @@ import java.util.Properties;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_2501,
-        name = "DomainInitiatorBasic",
+        name = "Basic",
         description = "")
 @RequiredArgsConstructor
 public class DomainInitiatorBasic extends DomainInitiator {

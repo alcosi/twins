@@ -14,9 +14,7 @@ import org.twins.core.dao.factory.TwinFactoryPipelineRepository;
 import org.twins.core.domain.search.FactoryPipelineSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.factory.FactoryConditionSetSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecification.checkTernary;
+import static org.twins.core.dao.specifications.factory.FactoryPipelineSpecification.*;
 
 
 @Slf4j
@@ -32,8 +30,9 @@ public class FactoryPipelineSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryPipelineEntity> createFactoryPipelineSearchSpecification(FactoryPipelineSearch search) {
+    private Specification<TwinFactoryPipelineEntity> createFactoryPipelineSearchSpecification(FactoryPipelineSearch search) throws ServiceException {
         return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryPipelineEntity.Fields.id),
@@ -48,7 +47,7 @@ public class FactoryPipelineSearchService {
                 checkUuidIn(search.getOutputTwinStatusIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.outputTwinStatusId),
                 checkUuidIn(search.getNextFactoryIdList(), false, false, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
                 checkUuidIn(search.getNextFactoryIdExcludeList(), true, true, TwinFactoryPipelineEntity.Fields.nextTwinFactoryId),
-                checkTernary(TwinFactoryPipelineEntity.Fields.active, search.getActive()),
-                checkTernary(TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope, search.getNextFactoryLimitScope()));
+                checkTernary(search.getActive(), TwinFactoryPipelineEntity.Fields.active),
+                checkTernary(search.getNextFactoryLimitScope(), TwinFactoryPipelineEntity.Fields.nextTwinFactoryLimitScope));
     }
 }

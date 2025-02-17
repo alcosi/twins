@@ -43,7 +43,7 @@ public abstract class FieldTyperList extends FieldTyper<FieldDescriptor, FieldVa
     @Autowired
     DataListOptionService dataListOptionService;
 
-    @FeaturerParam(name = "listUUID", description = "")
+    @FeaturerParam(name = "Datalist", description = "", order = 1)
     public static final FeaturerParamUUID listUUID = new FeaturerParamUUIDTwinsDataListId("listUUID");
 
     @Override

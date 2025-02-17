@@ -32,8 +32,9 @@ public class FactoryMultiplierFilterSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) {
+    private Specification<TwinFactoryMultiplierFilterEntity> createFactoryMultiplierFilterSearchSpecification(FactoryMultiplierFilterSearch search) throws ServiceException {
         return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryPipelineEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryPipelineEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.id),
@@ -46,6 +47,6 @@ public class FactoryMultiplierFilterSearchService {
                 checkUuidIn(search.getInputTwinClassIdExcludeList(), true, false, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId),
                 checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
-                checkTernary(TwinFactoryMultiplierFilterEntity.Fields.active, search.getActive()));
+                checkTernary(search.getActive(), TwinFactoryMultiplierFilterEntity.Fields.active));
     }
 }

@@ -34,7 +34,7 @@ public class FactoryRestDTOMapper extends RestSimpleDTOMapper<TwinFactoryEntity,
                 dst
                         .setId(src.getId())
                         .setKey(src.getKey())
-                        .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
+                        .setName(src.getNameI18NId() != null ? i18nService.translateToLocale(src.getNameI18NId()) : "")
                         .setDescription(src.getDescriptionI18NId() != null ? i18nService.translateToLocale(src.getDescriptionI18NId()) : "")
                         .setCreatedAt(src.getCreatedAt().toLocalDateTime())
                         .setCreatedByUserId(src.getCreatedByUserId());

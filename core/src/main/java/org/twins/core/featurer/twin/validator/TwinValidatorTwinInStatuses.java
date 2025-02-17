@@ -18,10 +18,10 @@ import java.util.UUID;
 @Slf4j
 @Component
 @Featurer(id = FeaturerTwins.ID_1609,
-        name = "TransitionValidatorTwinInStatuses",
+        name = "Twin in statuses",
         description = "Validator for checking the statuses of a twin")
 public class TwinValidatorTwinInStatuses extends TwinValidator {
-    @FeaturerParam(name = "statusIds", description = "")
+    @FeaturerParam(name = "Status ids", description = "", order = 1)
     public static final FeaturerParamUUIDSet statusIds = new FeaturerParamUUIDSetTwinsStatusId("statusIds");
 
     @Override

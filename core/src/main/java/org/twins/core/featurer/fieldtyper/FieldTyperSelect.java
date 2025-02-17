@@ -22,17 +22,17 @@ import java.util.UUID;
 
 @Component
 @Featurer(id = FeaturerTwins.ID_1305,
-        name = "FieldTyperSelect",
+        name = "Select",
         description = "")
 @Slf4j
 public class FieldTyperSelect extends FieldTyperList {
-    @FeaturerParam(name = "multiple", description = "If true, then multiple select available")
+    @FeaturerParam(name = "Multiple", description = "If true, then multiple select available", order = 2)
     public static final FeaturerParamBoolean multiple = new FeaturerParamBoolean("multiple");
 
-    @FeaturerParam(name = "supportCustom", description = "If true, then user can enter custom value")
+    @FeaturerParam(name = "Support custom", description = "If true, then user can enter custom value", order = 3)
     public static final FeaturerParamBoolean supportCustom = new FeaturerParamBoolean("supportCustom");
 
-    @FeaturerParam(name = "longListThreshold", description = "If options count is bigger then given threshold longList type will be used")
+    @FeaturerParam(name = "Long list threshold", description = "If options count is bigger then given threshold longList type will be used", order = 4)
     public static final FeaturerParamInt longListThreshold = new FeaturerParamInt("longListThreshold");
 
     @Override

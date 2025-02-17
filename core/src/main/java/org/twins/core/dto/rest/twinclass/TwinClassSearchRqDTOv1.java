@@ -9,46 +9,64 @@ import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
 @Schema(name =  "TwinClassListRqV1")
 public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id list")
-    public List<UUID> twinClassIdList;
+    public Set<UUID> twinClassIdList;
 
     @Schema(description = "twin class id exclude list")
-    public List<UUID> twinClassIdExcludeList;
+    public Set<UUID> twinClassIdExcludeList;
 
     @Schema(description = "twin class key list")
-    public List<String> twinClassKeyLikeList;
+    public Set<String> twinClassKeyLikeList;
 
     @Schema(description = "name i18n keyword list(AND)")
-    public List<String> nameI18nLikeList;
+    public Set<String> nameI18nLikeList;
 
     @Schema(description = "name i18n keyword exclude list(OR)")
-    public List<String> nameI18nNotLikeList;
+    public Set<String> nameI18nNotLikeList;
 
     @Schema(description = "description i18n keyword list(AND)")
-    public List<String> descriptionI18nLikeList;
+    public Set<String> descriptionI18nLikeList;
 
     @Schema(description = "description i18n exclude keyword list(OR)")
-    public List<String> descriptionI18nNotLikeList;
+    public Set<String> descriptionI18nNotLikeList;
+
+    @Schema(description = "head twin class id list")
+    public Set<UUID> headTwinClassIdList;
+
+    @Schema(description = "head twin class id exclude list")
+    public Set<UUID> headTwinClassIdExcludeList;
 
     @Schema(description = "extends twin class id list")
-    public List<UUID> extendsTwinClassIdList;
+    public Set<UUID> extendsTwinClassIdList;
 
     @Schema(description = "extends twin class id exclude list")
-    public List<UUID> extendsTwinClassIdExcludeList;
+    public Set<UUID> extendsTwinClassIdExcludeList;
 
     @Schema(description = "owner type list")
-    public List<TwinClassEntity.OwnerType> ownerTypeList;
+    public Set<TwinClassEntity.OwnerType> ownerTypeList;
 
     @Schema(description = "owner type exclude list")
-    public List<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+    public Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
+
+    @Schema(description = "marker data list id list")
+    public Set<UUID> markerDatalistIdList;
+
+    @Schema(description = "marker data list id exclude list")
+    public Set<UUID> markerDatalistIdExcludeList;
+
+    @Schema(description = "tag data list id list")
+    public Set<UUID> tagDatalistIdList;
+
+    @Schema(description = "tag data list id exclude list")
+    public Set<UUID> tagDatalistIdExcludeList;
 
     @Schema(description = "twin class is abstract", example = DTOExamples.TERNARY)
     public Ternary abstractt;
@@ -66,8 +84,26 @@ public class TwinClassSearchRqDTOv1 extends Request {
     public Ternary aliasSpace;
 
     @Schema(description = "permission id list")
-    public List<UUID> viewPermissionIdList;
+    public Set<UUID> viewPermissionIdList;
 
     @Schema(description = "permission id exclude list")
-    public List<UUID> viewPermissionIdExcludeList;
+    public Set<UUID> viewPermissionIdExcludeList;
+
+    @Schema(description = "create permission id list")
+    public Set<UUID> createPermissionIdList;
+
+    @Schema(description = "create permission id exclude list")
+    public Set<UUID> createPermissionIdExcludeList;
+
+    @Schema(description = "edit permission id list")
+    public Set<UUID> editPermissionIdList;
+
+    @Schema(description = "edit permission id exclude list")
+    public Set<UUID> editPermissionIdExcludeList;
+
+    @Schema(description = "delete permission id list")
+    public Set<UUID> deletePermissionIdList;
+
+    @Schema(description = "delete permission id exclude list")
+    public Set<UUID> deletePermissionIdExcludeList;
 }

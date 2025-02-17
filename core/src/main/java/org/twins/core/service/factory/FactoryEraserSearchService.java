@@ -18,9 +18,7 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
-import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkFieldLikeIn;
-import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.checkTernary;
+import static org.twins.core.dao.specifications.factory.FactoryEraserSpecification.*;
 
 
 @Slf4j
@@ -36,8 +34,9 @@ public class FactoryEraserSearchService {
         return PaginationUtils.convertInPaginationResult(ret, pagination);
     }
 
-    private Specification<TwinFactoryEraserEntity> createFactoryEraserSearchSpecification(FactoryEraserSearch search) {
+    private Specification<TwinFactoryEraserEntity> createFactoryEraserSearchSpecification(FactoryEraserSearch search) throws ServiceException {
         return Specification.allOf(
+                checkDomainId(authService.getApiUser().getDomainId()),
                 checkFieldLikeIn(search.getDescriptionLikeList(), false, true, TwinFactoryEraserEntity.Fields.description),
                 checkFieldLikeIn(search.getDescriptionNotLikeList(), true, true, TwinFactoryEraserEntity.Fields.description),
                 checkUuidIn(search.getIdList(), false, false, TwinFactoryEraserEntity.Fields.id),
@@ -50,7 +49,7 @@ public class FactoryEraserSearchService {
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, false, TwinFactoryEraserEntity.Fields.twinFactoryConditionSetId),
                 checkFieldLikeIn(safeConvert(search.getEraseActionLikeList()), false, true, TwinFactoryEraserEntity.Fields.eraserAction),
                 checkFieldLikeIn(safeConvert(search.getEraseActionNotLikeList()), true, true, TwinFactoryEraserEntity.Fields.eraserAction),
-                checkTernary(TwinFactoryEraserEntity.Fields.active, search.getActive()));
+                checkTernary(search.getActive(), TwinFactoryEraserEntity.Fields.active));
     }
 
     private Set<String> safeConvert(Set<TwinFactoryEraserEntity.Action> collection) {
