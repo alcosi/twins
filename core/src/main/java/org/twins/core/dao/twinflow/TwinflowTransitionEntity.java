@@ -9,6 +9,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.kit.Kit;
 import org.cambium.i18n.dao.I18nEntity;
 import org.hibernate.annotations.CreationTimestamp;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dao.permission.PermissionEntity;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.user.UserEntity;
@@ -120,6 +121,14 @@ public class TwinflowTransitionEntity implements EasyLoggable {
     @Transient // because field can be useful only in admin panel
     @EqualsAndHashCode.Exclude
     private UserEntity createdByUser;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "inbuilt_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity inbuiltFactory;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "drafting_twin_factory_id", insertable = false, updatable = false)
+    private TwinFactoryEntity draftingFactory;
 
     @Override
     public String easyLog(Level level) {

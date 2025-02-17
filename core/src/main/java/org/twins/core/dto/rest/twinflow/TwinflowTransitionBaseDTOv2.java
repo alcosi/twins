@@ -4,8 +4,10 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.experimental.Accessors;
+import org.twins.core.dao.factory.TwinFactoryEntity;
 import org.twins.core.dto.rest.DTOConfig;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.factory.FactoryDTOv1;
 import org.twins.core.dto.rest.permission.PermissionDTOv1;
 import org.twins.core.dto.rest.twinstatus.TwinStatusDTOv1;
 import org.twins.core.dto.rest.user.UserDTOv1;
@@ -44,4 +46,17 @@ public class TwinflowTransitionBaseDTOv2 extends TwinflowTransitionBaseDTOv1 {
 
     @Schema(description = "createdByUserId")
     public UUID createdByUserId;
+
+    @Schema(description = "inbuilt factory id", example = DTOExamples.FACTORY_ID)
+    public UUID inbuiltTwinFactoryId;
+
+    @Schema(description = "inbuilt factory")
+    public FactoryDTOv1 inbuiltTwinFactory;
+
+    @Schema(description = "drafting factory id", example = DTOExamples.FACTORY_ID)
+    public UUID draftingTwinFactoryId;
+
+    @Schema(description = "drafting factory")
+    public FactoryDTOv1 draftingTwinFactory;
+
 }

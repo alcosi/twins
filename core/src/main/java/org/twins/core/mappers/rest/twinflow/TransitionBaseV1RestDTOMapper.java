@@ -24,23 +24,21 @@ public class TransitionBaseV1RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @Override
     public void map(TwinflowTransitionEntity src, TwinflowTransitionBaseDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(TransitionMode.SHORT)) {
-            case DETAILED, MANAGED:
+            case DETAILED, MANAGED ->
                 dst
+                        .setId(src.getId())
                         .setDstTwinStatusId(src.getDstTwinStatusId())
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setDescription(i18nService.translateToLocale(src.getDescriptionI18NId()))
                         .setAllowComment(src.isAllowComment())
                         .setAllowAttachments(src.isAllowAttachment())
                         .setAllowLinks(src.isAllowLinks())
-                        .setAlias(src.getTwinflowTransitionAlias().getAlias())
-                        .setId(src.getId());
-                break;
-            case SHORT:
+                        .setAlias(src.getTwinflowTransitionAlias().getAlias());
+            case SHORT ->
                 dst
                         .setName(i18nService.translateToLocale(src.getNameI18NId()))
                         .setAlias(src.getTwinflowTransitionAlias().getAlias())
                         .setId(src.getId());
-                break;
         }
         if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE))
             dst
