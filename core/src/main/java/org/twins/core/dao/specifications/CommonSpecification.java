@@ -1,22 +1,21 @@
 package org.twins.core.dao.specifications;
 
+import io.hypersistence.utils.hibernate.type.array.StringArrayType;
 import jakarta.persistence.criteria.*;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.CollectionUtils;
+import org.cambium.common.util.LTreeUtils;
 import org.cambium.common.util.Ternary;
+import org.hibernate.query.TypedParameterValue;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.TwinEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.LongRange;
 import org.twins.core.domain.DataTimeRange;
+import org.twins.core.domain.LongRange;
 
-import java.util.*;
 import java.sql.Timestamp;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.cambium.common.util.SpecificationUtils.collectionUuidsToSqlArray;
@@ -24,6 +23,37 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 import static org.twins.core.dao.twinclass.TwinClassEntity.OwnerType.*;
 
 public class CommonSpecification<T> extends AbstractSpecification<T> {
+
+
+    public static <T> Specification<T> checkLtreeIn(final Collection<String> ids, boolean not,
+                                                    boolean includeNullValues, Integer depthLimit, final String... ltreeFieldPath) {
+
+        return (root, query, cb) -> {
+            if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
+                return cb.conjunction();
+            var preparedDepthLimith = depthLimit == null ? 1 : depthLimit;
+            var preparedIds = ids.stream()
+                    .map(String::toLowerCase)
+                    //Prepare ltree depth limited syntax
+                    .map(it -> LTreeUtils.matchWithDepthLimit(it, preparedDepthLimith))
+                    .toArray(String[]::new);
+            var typedIds = new TypedParameterValue<>(StringArrayType.INSTANCE, preparedIds);
+            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
+            Predicate idPredicate;
+            var ltreeIsInFunction = cb.function("check_ltree_any_is_in", Boolean.class, ltreePath, cb.literal(typedIds));
+            if (not) {
+                idPredicate = cb.isFalse(ltreeIsInFunction);
+            } else {
+                idPredicate = cb.isTrue(ltreeIsInFunction);
+            }
+            if (includeNullValues) {
+                return cb.or(idPredicate, ltreePath.isNull());
+            } else {
+                return idPredicate;
+            }
+        };
+    }
+
     public static <T> Specification<T> checkClassId(final Collection<UUID> twinClassUuids, String... twinEntityFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(twinClassUuids)) {
@@ -194,7 +224,7 @@ public class CommonSpecification<T> extends AbstractSpecification<T> {
     }
 
     public static <T> Specification<T> checkUuid(final UUID uuid, boolean not,
-                                                   boolean includeNullValues, final String... uuidFieldPath) {
+                                                 boolean includeNullValues, final String... uuidFieldPath) {
         return (root, query, cb) -> {
             if (uuid == null) return cb.conjunction();
             Path<UUID> fieldPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, uuidFieldPath);
