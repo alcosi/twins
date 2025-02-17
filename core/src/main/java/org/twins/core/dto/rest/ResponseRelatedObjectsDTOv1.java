@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.related.RelatedObjectsDTOv1;
+import org.twins.core.dto.rest.twinclass.TwinClassSchemaDTOv1;
+
+import java.util.Set;
 
 @Data
 @Accessors(chain = true)

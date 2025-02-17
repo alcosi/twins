@@ -14,7 +14,6 @@ import org.twins.core.dao.factory.TwinFactoryBranchRepository;
 import org.twins.core.domain.search.FactoryBranchSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.factory.FactoryBranchSpecification.*;
 
 

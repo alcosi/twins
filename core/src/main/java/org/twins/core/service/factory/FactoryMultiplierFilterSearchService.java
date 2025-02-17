@@ -47,6 +47,6 @@ public class FactoryMultiplierFilterSearchService {
                 checkUuidIn(search.getInputTwinClassIdExcludeList(), true, false, TwinFactoryMultiplierFilterEntity.Fields.inputTwinClassId),
                 checkUuidIn(search.getFactoryConditionSetIdList(), false, false, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
                 checkUuidIn(search.getFactoryConditionSetIdExcludeList(), true, true, TwinFactoryMultiplierFilterEntity.Fields.twinFactoryConditionSetId),
-                checkTernary(TwinFactoryMultiplierFilterEntity.Fields.active, search.getActive()));
+                checkTernary(search.getActive(), TwinFactoryMultiplierFilterEntity.Fields.active));
     }
 }

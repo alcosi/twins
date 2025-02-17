@@ -1,0 +1,3 @@
+INSERT INTO public.i18n (id, name, key, i18n_type_id) VALUES ('1cbca929-71a5-48bf-a753-1e2a81c91b16', null, null, 'error') on conflict on constraint i18n_pkey do nothing ;
+INSERT INTO public.i18n_translation (i18n_id, locale, translation, usage_counter) VALUES ('1cbca929-71a5-48bf-a753-1e2a81c91b16', 'en', 'Disk space limit reached: ${size} GB out of ${quotaSize} GB', 0) on conflict on constraint i18n_translation_uq do nothing ;
+INSERT INTO public.error (id, code_local, code_external, name, description, client_msg_i18n_id) VALUES ('8a299f23-a153-4bf9-81cb-5adc7ff2f67c', 12501, 'null', 'TIER_SIZE_QUOTA_REACHED', 'tier size quota reached', '1cbca929-71a5-48bf-a753-1e2a81c91b16') on conflict on constraint error_pk do nothing ;

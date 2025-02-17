@@ -1,4 +1,4 @@
-SELECT
+SELECT DISTINCT ON (ts.name_i18n_id)
     ts.name_i18n_id AS i18n_id,
     CONCAT('class[', tc.key, '].status[', ts.key, '].name') AS reference,
     COALESCE(en.translation, '—') AS english_translation,
@@ -15,7 +15,7 @@ FROM
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT ON (tcf.name_i18n_id)
     tcf.name_i18n_id AS i18n_id,
     CONCAT('class[', tc.key, '].field[', tcf.key, '].name') AS reference,
     COALESCE(en.translation, '—') AS english_translation,
@@ -32,7 +32,7 @@ FROM
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT ON (tt.name_i18n_id)
     tt.name_i18n_id AS i18n_id,
     CONCAT('class[', tc.key, '].transition[', tta.alias, '].src[', ts.key ,'].name') AS reference,
     COALESCE(en.translation, '—') AS english_translation,
@@ -55,7 +55,7 @@ FROM
 
 UNION ALL
 
-SELECT
+SELECT DISTINCT ON (dlo.option_i18n_id)
     dlo.option_i18n_id AS i18n_id,
     CONCAT('datalist[', dl.key, '].option[', dlo.option, ']') AS reference,
     COALESCE(en.translation, '—') AS english_translation,
@@ -68,5 +68,20 @@ FROM
         LEFT JOIN
     i18n_translation en ON en.i18n_id = dlo.option_i18n_id AND en.locale = 'en'
         LEFT JOIN
-    i18n_translation pl ON pl.i18n_id = dlo.option_i18n_id AND pl.locale = 'pl';
+    i18n_translation pl ON pl.i18n_id = dlo.option_i18n_id AND pl.locale = 'pl'
+
+UNION ALL
+
+SELECT DISTINCT ON (er.client_msg_i18n_id)
+    er.client_msg_i18n_id AS i18n_id,
+    CONCAT('error[', er.name, ']') AS reference,
+    COALESCE(en.translation, '—') AS english_translation,
+    COALESCE(pl.translation, '—') AS polish_translation,
+    'error' AS source
+FROM
+    error er
+        LEFT JOIN
+    i18n_translation en ON en.i18n_id = er.client_msg_i18n_id AND en.locale = 'en'
+        LEFT JOIN
+    i18n_translation pl ON pl.i18n_id = er.client_msg_i18n_id AND pl.locale = 'pl';
 
