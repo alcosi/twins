@@ -149,6 +149,7 @@ public class FeaturerService {
             }
         }
         this.featurerParamsMap.put(featurerAnnotation.id(), featurerParamsMap);
+        this.featurerParamsAnnotationsMap.put(featurerAnnotation.id(), featurerParamsAnnotationMap);
     }
 
 
@@ -201,10 +202,8 @@ public class FeaturerService {
         return featurerParamRepository.findByFeaturerIdAndKey(id, key);
     }
 
-    public void loadFeaturerParam(FeaturerEntity featurerEntity) {
-        if (featurerEntity == null)
-            return;
-        featurerEntity.setParams(featurerParamRepository.findByFeaturer(featurerEntity));
+    public void loadFeaturerParams(FeaturerEntity featurerEntity) {
+        loadFeaturerParams(Collections.singleton(featurerEntity));
     }
 
     public void loadFeaturerParams(Collection<FeaturerEntity> featurerEntityCollection) {
@@ -215,6 +214,8 @@ public class FeaturerService {
             if (featurerEntity.getParams() == null)
                 needLoad.add(featurerEntity);
         }
+        if (CollectionUtils.isEmpty(needLoad))
+            return;
         List<FeaturerParamEntity> allParams = featurerParamRepository.findByFeaturerIdIn(needLoad.getIdSet());
         if (CollectionUtils.isEmpty(allParams))
             return;
@@ -222,7 +223,9 @@ public class FeaturerService {
                 .collect(Collectors.groupingBy(FeaturerParamEntity::getFeaturerId));
         for (FeaturerEntity featurerEntity : needLoad.getCollection()) {
             List<FeaturerParamEntity> params = paramsGroupedByFeaturerId.get(featurerEntity.getId());
-            featurerEntity.setParams(params != null ? params : Collections.EMPTY_LIST);
+            featurerEntity.setParams(params != null ? params.stream()
+                    .sorted(Comparator.comparingInt(FeaturerParamEntity::getOrder))
+                    .collect(Collectors.toList()) : Collections.EMPTY_LIST);
         }
     }
 
@@ -279,10 +282,10 @@ public class FeaturerService {
                     ret.put(entry.getKey(), extractInjectedProperties(UUID.fromString(StringUtils.substringAfter(value, "@")), context));
                 } catch (Exception e) {
                     log.error("error getting value[" + entry.getValue() + "] injected by key[" + entry.getKey() + "]", e);
-                    ret.put(entry.getKey(), entry.getValue());
+                    ret.put(entry.getKey(), value);
                 }
             } else {
-                ret.put(entry.getKey(), entry.getValue());
+                ret.put(entry.getKey(), value);
             }
         }
         return ret;
