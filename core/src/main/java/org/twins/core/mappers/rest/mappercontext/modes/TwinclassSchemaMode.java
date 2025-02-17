@@ -9,7 +9,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperModePointer;
 @Getter
 @AllArgsConstructor
 @FieldNameConstants(onlyExplicitlyIncluded = true)
-public enum TwinflowSchemaMode implements MapperMode {
+public enum TwinclassSchemaMode implements MapperMode {
     @FieldNameConstants.Include HIDE(0),
     @FieldNameConstants.Include SHORT(1),
     @FieldNameConstants.Include DETAILED(2);
@@ -19,7 +19,7 @@ public enum TwinflowSchemaMode implements MapperMode {
     @Getter
     @AllArgsConstructor
     @FieldNameConstants(onlyExplicitlyIncluded = true)
-    public enum Tier2TwinflowSchemaMode implements MapperModePointer<TwinflowSchemaMode> {
+    public enum Tier2TwinclassSchemaMode implements MapperModePointer<TwinclassSchemaMode> {
         @FieldNameConstants.Include HIDE(0),
         @FieldNameConstants.Include SHORT(1),
         @FieldNameConstants.Include DETAILED(2);
@@ -27,11 +27,11 @@ public enum TwinflowSchemaMode implements MapperMode {
         final int priority;
 
         @Override
-        public TwinflowSchemaMode point() {
+        public TwinclassSchemaMode point() {
             return switch (this) {
-                case HIDE -> TwinflowSchemaMode.HIDE;
-                case SHORT -> TwinflowSchemaMode.SHORT;
-                case DETAILED -> TwinflowSchemaMode.DETAILED;
+                case HIDE -> TwinclassSchemaMode.HIDE;
+                case SHORT -> TwinclassSchemaMode.SHORT;
+                case DETAILED -> TwinclassSchemaMode.DETAILED;
             };
         }
     }
