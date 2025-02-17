@@ -11,7 +11,7 @@ public class LocaleRestDTOMapper extends RestSimpleDTOMapper<DomainLocaleEntity,
     @Override
     public void map(DomainLocaleEntity src, LocaleDTOv1 dst, MapperContext mapperContext) throws Exception {
         dst
-                .setId(src.getLocale())
+                .setId(src.getLocale().toLanguageTag())
                 .setName(src.getI18nLocale().getName())
                 .setNativeName(src.getI18nLocale().getNativeName())
                 .setIcon(src.getIcon());
