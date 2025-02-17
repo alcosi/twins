@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import org.cambium.common.EasyLoggable;
 import org.cambium.i18n.dao.I18nLocaleEntity;
+import org.cambium.i18n.dao.LocaleConverter;
 
+import java.util.Locale;
 import java.util.UUID;
 
 @Entity
@@ -21,7 +23,8 @@ public class DomainLocaleEntity implements EasyLoggable {
     private UUID domainId;
 
     @Column(name = "i18n_locale_id")
-    private String locale;
+    @Convert(converter = LocaleConverter.class)
+    private Locale locale;
 
     @Column(name = "icon")
     private String icon;
