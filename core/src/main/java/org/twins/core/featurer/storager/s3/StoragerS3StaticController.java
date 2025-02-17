@@ -9,6 +9,7 @@ import org.cambium.featurer.annotations.Featurer;
 import org.cambium.featurer.annotations.FeaturerParam;
 import org.cambium.featurer.params.FeaturerParamInt;
 import org.cambium.featurer.params.FeaturerParamString;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.twins.core.featurer.FeaturerTwins;
 import org.twins.core.featurer.storager.StoragerAbstractChecked;
@@ -27,27 +28,43 @@ import java.util.UUID;
         description = "Service to save files to S3 and return their URL as '$selfHostDomainBaseUri'+'public/resource/{id}/v1'")
 @Slf4j
 public class StoragerS3StaticController extends StoragerAbstractChecked {
+    @Value("${server.servlet.context-path:}")
+    protected String contextPath;
     protected final Long DEFAULT_PART_SIZE = 10485760L;
-
-    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\nSet 0 to use default value")
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
+            description = "If the File is added as external URI, it should be downloaded first.\nSo this params sets timout time in milliseconds for such download request.\n",
+            optional = true,
+            defaultValue = "60000",
+            exampleValues = {"60000", "1000"}
+    )
     public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
-    @FeaturerParam(name = "s3Uri", description = "URI of s3 server")
+    @FeaturerParam(name = "s3Uri", description = "URI of s3 server",
+            optional = true,
+            defaultValue = "https://s3.amazonaws.com",
+            exampleValues = {"https://s3.amazonaws.com", "http://127.0.0.1:9000", "https://s3.us-west-2.amazonaws.com"})
     public static final FeaturerParamString s3Uri = new FeaturerParamString("s3Uri");
 
-    @FeaturerParam(name = "s3Region", description = "Region config for s3.\n Can be 'aws-global' for S3 comparable storages lice MinIO")
+    @FeaturerParam(name = "s3Region", description = "Region config for s3.\n Can be 'aws-global' for S3 comparable storages lice MinIO",
+            optional = true,
+            defaultValue = "aws-global",
+            exampleValues = {"aws-global", "us-west-2"})
     public static final FeaturerParamString s3Region = new FeaturerParamString("s3Region");
 
-    @FeaturerParam(name = "s3Bucket", description = "S3 bucket")
+    @FeaturerParam(name = "s3Bucket", description = "S3 bucket", optional = false, exampleValues = {"documents", "resources", "twins"})
     public static final FeaturerParamString s3Bucket = new FeaturerParamString("s3Bucket");
 
-    @FeaturerParam(name = "s3AccessKey", description = "Access key (username) for S3")
+    @FeaturerParam(name = "s3AccessKey", description = "Access key (username) for S3", optional = false, exampleValues = {"AKIAIOSFODNN7EXAMPLE"})
     public static final FeaturerParamString s3AccessKey = new FeaturerParamString("s3AccessKey");
 
-    @FeaturerParam(name = "s3SecretKey", description = "Secret key (password) for S3")
+    @FeaturerParam(name = "s3SecretKey", description = "Secret key (password) for S3", optional = false, exampleValues = {"wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"})
     public static final FeaturerParamString s3SecretKey = new FeaturerParamString("s3SecretKey");
 
-    @FeaturerParam(name = "basePath", description = "Prefix for file keys.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.\n Example:'/twins-resources/{domainId}/{businessAccountId}'")
+    @FeaturerParam(name = "basePath",
+            description = "Prefix for file keys.\nPlaceholders {domainId} and {businessAccountId} can be used to make domain/account relevant path.",
+            optional = true,
+            defaultValue = "/twins-resources/{domainId}/{businessAccountId}",
+            exampleValues = {"/twins-resources/{domainId}/{businessAccountId}", "/attachments/{domainId}", "/files"})
     public static final FeaturerParamString basePath = new FeaturerParamString("basePath");
 
     @Override
@@ -59,10 +76,12 @@ public class StoragerS3StaticController extends StoragerAbstractChecked {
 
     @Override
     public String getFileControllerUri(HashMap<String, String> params) throws ServiceException {
+        String controllerPath = "public/resource/{id}/v1";
         Properties properties = extractProperties(params, false);
         String urlDomain = addSlashAtTheEndIfNeeded(selfHostDomainBaseUri.extract(properties));
-        return urlDomain + "public/resource/{id}/v1";
+        return removeDoubleSlashes(urlDomain + addSlashAtStartIfNeeded(contextPath) + addSlashAtStartIfNeeded(controllerPath));
     }
+
     @SneakyThrows
     protected MinioClient getS3MinioClient(HashMap<String, String> params) throws ServiceException {
         Properties properties = extractProperties(params, false);

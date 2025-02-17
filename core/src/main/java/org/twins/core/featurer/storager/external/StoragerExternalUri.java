@@ -29,7 +29,12 @@ import java.util.UUID;
         description = "Service to keep and work with external uri")
 @Slf4j
 public class StoragerExternalUri extends StoragerAbstractChecked {
-    @FeaturerParam(name = "downloadExternalFileConnectionTimeout", description = "When file is added as external URI, basically there is no need to download it.\n But if Mime-Type or Size limit check is set, file should be partly downloaded to perform check..\n Set 0 to use default value")
+    @FeaturerParam(name = "downloadExternalFileConnectionTimeout",
+            description = "When file is added as external URI, basically there is no need to download it.\n But if Mime-Type or Size limit check is set, file should be partly downloaded to perform check.",
+            optional = true,
+            defaultValue = "60000",
+            exampleValues = {"60000", "1000"}
+    )
     public static final FeaturerParamInt downloadExternalFileConnectionTimeout = new FeaturerParamInt("downloadExternalFileConnectionTimeout");
 
     @Override

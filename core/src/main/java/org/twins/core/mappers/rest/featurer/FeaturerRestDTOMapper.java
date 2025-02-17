@@ -6,10 +6,10 @@ import org.cambium.featurer.dao.FeaturerEntity;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.dto.rest.featurer.FeaturerDTOv1;
+import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerMode;
 import org.twins.core.mappers.rest.mappercontext.modes.FeaturerParamMode;
-import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 
 import java.util.Collection;
 
@@ -39,9 +39,11 @@ public class FeaturerRestDTOMapper extends RestSimpleDTOMapper<FeaturerEntity, F
                         .setId(src.getId())
                         .setName(src.getName());
         }
-        if (showFeaturerParams(mapperContext))
+        if (showFeaturerParams(mapperContext)) {
+            featurerService.loadFeaturerParams(src);
             dst
                     .setParams(featurerParamRestDTOMapper.convertCollection(src.getParams(), mapperContext));
+        }
     }
 
     private static boolean showFeaturerParams(MapperContext mapperContext) {
