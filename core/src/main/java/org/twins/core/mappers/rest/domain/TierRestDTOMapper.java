@@ -12,7 +12,7 @@ import org.twins.core.mappers.rest.mappercontext.modes.TierMode;
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = TierMode.class)
-public class TierSearchDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTOv1> {
+public class TierRestDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTOv1> {
 
     @Override
     public void map(TierEntity src, TierDTOv1 dst, MapperContext mapperContext) throws Exception {

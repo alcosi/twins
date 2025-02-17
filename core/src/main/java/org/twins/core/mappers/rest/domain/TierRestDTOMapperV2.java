@@ -14,9 +14,9 @@ import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
 
 @Component
 @RequiredArgsConstructor
-public class TierSearchDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTOv2> {
+public class TierRestDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTOv2> {
     @MapperModePointerBinding(modes = TierMode.class)
-    private final TierSearchDTOMapper tierSearchDTOMapper;
+    private final TierRestDTOMapper tierSearchDTOMapper;
 
     @MapperModePointerBinding(modes = PermissionSchemaMode.Tier2PermissionSchemaMode.class)
     private final PermissionSchemaRestDTOMapper permissionSchemaRestDTOMapper;
