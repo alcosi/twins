@@ -197,6 +197,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                 return;
             else
                 throw new ServiceException(ErrorCodeTwins.DOMAIN_USER_ALREADY_EXISTS, "user[" + userId + "] is already registered in domain[" + domainId + "]");
+        checkAccessLocaleForDomain();
         DomainUserEntity domainUserEntity = new DomainUserEntity()
                 .setDomainId(domainId)
                 .setUserId(userId)
@@ -318,6 +319,14 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
                     return el;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void checkAccessLocaleForDomain() throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        boolean ret = domainLocaleRepository
+                .existsByDomainIdAndLocaleAndActiveTrueAndI18nLocaleActiveTrue(apiUser.getDomainId(), String.valueOf(apiUser.getLocale()));
+        if (!ret)
+            throw new ServiceException(ErrorCodeTwins.LOCALE_NOT_REGISTERED_IN_DOMAIN);
     }
 
     public DomainTypeEntity loadDomainType(DomainEntity domainEntity) throws ServiceException {

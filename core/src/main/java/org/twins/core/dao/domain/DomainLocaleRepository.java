@@ -7,4 +7,6 @@ import java.util.UUID;
 
 public interface DomainLocaleRepository extends CrudRepository<DomainLocaleEntity, UUID> {
     List<DomainLocaleEntity> findByDomainIdAndActiveTrueAndI18nLocaleActiveTrue(UUID domainId);
+
+    boolean existsByDomainIdAndLocaleAndActiveTrueAndI18nLocaleActiveTrue(UUID domainId, String i18nLocaleId);
 }
