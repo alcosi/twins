@@ -846,4 +846,22 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         DomainType domainType = authService.getApiUser().getDomain().getDomainType();
         return domainTypeTwinClassOwnerTypeRepository.findAllTwinClassOwnerTypesByDomainTypeId(domainType);
     }
+
+    public void loadHeadHunter(TwinClassEntity twinClassEntity) {
+        loadHeadHunter(Collections.singletonList(twinClassEntity));
+    }
+
+    public void loadHeadHunter(Collection<TwinClassEntity> twinClassCollection) {
+        Map<Integer, TwinClassEntity> needLoad = new HashMap<>();
+        for (TwinClassEntity twinClass : twinClassCollection) {
+            if (twinClass.getHeadHunterFeaturer() == null && twinClass.getHeadHunterFeaturerId() != null)
+                needLoad.put(twinClass.getHeadHunterFeaturerId(), twinClass);
+        }
+        if (MapUtils.isEmpty(needLoad))
+            return;
+        List<FeaturerEntity> featurerList = featurerService.findByIdIn(needLoad.keySet());
+        for (Map.Entry<Integer, TwinClassEntity> map : needLoad.entrySet()) {
+            map.getValue().setHeadHunterFeaturer(featurerList.get(map.getKey()));
+        }
+    }
 }
