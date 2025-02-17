@@ -14,7 +14,6 @@ public class TierSaveDTOReverseMapper extends RestSimpleDTOMapper<TierSaveRqDTOv
     @Override
     public void map(TierSaveRqDTOv1 src, TierSave dst, MapperContext mapperContext) throws Exception {
         dst
-                .setId(src.getId())
                 .setDomainId(src.getDomainId())
                 .setName(src.getName())
                 .setCustom(src.isCustom())

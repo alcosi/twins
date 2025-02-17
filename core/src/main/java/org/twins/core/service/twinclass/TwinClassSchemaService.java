@@ -20,7 +20,6 @@ import java.util.function.Function;
 @Lazy
 @RequiredArgsConstructor
 public class TwinClassSchemaService extends EntitySecureFindServiceImpl<TwinClassSchemaEntity> {
-   private final TwinClassRepository twinClassRepository;
     private final TwinClassSchemaRepository twinClassSchemaRepository;
 
     @Override

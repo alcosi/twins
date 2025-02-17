@@ -101,14 +101,88 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity updateTier(TierUpdate tierUpdate) throws ServiceException {
-        TierEntity tierEntity = findEntitySafe(tierUpdate.getId());
+        TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
+        updateTierName(dbTierEntity, tierUpdate.getName(), changesHelper);
+        updateTierDescription(dbTierEntity, tierUpdate.getDescription(), changesHelper);
+        updateTierCustom(dbTierEntity, tierUpdate.isCustom(), changesHelper);
+        updateTierPermissionSchemaId(dbTierEntity, tierUpdate.getPermissionSchemaId(), changesHelper);
+        updateTierTwinflowSchemaId(dbTierEntity, tierUpdate.getTwinflowSchemaId(), changesHelper);
+        updateTierTwinClassSchemaId(dbTierEntity, tierUpdate.getTwinClassSchemaId(), changesHelper);
+        updateTierAttachmentsStorageQuotaCount(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaCount(), changesHelper);
+        updateTierAttachmentsStorageQuotaSize(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaSize(), changesHelper);
+        updateTierUserCountQuota(dbTierEntity, tierUpdate.getUserCountQuota(), changesHelper);
+
+        validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
+
         if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(tierEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(tierEntity, tierRepository, changesHelper);
+            dbTierEntity = entitySmartService.saveAndLogChanges(dbTierEntity, tierRepository, changesHelper);
         }
-        return tierEntity;
+
+        return dbTierEntity;
     }
 
+    private void updateTierName(TierEntity tierEntity, String newName, ChangesHelper changesHelper) {
+        if (!newName.isEmpty() && !newName.equals(tierEntity.getName())) {
+            changesHelper.add(TierEntity.Fields.name, tierEntity.getName(), newName);
+            tierEntity.setName(newName);
+        }
+    }
+
+    private void updateTierDescription(TierEntity tierEntity, String newDescription, ChangesHelper changesHelper) {
+        if (!newDescription.isEmpty() && !newDescription.equals(tierEntity.getDescription())) {
+            changesHelper.add(TierEntity.Fields.description, tierEntity.getDescription(), newDescription);
+            tierEntity.setDescription(newDescription);
+        }
+    }
+
+    private void updateTierCustom(TierEntity tierEntity, Boolean custom, ChangesHelper changesHelper) {
+        if (custom != null && !custom.equals(tierEntity.isCustom())) {
+            changesHelper.add(TierEntity.Fields.custom, tierEntity.isCustom(), custom);
+            tierEntity.setCustom(custom);
+        }
+    }
+
+    private void updateTierPermissionSchemaId(TierEntity tierEntity, UUID permissionSchemaId, ChangesHelper changesHelper) {
+        if (permissionSchemaId != null && !permissionSchemaId.equals(tierEntity.getPermissionSchemaId())) {
+            changesHelper.add(TierEntity.Fields.permissionSchemaId, tierEntity.getPermissionSchemaId(), permissionSchemaId);
+            tierEntity.setPermissionSchemaId(permissionSchemaId);
+        }
+    }
+
+    private void updateTierTwinflowSchemaId(TierEntity tierEntity, UUID twinflowSchemaId, ChangesHelper changesHelper) {
+        if (twinflowSchemaId != null && !twinflowSchemaId.equals(tierEntity.getTwinflowSchemaId())) {
+            changesHelper.add(TierEntity.Fields.twinflowSchemaId, tierEntity.getTwinflowSchemaId(), twinflowSchemaId);
+            tierEntity.setTwinflowSchemaId(twinflowSchemaId);
+        }
+    }
+
+    private void updateTierTwinClassSchemaId(TierEntity tierEntity, UUID twinClassSchemaId, ChangesHelper changesHelper) {
+        if (twinClassSchemaId != null && !twinClassSchemaId.equals(tierEntity.getTwinClassSchemaId())) {
+            changesHelper.add(TierEntity.Fields.twinClassSchemaId, tierEntity.getTwinClassSchemaId(), twinClassSchemaId);
+            tierEntity.setTwinClassSchemaId(twinClassSchemaId);
+        }
+    }
+
+    private void updateTierAttachmentsStorageQuotaCount(TierEntity tierEntity, Integer quotaCount, ChangesHelper changesHelper) {
+        if (quotaCount != null && !quotaCount.equals(tierEntity.getAttachmentsStorageQuotaCount())) {
+            changesHelper.add(TierEntity.Fields.attachmentsStorageQuotaCount, tierEntity.getAttachmentsStorageQuotaCount(), quotaCount);
+            tierEntity.setAttachmentsStorageQuotaCount(quotaCount);
+        }
+    }
+
+    private void updateTierAttachmentsStorageQuotaSize(TierEntity tierEntity, Long quotaSize, ChangesHelper changesHelper) {
+        if (quotaSize != null && !quotaSize.equals(tierEntity.getAttachmentsStorageQuotaSize())) {
+            changesHelper.add(TierEntity.Fields.attachmentsStorageQuotaSize, tierEntity.getAttachmentsStorageQuotaSize(), quotaSize);
+            tierEntity.setAttachmentsStorageQuotaSize(quotaSize);
+        }
+    }
+
+    private void updateTierUserCountQuota(TierEntity tierEntity, Integer userCountQuota, ChangesHelper changesHelper) {
+        if (userCountQuota != null && !userCountQuota.equals(tierEntity.getUserCountQuota())) {
+            changesHelper.add(TierEntity.Fields.userCountQuota, tierEntity.getUserCountQuota(), userCountQuota);
+            tierEntity.setUserCountQuota(userCountQuota);
+        }
+    }
 }

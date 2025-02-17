@@ -8,7 +8,6 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 public class TierSave {
-    private UUID id;
     private UUID domainId;
     private String name;
     private boolean custom;
