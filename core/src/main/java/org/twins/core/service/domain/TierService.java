@@ -13,13 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
 import org.twins.core.service.twinflow.TwinflowSchemaService;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -74,12 +72,10 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         return true;
     }
 
-    public UUID checkTierAllowed(UUID domainTierId) throws ServiceException {
-        Optional<TierEntity> domainBusinessAccountTierEntity = tierRepository.findById(domainTierId);
-        if (domainBusinessAccountTierEntity.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown domainTierId[" + domainTierId + "]");
-        validateEntityAndThrow(domainBusinessAccountTierEntity.get(), EntitySmartService.EntityValidateMode.beforeSave);
-        return domainTierId;
+    public UUID checkTierValidFroRegistration(UUID tierId) throws ServiceException {
+        findEntitySafe(tierId);
+        //todo check that tier it active
+        return tierId;
     }
 
     @Transactional(rollbackFor = Throwable.class)
