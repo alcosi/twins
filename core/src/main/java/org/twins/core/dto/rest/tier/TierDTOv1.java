@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.tier;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,7 +10,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TierDTOv1")
+@Schema(name = "TierV1")
 public class TierDTOv1 {
 
     @Schema(description = "id")
@@ -23,7 +23,7 @@ public class TierDTOv1 {
     public UUID twinflowSchemaId;
 
     @Schema(description = "twinclass schema id")
-    public UUID twinclassSchemaId;
+    public UUID twinClassSchemaId;
 
     @Schema(description = "name")
     public String name;
