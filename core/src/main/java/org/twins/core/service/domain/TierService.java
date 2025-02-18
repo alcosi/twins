@@ -50,8 +50,10 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     @Override
     public boolean isEntityReadDenied(TierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId()))
-            return logErrorAndReturnTrue(entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
+        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
+            return true;
+        }
         return false;
     }
 
@@ -85,8 +87,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         tierCreate
                 .setId(UUID.randomUUID())
                 .setDomainId(authService.getApiUser().getDomainId());
-        validateEntityAndThrow(tierCreate, EntitySmartService.EntityValidateMode.beforeSave);
-        return tierRepository.save(tierCreate);
+        return saveSafe(tierCreate);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -104,11 +105,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         updateTierAttachmentsStorageQuotaSize(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaSize(), changesHelper);
         updateTierUserCountQuota(dbTierEntity, tierUpdate.getUserCountQuota(), changesHelper);
 
-        if (changesHelper.hasChanges()) {
-            validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            dbTierEntity = entitySmartService.saveAndLogChanges(dbTierEntity, tierRepository, changesHelper);
-        }
-        return dbTierEntity;
+        return updateSafe(dbTierEntity, changesHelper);
     }
 
     private void updateTierName(TierEntity tierEntity, String newName, ChangesHelper changesHelper) {

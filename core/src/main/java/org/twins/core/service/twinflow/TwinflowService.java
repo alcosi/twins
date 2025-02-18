@@ -52,8 +52,8 @@ import java.util.function.Function;
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkSchemas;
+import static org.twins.core.dao.specifications.twinflow.TwinflowSpecification.checkUuidIn;
 
 @Slf4j
 @Service
@@ -226,8 +226,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setInitialTwinStatusId(twinStatusEntity.getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(SystemEntityService.USER_SYSTEM);
-        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return saveSafe(twinflowEntity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -241,8 +240,7 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.TWINFLOW_DESCRIPTION, descriptionI18n).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()))
                 .setCreatedByUserId(apiUser.getUserId());
-        validateEntity(twinflowEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return entitySmartService.save(twinflowEntity, twinflowRepository, EntitySmartService.SaveMode.saveAndThrowOnException);
+        return saveSafe(twinflowEntity);
     }
 
     @Transactional
@@ -291,8 +289,9 @@ public class TwinflowService extends EntitySecureFindServiceImpl<TwinflowEntity>
         updateTwinflowName(dbTwinflowEntity, nameI18n, changesHelper);
         updateTwinflowDescription(dbTwinflowEntity, descriptionI18n, changesHelper);
         updateTwinflowInitStatus(dbTwinflowEntity, twinflowEntity.getInitialTwinStatusId(), changesHelper);
-        dbTwinflowEntity = entitySmartService.saveAndLogChanges(dbTwinflowEntity, twinflowRepository, changesHelper);
-        evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
+        dbTwinflowEntity = updateSafe(dbTwinflowEntity, changesHelper);
+        if (changesHelper.hasChanges())
+            evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinflowEntity.getTwinClassId());
         return dbTwinflowEntity;
     }
 

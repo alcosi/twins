@@ -260,11 +260,7 @@ public class PermissionService extends TwinsEntitySecureFindService<PermissionEn
         updatePermissionGroupId(updateEntity, dbEntity, changesHelper);
         updatePermissionName(nameI18n, dbEntity, changesHelper);
         updatePermissionDescription(descriptionI18n, dbEntity, changesHelper);
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbEntity, permissionRepository, changesHelper);
-        }
-        return dbEntity;
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updatePermissionDescription(I18nEntity descriptionI18n, PermissionEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

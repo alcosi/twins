@@ -339,7 +339,7 @@ public class EntitySmartService {
             return entity;
         entity = repository.save(entity);
         if (entity instanceof EasyLoggable prettyLoggable)
-            log.info(prettyLoggable.easyLog(EasyLoggable.Level.SHORT) + " was updated: " + changesHelper.collectForLog());
+            log.info(prettyLoggable.logShort() + " was updated: " + changesHelper.collectForLog());
         else
             log.info(entityShortName(entity) + " was updated: " + changesHelper.collectForLog());
         return entity;

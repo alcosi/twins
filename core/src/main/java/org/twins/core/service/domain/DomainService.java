@@ -3,7 +3,6 @@ package org.twins.core.service.domain;
 import com.google.common.collect.Streams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
 import org.cambium.common.pagination.PaginationResult;
@@ -276,7 +275,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         }
         if (changesHelper.hasChanges()) {
             dbEntity = domainBusinessAccountRepository.save(dbEntity);
-            log.info(dbEntity.easyLog(EasyLoggable.Level.NORMAL) + " was updated: " + changesHelper.collectForLog());
+            log.info("{} was updated: {}", dbEntity.logNormal(), changesHelper.collectForLog());
         }
     }
 
