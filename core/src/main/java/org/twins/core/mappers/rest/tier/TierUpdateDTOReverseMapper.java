@@ -15,6 +15,5 @@ public class TierUpdateDTOReverseMapper extends RestSimpleDTOMapper<TierUpdateRq
     @Override
     public void map(TierUpdateRqDTOv1 src, TierEntity dst, MapperContext mapperContext) throws Exception {
         tierSaveDTOReverseMapper.map(src, dst, mapperContext);
-        dst.setId(src.getId());
     }
 }

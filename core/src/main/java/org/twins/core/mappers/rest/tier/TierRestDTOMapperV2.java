@@ -7,7 +7,10 @@ import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dto.rest.tier.TierDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-import org.twins.core.mappers.rest.mappercontext.modes.*;
+import org.twins.core.mappers.rest.mappercontext.modes.PermissionSchemaMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TierMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinclassSchemaMode;
+import org.twins.core.mappers.rest.mappercontext.modes.TwinflowSchemaMode;
 import org.twins.core.mappers.rest.permission.PermissionSchemaRestDTOMapper;
 import org.twins.core.mappers.rest.twinclass.TwinclassSchemaDTOMapper;
 import org.twins.core.mappers.rest.twinflow.TwinflowSchemaRestDTOMapper;
@@ -40,7 +43,7 @@ public class TierRestDTOMapperV2 extends RestSimpleDTOMapper<TierEntity, TierDTO
                     .setTwinflowSchemaId(src.getTwinflowSchemaId());
         if (mapperContext.hasModeButNot(TwinclassSchemaMode.Tier2TwinclassSchemaMode.HIDE))
             dst
-                    .setTwinclassSchema(twinclassSchemaDTOMapper.convertOrPostpone(src.getTwinClassSchema(), mapperContext.forkOnPoint(TwinclassSchemaMode.Tier2TwinclassSchemaMode.SHORT)))
-                    .setTwinclassSchemaId(src.getTwinClassSchemaId());
+                    .setTwinClassSchema(twinclassSchemaDTOMapper.convertOrPostpone(src.getTwinClassSchema(), mapperContext.forkOnPoint(TwinclassSchemaMode.Tier2TwinclassSchemaMode.SHORT)))
+                    .setTwinClassSchemaId(src.getTwinClassSchemaId());
     }
 }

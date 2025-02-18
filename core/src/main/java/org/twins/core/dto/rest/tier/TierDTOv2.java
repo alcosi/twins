@@ -11,15 +11,14 @@ import org.twins.core.dto.rest.twinflow.TwinflowSchemaDTOv1;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "TierDTOv2")
+@Schema(name = "TierV2")
 public class TierDTOv2 extends TierDTOv1 {
-
     @Schema(description = "permission schema")
     public PermissionSchemaDTOv1 permissionSchema;
 
     @Schema(description = "twinflow schema")
     public TwinflowSchemaDTOv1 twinflowSchema;
 
-    @Schema(description = "twinclass schema")
-    public TwinClassSchemaDTOv1 twinclassSchema;
+    @Schema(description = "twin class schema")
+    public TwinClassSchemaDTOv1 twinClassSchema;
 }

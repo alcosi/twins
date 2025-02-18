@@ -153,4 +153,9 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         log.error(message);
         return false;
     }
+
+    public boolean logErrorAndReturnTrue(String message) {
+        log.error(message);
+        return true;
+    }
 }

@@ -49,6 +49,9 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
 
     @Override
     public boolean isEntityReadDenied(TierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
+        ApiUser apiUser = authService.getApiUser();
+        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId()))
+            return logErrorAndReturnTrue(entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
         return false;
     }
 
@@ -65,7 +68,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         }
         ApiUser apiUser = authService.getApiUser();
         if (!entity.getDomainId().equals(apiUser.getDomainId()))
-            return logErrorAndReturnFalse("domainTierId[" + entity.getId() + "] is not allows in domain[" + apiUser.getDomainId() + "]");
+            return logErrorAndReturnFalse(entity.logShort() + "] is not allows in domain[" + apiUser.getDomainId() + "]");
         return true;
     }
 
@@ -79,27 +82,17 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
 
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity createTier(TierEntity tierCreate) throws ServiceException {
-        TierEntity tier = new TierEntity()
-                .setId(tierCreate.getId())
-                .setDomainId(tierCreate.getDomainId())
-                .setName(tierCreate.getName())
-                .setCustom(tierCreate.isCustom())
-                .setPermissionSchemaId(tierCreate.getPermissionSchemaId())
-                .setTwinflowSchemaId(tierCreate.getTwinflowSchemaId())
-                .setTwinClassSchemaId(tierCreate.getTwinClassSchemaId())
-                .setAttachmentsStorageQuotaCount(tierCreate.getAttachmentsStorageQuotaCount())
-                .setAttachmentsStorageQuotaSize(tierCreate.getAttachmentsStorageQuotaSize())
-                .setUserCountQuota(tierCreate.getUserCountQuota())
-                .setDescription(tierCreate.getDescription());
-        validateEntityAndThrow(tier, EntitySmartService.EntityValidateMode.beforeSave);
-        return tierRepository.save(tier);
+        tierCreate
+                .setId(UUID.randomUUID())
+                .setDomainId(authService.getApiUser().getDomainId());
+        validateEntityAndThrow(tierCreate, EntitySmartService.EntityValidateMode.beforeSave);
+        return tierRepository.save(tierCreate);
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity updateTier(TierEntity tierUpdate) throws ServiceException {
         TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
-        tierUpdate.setId(dbTierEntity.getId());
 
         updateTierName(dbTierEntity, tierUpdate.getName(), changesHelper);
         updateTierDescription(dbTierEntity, tierUpdate.getDescription(), changesHelper);
@@ -111,10 +104,10 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         updateTierAttachmentsStorageQuotaSize(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaSize(), changesHelper);
         updateTierUserCountQuota(dbTierEntity, tierUpdate.getUserCountQuota(), changesHelper);
 
-        validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
-
-        if (changesHelper.hasChanges())
+        if (changesHelper.hasChanges()) {
+            validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
             dbTierEntity = entitySmartService.saveAndLogChanges(dbTierEntity, tierRepository, changesHelper);
+        }
         return dbTierEntity;
     }
 

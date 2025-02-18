@@ -21,7 +21,7 @@ public class TierRestDTOMapper extends RestSimpleDTOMapper<TierEntity, TierDTOv1
                     .setId(src.getId())
                     .setPermissionSchemaId(src.getPermissionSchemaId())
                     .setTwinflowSchemaId(src.getTwinflowSchemaId())
-                    .setTwinclassSchemaId(src.getTwinClassSchemaId())
+                    .setTwinClassSchemaId(src.getTwinClassSchemaId())
                     .setName(src.getName())
                     .setDescription(src.getDescription())
                     .setCustom(src.isCustom())
