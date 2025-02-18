@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.domain;
+package org.twins.core.controller.rest.priv.tier;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,14 +17,13 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.domain.TierEntity;
-import org.twins.core.domain.tier.TierUpdate;
 import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.datalist.DataListOptionRsDTOv3;
-import org.twins.core.dto.rest.domain.TierRsDTOv1;
-import org.twins.core.dto.rest.domain.TierUpdateRqDTOv1;
-import org.twins.core.mappers.rest.domain.TierRestDTOMapper;
-import org.twins.core.mappers.rest.domain.TierRestDTOMapperV2;
-import org.twins.core.mappers.rest.domain.TierUpdateDTOReverseMapper;
+import org.twins.core.dto.rest.tier.TierRsDTOv1;
+import org.twins.core.dto.rest.tier.TierUpdateRqDTOv1;
+import org.twins.core.mappers.rest.tier.TierRestDTOMapper;
+import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
+import org.twins.core.mappers.rest.tier.TierUpdateDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.TierService;
 
@@ -53,8 +52,7 @@ public class TierUpdateController extends ApiController {
             @RequestBody TierUpdateRqDTOv1 request) {
         TierRsDTOv1 rs = new TierRsDTOv1();
         try {
-            TierUpdate tierUpdate = tierUpdateDTOReverseMapper.convert(request);
-            TierEntity tierEntity = tierService.updateTier(tierUpdate.setId(tierId));
+            TierEntity tierEntity = tierService.updateTier(tierUpdateDTOReverseMapper.convert(request).setId(tierId));
             rs.setTier(tierRestDTOMapperV2.convert(tierEntity, mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -13,18 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.domain.tier.TierCreate;
-import org.twins.core.domain.tier.TierUpdate;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
-import org.twins.core.service.twinflow.TwinflowSchemaSearchService;
 import org.twins.core.service.twinflow.TwinflowSchemaService;
 
 import java.util.Optional;
 import java.util.UUID;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 @Slf4j
@@ -82,7 +78,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TierEntity createTier(TierCreate tierCreate) throws ServiceException {
+    public TierEntity createTier(TierEntity tierCreate) throws ServiceException {
         TierEntity tier = new TierEntity()
                 .setId(tierCreate.getId())
                 .setDomainId(tierCreate.getDomainId())
@@ -100,9 +96,10 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     }
 
     @Transactional(rollbackFor = Throwable.class)
-    public TierEntity updateTier(TierUpdate tierUpdate) throws ServiceException {
+    public TierEntity updateTier(TierEntity tierUpdate) throws ServiceException {
         TierEntity dbTierEntity = findEntitySafe(tierUpdate.getId());
         ChangesHelper changesHelper = new ChangesHelper();
+        tierUpdate.setId(dbTierEntity.getId());
 
         updateTierName(dbTierEntity, tierUpdate.getName(), changesHelper);
         updateTierDescription(dbTierEntity, tierUpdate.getDescription(), changesHelper);
@@ -116,73 +113,62 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
 
         validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
 
-        if (changesHelper.hasChanges()) {
+        if (changesHelper.hasChanges())
             dbTierEntity = entitySmartService.saveAndLogChanges(dbTierEntity, tierRepository, changesHelper);
-        }
-
         return dbTierEntity;
     }
 
     private void updateTierName(TierEntity tierEntity, String newName, ChangesHelper changesHelper) {
-        if (!newName.isEmpty() && !newName.equals(tierEntity.getName())) {
-            changesHelper.add(TierEntity.Fields.name, tierEntity.getName(), newName);
-            tierEntity.setName(newName);
-        }
+        if (!changesHelper.isChanged(TierEntity.Fields.name, tierEntity.getName(), newName))
+            return;
+        tierEntity.setName(newName);
     }
 
     private void updateTierDescription(TierEntity tierEntity, String newDescription, ChangesHelper changesHelper) {
-        if (!newDescription.isEmpty() && !newDescription.equals(tierEntity.getDescription())) {
-            changesHelper.add(TierEntity.Fields.description, tierEntity.getDescription(), newDescription);
-            tierEntity.setDescription(newDescription);
-        }
+        if (!changesHelper.isChanged(TierEntity.Fields.description, tierEntity.getName(), newDescription))
+            return;
+        tierEntity.setDescription(newDescription);
     }
 
-    private void updateTierCustom(TierEntity tierEntity, Boolean custom, ChangesHelper changesHelper) {
-        if (custom != null && !custom.equals(tierEntity.isCustom())) {
-            changesHelper.add(TierEntity.Fields.custom, tierEntity.isCustom(), custom);
-            tierEntity.setCustom(custom);
-        }
+    private void updateTierCustom(TierEntity tierEntity, Boolean newCustom, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.custom, tierEntity.getName(), newCustom))
+            return;
+        tierEntity.setCustom(newCustom);
     }
 
-    private void updateTierPermissionSchemaId(TierEntity tierEntity, UUID permissionSchemaId, ChangesHelper changesHelper) {
-        if (permissionSchemaId != null && !permissionSchemaId.equals(tierEntity.getPermissionSchemaId())) {
-            changesHelper.add(TierEntity.Fields.permissionSchemaId, tierEntity.getPermissionSchemaId(), permissionSchemaId);
-            tierEntity.setPermissionSchemaId(permissionSchemaId);
-        }
+    private void updateTierPermissionSchemaId(TierEntity tierEntity, UUID newPermissionSchemaId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.permissionSchemaId, tierEntity.getName(), newPermissionSchemaId))
+            return;
+        tierEntity.setPermissionSchemaId(newPermissionSchemaId);
     }
 
-    private void updateTierTwinflowSchemaId(TierEntity tierEntity, UUID twinflowSchemaId, ChangesHelper changesHelper) {
-        if (twinflowSchemaId != null && !twinflowSchemaId.equals(tierEntity.getTwinflowSchemaId())) {
-            changesHelper.add(TierEntity.Fields.twinflowSchemaId, tierEntity.getTwinflowSchemaId(), twinflowSchemaId);
-            tierEntity.setTwinflowSchemaId(twinflowSchemaId);
-        }
+    private void updateTierTwinflowSchemaId(TierEntity tierEntity, UUID newTwinflowSchemaId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.twinflowSchemaId, tierEntity.getName(), newTwinflowSchemaId))
+            return;
+        tierEntity.setTwinflowSchemaId(newTwinflowSchemaId);
     }
 
-    private void updateTierTwinClassSchemaId(TierEntity tierEntity, UUID twinClassSchemaId, ChangesHelper changesHelper) {
-        if (twinClassSchemaId != null && !twinClassSchemaId.equals(tierEntity.getTwinClassSchemaId())) {
-            changesHelper.add(TierEntity.Fields.twinClassSchemaId, tierEntity.getTwinClassSchemaId(), twinClassSchemaId);
-            tierEntity.setTwinClassSchemaId(twinClassSchemaId);
-        }
+    private void updateTierTwinClassSchemaId(TierEntity tierEntity, UUID newTwinClassSchemaId, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.twinClassSchemaId, tierEntity.getName(), newTwinClassSchemaId))
+            return;
+        tierEntity.setTwinClassSchemaId(newTwinClassSchemaId);
     }
 
-    private void updateTierAttachmentsStorageQuotaCount(TierEntity tierEntity, Integer quotaCount, ChangesHelper changesHelper) {
-        if (quotaCount != null && !quotaCount.equals(tierEntity.getAttachmentsStorageQuotaCount())) {
-            changesHelper.add(TierEntity.Fields.attachmentsStorageQuotaCount, tierEntity.getAttachmentsStorageQuotaCount(), quotaCount);
-            tierEntity.setAttachmentsStorageQuotaCount(quotaCount);
-        }
+    private void updateTierAttachmentsStorageQuotaCount(TierEntity tierEntity, Integer newQuotaCount, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.attachmentsStorageQuotaCount, tierEntity.getName(), newQuotaCount))
+            return;
+        tierEntity.setAttachmentsStorageQuotaCount(newQuotaCount);
     }
 
-    private void updateTierAttachmentsStorageQuotaSize(TierEntity tierEntity, Long quotaSize, ChangesHelper changesHelper) {
-        if (quotaSize != null && !quotaSize.equals(tierEntity.getAttachmentsStorageQuotaSize())) {
-            changesHelper.add(TierEntity.Fields.attachmentsStorageQuotaSize, tierEntity.getAttachmentsStorageQuotaSize(), quotaSize);
-            tierEntity.setAttachmentsStorageQuotaSize(quotaSize);
-        }
+    private void updateTierAttachmentsStorageQuotaSize(TierEntity tierEntity, Long newQuotaSize, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.attachmentsStorageQuotaSize, tierEntity.getName(), newQuotaSize))
+            return;
+        tierEntity.setAttachmentsStorageQuotaSize(newQuotaSize);
     }
 
-    private void updateTierUserCountQuota(TierEntity tierEntity, Integer userCountQuota, ChangesHelper changesHelper) {
-        if (userCountQuota != null && !userCountQuota.equals(tierEntity.getUserCountQuota())) {
-            changesHelper.add(TierEntity.Fields.userCountQuota, tierEntity.getUserCountQuota(), userCountQuota);
-            tierEntity.setUserCountQuota(userCountQuota);
-        }
+    private void updateTierUserCountQuota(TierEntity tierEntity, Integer newUserCountQuota, ChangesHelper changesHelper) {
+        if (!changesHelper.isChanged(TierEntity.Fields.userCountQuota, tierEntity.getName(), newUserCountQuota))
+            return;
+        tierEntity.setUserCountQuota(newUserCountQuota);
     }
 }

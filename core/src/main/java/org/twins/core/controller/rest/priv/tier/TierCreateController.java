@@ -1,4 +1,4 @@
-package org.twins.core.controller.rest.priv.domain;
+package org.twins.core.controller.rest.priv.tier;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,10 +19,10 @@ import org.twins.core.controller.rest.ApiTag;
 import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.domain.TierEntity;
-import org.twins.core.dto.rest.domain.TierCreateRqDTOv1;
-import org.twins.core.dto.rest.domain.TierRsDTOv1;
-import org.twins.core.mappers.rest.domain.TierCreateDTOReverseMapper;
-import org.twins.core.mappers.rest.domain.TierRestDTOMapperV2;
+import org.twins.core.dto.rest.tier.TierCreateRqDTOv1;
+import org.twins.core.dto.rest.tier.TierRsDTOv1;
+import org.twins.core.mappers.rest.tier.TierCreateDTOReverseMapper;
+import org.twins.core.mappers.rest.tier.TierRestDTOMapperV2;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.service.domain.TierService;
 

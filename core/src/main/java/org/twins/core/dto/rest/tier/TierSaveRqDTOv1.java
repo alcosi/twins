@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.tier;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -12,12 +12,6 @@ import java.util.UUID;
 @Accessors(chain = true)
 @Schema(name = "TierSaveRqV1")
 public class TierSaveRqDTOv1 extends Request {
-
-    @Schema(description = "id", example = DTOExamples.TIER_ID)
-    public UUID id;
-
-    @Schema(description = "domain id", example = DTOExamples.DOMAIN_ID)
-    public UUID domainId;
 
     @Schema(description = "name", example = DTOExamples.NAME)
     public String name;

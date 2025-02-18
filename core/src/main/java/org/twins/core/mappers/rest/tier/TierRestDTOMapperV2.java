@@ -1,10 +1,10 @@
-package org.twins.core.mappers.rest.domain;
+package org.twins.core.mappers.rest.tier;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.domain.TierEntity;
-import org.twins.core.dto.rest.domain.TierDTOv2;
+import org.twins.core.dto.rest.tier.TierDTOv2;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.mappercontext.modes.*;

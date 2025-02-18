@@ -1,4 +1,4 @@
-package org.twins.core.dto.rest.domain;
+package org.twins.core.dto.rest.tier;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
@@ -10,7 +10,7 @@ import org.twins.core.dto.rest.ResponseRelatedObjectsDTOv1;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "TagRsV1")
-public class TierRsDTOv1  extends ResponseRelatedObjectsDTOv1 {
+public class TierRsDTOv1 extends ResponseRelatedObjectsDTOv1 {
     @Schema(description = "results - tier")
     public TierDTOv2 tier;
 }
