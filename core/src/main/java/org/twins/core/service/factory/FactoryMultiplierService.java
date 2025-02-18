@@ -51,4 +51,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     public boolean validateEntity(TwinFactoryMultiplierEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
     }
+
+    public TwinFactoryMultiplierEntity createFactoryMultiplier(TwinFactoryMultiplierEntity entity) throws ServiceException {
+        return repository.save(entity);
+    }
 }
