@@ -6,6 +6,7 @@ import org.twins.core.controller.rest.annotation.MapperModeBinding;
 import org.twins.core.controller.rest.annotation.MapperModePointerBinding;
 import org.twins.core.dao.twinflow.TwinflowTransitionEntity;
 import org.twins.core.dto.rest.twinflow.TwinflowTransitionBaseDTOv2;
+import org.twins.core.mappers.rest.factory.FactoryRestDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.*;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.modes.*;
@@ -33,6 +34,9 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
     @MapperModePointerBinding(modes = {UserMode.Transition2UserMode.class})
     private final UserRestDTOMapper userRestDTOMapper;
 
+    @MapperModePointerBinding(modes = FactoryMode.Transition2FactoryMode.class)
+    private final FactoryRestDTOMapper factoryRestDTOMapper;
+
     private final TwinflowTransitionService twinflowTransitionService;
 
     @Override
@@ -48,8 +52,6 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
                         .setCreatedByUserId(src.getCreatedByUserId());
                 break;
         }
-
-
         if (mapperContext.hasModeButNot(StatusMode.Transition2StatusMode.HIDE))
             dst
                     .setSrcTwinStatusId(src.getSrcTwinStatusId())
@@ -66,6 +68,12 @@ public class TransitionBaseV2RestDTOMapper extends RestSimpleDTOMapper<TwinflowT
             dst
                     .setCreatedByUserId(src.getCreatedByUserId())
                     .setCreatedByUser(userRestDTOMapper.convertOrPostpone(twinflowTransitionService.loadCreatedBy(src), mapperContext.forkOnPoint(mapperContext.getModeOrUse(UserMode.Transition2UserMode.SHORT))));
+        if (mapperContext.hasModeButNot(FactoryMode.Transition2FactoryMode.HIDE))
+            dst
+                    .setInbuiltTwinFactoryId(src.getInbuiltTwinFactoryId())
+                    .setInbuiltTwinFactory(factoryRestDTOMapper.convertOrPostpone(src.getInbuiltFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT)))
+                    .setDraftingTwinFactoryId(src.getDraftingTwinFactoryId())
+                    .setDraftingTwinFactory(factoryRestDTOMapper.convertOrPostpone(src.getDraftingFactory(), mapperContext.forkOnPoint(FactoryMode.Transition2FactoryMode.SHORT)));
     }
 
     @Override
