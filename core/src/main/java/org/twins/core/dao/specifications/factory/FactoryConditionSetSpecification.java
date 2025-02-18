@@ -6,6 +6,4 @@ import org.twins.core.dao.specifications.CommonSpecification;
 
 @Slf4j
 public class FactoryConditionSetSpecification extends CommonSpecification<TwinFactoryConditionSetEntity> {
-
-
 }
