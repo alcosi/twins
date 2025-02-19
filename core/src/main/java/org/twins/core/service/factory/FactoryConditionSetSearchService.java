@@ -14,7 +14,9 @@ import org.twins.core.dao.factory.TwinFactoryConditionSetRepository;
 import org.twins.core.domain.search.FactoryConditionSetSearch;
 import org.twins.core.service.auth.AuthService;
 
-import static org.twins.core.dao.specifications.CommonSpecification.*;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldLikeIn;
+import static org.twins.core.dao.specifications.CommonSpecification.checkFieldUuid;
+import static org.twins.core.dao.specifications.CommonSpecification.checkUuidIn;
 
 
 @Slf4j
