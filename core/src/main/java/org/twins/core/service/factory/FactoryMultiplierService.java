@@ -97,7 +97,7 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     private void updateInputTwinClassId(TwinFactoryMultiplierEntity dbMultiplierEntity, UUID newInputTwinClassId,
                                         ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.inputTwinClass, dbMultiplierEntity.getInputTwinClassId(), newInputTwinClassId))
+        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.inputTwinClassId, dbMultiplierEntity.getInputTwinClassId(), newInputTwinClassId))
             return;
         dbMultiplierEntity.setInputTwinClassId(newInputTwinClassId);
     }
