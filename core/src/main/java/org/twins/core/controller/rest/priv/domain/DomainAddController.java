@@ -93,7 +93,7 @@ public class DomainAddController extends ApiController {
                     .setUserResolver(userResolverAuthToken)
                     .setBusinessAccountResolver(new BusinessAccountResolverNotSpecified())
                     .setDomainResolver(new DomainResolverNotSpecified())
-                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.defaultLocale))
+                    .setLocaleResolver(new LocaleResolverGivenOrSystemDefault(request.getDefaultLocale()))
                     .setCheckMembershipMode(false);
             DomainEntity domainEntity = domainService.addDomain(domainAddRestDTOReverseMapper.convert(request), convert(iconLight), convert(iconDark));
             rs.setDomain(domainViewRestDTOMapper.convert(domainEntity));

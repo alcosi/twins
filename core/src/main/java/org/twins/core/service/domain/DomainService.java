@@ -100,6 +100,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
     @Lazy
     private final UserGroupService userGroupService;
     private final TierService tierService;
+    private final DomainLocaleService domainLocaleService;
 
 
     @Override
@@ -152,6 +153,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
         domainEntity = domainInitiator.init(domainEntity);
         ApiUser apiUser = authService.getApiUser()
                 .setDomainResolver(new DomainResolverGivenId(domainEntity.getId())); // to be sure
+        domainLocaleService.addDomainLocale(domainEntity.getId(), apiUser.getLocale());
         addUser(domainEntity.getId(), apiUser.getUserId(), EntitySmartService.SaveMode.none, true);
         userGroupService.enterGroup(UserGroup.DOMAIN_ADMIN.uuid);
         return processIcons(domainEntity, lightIcon, darkIcon);
