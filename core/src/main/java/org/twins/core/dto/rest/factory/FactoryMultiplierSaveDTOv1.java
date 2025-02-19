@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Request;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -13,8 +12,8 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "FactoryMultiplierSaveRqV1")
-public class FactoryMultiplierSaveRqDTOv1 extends Request {
+@Schema(name = "FactoryMultiplierSaveV1")
+public class FactoryMultiplierSaveDTOv1 {
     @Schema(description = "input twin class id", example = DTOExamples.TWIN_CLASS_ID)
     public UUID inputTwinClassId;
 
