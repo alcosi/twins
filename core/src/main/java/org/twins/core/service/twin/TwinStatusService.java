@@ -209,9 +209,8 @@ public class TwinStatusService extends EntitySecureFindServiceImpl<TwinStatusEnt
             if (changesHelper.isChanged(TwinStatusEntity.Fields.descriptionI18nId, dbEntity.getDescriptionI18nId(), descriptionI18n.getId()))
                 dbEntity.setDescriptionI18nId(descriptionI18n.getId());  // if new i18n was added
         }
+        dbEntity = updateSafe(dbEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbEntity, twinStatusRepository, changesHelper);
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbEntity.getTwinClassId());
         }
         return dbEntity;
