@@ -1,9 +1,9 @@
-package org.twins.core.mappers.rest.domain;
+package org.twins.core.mappers.rest.tier;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.twins.core.domain.search.TierSearch;
-import org.twins.core.dto.rest.domain.TierSearchRqDTOv1;
+import org.twins.core.dto.rest.tier.TierSearchRqDTOv1;
 import org.twins.core.mappers.rest.LongRangeDTOReverseMapper;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;

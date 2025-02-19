@@ -24,6 +24,7 @@ import org.twins.core.dto.rest.DTOExamples;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRqDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetSearchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryConditionSetViewRsDTOv1;
+import org.twins.core.mappers.rest.factory.FactoryConditionSetRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryConditionSetSearchRqDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.pagination.PaginationMapper;
@@ -42,7 +43,7 @@ public class FactoryConditionSetSearchController extends ApiController {
     private final PaginationMapper paginationMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOMapper;
     private final FactoryConditionSetSearchRqDTOReverseMapper factoryConditionSetSearchRqDTOReverseMapper;
-    private final FactoryConditionSetRestDTOMapper factoryConditionSetRestDTOMapper;
+    private final FactoryConditionSetRestDTOMapperV2 factoryConditionSetRestDTOMapperV2;
     private final FactoryConditionSetSearchService factoryConditionSetSearchService;
     private final FactoryConditionSetService factoryConditionSetService;
 
@@ -55,7 +56,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/factory_condition_set/search/v1")
     public ResponseEntity<?> factoryConditionSetSearchV1(
-            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapper.class, response = FactoryConditionSetSearchRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = FactoryConditionSetRestDTOMapperV2.class, response = FactoryConditionSetSearchRsDTOv1.class) MapperContext mapperContext,
             @SimplePaginationParams SimplePagination pagination,
             @RequestBody FactoryConditionSetSearchRqDTOv1 request) {
         FactoryConditionSetSearchRsDTOv1 rs = new FactoryConditionSetSearchRsDTOv1();
@@ -63,7 +64,7 @@ public class FactoryConditionSetSearchController extends ApiController {
             PaginationResult<TwinFactoryConditionSetEntity> conditionSetList = factoryConditionSetSearchService
                     .findFactoryConditionSets(factoryConditionSetSearchRqDTOReverseMapper.convert(request), pagination);
             rs
-                    .setConditionSets(factoryConditionSetRestDTOMapper.convertCollection(conditionSetList.getList(), mapperContext))
+                    .setConditionSets(factoryConditionSetRestDTOMapperV2.convertCollection(conditionSetList.getList(), mapperContext))
                     .setPagination(paginationMapper.convert(conditionSetList))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
@@ -89,7 +90,7 @@ public class FactoryConditionSetSearchController extends ApiController {
         try {
             TwinFactoryConditionSetEntity conditionSet = factoryConditionSetService.findEntitySafe(factoryConditionSetId);
             rs
-                    .setConditionSet(factoryConditionSetRestDTOMapper.convert(conditionSet, mapperContext))
+                    .setConditionSet(factoryConditionSetRestDTOMapperV2.convert(conditionSet, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOMapper.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);

@@ -115,8 +115,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
                 .setDescriptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_DESCRIPTION, dataListSave.getDescriptionI18n()).getId())
                 .setCreatedAt(Timestamp.from(Instant.now()));
         setAttributes(dataListEntity, dataListSave);
-        validateEntityAndThrow(dataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        return dataListRepository.save(dataListEntity);
+        return saveSafe(dataListEntity);
     }
 
     private void setAttributes(DataListEntity dataList, DataListSave dataListSave) throws ServiceException {
@@ -146,11 +145,7 @@ public class DataListService extends TwinsEntitySecureFindService<DataListEntity
         updateDataListAttributeKey(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4key, dbDataListEntity, DataListEntity::getAttribute4key, DataListEntity::setAttribute4key, changesHelper);
         updateDataListAttributeI18n(dataListUpdate.getAttribute4(), DataListEntity.Fields.attribute4nameI18nId, dbDataListEntity, DataListEntity::getAttribute4nameI18nId, DataListEntity::setAttribute4nameI18nId, changesHelper);
         dbDataListEntity.setUpdatedAt(Timestamp.from(Instant.now()));
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbDataListEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbDataListEntity, dataListRepository, changesHelper);
-        }
-        return dbDataListEntity;
+        return updateSafe(dbDataListEntity, changesHelper);
     }
 
     private void updateDataListKey(DataListSave dataListSave, DataListEntity dbEntity, ChangesHelper changesHelper) throws ServiceException {

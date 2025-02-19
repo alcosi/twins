@@ -86,8 +86,7 @@ public class UserService extends EntitySecureFindServiceImpl<UserEntity> {
             dbEntity.setAvatar(updateEntity.getAvatar());
         if (changesHelper.isChanged(UserEntity.Fields.userStatusId, dbEntity.getUserStatusId(), updateEntity.getUserStatusId()))
             dbEntity.setUserStatusId(updateEntity.getUserStatusId());
-        if (changesHelper.hasChanges())
-            entitySmartService.saveAndLogChanges(dbEntity, userRepository, changesHelper);
+        updateSafe(dbEntity, changesHelper);
     }
 
     public void deleteUser(UUID userId) throws ServiceException {

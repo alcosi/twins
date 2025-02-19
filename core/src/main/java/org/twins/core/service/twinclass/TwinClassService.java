@@ -540,9 +540,9 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
         updateTwinClassLogo(dbTwinClassEntity, twinClassUpdate.getLogo(), changesHelper);
         updateTwinClassMarkerDataList(dbTwinClassEntity, twinClassUpdate.getMarkerDataListUpdate(), changesHelper);
         updateTwinClassTagDataList(dbTwinClassEntity, twinClassUpdate.getTagDataListUpdate(), changesHelper);
-        validateEntityAndThrow(dbTwinClassEntity, EntitySmartService.EntityValidateMode.beforeSave);
+
+        updateSafe(dbTwinClassEntity, changesHelper);
         if (changesHelper.hasChanges()) {
-            entitySmartService.saveAndLogChanges(dbTwinClassEntity, twinClassRepository, changesHelper);
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, twinClassUpdate.getDbTwinClassEntity().getId());
         }
     }

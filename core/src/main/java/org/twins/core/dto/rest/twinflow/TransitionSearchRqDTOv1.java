@@ -6,14 +6,13 @@ import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
 import org.twins.core.dto.rest.Request;
 
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TransitionSearchRqV1")
+@Schema(name = "TransitionSearchRqV1")
 public class TransitionSearchRqDTOv1 extends Request {
     @Schema(description = "id list")
     public Set<UUID> idList;
@@ -21,48 +20,60 @@ public class TransitionSearchRqDTOv1 extends Request {
     @Schema(description = "id exclude list")
     public Set<UUID> idExcludeList;
 
+    @Schema(description = "name like list")
+    public Set<String> nameLikeList;
+
+    @Schema(description = "name not like list")
+    public Set<String> nameNotLikeList;
+
+    @Schema(description = "description like list")
+    public Set<String> descriptionLikeList;
+
+    @Schema(description = "description not like list")
+    public Set<String> descriptionNotLikeList;
+
     @Schema(description = "twin class id list")
-    public List<UUID> twinClassIdList;
+    public Set<UUID> twinClassIdList;
 
     @Schema(description = "twin class id exclude list")
-    public List<UUID> twinClassIdExcludeList;
+    public Set<UUID> twinClassIdExcludeList;
 
     @Schema(description = "twinflow id list")
-    public List<UUID> twinflowIdList;
+    public Set<UUID> twinflowIdList;
 
     @Schema(description = "twinflow id exclude list")
-    public List<UUID> twinflowIdExcludeList;
+    public Set<UUID> twinflowIdExcludeList;
 
     @Schema(description = "source status id list")
-    public List<UUID> srcStatusIdList;
+    public Set<UUID> srcStatusIdList;
 
     @Schema(description = "source status id exclude list")
-    public List<UUID> srcStatusIdExcludeList;
+    public Set<UUID> srcStatusIdExcludeList;
 
     @Schema(description = "destination status id list")
-    public List<UUID> dstStatusIdList;
+    public Set<UUID> dstStatusIdList;
 
     @Schema(description = "destination status id exclude list")
-    public List<UUID> dstStatusIdExcludeList;
+    public Set<UUID> dstStatusIdExcludeList;
 
     @Schema(description = "alias like list")
-    public List<String> aliasLikeList;
+    public Set<String> aliasLikeList;
 
     @Schema(description = "permission id list")
-    public List<UUID> permissionIdList;
+    public Set<UUID> permissionIdList;
 
     @Schema(description = "permission id exclude list")
-    public List<UUID> permissionIdExcludeList;
+    public Set<UUID> permissionIdExcludeList;
 
     @Schema(description = "inbuilt twin factory id list")
-    public List<UUID> inbuiltTwinFactoryIdList;
+    public Set<UUID> inbuiltTwinFactoryIdList;
 
     @Schema(description = "inbuilt twin factory id exclude list")
-    public List<UUID> inbuiltTwinFactoryIdExcludeList;
+    public Set<UUID> inbuiltTwinFactoryIdExcludeList;
 
     @Schema(description = "drafting twin factory id list")
-    public List<UUID> draftingTwinFactoryIdList;
+    public Set<UUID> draftingTwinFactoryIdList;
 
     @Schema(description = "drafting twin factory id exclude list")
-    public List<UUID> draftingTwinFactoryIdExcludeList;
+    public Set<UUID> draftingTwinFactoryIdExcludeList;
 }

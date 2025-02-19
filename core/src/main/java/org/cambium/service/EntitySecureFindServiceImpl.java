@@ -5,6 +5,7 @@ import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ErrorCodeCommon;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.kit.Kit;
+import org.cambium.common.util.ChangesHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.CrudRepository;
 
@@ -137,6 +138,19 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
         return true;
     }
 
+    public T saveSafe(T entity) throws ServiceException {
+        validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
+        return entityRepository().save(entity);
+    }
+
+    public T updateSafe(T entity, ChangesHelper changesHelper) throws ServiceException {
+        if (changesHelper.hasChanges()) {
+            validateEntity(entity, EntitySmartService.EntityValidateMode.beforeSave);
+            return entitySmartService.saveAndLogChanges(entity, entityRepository(), changesHelper);
+        }
+        return entity;
+    }
+
     public T validateEntityAndThrow(T entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
         if (entityValidateMode == EntitySmartService.EntityValidateMode.none)
             return entity;
@@ -152,5 +166,10 @@ public abstract class EntitySecureFindServiceImpl<T> implements EntitySecureFind
     public boolean logErrorAndReturnFalse(String message) {
         log.error(message);
         return false;
+    }
+
+    public boolean logErrorAndReturnTrue(String message) {
+        log.error(message);
+        return true;
     }
 }
