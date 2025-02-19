@@ -15,7 +15,7 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name =  "TwinClassListRqV1")
+@Schema(name = "TwinClassListRqV1")
 public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "twin class id list")
     public Set<UUID> twinClassIdList;
@@ -38,18 +38,15 @@ public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "description i18n exclude keyword list(OR)")
     public Set<String> descriptionI18nNotLikeList;
 
-    @Schema(description = "head twin class id list")
-    public Set<UUID> headTwinClassIdList;
 
-    @Schema(description = "head twin class id exclude list")
-    public Set<UUID> headTwinClassIdExcludeList;
-
-    @Schema(description = "extends twin class id list")
-    public Set<UUID> extendsTwinClassIdList;
-
-    @Schema(description = "extends twin class id exclude list")
-    public Set<UUID> extendsTwinClassIdExcludeList;
-
+    @Schema(description = "Hierarchy search head childs")
+    public HierarchySearchDTOv1 headHierarchyChildsForTwinClassIdList;
+    @Schema(description = "Hierarchy search head parents")
+    public HierarchySearchDTOv1 headHierarchyParentsForTwinClassIdList;
+    @Schema(description = "Hierarchy search extands childs")
+    public HierarchySearchDTOv1 extendsHierarchyChildsForTwinClassIdList;
+    @Schema(description = "Hierarchy search extands parents")
+    public HierarchySearchDTOv1 extendsHierarchyParentsForTwinClassIdList;
     @Schema(description = "owner type list")
     public Set<TwinClassEntity.OwnerType> ownerTypeList;
 

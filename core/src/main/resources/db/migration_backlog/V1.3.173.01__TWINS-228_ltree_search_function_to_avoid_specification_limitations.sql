@@ -1,18 +1,50 @@
-create or replace function check_ltree_any_is_in(ltree_root_val ltree,search_values text[]) returns bool
+create or replace function ltree_get_parent_uuid(ltree_root_val ltree, depth_val integer) returns setof uuid
     language sql
     immutable parallel safe
     returns null on null input
 as
 $$
-select ltree_root_val ~ any (search_values::lquery[])
+SELECT DISTINCT replace(ltree2text(subpath(ltree_root_val, nlevel(ltree_root_val) - lvl, 1)), '_',
+                        '-')::uuid AS parent_id
+FROM generate_series(1, depth_val) AS lvl;
 $$;
 
+-- create or replace function ltree_get_parent_uuid_array(ltree_root_val ltree,depth_val integer) returns  uuid[]
+--     language sql
+--     immutable parallel safe
+--     returns null on null input
+-- as
+-- $$
+-- SELECT array_agg(f) from ltree_get_parent_uuid(ltree_root_val,depth_val) f
+-- $$;
 
-create or replace function check_ltree_all_is_in(ltree_root_val ltree,search_values text[]) returns bool
+
+create or replace function ltree_get_head_parent_uuid(ids_val uuid[], depth_val integer) returns setof uuid
     language sql
-    immutable parallel safe
     returns null on null input
 as
 $$
-select ltree_root_val ~ all (search_values::lquery[])
+SELECT ltree_get_parent_uuid(c.head_hierarchy_tree, depth_val)
+from twin_class c
+where c.id = any (ids_val::uuid[])
 $$;
+
+create or replace function ltree_get_extends_parent_uuid(ids_val uuid[], depth_val integer) returns setof uuid
+    language sql
+    returns null on null input
+as
+$$
+SELECT ltree_get_parent_uuid(c.extends_hierarchy_tree, depth_val)
+from twin_class c
+where c.id = any (ids_val::uuid[])
+$$;
+
+
+
+--hierarchy_check_lquery
+
+--TODO uncomment if we need indexes
+-- btree can be used with <, <=, =, >=, > only, so we need GIST for @>, <@, @, ~, ?
+
+-- CREATE INDEX if not exists extends_hierarchy_tree_gist_idx ON twin_class USING GIST (extends_hierarchy_tree);
+-- CREATE INDEX if not exists head_hierarchy_tree_gist_idx ON twin_class USING GIST (head_hierarchy_tree);

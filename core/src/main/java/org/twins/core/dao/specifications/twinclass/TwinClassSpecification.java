@@ -18,6 +18,7 @@ import static org.cambium.common.util.SpecificationUtils.getPredicate;
 @Slf4j
 public class TwinClassSpecification extends CommonSpecification<TwinClassEntity> {
 
+
     public static Specification<TwinClassEntity> checkHierarchyIsChild(String field, final UUID id) {
         return (root, query, cb) -> {
             String ltreeId = LTreeUtils.matchInTheMiddle(id);

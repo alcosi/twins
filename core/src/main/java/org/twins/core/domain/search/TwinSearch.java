@@ -121,15 +121,7 @@ public class TwinSearch {
         return this;
     }
 
-    public TwinSearch addHeadTwinClassId(UUID headTwinClassId) {
-        headTwinClassIdList = CollectionUtils.safeAdd(headTwinClassIdList, headTwinClassId);
-        return this;
-    }
 
-    public TwinSearch addExtendsTwinClassId(UUID extendsTwinClassId) {
-        extendsTwinClassIdList = CollectionUtils.safeAdd(extendsTwinClassIdList, extendsTwinClassId);
-        return this;
-    }
 
     public TwinSearch addStatusId(UUID statusId, boolean exclude) {
         if (exclude)
@@ -246,6 +238,14 @@ public class TwinSearch {
             Pair.of(TwinSearch::getHierarchyTreeContainsIdList, TwinSearch::setHierarchyTreeContainsIdList),
             Pair.of(TwinSearch::getExtendsTwinClassIdList, TwinSearch::setExtendsTwinClassIdList),
             Pair.of(TwinSearch::getHeadTwinClassIdList, TwinSearch::setHeadTwinClassIdList)
+            //            Pair.of(s->s.getHeadHierarchyChildsForTwinClassIdList().getTwinClassIdList(), (s,o)->s.getHeadHierarchyChildsForTwinClassIdList().setTwinClassIdList(o)),
+            //            Pair.of(s->s.getHeadHierarchyChildsForTwinClassIdList().getTwinClassIdExcludeList(), (s,o)->s.getHeadHierarchyChildsForTwinClassIdList().setTwinClassIdExcludeList(o)),
+            //            Pair.of(s->s.getHeadHierarchyParentsForTwinClassIdList().getTwinClassIdList(), (s,o)->s.getHeadHierarchyParentsForTwinClassIdList().setTwinClassIdList(o)),
+            //            Pair.of(s->s.getHeadHierarchyParentsForTwinClassIdList().getTwinClassIdExcludeList(), (s,o)->s.getHeadHierarchyParentsForTwinClassIdList().setTwinClassIdExcludeList(o)),
+            //            Pair.of(s->s.getExtendsHierarchyChildsForTwinClassIdList().getTwinClassIdList(), (s,o)->s.getExtendsHierarchyChildsForTwinClassIdList().setTwinClassIdList(o)),
+            //            Pair.of(s->s.getExtendsHierarchyChildsForTwinClassIdList().getTwinClassIdExcludeList(), (s,o)->s.getExtendsHierarchyChildsForTwinClassIdList().setTwinClassIdExcludeList(o)),
+            //            Pair.of(s->s.getExtendsHierarchyParentsForTwinClassIdList().getTwinClassIdList(), (s,o)->s.getExtendsHierarchyParentsForTwinClassIdList().setTwinClassIdList(o)),
+            //            Pair.of(s->s.getExtendsHierarchyParentsForTwinClassIdList().getTwinClassIdExcludeList(), (s,o)->s.getExtendsHierarchyParentsForTwinClassIdList().setTwinClassIdExcludeList(o))
     );
 
 }

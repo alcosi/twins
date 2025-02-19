@@ -38,6 +38,7 @@ import org.twins.core.dao.twinflow.TwinflowSchemaMapEntity;
 import org.twins.core.domain.ApiUser;
 import org.twins.core.domain.EntityRelinkOperation;
 import org.twins.core.domain.TwinClassUpdate;
+import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
 import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.headhunter.HeadHunter;
@@ -63,7 +64,8 @@ import java.util.function.Function;
 import static org.cambium.common.util.CacheUtils.evictCache;
 import static org.cambium.i18n.dao.specifications.I18nSpecification.joinAndSearchByI18NField;
 import static org.springframework.data.jpa.domain.Specification.where;
-import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.*;
+import static org.twins.core.dao.specifications.AbstractTwinEntityBasicSearchSpecification.*;
+import static org.twins.core.dao.specifications.twinclass.TwinClassSpecification.checkOwnerTypeIn;
 
 @Slf4j
 @Service
@@ -182,6 +184,11 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
 
     public Specification<TwinClassEntity> createTwinClassEntitySearchSpecification(TwinClassSearch twinClassSearch) throws ServiceException {
         Locale locale = authService.getApiUser().getLocale();
+        HierarchySearch headHierarchyChildsForTwinClassIdList = twinClassSearch.getHeadHierarchyChildsForTwinClassIdList();
+        HierarchySearch headHierarchyParentsForTwinClassIdList = twinClassSearch.getHeadHierarchyParentsForTwinClassIdList();
+        HierarchySearch extendsHierarchyChildsForTwinClassIdList = twinClassSearch.getExtendsHierarchyChildsForTwinClassIdList();
+        HierarchySearch extendsHierarchyParentsForTwinClassIdList = twinClassSearch.getExtendsHierarchyParentsForTwinClassIdList();
+
         return where(
                 checkOwnerTypeIn(twinClassSearch.getOwnerTypeList(), false)
                         .and(checkUuid(authService.getApiUser().getDomainId(), false, false, TwinClassEntity.Fields.domainId))
@@ -193,10 +200,18 @@ public class TwinClassService extends TwinsEntitySecureFindService<TwinClassEnti
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.nameI18n, twinClassSearch.getNameI18nNotLikeList(), locale, true, true))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nLikeList(), locale, false, false))
                         .and(joinAndSearchByI18NField(TwinflowEntity.Fields.descriptionI18n, twinClassSearch.getDescriptionI18nNotLikeList(), locale, true, true))
-                        .and(checkUuidIn(twinClassSearch.getHeadTwinClassIdList(), false, false, TwinClassEntity.Fields.headTwinClassId))
-                        .and(checkUuidIn(twinClassSearch.getHeadTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.headTwinClassId))
-                        .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdList(), false, false, TwinClassEntity.Fields.extendsTwinClassId))
-                        .and(checkUuidIn(twinClassSearch.getExtendsTwinClassIdExcludeList(), true, true, TwinClassEntity.Fields.extendsTwinClassId))
+
+                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassIdList.getTwinClassIdList(), false, false, headHierarchyChildsForTwinClassIdList.getDepth()))
+                        .and(checkHeadTwinClassChilds(headHierarchyChildsForTwinClassIdList.getTwinClassIdExcludeList(), true, true, headHierarchyChildsForTwinClassIdList.getDepth()))
+                        .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassIdList.getTwinClassIdList(), false, false, headHierarchyParentsForTwinClassIdList.getDepth()))
+                        .and(checkHeadTwinClassParents(headHierarchyParentsForTwinClassIdList.getTwinClassIdExcludeList(), true, true, headHierarchyParentsForTwinClassIdList.getDepth()))
+
+                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassIdList.getTwinClassIdList(), false, false, extendsHierarchyChildsForTwinClassIdList.getDepth()))
+                        .and(checkExtendsTwinClassChilds(extendsHierarchyChildsForTwinClassIdList.getTwinClassIdExcludeList(), true, true, extendsHierarchyChildsForTwinClassIdList.getDepth()))
+                        .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassIdList.getTwinClassIdList(), false, false, extendsHierarchyParentsForTwinClassIdList.getDepth()))
+                        .and(checkExtendsTwinClassParents(extendsHierarchyParentsForTwinClassIdList.getTwinClassIdExcludeList(), true, true, extendsHierarchyParentsForTwinClassIdList.getDepth()))
+
+
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdList(), false, false, TwinClassEntity.Fields.markerDataListId))
                         .and(checkUuidIn(twinClassSearch.getMarkerDatalistIdExcludeList(), true, false, TwinClassEntity.Fields.markerDataListId))
                         .and(checkUuidIn(twinClassSearch.getTagDatalistIdList(), false, false, TwinClassEntity.Fields.tagDataListId))
