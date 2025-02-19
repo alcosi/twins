@@ -2,6 +2,7 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.user.UserEntity;
 import org.twins.core.dao.user.UserGroupEntity;
@@ -11,6 +12,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "permission_grant_user_group")
 public class PermissionGrantUserGroupEntity {
