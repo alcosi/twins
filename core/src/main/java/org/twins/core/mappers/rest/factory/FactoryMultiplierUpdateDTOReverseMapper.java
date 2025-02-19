@@ -10,7 +10,7 @@ import org.twins.core.mappers.rest.mappercontext.MapperContext;
 @Component
 @RequiredArgsConstructor
 public class FactoryMultiplierUpdateDTOReverseMapper extends RestSimpleDTOMapper<FactoryMultiplierUpdateRqDTOv1, TwinFactoryMultiplierEntity> {
-    FactoryMultiplierSaveDTOReverseMapper factoryMultiplierSaveDTOReverseMapper;
+    private final FactoryMultiplierSaveDTOReverseMapper factoryMultiplierSaveDTOReverseMapper;
 
     @Override
     public void map(FactoryMultiplierUpdateRqDTOv1 src, TwinFactoryMultiplierEntity dst, MapperContext mapperContext) throws Exception {

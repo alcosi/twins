@@ -17,7 +17,7 @@ public class FactoryMultiplierSaveDTOReverseMapper extends RestSimpleDTOMapper<F
                 .setInputTwinClassId(src.getInputTwinClassId())
                 .setMultiplierFeaturerId(src.getMultiplierFeaturerId())
                 .setMultiplierParams(src.getMultiplierParams())
-                .setActive(src.isActive())
+                .setActive(src.getActive())
                 .setDescription(src.getDescription());
     }
 }

@@ -25,7 +25,7 @@ public class FactoryMultiplierSaveRqDTOv1 extends Request {
     public HashMap<String, String> multiplierParams;
 
     @Schema(description = "is active", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean active;
+    public Boolean active;
 
     @Schema(description = "description", example = DTOExamples.DESCRIPTION)
     public String description;
