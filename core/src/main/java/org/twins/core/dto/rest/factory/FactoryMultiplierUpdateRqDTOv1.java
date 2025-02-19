@@ -9,8 +9,8 @@ import org.twins.core.dto.rest.Request;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "FactoryMultiplierCreateRqV1")
+@Schema(name = "FactoryMultiplierUpdateRqV1")
 public class FactoryMultiplierUpdateRqDTOv1 extends Request {
     @Schema(description = "factory multiplier save")
-    public FactoryMultiplierSaveDTOv1 factoryMultiplierSaveDTOv1;
+    public FactoryMultiplierSaveDTOv1 factoryMultiplierSaveDTO;
 }
