@@ -89,7 +89,16 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         TwinFactoryPipelineEntity dbEntity = findEntitySafe(entity.getId());
         entity.setId(dbEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
+
         updateInputTwinClassId(dbEntity, entity.getInputTwinClassId(), changesHelper);
+        updateFactoryConditionSetId(dbEntity, entity.getTwinFactoryConditionSetId(), changesHelper);
+        updateFactoryConditionSetInvert(dbEntity, entity.isTwinFactoryConditionInvert(), changesHelper);
+        updateActive(dbEntity, entity.isActive(), changesHelper);
+        updateOutputStatusId(dbEntity, entity.getOutputTwinStatusId(), changesHelper);
+        updateNextFactoryId(dbEntity, entity.getNextTwinFactoryId(), changesHelper);
+        updateTemplateTwinId(dbEntity, entity.getTemplateTwinId(), changesHelper);
+        updateDescription(dbEntity, entity.getDescription(), changesHelper);
+
         if (changesHelper.hasChanges()) {
             validateEntity(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
             dbEntity = entitySmartService.saveAndLogChanges(dbEntity, repository, changesHelper);

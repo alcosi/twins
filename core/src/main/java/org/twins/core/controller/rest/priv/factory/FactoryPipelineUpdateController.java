@@ -53,7 +53,11 @@ public class FactoryPipelineUpdateController extends ApiController {
         FactoryPipelineRsDTOv1 rs = new FactoryPipelineRsDTOv1();
         try {
             TwinFactoryPipelineEntity entity = factoryPipelineUpdateDTOReverseMapper.convert(request);
-
+            entity.setId(factoryPipelineId);
+            entity = factoryPipelineService.updateFactoryPipeline(entity);
+            rs
+                    .setFactoryPipeline(factoryPipelineRestDTOMapperV2.convert(entity, mapperContext))
+                    .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
         } catch (ServiceException se) {
             return createErrorRs(se, rs);
         } catch (Exception e) {
