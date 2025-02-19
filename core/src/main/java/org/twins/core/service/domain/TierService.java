@@ -81,7 +81,6 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity createTier(TierEntity tierCreate) throws ServiceException {
         tierCreate
-                .setId(UUID.randomUUID())
                 .setDomainId(authService.getApiUser().getDomainId());
         return saveSafe(tierCreate);
     }
