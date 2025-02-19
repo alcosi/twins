@@ -45,7 +45,7 @@ public class PermissionGrantUserGroupUpdateController extends ApiController {
                     @Content(mediaType = "application/json", schema =
                     @Schema(implementation = PermissionGrantUserGroupUpdateRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
-    @PutMapping(value = "/private/permission_grant/{permissionGrantUserGroupId}/user_group/v1")
+    @PutMapping(value = "/private/permission_grant/user_group/{permissionGrantUserGroupId}/v1")
     public ResponseEntity<?> permissionUpdateV1(
             @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupUpdateRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID) @PathVariable UUID permissionGrantUserGroupId,

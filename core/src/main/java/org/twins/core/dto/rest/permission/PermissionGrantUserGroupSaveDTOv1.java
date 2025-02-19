@@ -13,7 +13,7 @@ import java.util.UUID;
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "PermissionGrantUserGroupSaveV1")
-public class PermissionGrantUserGroupSaveDTOv1 extends Request {
+public class PermissionGrantUserGroupSaveDTOv1 {
     @Schema(description = "permission schema id", example = DTOExamples.PERMISSION_SCHEMA_ID)
     public UUID permissionSchemaId;
 
