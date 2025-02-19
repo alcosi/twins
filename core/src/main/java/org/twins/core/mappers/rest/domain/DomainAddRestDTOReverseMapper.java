@@ -24,11 +24,11 @@ public class DomainAddRestDTOReverseMapper extends RestSimpleDTOMapper<DomainCre
     @Override
     public void map(DomainCreateRqDTOv1 src, DomainEntity dst, MapperContext mapperContext) throws Exception {
         dst
-                .setKey(src.key())
-                .setDescription(src.description())
-                .setDomainType(src.type)
-                .setResourcesStorageId(src.resourceStorageId == null ? defaultResourceStorageId : src.resourceStorageId)
-                .setAttachmentsStorageId(src.attachmentStorageId == null ? defaultAttachmentStorageId : src.attachmentStorageId)
-                .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.defaultLocale));
+                .setKey(src.getKey())
+                .setDescription(src.getDescription())
+                .setDomainType(src.getType())
+                .setResourcesStorageId(src.getResourceStorageId() == null ? defaultResourceStorageId : src.getResourceStorageId())
+                .setAttachmentsStorageId(src.getAttachmentStorageId() == null ? defaultAttachmentStorageId : src.getAttachmentStorageId())
+                .setDefaultI18nLocaleId(i18nService.localeFromTagOrSystemDefault(src.getDefaultLocale()));
     }
 }
