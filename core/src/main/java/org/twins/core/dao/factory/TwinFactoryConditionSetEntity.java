@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.cambium.common.EasyLoggable;
+import org.twins.core.dao.user.UserEntity;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 @Data
@@ -26,6 +28,19 @@ public class TwinFactoryConditionSetEntity implements EasyLoggable {
 
     @Column(name = "domain_id")
     private UUID domainId;
+
+    @Column(name = "created_by_user_id")
+    private UUID createdByUserId;
+
+    @Column(name = "updated_at")
+    private Timestamp updatedAt;
+
+    @Column(name = "created_at")
+    private Timestamp createdAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by_user_id", insertable = false, updatable = false)
+    private UserEntity createdByUser;
 
     @Transient
     private Integer inFactoryPipelineUsagesCount;

@@ -84,7 +84,8 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
 
     @Override
     public boolean isEntityReadDenied(TwinFactoryEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
-        return false;
+        ApiUser apiUser = authService.getApiUser();
+        return !entity.getDomainId().equals(apiUser.getDomainId());
     }
 
     @Override
@@ -113,11 +114,7 @@ public class TwinFactoryService extends EntitySecureFindServiceImpl<TwinFactoryE
         updateFactoryKey(factoryEntity, dbEntity, changesHelper);
         updateFactoryName(nameI18n, dbEntity, changesHelper);
         updateFactoryDescription(descriptionI18n, dbEntity, changesHelper);
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbEntity, twinFactoryRepository, changesHelper);
-        }
-        return dbEntity;
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updateFactoryKey(TwinFactoryEntity factoryEntity, TwinFactoryEntity dbEntity, ChangesHelper changesHelper) {

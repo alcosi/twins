@@ -72,7 +72,8 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
                 .setCreatedByUserId(userId)
                 .setCreatedByUser(apiUser.getUser());
         TwinEntity twinEntity = twinService.findEntitySafe(comment.getTwinId());
-        entitySmartService.save(comment, commentRepository, EntitySmartService.SaveMode.saveAndLogOnException);
+        comment.setTwin(twinEntity);
+        saveSafe(comment);
         if (CollectionUtils.isEmpty(attachmentList))
             return comment;
         addCommentIdInAttachments(comment.getId(), attachmentList);
@@ -82,7 +83,6 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
 
     @Transactional
     public TwinCommentEntity updateComment(UUID commentId, String commentText, EntityCUD<TwinAttachmentEntity> attachmentCUD) throws ServiceException {
-        ApiUser apiUser = authService.getApiUser();
         TwinCommentEntity currentComment = findEntitySafe(commentId);
         commentActionService.checkAllowed(currentComment, TwinCommentAction.EDIT);
         ChangesHelper changesHelper = new ChangesHelper();
@@ -98,9 +98,7 @@ public class CommentService extends EntitySecureFindServiceImpl<TwinCommentEntit
             attachmentService.updateAttachments(attachmentCUD.getUpdateList(), currentComment.getTwin());
             attachmentService.deleteAttachments(currentComment.getTwin(), attachmentCUD.getDeleteList());
         }
-        if (changesHelper.hasChanges())
-            entitySmartService.saveAndLogChanges(currentComment, commentRepository, changesHelper);
-        return currentComment;
+        return updateSafe(currentComment, changesHelper);
     }
 
     public PaginationResult<TwinCommentEntity> findComment(UUID twinId, SimplePagination pagination) throws ServiceException {

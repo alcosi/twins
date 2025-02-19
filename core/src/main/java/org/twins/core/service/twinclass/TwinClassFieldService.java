@@ -274,13 +274,13 @@ public class TwinClassFieldService extends EntitySecureFindServiceImpl<TwinClass
         updateTwinClassFieldViewPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getViewPermissionId(), changesHelper);
         updateTwinClassFieldEditPermission(dbTwinClassFieldEntity, twinClassFieldEntity.getEditPermissionId(), changesHelper);
         updateTwinClassFieldRequiredFlag(dbTwinClassFieldEntity, twinClassFieldEntity.getRequired(), changesHelper);
-        validateEntityAndThrow(dbTwinClassFieldEntity, EntitySmartService.EntityValidateMode.beforeSave);
-        entitySmartService.saveAndLogChanges(dbTwinClassFieldEntity, twinClassFieldRepository, changesHelper);
+
+        dbTwinClassFieldEntity = updateSafe(dbTwinClassFieldEntity, changesHelper);
         if (changesHelper.hasChanges()) {
             evictCache(cacheManager, TwinClassRepository.CACHE_TWIN_CLASS_BY_ID, dbTwinClassFieldEntity.getTwinClassId());
             evictCache(cacheManager, TwinClassFieldRepository.CACHE_TWIN_CLASS_FIELD_BY_ID_IN, null);
         }
-        return twinClassFieldEntity;
+        return dbTwinClassFieldEntity;
     }
 
     public void updateTwinClassFieldTwinClass(TwinClassFieldEntity dbTwinClassFieldEntity, UUID newTwinClassId, ChangesHelper changesHelper) throws ServiceException {

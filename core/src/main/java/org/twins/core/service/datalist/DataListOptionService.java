@@ -81,8 +81,7 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
                 .setOptionI18NId(i18nService.createI18nAndTranslations(I18nType.PERMISSION_NAME, dataListOptionCreate.getNameI18n()).getId())
                 .setStatus(DataListOptionEntity.Status.active);
         createAttributes(dataList, dataListOption, dataListOptionCreate.getAttributes());
-        validateEntityAndThrow(dataListOption, EntitySmartService.EntityValidateMode.beforeSave);
-        return dataListOptionRepository.save(dataListOption);
+        return saveSafe(dataListOption);
     }
 
     private void createAttributes(DataListEntity dataList, DataListOptionEntity dataListOption, Map<String, String> attributes) throws ServiceException {
@@ -118,11 +117,8 @@ public class DataListOptionService extends EntitySecureFindServiceImpl<DataListO
         updateDataListOptionStatus(optionUpdate.getStatus(), dbOption, changesHelper);
         updateDataListOptionName(optionUpdate.getNameI18n(), dbOption, changesHelper);
         updateAttributes(dbDataList, dbOption, optionUpdate.getAttributes(), changesHelper);
-        if (changesHelper.hasChanges()) {
-            validateEntityAndThrow(dbOption, EntitySmartService.EntityValidateMode.beforeSave);
-            entitySmartService.saveAndLogChanges(dbOption, dataListOptionRepository, changesHelper);
-        }
-        return dbOption;
+
+        return updateSafe(dbOption, changesHelper);
     }
 
     private void updateAttributes(DataListEntity dataList, DataListOptionEntity option, Map<String, String> attributes, ChangesHelper changesHelper) {

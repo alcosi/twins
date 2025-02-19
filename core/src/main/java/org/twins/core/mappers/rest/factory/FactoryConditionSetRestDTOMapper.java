@@ -12,6 +12,8 @@ import org.twins.core.service.factory.TwinFactoryService;
 
 import java.util.Collection;
 
+import static org.cambium.common.util.DateUtils.convertOrNull;
+
 @Component
 @RequiredArgsConstructor
 @MapperModeBinding(modes = {
@@ -28,17 +30,18 @@ public class FactoryConditionSetRestDTOMapper extends RestSimpleDTOMapper<TwinFa
     @Override
     public void map(TwinFactoryConditionSetEntity src, FactoryConditionSetDTOv1 dst, MapperContext mapperContext) throws Exception {
         switch (mapperContext.getModeOrUse(FactoryConditionSetMode.DETAILED)) {
-            case DETAILED:
+            case DETAILED ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName())
-                        .setDescription(src.getDescription());
-                break;
-            case SHORT:
+                        .setDescription(src.getDescription())
+                        .setCreatedByUserId(src.getCreatedByUserId())
+                        .setUpdatedAt(convertOrNull(src.getUpdatedAt()))
+                        .setCreatedAt(convertOrNull(src.getCreatedAt()));
+            case SHORT ->
                 dst
                         .setId(src.getId())
                         .setName(src.getName());
-                break;
         }
         if (mapperContext.hasModeButNot(ConditionSetInFactoryPipelineUsagesCountMode.HIDE)) {
             twinFactoryService.countConditionSetInFactoryPipelineUsages(src);

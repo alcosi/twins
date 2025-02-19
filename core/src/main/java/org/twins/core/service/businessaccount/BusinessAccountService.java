@@ -95,7 +95,6 @@ public class BusinessAccountService extends EntitySecureFindServiceImpl<Business
                 .setCreatedAt(Timestamp.from(Instant.now()));
         EntitySmartService.SaveResult<BusinessAccountEntity> saveResult = entitySmartService.saveWithResult(businessAccountId, businessAccountEntity, businessAccountRepository, entityCreateMode);
         if (saveResult.isWasCreated()) {
-            ApiUser apiUser = authService.getApiUser();
             twinService.duplicateTwin(systemEntityService.getTwinIdTemplateForBusinessAccount(), businessAccountEntity.getId());
         }
         return saveResult.getSavedEntity();

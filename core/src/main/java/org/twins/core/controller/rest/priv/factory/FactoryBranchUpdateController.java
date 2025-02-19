@@ -18,14 +18,13 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.factory.TwinFactoryBranchEntity;
 import org.twins.core.dto.rest.DTOExamples;
-import org.twins.core.dto.rest.Response;
 import org.twins.core.dto.rest.factory.FactoryBranchRsDTOv1;
 import org.twins.core.dto.rest.factory.FactoryBranchUpdateRqDTOv1;
 import org.twins.core.mappers.rest.factory.FactoryBranchRestDTOMapperV2;
 import org.twins.core.mappers.rest.factory.FactoryBranchSaveDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.related.RelatedObjectsRestDTOConverter;
-import org.twins.core.service.factory.TwinFactoryBranchService;
+import org.twins.core.service.factory.FactoryBranchService;
 
 import java.util.UUID;
 
@@ -37,7 +36,7 @@ public class FactoryBranchUpdateController extends ApiController {
     private final FactoryBranchRestDTOMapperV2 factoryBranchRestDTOMapperV2;
     private final FactoryBranchSaveDTOReverseMapper factoryBranchSaveDTOReverseMapper;
     private final RelatedObjectsRestDTOConverter relatedObjectsRestDTOConverter;
-    private final TwinFactoryBranchService twinFactoryBranchService;
+    private final FactoryBranchService factoryBranchService;
 
     @ParametersApiUserHeaders
     @Operation(operationId = "factoryBranchUpdateV1", summary = "Factory branch update")
@@ -55,7 +54,7 @@ public class FactoryBranchUpdateController extends ApiController {
         try {
             TwinFactoryBranchEntity branchEntity = factoryBranchSaveDTOReverseMapper.convert(request);
             branchEntity.setId(factoryBranchId);
-            branchEntity = twinFactoryBranchService.updateFactoryBranch(branchEntity);
+            branchEntity = factoryBranchService.updateFactoryBranch(branchEntity);
             rs
                     .setFactoryBranch(factoryBranchRestDTOMapperV2.convert(branchEntity, mapperContext))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));

@@ -13,13 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.TierEntity;
 import org.twins.core.dao.domain.TierRepository;
 import org.twins.core.domain.ApiUser;
-import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.service.auth.AuthService;
 import org.twins.core.service.permission.PermissionSchemaService;
 import org.twins.core.service.twinclass.TwinClassSchemaService;
 import org.twins.core.service.twinflow.TwinflowSchemaService;
 
-import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -50,8 +48,10 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
     @Override
     public boolean isEntityReadDenied(TierEntity entity, EntitySmartService.ReadPermissionCheckMode readPermissionCheckMode) throws ServiceException {
         ApiUser apiUser = authService.getApiUser();
-        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId()))
-            return logErrorAndReturnTrue(entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
+        if (!entity.getDomainId().equals(authService.getApiUser().getDomainId())) {
+            EntitySmartService.entityReadDenied(readPermissionCheckMode, entity.logShort() + " is not allows in domain[" + apiUser.getDomainId() + "]");
+            return true;
+        }
         return false;
     }
 
@@ -72,21 +72,17 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         return true;
     }
 
-    public UUID checkTierAllowed(UUID domainTierId) throws ServiceException {
-        Optional<TierEntity> domainBusinessAccountTierEntity = tierRepository.findById(domainTierId);
-        if (domainBusinessAccountTierEntity.isEmpty())
-            throw new ServiceException(ErrorCodeTwins.UUID_UNKNOWN, "unknown domainTierId[" + domainTierId + "]");
-        validateEntityAndThrow(domainBusinessAccountTierEntity.get(), EntitySmartService.EntityValidateMode.beforeSave);
-        return domainTierId;
+    public UUID checkTierValidForRegistration(UUID tierId) throws ServiceException {
+        findEntitySafe(tierId);
+        //todo check that tier it active
+        return tierId;
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public TierEntity createTier(TierEntity tierCreate) throws ServiceException {
         tierCreate
-                .setId(UUID.randomUUID())
                 .setDomainId(authService.getApiUser().getDomainId());
-        validateEntityAndThrow(tierCreate, EntitySmartService.EntityValidateMode.beforeSave);
-        return tierRepository.save(tierCreate);
+        return saveSafe(tierCreate);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -104,11 +100,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         updateTierAttachmentsStorageQuotaSize(dbTierEntity, tierUpdate.getAttachmentsStorageQuotaSize(), changesHelper);
         updateTierUserCountQuota(dbTierEntity, tierUpdate.getUserCountQuota(), changesHelper);
 
-        if (changesHelper.hasChanges()) {
-            validateEntity(dbTierEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            dbTierEntity = entitySmartService.saveAndLogChanges(dbTierEntity, tierRepository, changesHelper);
-        }
-        return dbTierEntity;
+        return updateSafe(dbTierEntity, changesHelper);
     }
 
     private void updateTierName(TierEntity tierEntity, String newName, ChangesHelper changesHelper) {
