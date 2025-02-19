@@ -267,7 +267,7 @@ public class DomainService extends EntitySecureFindServiceImpl<DomainEntity> {
             dbEntity.setTwinflowSchemaId(twinflowService.checkTwinflowSchemaAllowed(updateEntity.getDomainId(), updateEntity.getBusinessAccountId(), updateEntity.getTwinflowSchemaId()));
         }
         if (null != updateEntity.getTierId() && changesHelper.isChanged(DomainBusinessAccountEntity.Fields.tierId, dbEntity.getTierId(), updateEntity.getTierId())) {
-            dbEntity.setTierId(tierService.checkTierValidFroRegistration(updateEntity.getTierId()));
+            dbEntity.setTierId(tierService.checkTierValidForRegistration(updateEntity.getTierId()));
         }
         if (!StringUtils.isEmpty(name) && changesHelper.isChanged(BusinessAccountEntity.Fields.name, dbEntity.getBusinessAccount().getName(), name)) {
             dbEntity.getBusinessAccount().setName(name);

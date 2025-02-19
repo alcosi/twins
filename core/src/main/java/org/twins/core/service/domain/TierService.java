@@ -72,7 +72,7 @@ public class TierService extends EntitySecureFindServiceImpl<TierEntity> {
         return true;
     }
 
-    public UUID checkTierValidFroRegistration(UUID tierId) throws ServiceException {
+    public UUID checkTierValidForRegistration(UUID tierId) throws ServiceException {
         findEntitySafe(tierId);
         //todo check that tier it active
         return tierId;
