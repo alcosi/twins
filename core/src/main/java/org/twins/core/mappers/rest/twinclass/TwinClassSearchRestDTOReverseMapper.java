@@ -9,6 +9,8 @@ import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 
+import java.util.Set;
+
 import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
 @Component
@@ -55,6 +57,9 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
     }
 
     public HierarchySearch mapHierarchySearchDto(HierarchySearchDTOv1 dtoV1) {
+        if (dtoV1 == null) {
+            return new HierarchySearch(Set.of(), Set.of(), 0);
+        }
         return new HierarchySearch(dtoV1.twinClassIdList, dtoV1.twinClassIdExcludeList, dtoV1.depth);
     }
 }

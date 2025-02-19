@@ -4,9 +4,12 @@ create or replace function ltree_get_parent_uuid(ltree_root_val ltree, depth_val
     returns null on null input
 as
 $$
-SELECT DISTINCT replace(ltree2text(subpath(ltree_root_val, nlevel(ltree_root_val) - lvl, 1)), '_',
+with generated_levels as (select nlevel(ltree_root_val) - lvl as position
+                          FROM generate_series(2, depth_val + 1) AS lvl),
+     filter_negative as (select g.position from generated_levels g where g.position >= 0)
+SELECT DISTINCT replace(ltree2text(subpath(ltree_root_val, f.position, 1)), '_',
                         '-')::uuid AS parent_id
-FROM generate_series(1, depth_val) AS lvl;
+FROM filter_negative AS f;
 $$;
 
 -- create or replace function ltree_get_parent_uuid_array(ltree_root_val ltree,depth_val integer) returns  uuid[]

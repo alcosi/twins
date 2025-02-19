@@ -1,6 +1,5 @@
 package org.twins.core.dao.specifications;
 
-import io.hypersistence.utils.hibernate.type.array.UUIDArrayType;
 import jakarta.persistence.criteria.*;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.Range;
@@ -8,7 +7,6 @@ import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ArrayUtils;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
-import org.hibernate.query.TypedParameterValue;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.jpa.domain.Specification;
 import org.twins.core.dao.twin.*;
@@ -199,7 +197,7 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
             if (org.cambium.common.util.CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
             var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
-            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(0, preparedDepthLimit));
+            var preparedIds = LTreeUtils.findChildsLQuery(ids.stream().map(UUID::toString).collect(Collectors.toList()), Range.of(1, preparedDepthLimit));
             Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
             Predicate idPredicate;
             var ltreeIsInFunction = cb.function("hierarchy_check_lquery", Boolean.class, ltreePath, cb.literal(preparedIds));
@@ -218,30 +216,31 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
 
     public static <T> Specification<T> checkExtendsTwinClassParents(Collection<UUID> ids, boolean not,
                                                                     boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, twinClassFieldPath, "ltree_get_extends_parent_uuid");
+        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, "ltree_get_extends_parent_uuid", twinClassFieldPath);
     }
 
     public static <T> Specification<T> checkHeadTwinClassParents(Collection<UUID> ids, boolean not,
                                                                  boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, twinClassFieldPath, "ltree_get_extends_parent_uuid");
+        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, "ltree_get_head_parent_uuid", twinClassFieldPath);
     }
 
-    protected static <T> @NotNull Specification<T> checkTwinClassParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String[] ltreeFieldPath, String functionName) {
+    protected static <T> @NotNull Specification<T> checkTwinClassParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String functionName, String... ltreeFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
             var preparedDepthLimit = depthLimit == null ? 1 : depthLimit;
-            var typedIds = new TypedParameterValue(UUIDArrayType.INSTANCE, ids);
-            Path<String> ltreePath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, ltreeFieldPath);
-            var ltreeIsInFunction = cb.function(functionName, UUID.class, cb.literal(typedIds), cb.literal(preparedDepthLimit));
+            Path<UUID> classIdPath = getFieldPath(root, includeNullValues ? JoinType.LEFT : JoinType.INNER, concatArray(ltreeFieldPath, TwinClassEntity.Fields.id));
+            Subquery<UUID> subquery = query.subquery(UUID.class);
+
+            subquery.select(cb.function(functionName, UUID.class, cb.literal(ids.toArray(new UUID[0])), cb.literal(preparedDepthLimit)));
             Predicate idPredicate;
             if (not) {
-                idPredicate = cb.in(ltreeIsInFunction);
+                idPredicate = cb.not(classIdPath.in(subquery));
             } else {
-                idPredicate = cb.in(ltreeIsInFunction);
+                idPredicate = classIdPath.in(subquery);
             }
             if (includeNullValues) {
-                return cb.or(idPredicate, ltreePath.isNull());
+                return cb.or(idPredicate, classIdPath.isNull());
             } else {
                 return idPredicate;
             }
