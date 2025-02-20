@@ -26,6 +26,8 @@ import java.util.function.Function;
 public class PermissionGrantAssigneePropagationService extends EntitySecureFindServiceImpl<PermissionGrantAssigneePropagationEntity> {
     @Getter
     private final PermissionGrantAssigneePropagationRepository repository;
+    private final PermissionSchemaService permissionSchemaService;
+    private final PermissionService permissionService;
     private final AuthService authService;
 
     @Override
@@ -52,13 +54,15 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
     public boolean validateEntity(PermissionGrantAssigneePropagationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
             switch (entityValidateMode) {
                 case beforeSave:
-
+                    if (entity.getPermissionSchema() == null || !entity.getPermissionSchema().getId().equals(entity.getPermissionSchemaId()))
+                        entity.setPermissionSchema(permissionSchemaService.findEntitySafe(entity.getPermissionSchemaId()));
+                    if (entity.getPermission() == null || !entity.getPermission().getId().equals(entity.getPermissionId()))
+                        entity.setPermission(permissionService.findEntitySafe(entity.getPermissionId()));
             }
         return true;
     }
 
     public PermissionGrantAssigneePropagationEntity createPermissionGrantAssigneePropagationEntity(PermissionGrantAssigneePropagationEntity entity) throws ServiceException {
-
+       return saveSafe(entity);
     }
 }
-2
