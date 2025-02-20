@@ -16,7 +16,7 @@ public class FactoryBranchSaveDTOReverseMapper extends RestSimpleDTOMapper<Facto
         dst
                 .setTwinFactoryConditionSetId(src.getFactoryConditionSetId())
                 .setTwinFactoryConditionInvert(src.getFactoryConditionSetInvert())
-                .setActive(src.isActive())
+                .setActive(src.getActive())
                 .setNextTwinFactoryId(src.getNextFactoryId())
                 .setDescription(src.getDescription());
     }

@@ -21,10 +21,10 @@ public class FactoryBranchDTOv1 {
     public UUID factoryConditionSetId;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean factoryConditionSetInvert;
+    public Boolean factoryConditionSetInvert;
 
     @Schema(description = "active", example = DTOExamples.BOOLEAN_TRUE)
-    public boolean active;
+    public Boolean active;
 
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
     public UUID nextFactoryId;
