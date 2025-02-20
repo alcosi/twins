@@ -1,4 +1,7 @@
-create or replace function ltree_get_parent_uuid(ltree_root_val ltree, depth_val integer) returns setof uuid
+-- This function, ltree_of_uuids_get_parents, extracts parent UUIDs from an ltree path by iterating up to a specified depth.
+-- It generates levels based on the given depth, filters out invalid positions, and retrieves distinct parent UUIDs by extracting subpaths
+-- at the computed positions. The function ensures safe execution, supports parallelism, and returns NULL for NULL input values.
+create or replace function ltree_of_uuids_get_parents(ltree_root_val ltree, depth_val integer) returns setof uuid
     language sql
     immutable parallel safe
     returns null on null input
@@ -22,22 +25,24 @@ $$;
 -- $$;
 
 
-create or replace function ltree_get_head_parent_uuid(ids_val uuid[], depth_val integer) returns setof uuid
+create or replace function twin_class_head_hierarchy_get_parent_ids(ids_val uuid[], depth_val integer) returns setof uuid
     language sql
+    immutable parallel safe
     returns null on null input
 as
 $$
-SELECT ltree_get_parent_uuid(c.head_hierarchy_tree, depth_val)
+SELECT ltree_of_uuids_get_parents(c.head_hierarchy_tree, depth_val)
 from twin_class c
 where c.id = any (ids_val::uuid[])
 $$;
 
-create or replace function ltree_get_extends_parent_uuid(ids_val uuid[], depth_val integer) returns setof uuid
+create or replace function twin_class_extends_hierarchy_get_parent_ids(ids_val uuid[], depth_val integer) returns setof uuid
     language sql
+    immutable parallel safe
     returns null on null input
 as
 $$
-SELECT ltree_get_parent_uuid(c.extends_hierarchy_tree, depth_val)
+SELECT ltree_of_uuids_get_parents(c.extends_hierarchy_tree, depth_val)
 from twin_class c
 where c.id = any (ids_val::uuid[])
 $$;

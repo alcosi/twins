@@ -20,4 +20,11 @@ public class HierarchySearchRestDTOReverseMapper extends RestSimpleDTOMapper<Hie
                 .setIdExcludeList(convertToSetSafe(src.getIdExcludeList()))
                 .setDepth(src.getDepth());
     }
+
+    @Override
+    public HierarchySearch convert(HierarchySearchDTOv1 src, MapperContext mapperContext) throws Exception {
+        if (src == null)
+            return HierarchySearch.EMPTY;
+        return super.convert(src, mapperContext);
+    }
 }

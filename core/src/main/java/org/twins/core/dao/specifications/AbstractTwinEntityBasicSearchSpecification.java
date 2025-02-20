@@ -216,15 +216,15 @@ public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends Comm
 
     public static <T> Specification<T> checkExtendsTwinClassParents(Collection<UUID> ids, boolean not,
                                                                     boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, "ltree_get_extends_parent_uuid", twinClassFieldPath);
+        return checkTwinClassHierarchyParent(ids, not, includeNullValues, depthLimit, "twin_class_extends_hierarchy_get_parent_ids", twinClassFieldPath);
     }
 
     public static <T> Specification<T> checkHeadTwinClassParents(Collection<UUID> ids, boolean not,
                                                                  boolean includeNullValues, Integer depthLimit, final String... twinClassFieldPath) {
-        return checkTwinClassParent(ids, not, includeNullValues, depthLimit, "ltree_get_head_parent_uuid", twinClassFieldPath);
+        return checkTwinClassHierarchyParent(ids, not, includeNullValues, depthLimit, "twin_class_head_hierarchy_get_parent_ids", twinClassFieldPath);
     }
 
-    protected static <T> @NotNull Specification<T> checkTwinClassParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String functionName, String... ltreeFieldPath) {
+    protected static <T> @NotNull Specification<T> checkTwinClassHierarchyParent(Collection<UUID> ids, boolean not, boolean includeNullValues, Integer depthLimit, String functionName, String... ltreeFieldPath) {
         return (root, query, cb) -> {
             if (CollectionUtils.isEmpty(ids))
                 return cb.conjunction();
