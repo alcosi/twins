@@ -79,9 +79,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
     }
 
     public TwinFactoryPipelineEntity createFactoryPipeline(TwinFactoryPipelineEntity entity) throws ServiceException {
-        entity.setId(UUID.randomUUID());
-        validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
-        return repository.save(entity);
+        return saveSafe(entity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
@@ -99,11 +97,7 @@ public class FactoryPipelineService extends EntitySecureFindServiceImpl<TwinFact
         updateTemplateTwinId(dbEntity, entity.getTemplateTwinId(), changesHelper);
         updateDescription(dbEntity, entity.getDescription(), changesHelper);
 
-        if (changesHelper.hasChanges()) {
-            validateEntity(dbEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            dbEntity = entitySmartService.saveAndLogChanges(dbEntity, repository, changesHelper);
-        }
-        return dbEntity;
+        return updateSafe(dbEntity, changesHelper);
     }
 
     private void updateInputTwinClassId(TwinFactoryPipelineEntity dbEntity, UUID newInputTwinClassId,
