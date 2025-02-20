@@ -6,7 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.cambium.common.EasyLoggable;
 import org.cambium.common.exception.ServiceException;
 import org.cambium.common.util.ChangesHelper;
+import org.cambium.common.util.MapUtils;
 import org.cambium.featurer.FeaturerService;
+import org.cambium.featurer.dao.FeaturerEntity;
 import org.cambium.service.EntitySecureFindServiceImpl;
 import org.cambium.service.EntitySmartService;
 import org.springframework.context.annotation.Lazy;
@@ -16,8 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.twins.core.dao.domain.DomainEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierEntity;
 import org.twins.core.dao.factory.TwinFactoryMultiplierRepository;
+import org.twins.core.dao.twin.TwinFieldDataListEntity;
+import org.twins.core.dao.twin.TwinFieldSimpleEntity;
+import org.twins.core.dao.twin.TwinFieldUserEntity;
+import org.twins.core.dao.twinclass.TwinClassFieldEntity;
+import org.twins.core.exception.ErrorCodeTwins;
 import org.twins.core.featurer.factory.multiplier.Multiplier;
+import org.twins.core.featurer.fieldtyper.FieldTyper;
 import org.twins.core.service.auth.AuthService;
+import org.twins.core.service.twin.TwinService;
 import org.twins.core.service.twinclass.TwinClassService;
 
 import java.util.HashMap;
@@ -35,6 +44,8 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     private final AuthService authService;
     private final FeaturerService featurerService;
     private final TwinFactoryService twinFactoryService;
+    @Lazy
+    private final TwinService twinService;
 
     @Override
     public CrudRepository<TwinFactoryMultiplierEntity, UUID> entityRepository() {
@@ -72,27 +83,20 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
 
     public TwinFactoryMultiplierEntity createFactoryMultiplier(TwinFactoryMultiplierEntity entity) throws ServiceException {
         entity.setId(UUID.randomUUID());
-        validateEntityAndThrow(entity, EntitySmartService.EntityValidateMode.beforeSave);
-        return repository.save(entity);
+        return saveSafe(entity);
     }
 
     @Transactional(rollbackFor = Throwable.class)
     public TwinFactoryMultiplierEntity updateFactoryMultiplier(TwinFactoryMultiplierEntity multiplierUpdate) throws ServiceException {
         TwinFactoryMultiplierEntity dbMultiplierEntity = findEntitySafe(multiplierUpdate.getId());
-        multiplierUpdate.setId(dbMultiplierEntity.getId());
         ChangesHelper changesHelper = new ChangesHelper();
 
         updateInputTwinClassId(dbMultiplierEntity, multiplierUpdate.getInputTwinClassId(), changesHelper);
-        updateMultiplierFeaturerId(dbMultiplierEntity, multiplierUpdate.getMultiplierFeaturerId(), changesHelper);
-        updateMultiplierParams(dbMultiplierEntity, multiplierUpdate.getMultiplierParams(), changesHelper);
+        updateMultiplierFeaturerId(dbMultiplierEntity, multiplierUpdate.getMultiplierFeaturerId(), multiplierUpdate.getMultiplierParams(), changesHelper);
         updateActive(dbMultiplierEntity, multiplierUpdate.getActive(), changesHelper);
         updateDescription(dbMultiplierEntity, multiplierUpdate.getDescription(), changesHelper);
 
-        if (changesHelper.hasChanges()) {
-            validateEntity(dbMultiplierEntity, EntitySmartService.EntityValidateMode.beforeSave);
-            dbMultiplierEntity = entitySmartService.saveAndLogChanges(dbMultiplierEntity, repository, changesHelper);
-        }
-        return dbMultiplierEntity;
+        return updateSafe(dbMultiplierEntity, changesHelper);
     }
 
     private void updateInputTwinClassId(TwinFactoryMultiplierEntity dbMultiplierEntity, UUID newInputTwinClassId,
@@ -102,18 +106,27 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
         dbMultiplierEntity.setInputTwinClassId(newInputTwinClassId);
     }
 
-    private void updateMultiplierFeaturerId(TwinFactoryMultiplierEntity dbMultiplierEntity, Integer newMultiplierFeaturerId,
-                                            ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbMultiplierEntity.getMultiplierFeaturerId(), newMultiplierFeaturerId))
-            return;
-        dbMultiplierEntity.setMultiplierFeaturerId(newMultiplierFeaturerId);
-    }
-
-    private void updateMultiplierParams(TwinFactoryMultiplierEntity dbMultiplierEntity, HashMap<String, String> newMultiplierParams,
-                                        ChangesHelper changesHelper) {
-        if (!changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbMultiplierEntity.getMultiplierParams(), newMultiplierParams))
-            return;
-        dbMultiplierEntity.setMultiplierParams(newMultiplierParams);
+    public void updateMultiplierFeaturerId(TwinFactoryMultiplierEntity dbMultiplierEntity, Integer newFeaturerId, HashMap<String, String> newFeaturerParams, ChangesHelper changesHelper) throws ServiceException {
+        FeaturerEntity newMultiplierFeaturer = null;
+        if (newFeaturerId == null || newFeaturerId == 0) {
+            if (MapUtils.isEmpty(newFeaturerParams))
+                return; //nothing was changed
+            else
+                newFeaturerId = dbMultiplierEntity.getMultiplierFeaturerId(); // only params where changed
+        }
+        if (!MapUtils.areEqual(dbMultiplierEntity.getMultiplierParams(), newFeaturerParams)) {
+            newMultiplierFeaturer = featurerService.checkValid(newFeaturerId, newFeaturerParams, Multiplier.class);
+            changesHelper.add(TwinFactoryMultiplierEntity.Fields.multiplierParams, dbMultiplierEntity.getMultiplierParams(), newFeaturerParams);
+            dbMultiplierEntity
+                    .setMultiplierParams(newFeaturerParams);
+        }
+        if (changesHelper.isChanged(TwinFactoryMultiplierEntity.Fields.multiplierFeaturerId, dbMultiplierEntity.getMultiplierFeaturerId(), newFeaturerId)) {
+            if (newMultiplierFeaturer == null)
+                newMultiplierFeaturer = featurerService.getFeaturerEntity(newFeaturerId);
+            dbMultiplierEntity
+                    .setMultiplierFeaturerId(newMultiplierFeaturer.getId())
+                    .setMultiplierFeaturer(newMultiplierFeaturer);
+        }
     }
 
     private void updateActive(TwinFactoryMultiplierEntity dbMultiplierEntity, boolean newActive,
