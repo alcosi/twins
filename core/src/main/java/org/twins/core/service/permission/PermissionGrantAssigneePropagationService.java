@@ -50,6 +50,10 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
 
     @Override
     public boolean validateEntity(PermissionGrantAssigneePropagationEntity entity, EntitySmartService.EntityValidateMode entityValidateMode) throws ServiceException {
-        return !isEntityReadDenied(entity,EntitySmartService.ReadPermissionCheckMode.none);
+            switch (entityValidateMode) {
+                case beforeSave:
+
+            }
+        return true;
     }
 }

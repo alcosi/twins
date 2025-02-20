@@ -2,6 +2,7 @@ package org.twins.core.dao.permission;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 import org.twins.core.dao.twin.TwinStatusEntity;
 import org.twins.core.dao.twinclass.TwinClassEntity;
@@ -12,6 +13,7 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
 @Table(name = "permission_grant_assignee_propagation")
 public class PermissionGrantAssigneePropagationEntity {
