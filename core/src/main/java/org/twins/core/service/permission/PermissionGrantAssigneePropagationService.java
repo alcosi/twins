@@ -56,4 +56,9 @@ public class PermissionGrantAssigneePropagationService extends EntitySecureFindS
             }
         return true;
     }
+
+    public PermissionGrantAssigneePropagationEntity createPermissionGrantAssigneePropagationEntity(PermissionGrantAssigneePropagationEntity entity) throws ServiceException {
+
+    }
 }
+2
