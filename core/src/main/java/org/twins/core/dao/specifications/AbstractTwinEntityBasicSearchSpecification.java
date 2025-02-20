@@ -3,6 +3,7 @@ package org.twins.core.dao.specifications;
 import jakarta.persistence.criteria.*;
 import org.apache.commons.collections4.MapUtils;
 import org.cambium.common.exception.ServiceException;
+import org.cambium.common.util.ArrayUtils;
 import org.cambium.common.util.CollectionUtils;
 import org.cambium.common.util.LTreeUtils;
 import org.springframework.data.jpa.domain.Specification;
@@ -17,6 +18,19 @@ import static org.cambium.common.util.ArrayUtils.concatArray;
 import static org.cambium.common.util.SpecificationUtils.getPredicate;
 
 public abstract class AbstractTwinEntityBasicSearchSpecification<T> extends CommonSpecification<T> {
+
+    public static <T> Specification<T> checkExtendsTwinClassChilds(Collection<UUID> ids, boolean not,
+                                                                   boolean includeNullValues, Integer depthLimit, final String... twinFieldPath) {
+        return checkHierarchyChilds(ids, not, includeNullValues, depthLimit, ArrayUtils.concatArray(twinFieldPath, TwinEntity.Fields.hierarchyTree));
+    }
+
+
+    public static <T> Specification<T> checkExtendsTwinClassParents(Collection<UUID> ids, boolean not,
+                                                                    boolean includeNullValues, Integer depthLimit, final String... twinFieldPath) {
+        return checkHierarchyParent(ids, not, includeNullValues, depthLimit, TwinEntity.Fields.hierarchyTree, TwinEntity.Fields.id, TwinEntity.class, twinFieldPath);
+    }
+
+
 
     public static <T> Specification<T> createTwinEntityBasicSearchSpecification(TwinSearch twinSearch, UUID userId, String... twinsEntityFieldPath) throws ServiceException {
 
