@@ -14,7 +14,7 @@ import java.util.UUID;
 @EqualsAndHashCode(callSuper = false)
 @Schema(name = "FactoryPipelineUpdateRqV1")
 public class FactoryPipelineUpdateRqDTOv1 extends Request {
-    @Schema(description = "factory pipeline save")
+    @Schema(description = "factory pipeline update")
     public FactoryPipelineUpdateDTOv1 factoryPipelineUpdateDTO;
 
 }
