@@ -21,7 +21,7 @@ public class FactoryBranchSaveRqDTOv1 extends Request {
     public Boolean factoryConditionSetInvert;
 
     @Schema(description = "factory condition set invert", example = DTOExamples.BOOLEAN_TRUE)
-    public Boolean active;
+    public boolean active;
 
     @Schema(description = "next factory id", example = DTOExamples.FACTORY_ID)
     public UUID nextFactoryId;
