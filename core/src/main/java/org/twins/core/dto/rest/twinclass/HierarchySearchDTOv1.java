@@ -4,7 +4,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.Accessors;
-import org.twins.core.dto.rest.Request;
 
 import java.util.Set;
 import java.util.UUID;
@@ -12,12 +11,14 @@ import java.util.UUID;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = false)
-@Schema(name = "TwinClassListRqV1")
-public class HierarchySearchDTOv1 extends Request {
+@Schema(name = "HierarchySearchV1")
+public class HierarchySearchDTOv1  {
     @Schema(description = "twin class id list")
-    public Set<UUID> twinClassIdList;
+    public Set<UUID> idList;
+
     @Schema(description = "twin class id exclude list")
-    public Set<UUID> twinClassIdExcludeList;
+    public Set<UUID> idExcludeList;
+
     @Schema(description = "Search depth")
     public Integer depth = 1;
 }

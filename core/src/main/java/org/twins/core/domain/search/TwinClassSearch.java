@@ -20,10 +20,10 @@ public class TwinClassSearch {
     private Set<String> descriptionI18nLikeList;
     private Set<String> descriptionI18nNotLikeList;
 
-    public HierarchySearch headHierarchyChildsForTwinClassIdList;
-    public HierarchySearch headHierarchyParentsForTwinClassIdList;
-    public HierarchySearch extendsHierarchyChildsForTwinClassIdList;
-    public HierarchySearch extendsHierarchyParentsForTwinClassIdList;
+    private HierarchySearch headHierarchyChildsForTwinClassSearch;
+    private HierarchySearch headHierarchyParentsForTwinClassSearch;
+    private HierarchySearch extendsHierarchyChildsForTwinClassSearch;
+    private HierarchySearch extendsHierarchyParentsForTwinClassSearch;
     private Set<TwinClassEntity.OwnerType> ownerTypeList;
     private Set<TwinClassEntity.OwnerType> ownerTypeExcludeList;
     private Set<UUID> markerDatalistIdList;

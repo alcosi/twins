@@ -1,21 +1,21 @@
 package org.twins.core.domain.search;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.experimental.Accessors;
 import lombok.experimental.FieldNameConstants;
 
 import java.util.Set;
 import java.util.UUID;
 
 @Data
+@Accessors(chain = true)
 @FieldNameConstants
-@AllArgsConstructor
 public class HierarchySearch {
-    private Set<UUID> twinClassIdList;
-    private Set<UUID> twinClassIdExcludeList;
+    private Set<UUID> idList;
+    private Set<UUID> idExcludeList;
     private Integer depth;
 
     public Boolean isEmpty() {
-        return (twinClassIdList == null || twinClassIdList.isEmpty()) && (twinClassIdExcludeList == null || twinClassIdExcludeList.isEmpty());
+        return (idList == null || idList.isEmpty()) && (idExcludeList == null || idExcludeList.isEmpty());
     }
 }

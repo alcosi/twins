@@ -2,14 +2,11 @@ package org.twins.core.mappers.rest.twinclass;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.twins.core.domain.search.HierarchySearch;
 import org.twins.core.domain.search.TwinClassSearch;
-import org.twins.core.dto.rest.twinclass.HierarchySearchDTOv1;
 import org.twins.core.dto.rest.twinclass.TwinClassSearchRqDTOv1;
 import org.twins.core.mappers.rest.RestSimpleDTOMapper;
+import org.twins.core.mappers.rest.common.HierarchySearchRestDTOReverseMapper;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
-
-import java.util.Set;
 
 import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 
@@ -17,16 +14,18 @@ import static org.cambium.common.util.CollectionUtils.convertToSetSafe;
 @RequiredArgsConstructor
 public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<TwinClassSearchRqDTOv1, TwinClassSearch> {
 
+    private final HierarchySearchRestDTOReverseMapper hierarchySearchRestDTOReverseMapper;
+
     @Override
     public void map(TwinClassSearchRqDTOv1 src, TwinClassSearch dst, MapperContext mapperContext) throws Exception {
         dst
                 .setTwinClassIdList(convertToSetSafe(src.getTwinClassIdList()))
                 .setTwinClassIdExcludeList(convertToSetSafe(src.getTwinClassIdExcludeList()))
                 .setTwinClassKeyLikeList(convertToSetSafe(src.getTwinClassKeyLikeList()))
-                .setExtendsHierarchyChildsForTwinClassIdList(mapHierarchySearchDto(src.getExtendsHierarchyChildsForTwinClassIdList()))
-                .setExtendsHierarchyParentsForTwinClassIdList(mapHierarchySearchDto(src.getExtendsHierarchyParentsForTwinClassIdList()))
-                .setHeadHierarchyChildsForTwinClassIdList(mapHierarchySearchDto(src.getHeadHierarchyChildsForTwinClassIdList()))
-                .setHeadHierarchyParentsForTwinClassIdList(mapHierarchySearchDto(src.getHeadHierarchyParentsForTwinClassIdList()))
+                .setExtendsHierarchyChildsForTwinClassSearch(hierarchySearchRestDTOReverseMapper.convert(src.getExtendsHierarchyChildsForTwinClassSearch()))
+                .setExtendsHierarchyParentsForTwinClassSearch(hierarchySearchRestDTOReverseMapper.convert(src.getExtendsHierarchyParentsForTwinClassSearch()))
+                .setHeadHierarchyChildsForTwinClassSearch(hierarchySearchRestDTOReverseMapper.convert(src.getHeadHierarchyChildsForTwinClassSearch()))
+                .setHeadHierarchyParentsForTwinClassSearch(hierarchySearchRestDTOReverseMapper.convert(src.getHeadHierarchyParentsForTwinClassSearch()))
                 .setOwnerTypeList(convertToSetSafe(src.getOwnerTypeList()))
                 .setOwnerTypeExcludeList(convertToSetSafe(src.getOwnerTypeExcludeList()))
                 .setCreatePermissionIdList(src.getCreatePermissionIdList())
@@ -54,12 +53,5 @@ public class TwinClassSearchRestDTOReverseMapper extends RestSimpleDTOMapper<Twi
                 .setViewPermissionIdList(convertToSetSafe(src.getViewPermissionIdList()))
                 .setViewPermissionIdExcludeList(convertToSetSafe(src.getViewPermissionIdExcludeList()))
         ;
-    }
-
-    public HierarchySearch mapHierarchySearchDto(HierarchySearchDTOv1 dtoV1) {
-        if (dtoV1 == null) {
-            return new HierarchySearch(Set.of(), Set.of(), 0);
-        }
-        return new HierarchySearch(dtoV1.twinClassIdList, dtoV1.twinClassIdExcludeList, dtoV1.depth);
     }
 }

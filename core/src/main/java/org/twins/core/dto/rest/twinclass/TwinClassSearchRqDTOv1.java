@@ -38,15 +38,18 @@ public class TwinClassSearchRqDTOv1 extends Request {
     @Schema(description = "description i18n exclude keyword list(OR)")
     public Set<String> descriptionI18nNotLikeList;
 
-
     @Schema(description = "Hierarchy search head childs")
-    public HierarchySearchDTOv1 headHierarchyChildsForTwinClassIdList;
+    public HierarchySearchDTOv1 headHierarchyChildsForTwinClassSearch;
+
     @Schema(description = "Hierarchy search head parents")
-    public HierarchySearchDTOv1 headHierarchyParentsForTwinClassIdList;
+    public HierarchySearchDTOv1 headHierarchyParentsForTwinClassSearch;
+
     @Schema(description = "Hierarchy search extands childs")
-    public HierarchySearchDTOv1 extendsHierarchyChildsForTwinClassIdList;
+    public HierarchySearchDTOv1 extendsHierarchyChildsForTwinClassSearch;
+
     @Schema(description = "Hierarchy search extands parents")
-    public HierarchySearchDTOv1 extendsHierarchyParentsForTwinClassIdList;
+    public HierarchySearchDTOv1 extendsHierarchyParentsForTwinClassSearch;
+
     @Schema(description = "owner type list")
     public Set<TwinClassEntity.OwnerType> ownerTypeList;
 
