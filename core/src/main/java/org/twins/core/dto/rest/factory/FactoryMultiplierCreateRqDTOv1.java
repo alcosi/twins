@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "FactoryMultiplierCreateRqV1")
 public class FactoryMultiplierCreateRqDTOv1 extends Request {
     @Schema(description = "factory multiplier save")
-    public FactoryMultiplierSaveDTOv1 factoryMultiplierSaveDTO;
+    public FactoryMultiplierCreateDTOv1 factoryMultiplierCreateDTO;
 }
