@@ -82,7 +82,6 @@ public class FactoryMultiplierService extends EntitySecureFindServiceImpl<TwinFa
     }
 
     public TwinFactoryMultiplierEntity createFactoryMultiplier(TwinFactoryMultiplierEntity entity) throws ServiceException {
-        entity.setId(UUID.randomUUID());
         return saveSafe(entity);
     }
 
