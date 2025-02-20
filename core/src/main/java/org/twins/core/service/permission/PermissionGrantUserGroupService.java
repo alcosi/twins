@@ -92,4 +92,10 @@ public class PermissionGrantUserGroupService extends EntitySecureFindServiceImpl
         }
         setFunction.accept(dbEntity, updateValue);
     }
+
+    @Transactional
+    public void deleteById(UUID id) throws ServiceException {
+        //todo need validate???
+        entitySmartService.deleteAndLog(id, repository);
+    }
 }

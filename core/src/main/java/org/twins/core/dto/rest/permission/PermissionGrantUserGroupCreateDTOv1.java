@@ -8,6 +8,6 @@ import lombok.experimental.Accessors;
 @Data
 @Accessors(chain = true)
 @EqualsAndHashCode(callSuper = true)
-@Schema(name = "PermissionGrantUserGroupCreateRsV1")
-public class PermissionGrantUserGroupCreateRsDTOv1 extends PermissionGrantUserGroupSaveRsDTOv1 {
+@Schema(name = "PermissionGrantUserGroupCreateV1")
+public class PermissionGrantUserGroupCreateDTOv1 extends PermissionGrantUserGroupSaveDTOv1 {
 }

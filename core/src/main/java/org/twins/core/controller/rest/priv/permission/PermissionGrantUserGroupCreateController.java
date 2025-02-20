@@ -20,7 +20,7 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupCreateRqDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantUserGroupCreateRsDTOv1;
+import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSaveRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupCreateRestReverseDTOMapper;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapperV2;
@@ -43,13 +43,13 @@ public class PermissionGrantUserGroupCreateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PermissionGrantUserGroupCreateRsDTOv1.class))}),
+                    @Schema(implementation = PermissionGrantUserGroupSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PostMapping(value = "/private/permission_grant/user_group/v1")
     public ResponseEntity<?> permissionGrantUserGroupCreateV1(
-            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupCreateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupSaveRsDTOv1.class) MapperContext mapperContext,
             @RequestBody PermissionGrantUserGroupCreateRqDTOv1 request) {
-        PermissionGrantUserGroupCreateRsDTOv1 rs = new PermissionGrantUserGroupCreateRsDTOv1();
+        PermissionGrantUserGroupSaveRsDTOv1 rs = new PermissionGrantUserGroupSaveRsDTOv1();
         try {
             PermissionGrantUserGroupEntity entity = permissionGrantUserGroupCreateRestReverseDTOMapper.convert(request, mapperContext);
             entity = permissionGrantUserGroupService.createPermissionGrantUserGroup(entity);

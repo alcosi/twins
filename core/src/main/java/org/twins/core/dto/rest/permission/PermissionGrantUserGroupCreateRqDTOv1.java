@@ -12,5 +12,5 @@ import org.twins.core.dto.rest.Request;
 @Schema(name = "PermissionGrantUserGroupCreateRqV1")
 public class PermissionGrantUserGroupCreateRqDTOv1 extends Request {
     @Schema(description = "permission grant user group")
-    public PermissionGrantUserGroupSaveDTOv1 permissionGrantUserGroup;
+    public PermissionGrantUserGroupCreateDTOv1 permissionGrantUserGroupCreate;
 }

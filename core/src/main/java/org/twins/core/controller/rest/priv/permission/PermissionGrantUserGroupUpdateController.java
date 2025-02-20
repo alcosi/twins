@@ -18,8 +18,8 @@ import org.twins.core.controller.rest.annotation.MapperContextBinding;
 import org.twins.core.controller.rest.annotation.ParametersApiUserHeaders;
 import org.twins.core.dao.permission.PermissionGrantUserGroupEntity;
 import org.twins.core.dto.rest.DTOExamples;
+import org.twins.core.dto.rest.permission.PermissionGrantUserGroupSaveRsDTOv1;
 import org.twins.core.dto.rest.permission.PermissionGrantUserGroupUpdateRqDTOv1;
-import org.twins.core.dto.rest.permission.PermissionGrantUserGroupUpdateRsDTOv1;
 import org.twins.core.mappers.rest.mappercontext.MapperContext;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupRestDTOMapperV2;
 import org.twins.core.mappers.rest.permission.PermissionGrantUserGroupUpdateRestReverseDTOMapper;
@@ -43,17 +43,18 @@ public class PermissionGrantUserGroupUpdateController extends ApiController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", content = {
                     @Content(mediaType = "application/json", schema =
-                    @Schema(implementation = PermissionGrantUserGroupUpdateRsDTOv1.class))}),
+                    @Schema(implementation = PermissionGrantUserGroupSaveRsDTOv1.class))}),
             @ApiResponse(responseCode = "401", description = "Access is denied")})
     @PutMapping(value = "/private/permission_grant/user_group/{permissionGrantUserGroupId}/v1")
     public ResponseEntity<?> permissionUpdateV1(
-            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupUpdateRsDTOv1.class) MapperContext mapperContext,
+            @MapperContextBinding(roots = PermissionGrantUserGroupRestDTOMapperV2.class, response = PermissionGrantUserGroupSaveRsDTOv1.class) MapperContext mapperContext,
             @Parameter(example = DTOExamples.PERMISSION_GRANT_USER_GROUP_ID) @PathVariable UUID permissionGrantUserGroupId,
             @RequestBody PermissionGrantUserGroupUpdateRqDTOv1 request) {
-        PermissionGrantUserGroupUpdateRsDTOv1 rs = new PermissionGrantUserGroupUpdateRsDTOv1();
+        PermissionGrantUserGroupSaveRsDTOv1 rs = new PermissionGrantUserGroupSaveRsDTOv1();
         try {
-            PermissionGrantUserGroupEntity entity = permissionGrantUserGroupUpdateRestReverseDTOMapper.convert(request);
-            entity = permissionGrantUserGroupService.updatePermissionGrantUserGroup(entity.setId(permissionGrantUserGroupId));
+            request.getPermissionGrantUserGroupUpdate().setId(permissionGrantUserGroupId);
+            PermissionGrantUserGroupEntity entity = permissionGrantUserGroupUpdateRestReverseDTOMapper.convert(request.getPermissionGrantUserGroupUpdate());
+            entity = permissionGrantUserGroupService.updatePermissionGrantUserGroup(entity);
             rs
                     .setPermissionGrantUserGroup(permissionGrantUserGroupRestDTOMapperV2.convert(entity))
                     .setRelatedObjects(relatedObjectsRestDTOConverter.convert(mapperContext));
